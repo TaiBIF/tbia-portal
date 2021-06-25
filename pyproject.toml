@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "tbia-portal"
+version = "0.1.0"
+description = ""
+authors = ["jinyinglee <45194511+jinyinglee@users.noreply.github.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^3.2.4"
+django-environ = "^0.4.5"
+psycopg2 = "^2.9.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
