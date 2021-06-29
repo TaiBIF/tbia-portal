@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from .models import User
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.contrib import messages
 
 
 # https://www.youtube.com/watch?v=FFLp_FmbKj0&list=PLx-q4INfd95ESFMQ1Je3Z0gFdQLhrEuY7&index=22
@@ -34,7 +35,6 @@ def register(request):
 
 @auth_user_should_not_access
 def login_user(request):
-    print('hi')
     if request.method == 'POST':
         context = {'data': request.POST}
         email = request.POST.get('email')
@@ -46,6 +46,7 @@ def login_user(request):
 
         if user:
             login(request, user)
+            return redirect('home')
 
 
         # if user and not user.is_email_verified:
