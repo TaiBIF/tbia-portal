@@ -140,6 +140,7 @@ STATICFILES_DIRS = [os.path.join('static'),]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# login
 AUTH_USER_MODEL = "account.User" 
 AUTHENTICATION_BACKENDS = (
     ('django.contrib.auth.backends.ModelBackend'),
@@ -148,4 +149,7 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/home'
 
-SESSION_COOKIE_AGE = 604800 # a week
+SESSION_COOKIE_AGE = 604800 # automatically logout after a week
+
+# message module
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'

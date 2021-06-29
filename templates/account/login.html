@@ -16,7 +16,6 @@
 {% endblock %}
 
 {% block body %}
-<div class="container" style="padding-top: 50px;">
     <form method="POST" action="{% url 'login' %}" id="login-form">
         {% csrf_token %}
         <div class="row">
@@ -35,7 +34,6 @@
             </div>
         </div>
     </form>
-</div>
 {% endblock %}
 
 {% block script %}
