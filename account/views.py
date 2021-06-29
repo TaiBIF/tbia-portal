@@ -18,7 +18,6 @@ def register(request):
         email = request.POST.get('email')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        password = 'psforregister'
         
         # make sure email is unique
         if User.objects.filter(username=email).exists():
@@ -28,7 +27,6 @@ def register(request):
             return render(request,'account/register.html', context, status=409) # conflict
         
         user=User.objects.create_user(username=email, first_name=first_name, last_name=last_name)
-        user.set_password(password)
         user.save()
         #---- return success message ---#
 
