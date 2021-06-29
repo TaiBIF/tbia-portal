@@ -140,4 +140,10 @@ STATICFILES_DIRS = [os.path.join('static'),]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = "pages.User" 
+AUTH_USER_MODEL = "account.User" 
+AUTHENTICATION_BACKENDS = (
+    ('django.contrib.auth.backends.ModelBackend'),
+)
+
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/home'

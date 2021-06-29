@@ -1,3 +1,20 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
+from django.contrib.auth.admin import UserAdmin
 
-# Register your models here.
+from .models import User
+
+class CustomUserAdmin(UserAdmin):
+    ...
+    fieldsets =  (
+        (None, {'fields': ('username', 'password', 'first_name', 'last_name', 'is_active', 'is_superuser', 'is_email_verified', 'unit', 'role', 'last_login','date_joined','is_staff')}),
+    )
+    add_fieldsets = (
+        (None, {'fields': ('username', 'password', 'first_name', 'last_name', 'is_active', 'is_superuser', 'is_email_verified', 'unit', 'role', 'last_login','date_joined','is_staff')}),
+    )
+    list_filter = ()
+
+
+
+admin.site.register(User, CustomUserAdmin)
+admin.site.unregister(Group)

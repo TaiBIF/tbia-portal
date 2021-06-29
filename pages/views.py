@@ -1,12 +1,25 @@
 from django.http import request
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
-# Create your views here.
+# from .models import User
+
+#             return None
+#         else:# Create your views here.
+
+# from django.contrib.auth import get_user_model
+# from django.contrib.auth.backends import ModelBackend
+
+# class EmailBackend(ModelBackend):
+#     def authenticate(self, request, username=None, password=None, **kwargs):
+#         UserModel = get_user_model()
+#         try:
+#             user = UserModel.objects.get(email=username)
+#         except UserModel.DoesNotExist:
+
+#             if user.check_password(password):
+#                 return user
+#         return None
 
 def home(request):
     return render(request,'pages/home.html')
 
-#https://www.youtube.com/watch?v=FFLp_FmbKj0&list=PLx-q4INfd95ESFMQ1Je3Z0gFdQLhrEuY7&index=22
-# https://www.youtube.com/watch?v=Rbkc-0rqSw8
-def register(request):
-    return render(request,'pages/register.html')
