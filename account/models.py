@@ -47,7 +47,7 @@ class User(AbstractUser):
     email = None
 
     unit_choice = [
-        (None, '無'),
+        ('none', '無'),
         ('taibif', 'TaiBIF'),
         ('tesri', '特生中心'),
         ('tfri', '林試所'),
@@ -59,8 +59,7 @@ class User(AbstractUser):
     unit = models.CharField(
         max_length=20,
         choices=unit_choice,
-        default=None,
-        null=True
+        default='none'
     )
 
     role_choice = [

@@ -12,6 +12,7 @@ from django.urls import reverse
 
 # https://www.youtube.com/watch?v=FFLp_FmbKj0&list=PLx-q4INfd95ESFMQ1Je3Z0gFdQLhrEuY7&index=22
 # https://www.youtube.com/watch?v=Rbkc-0rqSw8
+@auth_user_should_not_access
 def register(request):
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
