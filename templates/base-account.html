@@ -165,18 +165,22 @@
               </li>
             </ul>
           </nav>
-        {% elif user.is_staff %}
+        {% elif user.role in 'uu,ua,de' %}
           <nav class="sidebar card py-2 mb-4">
             <ul class="nav flex-column" id="nav_accordion">
               <li><h3 class="text-center">{{ user.unit }}</h3></li>
               <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> 單位資訊 <i class="bi small bi-caret-down-fill"></i> </a>
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> 單位資訊 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
                 <ul id="menu_item1" class="submenu collapse" data-bs-parent="#nav_accordion">
                   <li><a class="nav-link" href="#">意見回饋紀錄</a></li>
                 </ul>
               </li>
               <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <i class="bi small bi-caret-down-fill"></i> </a>
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
                 <ul id="menu_item2" class="submenu collapse" data-bs-parent="#nav_accordion">
                   <li><a class="nav-link" href="#">新聞發佈 </a></li>
                     <li><a class="nav-link" href="#">活動發佈</a></li>
@@ -189,18 +193,22 @@
               </li>
             </ul>
           </nav>
-        {% elif user.is_system %}
+        {% elif user.role in 'sa,de' %}
           <nav class="sidebar card py-2 mb-4">
             <ul class="nav flex-column" id="nav_accordion">
-              <li><h3 class="text-center">{{ user.unit }}</h3></li>
+              <li><h3 class="text-center">{{ user.get_role_display }}</h3></li>
               <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> 單位資訊 <i class="bi small bi-caret-down-fill"></i> </a>
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> TBIA資訊 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg></i> </a>
                 <ul id="menu_item1" class="submenu collapse" data-bs-parent="#nav_accordion">
                   <li><a class="nav-link" href="#">意見回饋紀錄</a></li>
                 </ul>
               </li>
               <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <i class="bi small bi-caret-down-fill"></i> </a>
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
                 <ul id="menu_item2" class="submenu collapse" data-bs-parent="#nav_accordion">
                   <li><a class="nav-link" href="#">新聞發佈 </a></li>
                     <li><a class="nav-link" href="#">活動發佈</a></li>

@@ -8,8 +8,6 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 
-# Create your views here.
-
 # https://www.youtube.com/watch?v=FFLp_FmbKj0&list=PLx-q4INfd95ESFMQ1Je3Z0gFdQLhrEuY7&index=22
 # https://www.youtube.com/watch?v=Rbkc-0rqSw8
 @auth_user_should_not_access
@@ -80,3 +78,74 @@ def logout_user(request):
 @login_required
 def personal_info(request):
     return render(request, 'account/personal-info.html')
+
+# ---- system ---- #
+@login_required
+def system_feedback(request):
+    return render(request, 'account/system/feedback.html')
+
+
+@login_required
+def system_index(request):
+    return render(request, 'account/system/index.html')
+
+
+@login_required
+def system_resource(request):
+    return render(request, 'account/system/resource.html')
+
+
+@login_required
+def system_review(request):
+    return render(request, 'account/system/review.html')
+
+
+@login_required
+def system_download(request):
+    return render(request, 'account/system/download.html')
+
+
+# ---- unit ---- #
+@login_required
+def unit_feedback(request):
+    return render(request, 'account/unit/feedback.html')
+
+
+@login_required
+def unit_index(request):
+    return render(request, 'account/unit/index.html')
+
+
+@login_required
+def unit_resource(request):
+    return render(request, 'account/unit/resource.html')
+
+
+@login_required
+def unit_review(request):
+    return render(request, 'account/unit/review.html')
+
+
+@login_required
+def unit_download(request):
+    return render(request, 'account/unit/download.html')
+
+
+@login_required
+def unit_event(request):
+    return render(request, 'account/unit/event.html')
+
+
+@login_required
+def unit_info(request):
+    return render(request, 'account/unit/info.html')
+
+
+@login_required
+def unit_news(request):
+    return render(request, 'account/unit/news.html')
+
+
+@login_required
+def unit_project(request):
+    return render(request, 'account/unit/project.html')
