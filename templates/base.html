@@ -114,16 +114,16 @@
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                   <li><a class="dropdown-item" href="#">設定</a></li>
                   <!-- if unit -->
-                  {% if user.is_staff or user.is_superuser %}
+                  {% if user.role in 'uu,ua,de' %}
                   <li><a class="dropdown-item" href="#">單位後台</a></li>
                   {% endif %}
                   <!-- if system -->
-                  {% if user.is_system or user.is_superuser %}
+                  {% if user.role in 'sa,de' %}
                   <li><a class="dropdown-item" href="#">系統管理後台</a></li>
                   {% endif %}
                   <li><a class="dropdown-item" href="{% url 'logout' %}">登出</a></li>
                 </ul>
-              </li>  
+                </li>  
               {% else %}
               <!-- if not login -->
               <li class="nav-item">
@@ -133,8 +133,20 @@
             </ul>
           </div>
         </div>
-      </nav>
-        {% block body %} {% endblock %}
+      </nav>        
+      <div class="container-fluid" style="padding-top: 50px;">
+        <div class="row d-flex justify-content-center" >
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="alert alert-warning alert-dismissible fade show" role="alert" style="width: 50%;">
+                {{ msg.message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+      </div>
+      {% block body %}  {% endblock %}
+      </div>
     <footer class="text-center footer" style="background: lightgrey;">
     </footer>
     {% block script %} {% endblock %}
