@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('verify-user/<uidb64>/<token>', views.verify_user, name='verify'),
     path('account/personal-info', views.personal_info, name='personal_info'),
     path('register', views.register, name='register'),
     path('login', views.login_user, name='login'),

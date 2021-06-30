@@ -1,16 +1,79 @@
+from django.contrib.auth.backends import ModelBackend
 from django.http import request
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, tokens
 from .models import User
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
+from .utils import generate_token
+from django.conf import settings
+import threading
 
 
-# https://www.youtube.com/watch?v=FFLp_FmbKj0&list=PLx-q4INfd95ESFMQ1Je3Z0gFdQLhrEuY7&index=22
-# https://www.youtube.com/watch?v=Rbkc-0rqSw8
+class registerBackend(ModelBackend):
+    def authenticate(self, username):
+        user = User.objects.get(username=username, is_email_verified=True)
+        if user:
+            return user
+
+
+class EmailThread(threading.Thread):
+
+    def __init__(self, email):
+        self.email = email
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.email.send()
+
+
+def send_verification_email(user, request):
+    current_site = get_current_site(request)  # the domain user is on
+
+    email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
+    email_body = render_to_string('account/verification.html',{
+        'user': user,
+        'domain': current_site,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
+        'token': generate_token.make_token(user)
+    })
+
+    email = EmailMessage(subject=email_subject, body=email_body, from_email=settings.EMAIL_FROM_USER,
+    to=[user.username])
+
+    EmailThread(email).start()
+
+
+def verify_user(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+    except Exception as e:
+        user = None
+
+    if user and generate_token.check_token(user, token):
+        user.is_email_verified = True
+        user.is_active = True
+        user.save()
+
+        messages.add_message(request, messages.SUCCESS,
+                            '驗證成功！請立即設定您的密碼')
+        login(request, user, backend='account.views.registerBackend') # not sure if this is correct
+        return redirect(reverse('personal_info'))
+
+    return render(request, 'account/verification-fail.html', {"user": user})
+
+
+
 @auth_user_should_not_access
 def register(request):
     if request.method == 'POST':
@@ -21,14 +84,15 @@ def register(request):
         
         # make sure email is unique
         if User.objects.filter(username=email).exists():
-            print('此帳號已註冊過')
-            # return to register page
-            #---- return error message ---#
+            messages.add_message(request, messages.ERROR, '此信箱已註冊過')
             return render(request,'account/register.html', context, status=409) # conflict
         
         user=User.objects.create_user(username=email, first_name=first_name, last_name=last_name)
         user.save()
-        #---- return success message ---#
+        send_verification_email(user, request)
+        messages.add_message(request, messages.SUCCESS,
+        '註冊成功，請至註冊信箱收信進行驗證')
+        return redirect(reverse('login'))
 
     return render(request,'account/register.html')
 
@@ -39,32 +103,23 @@ def login_user(request):
         context = {'data': request.POST}
         email = request.POST.get('email')
         password = request.POST.get('password')
-
-        print(email, password)
-
+        
         user = authenticate(request, username=email, password=password)
 
-        if user:
-            login(request, user)
+        if user and user.is_email_verified:
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')
+        
+        if user and not user.is_email_verified:
+            messages.add_message(request, messages.ERROR,
+                                 'Email尚未驗證，請至信箱進行驗證')
+            return render(request, 'account/login.html', context, status=401)
 
 
-        # if user and not user.is_email_verified:
-        #     messages.add_message(request, messages.ERROR,
-        #                          'Email is not verified, please check your email inbox')
-        #     return render(request, 'authentication/login.html', context, status=401)
-
-        # if not user:
-        #     messages.add_message(request, messages.ERROR,
-        #                          'Invalid credentials, try again')
-        #     return render(request, 'authentication/login.html', context, status=401)
-
-        # login(request, user)
-
-        # messages.add_message(request, messages.SUCCESS,
-        #                      f'Welcome {user.username}')
-
-        # return redirect(reverse('home'))
+        if not user:
+            messages.add_message(request, messages.ERROR,
+                                 'Email或密碼錯誤')
+            return render(request, 'account/login.html', context, status=401)
 
     return render(request, 'account/login.html')
 

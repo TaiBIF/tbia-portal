@@ -5,10 +5,9 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, password=None, **kwargs):
+    def create_user(self, username, **kwargs):
         """
-        Creates and saves a User with the given email, date of
-        birth and password.
+        Creates and saves a User with the given email (username)
         """
         user = self.model(
             username=self.normalize_email(username),
@@ -16,14 +15,13 @@ class UserManager(BaseUserManager):
             last_name=kwargs['last_name'],
         )
 
-        user.set_password(password)
+        # user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(self, username, password=None, **kwargs):
         """
-        Creates and saves a superuser with the given email, date of
-        birth and password.
+        Creates and saves a superuser with the given email (username) and password
         """
         user = self.create_user(
             username,
