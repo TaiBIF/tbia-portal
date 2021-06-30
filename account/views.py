@@ -118,7 +118,7 @@ def login_user(request):
 
         if not user:
             messages.add_message(request, messages.ERROR,
-                                 'Email或密碼錯誤')
+                                 'Email或密碼錯誤，或此帳號停用')
             return render(request, 'account/login.html', context, status=401)
 
     return render(request, 'account/login.html')
