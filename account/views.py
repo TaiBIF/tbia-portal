@@ -67,7 +67,7 @@ def verify_user(request, uidb64, token):
 
         messages.add_message(request, messages.SUCCESS,
                             '驗證成功！請立即設定您的密碼')
-        login(request, user, backend='account.views.registerBackend') # not sure if this is correct
+        login(request, user, backend='account.views.registerBackend') 
         return redirect(reverse('personal_info'))
 
     return render(request, 'account/verification-fail.html', {"user": user})

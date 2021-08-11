@@ -27,3 +27,10 @@ for i in range(0, total_page):
     total_data += temp_data["results"]
 
 df = pd.json_normalize(total_data)
+
+
+# wetland
+
+request_url = "https://wetland-db.tcd.gov.tw/wlfea/RESTful/OpenAPI/GetBioData?name=盤古蟾蜍"
+response = requests.get(request_url)
+data = response.json()
