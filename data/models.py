@@ -10,8 +10,9 @@ max_length is required for CharField
 class Taxon(models.Model):
     taxonUUID = models.CharField(max_length=100, blank=True, null=True)
     name_id = models.CharField(max_length=100, blank=True, null=True)
-    simple_name = models.CharField(max_length=1000, blank=True, null=True)
-    name_author = models.CharField(max_length=1000, blank=True, null=True)
+    formatted_name = models.CharField(max_length=1000, blank=True, null=True)
+    # simple_name = models.CharField(max_length=1000, blank=True, null=True)
+    # name_author = models.CharField(max_length=1000, blank=True, null=True)
     synonyms = models.CharField(max_length=1000, blank=True, null=True)
     misapplied = models.CharField(max_length=1000, blank=True, null=True)
     rank = models.CharField(max_length=1000, blank=True, null=True)
