@@ -84,7 +84,7 @@ for i in range(len(dataset_uuid)):
         total_data += data["data"]
         j += 1
     df = pd.DataFrame(total_data)
-    df.to_csv(f"{uuid}.csv")
+    df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
     for k in range(len(df)):
         print('dataset_name:', dataset_name, 'write data', k, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         row = df.iloc[k]
