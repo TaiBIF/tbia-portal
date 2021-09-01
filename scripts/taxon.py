@@ -12,12 +12,10 @@ def is_contain_chinese(check_str):
             return True
     return False
 
-#28918
-
 # TBN taxon
 df = pd.read_csv('../tbia-volumes/data/tbntaxonbio-expor-6028-20210830111927-5fa0e.csv', encoding='utf-8-sig')
 df = df.fillna('')
-for i in range(65555,len(df)):
+for i in range(len(df)):
     print(i)
     row = df.iloc[i]
     # check alternative name
