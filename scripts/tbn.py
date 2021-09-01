@@ -75,8 +75,7 @@ for i in range(len(dataset_uuid)):
     len_of_data = data['meta']['total'] # 6846187 -> 22820
     j = 0
     total_data = data["data"]
-    # while data['links']['next'] != "":
-    while j < 2:
+    while data['links']['next'] != "":
         print('dataset_name: ', dataset_name, 'get data', j, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         request_url = data['links']['next']
         response = requests.get(request_url)
