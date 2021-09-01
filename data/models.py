@@ -153,7 +153,7 @@ class Occurrence(models.Model):
 class Collection(models.Model):
     occurrenceID = models.CharField(max_length=1000, blank=True, null=True)
     collectionID = models.CharField(max_length=1000, blank=True, null=True)
-    tbiaUUID = models.CharField(max_length=1000, blank=True, null=True)
+    tbiaUUID = models.AutoField(primary_key=True)
     rightsHolder = models.CharField(max_length=100, blank=True, null=True)
     taxonUUID = models.CharField(max_length=100, blank=True, null=True)
     associatedMedia = models.CharField(max_length=1000, blank=True, null=True)
@@ -180,7 +180,7 @@ class Collection(models.Model):
     scientificNameID = models.CharField(max_length=100, blank=True, null=True)
     preservation = models.CharField(max_length=1000, blank=True, null=True)
     datasetName = models.CharField(max_length=1000, blank=True, null=True)
-    ResourceContacts = models.CharField(max_length=1000, blank=True, null=True)
+    resourceContacts = models.CharField(max_length=1000, blank=True, null=True)
     references = models.CharField(max_length=1000, blank=True, null=True)
     license = models.CharField(max_length=100, blank=True, null=True)
     sensitiveCategory = models.CharField(max_length=100, blank=True, null=True)
