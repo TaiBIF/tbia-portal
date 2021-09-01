@@ -8,6 +8,8 @@ from datetime import datetime, tzinfo,timedelta
 from dateutil import parser
 import pytz
 
+# nohup python -u manage.py shell < /Users/taibif/Documents/GitHub/tbia-portal/scripts/tbn.py &
+
 def convert_date(date):
     formatted_date = None
     if date != '' and date is not None:
@@ -67,6 +69,7 @@ dataset_uuid.remove('7e5a68cc-771e-42ef-8cf7-b68f2254d15b')
 
 for i in range(len(dataset_uuid)):
     uuid = dataset_uuid[i]
+    dataset_name = datasets[datasets['datasetUUID']==uuid].datasetName.values[0]
     request_url = f"https://www.tbn.org.tw/api/v2/occurrence?datasetUUID={uuid}"
     response = requests.get(request_url)
     data = response.json()
@@ -74,7 +77,7 @@ for i in range(len(dataset_uuid)):
     j = 0
     total_data = data["data"]
     while data['links']['next'] != "":
-        print(j)
+        print('dataset_name: ', dataset_name, 'get data', j)
         request_url = data['links']['next']
         response = requests.get(request_url)
         data = response.json()
@@ -84,7 +87,7 @@ for i in range(len(dataset_uuid)):
     df.to_csv(f"{uuid}".csv)
 
     for k in range(len(df)):
-        print(k)
+        print('dataset_name:', dataset_name, 'write data', k)
         row = df.iloc[k]
         taxon_id, sensitiveState, name_code, precision, data_generalize = None, None, None, row.coordinatePrecision, None
         # NomenMatch
