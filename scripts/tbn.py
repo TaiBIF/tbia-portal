@@ -76,7 +76,7 @@ for i in range(len(dataset_uuid)):
     j = 0
     total_data = data["data"]
     while data['links']['next'] != "":
-        print('dataset_name: ', dataset_name, 'get data', j, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print(f"{dataset_name}, get data {j}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         request_url = data['links']['next']
         response = requests.get(request_url)
         data = response.json()
@@ -85,7 +85,7 @@ for i in range(len(dataset_uuid)):
     df = pd.DataFrame(total_data)
     df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
     for k in range(len(df)):
-        print('dataset_name:', dataset_name, 'write data', k, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print(f"{dataset_name}, {k}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         row = df.iloc[k]
         taxon_id, sensitiveState, name_code, precision, data_generalize = None, None, None, row.coordinatePrecision, None
         # NomenMatch
@@ -95,11 +95,9 @@ for i in range(len(dataset_uuid)):
         if res['best']:
             if res['best']:
                 taxon_id = res['best'].get('tbn',None)
-                print('match', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 # get sensitive state & taicol name code
                 # !!! need to change if use taicol taxon in the future !!!
                 if taxon_id:
-                    print('get taxon', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={taxon_id}"
                     response = requests.get(request_url)
                     t = response.json()['data']
@@ -116,7 +114,6 @@ for i in range(len(dataset_uuid)):
                         rank_e = rank[rank['rank_c']==taxon_rank]['rank'].values[0] if taxon_rank in rank.rank_c.to_list() else None
         # check dataset belongs to occurrence or collection
         # PreservedSpecimen, FossilSpecimen, LivingSpecimen, MaterialSample, Event, HumanObservation, MachineObservation, Taxon, Occurrence, MaterialCitation
-        print('write', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         if 'Specimen' not in row.basisOfRecord:
             Occurrence.objects.create(
                 rightsHolder = 'TBN',
