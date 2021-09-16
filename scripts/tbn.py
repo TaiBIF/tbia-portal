@@ -68,11 +68,15 @@ dataset_uuid.remove('7e5a68cc-771e-42ef-8cf7-b68f2254d15b')
 
 # remove already finished dataset
 dataset_uuid.remove('79ae93e0-a2b8-11de-9f79-b8a03c50a862')
-dataset_uuid.sort() # prevent from ebird being firtst one 
 
+# remove ebird
+dataset_uuid.remove('4fa7b334-ce0d-4e88-aaae-2e0c138d049e')
+
+dataset_uuid.sort() 
 
 for i in range(len(dataset_uuid)):
     uuid = dataset_uuid[i]
+    print(f"get {uuid}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     dataset_name = datasets[datasets['datasetUUID']==uuid].datasetName.values[0]
     request_url = f"https://www.tbn.org.tw/api/v2/occurrence?datasetUUID={uuid}"
     response = requests.get(request_url)
@@ -81,19 +85,43 @@ for i in range(len(dataset_uuid)):
     j = 0
     total_data = data["data"]
     while data['links']['next'] != "":
-        print(f"{dataset_name}, get data {j}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{uuid}, get data {j}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         request_url = data['links']['next']
         response = requests.get(request_url)
         data = response.json()
         total_data += data["data"]
         j += 1
-        if j % 300 == 0:
-            df = pd.DataFrame(total_data)
-            df.to_csv(f"../tbia-volumes/tbn_data/{uuid}_{j}.csv")
-            total_data = []
+        # if j != 0 and j % 300 == 0:
+        #     df = pd.DataFrame(total_data)
+        #     df.to_csv(f"../tbia-volumes/tbn_data/{uuid}_{j/300}.csv")
+        #     total_data = []
     df = pd.DataFrame(total_data)
-    df.to_csv(f"../tbia-volumes/tbn_data/{uuid}_{j}.csv")
+    df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
 
+
+# ebird
+uuid = '4fa7b334-ce0d-4e88-aaae-2e0c138d049e'
+print(f"get ebird, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+dataset_name = datasets[datasets['datasetUUID']==uuid].datasetName.values[0]
+request_url = f"https://www.tbn.org.tw/api/v2/occurrence?datasetUUID={uuid}"
+response = requests.get(request_url)
+data = response.json()
+len_of_data = data['meta']['total'] # 6846187 -> 22820
+j = 0
+total_data = data["data"]
+while data['links']['next'] != "":
+    print(f"ebird, get data {j}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    request_url = data['links']['next']
+    response = requests.get(request_url)
+    data = response.json()
+    total_data += data["data"]
+    j += 1
+    if j != 0 and j % 300 == 0:
+        df = pd.DataFrame(total_data)
+        df.to_csv(f"../tbia-volumes/tbn_data/{uuid}_{j/300}.csv")
+        total_data = []
+df = pd.DataFrame(total_data)
+df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
 
 
 
