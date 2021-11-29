@@ -1,37 +1,4 @@
 {% extends 'base.html' %} {% load static %} {% block body %}
-
-<!--教學popbox-->
-{% comment %}
-<div class="popbg reg">
-  <div class="bgt">
-    <img src="{% static 'image/bgt.svg' %}" />
-  </div>
-  <div class="bgb">
-    <img src="{% static 'image/bgb.svg' %}" />
-  </div>
-  <div class="bgi">
-    <img src="{% static 'image/bgi.svg' %}" />
-  </div>
-  <div class="bga">
-    <img src="{% static 'image/bga.svg' %}" />
-  </div>
-  <div class="ovhy">
-    <div class="wbox_center login" style="width: 40%; height: auto">
-      <div class="xx"></div>
-      <div class="techbox">
-        <div class="tech_pic">
-          <!--565*340或者兩倍大小1130*680-->
-          <img src="{% static 'image/newpopup.png' %}" />
-        </div>
-        <!--盡量不要超過三行-->
-        <p class="text_tec">瀏覽完我們的網頁內容，也別忘了協助我們填寫問卷哦！</p>
-      </div>
-    </div>
-  </div>
-</div>
-{% endcomment %}
-<!--教學popbox-->
-
 <div class="section_1">
   <div class="rel flex_center">
     <div class="bn_bg">
@@ -60,20 +27,21 @@
     <div class="content_area">
       <h2>臺灣生物多樣性開放資料任意門</h2>
       <div class="input_set">
-        <input placeholder="正式網站預計最晚於2023年上線" type="text" readonly />
-        <a target="_blank" id="magnifier-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSem67N8LJT32e3DiCHoS0F1imarf5rDmPj46qREe8hsWOA8Lg/viewform"
-          ><button type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
-              <g id="loupe" transform="translate(0 -0.003)">
-                <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
-                  <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146" />
-                </g>
+        <input placeholder="請輸入關鍵字" type="text" />
+        <button>
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
+            <g id="loupe" transform="translate(0 -0.003)">
+              <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
+                <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146" />
               </g>
-            </svg></button
-        ></a>
+            </g>
+          </svg>
+        </button>
       </div>
       <ul class="hot_tag">
-        <li><a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSem67N8LJT32e3DiCHoS0F1imarf5rDmPj46qREe8hsWOA8Lg/viewform" class="">問卷</a></li>
+        <li><a href="#">石虎</a></li>
+        <li><a href="#">台灣黑熊</a></li>
+        <li><a href="#">冠羽畫眉</a></li>
       </ul>
     </div>
 
@@ -113,7 +81,7 @@
             <p>物種出現紀錄</p>
           </div>
           <div class="numbox">
-            <p>10,000,000+</p>
+            <p>1234,567</p>
             <span>筆</span>
           </div>
         </div>
@@ -129,7 +97,7 @@
             <p>自然史典藏</p>
           </div>
           <div class="numbox">
-            <p>500,000+</p>
+            <p>1234,567</p>
             <span>筆</span>
           </div>
         </div>
@@ -146,7 +114,7 @@
       <div class="rel">
         <div class="bg_item"></div>
         <div class="flower">
-          <img src="{% static 'image/s2flower.svg' %}" alt="flower" />
+          <img src="{% static 'image/s2flower.svg' %}" />
         </div>
       </div>
     </div>
@@ -155,27 +123,75 @@
       <ul class="news_tab">
         <!--點選時給class="now"-->
         <li class="now">所有訊息<span></span></li>
+        <li>新聞公告<span></span></li>
+        <li>活動公告<span></span></li>
+        <li>計畫徵求<span></span></li>
       </ul>
       <ul class="news_list">
         <li>
-          <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSem67N8LJT32e3DiCHoS0F1imarf5rDmPj46qREe8hsWOA8Lg/viewform" class="imgbox">
-            <div class="img_area"><img src="{% static 'image/news_ub_img.jpg' %}" alt="歡迎協助填寫問卷！" /></div>
+          <a href="#" class="imgbox">
+            <div class="img_area"></div>
           </a>
           <div class="infbox">
             <div class="center_box">
               <div class="tag_date">
-                <div class="tag green">活動公告</div>
-                <p class="date">2021.09.29</p>
+                <div class="tag green">新聞公告</div>
+                <p class="date">2021.06.05</p>
               </div>
-              <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSem67N8LJT32e3DiCHoS0F1imarf5rDmPj46qREe8hsWOA8Lg/viewform" class="nstitle"> 歡迎協助填寫問卷！ </a>
-              <p></p>
+              <a href="#" class="nstitle"> 生物開放資料勇闖新領域，前進2020 G0V 雙年會 </a>
+              <p>來自南投集集小鎮的特有生物研...</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <a href="#" class="imgbox">
+            <div class="img_area"></div>
+          </a>
+          <div class="infbox">
+            <div class="center_box">
+              <div class="tag_date">
+                <div class="tag green">新聞公告</div>
+                <p class="date">2021.06.05</p>
+              </div>
+              <a href="#" class="nstitle"> 生物開放資料勇闖新領域，前進2020 G0V 雙年會 </a>
+              <p>來自南投集集小鎮的特有生物研...</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <a href="#" class="imgbox">
+            <div class="img_area"></div>
+          </a>
+          <div class="infbox">
+            <div class="center_box">
+              <div class="tag_date">
+                <div class="tag red">計畫徵求</div>
+                <p class="date">2021.06.05</p>
+              </div>
+              <a href="#" class="nstitle"> 生物開放資料勇闖新領域，前進2020 G0V 雙年會 </a>
+              <p>來自南投集集小鎮的特有生物研...</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <a href="#" class="imgbox">
+            <div class="img_area"></div>
+          </a>
+          <div class="infbox">
+            <div class="center_box">
+              <div class="tag_date">
+                <div class="tag yellow">活動公告</div>
+                <p class="date">2021.06.05</p>
+              </div>
+              <a href="#" class="nstitle"> 生物開放資料勇闖新領域，前進2020 G0V 雙年會 </a>
+              <p>來自南投集集小鎮的特有生物研...</p>
             </div>
           </div>
         </li>
       </ul>
       <div class="more_right clearfix">
         <a href="#" class="go_more">
-          <p>敬請期待</p>
+          <p>查看更多訊息</p>
           <span class="line"></span>
           <span class="arrow">
             <svg xmlns="http://www.w3.org/2000/svg" width="9.406" height="10.75" viewBox="0 0 9.406 10.75">
@@ -191,13 +207,13 @@
   </div>
   <div class="section_3">
     <div class="wave">
-      <img src="{% static 'image/s3wavw.svg' %}" alt="wave" />
+      <img src="{% static 'image/s3wavw.svg' %}" />
     </div>
     <div class="bg_area">
       <div class="rel">
         <div class="bg_item"></div>
         <div class="shark">
-          <img src="{% static 'image/sharrrk.svg' %}" alt="shark" />
+          <img src="{% static 'image/sharrrk.svg' %}" />
         </div>
       </div>
     </div>
@@ -211,6 +227,18 @@
         <li class="now">
           <p>所有資源<span></span></p>
         </li>
+        <li>
+          <p>TBIA 策略文件<span></span></p>
+        </li>
+        <li>
+          <p>開放資料指引<span></span></p>
+        </li>
+        <li>
+          <p>參考文件/工具<span></span></p>
+        </li>
+        <li>
+          <p>教學文件<span></span></p>
+        </li>
       </ul>
       <!--手機版只顯示4個-->
       <ul class="edu_list">
@@ -218,138 +246,86 @@
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/TBIA 手冊-生物多樣性資訊行動倡議-閱讀版_compressed.pdf' %}" class="title" target="_blank"> TBIA 手冊-生物多樣性資訊行動倡議-閱讀版 </a>
-            <a href="{% static 'pdf/TBIA 手冊-生物多樣性資訊行動倡議-閱讀版_compressed.pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
         <li>
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.10.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/2_生物多樣性領域資料標準.pdf' %}" class="title" target="_blank"> 生物多樣性領域資料標準 </a>
-            <a href="{% static 'pdf/2_生物多樣性領域資料標準.pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
         <li>
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/3_生物多樣性敏感資料開放作業原則（草案）.pdf' %}" class="title" target="_blank"> 生物多樣性敏感資料開放作業原則（草案） </a>
-            <a href="{% static 'pdf/3_生物多樣性敏感資料開放作業原則（草案）.pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
         <li>
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/TBIA 共同願景(草案).pdf' %}" class="title" target="_blank"> TBIA 共同願景（草案） </a>
-            <a href="{% static 'pdf/TBIA 共同願景(草案).pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
         <li>
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/5_敏感資料釋出流程.pdf' %}" class="title" target="_blank"> 敏感資料釋出流程 </a>
-            <a href="{% static 'pdf/5_敏感資料釋出流程.pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
         <li>
           <div class="item">
             <div class="cate_dbox">
               <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
+              <div class="date">2021.06.25</div>
             </div>
-            <a href="{% static 'pdf/TBIA logo及主視覺設計.pdf' %}" class="title" target="_blank"> TBIA logo及主視覺設計 </a>
-            <a href="{% static 'pdf/TBIA logo及主視覺設計.pdf' %}" download class="dow_btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                <g id="Group_864" data-name="Group 864" transform="translate(-1201.5 -2512.135)">
-                  <path id="Path_22094" data-name="Path 22094" d="M85.549,26.636v50h-50Z" transform="translate(1165.951 2485.499)" fill="#3f5146" />
-                  <g id="Group_280" data-name="Group 280" transform="translate(1231.48 2538.135)">
-                    <g id="Group_279" data-name="Group 279" transform="translate(0)">
-                      <path id="Path_10295" data-name="Path 10295" d="M91.415,13.764h0c-.016.016-.033.031-.051.046l-.025.019-.03.022-.03.018-.028.017-.032.015-.03.014-.031.011-.033.012-.032.008-.035.008-.037.006-.031,0a.7.7,0,0,1-.138,0l-.031,0-.037-.006-.035-.008-.032-.008-.033-.012-.031-.011-.03-.014-.032-.015-.028-.017-.03-.018-.03-.022-.025-.019c-.018-.015-.035-.03-.051-.046h0L85.538,8.875a.7.7,0,1,1,.988-.988l3.7,3.7V.7a.7.7,0,1,1,1.4,0V11.584l3.7-3.7a.7.7,0,0,1,.988.988Z" transform="translate(-85.334 0)" fill="#fff" />
-                      <path id="Path_10296" data-name="Path 10296" d="M86.032,469.333H95.81a.7.7,0,0,1,0,1.4H86.032a.7.7,0,1,1,0-1.4Z" transform="translate(-85.334 -453.968)" fill="#fff" />
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
+          </div>
+        </li>
+        <li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="cate pdf">PDF</div>
+              <div class="date">2021.06.25</div>
+            </div>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
+          </div>
+        </li>
+        <li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="cate pdf">PDF</div>
+              <div class="date">2021.06.25</div>
+            </div>
+            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
+            <a href="#" class="dow_btn"> </a>
           </div>
         </li>
       </ul>
       <div class="more_right clearfix">
         <a href="#" class="go_more">
-          <p>敬請期待</p>
+          <p>查看更多資源</p>
           <span class="line"></span>
           <span class="arrow">
             <svg xmlns="http://www.w3.org/2000/svg" width="9.406" height="10.75" viewBox="0 0 9.406 10.75">
@@ -381,44 +357,45 @@
       <h2 class="title"><span></span>夥伴單位</h2>
       <ul class="index_partner">
         <li>
-          <a href="/partner.html?p=portal">
+          <a href="#">
             <div class="imgbox">
-              <img src="{% static 'image/parlogo_1.svg' %}" alt="中央研究院 生物多樣性研究中心" />
+              <img src="{% static 'image/parlogo_1.svg' %}" />
+            </div>
+          </a>
+        </li>
+
+        <li>
+          <a href="#">
+            <div class="imgbox">
+              <img src="{% static 'image/parlogo_3.png' %}" />
             </div>
           </a>
         </li>
         <li>
-          <a href="/partner.html?p=cpami">
+          <a href="#">
             <div class="imgbox">
-              <img src="{% static 'image/parlogo_3.png' %}" alt="內政部營建署" />
+              <img src="{% static 'image/parlogo_4.svg' %}" />
             </div>
           </a>
         </li>
         <li>
-          <a href="/partner.html?p=ecollect">
+          <a href="#">
             <div class="imgbox">
-              <img src="{% static 'image/logo_林務局_下方加字黑.png' %}" alt="林務局-生態調查資料庫系統" />
+              <img src="{% static 'image/parlogo_5.svg' %}" />
             </div>
           </a>
         </li>
         <li>
-          <a href="/partner.html?p=iocean">
+          <a href="#">
             <div class="imgbox">
-              <img src="{% static 'image/parlogo_5.svg' %}" alt="海洋委員會海洋保育署-iOcean海洋保育網" />
+              <img src="{% static 'image/parlogo_6.svg' %}" />
             </div>
           </a>
         </li>
         <li>
-          <a href="/partner.html?p=taif">
+          <a href="#">
             <div class="imgbox">
-              <img src="{% static 'image/parlogo_6.svg' %}" alt="林業試驗所 植物標本資料庫" />
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="/partner.html?p=tbn">
-            <div class="imgbox">
-              <img src="{% static 'image/parlogo_7.svg' %}" alt="特有生物研究保育中心–台灣生物多樣性網絡 TBN" />
+              <img src="{% static 'image/parlogo_7.svg' %}" />
             </div>
           </a>
         </li>
@@ -426,6 +403,7 @@
     </div>
   </div>
 </div>
+
 {% endblock body %} {% block script %}
 <script>
   $(document).ready(function () {
