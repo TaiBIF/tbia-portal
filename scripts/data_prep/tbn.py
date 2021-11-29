@@ -123,7 +123,30 @@ while data['links']['next'] != "":
 df = pd.DataFrame(total_data)
 df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
 
-
+# collection test file
+uuid = '97c21d3f-774b-45e7-9149-4c0697fadbde'
+print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+dataset_name = '臺灣特有生物研究保育中心植物標本館(TAIE)苔蘚資料'
+request_url = f"https://www.tbn.org.tw/api/v2/occurrence?datasetUUID={uuid}"
+response = requests.get(request_url)
+data = response.json()
+len_of_data = data['meta']['total'] # 6846187 -> 22820
+j = 0
+total_data = data["data"]
+while data['links']['next'] != "":
+    print(j)
+    print(f"get data {j}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    request_url = data['links']['next']
+    response = requests.get(request_url)
+    data = response.json()
+    total_data += data["data"]
+    j += 1
+    # if j != 0 and j % 300 == 0:
+    #     df = pd.DataFrame(total_data)
+    #     df.to_csv(f"../tbia-volumes/tbn_data/{uuid}_{j/300}.csv")
+    #     total_data = []
+df = pd.DataFrame(total_data)
+df.to_csv(f"../tbia-volumes/tbn_data/{uuid}.csv")
 
     # for k in range(len(df)):
     #     print(f"{dataset_name}, {k}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
