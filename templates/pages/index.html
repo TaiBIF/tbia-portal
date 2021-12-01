@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block body %}
+{% extends './base.html' %} {% load static %} {% block body %}
 <div class="section_1">
   <div class="rel flex_center">
     <div class="bn_bg">
@@ -27,16 +27,18 @@
     <div class="content_area">
       <h2>臺灣生物多樣性開放資料任意門</h2>
       <div class="input_set">
-        <input placeholder="請輸入關鍵字" type="text" />
-        <button>
-          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
-            <g id="loupe" transform="translate(0 -0.003)">
-              <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
-                <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146" />
+        <form action="{% url 'search_full' %}" method="GET">
+          <input placeholder="請輸入關鍵字" type="text" name="keyword" />
+          <button type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
+              <g id="loupe" transform="translate(0 -0.003)">
+                <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
+                  <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146" />
+                </g>
               </g>
-            </g>
-          </svg>
-        </button>
+            </svg>
+          </button>
+        </form>
       </div>
       <ul class="hot_tag">
         <li><a href="#">石虎</a></li>
