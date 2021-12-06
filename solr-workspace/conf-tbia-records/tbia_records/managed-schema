@@ -575,6 +575,7 @@
   <field name="tbiaUUID" type="string"/>
   <field name="tribe" type="string"/>
   <field name="tribe_c" type="string"/>
+  <field name="typeStatus" type="string"/>
   <field name="variety" type="string"/>
   <field name="verbatimCoordinateSystem" type="string"/>
   <field name="verbatimLatitude" type="string"/>
