@@ -4,7 +4,12 @@ from account.models import User, Unit
 
 
 class News(models.Model):
-    type = models.CharField(max_length=10, blank=True, null=True)
+    type_choice = [
+        ('news', '新聞公告'),
+        ('event', '活動訊息'),
+        ('project', '計畫徵求'),
+    ]
+    type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=1000, blank=True, null=True)
@@ -18,7 +23,13 @@ class News(models.Model):
 
 
 class Resource(models.Model):
-    type = models.CharField(max_length=10, blank=True, null=True)
+    type_choice = [
+        ('strategy', 'TBIA策略文件'),
+        ('guide', '開放資料指引'),
+        ('tool', '參考文件&工具'),
+        ('tutorial', '教學文件'),
+    ]
+    type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     title = models.CharField(max_length=100, blank=True, null=True)
     extension = models.CharField(max_length=10, blank=True, null=True)
     url = models.CharField(max_length=1000, blank=True, null=True)
