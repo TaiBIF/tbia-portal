@@ -268,7 +268,7 @@ def convert_date(date):
             formatted_date = None
     return formatted_date
 
-df = pd.read_csv("../tbia-volumes/tbn_data/e1b7adf8-9315-4134-aced-729a09da40f6_5.csv")
+df = pd.read_csv("../tbia-volumes/tbn_data/97c21d3f-774b-45e7-9149-4c0697fadbde.csv")
 rank = pd.read_csv('../tbia-volumes/data/taxa_c.csv', names=['rank_c','rank'])
 syn = pd.read_csv('/Users/taibif/Documents/04-TaiCoL/namecorrespond20211019.csv')
 taicol = pd.read_csv('/Users/taibif/Documents/04-TaiCoL/TaiwanSpecies20211019_UTF8.csv')
@@ -507,3 +507,14 @@ df_cleaned.to_csv('../tbia-volumes/solr/csvs/col_test_file.csv', index=False)
 #                     'originalModified': 'sourceModified', 'originalCreated': 'sourceCreated'})
 
 # df.to_csv('../tbia-volumes/solr/csvs/col_test_file.csv', index=False)
+
+
+# modify common_name_c & alternative_name_c
+df = pd.read_csv('../tbia-volumes/solr/csvs/occ_test_file.csv')
+df = df.replace({np.nan: None})
+df['alternative_name_c'] = df['common_name_c'].apply(lambda x: str(x.split(',')[1:])[1:-1].replace('\'','') if x else x)
+df['alternative_name_c'] = df['alternative_name_c'].replace({'': None})
+
+df['common_name_c'] = df['common_name_c'].apply(lambda x: x.split(',')[0] if x else x)
+
+df.to_csv('../tbia-volumes/solr/csvs/occ_test_file.csv', index=False)

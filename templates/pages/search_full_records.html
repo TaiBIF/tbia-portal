@@ -18,10 +18,12 @@
   <div class="searchbar_top">
     <div class="left_search">
       <div class="input_item">
-        <input type="text" placeholder="請輸入關鍵字" />
-        <button>
-          <img src="image/search_icon.svg" alt="" />
-        </button>
+        <form action="{% url 'search_full' %}" method="GET">
+          <input type="text" name="keyword" value="{{ keyword }}" placeholder="請輸入關鍵字" />
+          <button>
+            <img src="image/search_icon.svg" alt="" />
+          </button>
+        </form>
       </div>
       <p>搜尋"苦苓"="楝"</p>
     </div>
@@ -57,7 +59,7 @@
       <div class="mb_scroll">
         <ul>
           <li>
-            <a href="#" class="big_link rd_click">
+            <a href="{% url 'search_full' %}?keyword={{ keyword }}" class="big_link rd_click">
               <p>所有結果</p>
               <div class="arr"></div>
             </a>
@@ -94,7 +96,7 @@
           </li>
 
           <li>
-            <a href="javascript:;" class="big_link rd_click">
+            <a href="javascript:;{% url 'search_full_doc' 'news' %}" class="big_link rd_click">
               <p>新聞公告</p>
               <div class="arr"></div>
             </a>

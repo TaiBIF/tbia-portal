@@ -164,7 +164,7 @@ class SolrQuery(object):
                 self.rows = int(values[0])
                 self.solr_tuples.append(('rows', self.rows))
             elif key == 'fl': # fl: field list
-                self.solr_tuples.append(('fl', values[0]))
+                self.solr_tuples.append(('fl', values))
             elif key == 'wt': # wt: response writer
                 self.solr_tuples.remove(('wt', 'json'))
                 self.solr_tuples.append(('wt', values[0]))

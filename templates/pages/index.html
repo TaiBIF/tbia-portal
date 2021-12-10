@@ -1,4 +1,5 @@
 {% extends './base.html' %} {% load static %} {% block body %}
+
 <div class="section_1">
   <div class="rel flex_center">
     <div class="bn_bg">
@@ -244,6 +245,22 @@
       </ul>
       <!--手機版只顯示4個-->
       <ul class="edu_list">
+        {% for i in resource %}
+        <li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="cate pdf">{{ i.extension }}</div>
+              <div class="date">{{ i.date }}</div>
+            </div>
+            <a href="{% static i.url %}" class="title" target="_blank">{{ i.title }}</a>
+            <a href="{% static i.url %}" download class="dow_btn"> </a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <!--
+      <ul class="edu_list">
         <li>
           <div class="item">
             <div class="cate_dbox">
@@ -305,6 +322,7 @@
           </div>
         </li>
       </ul>
+      -->
       <div class="more_right clearfix">
         <a href="#" class="go_more">
           <p>查看更多資源</p>

@@ -1,4 +1,4 @@
-{% extends './base.html' %} {% load tags %} {% load static %}{% block body %}
+{% extends './base.html' %} {% load tags %} {% load static %} {% block style %} {% endblock style %} {% block body %}
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -72,10 +72,9 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="#">全部({{ occurrence.count }})</a>
-              {% for i in occurrence.rows %} 
-              <a href="javascript:;">{{ i.title }}({{ i.total_count }})</a>
-              {% endfor %}
+              <a href="#">全部(14)</a>
+              <a href="#" class="now">中文名(12)</a>
+              <a href="#">記錄者(2)</a>
             </div>
           </li>
           <li>
@@ -88,32 +87,31 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="#">全部({{ collection.count }})</a>
-              {% for i in collection.rows %} 
-                <a href="javascript:;">{{ i.title }}({{ i.total_count }})</a>
-              {% endfor %}
+              <a href="#">全部(14)</a>
+              <a href="#" class="now">中文名(12)</a>
+              <a href="#">記錄者(2)</a>
             </div>
           </li>
 
-          <li>
-            <a href="{% url 'search_full_doc' 'news' keyword %}" class="big_link rd_click">
+          <li class="type_news">
+            <a href="{% url 'search_full_doc' 'news' keyword %}"" class="big_link rd_click">
               <p>新聞公告</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
+          <li class="type_event">
             <a href="{% url 'search_full_doc' 'event' keyword %}" class="big_link rd_click">
               <p>活動公告</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
+          <li class="type_project">
             <a href="{% url 'search_full_doc' 'project' keyword %}" class="big_link rd_click">
               <p>計畫徵求</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
+          <li class="type_resource">
             <a href="{% url 'search_full_doc' 'resource' keyword %}" class="big_link rd_click">
               <p>開放資料相關資源</p>
               <div class="arr"></div>
@@ -124,68 +122,18 @@
     </div>
 
     <div class="rightbox_content">
-      <div class="item">
-        <div class="titlebox_line">
-          <div class="title">
-            <p>物種出現紀錄 ({{ occurrence.count }})</p>
-            <div class="line"></div>
-          </div>
-        </div>
-        {% if occurrence.count > 0 %}
-          <ul class="card_list_1">
-            {% for i in occurrence.card %}
-              <li>
-                <div class="num">{{ i.count }}</div>
-                <p style="margin-right: 20px">{{ i.title }}：{{ i.val|highlight:keyword }}</p>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-        <!--無資時料顯示-->
-        <div class="no_data">暫無資料</div>
-        {% endif %}
-        <!--超過9個才有更多按鈕-->
-        {% if occurrence.has_more %}
-        <a href="#" class="more"> 更多結果 </a>
-        {% endif %}
-      </div>
-      <div class="item">
-        <div class="titlebox_line">
-          <div class="title">
-            <p>⾃然史典藏 ({{ collection.count }})</p>
-            <div class="line"></div>
-          </div>
-        </div>
-        {% if collection.count > 0 %}
-          <ul class="card_list_1">
-            {% for i in collection.card %}
-              <li>
-                <div class="num">{{ i.count }}</div>
-                <p style="margin-right: 20px">{{ i.title }}：{{ i.val|highlight:keyword }}</p>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-        <!--無資時料顯示-->
-        <div class="no_data">暫無資料</div>
-        {% endif %}
-        <!--超過9個才有更多按鈕-->
-        {% if collection.has_more %}
-        <a href="#" class="more"> 更多結果 </a>
-        {% endif %}
-      </div>
-
+      {% if type == 'news' %}
       <!-- 新聞公告 -->
       <div class="item">
         <div class="titlebox_line">
           <div class="title">
-            <p>新聞公告 ({{ news.count }})</p>
+            <p>新聞公告 ({{ count }})</p>
             <div class="line"></div>
           </div>
         </div>
-        {% if news.count > 0 %}
+        {% if count > 0 %}
         <ul class="card_list_2">
-          {% for i in news.rows %}
+          {% for i in rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
@@ -196,22 +144,19 @@
         <!--無資時料顯示-->
         <div class="no_data">暫無資料</div>
         {% endif %}
-        <!--超過6個才有更多按鈕-->
-        {% if news.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
-        {% endif %}
       </div>
+      {% elif type == 'event' %}
       <!-- 活動公告 -->
       <div class="item">
         <div class="titlebox_line">
           <div class="title">
-            <p>活動公告 ({{ event.count }})</p>
+            <p>活動公告 ({{ count }})</p>
             <div class="line"></div>
           </div>
         </div>
-        {% if event.count > 0 %}
+        {% if count > 0 %}
         <ul class="card_list_2">
-          {% for i in event.rows %}
+          {% for i in rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
@@ -222,21 +167,18 @@
         <!--無資時料顯示-->
         <div class="no_data">暫無資料</div>
         {% endif %}
-        <!--超過6個才有更多按鈕-->
-        {% if event.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
-        {% endif %}
       </div>
+      {% elif type == 'project' %}
       <div class="item">
         <div class="titlebox_line">
           <div class="title">
-            <p>計畫徵求 ({{ project.count }})</p>
+            <p>計畫徵求 ({{ count }})</p>
             <div class="line"></div>
           </div>
         </div>
-        {% if project.count > 0 %}
+        {% if count > 0 %}
         <ul class="card_list_2">
-          {% for i in project.rows %}
+          {% for i in rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
@@ -246,20 +188,18 @@
         {% else %}
         <!--無資時料顯示-->
         <div class="no_data">暫無資料</div>
-        {% endif %} {% if project.count > 6 %}
-        <!--超過6個才有更多按鈕-->
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
         {% endif %}
       </div>
+      {% elif type == 'resource' %}
       <div class="item">
         <div class="titlebox_line">
           <div class="title">
-            <p>開放資料相關資源 ({{ resource.count }})</p>
+            <p>開放資料相關資源 ({{ count }})</p>
             <div class="line"></div>
           </div>
         </div>
         <ul class="edu_list three_set">
-          {% if resource.count > 0 %} {% for i in resource.rows %}
+          {% if count > 0 %} {% for i in rows %}
           <li>
             <div class="item" style="height: 100%">
               <div class="cate_dbox">
@@ -274,10 +214,9 @@
         </ul>
         {% else %}
         <div class="no_data" style="width: 100%">暫無資料</div>
-        {% endif %} {% if resource.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
         {% endif %}
       </div>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -285,6 +224,11 @@
 {% endblock body %} {% block script %}
 
 <script>
+  /* add now tag */
+  $(document).ready(function () {
+    $(".type_{{ type }}").addClass("now");
+  });
+
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
     $(this).toggleClass("now");
@@ -296,7 +240,6 @@
     $(this).closest("li").toggleClass("now");
     $(this).closest("li").find(".second_menu").slideToggle();
   });
-
 </script>
 
 {% endblock script %}
