@@ -281,11 +281,11 @@ files = glob.glob('*.{}'.format(extension))
 len_f = len(files)
 
 for count in range(0,len_f):
-for count in range(1):
+# for count in range(1):
     # print(count)
     df = pd.read_csv(files[count])
     unique_sci = df.scientificName.unique()
-    unique_sci = unique_sci[:35]
+    # unique_sci = unique_sci[:35]
     # NomenMatch
     sci_match = []
     for s in unique_sci:
