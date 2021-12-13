@@ -324,7 +324,8 @@ for count in range(0,len_f):
             'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
             sci_match.append(tmp)
     sci_match = pd.DataFrame(sci_match)
-    sci_match['rank'] = sci_match['rank'].replace('Class','class')
+    if len(sci_match):
+        sci_match['rank'] = sci_match['rank'].replace('Class','class')
     row_list = []
     for k in range(len(df)):
         # print(k)
