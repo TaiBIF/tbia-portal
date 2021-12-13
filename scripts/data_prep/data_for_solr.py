@@ -285,6 +285,7 @@ for count in range(0,len_f):
     # print(count)
     df = pd.read_csv(files[count])
     unique_sci = df.scientificName.unique()
+    unique_sci = [x for x in unique_sci if str(x) != 'nan']
     # unique_sci = unique_sci[:35]
     # NomenMatch
     sci_match = []
