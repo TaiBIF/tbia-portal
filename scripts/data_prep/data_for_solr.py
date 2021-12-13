@@ -288,44 +288,45 @@ for count in range(0,len_f):
     unique_sci = [x for x in unique_sci if str(x) != 'nan']
     # unique_sci = unique_sci[:35]
     # NomenMatch
-    sci_match = []
-    for s in unique_sci:
-        # 不查 Genus: xxx 的資料
-        print(s)
-        taxon_id, sensitiveState, name_code, precision, data_generalize,rank_e = None, None, None, None, None, None
-        if not s.split(' ')[0] in ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']:
-            if len(df[df['scientificName']==s]):
-                request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={df[df['scientificName']==s].taxonUUID.values[0]}"
-                response = requests.get(request_url)
-                t = response.json()['data']
-                if t:
-                    sensitiveState = t[0]['sensitiveState']
-                    if sensitiveState == '輕度':
-                        precision = 0.01
-                        data_generalize = True
-                    elif sensitiveState == '重度':
-                        precision = 0.1
-                        data_generalize = True
-                    taxon_rank = t[0]['taxonRank']
-                    rank_e = rank[rank['rank_c']==taxon_rank]['rank'].values[0] if taxon_rank in rank.rank_c.to_list() else None
-            request_url = f"http://match.taibif.tw/api.php?names={s}&best=yes&format=json"
+sci_match = []
+for s in unique_sci:
+    # 不查 Genus: xxx 的資料
+    print(s)
+    taxon_id, sensitiveState, name_code, precision, data_generalize,rank_e = None, None, None, None, None, None
+    if not s.split(' ')[0] in ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']:
+        if len(df[df['scientificName']==s]):
+            request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={df[df['scientificName']==s].taxonUUID.values[0]}"
             response = requests.get(request_url)
-            res = response.json()['results'][0][0]
+            t = response.json()['data']
+            if t:
+                sensitiveState = t[0]['sensitiveState']
+                if sensitiveState == '輕度':
+                    precision = 0.01
+                    data_generalize = True
+                elif sensitiveState == '重度':
+                    precision = 0.1
+                    data_generalize = True
+                taxon_rank = t[0]['taxonRank']
+                rank_e = rank[rank['rank_c']==taxon_rank]['rank'].values[0] if taxon_rank in rank.rank_c.to_list() else None
+        request_url = f"http://match.taibif.tw/api.php?names={s}&best=yes&format=json"
+        response = requests.get(request_url)
+        res = response.json()['results'][0][0]
+        if res['best']:
             if res['best']:
-                if res['best']:
-                    taxon_id = res['best'].get('taicol',None)
-                    if taxon_id:
-                        request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
-                        response = requests.get(request_url, verify=False)
-                        t = response.json()[1]
-                        name = t['name']
-                        name_code = t['accepted_name_code']
-            tmp = {'scientificName': s, 'taxon_id':taxon_id, 'sensitiveState': sensitiveState, 'name_code': name_code,
-            'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
-            sci_match.append(tmp)
-    sci_match = pd.DataFrame(sci_match)
-    if len(sci_match):
-        sci_match['rank'] = sci_match['rank'].replace('Class','class')
+                taxon_id = res['best'].get('taicol',None)
+                if taxon_id:
+                    request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
+                    response = requests.get(request_url, verify=False)
+                    t = response.json()[1]
+                    name = t['name']
+                    name_code = t['accepted_name_code']
+        tmp = {'scientificName': s, 'taxon_id':taxon_id, 'sensitiveState': sensitiveState, 'name_code': name_code,
+        'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
+        sci_match.append(tmp)
+sci_match = pd.DataFrame(sci_match)
+if len(sci_match):
+    sci_match['rank'] = sci_match['rank'].replace('Class','class')
+    
     row_list = []
     for k in range(len(df)):
         # print(k)
@@ -333,7 +334,7 @@ for count in range(0,len_f):
         common_name_c, kingdom, phylum, Class, order, family, genus, species, kingdom_c, phylum_c, class_c, order_c, family_c, genus_c =  None, None, None, None, None, None, None, None, None, None, None, None, None, None
         synonyms = None
         sensitiveState, rank_str, name_code, data_generalize, precision, name = None, None, None, None, None, None
-        sci_match_row = sci_match.loc[sci_match['scientificName']==row.scientificName]
+        sci_match_row = sci_match.loc[sci_match['scientificName']==row.scientificName] if len(sci_match) else []
         if len(sci_match_row):
             sensitiveState = sci_match_row.sensitiveState.values[0]
             rank_str = sci_match_row['rank'].values[0]
