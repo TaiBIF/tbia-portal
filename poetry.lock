@@ -10,6 +10,18 @@ python-versions = ">=3.6"
 tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
 
 [[package]]
+name = "bson"
+version = "0.5.10"
+description = "BSON codec for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+python-dateutil = ">=2.4.0"
+six = ">=1.9.0"
+
+[[package]]
 name = "certifi"
 version = "2021.5.30"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -170,12 +182,15 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f536781de0b32938cf0337dec8b5acd45cb69fef67e5f9e25e2f115b46283b67"
+content-hash = "15c3463bf4c6461be27d6d041bf1b2cbd9e261eea3ba78fc449ed2de33eae639"
 
 [metadata.files]
 asgiref = [
     {file = "asgiref-3.3.4-py3-none-any.whl", hash = "sha256:92906c611ce6c967347bbfea733f13d6313901d54dcca88195eaeb52b2a8e8ee"},
     {file = "asgiref-3.3.4.tar.gz", hash = "sha256:d1216dfbdfb63826470995d31caed36225dcaf34f182e0fa257a4dd9e86f1b78"},
+]
+bson = [
+    {file = "bson-0.5.10.tar.gz", hash = "sha256:d6511b2ab051139a9123c184de1a04227262173ad593429d21e443d6462d6590"},
 ]
 certifi = [
     {file = "certifi-2021.5.30-py2.py3-none-any.whl", hash = "sha256:50b1e4f8446b06f41be7dd6338db18e0990601dce795c2b1686458aa7e8fa7d8"},

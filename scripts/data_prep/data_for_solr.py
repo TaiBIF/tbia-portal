@@ -1,4 +1,5 @@
 import pandas as pd
+import glob
 
 taxon_cols = ['id',
 'taxonUUID',
@@ -246,13 +247,11 @@ merged_cols = [
 
 # # 同物異名
 
-
 #-------- from scratch ---------#
 import bson
 
 from numpy import nan
 import requests
-import pandas as pd
 from datetime import datetime, tzinfo,timedelta
 from dateutil import parser
 import time
@@ -269,53 +268,60 @@ def convert_date(date):
             formatted_date = None
     return formatted_date
 
-rank = pd.read_csv('../tbia-volumes/data/taxa_c.csv', names=['rank_c','rank'])
-syn = pd.read_csv('../tbia-volumes/data/namecorrespond20211019.csv')
-taicol = pd.read_csv('../tbia-volumes/data/TaiwanSpecies20211019_UTF8.csv')
+rank = pd.read_csv('../tbia-volumes/bucket/taxa_c.csv', names=['rank_c','rank'])
+syn = pd.read_csv('../tbia-volumes/bucket/namecorrespond20211019.csv')
+taicol = pd.read_csv('../tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
 taicol = taicol[taicol['is_accepted_name']==True]
 
 tbn_path = '../tbia-volumes/tbn_data'
-files = os.listdir(tbn_path)
+# tbn_path = '/Users/taibif/Documents/GitHub/tbia-volumes/tbn_data'
+extension = 'csv'
+os.chdir(tbn_path)
+files = glob.glob('*.{}'.format(extension))
 len_f = len(files)
 
 for count in range(0,len_f):
-    print(count)
-    df = pd.read_csv(os.path.join(tbn_path,files[count]))
+for count in range(1):
+    # print(count)
+    df = pd.read_csv(files[count])
     unique_sci = df.scientificName.unique()
+    unique_sci = unique_sci[:35]
     # NomenMatch
     sci_match = []
     for s in unique_sci:
-        # print(s)
+        # 不查 Genus: xxx 的資料
+        print(s)
         taxon_id, sensitiveState, name_code, precision, data_generalize,rank_e = None, None, None, None, None, None
-        if len(df[df['scientificName']==s]):
-            request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={df[df['scientificName']==s].taxonUUID.values[0]}"
+        if not s.split(' ')[0] in ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']:
+            if len(df[df['scientificName']==s]):
+                request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={df[df['scientificName']==s].taxonUUID.values[0]}"
+                response = requests.get(request_url)
+                t = response.json()['data']
+                if t:
+                    sensitiveState = t[0]['sensitiveState']
+                    if sensitiveState == '輕度':
+                        precision = 0.01
+                        data_generalize = True
+                    elif sensitiveState == '重度':
+                        precision = 0.1
+                        data_generalize = True
+                    taxon_rank = t[0]['taxonRank']
+                    rank_e = rank[rank['rank_c']==taxon_rank]['rank'].values[0] if taxon_rank in rank.rank_c.to_list() else None
+            request_url = f"http://match.taibif.tw/api.php?names={s}&best=yes&format=json"
             response = requests.get(request_url)
-            t = response.json()['data']
-            if t:
-                sensitiveState = t[0]['sensitiveState']
-                if sensitiveState == '輕度':
-                    precision = 0.01
-                    data_generalize = True
-                elif sensitiveState == '重度':
-                    precision = 0.1
-                    data_generalize = True
-                taxon_rank = t[0]['taxonRank']
-                rank_e = rank[rank['rank_c']==taxon_rank]['rank'].values[0] if taxon_rank in rank.rank_c.to_list() else None
-        request_url = f"http://match.taibif.tw/api.php?names={s}&best=yes&format=json"
-        response = requests.get(request_url)
-        res = response.json()['results'][0][0]
-        if res['best']:
+            res = response.json()['results'][0][0]
             if res['best']:
-                taxon_id = res['best'].get('taicol',None)
-                if taxon_id:
-                    request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
-                    response = requests.get(request_url, verify=False)
-                    t = response.json()[1]
-                    name = t['name']
-                    name_code = t['accepted_name_code']
-        tmp = {'scientificName': s, 'taxon_id':taxon_id, 'sensitiveState': sensitiveState, 'name_code': name_code,
-        'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
-        sci_match.append(tmp)
+                if res['best']:
+                    taxon_id = res['best'].get('taicol',None)
+                    if taxon_id:
+                        request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
+                        response = requests.get(request_url, verify=False)
+                        t = response.json()[1]
+                        name = t['name']
+                        name_code = t['accepted_name_code']
+            tmp = {'scientificName': s, 'taxon_id':taxon_id, 'sensitiveState': sensitiveState, 'name_code': name_code,
+            'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
+            sci_match.append(tmp)
     sci_match = pd.DataFrame(sci_match)
     sci_match['rank'] = sci_match['rank'].replace('Class','class')
     row_list = []
@@ -354,7 +360,6 @@ for count in range(0,len_f):
             tc_syn = syn.loc[syn['accepted_name_code']==sci_match_row.name_code.values[0]]
             if tc_syn.synonyms.values:
                 synonyms = tc_syn.synonyms.values[0].replace('||',',')
-        # print(f"{row.datasetName},{k}, {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         tmp = {
         'recordType' : 'occ' if 'Specimen' not in row.basisOfRecord else 'col',
         'tbiaUUID' : bson.objectid.ObjectId(),
@@ -483,9 +488,13 @@ for count in range(0,len_f):
         'hybridFormula' : None
         }
         row_list.append(tmp)
-        
     df_cleaned = pd.DataFrame(row_list)
-    df_cleaned.to_csv(f'../tbia-volumes/solr/csvs/{files[count]}', index=False)
+    df_occ = df_cleaned[df_cleaned['recordType']=='occ']
+    df_col = df_cleaned[df_cleaned['recordType']=='col']
+    if len(df_occ):
+        df_occ.to_csv(f'../solr/csvs/occ/{files[count]}', index=False)
+    if len(df_col):
+        df_col.to_csv(f'../solr/csvs/col/{files[count]}', index=False)
 
 #  nohup sh -c 'poetry shell; python -u ./scripts/data_prep/data_for_solr.py' > for_solr.out 2>&1
 # add scientific name
