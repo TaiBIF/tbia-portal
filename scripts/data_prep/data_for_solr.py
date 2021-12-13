@@ -324,11 +324,11 @@ for count in range(0,len_f):
         row = df.iloc[k]
         common_name_c, kingdom, phylum, Class, order, family, genus, species, kingdom_c, phylum_c, class_c, order_c, family_c, genus_c =  None, None, None, None, None, None, None, None, None, None, None, None, None, None
         synonyms = None
-        sensitiveState, rank, name_code, data_generalize, precision, name = None, None, None, None, None, None
+        sensitiveState, rank_str, name_code, data_generalize, precision, name = None, None, None, None, None, None
         sci_match_row = sci_match.loc[sci_match['scientificName']==row.scientificName]
         if len(sci_match_row):
             sensitiveState = sci_match_row.sensitiveState.values[0]
-            rank = sci_match_row['rank'].values[0]
+            rank_str = sci_match_row['rank'].values[0]
             name_code = sci_match_row.name_code.values[0]
             data_generalize = sci_match_row.data_generalize.values[0]
             precision = sci_match_row.precision.values[0]
@@ -368,7 +368,7 @@ for count in range(0,len_f):
         'sourceScientificName' : row.scientificName,
         'sourceVernacularName' : row.vernacularName,
         'sensitiveCategory' : sensitiveState,
-        'taxonRank' : rank,
+        'taxonRank' : rank_str,
         'eventDate' : row.eventDate,
         'standardDate' : convert_date(row.eventDate),
         'verbatimLongitude' : row.decimalLongitude,
@@ -485,13 +485,9 @@ for count in range(0,len_f):
         row_list.append(tmp)
         
     df_cleaned = pd.DataFrame(row_list)
-    df_cleaned.to_csv(f'../tbia-volumes/solr/csvs/{files[count]}.csv', index=False)
+    df_cleaned.to_csv(f'../tbia-volumes/solr/csvs/{files[count]}', index=False)
 
-# '葉蘚屬'
-# '反葉粗蔓苔'
-# '耳葉蘚屬'
-# '片葉蘚屬'
-# 'Confi\xaddence level', '地錢屬'
+#  nohup sh -c 'poetry shell; python -u ./scripts/data_prep/data_for_solr.py' > for_solr.out 2>&1
 # add scientific name
 # df = pd.read_csv('../tbia-volumes/solr/csvs/occ_test_file.csv')
 # df['scientificName'] = ''
