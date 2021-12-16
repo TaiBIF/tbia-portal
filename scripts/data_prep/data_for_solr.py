@@ -281,18 +281,13 @@ files = glob.glob('*.{}'.format(extension))
 len_f = len(files)
 
 for count in range(0,len_f):
-# for count in range(1):
-    # print(count)
     df = pd.read_csv(files[count])
     unique_sci = df.scientificName.unique()
     unique_sci = [x for x in unique_sci if str(x) != 'nan']
-    # unique_sci = unique_sci[:35]
     # NomenMatch
     sci_match = []
     for s in unique_sci:
-        # 不查 Genus: xxx 的資料
-        print(s)
-        taxon_id, sensitiveState, name_code, precision, data_generalize,rank_e = None, None, None, None, None, None
+        taxon_id, sensitiveState, name_code, precision, data_generalize,rank_e, name = None, None, None, None, None, None, None
         if not s.split(' ')[0] in ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species']:
             if len(df[df['scientificName']==s]):
                 request_url = f"https://www.tbn.org.tw/api/v2/species?uuid={df[df['scientificName']==s].taxonUUID.values[0]}"
@@ -315,11 +310,16 @@ for count in range(0,len_f):
                 if res['best']:
                     taxon_id = res['best'].get('taicol',None)
                     if taxon_id:
-                        request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
-                        response = requests.get(request_url, verify=False)
-                        t = response.json()[1]
-                        name = t['name']
-                        name_code = t['accepted_name_code']
+                        # directly read taicol df
+                        tc_results = taicol[taicol['name_code']==str(taxon_id)][['accepted_name_code','name']]
+                        if tc_results:
+                            name = tc_results.name[0]
+                            name_code = tc_results.accepted_name_code[0]
+                        # request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
+                        # response = requests.get(request_url, verify=False)
+                        # t = response.json()[1]
+                        # name = t['name']
+                        # name_code = t['accepted_name_code']
             tmp = {'scientificName': s, 'taxon_id':taxon_id, 'sensitiveState': sensitiveState, 'name_code': name_code,
             'precision': precision, 'data_generalize': data_generalize, 'rank': rank_e, 'matchedName':name }
             sci_match.append(tmp)
@@ -328,6 +328,7 @@ for count in range(0,len_f):
         sci_match['rank'] = sci_match['rank'].replace('Class','class')
     row_list = []
     for k in range(len(df)):
+        print(files[count],k)
         # print(k)
         row = df.iloc[k]
         common_name_c, kingdom, phylum, Class, order, family, genus, species, kingdom_c, phylum_c, class_c, order_c, family_c, genus_c =  None, None, None, None, None, None, None, None, None, None, None, None, None, None
