@@ -312,7 +312,7 @@ for count in range(0,len_f):
                     if taxon_id:
                         # directly read taicol df
                         tc_results = taicol[taicol['name_code']==str(taxon_id)][['accepted_name_code','name']]
-                        if tc_results:
+                        if len(tc_results):
                             name = tc_results.name[0]
                             name_code = tc_results.accepted_name_code[0]
                         # request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
