@@ -313,8 +313,8 @@ for count in range(0,len_f):
                         # directly read taicol df
                         tc_results = taicol[taicol['name_code']==str(taxon_id)][['accepted_name_code','name']]
                         if len(tc_results):
-                            name = tc_results.name[0]
-                            name_code = tc_results.accepted_name_code[0]
+                            name = tc_results.name.values[0]
+                            name_code = tc_results.accepted_name_code.values[0]
                         # request_url = f"https://api.taicol.tw/v1/?namecode={taxon_id}"
                         # response = requests.get(request_url, verify=False)
                         # t = response.json()[1]
