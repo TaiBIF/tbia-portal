@@ -46,7 +46,8 @@ services:
   #   image: redis:5-alpine
   #   restart: always
   solr:
-    image: solr:8
+    build: ./solr-workspace
+    image: solr:8.9.0
     container_name: tbia-solr
     ports:
       - "8983:8983"
