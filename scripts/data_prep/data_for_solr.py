@@ -278,7 +278,10 @@ tbn_path = '../tbia-volumes/tbn_data'
 extension = 'csv'
 os.chdir(tbn_path)
 files = glob.glob('*.{}'.format(extension))
+# idx = files.index("e1b7adf8-9315-4134-aced-729a09da40f6_10.csv")
+# files = files[idx:]
 len_f = len(files)
+
 
 for count in range(0,len_f):
     df = pd.read_csv(files[count])
@@ -364,7 +367,7 @@ for count in range(0,len_f):
             if tc_syn.synonyms.values:
                 synonyms = tc_syn.synonyms.values[0].replace('||',',')
         tmp = {
-        'recordType' : 'occ' if 'Specimen' not in row.basisOfRecord else 'col',
+        'recordType' : 'occ' if 'Specimen' not in str(row.basisOfRecord) else 'col',
         'tbiaUUID' : bson.objectid.ObjectId(),
         'sourceModified' : convert_date(row.modified),
         'sourceCreated' : convert_date(row.created),
