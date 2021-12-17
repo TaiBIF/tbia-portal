@@ -278,8 +278,8 @@ tbn_path = '../tbia-volumes/tbn_data'
 extension = 'csv'
 os.chdir(tbn_path)
 files = glob.glob('*.{}'.format(extension))
-# idx = files.index("e1b7adf8-9315-4134-aced-729a09da40f6_10.csv")
-# files = files[idx:]
+idx = files.index("4fa7b334-ce0d-4e88-aaae-2e0c138d049e.csv")
+files = files[idx:]
 len_f = len(files)
 
 
@@ -335,7 +335,7 @@ for count in range(0,len_f):
         # print(k)
         row = df.iloc[k]
         common_name_c, kingdom, phylum, Class, order, family, genus, species, kingdom_c, phylum_c, class_c, order_c, family_c, genus_c =  None, None, None, None, None, None, None, None, None, None, None, None, None, None
-        synonyms = None
+        synonyms, alternative_name_c = None, None
         sensitiveState, rank_str, name_code, data_generalize, precision, name = None, None, None, None, None, None
         sci_match_row = sci_match.loc[sci_match['scientificName']==row.scientificName] if len(sci_match) else []
         if len(sci_match_row):
