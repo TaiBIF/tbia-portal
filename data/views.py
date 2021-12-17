@@ -1,19 +1,41 @@
 from django.http import request
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
-from utils.solr_query import SOLR_PREFIX, SolrQuery
+from utils.solr_query import SolrQuery
 from pages.models import Resource, News
 from django.db.models import Q
+import pandas as pd
+import numpy as np
 
-facet_collection = ['scientificName', 'common_name_c', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license']
+taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
+# taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
+taicol = taicol[taicol['is_accepted_name']==True][['name','common_name_c']]
+taicol = taicol.replace({np.nan: ''})
+taicol['common_name_c'] = taicol['common_name_c'].apply(lambda x: x.split(';')[0] if x else x)
 
-facet_occurrence = ['scientificName', 'common_name_c', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license']
+facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
+                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
+                    'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license',
+                    'kingdom','phylum','class','order','family','genus','species',
+                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
 
-facet_map_occurrence = {
+facet_occurrence = ['scientificName', 'common_name_c', 'alternative_name_c', 
+                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
+                    'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license',
+                    'kingdom','phylum','class','order','family','genus','species',
+                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
+
+map_occurrence = {
+    'sourceScientificName': '原資料庫使用學名',
+    'sourceVernacularName': '原資料庫使用中文名',
+    'verbatimCoordinateSystem': '座標系統',
+    'verbatimSRS': '空間參考系統',
+    'organismQuantityType': '數量單位',
+    'resourceContacts': '資料集聯絡人',
     'scientificName': '學名',
-    'common_name_c': '主要中文俗名', 
+    'common_name_c': '主要中文名', 
+    'alternative_name_c': '中文別名', 
+    'synonyms': '同物異名',
     'rightsHolder': '來源資料庫', 
     'sensitiveCategory': '敏感層級', 
     'taxonRank': '分類層級', 
@@ -21,12 +43,33 @@ facet_map_occurrence = {
     'recordedBy': '紀錄者', 
     'basisOfRecord': '資料基底', 
     'datasetName': '資料集名稱', 
-    'license': '授權狀況'
+    'license': '授權狀況',
+    'kingdom':'界',
+    'phylum':'門',
+    'class':'綱',
+    'order':'目',
+    'family':'科',
+    'genus':'屬',
+    'species':'種',
+    'kingdom_c':'界',
+    'phylum_c':'門',
+    'class_c':'綱',
+    'order_c':'目',
+    'family_c':'科',
+    'genus_c':'屬'
 }
 
-facet_map_collection = {
+map_collection = {
+    'sourceScientificName': '原資料庫使用學名',
+    'sourceVernacularName': '原資料庫使用中文名',
+    'verbatimCoordinateSystem': '座標系統',
+    'verbatimSRS': '空間參考系統',
+    'organismQuantityType': '數量單位',
+    'resourceContacts': '資料集聯絡人',
     'scientificName': '學名', 
-    'common_name_c': '主要中文俗名', 
+    'common_name_c': '主要中文名', 
+    'alternative_name_c': '中文別名', 
+    'synonyms': '同物異名',
     'rightsHolder': '典藏單位', 
     'sensitiveCategory': '敏感層級', 
     'taxonRank': '分類層級', 
@@ -35,7 +78,20 @@ facet_map_collection = {
     'typeStatus': '標本類型', 
     'preservation': '保存方式', 
     'datasetName': '資料集名稱', 
-    'license': '授權狀況'
+    'license': '授權狀況',
+    'kingdom':'界',
+    'phylum':'門',
+    'class':'綱',
+    'order':'目',
+    'family':'科',
+    'genus':'屬',
+    'species':'種',
+    'kingdom_c':'界',
+    'phylum_c':'門',
+    'class_c':'綱',
+    'order_c':'目',
+    'family_c':'科',
+    'genus_c':'屬',
 }
 
 def search_full_doc(request, result_type, keyword):
@@ -78,8 +134,8 @@ def search_full(request):
     # 如果查同物異名，回傳正式學名結果
 
     if keyword:
-        # TODO
-        query_list = [('q', f'"{keyword}"'),('fl', 'scientificName'), ('fl','common_name_c')]
+        # TODO 階層
+        query_list = [('q', keyword), ('rows', 0)]
         # collection
         solr = SolrQuery('tbia_collection',facet_collection)
         req = solr.request(query_list)
@@ -90,14 +146,55 @@ def search_full(request):
         collection_card = []
         for i in facets:
             x = facets[i]
-            tmp = [ i for i in x['buckets'] if keyword in i['val'] ]
+            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
             if tmp:
-                collection_card += [dict(item, **{'title':facet_map_collection[i]}) for item in tmp]
                 collection_rows.append({
-                    'title': facet_map_occurrence[i],
+                    'title': map_collection[i],
                     'buckets': tmp,
                     'total_count': sum(item['count'] for item in tmp)
                 })
+                for k in tmp:
+                    tmp_s = {map_collection[i]: k['val']}
+                    if i == 'scientificName':
+                        # for q in k['rightsHolder']['buckets']:
+                        collection_card.append({
+                                'content':{
+                                    '主要中文名': taicol.loc[taicol['name']==k['val']].common_name_c.values[0],
+                                    '學名': k['val'],
+                                    },
+                                'count': k['count'],
+                            })
+                        if len(occurrence_card) > 10:
+                            break
+                    elif i == 'common_name_c':
+                        # for q in k['rightsHolder']['buckets']:
+                        collection_card.append({
+                                'content':{
+                                    '主要中文名': k['val'],
+                                    '學名': taicol.loc[taicol['common_name_c']==k['val']].name.values[0],
+                                    },
+                                'count': k['count'],
+                            })
+                        if len(collection_card) > 10:
+                            break
+                    elif i != 'scientificName' and i != 'common_name_c':
+                        for q in k['scientificName']['buckets']:
+                            for_check_duplicated = {'content':{
+                                '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
+                                '學名': q['val']}, 'count': q['count']}
+                            
+                            if for_check_duplicated not in collection_card:
+                                collection_card.append({
+                                    'content':{
+                                        '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
+                                        '學名': q['val'],
+                                        map_collection[i]: k['val'],
+                                    },
+                                    'count': q['count'],
+                                })
+                                if len(collection_card) > 10:
+                                    break
+
         # occurrence
         solr = SolrQuery('tbia_occurrence',facet_occurrence)
         req = solr.request(query_list)
@@ -108,14 +205,52 @@ def search_full(request):
         occurrence_card = []
         for i in facets:
             x = facets[i]
-            tmp = [ i for i in x['buckets'] if keyword in i['val'] ]
+            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
             if tmp:
-                occurrence_card += [dict(item, **{'title':facet_map_occurrence[i]}) for item in tmp]
                 occurrence_rows.append({
-                    'title': facet_map_occurrence[i],
+                    'title': map_occurrence[i],
                     'buckets': tmp,
                     'total_count': sum(item['count'] for item in tmp)
                 })
+                for k in tmp:
+                    tmp_s = {map_occurrence[i]: k['val']}
+                    if i == 'scientificName':
+                        # for q in k['rightsHolder']['buckets']:
+                        occurrence_card.append({
+                                'content':{
+                                    '主要中文名': taicol.loc[taicol['name']==k['val']].common_name_c.values[0],
+                                    '學名': k['val']},
+                                'count': k['count'],
+                            })
+                        if len(occurrence_card) > 10:
+                            break
+                    elif i == 'common_name_c':
+                        # for q in k['rightsHolder']['buckets']:
+                        occurrence_card.append({
+                                'content':{
+                                    '主要中文名': k['val'],
+                                    '學名': taicol.loc[taicol['common_name_c']==k['val']].name.values[0],},
+                                'count': k['count'],
+                            })
+                        if len(occurrence_card) > 10:
+                            break
+                    elif i != 'scientificName' and i != 'common_name_c':
+                        for q in k['scientificName']['buckets']:
+                            for_check_duplicated = {
+                                'content':{
+                                '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
+                                '學名': q['val']}, 'count': q['count']}
+                            if for_check_duplicated not in occurrence_card:
+                                occurrence_card.append({
+                                    'content':{
+                                        '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
+                                        '學名': q['val'],
+                                        map_occurrence[i]: k['val'],
+                                    },
+                                    'count': q['count'],
+                                })
+                                if len(occurrence_card) > 10:
+                                    break
         # news
         news = News.objects.filter(type='news').filter(Q(title__contains=keyword)|Q(content__contains=keyword))
         c_news = news.count()
@@ -161,8 +296,8 @@ def search_full(request):
         
         response = {
             'keyword': keyword,
-            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occurrence_card[:9], 'has_more': occurrence_more},
-            'collection': {'rows': collection_rows, 'count': c_collection, 'card': collection_card[:9], 'has_more': collection_card},
+            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occurrence_card[:9], 'more': occurrence_more},
+            'collection': {'rows': collection_rows, 'count': c_collection, 'card': collection_card[:9], 'more': collection_more},
             'news': {'rows': news_rows, 'count': c_news},
             'event': {'rows': event_rows, 'count': c_event},
             'project': {'rows': project_rows, 'count': c_project},

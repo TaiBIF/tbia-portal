@@ -136,7 +136,9 @@
             {% for i in occurrence.card %}
               <li>
                 <div class="num">{{ i.count }}</div>
-                <p style="margin-right: 20px">{{ i.title }}：{{ i.val|highlight:keyword }}</p>
+                {% for key,value in i.content.items %}
+                <p>{{ key }}：{{ value|highlight:keyword }}</p>
+                {% endfor %}
               </li>
             {% endfor %}
           </ul>
@@ -145,7 +147,7 @@
         <div class="no_data">暫無資料</div>
         {% endif %}
         <!--超過9個才有更多按鈕-->
-        {% if occurrence.has_more %}
+        {% if occurrence.more %}
         <a href="#" class="more"> 更多結果 </a>
         {% endif %}
       </div>
@@ -161,7 +163,9 @@
             {% for i in collection.card %}
               <li>
                 <div class="num">{{ i.count }}</div>
-                <p style="margin-right: 20px">{{ i.title }}：{{ i.val|highlight:keyword }}</p>
+                {% for key,value in i.content.items %}
+                <p>{{ key }}：{{ value|highlight:keyword }}</p>
+                {% endfor %}
               </li>
             {% endfor %}
           </ul>
@@ -170,7 +174,7 @@
         <div class="no_data">暫無資料</div>
         {% endif %}
         <!--超過9個才有更多按鈕-->
-        {% if collection.has_more %}
+        {% if collection.more %}
         <a href="#" class="more"> 更多結果 </a>
         {% endif %}
       </div>
