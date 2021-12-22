@@ -1,98 +1,141 @@
-from django.http import request
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery
 from pages.models import Resource, News
 from django.db.models import Q
+from .utils import taicol, facet_collection, facet_occurrence, map_occurrence, map_collection
 import pandas as pd
 import numpy as np
+from django.http import (
+    request,
+    JsonResponse,
+    HttpResponseRedirect,
+    Http404,
+    HttpResponse,
+)
+import json
+from pages.templatetags.tags import highlight
+dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
+            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
+            'alternative_name_c', 'synonyms']
 
-taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
-# taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
-taicol = taicol[taicol['is_accepted_name']==True][['name','common_name_c']]
-taicol = taicol.replace({np.nan: ''})
-taicol['common_name_c'] = taicol['common_name_c'].apply(lambda x: x.split(';')[0] if x else x)
+def get_key(val, my_dict):
+    for key, value in my_dict.items():
+         if val == value:
+             return key
+ 
+    return "key doesn't exist"
 
-facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
-                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license',
-                    'kingdom','phylum','class','order','family','genus','species',
-                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
 
-facet_occurrence = ['scientificName', 'common_name_c', 'alternative_name_c', 
-                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license',
-                    'kingdom','phylum','class','order','family','genus','species',
-                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
+def get_more_results(request):
+    if request.method == 'POST':
+        search_field = request.POST.get('search_field', '')
+        keyword = request.POST.get('keyword', '')
+        record_type = request.POST.get('record_type', '')
+        record_type = 'occ'
+        search_field = '界' 
+        search_field = get_key(search_field, map_collection) if record_type == 'col' else get_key(search_field, map_occurrence)
+        keyword = 'Animalia'
 
-map_occurrence = {
-    'sourceScientificName': '原資料庫使用學名',
-    'sourceVernacularName': '原資料庫使用中文名',
-    'verbatimCoordinateSystem': '座標系統',
-    'verbatimSRS': '空間參考系統',
-    'organismQuantityType': '數量單位',
-    'resourceContacts': '資料集聯絡人',
-    'scientificName': '學名',
-    'common_name_c': '主要中文名', 
-    'alternative_name_c': '中文別名', 
-    'synonyms': '同物異名',
-    'rightsHolder': '來源資料庫', 
-    'sensitiveCategory': '敏感層級', 
-    'taxonRank': '分類層級', 
-    'locality': '出現地', 
-    'recordedBy': '紀錄者', 
-    'basisOfRecord': '資料基底', 
-    'datasetName': '資料集名稱', 
-    'license': '授權狀況',
-    'kingdom':'界',
-    'phylum':'門',
-    'class':'綱',
-    'order':'目',
-    'family':'科',
-    'genus':'屬',
-    'species':'種',
-    'kingdom_c':'界',
-    'phylum_c':'門',
-    'class_c':'綱',
-    'order_c':'目',
-    'family_c':'科',
-    'genus_c':'屬'
-}
 
-map_collection = {
-    'sourceScientificName': '原資料庫使用學名',
-    'sourceVernacularName': '原資料庫使用中文名',
-    'verbatimCoordinateSystem': '座標系統',
-    'verbatimSRS': '空間參考系統',
-    'organismQuantityType': '數量單位',
-    'resourceContacts': '資料集聯絡人',
-    'scientificName': '學名', 
-    'common_name_c': '主要中文名', 
-    'alternative_name_c': '中文別名', 
-    'synonyms': '同物異名',
-    'rightsHolder': '典藏單位', 
-    'sensitiveCategory': '敏感層級', 
-    'taxonRank': '分類層級', 
-    'locality': '採集地', 
-    'recordedBy': '採集者', 
-    'typeStatus': '標本類型', 
-    'preservation': '保存方式', 
-    'datasetName': '資料集名稱', 
-    'license': '授權狀況',
-    'kingdom':'界',
-    'phylum':'門',
-    'class':'綱',
-    'order':'目',
-    'family':'科',
-    'genus':'屬',
-    'species':'種',
-    'kingdom_c':'界',
-    'phylum_c':'門',
-    'class_c':'綱',
-    'order_c':'目',
-    'family_c':'科',
-    'genus_c':'屬',
-}
+        core = 'tbia_collection' if record_type == 'col' else 'tbia_occurrence'
+        solr = SolrQuery(core)
+        query_list = [('q', f'"{keyword}"'), ('rows', 10)]        
+        req = solr.request(query_list)
+
+        count_result = req['solr_response']['response']['numFound']
+        docs = pd.DataFrame(req['solr_response']['response']['docs'])
+    return JsonResponse({'message': 'success'})
+
+
+def get_more_cards(request):
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '')
+        record_type = request.POST.get('record_type', '')
+        offset = request.POST.get('offset', '')
+        if offset:
+            offset = int(offset)
+        # append 9 cards a time
+        query_list = [('q', f'"{keyword}"'), ('rows', 0)]
+
+        if record_type == '.col_card':
+            solr = SolrQuery('tbia_collection',facet_collection)
+            req = solr.request(query_list)
+            c_collection = req['solr_response']['response']['numFound']
+            collection_rows = []
+            facets = req['solr_response']['facets']
+            facets.pop('count', None)
+            collection_card = []
+            result = []
+            for i in facets:
+                x = facets[i]
+                tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+                for k in tmp:
+                    bucket = k['scientificName']['buckets']
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            col_result_df = pd.DataFrame(result)
+            col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
+            if len(col_result_df_duplicated):
+                col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
+                col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
+            if len(col_result_df):
+                col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
+                col_card_len = len(col_result_df[offset:])
+                col_result_df = col_result_df[offset:offset+9]
+                col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
+                col_result_df['matched_value'] = col_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+                col_result_df['val'] = col_result_df['val'].apply(lambda x: highlight(x,keyword))
+                col_result_df['common_name_c'] = col_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+            else:
+                col_card_len = 0
+            
+            response = {
+                'data': col_result_df.to_dict('records'),
+                'has_more': True if col_card_len > 9 else False
+            }
+
+            return HttpResponse(json.dumps(response), content_type='application/json')
+
+        else:
+            solr = SolrQuery('tbia_occurrence',facet_occurrence)
+            req = solr.request(query_list)
+            c_occurrence = req['solr_response']['response']['numFound']
+            occurrence_rows = []
+            facets = req['solr_response']['facets']
+            facets.pop('count', None)
+            occurrence_card = []
+            result = []
+            for i in facets:
+                x = facets[i]
+                tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+                for k in tmp:
+                    bucket = k['scientificName']['buckets']
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            occ_result_df = pd.DataFrame(result)
+            occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
+            if len(occ_result_df_duplicated):
+                occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
+                occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]
+            if len(occ_result_df):
+                occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
+                occ_card_len = len(occ_result_df[offset:])
+                occ_result_df = occ_result_df[offset:offset+9]
+                occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
+                occ_result_df['matched_value'] = occ_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+                occ_result_df['val'] = occ_result_df['val'].apply(lambda x: highlight(x,keyword))
+                occ_result_df['common_name_c'] = occ_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+            else:
+                occ_card_len = 0
+
+            response = {
+                'data': occ_result_df.to_dict('records'),
+                'has_more': True if occ_card_len > 9 else False
+            }
+
+            
+            # return JsonResponse(occ_result_df.to_dict('records'))
+            return HttpResponse(json.dumps(response), content_type='application/json')
+
 
 def search_full_doc(request, result_type, keyword):
     # TODO 要帶著occurrence & collection的count & facet
@@ -128,6 +171,11 @@ def search_full_doc(request, result_type, keyword):
     return render(request, 'pages/search_full_doc.html', response)
 
 
+def search_full_record(request, record_type, keyword):
+    print(record_type, keyword)
+    return render(request, 'pages/search_full_record.html', {})
+
+
 def search_full(request):
     keyword = request.GET.get('keyword', '')
     # 如果查中文俗名，包含所有別名的結果
@@ -135,7 +183,7 @@ def search_full(request):
 
     if keyword:
         # TODO 階層
-        query_list = [('q', keyword), ('rows', 0)]
+        query_list = [('q', f'"{keyword}"'), ('rows', 0)]
         # collection
         solr = SolrQuery('tbia_collection',facet_collection)
         req = solr.request(query_list)
@@ -144,56 +192,25 @@ def search_full(request):
         facets = req['solr_response']['facets']
         facets.pop('count', None)
         collection_card = []
+        result = []
         for i in facets:
             x = facets[i]
             tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            if tmp:
-                collection_rows.append({
-                    'title': map_collection[i],
-                    'buckets': tmp,
-                    'total_count': sum(item['count'] for item in tmp)
-                })
-                for k in tmp:
-                    tmp_s = {map_collection[i]: k['val']}
-                    if i == 'scientificName':
-                        # for q in k['rightsHolder']['buckets']:
-                        collection_card.append({
-                                'content':{
-                                    '主要中文名': taicol.loc[taicol['name']==k['val']].common_name_c.values[0],
-                                    '學名': k['val'],
-                                    },
-                                'count': k['count'],
-                            })
-                        if len(occurrence_card) > 10:
-                            break
-                    elif i == 'common_name_c':
-                        # for q in k['rightsHolder']['buckets']:
-                        collection_card.append({
-                                'content':{
-                                    '主要中文名': k['val'],
-                                    '學名': taicol.loc[taicol['common_name_c']==k['val']].name.values[0],
-                                    },
-                                'count': k['count'],
-                            })
-                        if len(collection_card) > 10:
-                            break
-                    elif i != 'scientificName' and i != 'common_name_c':
-                        for q in k['scientificName']['buckets']:
-                            for_check_duplicated = {'content':{
-                                '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
-                                '學名': q['val']}, 'count': q['count']}
-                            
-                            if for_check_duplicated not in collection_card:
-                                collection_card.append({
-                                    'content':{
-                                        '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
-                                        '學名': q['val'],
-                                        map_collection[i]: k['val'],
-                                    },
-                                    'count': q['count'],
-                                })
-                                if len(collection_card) > 10:
-                                    break
+            for k in tmp:
+                bucket = k['scientificName']['buckets']
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        col_result_df = pd.DataFrame(result)
+        col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
+        if len(col_result_df_duplicated):
+            col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
+            col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
+        if len(col_result_df):
+            col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
+            col_card_len = len(col_result_df)
+            col_result_df = col_result_df[:9]
+            col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
+        else:
+            col_card_len = 0
 
         # occurrence
         solr = SolrQuery('tbia_occurrence',facet_occurrence)
@@ -203,54 +220,26 @@ def search_full(request):
         facets = req['solr_response']['facets']
         facets.pop('count', None)
         occurrence_card = []
+        result = []
         for i in facets:
             x = facets[i]
             tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            if tmp:
-                occurrence_rows.append({
-                    'title': map_occurrence[i],
-                    'buckets': tmp,
-                    'total_count': sum(item['count'] for item in tmp)
-                })
-                for k in tmp:
-                    tmp_s = {map_occurrence[i]: k['val']}
-                    if i == 'scientificName':
-                        # for q in k['rightsHolder']['buckets']:
-                        occurrence_card.append({
-                                'content':{
-                                    '主要中文名': taicol.loc[taicol['name']==k['val']].common_name_c.values[0],
-                                    '學名': k['val']},
-                                'count': k['count'],
-                            })
-                        if len(occurrence_card) > 10:
-                            break
-                    elif i == 'common_name_c':
-                        # for q in k['rightsHolder']['buckets']:
-                        occurrence_card.append({
-                                'content':{
-                                    '主要中文名': k['val'],
-                                    '學名': taicol.loc[taicol['common_name_c']==k['val']].name.values[0],},
-                                'count': k['count'],
-                            })
-                        if len(occurrence_card) > 10:
-                            break
-                    elif i != 'scientificName' and i != 'common_name_c':
-                        for q in k['scientificName']['buckets']:
-                            for_check_duplicated = {
-                                'content':{
-                                '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
-                                '學名': q['val']}, 'count': q['count']}
-                            if for_check_duplicated not in occurrence_card:
-                                occurrence_card.append({
-                                    'content':{
-                                        '主要中文名': taicol.loc[taicol['name']==q['val']].common_name_c.values[0],
-                                        '學名': q['val'],
-                                        map_occurrence[i]: k['val'],
-                                    },
-                                    'count': q['count'],
-                                })
-                                if len(occurrence_card) > 10:
-                                    break
+            for k in tmp:
+                bucket = k['scientificName']['buckets']
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        occ_result_df = pd.DataFrame(result)
+        occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
+        if len(occ_result_df_duplicated):
+            occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
+            occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]
+        if len(occ_result_df):
+            occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
+            occ_card_len = len(occ_result_df)
+            occ_result_df = occ_result_df[:9]
+            occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
+        else:
+            occ_card_len = 0
+
         # news
         news = News.objects.filter(type='news').filter(Q(title__contains=keyword)|Q(content__contains=keyword))
         c_news = news.count()
@@ -291,13 +280,13 @@ def search_full(request):
                 'date': x.modified.strftime("%Y.%m.%d")
             })
         
-        occurrence_more = True if len(occurrence_card) > 9 else False
-        collection_more = True if len(collection_card) > 9 else False
-        
+        occurrence_more = True if occ_card_len > 9 else False
+        collection_more = True if col_card_len > 9 else False
+
         response = {
             'keyword': keyword,
-            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occurrence_card[:9], 'more': occurrence_more},
-            'collection': {'rows': collection_rows, 'count': c_collection, 'card': collection_card[:9], 'more': collection_more},
+            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occ_result_df.to_dict('records'), 'more': occurrence_more},
+            'collection': {'rows': collection_rows, 'count': c_collection, 'card': col_result_df.to_dict('records'), 'more': collection_more},
             'news': {'rows': news_rows, 'count': c_news},
             'event': {'rows': event_rows, 'count': c_event},
             'project': {'rows': project_rows, 'count': c_project},
@@ -305,7 +294,13 @@ def search_full(request):
             }
     else:
         response = {
-
+            'keyword': keyword,
+            'occurrence': {'count': 0},
+            'collection': {'count': 0},
+            'news': {'count': 0},
+            'event': {'count': 0},
+            'project': {'count': 0},
+            'resource': {'count': 0},
         }
 
     
