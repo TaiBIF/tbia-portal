@@ -55,6 +55,7 @@ services:
       - ../tbia-volumes/solr:/var/solr
       - ./solr-workspace/:/workspace
       # - ./file/:/file
-    command:
-      - solr-precreate
-      - gettingstarted
+      # command:
+      #   - solr-precreate
+      #   - gettingstarted
+      #   - bash
