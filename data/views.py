@@ -62,7 +62,6 @@ def get_more_cards(request):
             solr = SolrQuery('tbia_collection',facet_collection)
             req = solr.request(query_list)
             c_collection = req['solr_response']['response']['numFound']
-            collection_rows = []
             facets = req['solr_response']['facets']
             facets.pop('count', None)
             collection_card = []
@@ -100,7 +99,6 @@ def get_more_cards(request):
             solr = SolrQuery('tbia_occurrence',facet_occurrence)
             req = solr.request(query_list)
             c_occurrence = req['solr_response']['response']['numFound']
-            occurrence_rows = []
             facets = req['solr_response']['facets']
             facets.pop('count', None)
             occurrence_card = []
@@ -188,14 +186,19 @@ def search_full(request):
         solr = SolrQuery('tbia_collection',facet_collection)
         req = solr.request(query_list)
         c_collection = req['solr_response']['response']['numFound']
-        collection_rows = []
         facets = req['solr_response']['facets']
         facets.pop('count', None)
         collection_card = []
+        collection_rows = []
         result = []
         for i in facets:
             x = facets[i]
             tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+            if tmp:
+                collection_rows.append({
+                    'title': map_collection[i],
+                    'total_count': sum(item['count'] for item in tmp)
+                })
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
@@ -224,6 +227,11 @@ def search_full(request):
         for i in facets:
             x = facets[i]
             tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+            if tmp:
+                occurrence_rows.append({
+                    'title': map_occurrence[i],
+                    'total_count': sum(item['count'] for item in tmp)
+                })
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
