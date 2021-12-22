@@ -57,7 +57,7 @@
       <div class="mb_scroll">
         <ul>
           <li>
-            <a href="{% url 'search_full' %}?keyword={{ keyword }}" class="big_link rd_click">
+            <a href="#" onclick="focusComponent('all')" class="big_link rd_click">
               <p>所有結果</p>
               <div class="arr"></div>
             </a>
@@ -67,14 +67,15 @@
               <div class="maskfor_click rd_click"></div>
               <p>
                 物種出現紀錄
-                <a href="{% url 'qa' %}" target="_blank" class="qusemark"></a>
+                <!-- <a href="{% url 'qa' %}" target="_blank" class="qusemark"></a> -->
+                <a href="#" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="#">全部({{ occurrence.count }})</a>
+              <a href="#" onclick="focusRecords('occ','all')">全部({{ occurrence.count }})</a>
               {% for i in occurrence.rows %} 
-              <a href="javascript:;">{{ i.title }}({{ i.total_count }})</a>
+              <a href="#" onclick="focusRecords('occ','{{ i.title }}')">{{ i.title }}({{ i.total_count }})</a>
               {% endfor %}
             </div>
           </li>
@@ -83,7 +84,8 @@
               <div class="maskfor_click rd_click"></div>
               <p>
                 ⾃然史典藏
-                <a href="{% url 'qa' %}" target="_blank" class="qusemark"></a>
+                <!-- <a href="{% url 'qa' %}" target="_blank" class="qusemark"></a> -->
+                <a href="#" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
@@ -96,25 +98,25 @@
           </li>
 
           <li>
-            <a href="{% url 'search_full_doc' 'news' keyword %}" class="big_link rd_click">
+            <a href="#" onclick="focusComponent('item_news')" class="big_link rd_click">
               <p>新聞公告</p>
               <div class="arr"></div>
             </a>
           </li>
           <li>
-            <a href="{% url 'search_full_doc' 'event' keyword %}" class="big_link rd_click">
+            <a href="#" onclick="focusComponent('item_event')" class="big_link rd_click">
               <p>活動公告</p>
               <div class="arr"></div>
             </a>
           </li>
           <li>
-            <a href="{% url 'search_full_doc' 'project' keyword %}" class="big_link rd_click">
+            <a href="#" onclick="focusComponent('item_project')" class="big_link rd_click">
               <p>計畫徵求</p>
               <div class="arr"></div>
             </a>
           </li>
           <li>
-            <a href="{% url 'search_full_doc' 'resource' keyword %}" class="big_link rd_click">
+            <a href="#" onclick="focusComponent('item_resource')" class="big_link rd_click">
               <p>開放資料相關資源</p>
               <div class="arr"></div>
             </a>
@@ -124,7 +126,12 @@
     </div>
 
     <div class="rightbox_content">
-      <div class="item">
+      <!----- 所有結果 內容欄 ----->
+
+
+
+      <!----- 物種出現紀錄 ----->
+      <div class="item item_occ">
         <div class="titlebox_line">
           <div class="title">
             <p>物種出現紀錄 ({{ occurrence.count }})</p>
@@ -132,13 +139,15 @@
           </div>
         </div>
         {% if occurrence.count > 0 %}
-          <ul class="card_list_1">
+          <ul class="card_list_1 occ_card">
             {% for i in occurrence.card %}
               <li>
                 <div class="num">{{ i.count }}</div>
-                {% for key,value in i.content.items %}
-                <p>{{ key }}：{{ value|highlight:keyword }}</p>
-                {% endfor %}
+                <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
+                <p>學名：{{ i.val|highlight:keyword }}</p>
+                {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
+                <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
+                {% endif %}
               </li>
             {% endfor %}
           </ul>
@@ -148,10 +157,14 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
-        <a href="#" class="more"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreCards('.occ_card','#occ_offset','.occ_more')" class="more occ_more"> 更多結果 </a>
+        <input type="hidden" id="occ_offset" value="9">
         {% endif %}
       </div>
-      <div class="item">
+
+
+      <!----- 自然史典藏 ----->
+      <div class="item item_col">
         <div class="titlebox_line">
           <div class="title">
             <p>⾃然史典藏 ({{ collection.count }})</p>
@@ -159,14 +172,16 @@
           </div>
         </div>
         {% if collection.count > 0 %}
-          <ul class="card_list_1">
+          <ul class="card_list_1 col_card">
             {% for i in collection.card %}
-              <li>
-                <div class="num">{{ i.count }}</div>
-                {% for key,value in i.content.items %}
-                <p>{{ key }}：{{ value|highlight:keyword }}</p>
-                {% endfor %}
-              </li>
+            <li>
+              <div class="num">{{ i.count }}</div>
+              <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
+              <p>學名：{{ i.val|highlight:keyword }}</p>
+              {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
+              <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
+              {% endif %}
+            </li>
             {% endfor %}
           </ul>
         {% else %}
@@ -175,12 +190,14 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
-        <a href="#" class="more"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreCards('.col_card','#col_offset', '.col_more')" class="more col_more"> 更多結果 </a>
+        <input type="hidden" id="col_offset" value="9">
         {% endif %}
       </div>
 
+
       <!-- 新聞公告 -->
-      <div class="item">
+      <div class="item item_news">
         <div class="titlebox_line">
           <div class="title">
             <p>新聞公告 ({{ news.count }})</p>
@@ -205,8 +222,10 @@
         <a href="#" class="more" style="display: none"> 更多結果 </a>
         {% endif %}
       </div>
+
+
       <!-- 活動公告 -->
-      <div class="item">
+      <div class="item item_event">
         <div class="titlebox_line">
           <div class="title">
             <p>活動公告 ({{ event.count }})</p>
@@ -231,7 +250,10 @@
         <a href="#" class="more" style="display: none"> 更多結果 </a>
         {% endif %}
       </div>
-      <div class="item">
+
+
+      <!----- 計畫徵求 ----->
+      <div class="item item_project">
         <div class="titlebox_line">
           <div class="title">
             <p>計畫徵求 ({{ project.count }})</p>
@@ -255,7 +277,10 @@
         <a href="#" class="more" style="display: none"> 更多結果 </a>
         {% endif %}
       </div>
-      <div class="item">
+
+
+      <!----- 開放資料相關資源 ----->
+      <div class="item item_resource">
         <div class="titlebox_line">
           <div class="title">
             <p>開放資料相關資源 ({{ resource.count }})</p>
@@ -283,6 +308,8 @@
         {% endif %}
       </div>
     </div>
+
+
   </div>
 </div>
 
@@ -300,6 +327,70 @@
     $(this).closest("li").toggleClass("now");
     $(this).closest("li").find(".second_menu").slideToggle();
   });
+
+
+  $(".second_menu a").on("click", function (event) {
+    $(".second_menu a").removeClass("now");
+    $(this).addClass("now")
+  });
+
+  function focusComponent(item_type){
+    if (item_type == 'all'){
+      $('.rightbox_content .item').css({display: ''})
+    } else {
+      $(`.rightbox_content .${item_type}`).css({display: ''})
+      $('.rightbox_content .item').not($(`.${item_type}`)).css({display: 'none'})
+    }
+  }
+
+  function getMoreCards(record_type,offset_value,more_type){
+    let offset = $(offset_value).val()
+    $.ajax({
+        url: "{% url 'get_more_cards' %}",
+        data: {
+          record_type: record_type,
+          keyword: '{{ keyword }}',
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+          offset: offset,
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+      if (response.has_more==true){
+        $(offset_value).val(Number(offset)+ 9 )
+      } else {
+        $(more_type).css({display: 'none'})
+      }
+      var step;
+      for (i = 0; i < response.data.length; i++) {
+        let x = response.data[i]
+
+        if ( x.matched_col != '中文名' && x.matched_col != '學名'){
+          $(record_type).append( `
+          <li>
+            <div class="num">${x.count}</div>
+            <p>中文名：${x.common_name_c}</p>
+            <p>學名${x.val}</p>
+            <p>${ x.matched_col }：${x.matched_value}</p>
+          </li>` )
+        } else {
+          $(record_type).append( `
+          <li>
+            <div class="num">${x.count}</div>
+            <p>中文名：${x.common_name_c}</p>
+            <p>學名${x.val}</p>
+          </li>` )
+        }
+      }
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      console.log( 'Error: ' + errorThrown )
+      console.log( 'Status: ' + status )
+      console.dir( xhr )
+    })
+  }
+
 
 </script>
 

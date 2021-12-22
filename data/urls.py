@@ -5,7 +5,10 @@ from . import views
 urlpatterns = [
     path('search/full', views.search_full, name='search_full'),
     path('search/full/result', views.search_full_result, name='search_full_result'),
+    path('search/full/more_results', views.get_more_results, name='get_more_results'),
+    path('search/full/more_cards', views.get_more_cards, name='get_more_cards'),
     path('search/full/doc/<result_type>/<keyword>', views.search_full_doc, name='search_full_doc'),
+    path('search/full/record/<record_type>/<keyword>', views.search_full_record, name='search_full_record'),
     path('search/collection', views.search_collection, name='search_collection'),
     path('search/collection-details/<int:tbiauuid>/', views.search_collection_details, name='search_collection_details'),
     path('search/occurrence', views.search_occurrence, name='search_occurrence'),

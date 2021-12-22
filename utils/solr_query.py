@@ -15,13 +15,27 @@ JSON_FACET_MAP = {
             'type': 'terms',
             'field': 'scientificName',
             'mincount': 1,
-            'limit': -1,        
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
         },
         'common_name_c': {
             'type': 'terms',
             'field': 'common_name_c',
             'mincount': 1,
             'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
         },
         'alternative_name_c': {
             'type': 'terms',
@@ -342,13 +356,27 @@ JSON_FACET_MAP = {
             'type': 'terms',
             'field': 'scientificName',
             'mincount': 1,
-            'limit': -1
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
         },
         'common_name_c': {
             'type': 'terms',
             'field': 'common_name_c',
             'mincount': 1,
-            'limit': -1
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
         },
         'alternative_name_c': {
             'type': 'terms',
