@@ -27,25 +27,65 @@ def get_key(val, my_dict):
     return "key doesn't exist"
 
 
-def get_more_results(request):
+# def get_more_results(request):
+#     if request.method == 'POST':
+#         search_field = request.POST.get('search_field', '')
+#         keyword = request.POST.get('keyword', '')
+#         record_type = request.POST.get('record_type', '')
+#         record_type = 'occ'
+#         search_field = '界' 
+#         search_field = get_key(search_field, map_collection) if record_type == 'col' else get_key(search_field, map_occurrence)
+#         keyword = 'Animalia'
+
+
+#         core = 'tbia_collection' if record_type == 'col' else 'tbia_occurrence'
+#         solr = SolrQuery(core)
+#         query_list = [('q', f'"{keyword}"'), ('rows', 10)]        
+#         req = solr.request(query_list)
+
+#         count_result = req['solr_response']['response']['numFound']
+#         docs = pd.DataFrame(req['solr_response']['response']['docs'])
+#     return JsonResponse({'message': 'success'})
+
+
+def get_more_docs(request):
     if request.method == 'POST':
-        search_field = request.POST.get('search_field', '')
         keyword = request.POST.get('keyword', '')
-        record_type = request.POST.get('record_type', '')
-        record_type = 'occ'
-        search_field = '界' 
-        search_field = get_key(search_field, map_collection) if record_type == 'col' else get_key(search_field, map_occurrence)
-        keyword = 'Animalia'
+        doc_type = request.POST.get('doc_type', '')
+        offset = request.POST.get('offset', '')
+        if offset:
+            offset = int(offset)
 
+        rows = []
+        if doc_type == 'resource':
+            resource = Resource.objects.filter(title__contains=keyword)
+            # c_resource = resource.count()
+            for x in resource.all()[offset:offset+6]:
+                rows.append({
+                    'title': highlight(x.title,keyword),
+                    'extension': x.extension,
+                    'url': x.url,
+                    'date': x.modified.strftime("%Y.%m.%d")
+                })
+            has_more = True if resource.all()[offset+6:].count() > 0 else False
+        else:
+            news = News.objects.filter(type=doc_type).filter(Q(title__contains=keyword)|Q(content__contains=keyword))
+            # c_news = news.count()
+            for x in news.all()[offset:offset+6]:
+                rows.append({
+                    'title': highlight(x.title,keyword),
+                    'content': highlight(x.content,keyword),
+                    'id': x.id
+                })
+            has_more = True if news.all()[offset+6:].count() > 0 else False
 
-        core = 'tbia_collection' if record_type == 'col' else 'tbia_occurrence'
-        solr = SolrQuery(core)
-        query_list = [('q', f'"{keyword}"'), ('rows', 10)]        
-        req = solr.request(query_list)
+        response = {
+            'rows': rows,
+            'has_more': has_more
+        }
 
-        count_result = req['solr_response']['response']['numFound']
-        docs = pd.DataFrame(req['solr_response']['response']['docs'])
-    return JsonResponse({'message': 'success'})
+        return HttpResponse(json.dumps(response), content_type='application/json')
+
 
 
 def get_focus_cards(request):
@@ -53,8 +93,6 @@ def get_focus_cards(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
-
-        query_list = [('q', f'"{keyword}"'), ('rows', 0)]
 
         if record_type == 'col':
             facet_dict = facet_collection
@@ -66,15 +104,12 @@ def get_focus_cards(request):
             core = 'tbia_occurrence'
 
         solr = SolrQuery(core, facet_dict)
+        query_list = [('q', f'"{keyword}"'), ('rows', 0)]
         req = solr.request(query_list)
-        # count = req['solr_response']['response']['numFound']
         facets = req['solr_response']['facets']
         facets.pop('count', None)
         result = []
 
-        # key = get_key(field, map_dict)
-
-        # for i in facets:
         x = facets[key]
         tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
         total_count =  sum(item['count'] for item in tmp)
@@ -105,8 +140,6 @@ def get_focus_cards(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-
-
 def get_more_cards(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
@@ -132,7 +165,6 @@ def get_more_cards(request):
         solr = SolrQuery(core, facet_dict)
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
         req = solr.request(query_list)
-        # count = req['solr_response']['response']['numFound']
         facets = req['solr_response']['facets']
         facets.pop('count', None)        
         if is_sub == 'false':
@@ -175,39 +207,6 @@ def get_more_cards(request):
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
-
-def search_full_doc(request, result_type, keyword):
-    # TODO 要帶著occurrence & collection的count & facet
-    print(result_type, keyword)
-    if result_type != 'resource':
-        news = News.objects.filter(type=result_type).filter(Q(title__contains=keyword)|Q(content__contains=keyword))
-        count = news.count()
-        rows = []
-        for x in news.all():
-            rows.append({
-                'title': x.title,
-                'content': x.content,
-                'id': x.id
-            })
-    else:
-        resource = Resource.objects.filter(title__contains=keyword)
-        count = resource.count()
-        rows = []
-        for x in resource.all():
-            rows.append({
-                'title': x.title,
-                'extension': x.extension,
-                'url': x.url,
-                'date': x.modified.strftime("%Y.%m.%d")
-            })
-
-    response = {
-        'type': result_type,
-        'count': count,
-        'rows': rows,
-        'keyword': keyword
-    }
-    return render(request, 'pages/search_full_doc.html', response)
 
 
 def search_full_record(request, record_type, keyword):

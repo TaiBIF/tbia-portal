@@ -1,4 +1,7 @@
-{% extends './base.html' %} {% load tags %} {% load static %}{% block body %}
+{% extends './base.html' %} 
+{% load tags %} 
+{% load static %}
+{% block body %}
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -207,7 +210,7 @@
           </div>
         </div>
         {% if news.count > 0 %}
-        <ul class="card_list_2">
+        <ul class="card_list_2 news-card">
           {% for i in news.rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
@@ -221,7 +224,8 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if news.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreDocs('news', '#news_offset', '.more_news', '.news-card')" class="more more_news"> 更多結果 </a>
+        <input type="hidden" id="news_offset" value="6">
         {% endif %}
       </div>
 
@@ -235,7 +239,7 @@
           </div>
         </div>
         {% if event.count > 0 %}
-        <ul class="card_list_2">
+        <ul class="card_list_2 event-card">
           {% for i in event.rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
@@ -249,7 +253,8 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if event.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreDocs('event', '#event_offset', '.more_event', '.event-card')" class="more more_event"> 更多結果 </a>
+        <input type="hidden" id="event_offset" value="6">
         {% endif %}
       </div>
 
@@ -263,7 +268,7 @@
           </div>
         </div>
         {% if project.count > 0 %}
-        <ul class="card_list_2">
+        <ul class="card_list_2 project-card">
           {% for i in project.rows %}
           <li>
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
@@ -274,9 +279,11 @@
         {% else %}
         <!--無資時料顯示-->
         <div class="no_data">暫無資料</div>
-        {% endif %} {% if project.count > 6 %}
+        {% endif %} 
+        {% if project.count > 6 %}
         <!--超過6個才有更多按鈕-->
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreDocs('project', '#project_offset', '.more_project', '.project-card')" class="more more_project"> 更多結果 </a>
+        <input type="hidden" id="project_offset" value="6">
         {% endif %}
       </div>
 
@@ -289,10 +296,10 @@
             <div class="line"></div>
           </div>
         </div>
-        <ul class="edu_list three_set">
+        <ul class="edu_list three_set resource-card">
           {% if resource.count > 0 %} {% for i in resource.rows %}
           <li>
-            <div class="item" style="height: 100%">
+            <div class="item items" style="height: 100%">
               <div class="cate_dbox">
                 <div class="cate pdf">{{ i.extension }}</div>
                 <div class="date">{{ i.date }}</div>
@@ -305,8 +312,10 @@
         </ul>
         {% else %}
         <div class="no_data" style="width: 100%">暫無資料</div>
-        {% endif %} {% if resource.count > 6 %}
-        <a href="#" class="more" style="display: none"> 更多結果 </a>
+        {% endif %} 
+        {% if resource.count > 6 %}
+        <a href="javascript:;" onclick="getMoreDocs('resource', '#resource_offset', '.more_resource', '.resource-card')" class="more more_resource"> 更多結果 </a>
+        <input type="hidden" id="resource_offset" value="6">
         {% endif %}
       </div>
     </div>
@@ -314,9 +323,9 @@
 
   </div>
 </div>
+{% endblock body %} 
 
-{% endblock body %} {% block script %}
-
+{% block script %}
 <script>
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
@@ -343,7 +352,7 @@
       $('.rightbox_content .subitem').css({display: 'none'})
     } else {
       $(`.rightbox_content .${item_class}`).css({display: ''})
-      $('.rightbox_content .item').not($(`.${item_class}`)).css({display: 'none'})
+      $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).css({display: 'none'})
     }
   }
 
@@ -395,7 +404,6 @@
           $(`.${response.card_class}`).append(
             html
           )}
-        
         // append 更多結果 button if more than 9 cards
         if (response.has_more == true) {
           $(`.${response.card_class}`).after(`
@@ -411,6 +419,77 @@
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
       })
     }
+  }
+
+  function getMoreDocs(doc_type, offset_value, more_class, card_class){
+    //console.log(doc_type, offset_value)
+    let offset = $(offset_value).val()
+    $.ajax({
+        url: "{% url 'get_more_docs' %}",
+        data: {
+          doc_type: doc_type,
+          keyword: '{{ keyword }}',
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+          offset: offset,
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 6 ) : $(more_class).css({display: 'none'})
+
+      if (card_class == '.resource-card'){
+        for (let i = 0; i < response.rows.length; i++) {
+          let x = response.rows[i]
+            $(card_class).append(`<li>
+              <div class="item" style="height: 100%">
+                <div class="cate_dbox">
+                  <div class="cate pdf">${ x.extension }</div>
+                  <div class="date">${ x.date }</div>
+                </div>
+                <a href="${ x.url }" class="title"> ${ x.title } </a>
+                <a href="${ x.url }" download class="dow_btn"> </a>
+              </div></li>`)
+        }
+      } else {
+        for (let i = 0; i < response.rows.length; i++) {
+          let x = response.rows[i]
+            $(card_class).append(`
+            <li>
+              <div class="nstitle">${ x.title }</div>
+              <p>${ x.content }</p>
+            </li>
+            `)
+        }
+      }
+      /*
+      console.log(card_class);
+      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).css({display: 'none'})
+      for (let i = 0; i < response.data.length; i++) {
+        let x = response.data[i]
+        if ( x.matched_col != '中文名' && x.matched_col != '學名'){
+          $(card_class).append( `
+          <li>
+            <div class="num">${x.count}</div>
+            <p>中文名：${x.common_name_c}</p>
+            <p>學名${x.val}</p>
+            <p>${ x.matched_col }：${x.matched_value}</p>
+          </li>` )
+        } else {
+          $(card_class).append( `
+          <li>
+            <div class="num">${x.count}</div>
+            <p>中文名：${x.common_name_c}</p>
+            <p>學名${x.val}</p>
+          </li>` )
+        }
+      }*/
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
+    })
+
+
   }
 
   function getMoreCards(card_class, offset_value, more_type, is_sub){
@@ -457,5 +536,4 @@
 
 
 </script>
-
 {% endblock script %}
