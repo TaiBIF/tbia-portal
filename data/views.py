@@ -48,91 +48,132 @@ def get_more_results(request):
     return JsonResponse({'message': 'success'})
 
 
-def get_more_cards(request):
+def get_focus_cards(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
-        offset = request.POST.get('offset', '')
-        if offset:
-            offset = int(offset)
-        # append 9 cards a time
+        key = request.POST.get('key', '')
+
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]
 
-        if record_type == '.col_card':
-            solr = SolrQuery('tbia_collection',facet_collection)
-            req = solr.request(query_list)
-            c_collection = req['solr_response']['response']['numFound']
-            facets = req['solr_response']['facets']
-            facets.pop('count', None)
-            collection_card = []
-            result = []
-            for i in facets:
-                x = facets[i]
-                tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-                for k in tmp:
-                    bucket = k['scientificName']['buckets']
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-            col_result_df = pd.DataFrame(result)
-            col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
-            if len(col_result_df_duplicated):
-                col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
-                col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
-            if len(col_result_df):
-                col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
-                col_card_len = len(col_result_df[offset:])
-                col_result_df = col_result_df[offset:offset+9]
-                col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
-                col_result_df['matched_value'] = col_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
-                col_result_df['val'] = col_result_df['val'].apply(lambda x: highlight(x,keyword))
-                col_result_df['common_name_c'] = col_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
-            else:
-                col_card_len = 0
-            
-            response = {
-                'data': col_result_df.to_dict('records'),
-                'has_more': True if col_card_len > 9 else False
-            }
-
-            return HttpResponse(json.dumps(response), content_type='application/json')
-
+        if record_type == 'col':
+            facet_dict = facet_collection
+            map_dict = map_collection
+            core = 'tbia_collection'
         else:
-            solr = SolrQuery('tbia_occurrence',facet_occurrence)
-            req = solr.request(query_list)
-            c_occurrence = req['solr_response']['response']['numFound']
-            facets = req['solr_response']['facets']
-            facets.pop('count', None)
-            occurrence_card = []
-            result = []
+            facet_dict = facet_occurrence
+            map_dict = map_occurrence
+            core = 'tbia_occurrence'
+
+        solr = SolrQuery(core, facet_dict)
+        req = solr.request(query_list)
+        # count = req['solr_response']['response']['numFound']
+        facets = req['solr_response']['facets']
+        facets.pop('count', None)
+        result = []
+
+        # key = get_key(field, map_dict)
+
+        # for i in facets:
+        x = facets[key]
+        tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+        total_count =  sum(item['count'] for item in tmp)
+        for k in tmp:
+            bucket = k['scientificName']['buckets']
+            result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+        result_df = pd.DataFrame(result)
+        if len(result_df):
+            result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
+            card_len = len(result_df)
+            result_df = result_df[:9]
+            result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
+            result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+            result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
+            result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+        else:
+            card_len = 0
+        
+        response = {
+            'title': map_dict[key],
+            'total_count': total_count,
+            'item_class': f"item_{record_type}_{key}",
+            'card_class': f"{record_type}-{key}-card",
+            'data': result_df.to_dict('records'),
+            'has_more': True if card_len > 9 else False
+        }
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
+
+
+
+
+def get_more_cards(request):
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '')
+        card_class = request.POST.get('card_class', '')
+        is_sub = request.POST.get('is_sub', '')
+        offset = request.POST.get('offset', '')
+        print(keyword, card_class, is_sub, offset)
+
+        # append 9 cards a time
+        if offset:
+            offset = int(offset)
+        
+        if card_class.startswith('.col'):
+            facet_dict = facet_collection
+            map_dict = map_collection
+            core = 'tbia_collection'
+        elif card_class.startswith('.occ'):
+            facet_dict = facet_occurrence
+            map_dict = map_occurrence
+            core = 'tbia_occurrence'
+
+        result = []
+        solr = SolrQuery(core, facet_dict)
+        query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
+        req = solr.request(query_list)
+        # count = req['solr_response']['response']['numFound']
+        facets = req['solr_response']['facets']
+        facets.pop('count', None)        
+        if is_sub == 'false':
             for i in facets:
                 x = facets[i]
                 tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
                 for k in tmp:
                     bucket = k['scientificName']['buckets']
                     result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-            occ_result_df = pd.DataFrame(result)
-            occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
-            if len(occ_result_df_duplicated):
-                occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
-                occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]
-            if len(occ_result_df):
-                occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
-                occ_card_len = len(occ_result_df[offset:])
-                occ_result_df = occ_result_df[offset:offset+9]
-                occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
-                occ_result_df['matched_value'] = occ_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
-                occ_result_df['val'] = occ_result_df['val'].apply(lambda x: highlight(x,keyword))
-                occ_result_df['common_name_c'] = occ_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
-            else:
-                occ_card_len = 0
+            result_df = pd.DataFrame(result)
+            result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
+            if len(result_df_duplicated):
+                remove_index = result_df_duplicated[result_df_duplicated.matched_col.isin(dup_col)].index
+                result_df = result_df.loc[~result_df.index.isin(remove_index)]            
+        else:
+            key = card_class.split('-')[1]
+            x = facets[key]
+            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
+            total_count =  sum(item['count'] for item in tmp)
+            for k in tmp:
+                bucket = k['scientificName']['buckets']
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+            result_df = pd.DataFrame(result)
 
-            response = {
-                'data': occ_result_df.to_dict('records'),
-                'has_more': True if occ_card_len > 9 else False
-            }
+        if len(result_df):
+            result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
+            card_len = len(result_df[offset:])
+            result_df = result_df[offset:offset+9]
+            result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
+            result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+            result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
+            result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+        else:
+            card_len = 0
 
-            
-            # return JsonResponse(occ_result_df.to_dict('records'))
-            return HttpResponse(json.dumps(response), content_type='application/json')
+        response = {
+            'data': result_df.to_dict('records'),
+            'has_more': True if card_len > 9 else False
+        }
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 def search_full_doc(request, result_type, keyword):
@@ -188,7 +229,6 @@ def search_full(request):
         c_collection = req['solr_response']['response']['numFound']
         facets = req['solr_response']['facets']
         facets.pop('count', None)
-        collection_card = []
         collection_rows = []
         result = []
         for i in facets:
@@ -197,7 +237,8 @@ def search_full(request):
             if tmp:
                 collection_rows.append({
                     'title': map_collection[i],
-                    'total_count': sum(item['count'] for item in tmp)
+                    'total_count': sum(item['count'] for item in tmp),
+                    'key': i
                 })
             for k in tmp:
                 bucket = k['scientificName']['buckets']
@@ -222,7 +263,6 @@ def search_full(request):
         occurrence_rows = []
         facets = req['solr_response']['facets']
         facets.pop('count', None)
-        occurrence_card = []
         result = []
         for i in facets:
             x = facets[i]
@@ -230,7 +270,8 @@ def search_full(request):
             if tmp:
                 occurrence_rows.append({
                     'title': map_occurrence[i],
-                    'total_count': sum(item['count'] for item in tmp)
+                    'total_count': sum(item['count'] for item in tmp),
+                    'key': i
                 })
             for k in tmp:
                 bucket = k['scientificName']['buckets']

@@ -14,19 +14,21 @@
     <div class="left_search">
       <div class="input_item">
         <form action="{% url 'search_full' %}" method="GET">
-          <input type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}" />
+          <input type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}"/>
           <button>
             <img src="{% static 'image/search_icon.svg' %}" alt="" />
           </button>
         </form>
       </div>
+      <!-- 
       <div style="display: flex">
-        <p style="vertical-align: middle; line-height: 24px">搜尋"苦苓"="楝"</p>
+        <p style="vertical-align: middle; line-height: 24px">搜尋"苦苓"="楝"</p> 
         <img style="padding-left: 5px; cursor: pointer" onclick='window.open("{% url "qa" %}")' src="{% static 'image/quesmark.svg' %}" />
       </div>
+      --> 
     </div>
     <div class="rightbox_select">
-      <p>想找到更精準的資料嗎?<br />試試條件搜尋</p>
+      <p>想找到更精準的資料嗎？<br />試試條件搜尋</p>
       <div class="icon_two">
         <div class="item">
           <a href="#">
@@ -73,9 +75,9 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="#" onclick="focusRecords('occ','all')">全部({{ occurrence.count }})</a>
+              <a href="javascript:;" onclick="focusComponent('item_occ')">全部({{ occurrence.count }})</a>
               {% for i in occurrence.rows %} 
-              <a href="#" onclick="focusRecords('occ','{{ i.title }}')">{{ i.title }}({{ i.total_count }})</a>
+              <a href="javascript:;" onclick="focusCards('occ','{{ i.key }}')">{{ i.title }}({{ i.total_count }})</a>
               {% endfor %}
             </div>
           </li>
@@ -90,9 +92,9 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="#">全部({{ collection.count }})</a>
+              <a href="javascript:;" onclick="focusComponent('item_col')">全部({{ collection.count }})</a>
               {% for i in collection.rows %} 
-                <a href="javascript:;">{{ i.title }}({{ i.total_count }})</a>
+                <a href="javascript:;" onclick="focusCards('col','{{ i.key }}')">{{ i.title }}({{ i.total_count }})</a>
               {% endfor %}
             </div>
           </li>
@@ -139,7 +141,7 @@
           </div>
         </div>
         {% if occurrence.count > 0 %}
-          <ul class="card_list_1 occ_card">
+          <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
               <li>
                 <div class="num">{{ i.count }}</div>
@@ -157,7 +159,7 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
-        <a href="javascript:;" onclick="getMoreCards('.occ_card','#occ_offset','.occ_more')" class="more occ_more"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreCards('.occ-card','#occ_offset','.occ_more','false')" class="more occ_more"> 更多結果 </a>
         <input type="hidden" id="occ_offset" value="9">
         {% endif %}
       </div>
@@ -172,7 +174,7 @@
           </div>
         </div>
         {% if collection.count > 0 %}
-          <ul class="card_list_1 col_card">
+          <ul class="card_list_1 col-card">
             {% for i in collection.card %}
             <li>
               <div class="num">{{ i.count }}</div>
@@ -190,7 +192,7 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
-        <a href="javascript:;" onclick="getMoreCards('.col_card','#col_offset', '.col_more')" class="more col_more"> 更多結果 </a>
+        <a href="javascript:;" onclick="getMoreCards('.col-card','#col_offset','.col_more','false')" class="more col_more"> 更多結果 </a>
         <input type="hidden" id="col_offset" value="9">
         {% endif %}
       </div>
@@ -334,40 +336,104 @@
     $(this).addClass("now")
   });
 
-  function focusComponent(item_type){
-    if (item_type == 'all'){
+  function focusComponent(item_class){
+    if (item_class == 'all'){
       $('.rightbox_content .item').css({display: ''})
+      // 如果是再底下一個階層則不顯示
+      $('.rightbox_content .subitem').css({display: 'none'})
     } else {
-      $(`.rightbox_content .${item_type}`).css({display: ''})
-      $('.rightbox_content .item').not($(`.${item_type}`)).css({display: 'none'})
+      $(`.rightbox_content .${item_class}`).css({display: ''})
+      $('.rightbox_content .item').not($(`.${item_class}`)).css({display: 'none'})
     }
   }
 
-  function getMoreCards(record_type,offset_value,more_type){
+  function focusCards(record_type,key){
+    // 如果focus已存在則不呼叫ajax
+    if (! $(`.item_${record_type}_${key}`).length){
+      $.ajax({
+          url: "{% url 'get_focus_cards' %}",
+          data: { record_type: record_type,
+                  keyword: '{{ keyword }}',
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  key: key },
+          type: 'POST',
+          dataType : 'json',
+      })
+      .done(function(response) {
+        // append item area
+        $('.rightbox_content').append(
+          `<div class="item subitem ${response.item_class}">
+            <div class="titlebox_line">
+              <div class="title">
+                <p>${response.title} (${response.total_count})</p>
+                <div class="line"></div>
+              </div>
+            </div>
+            <ul class="card_list_1 ${response.card_class}">
+            </ul>
+          </div>`)
+        // append cards
+        for (let i = 0; i < response.data.length; i++) {
+          let x = response.data[i];
+          let html;
+          if ( x.matched_col != '中文名' && x.matched_col != '學名'){
+            html = `
+            <li>
+              <div class="num">${x.count}</div>
+              <p>中文名：${x.common_name_c}</p>
+              <p>學名${x.val}</p>
+              <p>${ x.matched_col }：${x.matched_value}</p>
+            </li>`
+          } else {
+            html = `
+            <li>
+              <div class="num">${x.count}</div>
+              <p>中文名：${x.common_name_c}</p>
+              <p>學名${x.val}</p>
+            </li>`
+          }
+          $(`.${response.card_class}`).append(
+            html
+          )}
+        
+        // append 更多結果 button if more than 9 cards
+        if (response.has_more == true) {
+          $(`.${response.card_class}`).after(`
+            <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
+            <input type="hidden" id="${record_type}_${key}_offset" value="9">`
+          )
+        }
+          $(`.rightbox_content .${response.item_class}`).css({display: ''})
+          $('.rightbox_content .item').not($(`.${response.item_class}`)).css({display: 'none'})
+        
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
+      })
+    }
+  }
+
+  function getMoreCards(card_class, offset_value, more_type, is_sub){
     let offset = $(offset_value).val()
     $.ajax({
         url: "{% url 'get_more_cards' %}",
         data: {
-          record_type: record_type,
+          card_class: card_class,
           keyword: '{{ keyword }}',
           csrfmiddlewaretoken: '{{ csrf_token }}',
           offset: offset,
+          is_sub: is_sub,
         },
         type: 'POST',
         dataType : 'json',
     })
     .done(function(response) {
-      if (response.has_more==true){
-        $(offset_value).val(Number(offset)+ 9 )
-      } else {
-        $(more_type).css({display: 'none'})
-      }
-      var step;
-      for (i = 0; i < response.data.length; i++) {
+      console.log(card_class);
+      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).css({display: 'none'})
+      for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
-
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-          $(record_type).append( `
+          $(card_class).append( `
           <li>
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
@@ -375,7 +441,7 @@
             <p>${ x.matched_col }：${x.matched_value}</p>
           </li>` )
         } else {
-          $(record_type).append( `
+          $(card_class).append( `
           <li>
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
@@ -385,9 +451,7 @@
       }
     })
     .fail(function( xhr, status, errorThrown ) {
-      console.log( 'Error: ' + errorThrown )
-      console.log( 'Status: ' + status )
-      console.dir( xhr )
+      console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
     })
   }
 
