@@ -44,6 +44,7 @@ def get_records(request):
         solr = SolrQuery(core)
         query_list = [('q', f'"{keyword}"'),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
         req = solr.request(query_list)
+        docs = req['solr_response']['response']['docs']
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -52,13 +53,11 @@ def get_records(request):
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
 
-        if key in ['common_name_c','scientificName']:
+        if key in ['common_name_c','scientificName', 'rightsHolder']:
             selected_col = ['common_name_c','scientificName', 'rightsHolder']
         else:
             selected_col = ['common_name_c','scientificName', key, 'rightsHolder']
 
-        # pagination 
-        
         response = {
             'title': title,
             'rows' : docs,

@@ -677,10 +677,17 @@
         
         // append rows
         for (let i = 0; i < response.rows.length; i++) {
-          let tmp = response.rows[i]
-          let tmp_td
+          let tmp = response.rows[i];
+          let tmp_td;
+          let tmp_value;
           for (let j = 0; j < response.selected_col.length; j++){
-          tmp_td += `<td>${tmp[response.selected_col[j]]}</td>`}
+            tmp_value = tmp[response.selected_col[j]];
+            if (tmp_value == null){
+              tmp_td += `<td></td>`
+            } else {
+              tmp_td += `<td>${tmp_value}</td>`
+            }
+          }
           tmp_td += `<td><a href="#" class="more">查看</a></td>`
           $('.record_table').append(
             `<tr>${tmp_td}</tr>`)
@@ -773,7 +780,7 @@
             <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','')}','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
-              <p>學名${x.val}</p>
+              <p>學名：${x.val}</p>
               <p>${ x.matched_col }：${x.matched_value}</p>
             </li>`
           } else {
@@ -781,7 +788,7 @@
             <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
-              <p>學名${x.val}</p>
+              <p>學名：${x.val}</p>
             </li>`
           }
           $(`.${response.card_class}`).append(
@@ -880,7 +887,7 @@
           <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
-            <p>學名${x.val}</p>
+            <p>學名：${x.val}</p>
             <p>${ x.matched_col }：${x.matched_value}</p>
           </li>` )
         } else {
@@ -888,7 +895,7 @@
           <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
-            <p>學名${x.val}</p>
+            <p>學名：${x.val}</p>
           </li>` )
         }
       }
