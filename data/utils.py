@@ -1,6 +1,19 @@
 import pandas as pd
 import numpy as np
 
+
+dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
+            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
+            'alternative_name_c', 'synonyms']
+
+def get_key(val, my_dict):
+    for key, value in my_dict.items():
+         if val == value:
+             return key
+ 
+    return "key doesn't exist"
+
+
 taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
 # taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
 taicol = taicol[taicol['is_accepted_name']==True][['name','common_name_c']]

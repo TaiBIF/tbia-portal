@@ -3,7 +3,7 @@ from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery
 from pages.models import Resource, News
 from django.db.models import Q
-from .utils import taicol, facet_collection, facet_occurrence, map_occurrence, map_collection
+from .utils import *
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -15,37 +15,64 @@ from django.http import (
 )
 import json
 from pages.templatetags.tags import highlight
-dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
-            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
-            'alternative_name_c', 'synonyms']
+import math
 
-def get_key(val, my_dict):
-    for key, value in my_dict.items():
-         if val == value:
-             return key
- 
-    return "key doesn't exist"
+def get_records(request):
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '')
+        key = request.POST.get('key', '')
+        value = request.POST.get('value', '')
+        record_type = request.POST.get('record_type', '')
+        scientific_name = request.POST.get('scientific_name', '')
+        limit = int(request.POST.get('limit', -1))
+        page = int(request.POST.get('page', 1))
+        print(keyword, key, value, record_type, scientific_name, limit, page)
 
+        # only facet selected field
+        if record_type == 'col':
+            map_dict = map_collection
+            core = 'tbia_collection'
+            title = '自然史典藏'
+        else:
+            map_dict = map_occurrence
+            core = 'tbia_occurrence'
+            title = '物種出現紀錄'
 
-# def get_more_results(request):
-#     if request.method == 'POST':
-#         search_field = request.POST.get('search_field', '')
-#         keyword = request.POST.get('keyword', '')
-#         record_type = request.POST.get('record_type', '')
-#         record_type = 'occ'
-#         search_field = '界' 
-#         search_field = get_key(search_field, map_collection) if record_type == 'col' else get_key(search_field, map_occurrence)
-#         keyword = 'Animalia'
+        key = get_key(key, map_dict)
+        
+        offset = (page-1)*10
+        solr = SolrQuery(core)
+        query_list = [('q', f'"{keyword}"'),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        req = solr.request(query_list)
+        docs = pd.DataFrame(req['solr_response']['response']['docs'])
+        docs = docs.replace({np.nan: ''})
+        docs = docs.replace({'nan': ''})
+        docs = docs.to_dict('records')
 
+        current_page = offset / 10 + 1
+        total_page = math.ceil(limit / 10)
 
-#         core = 'tbia_collection' if record_type == 'col' else 'tbia_occurrence'
-#         solr = SolrQuery(core)
-#         query_list = [('q', f'"{keyword}"'), ('rows', 10)]        
-#         req = solr.request(query_list)
+        if key in ['common_name_c','scientificName']:
+            selected_col = ['common_name_c','scientificName', 'rightsHolder']
+        else:
+            selected_col = ['common_name_c','scientificName', key, 'rightsHolder']
 
-#         count_result = req['solr_response']['response']['numFound']
-#         docs = pd.DataFrame(req['solr_response']['response']['docs'])
-#     return JsonResponse({'message': 'success'})
+        # pagination 
+        
+        response = {
+            'title': title,
+            'rows' : docs,
+            'current_page' : current_page,
+            'total_page' : total_page,
+            'selected_col': selected_col,
+            'map_dict': map_dict,
+            'page_list': [current_page-1, current_page, current_page+1]
+        }
+
+        # print(response)
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
+
 
 
 def get_more_docs(request):
@@ -95,15 +122,15 @@ def get_focus_cards(request):
         key = request.POST.get('key', '')
 
         if record_type == 'col':
-            facet_dict = facet_collection
+            facet_list = facet_collection
             map_dict = map_collection
             core = 'tbia_collection'
         else:
-            facet_dict = facet_occurrence
+            facet_list = facet_occurrence
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
-        solr = SolrQuery(core, facet_dict)
+        solr = SolrQuery(core, facet_list)
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]
         req = solr.request(query_list)
         facets = req['solr_response']['facets']
@@ -153,16 +180,16 @@ def get_more_cards(request):
             offset = int(offset)
         
         if card_class.startswith('.col'):
-            facet_dict = facet_collection
+            facet_list = facet_collection
             map_dict = map_collection
             core = 'tbia_collection'
         elif card_class.startswith('.occ'):
-            facet_dict = facet_occurrence
+            facet_list = facet_occurrence
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
         result = []
-        solr = SolrQuery(core, facet_dict)
+        solr = SolrQuery(core, facet_list)
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
         req = solr.request(query_list)
         facets = req['solr_response']['facets']
@@ -208,17 +235,8 @@ def get_more_cards(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-
-def search_full_record(request, record_type, keyword):
-    print(record_type, keyword)
-    return render(request, 'pages/search_full_record.html', {})
-
-
 def search_full(request):
     keyword = request.GET.get('keyword', '')
-    # 如果查中文俗名，包含所有別名的結果
-    # 如果查同物異名，回傳正式學名結果
-
     if keyword:
         # TODO 階層
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]
@@ -351,20 +369,7 @@ def search_full(request):
             'resource': {'count': 0},
         }
 
-    
     return render(request, 'pages/search_full.html', response)
-
-
-def search_full_result(request):
-    print(request)
-    response = {}
-
-
-
-    # 先不考慮階層
-    # http://127.0.0.1:8983/solr/tbia_records/select?q=*species*&hl=on&hl.fl=*
-    return render(request, 'pages/search_full_result.html')
-
 
 
 

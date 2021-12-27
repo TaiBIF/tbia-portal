@@ -273,6 +273,10 @@
         $(this).closest("li").find(".mbmu2").slideDown();
       }
     });
+
+    $(".popbg .xx,.popbg .ovhy").click(function (e) {
+      if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) $(".popbg").hide();
+    });
   </script>
   {% block script %}{% endblock script %}
 </html>
