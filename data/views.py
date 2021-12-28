@@ -56,7 +56,7 @@ def get_records(request):
         if key in ['common_name_c','scientificName', 'rightsHolder']:
             selected_col = ['common_name_c','scientificName', 'rightsHolder']
         else:
-            selected_col = ['common_name_c','scientificName', key, 'rightsHolder']
+            selected_col = [key,'common_name_c','scientificName','rightsHolder']
 
         response = {
             'title': title,
@@ -65,7 +65,6 @@ def get_records(request):
             'total_page' : total_page,
             'selected_col': selected_col,
             'map_dict': map_dict,
-            'page_list': [current_page-1, current_page, current_page+1]
         }
 
         # print(response)

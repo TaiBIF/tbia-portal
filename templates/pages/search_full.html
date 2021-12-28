@@ -183,7 +183,7 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value_ori }}','{{ i.val_ori }}','{{ i.count }}','1')">
+              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
                 <div class="num">{{ i.count }}</div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
@@ -216,7 +216,7 @@
         {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
-            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value_ori }}','{{ i.val_ori }}','{{ i.count }}','1')">
+            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
               <div class="num">{{ i.count }}</div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
@@ -369,8 +369,8 @@
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
-				<button class="selt">全選</button>
-				<button class="selt">重置</button>
+				<button class="selt" onclick="selectAll('.col-choice')">全選</button>
+				<button class="selt" onclick="resetAll('.col-choice')">重置</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -382,12 +382,20 @@
 					<p>學名</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="col-alternative_name_c">
+					<p>中文別名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-synonyms">
+					<p>同物異名</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-rightsHolder">
 					<p>典藏單位</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-scientificNameID">
-					<p>Namecode</p>
+					<p>Name code</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-collectionID">
@@ -474,7 +482,7 @@
 					<p>授權狀況</p>
 				</li>
 			</ul>
-			<button class="send_bt">確認</button>
+			<button class="send_bt" onclick="sendSelected('col')">確認</button>
 		</div>
 	</div>
 </div>
@@ -487,8 +495,8 @@
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
-				<button class="selt">全選</button>
-				<button class="selt">重置</button>
+				<button class="selt" onclick="selectAll('.occ-choice')">全選</button>
+				<button class="selt" onclick="resetAll('.occ-choice')">重置</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -521,9 +529,8 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-scientificNameID">
-					<p>Namecode</p>
+					<p>Name code</p>
 				</li>
-
 				<li>
 					<input type="checkbox" class="chebox" id="occ-eventDate">
 					<p>觀察日期</p>
@@ -576,12 +583,20 @@
 					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
 					<p>資料基底</p>
 				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="occ-datasetName">
+					<p>資料集名稱</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
+					<p>資料集聯絡人</p>
+				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-license">
 					<p>授權狀況</p>
 				</li>
 			</ul>
-			<button class="send_bt">確認</button>
+			<button class="send_bt" onclick="sendSelected('occ')">確認</button>
 		</div>
 	</div>
 </div>
@@ -625,7 +640,7 @@
     }
   }
 
-  function getRecords(record_type,key,value,scientific_name,limit,page){
+  function getRecords(record_type,key,value,scientific_name,limit,page,from){
     // hide all items
     $('.rightbox_content .item').css({display: 'none'})
 
@@ -636,18 +651,18 @@
     $('.page_number').remove()
 
     // append rows
-      $.ajax({
-          url: "{% url 'get_records' %}",
-          data: { record_type: record_type,
-                  keyword: '{{ keyword }}',
-                  csrfmiddlewaretoken: '{{ csrf_token }}',
-                  key: key,
-                  value: value,
-                  scientific_name: scientific_name,
-                  limit: limit,
-                  page: page},
-          type: 'POST',
-          dataType : 'json',
+    $.ajax({
+        url: "{% url 'get_records' %}",
+        data: { record_type: record_type,
+                keyword: '{{ keyword }}',
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                key: key,
+                value: value,
+                scientific_name: scientific_name,
+                limit: limit,
+                page: page},
+        type: 'POST',
+        dataType : 'json',
       })
       .done(function(response) {
         console.log(response)
@@ -662,7 +677,7 @@
           <button class="cate_btn" onclick="popupField('${record_type}')">欄位選項 +</button>
           <p class="datenum">資料筆數 ： ${limit}</p>
         </div>
-        <div class="result_table">
+        <div class="result_table" style="overflow-x: auto;">
           <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
           </table>						
         </div>    
@@ -670,18 +685,15 @@
         var table_title = document.createElement("tr");
         table_title.classList.add('table_title');
         let map_dict = response.map_dict;
-        for (let i = 0; i < response.selected_col.length; i++) {
-            // precheck 欄位選擇
-            $(`#${record_type}-${response.selected_col[i]}`).prop('checked', true);
+
+        for (let i = 0; i < Object.keys(map_dict).length; i++) {
             var this_td = document.createElement("td");
-            var text = document.createTextNode(map_dict[response.selected_col[i]]);
-            //var title = map_dict[text]
+            this_td.className = `row-${Object.keys(map_dict)[i]}`;
+            this_td.style.cssText = 'display:none';
+            var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
             this_td.appendChild(text);
             table_title.appendChild(this_td); 
         }
-
-        // precheck
-
 
         // append 功能
         var function_td = document.createElement("td");
@@ -696,35 +708,49 @@
           let tmp = response.rows[i];
           let tmp_td;
           let tmp_value;
-          for (let j = 0; j < response.selected_col.length; j++){
-            tmp_value = tmp[response.selected_col[j]];
+          for (let j = 0; j < Object.keys(map_dict).length; j++){
+            tmp_value = tmp[Object.keys(map_dict)[j]];
             if (tmp_value == null){
-              tmp_td += `<td></td>`
+              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
             } else {
-              tmp_td += `<td>${tmp_value}</td>`
+              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
             }
           }
           tmp_td += `<td><a href="#" class="more">查看</a></td>`
           $('.record_table').append(
             `<tr>${tmp_td}</tr>`)
         }
+        
+        // 判斷是從分頁或卡片點選
+        if (from == 'card'){
+        // show selected columns
+        for (let i = 0; i < response.selected_col.length; i++) {
+          $(`.row-${response.selected_col[i]}`).show();
+          $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);}
+        } else {
+          sendSelected(record_type)
+        }
+
+        // disable checkebox for key field
+        let selected_key = Object.keys(map_dict).find(a => map_dict[a] === key)
+        window.selected_key = selected_key
+        $(`#${record_type}-${selected_key}`).prop('disabled',true);
+        $(`#${record_type}-${selected_key}`).prop('checked',true);
 
         // append pagination
-        // 判斷是否有下一頁
-        if (response.total_page > 1){
-        $('.result_table').after(
-          `<div class="page_number">
-						<a href="javascript:;" class="num now"> ${response.current_page}</a>
-					</div>`
-        )}						
+        if (response.total_page > 1){  // 判斷是否有下一頁
+          $('.result_table').after(
+            `<div class="page_number">
+              <a href="javascript:;" class="num now"> ${response.current_page}</a>
+            </div>`)}						
         // append previous & next page 
         if ((response.current_page - 1) > 0 ){
           $('.page_number').prepend(`
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','1')" class="num">1</a>
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page - 1}')" class="pre">
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','1','page')" class="num">1</a>
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page - 1}','page')" class="pre">
             <span></span>上一頁
           </a>
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page - 1}')" class="num">${response.current_page - 1}</a>`)
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page - 1}','page')" class="num">${response.current_page - 1}</a>`)
         } else {
           $('.page_number').prepend(`
           <a href="javascript:;" class="num">1</a>
@@ -734,11 +760,11 @@
         }        
         if (response.current_page < response.total_page){
           $('.page_number').append(`
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page +1}')" class="num">${response.current_page +1}</a>
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page + 1}')" class="next">
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page +1}','page')" class="num">${response.current_page +1}</a>
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.current_page + 1}','page')" class="next">
             下一頁<span></span>
           </a>
-          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.total_page}')" class="num">${response.total_page}</a>`)
+          <a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}','${response.total_page}','page')" class="num">${response.total_page}</a>`)
         } else {
           $('.page_number').append(`
           <a href="javascript:;" class="next">
@@ -746,7 +772,7 @@
           </a>
           <a href="javascript:;" class="num">${response.total_page}</a>
           `)
-        }
+      }
         
       })
       .fail(function( xhr, status, errorThrown ) {
@@ -792,7 +818,7 @@
           let html;
           if ( x.matched_col != '中文名' && x.matched_col != '學名'){
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1')">
+            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1','card')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
@@ -800,7 +826,7 @@
             </li>`)
           } else {
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
@@ -895,7 +921,7 @@
         let x = response.data[i]
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>
@@ -903,7 +929,7 @@
           </li>` )
         } else {
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>
@@ -916,11 +942,40 @@
     })
   }
 
-  function popupField(record_type){
-    $(`.${record_type}-choice`).css({display: ''})
+
+  function resetAll(record_type){
+    $(`${record_type} input:checkbox:not(:disabled)`).prop('checked', false);
   }
 
+  function selectAll(record_type){
+    $(`${record_type} input:checkbox`).prop('checked', true);
+  }
 
+  function popupField(record_type){
+    $(`.${record_type}-choice`).css({display: ''})
+    window.not_selected = $(`.${record_type}-choice input:not(:checked)`)
+    window.selected = $(`.${record_type}-choice input:checked`)
+  }
+
+  $(".popbg .xx,.popbg .ovhy").click(function (e) {
+    if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) {
+      window.not_selected.prop('checked', false);
+      window.selected.prop('checked', true);
+    }
+  });
+
+  function sendSelected(record_type){
+    let selected_field = $(`.${record_type}-choice input:checked`)
+    // 所有都先隱藏，除了對到的欄位
+    $('td[class^="row-"]').hide();
+    $(`.row-${window.selected_key}`).show();
+    // 再顯示選擇的欄位
+    for (let i = 0; i < selected_field.length; i++) {
+      $(`td.row-${selected_field[i].id.split('-')[1]}`).show();
+      console.log(selected_field[i].id.split('-')[1])
+    }
+    $(".popbg").hide();
+  }
 
 </script>
 {% endblock script %}
