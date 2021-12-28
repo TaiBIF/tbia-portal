@@ -9,6 +9,8 @@ services:
       - 8001
     depends_on:
       - postgres
+    links:
+      - postgres:postgres
     volumes:
       - .:/code
       - ../tbia-volumes/static:/tbia-volumes/static
@@ -48,6 +50,11 @@ services:
       - ../tbia-volumes/logs/nginx:/var/log/nginx
     links:
       - web:web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
   solr:
     build: ./solr-workspace
     image: solr:8.11.1
@@ -57,8 +64,3 @@ services:
     volumes:
       - ../tbia-volumes/solr:/var/solr
       - ./solr-workspace/:/workspace
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "1m"
-        max-file: "3"
