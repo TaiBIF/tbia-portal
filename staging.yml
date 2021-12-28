@@ -1,0 +1,64 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    container_name: tbia-web-stag-container
+    image: tbia-web-stag-image
+    expose:
+      - 8001
+    depends_on:
+      - postgres
+    volumes:
+      - .:/code
+      - ../tbia-volumes/static:/tbia-volumes/static
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+      - ../tbia-volumes/media:/tbia-volumes/media
+    command: "./scripts/docker-web-entry.sh"
+    restart: always
+    env_file:
+     - .env
+    # environment:
+    #   - POSTGRES_HOST=postgres
+    #   - POSTGRES_PORT=5432
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=example
+    #   - POSTGRES_DB=tbia
+  postgres:
+    image: postgres:13-alpine
+    container_name: tbia-db-stag-container
+    restart: always
+    volumes:
+      - ../tbia-volumes/pgdata:/var/lib/postgresql/data/pgdata
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=tbia
+      - PGDATA=/var/lib/postgresql/data/pgdata
+  nginx:
+    image: nginx:1.19.10-alpine
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - ./scripts/nginx/staging:/etc/nginx/conf.d
+      - ../tbia-volumes/static:/tbia-volumes/static
+      - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/logs/nginx:/var/log/nginx
+    links:
+      - web:web
+  solr:
+    build: ./solr-workspace
+    image: solr:8.11.1
+    container_name: tbia-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - ../tbia-volumes/solr:/var/solr
+      - ./solr-workspace/:/workspace
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
