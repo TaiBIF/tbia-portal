@@ -183,7 +183,7 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1')">
+              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value_ori }}','{{ i.val_ori }}','{{ i.count }}','1')">
                 <div class="num">{{ i.count }}</div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
@@ -216,7 +216,7 @@
         {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
-            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1')">
+            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value_ori }}','{{ i.val_ori }}','{{ i.count }}','1')">
               <div class="num">{{ i.count }}</div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
@@ -374,91 +374,103 @@
 			</div>
 			<ul class="catalist">
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
+					<input type="checkbox" class="chebox" id="col-common_name_c">
 					<p>中文名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-scientificName">
 					<p>學名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
+					<input type="checkbox" class="chebox" id="col-rightsHolder">
 					<p>典藏單位</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-scientificNameID">
 					<p>Namecode</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-collectionID">
 					<p>館藏號</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
-					<p>分層等級</p>
+					<input type="checkbox" class="chebox" id="col-taxonRank">
+					<p>分類層級</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-sensitiveCategory">
+					<p>敏感層級</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-typeStatus">
 					<p>標本類型</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-preservation">
+					<p>保存方式</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-eventDate">
 					<p>採集日期</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-locality">
 					<p>採集地</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
-					<p>數量</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
+					<input type="checkbox" class="chebox" id="col-recordedBy">
 					<p>採集者</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-recordNumber">
 					<p>採集號</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
-					<p>採集類型</p>
+					<input type="checkbox" class="chebox" id="col-organismQuantity">
+					<p>數量</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="col-organismQuantityType">
+					<p>數量單位</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
-					<p>資料集名稱</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" >
-					<p>資料集聯絡人</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
 					<p>緯度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-verbatimCoordinateSystem">
 					<p>座標系統</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
+					<input type="checkbox" class="chebox" id="col-verbatimSRS">
+					<p>空間參考系統</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-coordinateUncertaintyInMeters">
 					<p>座標誤差</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
+					<input type="checkbox" class="chebox" id="col-dataGeneralizations">
 					<p>座標是否有模糊化</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" checked="checkbox">
-					<p>模糊化程度</p>
+					<input type="checkbox" class="chebox" id="col-coordinatePrecision">
+					<p>座標模糊化程度</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="col-datasetName">
+					<p>資料集名稱</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" >
+					<input type="checkbox" class="chebox" id="col-resourceContacts">
+					<p>資料集聯絡人</p>
+				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="col-license">
 					<p>授權狀況</p>
 				</li>
 			</ul>
@@ -597,7 +609,7 @@
   });
 
   function focusComponent(item_class){
-    // 不顯示最底層
+    // 不顯示最底層結果列表
     $('.record_title').remove()
     $('.result_inf_top').remove()
     $('.result_table').remove()
@@ -624,7 +636,6 @@
     $('.page_number').remove()
 
     // append rows
-    //if (! $(`.item_${record_type}_${key}`).length){
       $.ajax({
           url: "{% url 'get_records' %}",
           data: { record_type: record_type,
@@ -660,12 +671,17 @@
         table_title.classList.add('table_title');
         let map_dict = response.map_dict;
         for (let i = 0; i < response.selected_col.length; i++) {
+            // precheck 欄位選擇
+            $(`#${record_type}-${response.selected_col[i]}`).prop('checked', true);
             var this_td = document.createElement("td");
             var text = document.createTextNode(map_dict[response.selected_col[i]]);
             //var title = map_dict[text]
             this_td.appendChild(text);
             table_title.appendChild(this_td); 
         }
+
+        // precheck
+
 
         // append 功能
         var function_td = document.createElement("td");
@@ -736,7 +752,6 @@
       .fail(function( xhr, status, errorThrown ) {
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
       })
-    //} else {
     }
   
 
@@ -776,34 +791,30 @@
           let x = response.data[i];
           let html;
           if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-            html = `
-            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','')}','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
+            $(`.${response.card_class}`).append( `
+            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
               <p>${ x.matched_col }：${x.matched_value}</p>
-            </li>`
+            </li>`)
           } else {
-            html = `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
+            $(`.${response.card_class}`).append( `
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
               <div class="num">${x.count}</div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
-            </li>`
+            </li>`)
           }
-          $(`.${response.card_class}`).append(
-            html
-          )}
+        }
         // append 更多結果 button if more than 9 cards
         if (response.has_more == true) {
           $(`.${response.card_class}`).after(`
             <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
-            <input type="hidden" id="${record_type}_${key}_offset" value="9">`
-          )
+            <input type="hidden" id="${record_type}_${key}_offset" value="9">`)
         }
-          $(`.rightbox_content .${response.item_class}`).css({display: ''})
-          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
-        
+        $(`.rightbox_content .${response.item_class}`).css({display: ''})
+        $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
       })
       .fail(function( xhr, status, errorThrown ) {
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
@@ -884,7 +895,7 @@
         let x = response.data[i]
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>
@@ -892,7 +903,7 @@
           </li>` )
         } else {
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value.replace('<span class="col_red">', "").replace('</span>','') }','${ x.val.replace('<span class="col_red">', "").replace('</span>','') }','${ x.count }','1')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1')">
             <div class="num">${x.count}</div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>

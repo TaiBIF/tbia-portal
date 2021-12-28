@@ -148,6 +148,8 @@ def get_focus_cards(request):
             card_len = len(result_df)
             result_df = result_df[:9]
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
+            result_df['matched_value_ori'] = result_df['matched_value']
+            result_df['val_ori'] = result_df['val']
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
             result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
@@ -220,6 +222,8 @@ def get_more_cards(request):
             card_len = len(result_df[offset:])
             result_df = result_df[offset:offset+9]
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
+            result_df['matched_value_ori'] = result_df['matched_value']
+            result_df['val_ori'] = result_df['val']
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
             result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
