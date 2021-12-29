@@ -723,10 +723,13 @@
         
         // 判斷是從分頁或卡片點選
         if (from == 'card'){
-        // show selected columns
-        for (let i = 0; i < response.selected_col.length; i++) {
-          $(`.row-${response.selected_col[i]}`).show();
-          $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);}
+          // uncheck all first
+          $(`input[id^="${record_type}-"]`).prop('checked',false)
+          console.log($(`input[id^="${record_type}-"]`))
+          // show selected columns
+          for (let i = 0; i < response.selected_col.length; i++) {
+            $(`.row-${response.selected_col[i]}`).show();
+            $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);}
         } else {
           sendSelected(record_type)
         }
@@ -972,7 +975,7 @@
     // 再顯示選擇的欄位
     for (let i = 0; i < selected_field.length; i++) {
       $(`td.row-${selected_field[i].id.split('-')[1]}`).show();
-      console.log(selected_field[i].id.split('-')[1])
+      //console.log(selected_field[i].id.split('-')[1])
     }
     $(".popbg").hide();
   }
