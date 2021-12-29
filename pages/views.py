@@ -9,6 +9,9 @@ def qa(request):
 
 
 def index(request):
+    # recommended keyword
+    keywords = Keyword.objects.filter(displayed=True).values_list('keyword', flat=True)
+
     # resource
     resource = Resource.objects.order_by('-modified')
     resource_rows = []
@@ -19,4 +22,4 @@ def index(request):
             'url': x.url,
             'date': x.modified.strftime("%Y.%m.%d")
         })
-    return render(request, 'pages/index.html', {'resource': resource_rows})
+    return render(request, 'pages/index.html', {'resource': resource_rows, 'keywords': keywords})

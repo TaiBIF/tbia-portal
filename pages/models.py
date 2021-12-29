@@ -3,6 +3,15 @@ from django.db.models.fields import TextField
 from account.models import User, Unit
 
 
+class Keyword(models.Model):
+    keyword = models.TextField( blank=True, null=True)
+    displayed = models.BooleanField(blank=True, null=True)
+    created = models.DateField(auto_now_add=True)
+    modified = models.DateField(auto_now_add=True)
+    class Meta:
+        db_table = 'keyword'
+
+
 class News(models.Model):
     type_choice = [
         ('news', '新聞公告'),

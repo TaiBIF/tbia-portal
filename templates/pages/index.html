@@ -42,9 +42,9 @@
         </form>
       </div>
       <ul class="hot_tag">
-        <li><a href="#">石虎</a></li>
-        <li><a href="#">台灣黑熊</a></li>
-        <li><a href="#">冠羽畫眉</a></li>
+        {% for i in keywords %}
+        <li><a href="{% url 'search_full' %}?keyword={{ i }}">{{ i }}</a></li>
+        {% endfor %}
       </ul>
     </div>
 
