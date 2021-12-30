@@ -1,8 +1,10 @@
 {% extends './base.html' %} 
 {% load tags %} 
 {% load static %}
+{% load humanize %}
 {% block style %}
 <style>
+/*
 .two_cont_area .rightbox_content .card_list_1 li .num {
     width: auto;
     min-width: 30px;
@@ -35,6 +37,7 @@
       height: 45px;
   }
 }
+*/
 </style>
 {% endblock style %}
 {% block body %}
@@ -114,9 +117,9 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="javascript:;" onclick="focusComponent('item_occ')">全部({{ occurrence.count }})</a>
+              <a href="javascript:;" onclick="focusComponent('item_occ')">全部({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
-              <a href="javascript:;" onclick="focusCards('occ','{{ i.key }}')">{{ i.title }}({{ i.total_count }})</a>
+              <a href="javascript:;" onclick="focusCards('occ','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -131,9 +134,9 @@
               <div class="arrd"></div>
             </div>
             <div class="second_menu">
-              <a href="javascript:;" onclick="focusComponent('item_col')">全部({{ collection.count }})</a>
+              <a href="javascript:;" onclick="focusComponent('item_col')">全部({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
-                <a href="javascript:;" onclick="focusCards('col','{{ i.key }}')">{{ i.title }}({{ i.total_count }})</a>
+                <a href="javascript:;" onclick="focusCards('col','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -168,14 +171,13 @@
 
     <div class="rightbox_content">
       <!----- 所有結果 內容欄 ----->
-      <div class="loader" style="display: none"></div>
 
 
       <!----- 物種出現紀錄 ----->
       <div class="item item_occ">
         <div class="titlebox_line">
           <div class="title">
-            <p>物種出現紀錄 ({{ occurrence.count }})</p>
+            <p>物種出現紀錄 ({{ occurrence.count|intcomma }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -208,7 +210,7 @@
       <div class="item item_col">
         <div class="titlebox_line">
           <div class="title">
-            <p>⾃然史典藏 ({{ collection.count }})</p>
+            <p>⾃然史典藏 ({{ collection.count|intcomma }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -640,7 +642,6 @@
   }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from){
-    $('.loader').css({display: ''})
     // hide all items
     $('.rightbox_content .item').css({display: 'none'})
 
@@ -776,18 +777,15 @@
           <a href="javascript:;" class="num">${response.total_page}</a>
           `)
       }
-      $('.loader').css({display: 'none'}); 
       })
       .fail(function( xhr, status, errorThrown ) {
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
-        $('.loader').css({display: 'none'});
       })
     }
   
 
 
   function focusCards(record_type,key){
-    $('.loader').css({display: ''});
     // 如果focus已存在則不呼叫ajax，但顯示出來
     $('.record_title').remove()
     $('.result_inf_top').remove()
@@ -847,21 +845,17 @@
         $(`.rightbox_content .${response.item_class}`).css({display: ''})
         $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
 
-        $('.loader').css({display: 'none'});
       })
       .fail(function( xhr, status, errorThrown ) {
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
-        $('.loader').css({display: 'none'});
       })
     } else {
       $(`.rightbox_content .item_${record_type}_${key}`).css({display: ''})
       $('.rightbox_content .item').not($(`.item_${record_type}_${key}`)).not($('.items')).css({display: 'none'})
-      $('.loader').css({display: 'none'});
     }
   }
 
   function getMoreDocs(doc_type, offset_value, more_class, card_class){
-    $('.loader').css({display: ''});
     //console.log(doc_type, offset_value)
     let offset = $(offset_value).val()
     $.ajax({
@@ -901,17 +895,14 @@
             </li>`)
           }
       }
-      $('.loader').css({display: 'none'});
     })
     .fail(function( xhr, status, errorThrown ) {
       console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
-      $('.loader').css({display: 'none'});
     })
 
   }
 
   function getMoreCards(card_class, offset_value, more_type, is_sub){
-    $('.loader').css({display: ''});
     let record_type;
     (card_class == '.occ-card') ? record_type = 'occ' : record_type = 'col';
     let offset = $(offset_value).val()
@@ -947,12 +938,10 @@
             <p>學名：${x.val}</p>
           </li>` )
         }
-        $('.loader').css({display: 'none'});
       }
     })
     .fail(function( xhr, status, errorThrown ) {
       console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
-      $('.loader').css({display: 'none'});
     })
   }
 
