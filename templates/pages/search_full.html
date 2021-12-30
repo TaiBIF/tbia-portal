@@ -1,44 +1,26 @@
 {% extends './base.html' %} 
 {% load tags %} 
 {% load static %}
-{% block head %}
+{% block style %}
 <style>
-  .popbg .wbox_center .dot_area .dot {
-    cursor: pointer;
-    width: 14px;
-    height: 14px;
-    background: #DDDDDD;
-    border-radius: 50%;
-    transition: all .1s;
-    -moz-transition: all .1s;
-    -o-transition: all .1s;
-    -ms-transition: all .1s;
-    -webkit-transition: all .1s;
-    margin: 0px 5px
+  .two_cont_area .rightbox_content .card_list_1 li .num {
+    width: auto;
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    border-radius: 0%;
+    color: #FFF ;
+    background: #3F5146 ;
+    justify-content: center;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    padding: 0 2px;
 }
-
-@media only screen and (min-width: 1000px) {
-    .popbg .wbox_center .dot_area .dot:hover {
-        background: #76A578;
-        transition: all .1s;
-        -moz-transition: all .1s;
-        -o-transition: all .1s;
-        -ms-transition: all .1s;
-        -webkit-transition: all .1s
-    }
-}
-
-.popbg .wbox_center .dot_area .dot.now {
-    background: #76A578;
-    transition: all .1s;
-    -moz-transition: all .1s;
-    -o-transition: all .1s;
-    -ms-transition: all .1s;
-    -webkit-transition: all .1s
-}
-
 </style>
-{% endblock head %}
+{% endblock style %}
 {% block body %}
 <div class="path">
   <div class="main_1240">
@@ -99,8 +81,8 @@
       </div>
       <div class="mb_scroll">
         <ul>
-          <li>
-            <a href="#" onclick="focusComponent('all')" class="big_link rd_click">
+          <li class="now">
+            <a href="javascript:;" onclick="focusComponent('all')" class="big_link rd_click">
               <p>所有結果</p>
               <div class="arr"></div>
             </a>
@@ -612,7 +594,7 @@
 
   $(".rd_click").on("click", function (event) {
     $(".rd_click").closest("li").removeClass("now");
-    $(".rd_click").closest("li").find(".second_menu").slideUp();
+    //$(".rd_click").closest("li").find(".second_menu").slideUp();
     $(this).closest("li").toggleClass("now");
     $(this).closest("li").find(".second_menu").slideToggle();
   });
