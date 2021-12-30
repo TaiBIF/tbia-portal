@@ -13,6 +13,33 @@
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
     {% block style %}{% endblock style %}
+    <style>
+      .loader {
+        position: absolute;
+        left: 50%;
+        top: 70%;    
+        border: 16px solid #ddd;
+        border-radius: 50%;
+        border-top: 16px solid #76A578;
+        width: 120px;
+        height: 120px;
+        -webkit-animation: spin 1.5s linear infinite; /* Safari */
+        animation: spin 1.5s linear infinite;
+        z-index: 10000
+      }
+      
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+    </style>
   </head>
 
   <body>
