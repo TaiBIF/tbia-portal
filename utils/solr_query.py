@@ -350,6 +350,12 @@ JSON_FACET_MAP = {
                     },
                 }
         },
+        'tbiaUUID': {
+            'type': 'terms',
+            'field': 'tbiaUUID',
+            'mincount': 1,
+            'limit': -1,
+        }
     },
     'tbia_occurrence': {
         'scientificName': {
@@ -678,6 +684,12 @@ JSON_FACET_MAP = {
                     },
                 }
         },
+        'tbiaUUID': {
+            'type': 'terms',
+            'field': 'tbiaUUID',
+            'mincount': 1,
+            'limit': -1,
+        }
     },
 }
 

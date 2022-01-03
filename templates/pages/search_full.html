@@ -15,6 +15,7 @@
     top: 0px;
     padding: 0 5px;
 }
+*/
 
 .searchbar_top .left_search {
   background: transparent;
@@ -37,7 +38,6 @@
       height: 45px;
   }
 }
-*/
 </style>
 {% endblock style %}
 {% block body %}
@@ -717,7 +717,13 @@
               tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
             }
           }
-          tmp_td += `<td><a href="#" class="more">查看</a></td>`
+          if (record_type == 'occ'){
+            let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.tbiaUUID.toString());
+            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+          }else{
+            let url_mask = "{% url 'collection_detail' 12345 %}".replace(/12345/, tmp.tbiaUUID.toString());
+            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+          }
           $('.record_table').append(
             `<tr>${tmp_td}</tr>`)
         }

@@ -55,7 +55,7 @@ map_occurrence = {
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
     'scientificNameID': 'Name Code', 
-    'eventDate': '記錄日期', 
+    'eventDate': '紀錄日期', 
     'locality': '出現地', 
     'organismQuantity': '數量',
     'organismQuantityType': '數量單位',

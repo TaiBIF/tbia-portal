@@ -44,7 +44,6 @@ def get_records(request):
         solr = SolrQuery(core)
         query_list = [('q', f'"{keyword}"'),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
         req = solr.request(query_list)
-        docs = req['solr_response']['response']['docs']
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -84,7 +83,6 @@ def get_more_docs(request):
         rows = []
         if doc_type == 'resource':
             resource = Resource.objects.filter(title__icontains=keyword)
-            # c_resource = resource.count()
             for x in resource.all()[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
@@ -95,7 +93,6 @@ def get_more_docs(request):
             has_more = True if resource.all()[offset+6:].count() > 0 else False
         else:
             news = News.objects.filter(type=doc_type).filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
-            # c_news = news.count()
             for x in news.all()[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
@@ -379,16 +376,53 @@ def search_collection(request):
     return render(request, 'pages/search_collection.html')
 
 
-def search_collection_details(request, tbiauuid):
-    return render(request, 'pages/search_collection_details.html')
 
 
 def search_occurrence(request):
     return render(request, 'pages/search_occurrence.html')
 
 
-def search_occurrence_details(request, tbiauuid):
-    return render(request, 'pages/search_occurrence_details.html')
+def occurrence_detail(request, tbiauuid):
+
+    solr = SolrQuery('tbia_occurrence')
+    query_list = [('tbiaUUID', tbiauuid), ('row',1)]
+    req = solr.request(query_list)
+    row = pd.DataFrame(req['solr_response']['response']['docs'])
+    row = row.replace({np.nan: ''})
+    row = row.replace({'nan': ''})
+    row = row.to_dict('records')
+    row = row[0]
+    row.update({'taxonRank': map_occurrence[row['taxonRank']]})
+
+    if row.get('dataGeneralizations', ''):
+        if row['dataGeneralizations'] == 'True':
+            row.update({'dataGeneralizations': '是'})
+        elif row['dataGeneralizations'] == 'False':
+            row.update({'dataGeneralizations': '否'})
+        else:
+            pass
+
+    return render(request, 'pages/occurrence_detail.html', {'row': row})
 
 
+def collection_detail(request, tbiauuid):
 
+    solr = SolrQuery('tbia_collection')
+    query_list = [('tbiaUUID', tbiauuid), ('row',1)]
+    req = solr.request(query_list)
+    row = pd.DataFrame(req['solr_response']['response']['docs'])
+    row = row.replace({np.nan: ''})
+    row = row.replace({'nan': ''})
+    row = row.to_dict('records')
+    row = row[0]
+    row.update({'taxonRank': map_occurrence[row['taxonRank']]})
+
+    if row.get('dataGeneralizations', ''):
+        if row['dataGeneralizations'] == 'True':
+            row.update({'dataGeneralizations': '是'})
+        elif row['dataGeneralizations'] == 'False':
+            row.update({'dataGeneralizations': '否'})
+        else:
+            pass
+
+    return render(request, 'pages/collection_detail.html', {'row': row})

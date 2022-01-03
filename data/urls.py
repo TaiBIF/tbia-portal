@@ -13,7 +13,7 @@ urlpatterns = [
     # path('search/full/doc/<result_type>/<keyword>', views.search_full_doc, name='search_full_doc'),
     # path('search/full/record/<record_type>/<keyword>', views.search_full_record, name='search_full_record'),
     path('search/collection', views.search_collection, name='search_collection'),
-    path('search/collection-details/<int:tbiauuid>/', views.search_collection_details, name='search_collection_details'),
     path('search/occurrence', views.search_occurrence, name='search_occurrence'),
-    path('search/occurrence-details/<int:tbiauuid>/', views.search_occurrence_details, name='search_occurrence_details'),
+    path('collection/<str:tbiauuid>/', views.collection_detail, name='collection_detail'),
+    path('occurrence/<str:tbiauuid>/', views.occurrence_detail, name='occurrence_detail'),
 ]

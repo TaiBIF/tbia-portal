@@ -1,5 +1,13 @@
-{% extends './base.html' %} {% load static %} {% block body %}
-
+{% extends './base.html' %} {% load static %} 
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+{% endblock head %}
+{% block body %}
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -12,20 +20,19 @@
 <div class="nbn_title">
   <h2>物種出現紀錄查詢</h2>
 </div>
-
 <div class="container_area">
   <div class="main_1240">
     <div class="sc_de_top">
       <div class="left_area">
         <div class="cont_padbox">
-          <div class="gbg_title">來源資料庫：TaiBIF</div>
-          <h2>中⽂名：楝</h2>
-          <h2>學名：Melia azedarach</h2>
+          <div class="gbg_title">來源資料庫：{{ row.rightsHolder }}</div>
+          <h2>中⽂名：{{ row.common_name_c }}</h2>
+          <h2>學名：{{ row.scientificName }}</h2>
           <div class="short">
-            <p>典藏單位使⽤中⽂名：苦楝樹</p>
-            <p>典藏單位使⽤學名：Melia azedarach</p>
+            <p>典藏單位使⽤中⽂名：{{ row.sourceVernacularName }}</p>
+            <p>典藏單位使⽤學名：{{ row.sourceScientificName }}</p>
           </div>
-          <p class="code">Name code: 204445</p>
+          <p class="code">Name code：{{ row.scientificNameID }}</p>
         </div>
       </div>
     </div>
@@ -36,86 +43,87 @@
           <ul class="inforall">
             <li>
               <h3>敏感層級：</h3>
-              <p>第一級</p>
+              <p>{{ row.sensitiveCategory }}</p>
             </li>
             <li>
-              <h3>記錄(採集)者：</h3>
-              <p>苦苓</p>
+              <h3>紀錄者：</h3>
+              <p>{{ row.recordedBy }}</p>
             </li>
             <li>
               <h3>分類層級：</h3>
-              <p>第一級</p>
+              <p>{{ row.taxonRank }}</p>
             </li>
             <li>
-              <h3>調查⽅法：</h3>
-              <p>這是一段文字</p>
-            </li>
-            <li>
-              <h3>觀察記錄(採集)⽇期：</h3>
-              <p>2021-06-07</p>
-            </li>
-            <li>
-              <h3>資料集名稱：</h3>
-              <p>這是一段文字</p>
-            </li>
-            <li>
-              <h3>出現地：</h3>
-              <p>這是一段文字</p>
-            </li>
-            <li>
-              <h3>資料集聯絡⼈：</h3>
-              <p>這是一段文字</p>
+              <h3>紀錄日期：</h3>
+              <p>{{ row.eventDate }}</p>
             </li>
             <li>
               <h3>數量：</h3>
-              <p>3 棵</p>
+              <p>{{ row.organismQuantity }}</p>
             </li>
-
+            <li>
+              <h3>數量單位：</h3>
+              <p>{{ row.organismQuantityType }}</p>
+            </li>
+            <li>
+              <h3>出現地：</h3>
+              <p>{{ row.locality }}</p>
+            </li>            
             <li>
               <h3>授權狀況：</h3>
-              <p>這是一段文這是一段文字這是一段文字這是一段文字這是一段文字這是一段文字字</p>
+              <p>{{ row.license }}</p>
             </li>
+            <li>
+              <h3>資料集名稱：</h3>
+              <p>{{ row.datasetName }}</p>
+            </li>
+            <li>
+              <h3>資料集聯絡⼈：</h3>
+              <p>{{ row.resourceContacts }}</p>
+            </li>          
           </ul>
         </div>
       </div>
       <div class="right_area">
         <div class="map_img">
-          <div class="imgbox">
+          <div class="imgbox" style="height: 390px; width: 435px;">
             <!--435*390 or 870*780 用background-image替換連結-->
-            <div class="img"></div>
+            <!--<div class="img"></div>-->
+            <div id="map" class="img"></div>
           </div>
         </div>
         <ul class="inforall">
           <li>
             <h3>經度：</h3>
-            <p>121.546662</p>
+            <p>{{ row.verbatimLongitude }}</p>
           </li>
           <li>
             <h3>座標誤差：</h3>
-            <p>121.546662</p>
+            <p>{{ row.coordinateUncertaintyInMeters }}</p>
           </li>
           <li>
             <h3>緯度：</h3>
-            <p>121.546662</p>
+            <p>{{ row.verbatimLatitude }}</p>
           </li>
 
           <li>
             <h3>座標是否有模糊化：</h3>
-            <p>這是一段文字示意</p>
+            <p>{{ row.dataGeneralizations }}</p>
           </li>
           <li>
             <h3>座標系統：</h3>
-            <p>地理座標系統</p>
+            <p>{{ row.verbatimCoordinateSystem }}</p>
           </li>
           <li>
-            <h3>模糊化程度：</h3>
-            <p>121.546662</p>
+            <h3>座標模糊化程度：</h3>
+            <p>{{ row.coordinatePrecision }}</p>
           </li>
         </ul>
       </div>
     </div>
 
     <!--假設沒有上下則時給a一個class="gray_style"-->
+    <!--
     <div class="btn_three">
       <a href="#">
         <svg xmlns="http://www.w3.org/2000/svg" width="9.187" height="17.053" viewBox="0 0 9.187 17.053">
@@ -140,7 +148,28 @@
         </svg>
       </a>
     </div>
+    -->
   </div>
 </div>
 
 {% endblock body %}
+
+{% block script %}
+<script>
+  let redIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+  
+  let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],7);
+  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  L.marker(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'], {icon: redIcon}).addTo(map);
+
+</script>
+{% endblock script %}
