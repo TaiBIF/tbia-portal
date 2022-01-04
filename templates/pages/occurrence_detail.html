@@ -95,7 +95,11 @@
         <ul class="inforall">
           <li>
             <h3>經度：</h3>
+            {% if row.sensitiveCategory == '座標不開放' %}
+            <p></p>
+            {% else %}
             <p>{{ row.verbatimLongitude }}</p>
+            {% endif %}
           </li>
           <li>
             <h3>座標誤差：</h3>
@@ -103,9 +107,12 @@
           </li>
           <li>
             <h3>緯度：</h3>
+            {% if row.sensitiveCategory == '座標不開放' %}
+            <p></p>
+            {% else %}
             <p>{{ row.verbatimLatitude }}</p>
+            {% endif %}
           </li>
-
           <li>
             <h3>座標是否有模糊化：</h3>
             <p>{{ row.dataGeneralizations }}</p>
@@ -165,11 +172,18 @@
     shadowSize: [41, 41]
   });
   
+  {% if row.sensitiveCategory == '座標不開放' %}
+  let map = L.map('map').setView([0,0],0);
+  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  {% else %}
   let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],7);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   L.marker(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'], {icon: redIcon}).addTo(map);
+  {% endif %}
 
 </script>
 {% endblock script %}

@@ -394,6 +394,8 @@ def occurrence_detail(request, id):
     row = row.to_dict('records')
     row = row[0]
 
+    print(row)
+
     if row.get('taxonRank', ''):
         row.update({'taxonRank': map_occurrence[row['taxonRank']]})
 

@@ -110,7 +110,11 @@
         <ul class="inforall">
           <li>
             <h3>經度：</h3>
+            {% if row.sensitiveCategory == '座標不開放' %}
+            <p></p>
+            {% else %}
             <p>{{ row.verbatimLongitude }}</p>
+            {% endif %}
           </li>
           <li>
             <h3>座標誤差：</h3>
@@ -118,9 +122,12 @@
           </li>
           <li>
             <h3>緯度：</h3>
+            {% if row.sensitiveCategory == '座標不開放' %}
+            <p></p>
+            {% else %}
             <p>{{ row.verbatimLatitude }}</p>
+            {% endif %}
           </li>
-
           <li>
             <h3>座標是否有模糊化：</h3>
             <p>{{ row.dataGeneralizations }}</p>
