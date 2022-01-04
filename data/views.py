@@ -203,7 +203,7 @@ def get_more_cards(request):
             result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
             if len(result_df_duplicated):
                 remove_index = result_df_duplicated[result_df_duplicated.matched_col.isin(dup_col)].index
-                result_df = result_df.loc[~result_df.index.isin(remove_index)]            
+                result_df = result_df.loc[~result_df.index.isin(remove_index)]
         else:
             key = card_class.split('-')[1]
             x = facets[key]
@@ -393,7 +393,9 @@ def occurrence_detail(request, id):
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
-    row.update({'taxonRank': map_occurrence[row['taxonRank']]})
+
+    if row.get('taxonRank', ''):
+        row.update({'taxonRank': map_occurrence[row['taxonRank']]})
 
     if row.get('dataGeneralizations', ''):
         if row['dataGeneralizations'] == 'True':
@@ -416,7 +418,9 @@ def collection_detail(request, id):
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
-    row.update({'taxonRank': map_occurrence[row['taxonRank']]})
+
+    if row.get('taxonRank', ''):
+        row.update({'taxonRank': map_collection[row['taxonRank']]})
 
     if row.get('dataGeneralizations', ''):
         if row['dataGeneralizations'] == 'True':
