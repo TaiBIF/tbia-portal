@@ -718,10 +718,10 @@
             }
           }
           if (record_type == 'occ'){
-            let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.tbiaUUID.toString());
+            let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
             tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
           }else{
-            let url_mask = "{% url 'collection_detail' 12345 %}".replace(/12345/, tmp.tbiaUUID.toString());
+            let url_mask = "{% url 'collection_detail' 12345 %}".replace(/12345/, tmp.id.toString());
             tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
           }
           $('.record_table').append(

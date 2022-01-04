@@ -165,6 +165,7 @@ def get_focus_cards(request):
 
 
 def get_more_cards(request):
+    # TODO: 可以紀錄從哪個facet開始？
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
         card_class = request.POST.get('card_class', '')
@@ -292,6 +293,8 @@ def search_full(request):
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                # TODO: 如果超過九就停止
+
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
@@ -374,18 +377,16 @@ def search_full(request):
 
 def search_collection(request):
     return render(request, 'pages/search_collection.html')
-
-
-
+    
 
 def search_occurrence(request):
     return render(request, 'pages/search_occurrence.html')
 
 
-def occurrence_detail(request, tbiauuid):
+def occurrence_detail(request, id):
 
     solr = SolrQuery('tbia_occurrence')
-    query_list = [('tbiaUUID', tbiauuid), ('row',1)]
+    query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
     row = pd.DataFrame(req['solr_response']['response']['docs'])
     row = row.replace({np.nan: ''})
@@ -405,10 +406,10 @@ def occurrence_detail(request, tbiauuid):
     return render(request, 'pages/occurrence_detail.html', {'row': row})
 
 
-def collection_detail(request, tbiauuid):
+def collection_detail(request, id):
 
     solr = SolrQuery('tbia_collection')
-    query_list = [('tbiaUUID', tbiauuid), ('row',1)]
+    query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
     row = pd.DataFrame(req['solr_response']['response']['docs'])
     row = row.replace({np.nan: ''})

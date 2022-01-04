@@ -14,6 +14,6 @@ urlpatterns = [
     # path('search/full/record/<record_type>/<keyword>', views.search_full_record, name='search_full_record'),
     path('search/collection', views.search_collection, name='search_collection'),
     path('search/occurrence', views.search_occurrence, name='search_occurrence'),
-    path('collection/<str:tbiauuid>/', views.collection_detail, name='collection_detail'),
-    path('occurrence/<str:tbiauuid>/', views.occurrence_detail, name='occurrence_detail'),
+    path('collection/<str:id>/', views.collection_detail, name='collection_detail'),
+    path('occurrence/<str:id>/', views.occurrence_detail, name='occurrence_detail'),
 ]

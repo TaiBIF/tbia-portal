@@ -350,9 +350,9 @@ JSON_FACET_MAP = {
                     },
                 }
         },
-        'tbiaUUID': {
+        'id': {
             'type': 'terms',
-            'field': 'tbiaUUID',
+            'field': 'id',
             'mincount': 1,
             'limit': -1,
         }
@@ -684,9 +684,9 @@ JSON_FACET_MAP = {
                     },
                 }
         },
-        'tbiaUUID': {
+        'id': {
             'type': 'terms',
-            'field': 'tbiaUUID',
+            'field': 'id',
             'mincount': 1,
             'limit': -1,
         }
