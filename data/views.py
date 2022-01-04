@@ -16,6 +16,7 @@ from django.http import (
 import json
 from pages.templatetags.tags import highlight
 import math
+import time
 
 def get_records(request):
     if request.method == 'POST':
@@ -241,8 +242,10 @@ def search_full(request):
         # TODO 階層
         query_list = [('q', f'"{keyword}"'), ('rows', 0)]
         # collection
+        s = time.time()
         solr = SolrQuery('tbia_collection',facet_collection)
         req = solr.request(query_list)
+        print('1', time.time()-s)
         c_collection = req['solr_response']['response']['numFound']
         facets = req['solr_response']['facets']
         facets.pop('count', None)
@@ -260,11 +263,13 @@ def search_full(request):
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        print('2', time.time()-s)
         col_result_df = pd.DataFrame(result)
         col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
         if len(col_result_df_duplicated):
             col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
             col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
+        print('3', time.time()-s)
         if len(col_result_df):
             col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
             col_card_len = len(col_result_df)
@@ -272,10 +277,12 @@ def search_full(request):
             col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
         else:
             col_card_len = 0
+        print('4', time.time()-s)
 
         # occurrence
         solr = SolrQuery('tbia_occurrence',facet_occurrence)
         req = solr.request(query_list)
+        print('5', time.time()-s)
         c_occurrence = req['solr_response']['response']['numFound']
         occurrence_rows = []
         facets = req['solr_response']['facets']
@@ -293,13 +300,14 @@ def search_full(request):
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-                # TODO: 如果超過九就停止
-
+                # TODO: 如果超過九就停止，但要怎麼判斷起始？
+        print('6', time.time()-s)
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
             occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
             occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]
+        print('7', time.time()-s)
         if len(occ_result_df):
             occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
             occ_card_len = len(occ_result_df)
@@ -307,6 +315,7 @@ def search_full(request):
             occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
         else:
             occ_card_len = 0
+        print('8', time.time()-s)
 
         # news
         news = News.objects.filter(type='news').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
