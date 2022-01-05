@@ -910,7 +910,7 @@
 
   function getMoreCards(card_class, offset_value, more_type, is_sub){
     let record_type;
-    (card_class == '.occ-card') ? record_type = 'occ' : record_type = 'col';
+    (card_class.startsWith('.occ')) ? record_type = 'occ' : record_type = 'col';
     let offset = $(offset_value).val()
     $.ajax({
         url: "{% url 'get_more_cards' %}",
