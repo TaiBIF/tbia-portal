@@ -716,6 +716,10 @@ class SolrQuery(object):
                 self.solr_tuples.append(('rows', self.rows))
             elif key == 'fl': # fl: field list
                 self.solr_tuples.append(('fl', values))
+            # elif key == 'facet.contains.ignoreCase': 
+            #     self.solr_tuples.append(('facet.contains.ignoreCase', values))
+            # elif key == 'facet.contains': 
+            #     self.solr_tuples.append(('facet.contains', values))
             elif key == 'wt': # wt: response writer
                 self.solr_tuples.remove(('wt', 'json'))
                 self.solr_tuples.append(('wt', values))
@@ -737,7 +741,11 @@ class SolrQuery(object):
             s = ''
             flist = []
             for i in self.facet_values:
-                flist.append('{}:{}'.format(i, str(JSON_FACET_MAP[self.core][i]).replace("'", '',).replace(' ', '')))
+                tmp_dict = JSON_FACET_MAP[self.core][i]
+                # keyword = self.solr_q.replace('"','')
+                # tmp_dict.update({'domain': { 'query': f'{i}:*{keyword}*' }})
+                # print(tmp_dict)
+                flist.append('{}:{}'.format(i, str(tmp_dict).replace("'", '"',).replace(' ', '')))
             s = ','.join(flist)
             self.solr_tuples.append(('json.facet', '{'f'{s}''}'))
         query_string = urllib.parse.urlencode(self.solr_tuples)
@@ -775,4 +783,710 @@ class SolrQuery(object):
             'endOfRecords': is_last,
             'facets': facets, # TODO: redundant with menus
         }
+    
+
+
+
+
+
+# req = urllib.request.Request(url=url, data=data.encode('utf-8'), method='POST', headers={'Content-Type': 'text/xml'})
+# res = urllib.request.urlopen(req)
+
+
+# curl http://localhost:8983/solr/tbia_occurrence/select -d '
+# {
+#   "query": "'壁虎'",
+#   "row": 0,
+#   "facet": {
+#     "common_name_c": {
+#         "type": "terms",
+#         "field": "common_name_c",
+#         "mincount": 1,
+#         "limit": -1,
+#         "domain": { "query": "common_name_c:*壁虎*" },
+#         "facet":{
+#             "scientificName":{
+#                 "type": "terms",
+#                 "field": "scientificName",
+#                 "limit": -1,
+#             },
+#         }
+#     }
+#   }
+# }'
+
+
+occ_facets = {  'facet': {
+        'scientificName': {
+            'type': 'terms',
+            'field': 'scientificName',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
+        },
+        'common_name_c': {
+            'type': 'terms',
+            'field': 'common_name_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
+        },
+        'alternative_name_c': {
+            'type': 'terms',
+            'field': 'alternative_name_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'synonyms': {
+            'type': 'terms',
+            'field': 'synonyms',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'rightsHolder': {
+            'type': 'terms',
+            'field': 'rightsHolder',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'sensitiveCategory': {
+            'type': 'terms',
+            'field': 'sensitiveCategory',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'taxonRank': {
+            'type': 'terms',
+            'field': 'taxonRank',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'locality': {
+            'type': 'terms',
+            'field': 'locality',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'recordedBy': {
+            'type': 'terms',
+            'field': 'recordedBy',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'basisOfRecord': {
+            'type': 'terms',
+            'field': 'basisOfRecord',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'datasetName': {
+            'type': 'terms',
+            'field': 'datasetName',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+        'license': {
+            'type': 'terms',
+            'field': 'license',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    }
+                }
+        },
+
+        'kingdom': {
+            'type': 'terms',
+            'field': 'kingdom',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'phylum': {
+            'type': 'terms',
+            'field': 'phylum',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'class': {
+            'type': 'terms',
+            'field': 'class',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'order': {
+            'type': 'terms',
+            'field': 'order',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'family': {
+            'type': 'terms',
+            'field': 'family',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'genus': {
+            'type': 'terms',
+            'field': 'genus',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'species': {
+            'type': 'terms',
+            'field': 'species',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'kingdom_c': {
+            'type': 'terms',
+            'field': 'kingdom_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'phylum_c': {
+            'type': 'terms',
+            'field': 'phylum_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'class_c': {
+            'type': 'terms',
+            'field': 'class_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'order_c': {
+            'type': 'terms',
+            'field': 'order_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'family_c': {
+            'type': 'terms',
+            'field': 'family_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'genus_c': {
+            'type': 'terms',
+            'field': 'genus_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+    },
+}
+
+
+col_facets =    { 'facet': {
+        'scientificName': {
+            'type': 'terms',
+            'field': 'scientificName',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
+        },
+        'common_name_c': {
+            'type': 'terms',
+            'field': 'common_name_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }
+        },
+        'alternative_name_c': {
+            'type': 'terms',
+            'field': 'alternative_name_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'synonyms': {
+            'type': 'terms',
+            'field': 'synonyms',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'rightsHolder': {
+            'type': 'terms',
+            'field': 'rightsHolder',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'sensitiveCategory': {
+            'type': 'terms',
+            'field': 'sensitiveCategory',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'taxonRank': {
+            'type': 'terms',
+            'field': 'taxonRank',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'locality': {
+            'type': 'terms',
+            'field': 'locality',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'recordedBy': {
+            'type': 'terms',
+            'field': 'recordedBy',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'typeStatus': {
+            'type': 'terms',
+            'field': 'typeStatus',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'preservation': {
+            'type': 'terms',
+            'field': 'preservation',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'datasetName': {
+            'type': 'terms',
+            'field': 'datasetName',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'license': {
+            'type': 'terms',
+            'field': 'license',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+
+        'kingdom': {
+            'type': 'terms',
+            'field': 'kingdom',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'phylum': {
+            'type': 'terms',
+            'field': 'phylum',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'class': {
+            'type': 'terms',
+            'field': 'class',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'order': {
+            'type': 'terms',
+            'field': 'order',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'family': {
+            'type': 'terms',
+            'field': 'family',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'genus': {
+            'type': 'terms',
+            'field': 'genus',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'species': {
+            'type': 'terms',
+            'field': 'species',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'kingdom_c': {
+            'type': 'terms',
+            'field': 'kingdom_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'phylum_c': {
+            'type': 'terms',
+            'field': 'phylum_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'class_c': {
+            'type': 'terms',
+            'field': 'class_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'order_c': {
+            'type': 'terms',
+            'field': 'order_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'family_c': {
+            'type': 'terms',
+            'field': 'family_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+        'genus_c': {
+            'type': 'terms',
+            'field': 'genus_c',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                    'scientificName':{
+                        'type': 'terms',
+                        'field': 'scientificName',
+                        'limit': -1,
+                    },
+                }
+        },
+    }}
+
 

@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 
 
+def is_alpha(word):
+    try:
+        return word.encode('ascii').isalpha()
+    except:
+        return False
+
+
 dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
             'alternative_name_c', 'synonyms']
@@ -12,7 +19,6 @@ def get_key(val, my_dict):
              return key
  
     return "key doesn't exist"
-
 
 taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
 # taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
