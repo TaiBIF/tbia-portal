@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
-from utils.solr_query import SolrQuery, col_facets, occ_facets
+from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
 from .utils import *
@@ -41,10 +41,16 @@ def get_records(request):
             title = '物種出現紀錄'
 
         key = get_key(key, map_dict)
+
+        if not any([ is_alpha(i) for i in keyword ]):
+            keyword_str = f'"{keyword}"'
+        else:
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) else ""
         
         offset = (page-1)*10
         solr = SolrQuery(core)
-        query_list = [('q', f'"{keyword}"'),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -119,19 +125,41 @@ def get_focus_cards(request):
         key = request.POST.get('key', '')
 
         if record_type == 'col':
-            facet_list = facet_collection
+            facet_list = col_facets
             map_dict = map_collection
             core = 'tbia_collection'
         else:
-            facet_list = facet_occurrence
+            facet_list = occ_facets
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
-        solr = SolrQuery(core, facet_list)
-        query_list = [('q', f'"{keyword}"'),('rows', 0)]
-        req = solr.request(query_list)
-        facets = req['solr_response']['facets']
+        # solr = SolrQuery(core, facet_list)
+        # query_list = [('q', f'"{keyword}"'),('rows', 0)]
+        # req = solr.request(query_list)
+        # facets = req['solr_response']['facets']
+
+
+        query = {
+        "query": f'"{keyword}"',
+        "limit": 0,
+        "facet": {}}
+
+        keyword_reg = ''
+        for j in keyword:
+            if is_alpha(j):
+                keyword_reg += f"[{j.upper()}{j.lower()}]"
+            else:
+                keyword_reg += j
+
+        for i in facet_list['facet']:
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        query.update(facet_list)
+
+        response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+
         facets.pop('count', None)
+
         result = []
 
         x = facets[key]
@@ -167,7 +195,6 @@ def get_focus_cards(request):
 
 
 def get_more_cards(request):
-    # TODO: 可以紀錄從哪個facet開始？
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
         card_class = request.POST.get('card_class', '')
@@ -175,24 +202,50 @@ def get_more_cards(request):
         offset = request.POST.get('offset', '')
         print(keyword, card_class, is_sub, offset)
 
-        # append 9 cards a time
         if offset:
             offset = int(offset)
         
         if card_class.startswith('.col'):
-            facet_list = facet_collection
+            facet_list = col_facets
             map_dict = map_collection
             core = 'tbia_collection'
         elif card_class.startswith('.occ'):
-            facet_list = facet_occurrence
+            facet_list = occ_facets
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
         result = []
-        solr = SolrQuery(core, facet_list)
-        query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
-        req = solr.request(query_list)
-        facets = req['solr_response']['facets']
+        # solr = SolrQuery(core, facet_list)
+        # query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
+        # req = solr.request(query_list)
+        # facets = req['solr_response']['facets']
+
+        if not any([ is_alpha(i) for i in keyword ]):
+            keyword_str = f'"{keyword}"'
+        else:
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) else ""
+
+        query = {
+            "query": keyword_str,
+            "limit": 0,
+            "facet": {}
+            }
+
+        keyword_reg = ''
+        for j in keyword:
+            if is_alpha(j):
+                keyword_reg += f"[{j.upper()}{j.lower()}]"
+            else:
+                keyword_reg += j
+
+        for i in facet_list['facet']:
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        query.update(facet_list)
+
+        response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+
         facets.pop('count', None)        
         if is_sub == 'false':
             for i in facets:
@@ -248,10 +301,20 @@ def search_full(request):
         # req = solr.request(query_list)
         # c_collection = req['solr_response']['response']['numFound']
         # facets = req['solr_response']['facets']
+
+        # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
+
+        if not any([ is_alpha(i) for i in keyword ]):
+            keyword_str = f'"{keyword}"'
+        else:
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) else ""
+
         query = {
-        "query": f'"{keyword}"',
-        "limit": 0,
-        "facet": {}}
+            "query": keyword_str,
+            "limit": 0,
+            "facet": {}
+            }
 
         keyword_reg = ''
         for j in keyword:
@@ -263,12 +326,11 @@ def search_full(request):
         # collection
         facet_list = col_facets
         for i in facet_list['facet']:
-            if i != 'id':
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
         s = time.time()
-        response = requests.post('http://solr:8983/solr/tbia_collection/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_collection/select', data=json.dumps(query), headers={'content-type': "application/json" })
         print(time.time() - s)
         facets = response.json()['facets']
 
@@ -305,12 +367,11 @@ def search_full(request):
         # occurrence
         facet_list = occ_facets
         for i in facet_list['facet']:
-            if i != 'id':
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
         s = time.time()
-        response = requests.post('http://solr:8983/solr/tbia_occurrence/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_occurrence/select', data=json.dumps(query), headers={'content-type': "application/json" })
         print(time.time() - s)
         facets = response.json()['facets']
         
