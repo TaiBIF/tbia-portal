@@ -42,15 +42,16 @@ def get_records(request):
 
         key = get_key(key, map_dict)
 
-        if not any([ is_alpha(i) for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
         
         offset = (page-1)*10
         solr = SolrQuery(core)
         query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        # query_list = []
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -220,11 +221,11 @@ def get_more_cards(request):
         # req = solr.request(query_list)
         # facets = req['solr_response']['facets']
 
-        if not any([ is_alpha(i) for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
 
         query = {
             "query": keyword_str,
@@ -304,11 +305,11 @@ def search_full(request):
 
         # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
 
-        if not any([ is_alpha(i) for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
 
         query = {
             "query": keyword_str,
