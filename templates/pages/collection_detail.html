@@ -192,7 +192,7 @@
     shadowSize: [41, 41]
   });
 
-  let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],7);
+  let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],6);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
