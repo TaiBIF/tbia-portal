@@ -7,6 +7,7 @@
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
   crossorigin=""></script>
+<script src="https://kit.fontawesome.com/b8e586964f.js" crossorigin="anonymous"></script>
 {% endblock head %}
 
 {% block body %}
@@ -28,7 +29,11 @@
     <div class="sc_de_top">
       <div class="left_area">
         <div class="cont_padbox">
-          <div class="gbg_title">典藏單位：{{ row.rightsHolder }}</div>
+          {% if row.references != '' %}
+          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="gbg_title">典藏單位：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
+          {% else %}
+          <a class="gbg_title">典藏單位：{{ row.rightsHolder }}</a>
+          {% endif %}
           <h2>中⽂名：{{ row.common_name_c }}</h2>
           <h2>學名：{{ row.scientificName }}</h2>
           <div class="short">
