@@ -28,7 +28,6 @@ def get_records(request):
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
-        print(keyword, key, value, record_type, scientific_name, limit, page)
 
         # only facet selected field
         if record_type == 'col':
@@ -51,7 +50,6 @@ def get_records(request):
         offset = (page-1)*10
         solr = SolrQuery(core)
         query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
-        # query_list = []
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -74,8 +72,6 @@ def get_records(request):
             'selected_col': selected_col,
             'map_dict': map_dict,
         }
-
-        # print(response)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -126,47 +122,35 @@ def get_focus_cards(request):
         key = request.POST.get('key', '')
 
         if record_type == 'col':
-            facet_list = col_facets
+            facet_list = {'facet': {k: v for k, v in col_facets['facet'].items() if k == key} }
             map_dict = map_collection
             core = 'tbia_collection'
         else:
-            facet_list = occ_facets
+            facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
-        # solr = SolrQuery(core, facet_list)
-        # query_list = [('q', f'"{keyword}"'),('rows', 0)]
-        # req = solr.request(query_list)
-        # facets = req['solr_response']['facets']
-
-
         query = {
-        "query": f'"{keyword}"',
-        "limit": 0,
-        "facet": {}}
+            "query": f'"{keyword}"',
+            "limit": 0,
+            "facet": {}
+            }
 
         keyword_reg = ''
         for j in keyword:
-            if is_alpha(j):
-                keyword_reg += f"[{j.upper()}{j.lower()}]"
-            else:
-                keyword_reg += j
-
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
         for i in facet_list['facet']:
             facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
         response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
-
         facets.pop('count', None)
 
-        result = []
-
         x = facets[key]
-        tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-        total_count =  sum(item['count'] for item in tmp)
-        for k in tmp:
+        total_count =  sum(item['count'] for item in x['buckets'])
+        result = []
+        for k in x['buckets']:
             bucket = k['scientificName']['buckets']
             result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
         result_df = pd.DataFrame(result)
@@ -201,10 +185,7 @@ def get_more_cards(request):
         card_class = request.POST.get('card_class', '')
         is_sub = request.POST.get('is_sub', '')
         offset = request.POST.get('offset', '')
-        print(keyword, card_class, is_sub, offset)
-
-        if offset:
-            offset = int(offset)
+        offset = int(offset) if offset else offset
         
         if card_class.startswith('.col'):
             facet_list = col_facets
@@ -214,12 +195,6 @@ def get_more_cards(request):
             facet_list = occ_facets
             map_dict = map_occurrence
             core = 'tbia_occurrence'
-
-        result = []
-        # solr = SolrQuery(core, facet_list)
-        # query_list = [('q', f'"{keyword}"'), ('rows', 0)]        
-        # req = solr.request(query_list)
-        # facets = req['solr_response']['facets']
 
         if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
             keyword_str = f'"{keyword}"'
@@ -235,19 +210,16 @@ def get_more_cards(request):
 
         keyword_reg = ''
         for j in keyword:
-            if is_alpha(j):
-                keyword_reg += f"[{j.upper()}{j.lower()}]"
-            else:
-                keyword_reg += j
-
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
         for i in facet_list['facet']:
             facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
         response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
+        facets.pop('count', None)      
 
-        facets.pop('count', None)        
+        result = []
         if is_sub == 'false':
             for i in facets:
                 x = facets[i]
@@ -264,7 +236,6 @@ def get_more_cards(request):
             key = card_class.split('-')[1]
             x = facets[key]
             tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            total_count =  sum(item['count'] for item in tmp)
             for k in tmp:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
@@ -296,15 +267,7 @@ def search_full(request):
 
     if keyword:
         # TODO 階層
-        # query_list = [('q', f'"{keyword}"'), ('rows', 0)]
-        # # collection
-        # solr = SolrQuery('tbia_collection',facet_collection)
-        # req = solr.request(query_list)
-        # c_collection = req['solr_response']['response']['numFound']
-        # facets = req['solr_response']['facets']
-
         # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
-
         if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
@@ -319,10 +282,7 @@ def search_full(request):
 
         keyword_reg = ''
         for j in keyword:
-            if is_alpha(j):
-                keyword_reg += f"[{j.upper()}{j.lower()}]"
-            else:
-                keyword_reg += j
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
 
         # collection
         facet_list = col_facets
@@ -332,23 +292,22 @@ def search_full(request):
 
         s = time.time()
         response = requests.post(f'{SOLR_PREFIX}tbia_collection/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        print(time.time() - s)
+        print('get collection', time.time() - s)
         facets = response.json()['facets']
-
         facets.pop('count', None)
+
         c_collection = response.json()['response']['numFound']
         collection_rows = []
         result = []
         for i in facets:
             x = facets[i]
-            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            if tmp:
+            if x['buckets']:
                 collection_rows.append({
                     'title': map_collection[i],
-                    'total_count': sum(item['count'] for item in tmp),
+                    'total_count': sum(item['count'] for item in x['buckets']),
                     'key': i
                 })
-            for k in tmp:
+            for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
         col_result_df = pd.DataFrame(result)
@@ -364,7 +323,6 @@ def search_full(request):
         else:
             col_card_len = 0
 
-
         # occurrence
         facet_list = occ_facets
         for i in facet_list['facet']:
@@ -373,29 +331,24 @@ def search_full(request):
 
         s = time.time()
         response = requests.post(f'{SOLR_PREFIX}tbia_occurrence/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        print(time.time() - s)
+        print('get occurrence', time.time() - s)
         facets = response.json()['facets']
+        facets.pop('count', None)
         
-        # solr = SolrQuery('tbia_occurrence',facet_occurrence)
-        # req = solr.request(query_list)
         c_occurrence = response.json()['response']['numFound']
         occurrence_rows = []
-        # facets = req['solr_response']['facets']
-        facets.pop('count', None)
         result = []
         for i in facets:
             x = facets[i]
-            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            if tmp:
+            if x['buckets']:
                 occurrence_rows.append({
                     'title': map_occurrence[i],
-                    'total_count': sum(item['count'] for item in tmp),
+                    'total_count': sum(item['count'] for item in x['buckets']),
                     'key': i
                 })
-            for k in tmp:
+            for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-                # TODO: 如果超過九就停止，但要怎麼判斷起始？
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
