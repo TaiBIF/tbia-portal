@@ -620,8 +620,10 @@
 
 
   $(".second_menu a").on("click", function (event) {
+    $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
     $(".second_menu a").removeClass("now");
     $(this).addClass("now")
+    $(this).parent().parent('li').addClass('now')
   });
 
   function focusComponent(item_class){
