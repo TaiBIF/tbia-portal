@@ -41,11 +41,11 @@ def get_records(request):
 
         key = get_key(key, map_dict)
 
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
         
         offset = (page-1)*10
         solr = SolrQuery(core)
@@ -125,10 +125,12 @@ def get_focus_cards(request):
             facet_list = {'facet': {k: v for k, v in col_facets['facet'].items() if k == key} }
             map_dict = map_collection
             core = 'tbia_collection'
+            title_prefix = '自然史典藏 > '
         else:
             facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
             map_dict = map_occurrence
             core = 'tbia_occurrence'
+            title_prefix = '物種出現紀錄 > '
 
         query = {
             "query": f'"{keyword}"',
@@ -168,7 +170,7 @@ def get_focus_cards(request):
             card_len = 0
         
         response = {
-            'title': map_dict[key],
+            'title': f"{title_prefix}{map_dict[key]}",
             'total_count': total_count,
             'item_class': f"item_{record_type}_{key}",
             'card_class': f"{record_type}-{key}-card",
@@ -196,11 +198,11 @@ def get_more_cards(request):
             map_dict = map_occurrence
             core = 'tbia_occurrence'
 
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
 
         query = {
             "query": keyword_str,
@@ -268,11 +270,11 @@ def search_full(request):
     if keyword:
         # TODO 階層
         # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isnumeric() for i in keyword ]):
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
             keyword_str = f'"{keyword}"'
         else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isnumeric() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isnumeric() else ""
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
 
         query = {
             "query": keyword_str,
@@ -428,13 +430,30 @@ def search_full(request):
     return render(request, 'pages/search_full.html', response)
 
 
-
 def search_collection(request):
+
     return render(request, 'pages/search_collection.html')
     
 
 def search_occurrence(request):
-    return render(request, 'pages/search_occurrence.html')
+
+    # occ
+    response = requests.get(f'{SOLR_PREFIX}tbia_occurrence/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    holder_list = [f_list[x] for x in range(0, len(f_list),2)]
+    # col
+    response = requests.get(f'{SOLR_PREFIX}tbia_collection/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    holder_list += [f_list[x] for x in range(0, len(f_list),2)]
+    # unique
+    holder_list = list(set(holder_list))
+
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
+    rank_list = ['界', '門', '綱', '目', '科', '屬', '種']
+        
+
+    return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
+        'rank_list': rank_list})
 
 
 def occurrence_detail(request, id):
@@ -485,3 +504,61 @@ def collection_detail(request, id):
             pass
 
     return render(request, 'pages/collection_detail.html', {'row': row})
+
+
+def get_conditional_records(request):
+    if request.method == 'POST':
+        print(request.POST)
+        keyword = request.POST.get('keyword', '')
+        key = request.POST.get('key', '')
+        value = request.POST.get('value', '')
+        record_type = request.POST.get('record_type', '')
+        scientific_name = request.POST.get('scientific_name', '')
+        limit = int(request.POST.get('limit', -1))
+        page = int(request.POST.get('page', 1))
+
+        # only facet selected field
+        if record_type == 'col':
+            map_dict = map_collection
+            core = 'tbia_collection'
+            title = '自然史典藏'
+        else:
+            map_dict = map_occurrence
+            core = 'tbia_occurrence'
+            title = '物種出現紀錄'
+
+        key = get_key(key, map_dict)
+
+        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
+            keyword_str = f'"{keyword}"'
+        else:
+            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+        
+        offset = (page-1)*10
+        solr = SolrQuery(core)
+        query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        req = solr.request(query_list)
+        docs = pd.DataFrame(req['solr_response']['response']['docs'])
+        docs = docs.replace({np.nan: ''})
+        docs = docs.replace({'nan': ''})
+        docs = docs.to_dict('records')
+
+        current_page = offset / 10 + 1
+        total_page = math.ceil(limit / 10)
+
+        if key in ['common_name_c','scientificName', 'rightsHolder']:
+            selected_col = ['common_name_c','scientificName', 'rightsHolder']
+        else:
+            selected_col = [key,'common_name_c','scientificName','rightsHolder']
+
+        response = {
+            'title': title,
+            'rows' : docs,
+            'current_page' : current_page,
+            'total_page' : total_page,
+            'selected_col': selected_col,
+            'map_dict': map_dict,
+        }
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
