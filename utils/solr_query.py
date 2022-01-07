@@ -815,7 +815,6 @@ class SolrQuery(object):
 #   }
 # }'
 
-
 occ_facets = {  'facet': {
         'scientificName': {
             'type': 'terms',
