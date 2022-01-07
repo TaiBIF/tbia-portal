@@ -225,8 +225,7 @@ def get_more_cards(request):
         if is_sub == 'false':
             for i in facets:
                 x = facets[i]
-                tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-                for k in tmp:
+                for k in x['buckets']:
                     bucket = k['scientificName']['buckets']
                     result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             result_df = pd.DataFrame(result)
@@ -237,8 +236,7 @@ def get_more_cards(request):
         else:
             key = card_class.split('-')[1]
             x = facets[key]
-            tmp = [ i for i in x['buckets'] if keyword.lower() in i['val'].lower() ]
-            for k in tmp:
+            for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
             result_df = pd.DataFrame(result)
