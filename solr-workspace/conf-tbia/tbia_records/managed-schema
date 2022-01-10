@@ -42,7 +42,7 @@
   </fieldType>
   <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
   <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
-  <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true" omitNorms="true" omitTermFreqAndPositions="true" maxDistErr="0.001" termOffsets="false" distErrPct="0.025" distanceUnits="kilometers" termPositions="false" omitPositions="true"/>
+  <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType" spatialContextFactory="JTS" autoIndex="true" geo="true" omitNorms="true" omitTermFreqAndPositions="true" maxDistErr="0.001" termOffsets="false" distErrPct="0.025" distanceUnits="kilometers" termPositions="false" omitPositions="true"/>
   <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
     <analyzer>
       <tokenizer class="solr.KeywordTokenizerFactory"/>
@@ -447,14 +447,12 @@
       <tokenizer class="solr.WhitespaceTokenizerFactory"/>
     </analyzer>
   </fieldType>
-  <field name="Unnamed__0" type="plongs"/>
   <field name="_nest_path_" type="_nest_path_"/>
   <field name="_root_" type="string" docValues="false" indexed="true" stored="false"/>
   <field name="_text_" type="text_general" multiValued="true" indexed="true" stored="false"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="aberration" type="string"/>
   <field name="alternative_name_c" type="string"/>
-  <field name="associatedMedia" type="string"/>
   <field name="basisOfRecord" type="string"/>
   <field name="class" type="string"/>
   <field name="class_c" type="string"/>
@@ -515,7 +513,6 @@
   <field name="race" type="string"/>
   <field name="recordedBy" type="string"/>
   <field name="recordNumber" type="string"/>
-  <field name="recordType" type="string"/>
   <field name="references" type="string"/>
   <field name="resourceContacts" type="string"/>
   <field name="rightsHolder" type="string"/>
@@ -572,7 +569,7 @@
   <field name="synonyms" type="string"/>
   <field name="taxonRank" type="string"/>
   <field name="taxonUUID" type="string"/>
-  <field name="tbiaUUID" type="string"/>
+  <!-- <field name="tbiaUUID" type="string"/> -->
   <field name="tribe" type="string"/>
   <field name="tribe_c" type="string"/>
   <field name="typeStatus" type="string"/>
@@ -650,37 +647,107 @@
   <dynamicField name="*_f" type="pfloat" indexed="true" stored="true"/>
   <dynamicField name="*_d" type="pdouble" indexed="true" stored="true"/>
   <dynamicField name="*_p" type="location" indexed="true" stored="true"/>
-  <copyField source="*" dest="_text_"/>
-  <copyField source="rightsHolder" dest="rightsHolder_str" maxChars="10000"/>
-  <copyField source="sourceVernacularName" dest="sourceVernacularName_str" maxChars="10000"/>
-  <copyField source="references" dest="references_str" maxChars="10000"/>
-  <copyField source="recordType" dest="recordType_str" maxChars="256"/>
-  <copyField source="verbatimSRS" dest="verbatimSRS_str" maxChars="256"/>
-  <copyField source="taxonRank" dest="taxonRank_str" maxChars="256"/>
-  <copyField source="verbatimCoordinateSystem" dest="verbatimCoordinateSystem_str" maxChars="256"/>
-  <copyField source="datasetName" dest="datasetName_str" maxChars="1000"/>
-  <copyField source="occurrenceID" dest="occurrenceID_str" maxChars="256"/>
-  <copyField source="resourceContacts" dest="resourceContacts_str" maxChars="256"/>
-  <copyField source="originalScientificName" dest="originalScientificName_str" maxChars="256"/>
-  <copyField source="basisOfRecord" dest="basisOfRecord_str" maxChars="256"/>
-  <copyField source="tbiaUUID" dest="tbiaUUID_str" maxChars="256"/>
-  <copyField source="sourceScientificName" dest="sourceScientificName_str" maxChars="1000"/>
-  <copyField source="scientificName" dest="scientificName_str" maxChars="1000"/>
-  <copyField source="synonyms" dest="synonyms_str" maxChars="30000"/>
-  <copyField source="family_c" dest="family_c_str" maxChars="256"/>
-  <copyField source="locality" dest="locality_str" maxChars="10000"/>
-  <copyField source="phylum_c" dest="phylum_c_str" maxChars="256"/>
-  <copyField source="kingdom" dest="kingdom_str" maxChars="256"/>
-  <copyField source="genus_c" dest="genus_c_str" maxChars="256"/>
-  <copyField source="phylum" dest="phylum_str" maxChars="256"/>
-  <copyField source="kingdom_c" dest="kingdom_c_str" maxChars="256"/>
-  <copyField source="genus" dest="genus_str" maxChars="256"/>
-  <copyField source="species" dest="species_str" maxChars="256"/>
-  <copyField source="family" dest="family_str" maxChars="256"/>
-  <copyField source="class" dest="class_str" maxChars="256"/>
-  <copyField source="class_c" dest="class_c_str" maxChars="256"/>
-  <copyField source="order_c" dest="order_c_str" maxChars="256"/>
-  <copyField source="order" dest="order_str" maxChars="256"/>
-  <copyField source="common_name_c" dest="common_name_c_str" maxChars="30000"/>
-  <copyField source="license" dest="license_str" maxChars="256"/>
+  <!-- Full text search -->
+  <copyField source="rightsHolder" dest="_text_"/>
+  <copyField source="sourceScientificName" dest="_text_"/>
+  <copyField source="sourceVernacularName" dest="_text_"/>
+  <copyField source="sensitiveCategory" dest="_text_"/>
+  <copyField source="taxonRank" dest="_text_"/>
+  <copyField source="typeStatus" dest="_text_"/>
+  <copyField source="verbatimCoordinateSystem" dest="_text_"/>
+  <copyField source="verbatimSRS" dest="_text_"/>
+  <copyField source="locality" dest="_text_"/>
+  <copyField source="organismQuantityType" dest="_text_"/>
+  <copyField source="recordedBy" dest="_text_"/>
+  <copyField source="preservation" dest="_text_"/>
+  <copyField source="basisOfRecord" dest="_text_"/>
+  <copyField source="datasetName" dest="_text_"/>
+  <copyField source="resourceContacts" dest="_text_"/>
+  <copyField source="license" dest="_text_"/>
+  <copyField source="sensitiveCategory" dest="_text_"/>
+  <copyField source="scientificName" dest="_text_"/>
+  <copyField source="synonyms" dest="_text_"/>
+  <copyField source="misapplied" dest="_text_"/>
+  <copyField source="common_name_c" dest="_text_"/>
+  <copyField source="alternative_name_c" dest="_text_"/>
+  <copyField source="domain" dest="_text_"/>
+  <copyField source="superkingdom" dest="_text_"/>
+  <copyField source="kingdom" dest="_text_"/>
+  <copyField source="subkingdom" dest="_text_"/>
+  <copyField source="infrakingdom" dest="_text_"/>
+  <copyField source="superdivision" dest="_text_"/>
+  <copyField source="division" dest="_text_"/>
+  <copyField source="subdivision" dest="_text_"/>
+  <copyField source="infradivision" dest="_text_"/>
+  <copyField source="parvdivision" dest="_text_"/>
+  <copyField source="superphylum" dest="_text_"/>
+  <copyField source="phylum" dest="_text_"/>
+  <copyField source="subphylum" dest="_text_"/>
+  <copyField source="infraphylum" dest="_text_"/>
+  <copyField source="microphylum" dest="_text_"/>
+  <copyField source="parvphylum" dest="_text_"/>
+  <copyField source="superclass" dest="_text_"/>
+  <copyField source="class" dest="_text_"/>
+  <copyField source="subclass" dest="_text_"/>
+  <copyField source="infraclass" dest="_text_"/>
+  <copyField source="superorder" dest="_text_"/>
+  <copyField source="order" dest="_text_"/>
+  <copyField source="suborder" dest="_text_"/>
+  <copyField source="infraorder" dest="_text_"/>
+  <copyField source="superfamily" dest="_text_"/>
+  <copyField source="family" dest="_text_"/>
+  <copyField source="subfamily" dest="_text_"/>
+  <copyField source="tribe" dest="_text_"/>
+  <copyField source="subtribe" dest="_text_"/>
+  <copyField source="genus" dest="_text_"/>
+  <copyField source="subgenus" dest="_text_"/>
+  <copyField source="section" dest="_text_"/>
+  <copyField source="subsection" dest="_text_"/>
+  <copyField source="species" dest="_text_"/>
+  <copyField source="domain_c" dest="_text_"/>
+  <copyField source="superkingdom_c" dest="_text_"/>
+  <copyField source="kingdom_c" dest="_text_"/>
+  <copyField source="subkingdom_c" dest="_text_"/>
+  <copyField source="infrakingdom_c" dest="_text_"/>
+  <copyField source="superdivision_c" dest="_text_"/>
+  <copyField source="division_c" dest="_text_"/>
+  <copyField source="subdivision_c" dest="_text_"/>
+  <copyField source="infradivision_c" dest="_text_"/>
+  <copyField source="parvdivision_c" dest="_text_"/>
+  <copyField source="superphylum_c" dest="_text_"/>
+  <copyField source="phylum_c" dest="_text_"/>
+  <copyField source="subphylum_c" dest="_text_"/>
+  <copyField source="infraphylum_c" dest="_text_"/>
+  <copyField source="microphylum_c" dest="_text_"/>
+  <copyField source="parvphylum_c" dest="_text_"/>
+  <copyField source="superclass_c" dest="_text_"/>
+  <copyField source="class_c" dest="_text_"/>
+  <copyField source="subclass_c" dest="_text_"/>
+  <copyField source="infraclass_c" dest="_text_"/>
+  <copyField source="superorder_c" dest="_text_"/>
+  <copyField source="order_c" dest="_text_"/>
+  <copyField source="suborder_c" dest="_text_"/>
+  <copyField source="infraorder_c" dest="_text_"/>
+  <copyField source="superfamily_c" dest="_text_"/>
+  <copyField source="family_c" dest="_text_"/>
+  <copyField source="subfamily_c" dest="_text_"/>
+  <copyField source="tribe_c" dest="_text_"/>
+  <copyField source="subtribe_c" dest="_text_"/>
+  <copyField source="genus_c" dest="_text_"/>
+  <copyField source="subgenus_c" dest="_text_"/>
+  <copyField source="section_c" dest="_text_"/>
+  <copyField source="subsection_c" dest="_text_"/>
+  <copyField source="subspecies" dest="_text_"/>
+  <copyField source="nothosubspecies" dest="_text_"/>
+  <copyField source="variety" dest="_text_"/>
+  <copyField source="subvariety" dest="_text_"/>
+  <copyField source="nothovariety" dest="_text_"/>
+  <copyField source="form" dest="_text_"/>
+  <copyField source="subform" dest="_text_"/>
+  <copyField source="specialForm" dest="_text_"/>
+  <copyField source="race" dest="_text_"/>
+  <copyField source="stirp" dest="_text_"/>
+  <copyField source="morph" dest="_text_"/>
+  <copyField source="aberration" dest="_text_"/>
+  <copyField source="hybridFormula" dest="_text_"/>
 </schema>
