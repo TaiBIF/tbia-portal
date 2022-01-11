@@ -13,6 +13,7 @@ dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 
             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
             'alternative_name_c', 'synonyms']
 
+
 def get_key(val, my_dict):
     for key, value in my_dict.items():
          if val == value:

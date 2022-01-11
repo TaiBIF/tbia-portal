@@ -7,6 +7,7 @@ urlpatterns = [
     # path('search/full/result', views.search_full_result, name='search_full_result'),
     # path('search/full/more_results', views.get_more_results, name='get_more_results'),
     path('search/full/get_records', views.get_records, name='get_records'),
+    path('search/full/get_conditional_records', views.get_conditional_records, name='get_conditional_records'),
     path('search/full/get_more_docs', views.get_more_docs, name='get_more_docs'),
     path('search/full/get_more_cards', views.get_more_cards, name='get_more_cards'),
     path('search/full/get_focus_cards', views.get_focus_cards, name='get_focus_cards'),

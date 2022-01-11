@@ -18,6 +18,10 @@ from pages.templatetags.tags import highlight
 import math
 import time
 import requests
+import geopandas as gpd
+import shapely.wkt as wkt
+from shapely.geometry import MultiPolygon
+from datetime import datetime
 
 def get_records(request):
     if request.method == 'POST':
@@ -447,7 +451,7 @@ def search_occurrence(request):
     holder_list = list(set(holder_list))
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
-    rank_list = ['界', '門', '綱', '目', '科', '屬', '種']
+    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
         
 
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
@@ -506,57 +510,93 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
-        print(request.POST)
-        keyword = request.POST.get('keyword', '')
-        key = request.POST.get('key', '')
-        value = request.POST.get('value', '')
-        record_type = request.POST.get('record_type', '')
-        scientific_name = request.POST.get('scientific_name', '')
-        limit = int(request.POST.get('limit', -1))
-        page = int(request.POST.get('page', 1))
 
-        # only facet selected field
-        if record_type == 'col':
+        # default columns
+        selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
+        # use JSON API to avoid overlong query url
+        query_list = []
+
+        record_type = request.POST.get('record_type')
+        if record_type == 'col': # occurrence include occurrence + collection
+            query_list += ['recordType:col']
             map_dict = map_collection
-            core = 'tbia_collection'
-            title = '自然史典藏'
         else:
             map_dict = map_occurrence
-            core = 'tbia_occurrence'
-            title = '物種出現紀錄'
 
-        key = get_key(key, map_dict)
+        for i in ['rightsHolder', 'locality', 'organismQuantity', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
+                  'scientificNameID']:
+            if val := request.POST.get(i):
+                query_list += [f'{i}:*{val}*']
 
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
-            keyword_str = f'"{keyword}"'
-        else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+        for i in ['sensitiveCategory', 'taxonRank']:
+            if val := request.POST.get(i):
+                query_list += [f'{i}:{val}']
+
+        if request.POST.get('start_date') and request.POST.get('end_date'):
+            try: 
+                start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').isoformat() + 'Z'
+                query_list += [f'standardDate:[{start_date} TO {end_date}]']
+            except:
+                pass
+
+        if g_str := request.POST.get('geojson'):
+            geojson = json.loads(g_str)
+            geo_df = gpd.GeoDataFrame.from_features(geojson)
+            g_list = []
+            for i in geo_df.to_wkt()['geometry']:
+                if str(i).startswith('POLYGON'):
+                    g_list += [i]
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+            except:
+                pass
         
-        offset = (page-1)*10
-        solr = SolrQuery(core)
-        query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
-        req = solr.request(query_list)
-        docs = pd.DataFrame(req['solr_response']['response']['docs'])
-        docs = docs.replace({np.nan: ''})
-        docs = docs.replace({'nan': ''})
-        docs = docs.to_dict('records')
+        if val := request.POST.get('name'):
+            col_list = [ f'{i}:*{val}*' for i in dup_col ]
+            query_str = ' OR '.join( col_list )
+            query_list += [ '(' + query_str + ')' ]
 
-        current_page = offset / 10 + 1
-        total_page = math.ceil(limit / 10)
+        # 如果有其他條件才進行搜尋，否則回傳空值
+        if query_list and query_list != ['recordType:col']:
 
-        if key in ['common_name_c','scientificName', 'rightsHolder']:
-            selected_col = ['common_name_c','scientificName', 'rightsHolder']
+            page = int(request.POST.get('page', 1))
+            offset = (page-1)*10
+
+            query = { "query": "*:*",
+                    "offset": offset,
+                    "limit": 10,
+                    "filter": query_list }
+
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            
+            count = response.json()['response']['numFound']
+            docs = pd.DataFrame(response.json()['response']['docs'])
+            docs = docs.replace({np.nan: ''})
+            docs = docs.replace({'nan': ''})
+            docs = docs.to_dict('records')
+
+            current_page = offset / 10 + 1
+            total_page = math.ceil(count / 10)
+
+            response = {
+                'rows' : docs,
+                'count': count,
+                'current_page' : current_page,
+                'total_page' : total_page,
+                'selected_col': selected_col,
+                'map_dict': map_dict,
+            }
+        
         else:
-            selected_col = [key,'common_name_c','scientificName','rightsHolder']
-
-        response = {
-            'title': title,
-            'rows' : docs,
-            'current_page' : current_page,
-            'total_page' : total_page,
-            'selected_col': selected_col,
-            'map_dict': map_dict,
-        }
+            response = {
+                'rows' : {},
+                'count': 0,
+                'current_page' : 0,
+                'total_page' : 0,
+                'selected_col': selected_col,
+                'map_dict': map_dict,
+            }
 
         return HttpResponse(json.dumps(response), content_type='application/json')
