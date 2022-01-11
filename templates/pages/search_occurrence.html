@@ -1,5 +1,16 @@
-{% extends './base.html' %} {% load static %} {% block body %}
+{% extends './base.html' %} {% load static %} 
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
 
+{% endblock head %}
+{% block body %}
 <div class="path">
   <div class="main_1240">
     <a href="#" class="home"></a> <span>></span>
@@ -16,153 +27,439 @@
 <div class="container_area">
   <div class="main_1240">
     <div class="search_condition_are">
-      <div class="secboxtop2">
-        <div class="leftbox">
-          <div class="two_input">
-            <div class="input_item">
-              <input type="text" placeholder="中文名/學名" />
+      <form id="searchForm">
+        {% csrf_token %}
+        <input type="hidden" name="record_type" value="occ">
+        <div class="secboxtop2">
+          <div class="leftbox">
+            <div class="two_input">
+              <div class="input_item">
+                <input type="text" name="name" placeholder="中文名/學名" />
+              </div>
             </div>
-            <div class="input_item">
-              <div class="item_center">
-                <p>搜尋"苦苓"="楝"</p>
-                <a href="#" class="qmark"></a>
+            <div class="two_input">
+              <div class="input_item">
+                <select name="rightsHolder" id="">
+                  <option value="" readonly="true" selected>來源資料庫</option>
+                  {% for i in holder_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input_item">
+                <input name="scientificNameID" type="text" placeholder="TaiCoL Namecode" />
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select name="sensitiveCategory" id="">
+                  <option value="" readonly="true" selected>敏感層級</option>
+                  {% for i in sensitive_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input_item">
+                <select name="taxonRank" id="">
+                  <option value="" readonly="true" selected>分類層級</option>
+                  {% for i in rank_list %}
+                  <option value="{{ i.1 }}">{{ i.0 }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="line_cneter">~</div>
+              <div class="input_item">
+                <input name="start_date" id="start_date" type="text" placeholder="觀察紀錄日期（起）" />
+                <a onclick="$('#start_date').datepicker('show')" class="dateicon"></a>
+              </div>
+              <div class="input_item">
+                <input name="end_date" id="end_date" type="text" placeholder="觀察紀錄日期（迄）" />
+                <a onclick="$('#end_date').datepicker('show')" class="dateicon"></a>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <input name="locality" type="text" placeholder="出現地" />
+              </div>
+              <div class="input_item">
+                <input name="organismQuantity" type="number" placeholder="數量" />
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <input name="recordedBy" type="text" placeholder="紀錄者" />
+              </div>
+              <div class="input_item">
+                <input name="basisOfRecord" type="text" placeholder="資料基底" />
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <input name="datasetName" type="text" placeholder="資料集名稱" />
+              </div>
+              <div class="input_item">
+                <input name="resourceContacts" type="text" placeholder="資料集聯絡人" />
               </div>
             </div>
           </div>
-          <div class="two_input">
-            <div class="input_item">
-              <select name="" id="">
-                <option value="">來源資料庫</option>
-              </select>
+          <div class="rightbox">
+            <div class="title_area">
+              <h3>空間查詢</h3>
+              <a href="#" class="qmark"></a>
             </div>
-            <div class="input_item">
-              <input type="text" placeholder="Namecode" />
+            <div class="map_img">
+              <div class="imgbox" style="height: 390px; width: auto;">
+                <div id="map" class="img"></div>
+              </div>
             </div>
-          </div>
-
-          <div class="two_input">
-            <div class="input_item">
-              <select name="" id="">
-                <option value="">敏感層級</option>
-              </select>
-            </div>
-            <div class="input_item">
-              <select name="" id="">
-                <option value="">分層等級</option>
-              </select>
-            </div>
-          </div>
-          <div class="two_input">
-            <div class="line_cneter">~</div>
-            <div class="input_item">
-              <input type="text" placeholder="觀察記錄日期(起)" />
-              <button class="dateicon"></button>
-            </div>
-            <div class="input_item">
-              <input type="text" placeholder="觀察記錄日期(迄)" />
-              <button class="dateicon"></button>
-            </div>
-          </div>
-
-          <div class="two_input">
-            <div class="input_item">
-              <input type="text" placeholder="出現地" />
-            </div>
-            <div class="input_item">
-              <select name="" id="">
-                <option value="">數量</option>
-              </select>
-            </div>
-          </div>
-          <div class="two_input">
-            <div class="input_item">
-              <input type="text" placeholder="記錄者" />
-            </div>
-            <div class="input_item">
-              <select name="" id="">
-                <option value="">調查方法</option>
-              </select>
-            </div>
-          </div>
-          <div class="two_input">
-            <div class="input_item">
-              <input type="text" placeholder="資料集名稱" />
-            </div>
-            <div class="input_item">
-              <input type="text" placeholder="資料集聯絡人" />
+            <div class="clearfix">
+              <label class="btnupload">
+                <p onclick="popupField()">上傳Polygon</p>
             </div>
           </div>
         </div>
-        <div class="rightbox">
-          <div class="title_area">
-            <h3>空間查詢</h3>
-            <a href="#" class="qmark"></a>
-          </div>
-          <div class="map_img">
-            <div class="imgbox">
-              <!--435*390 or 870*780 用background-image替換連結-->
-              <div class="img"></div>
-            </div>
-          </div>
-          <div class="clearfix">
-            <label class="btnupload">
-              <input style="display: none" type="file" />
-              <p>上傳polygon</p>
-            </label>
-          </div>
-        </div>
-      </div>
-      <button class="search_btn">搜尋</button>
+        </form>
+        <button class="search_btn" onclick="submitSearch(1,'search')">搜尋</button>
     </div>
 
-    <div class="sc_result">
-      <div class="result_inf_top">
-        <button class="cate_btn">欄位選項 +</button>
-        <div class="rightmore">
-          <p class="datenum">資料筆數 ： 2</p>
-          <button class="dw">下載所有結果</button>
-          <a href="#" class="qmark"></a>
-        </div>
-      </div>
 
-      <div class="result_table">
-        <table cellspacing="0" cellspacing="0" class="table_style1">
-          <tr>
-            <td>中文名</td>
-            <td>學名</td>
-            <td>記錄者</td>
-            <td>典藏單位</td>
-            <td>功能</td>
-          </tr>
-          <tr>
-            <td>楝</td>
-            <td>Melia azedarach</td>
-            <td>苦苓</td>
-            <td>TaiBIF</td>
-            <td><a href="#" class="more">查看</a></td>
-          </tr>
-          <tr>
-            <td>楝</td>
-            <td>Melia azedarach</td>
-            <td>苦苓</td>
-            <td>TaiBIF</td>
-            <td><a href="#" class="more">查看</a></td>
-          </tr>
-        </table>
-      </div>
-
-      <!--目前位置給class>now-->
-      <div class="page_number">
-        <a href="#" class="num">1</a>
-        <a href="#" class="pre"> <span></span>上一頁 </a>
-        <a href="#" class="num">2</a>
-        <a href="#" class="num now">3</a>
-        <a href="#" class="num">4</a>
-        <a href="#" class="next"> 下一頁<span></span> </a>
-        <a href="#" class="num">5</a>
-      </div>
-    </div>
   </div>
 </div>
 
+<!-- 物種出現紀錄欄位選擇 -->
+<div class="popbg occ-choice" style="display: none;">
+	<div class="ovhy">
+		<div class="wbox_center">
+			<div class="xx">
+			</div>
+			<div class="catetitle">
+				<div class="titlebox">欄位選項</div>	
+				<button class="selt" onclick="selectAll('.occ-choice')">全選</button>
+				<button class="selt" onclick="resetAll('.occ-choice')">重置</button>
+			</div>
+			<ul class="catalist">
+				<li>
+					<input type="checkbox" class="chebox" id="occ-common_name_c">
+					<p>中文名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-scientificName">
+					<p>學名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-alternative_name_c">
+					<p>中文別名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-synonyms">
+					<p>同物異名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-taxonRank">
+					<p>分類層級</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
+					<p>敏感層級</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-rightsHolder">
+					<p>來源資料庫</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-scientificNameID">
+					<p>Name code</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<p>觀察日期</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-locality">
+					<p>出現地</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantity">
+					<p>數量</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
+					<p>數量單位</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-recordedBy">
+					<p>紀錄者</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
+					<p>經度</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
+					<p>緯度</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
+					<p>空間參考系統</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
+					<p>座標系統</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
+					<p>座標誤差</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
+					<p>座標是否有模糊化</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
+					<p>座標模糊化程度</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
+					<p>資料基底</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="occ-datasetName">
+					<p>資料集名稱</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
+					<p>資料集聯絡人</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-license">
+					<p>授權狀況</p>
+				</li>
+			</ul>
+			<button class="send_bt" onclick="sendSelected('occ')">確認</button>
+		</div>
+	</div>
+</div>
+
+
+<!--空間查詢popbox-->
+<div class="popbg geojson_popup" style="display:none;">
+	<div class="ovhy">
+		<div class="wbox_center">
+			<div class="xx">
+			</div>
+			<div class="titlegreen">
+				空間查詢
+			</div>
+			<p class="shortxt">
+        請以GeoJSON格式貼上欲查詢的Polygon：
+			</p>
+			<div class="from_area" style="height: 100%">
+				<div class="txt_area">
+					<textarea id="geojson_textarea" style="height: 300px"></textarea>
+				</div>
+        <p class="shortxt" style="text-align: right;">
+          ＊僅支援Polygon
+        </p>
+				<button class="send geojson_send">確認送出</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock body %}
+{% block script %}
+<script>
+  let map = L.map('map').setView([23.5, 121.2],7);
+  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // date picker
+  $( function() {
+    $( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+    $( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+  } );
+
+  function popupField(){
+    //$('.geojson_popup').css({display: ''})
+    $(".geojson_popup").show()
+  }
+
+  $('.geojson_send').click( function(){
+    try {
+      let geoObj = JSON.parse($('#geojson_textarea').val());
+      let geoJSON = L.geoJSON(geoObj).addTo(map);
+      map.fitBounds(geoJSON.getBounds());
+    } catch (e) {
+      alert('上傳失敗！請檢查GeoJSON格式是否正確')
+    }
+    $(".geojson_popup").hide()
+  })
+
+
+  // submit search form
+function submitSearch (page, from){
+    $.ajax({
+      url: "{% url 'get_conditional_records' %}",
+      data: $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val(), 'page': page}),
+      type: 'POST',
+      dataType : 'json',
+    })
+    .done(function(response) {
+      console.log(response)
+      // clear previous results
+      $('.sc_result').remove()
+      if (response.count == 0){
+        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
+      } else {
+        // 如果有資料回傳則顯示table
+        $('.search_condition_are').after(`
+        <div class="sc_result">
+          <div class="result_inf_top">
+            <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
+            <div class="rightmore">
+              <p class="datenum">資料筆數 ： ${response.count}</p>
+              <button class="dw">下載所有結果</button>
+              <a href="#" class="qmark"></a>
+            </div>
+          </div>
+          <div class="result_table" style="overflow-x: auto;">
+            <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+            </table>						
+          </div>
+        </div>`)
+        // table title
+        var table_title = document.createElement("tr");
+        table_title.classList.add('table_title');
+        let map_dict = response.map_dict;
+
+        for (let i = 0; i < Object.keys(map_dict).length; i++) {
+            var this_td = document.createElement("td");
+            this_td.className = `row-${Object.keys(map_dict)[i]}`;
+            this_td.style.cssText = 'display:none';
+            var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
+            this_td.appendChild(text);
+            table_title.appendChild(this_td); 
+        }
+        var function_td = document.createElement("td");
+        var text = document.createTextNode('功能');
+        function_td.appendChild(text);
+        table_title.appendChild(function_td); 
+
+        $('.record_table').append(table_title);
+        
+        // append rows
+        for (let i = 0; i < response.rows.length; i++) {
+          let tmp = response.rows[i];
+          let tmp_td;
+          let tmp_value;
+          for (let j = 0; j < Object.keys(map_dict).length; j++){
+            tmp_value = tmp[Object.keys(map_dict)[j]];
+            if (tmp_value == null){
+              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
+            } else {
+              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
+            }
+          }
+          let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
+          tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+          $('.record_table').append(
+            `<tr>${tmp_td}</tr>`)
+        }
+        // 判斷是從分頁或搜尋點選
+        if (from == 'search'){
+          // uncheck all first
+          $(`input[id^="occ-"]`).prop('checked',false)
+          // show selected columns
+          for (let i = 0; i < response.selected_col.length; i++) {
+            $(`.row-${response.selected_col[i]}`).show();
+            $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
+        } else {
+          sendSelected()
+        }
+
+        // disable checkebox for common_name_c & scientificName
+        $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
+        $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
+        // append pagination
+        if (response.total_page > 1){  // 判斷是否有下一頁
+          $('.result_table').after(
+            `<div class="page_number">
+              <a href="javascript:;" class="num now"> ${response.current_page}</a>
+            </div>`)}						
+
+        // append previous & next page 
+        if ((response.current_page - 1) > 0 ){
+          $('.page_number').prepend(`
+          <a href="javascript:;" onclick="submitSearch(1, 'page')" class="num">1</a>
+          <a href="javascript:;" onclick="submitSearch(${response.current_page - 1}, 'page')" class="pre">
+            <span></span>上一頁
+          </a>
+          <a href="javascript:;" onclick="submitSearch(${response.current_page - 1}, 'page')" class="num">${response.current_page - 1}</a>`)
+        } else {
+          $('.page_number').prepend(`
+          <a href="javascript:;" class="num">1</a>
+          <a href="javascript:;" class="pre">
+            <span></span>上一頁
+          </a>`)
+        }        
+        if (response.current_page < response.total_page){
+          $('.page_number').append(`
+          <a href="javascript:;" onclick="submitSearch(${response.current_page + 1}, 'page')" class="num">${response.current_page +1}</a>
+          <a href="javascript:;" onclick="submitSearch(${response.current_page + 1}, 'page')" class="next">
+            下一頁<span></span>
+          </a>
+          <a href="javascript:;" onclick="submitSearch(${response.total_page}, 'page')" class="num">${response.total_page}</a>`)
+        } else {
+          $('.page_number').append(`
+          <a href="javascript:;" class="next">
+            下一頁<span></span>
+          </a>
+          <a href="javascript:;" class="num">${response.total_page}</a>
+          `)
+        }
+    }
+    })
+
+    .fail(function( xhr, status, errorThrown ) {
+      console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
+    })
+  }
+
+  function popupField(){
+    $(`.occ-choice`).css({display: ''})
+    window.not_selected = $(`.occ-choice input:not(:checked)`)
+    window.selected = $(`.occ-choice input:checked`)
+  }
+
+  function sendSelected(){
+    let selected_field = $(`.occ-choice input:checked`)
+    // 所有都先隱藏，除了common_name_c & scientificName
+    $('td[class^="row-"]').hide();
+    $('.row-common_name_c, .row-scientificName').show();
+    // 再顯示選擇的欄位
+    for (let i = 0; i < selected_field.length; i++) {
+      $(`td.row-${selected_field[i].id.split('-')[1]}`).show();
+    }
+    $(".popbg").hide();
+  }
+
+  function resetAll(){
+    $(`.occ-choice input:checkbox:not(:disabled)`).prop('checked', false);
+  }
+
+  function selectAll(){
+    $(`.occ-choice input:checkbox`).prop('checked', true);
+  }
+
+  $(".popbg .xx,.popbg .ovhy").click(function (e) {
+    if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) {
+      window.not_selected.prop('checked', false);
+      window.selected.prop('checked', true);
+    }
+  });
+
+</script>
+{% endblock %}
