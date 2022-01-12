@@ -1095,6 +1095,8 @@ class SolrQuery(object):
                 #             self.solr_tuples.append(('fq', '{}:"{}"'.format(field, values[0])))
                 # else:
                 #     self.solr_tuples.append(('fq', ' OR '.join([f'{field}:"{x}"' for x in values])))
+            elif key == 'fq':
+                self.solr_tuples.append(('fq', values))
         self.solr_tuples.append(('q', self.solr_q))
         if len(self.facet_values):
             self.solr_tuples.append(('facet', 'true'))

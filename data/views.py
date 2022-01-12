@@ -36,11 +36,12 @@ def get_records(request):
         # only facet selected field
         if record_type == 'col':
             map_dict = map_collection
-            core = 'tbia_collection'
+            query_list = [('fq','recordType:col')]
             title = '自然史典藏'
         else:
             map_dict = map_occurrence
-            core = 'tbia_occurrence'
+            # core = 'tbia_occurrence'
+            query_list = []
             title = '物種出現紀錄'
 
         key = get_key(key, map_dict)
@@ -52,8 +53,8 @@ def get_records(request):
             keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
         
         offset = (page-1)*10
-        solr = SolrQuery(core)
-        query_list = [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        solr = SolrQuery('tbia_records')
+        query_list += [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -128,28 +129,37 @@ def get_focus_cards(request):
         if record_type == 'col':
             facet_list = {'facet': {k: v for k, v in col_facets['facet'].items() if k == key} }
             map_dict = map_collection
-            core = 'tbia_collection'
+            query = {
+                "query": f'"{keyword}"',
+                "limit": 0,
+                "filter": ['recordType:col'],
+                "facet": {}
+                } 
+            # core = 'tbia_collection'
             title_prefix = '自然史典藏 > '
         else:
             facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
             map_dict = map_occurrence
-            core = 'tbia_occurrence'
+            # core = 'tbia_occurrence'
             title_prefix = '物種出現紀錄 > '
+            query = {
+                "query": f'"{keyword}"',
+                "limit": 0,
+                "facet": {}
+                } 
 
-        query = {
-            "query": f'"{keyword}"',
-            "limit": 0,
-            "facet": {}
-            }
 
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            if record_type == 'col':
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
-        response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
         facets.pop('count', None)
 
@@ -193,14 +203,7 @@ def get_more_cards(request):
         offset = request.POST.get('offset', '')
         offset = int(offset) if offset else offset
         
-        if card_class.startswith('.col'):
-            facet_list = col_facets
-            map_dict = map_collection
-            core = 'tbia_collection'
-        elif card_class.startswith('.occ'):
-            facet_list = occ_facets
-            map_dict = map_occurrence
-            core = 'tbia_occurrence'
+
 
         if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
             keyword_str = f'"{keyword}"'
@@ -208,11 +211,25 @@ def get_more_cards(request):
             keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
             keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
 
-        query = {
-            "query": keyword_str,
-            "limit": 0,
-            "facet": {}
-            }
+        if card_class.startswith('.col'):
+            facet_list = col_facets
+            map_dict = map_collection
+            # core = 'tbia_collection'
+            query = {
+                "query": keyword_str,
+                "limit": 0,
+                "filter": ['recordType:col'],
+                "facet": {},
+                }
+        elif card_class.startswith('.occ'):
+            facet_list = occ_facets
+            map_dict = map_occurrence
+            # core = 'tbia_occurrence'
+            query = {
+                "query": keyword_str,
+                "limit": 0,
+                "facet": {},
+                }
 
         keyword_reg = ''
         for j in keyword:
@@ -221,7 +238,7 @@ def get_more_cards(request):
             facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
-        response = requests.post(f'{SOLR_PREFIX}{core}/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
         facets.pop('count', None)      
 
@@ -280,8 +297,9 @@ def search_full(request):
 
         query = {
             "query": keyword_str,
+            "filter": ['recordType:col'],
             "limit": 0,
-            "facet": {}
+            "facet": {},
             }
 
         keyword_reg = ''
@@ -291,11 +309,11 @@ def search_full(request):
         # collection
         facet_list = col_facets
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
         query.update(facet_list)
 
         s = time.time()
-        response = requests.post(f'{SOLR_PREFIX}tbia_collection/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         print('get collection', time.time() - s)
         facets = response.json()['facets']
         facets.pop('count', None)
@@ -331,10 +349,11 @@ def search_full(request):
         facet_list = occ_facets
         for i in facet_list['facet']:
             facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        query.pop('filter', None)
         query.update(facet_list)
 
         s = time.time()
-        response = requests.post(f'{SOLR_PREFIX}tbia_occurrence/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         print('get occurrence', time.time() - s)
         facets = response.json()['facets']
         facets.pop('count', None)
@@ -484,7 +503,6 @@ def occurrence_detail(request, id):
 
 
 def collection_detail(request, id):
-
     solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
