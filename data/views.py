@@ -434,26 +434,26 @@ def search_full(request):
 
 def search_collection(request):
 
-    return render(request, 'pages/search_collection.html')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    holder_list = [f_list[x] for x in range(0, len(f_list),2)]
+
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
+    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+
+    return render(request, 'pages/search_collection.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
+        'rank_list': rank_list})
     
 
 def search_occurrence(request):
 
-    # occ
-    response = requests.get(f'{SOLR_PREFIX}tbia_occurrence/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    # col
-    response = requests.get(f'{SOLR_PREFIX}tbia_collection/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
-    holder_list += [f_list[x] for x in range(0, len(f_list),2)]
-    # unique
-    holder_list = list(set(holder_list))
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
         
-
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
         'rank_list': rank_list})
 
@@ -524,11 +524,11 @@ def get_conditional_records(request):
             map_dict = map_occurrence
 
         for i in ['rightsHolder', 'locality', 'organismQuantity', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                  'scientificNameID']:
+                  'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
                 query_list += [f'{i}:*{val}*']
 
-        for i in ['sensitiveCategory', 'taxonRank']:
+        for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']:
             if val := request.POST.get(i):
                 query_list += [f'{i}:{val}']
 
