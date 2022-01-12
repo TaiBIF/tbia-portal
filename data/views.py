@@ -460,7 +460,7 @@ def search_occurrence(request):
 
 def occurrence_detail(request, id):
 
-    solr = SolrQuery('tbia_occurrence')
+    solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
     row = pd.DataFrame(req['solr_response']['response']['docs'])
@@ -485,7 +485,7 @@ def occurrence_detail(request, id):
 
 def collection_detail(request, id):
 
-    solr = SolrQuery('tbia_collection')
+    solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
     row = pd.DataFrame(req['solr_response']['response']['docs'])

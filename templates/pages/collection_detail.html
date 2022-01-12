@@ -45,6 +45,13 @@
           <p class="code">Name code：{{ row.scientificNameID }}</p>
         </div>
       </div>
+      {% if row.associatedMedia is not None  %}
+      <div class="right_area">
+        <div class="imgbox">
+          <div class="imgarea" style="background-image:url({{ row.associatedMedia }}) ;"></div>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     <div class="sc_de_main">
