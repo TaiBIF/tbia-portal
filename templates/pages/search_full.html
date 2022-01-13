@@ -785,6 +785,8 @@
       }
       })
       .fail(function( xhr, status, errorThrown ) {
+        $(".loading_area").css("display","none");
+        alert('發生未知錯誤！請聯絡管理員');  
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
       })
     }
@@ -853,6 +855,8 @@
 
       })
       .fail(function( xhr, status, errorThrown ) {
+        $(".loading_area").css("display","none");
+        alert('發生未知錯誤！請聯絡管理員');  
         console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
       })
     } else {
@@ -903,6 +907,8 @@
       }
     })
     .fail(function( xhr, status, errorThrown ) {
+      $(".loading_area").css("display","none");
+      alert('發生未知錯誤！請聯絡管理員');
       console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
     })
 
@@ -947,6 +953,8 @@
       }
     })
     .fail(function( xhr, status, errorThrown ) {
+      $(".loading_area").css("display","none");
+      alert('發生未知錯誤！請聯絡管理員');
       console.log( 'Error: ' + errorThrown + 'Status: ' + status + xhr)
     })
   }
