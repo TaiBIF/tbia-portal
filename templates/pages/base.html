@@ -213,7 +213,7 @@
           </li>
           <li>
             <a href="#" class="big_link">關於TBIA</a>
-            <a href="#" class="big_link">常見Q&A</a>
+            <a href="{% url 'qa' %}" class="big_link">常見Q&A</a>
           </li>
         </ul>
         <div class="right_inf">
@@ -277,16 +277,18 @@
       event.preventDefault();
       if ($(this).closest("li").hasClass("now")) {
         $(".rd_mb_two_menu_li").removeClass("now");
-
         $(".rd_mb_two_menu_li").find(".mbmu2").slideUp();
       } else {
         $(".rd_mb_two_menu_li").removeClass("now");
         $(this).addClass("now");
-
         $(".rd_mb_two_menu").find(".mbmu2").slideUp();
         $(this).closest("li").find(".mbmu2").slideDown();
       }
     });
+
+    $(".mbmu2 a").on('click', function(){
+      window.location = this.href;
+    })
 
     $(".popbg .xx,.popbg .ovhy").click(function (e) {
       if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) $(".popbg").hide();
