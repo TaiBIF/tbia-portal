@@ -513,6 +513,7 @@
   <field name="race" type="string"/>
   <field name="recordedBy" type="string"/>
   <field name="recordNumber" type="string"/>
+  <field name="recordType" type="text_general"/>
   <field name="references" type="string"/>
   <field name="resourceContacts" type="string"/>
   <field name="rightsHolder" type="string"/>
