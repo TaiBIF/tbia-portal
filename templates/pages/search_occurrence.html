@@ -130,9 +130,9 @@
 
 <!-- 物種出現紀錄欄位選擇 -->
 <div class="popbg occ-choice" style="display: none;">
-	<div class="ovhy">
+	<div class="ovhy choice-ovhy">
 		<div class="wbox_center">
-			<div class="xx">
+			<div class="xx choice-xx">
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
@@ -259,8 +259,8 @@
 				<div class="txt_area">
 					<textarea id="geojson_textarea" style="height: 300px"></textarea>
 				</div>
-        <p class="shortxt" style="text-align: right;">
-          ＊僅支援Polygon
+        <p class="shortxt" style="text-align: right; color:#C65454">
+          僅支援Polygon（上限2.5 MB）
         </p>
 				<button class="send geojson_send">確認送出</button>
 			</div>
@@ -455,7 +455,7 @@ function submitSearch (page, from){
   }
 
   $(".popbg .xx,.popbg .ovhy").click(function (e) {
-    if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) {
+    if ($(event.target).hasClass("choice-xx") || $(event.target).hasClass("choice-ovhy")) {
       window.not_selected.prop('checked', false);
       window.selected.prop('checked', true);
     }
