@@ -18,32 +18,7 @@
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
     <style>
-      .loader {
-        position: absolute;
-        left: 50%;
-        top: 70%;    
-        border: 16px solid #ddd;
-        border-radius: 50%;
-        border-top: 16px solid #76A578;
-        width: 120px;
-        height: 120px;
-        -webkit-animation: spin 1.5s linear infinite; /* Safari */
-        animation: spin 1.5s linear infinite;
-        z-index: 10000
-      }
-      
-      /* Safari */
-      @-webkit-keyframes spin {
-        0% { -webkit-transform: rotate(0deg); }
-        100% { -webkit-transform: rotate(360deg); }
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
     </style>
-
   </head>
 
   <body>
@@ -156,7 +131,7 @@
               <div class="menu_2">
                 <div class="item">
                   <a href="{% url 'search_occurrence' %}" class="s_title">物種出現紀錄查詢</a>
-                  <a href="{% url 'search_collection' %}" class="s_title">自然史典藏查詢</a>
+                  <a href="{% url 'search_collection' %}" class="s_title">自然史典藏<br>查詢</a>
                 </div>
               </div>
             </li>
@@ -198,6 +173,14 @@
         </div>
       </div>
     </div>
+
+  <!--loading-->
+  <div class="loading_area" style="display: none">
+    <div class="sc">
+      <div class="load"><span>L</span>ading</div>
+    </div>
+  </div>
+
     {% block body %}{% endblock body %}
     <div class="footer">
       <div class="main_1240">

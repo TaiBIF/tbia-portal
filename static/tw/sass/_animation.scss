@@ -475,18 +475,18 @@ body{
 
 .popbg{
 	.bgt{
-		@include animation(bgt 0.5s 0.2s linear forwards);
+		@include animation(bgt 0.5s 0s linear forwards);
 	}
 	.bgb{
-		@include animation(bgb 0.5s 0.2s linear forwards);
+		@include animation(bgb 0.5s 0s linear forwards);
 	}
 	.bgi{
-		@include animation(bgi 0.5s 0.2s linear forwards);
+		@include animation(bgi 0.5s 0s linear forwards);
 	}
 	.bga{
-		@include animation(bga 0.5s 0.2s linear forwards);
+		@include animation(bga 0.5s 0s linear forwards);
 	}
 	.wbox_center{
-		@include animation(top_20 0.5s 0.5s linear forwards);
+		@include animation(top_20 0.3s 0.2s linear forwards);
 	}
 }
