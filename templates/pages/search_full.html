@@ -606,19 +606,6 @@
 
 {% block script %}
 <script>
-
-  var ajaxLoadTimeout;
-  $(document).ajaxStart(function() {
-      ajaxLoadTimeout = setTimeout(function() { 
-          $(".loading_area").css("display","block");
-      }, 5000);
-  
-  }).ajaxSuccess(function() {
-      clearTimeout(ajaxLoadTimeout);
-      $(".loading_area").css("display","none");
-  });
-  
-
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
     $(this).toggleClass("now");

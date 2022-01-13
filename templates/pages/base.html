@@ -22,6 +22,13 @@
   </head>
 
   <body>
+  <!--loading-->
+  <div class="loading_area" style="display: none">
+    <div class="sc">
+      <div class="load"><span>L</span>ading</div>
+    </div>
+  </div>
+
     <div class="header clearfix">
       <div class="main_1240">
         <a href="{% url 'index' %}" class="logo_area">
@@ -174,12 +181,6 @@
       </div>
     </div>
 
-  <!--loading-->
-  <div class="loading_area" style="display: none">
-    <div class="sc">
-      <div class="load"><span>L</span>ading</div>
-    </div>
-  </div>
 
     {% block body %}{% endblock body %}
     <div class="footer">
@@ -266,6 +267,18 @@
     });
   </script>
   <script>
+    // loader
+    var ajaxLoadTimeout;
+    $(document).ajaxStart(function() {
+        ajaxLoadTimeout = setTimeout(function() { 
+            $(".loading_area").css("display","block");
+        }, 3000);
+    
+    }).ajaxSuccess(function() {
+        clearTimeout(ajaxLoadTimeout);
+        $(".loading_area").css("display","none");
+    });
+
     $(function () {
       $(".hmenu").on("click", function () {
         $(".hmenu").toggleClass("active");
