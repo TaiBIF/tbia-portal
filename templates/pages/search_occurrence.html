@@ -308,7 +308,6 @@ function submitSearch (page, from){
       dataType : 'json',
     })
     .done(function(response) {
-      console.log(response)
       // clear previous results
       $('.sc_result').remove()
       if (response.count == 0){

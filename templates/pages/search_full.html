@@ -668,7 +668,6 @@
         dataType : 'json',
       })
       .done(function(response) {
-        console.log(response)
         $('.rightbox_content').append(`
         <div class="titlebox_line record_title">
           <div class="title">
@@ -734,7 +733,6 @@
         if (from == 'card'){
           // uncheck all first
           $(`input[id^="${record_type}-"]`).prop('checked',false)
-          console.log($(`input[id^="${record_type}-"]`))
           // show selected columns
           for (let i = 0; i < response.selected_col.length; i++) {
             $(`.row-${response.selected_col[i]}`).show();
