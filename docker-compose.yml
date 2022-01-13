@@ -52,6 +52,7 @@ services:
     container_name: tbia-solr
     ports:
       - "8983:8983"
+    restart: always
     volumes:
       - ../tbia-volumes/solr:/var/solr
       - ./solr-workspace/:/workspace

@@ -57,6 +57,7 @@ services:
         max-size: "1m"
         max-file: "3"
   solr:
+    restart: always
     build: ./solr-workspace
     image: solr:8.11.1
     container_name: tbia-solr
