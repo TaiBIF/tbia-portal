@@ -14,14 +14,14 @@ def index(request):
     keywords = Keyword.objects.filter(displayed=True).values_list('keyword', flat=True)
 
     # count of data
-    solr = SolrQuery('tbia_occurrence')
+    solr = SolrQuery('tbia_records')
     query_list = [('q', '*:*'),('rows', 0)]
     req = solr.request(query_list)
     count_occurrence = req['solr_response']['response']['numFound']
     count_occurrence = "{:,}".format(count_occurrence)
 
-    solr = SolrQuery('tbia_collection')
-    query_list = [('q', '*:*'),('rows', 0)]
+    solr = SolrQuery('tbia_records')
+    query_list = [('q', '*:*'),('rows', 0), ('fq','recordType:col')]
     req = solr.request(query_list)
     count_collection = req['solr_response']['response']['numFound']
     count_collection = "{:,}".format(count_collection)
@@ -34,7 +34,6 @@ def index(request):
             'title': x.title,
             'extension': x.extension,
             'url': x.url,
-            'date': x.modified.strftime("%Y.%m.%d")
-        })
+            'date': x.modified.strftime("%Y.%m.%d")})
     return render(request, 'pages/index.html', {'resource': resource_rows, 'keywords': keywords, 'count_occurrence': count_occurrence, 
                                                 'count_collection': count_collection})

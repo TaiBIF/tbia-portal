@@ -1071,6 +1071,8 @@ class SolrQuery(object):
                 self.solr_q = values
             elif key == 'offset':
                 self.solr_tuples.append(('start', values))
+            elif key == 'sort':
+                self.solr_tuples.append(('sort', values))
             elif key == 'rows':
                 self.rows = int(values)
                 self.solr_tuples.append(('rows', self.rows))

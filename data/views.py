@@ -54,7 +54,7 @@ def get_records(request):
         
         offset = (page-1)*10
         solr = SolrQuery('tbia_records')
-        query_list += [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset)]
+        query_list += [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -133,7 +133,8 @@ def get_focus_cards(request):
                 "query": f'"{keyword}"',
                 "limit": 0,
                 "filter": ['recordType:col'],
-                "facet": {}
+                "facet": {},
+                "sort": "scientificName asc"
                 } 
             # core = 'tbia_collection'
             title_prefix = '自然史典藏 > '
@@ -145,9 +146,9 @@ def get_focus_cards(request):
             query = {
                 "query": f'"{keyword}"',
                 "limit": 0,
-                "facet": {}
+                "facet": {},
+                "sort":  "scientificName asc"
                 } 
-
 
         keyword_reg = ''
         for j in keyword:
@@ -220,6 +221,7 @@ def get_more_cards(request):
                 "limit": 0,
                 "filter": ['recordType:col'],
                 "facet": {},
+                "sort":  "scientificName asc"
                 }
         elif card_class.startswith('.occ'):
             facet_list = occ_facets
@@ -229,6 +231,7 @@ def get_more_cards(request):
                 "query": keyword_str,
                 "limit": 0,
                 "facet": {},
+                "sort":  "scientificName asc"
                 }
 
         keyword_reg = ''
@@ -300,6 +303,7 @@ def search_full(request):
             "filter": ['recordType:col'],
             "limit": 0,
             "facet": {},
+            "sort":  "scientificName asc"
             }
 
         keyword_reg = ''
@@ -585,7 +589,8 @@ def get_conditional_records(request):
             query = { "query": "*:*",
                     "offset": offset,
                     "limit": 10,
-                    "filter": query_list }
+                    "filter": query_list,
+                    "sort":  "scientificName asc" }
 
             response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
             
