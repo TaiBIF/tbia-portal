@@ -516,7 +516,7 @@
   <field name="references" type="string"/>
   <field name="resourceContacts" type="string"/>
   <field name="rightsHolder" type="string"/>
-  <field name="scientificName" type="string"/>
+  <field name="scientificName" type="string" docValues="true"/>
   <field name="scientificNameID" type="string"/>
   <field name="section" type="string"/>
   <field name="section_c" type="string"/>
