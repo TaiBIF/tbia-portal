@@ -66,4 +66,6 @@ services:
     volumes:
       - ../tbia-volumes/solr:/var/solr
       - ./solr-workspace/:/workspace
-      - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
+      # - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
+    environment:
+      - SOLR_JAVA_MEM=-Xms4g -Xmx4g
