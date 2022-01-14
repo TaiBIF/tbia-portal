@@ -279,6 +279,12 @@
         $(".loading_area").css("display","none");
     });
 
+    window.addEventListener('error', function(event) {
+      $(".loading_area").css("display","none");
+      clearTimeout(ajaxLoadTimeout);
+      alert('發生未知錯誤！請通知管理員')
+    })
+
     $(function () {
       $(".hmenu").on("click", function () {
         $(".hmenu").toggleClass("active");
