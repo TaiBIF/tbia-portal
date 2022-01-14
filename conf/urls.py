@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .settings import env
 from django.views.generic.base import TemplateView
 
 urlpatterns = [
@@ -23,9 +22,4 @@ urlpatterns = [
     path('', include('pages.urls')),
     path('', include('data.urls')),
     path('', include('account.urls')),
-]
-
-if env in ['stag']:
-    urlpatterns += [
-        path("robots.txt",TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),),
 ]
