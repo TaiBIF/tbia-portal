@@ -274,7 +274,7 @@
             $(".loading_area").css("display","block");
         }, 1000);
     
-    }).ajaxSuccess(function() {
+    }).ajaxComplete(function() {
         clearTimeout(ajaxLoadTimeout);
         $(".loading_area").css("display","none");
     });
