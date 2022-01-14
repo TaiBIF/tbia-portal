@@ -63,6 +63,7 @@ def get_records(request):
 
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
+        page_list = get_page_list(current_page, total_page)
 
         if key in ['common_name_c','scientificName', 'rightsHolder']:
             selected_col = ['common_name_c','scientificName', 'rightsHolder']
@@ -76,6 +77,7 @@ def get_records(request):
             'total_page' : total_page,
             'selected_col': selected_col,
             'map_dict': map_dict,
+            'page_list': page_list
         }
 
         return HttpResponse(json.dumps(response), content_type='application/json')
@@ -602,10 +604,12 @@ def get_conditional_records(request):
 
             current_page = offset / 10 + 1
             total_page = math.ceil(count / 10)
+            page_list = get_page_list(current_page, total_page)
 
             response = {
                 'rows' : docs,
                 'count': count,
+                'page_list': page_list,
                 'current_page' : current_page,
                 'total_page' : total_page,
                 'selected_col': selected_col,

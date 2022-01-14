@@ -1,5 +1,15 @@
 import pandas as pd
 import numpy as np
+import math
+
+
+def get_page_list(current_page, total_page, window=5):
+  list_index = math.ceil(current_page/window)
+  if list_index*window > total_page:
+    page_list = list(range(list_index*window-(window-1),total_page+1))
+  else:
+    page_list = list(range(list_index*window-(window-1),list_index*window+1))
+  return page_list
 
 
 def is_alpha(word):

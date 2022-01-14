@@ -123,8 +123,6 @@
         </form>
         <button class="search_btn" onclick="submitSearch(1,'search')">搜尋</button>
     </div>
-
-
   </div>
 </div>
 
@@ -382,42 +380,49 @@ function submitSearch (page, from){
         // disable checkebox for common_name_c & scientificName
         $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
         $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
+
         // append pagination
-        if (response.total_page > 1){  // 判斷是否有下一頁
+        if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
           $('.result_table').after(
             `<div class="page_number">
-              <a href="javascript:;" class="num now"> ${response.current_page}</a>
-            </div>`)}						
+              <a href="javascript:;" class="pre">
+                <span></span>
+              </a>
+              <a href="javascript:;" class="next">
+                <span></span>
+              </a>
+            </div>`)}		
+        
+        let html = ''
+        for (let i = 0; i < response.page_list.length; i++) {
+          if (response.page_list[i] == response.current_page){
+            html += `<a href="javascript:;" onclick="submitSearch(${response.page_list[i]}, 'page')" class="num now">${response.page_list[i]}</a>  `;
+          } else {
+            html += `<a href="javascript:;" onclick="submitSearch(${response.page_list[i]}, 'page')" class="num">${response.page_list[i]}</a>  `
+          }
+        }
+        $('.pre').after(html)
 
-        // append previous & next page 
+        // 如果有上一頁，改掉pre的onclick
         if ((response.current_page - 1) > 0 ){
-          $('.page_number').prepend(`
-          <a href="javascript:;" onclick="submitSearch(1, 'page')" class="num">1</a>
-          <a href="javascript:;" onclick="submitSearch(${response.current_page - 1}, 'page')" class="pre">
-            <span></span>上一頁
-          </a>
-          <a href="javascript:;" onclick="submitSearch(${response.current_page - 1}, 'page')" class="num">${response.current_page - 1}</a>`)
-        } else {
-          $('.page_number').prepend(`
-          <a href="javascript:;" class="num">1</a>
-          <a href="javascript:;" class="pre">
-            <span></span>上一頁
-          </a>`)
-        }        
+          $('.pre').attr('onclick',`submitSearch(${response.current_page - 1}, 'page')`);
+        }
+        // 如果有下一頁，改掉next的onclick
         if (response.current_page < response.total_page){
-          $('.page_number').append(`
-          <a href="javascript:;" onclick="submitSearch(${response.current_page + 1}, 'page')" class="num">${response.current_page +1}</a>
-          <a href="javascript:;" onclick="submitSearch(${response.current_page + 1}, 'page')" class="next">
-            下一頁<span></span>
-          </a>
-          <a href="javascript:;" onclick="submitSearch(${response.total_page}, 'page')" class="num">${response.total_page}</a>`)
-        } else {
-          $('.page_number').append(`
-          <a href="javascript:;" class="next">
-            下一頁<span></span>
-          </a>
-          <a href="javascript:;" class="num">${response.total_page}</a>
-          `)
+          $('.next').attr('onclick',`submitSearch(${response.current_page + 1}, 'page')`);
+        }
+
+        // 如果有前面的page list, 加上...
+        if (response.current_page > 5){
+          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.current_page -5 }, 'page')">...</a> `)
+        }
+        // 如果有後面的page list, 加上...
+        if (response.page_list[response.page_list.length - 1] < response.total_page){
+          if (response.current_page +5 > response.total_page){
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.total_page}, 'page')">...</a> `)
+          } else {
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.current_page +5}, 'page')">...</a>`)
+          }
         }
     }
     })
