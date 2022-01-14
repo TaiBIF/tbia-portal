@@ -272,7 +272,7 @@
     $(document).ajaxStart(function() {
         ajaxLoadTimeout = setTimeout(function() { 
             $(".loading_area").css("display","block");
-        }, 3000);
+        }, 1000);
     
     }).ajaxSuccess(function() {
         clearTimeout(ajaxLoadTimeout);

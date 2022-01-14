@@ -73,7 +73,7 @@
       <p>想找到更精準的資料嗎？<br />試試條件搜尋</p>
       <div class="icon_two">
         <div class="item">
-          <a href="#">
+          <a href="{% url 'search_occurrence' %}">
             <img src="{% static 'image/mapicon.svg' %}" alt="" />
             <span>物種出現紀錄查詢</span>
           </a>
@@ -81,7 +81,7 @@
           <div class="line"></div>
         </div>
         <div class="item">
-          <a href="#">
+          <a href="{% url 'search_collection' %}">
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>⾃然史典藏查詢</span>
           </a>
