@@ -42,7 +42,6 @@ COPY ./pyproject.toml ./poetry.lock* /code/
 
 RUN poetry install --no-root --no-dev
 
-
 COPY ./scripts/entrypoint /srv/entrypoint
 RUN sed -i 's/\r$//g' /srv/entrypoint
 RUN chmod +x /srv/entrypoint
@@ -50,13 +49,5 @@ RUN chmod +x /srv/entrypoint
 COPY ./scripts/start /srv/start
 RUN sed -i 's/\r$//g' /srv/start
 RUN chmod +x /srv/start
-
-COPY ./scripts/wait-for-it.sh /srv/wait-for-it.sh
-RUN sed -i 's/\r$//g' /srv/wait-for-it.sh
-RUN chmod +x /srv/wait-for-it.sh
-
-COPY ./scripts/docker-web-entry.sh /srv/docker-web-entry.sh
-RUN sed -i 's/\r$//g' /srv/docker-web-entry.sh
-RUN chmod +x /srv/docker-web-entry.sh
 
 ENTRYPOINT ["/srv/entrypoint"]
