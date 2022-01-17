@@ -18,6 +18,9 @@
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
     <style>
+    .header .right_btn2 .member_login:hover p {
+      color: #76A578;
+    }
     </style>
   </head>
 
@@ -46,7 +49,7 @@
           <div class="ovh">
             <ul>
               <li>
-                <a href="#" class="one_set">
+                <a href="javascript:;" onclick="$('.login_pop').css('display', '')" class="one_set">
                   <p>會員登入</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
@@ -173,15 +176,21 @@
         </div>
         <div class="right_btn2">
           <div class="feedback"></div>
+          {% if user.is_authenticated %}
           <div class="member_login">
             <div class="icon"></div>
-            <p>登入</p>
+            <!-- <p>{{ user.first_name }}</p> -->
+            <a href="{% url 'logout' %}">登出</a>
           </div>
+          {% else %}
+          <div onclick="$('.login_pop').css('display', '')" class="member_login">
+            <div class="icon"></div>
+              <p style="">登入</p>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
-
-
     {% block body %}{% endblock body %}
     <div class="footer">
       <div class="main_1240">
@@ -235,6 +244,140 @@
         <h6>Copyright © TBIA 臺灣生物多樣性資訊聯盟</h6>
       </div>
     </div>
+
+    <!--會員登入/註冊/忘記密碼-->
+<div class="popbg login_pop" style="display: none;">
+	<div class="bgt">
+		<img src="{% static 'image/bgt.svg' %}" >
+	</div>
+	<div class="bgb">
+		<img src="{% static 'image/bgb.svg' %}" >
+	</div>
+	<div class="bgi">
+		<img src="{% static 'image/bgi.svg' %}" >
+	</div>
+	<div class="bga"> 
+		<img src="{% static 'image/bga.svg' %}" >
+	</div>
+	<div class="ovhy"> 
+		<div class="wbox_center login">
+			<div class="xx">
+			</div>
+			<div class="left_bg"> 
+				<img src="{% static 'image/loginbga.svg' %}" > 
+			</div>
+			<!--會員登入-->
+			<div class="loginbox" >				
+				<div class="right_cont">
+					<div class="alcont_center">
+						<div class="titlegreen">
+							會員登入
+							<span>Login</span>
+						</div>
+            <form id="loginForm">
+              {% csrf_token %}
+              <div class="input_item">
+                <input type="text" name="email" placeholder="請輸入您的帳號(email)">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display: none">
+                  <div class="in1">格式錯誤</div>
+                  <p>請輸入正確信箱</p>
+                </div>
+              </div>
+              <div class="input_item">
+                <input type="password" name="password" placeholder="請輸入您的密碼">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display:none;">
+                  <div class="in1">格式錯誤</div>
+                  <p>請輸入6~10位英文或數字</p>
+                </div>
+              </div>
+              <div class="checkbox_area">
+                <input type="checkbox" name="rememberme">
+                <p>記住我的帳號</p>
+              </div>
+          </form>
+						<button class="loginbtn" onclick="login()">登入</button>
+						<div class="linkbtn_2">
+							<a href="#">我要註冊</a>
+							<a href="#">忘記密碼?</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--會員註冊-->
+			<div class="loginbox" style="display: none;">				
+				<div class="right_cont">
+					<div class="alcont_center">
+						<div class="titlegreen">
+							會員註冊
+							<span>register</span>
+						</div>
+						<div class="input_item">
+							<input type="text" placeholder="姓名">
+						</div>
+						<div class="input_item">
+							<input type="text" placeholder="請輸入您的Email作為帳號">
+							<!--送出時錯誤出現-->
+							<div class="noticbox" style="display: none;">
+								<div class="in1">格式錯誤</div>
+								<p>請輸入正確信箱</p>
+							</div>
+						</div>
+						<div class="input_item">
+							<input type="text" placeholder="請輸入您的密碼">
+							<!--送出時錯誤出現-->
+							<div class="noticbox" style="display: none;">
+								<div class="in1">格式錯誤</div>
+								<p>請輸入6~10位英文或數字</p>
+							</div>
+
+						</div>
+						<div class="input_item">
+							<input type="text" placeholder="請再次輸入密碼">
+							<!--送出時錯誤出現-->
+							<div class="noticbox" style="display: none;">
+								<div class="in1">錯誤</div>
+								<p>兩次密碼輸入不同</p>
+							</div>xw
+						</div>
+
+
+						<button class="loginbtn">註冊</button>
+						<div class="linkbtn_1">
+							*註冊即同意 <a href="#">使⽤者條款</a>
+						</div>
+					</div>
+				</div>
+			</div> 
+			<!--忘記密碼-->
+			<div class="loginbox" style="display: none;">				
+				<div class="right_cont">
+					<div class="alcont_center">
+						<div class="titlegreen">
+							忘記密碼
+							<span>password</span>
+						</div>
+
+						<p class="center">請輸入當初加入會員使用的E-Mail，我們將協助您重新設定密碼。</p>
+
+						<div class="input_item">
+							<input type="text" placeholder="請輸入您的email">
+						</div>
+
+
+						<button class="loginbtn">確認送出</button>
+						<div class="linkbtn_2">
+							<a href="#">我要註冊</a>
+							<a href="#">返回登入?</a>
+						</div>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</div>
+</div>
+
   </body>
   <script>
     $(function () {
@@ -312,6 +455,59 @@
     $(".popbg .xx,.popbg .ovhy").click(function (e) {
       if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) $(".popbg").hide();
     });
+
+    // LOGIN 
+    //https://emailregex.com
+    function validateEmail(inputText){
+      let mailformat = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+      if(inputText.match(mailformat)){
+          return true
+      } else {
+          return false
+      }
+    }
+
+    // Function to check letters and numbers
+    function checkPasswordStr(inputText){
+      let letterNumber = /^[0-9a-zA-Z]{6,10}$/
+      if(inputText.match(letterNumber)){
+        return true
+      } else {
+          return false
+      }
+    }
+
+
+    function login(){
+      // remove all notice first
+      $('#loginForm .noticbox').css('display','none')
+      // check email
+      if (!validateEmail($('#loginForm input[name=email]').val())){
+        $('#loginForm input[name=email]').next('.noticbox').css('display','')
+      } else if (!checkPasswordStr($('#loginForm input[name=password]').val())) {
+        $('#loginForm input[name=password]').next('.noticbox').css('display','')
+      } else {
+        $.ajax({
+            url: "{% url 'login' %}",
+            data: $('#loginForm').serialize() ,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+          console.log(response)
+          alert(response.message)
+          if (response.status=='success'){
+            location.reload() }
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+          $('.login_pop').css('display','none')
+        })
+        
+      }
+      
+    }
   </script>
   {% block script %}{% endblock script %}
 </html>

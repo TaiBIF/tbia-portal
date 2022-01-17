@@ -1,3 +1,4 @@
+from email import message
 from django.contrib.auth.backends import ModelBackend
 from django.http import request
 from django.shortcuts import render
@@ -16,7 +17,14 @@ from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnic
 from .utils import generate_token
 from django.conf import settings
 import threading
-
+from django.http import (
+    request,
+    JsonResponse,
+    HttpResponseRedirect,
+    Http404,
+    HttpResponse,
+)
+import json
 
 class registerBackend(ModelBackend):
     def authenticate(self, username):
@@ -74,7 +82,7 @@ def verify_user(request, uidb64, token):
 
 
 
-@auth_user_should_not_access
+# @auth_user_should_not_access
 def register(request):
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
@@ -97,38 +105,44 @@ def register(request):
     return render(request,'account/register.html')
 
 
-@auth_user_should_not_access
+# @auth_user_should_not_access
 def login_user(request):
     if request.method == 'POST':
-        context = {'data': request.POST}
+        # context = {'data': request.POST}
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+        rememberme = request.POST.get('rememberme')
         user = authenticate(request, username=email, password=password)
-
         if user and user.is_email_verified:
+            if not rememberme:
+                request.session.set_expiry(0)
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return redirect('home')
-        
+            # return redirect('index')
+            response = {'status':'success', 'message': '登入成功'}
+
         if user and not user.is_email_verified:
-            messages.add_message(request, messages.ERROR,
-                                 'Email尚未驗證，請至信箱進行驗證')
-            return render(request, 'account/login.html', context, status=401)
+            # messages.add_message(request, messages.ERROR,
+            #                      'Email尚未驗證，請至信箱進行驗證')
+            response = {'status':'unverified', 'message': 'Email尚未驗證，請至信箱進行驗證'}
+            # return render(request, 'account/login.html', context, status=401)
 
 
         if not user:
-            messages.add_message(request, messages.ERROR,
-                                 'Email或密碼錯誤，或此帳號停用')
-            return render(request, 'account/login.html', context, status=401)
+            # messages.add_message(request, messages.ERROR,
+            #                      'Email或密碼錯誤，或此帳號停用')
+            response = {'status':'fail', 'message': 'Email或密碼錯誤，或此帳號停用'}
+            # return render(request, 'account/login.html', context, status=401)
+        
+        print(response)
 
-    return render(request, 'account/login.html')
+    return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 def logout_user(request):
 
     logout(request)
 
-    return redirect(reverse('login'))
+    return redirect(request.META.get('HTTP_REFERER')) # return to previous page
 
 
 @login_required
