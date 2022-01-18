@@ -1,4 +1,4 @@
-{% extends './base.html' %} {% load static %} {% block body %}
+{% extends 'base.html' %} {% load static %} {% block body %}
 
 <div class="section_1">
   <div class="rel flex_center">
@@ -393,7 +393,7 @@
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="{% url 'partner' pk=1 %}">
             <div class="imgbox">
               <img src="{% static 'image/parlogo_7.svg' %}" />
             </div>
