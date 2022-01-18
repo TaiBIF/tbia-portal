@@ -1,7 +1,9 @@
+import re
 from django.http import request
 from django.shortcuts import render, redirect
 from .models import *
 from utils.solr_query import SolrQuery
+from account.models import Partner
 
 
 def qa(request):
@@ -37,3 +39,12 @@ def index(request):
             'date': x.modified.strftime("%Y.%m.%d")})
     return render(request, 'pages/index.html', {'resource': resource_rows, 'keywords': keywords, 'count_occurrence': count_occurrence, 
                                                 'count_collection': count_collection})
+
+
+def about(request):
+    return render(request, 'pages/about.html')
+
+
+def partner(request, pk): 
+    info = Partner.objects.get(pk=pk)
+    return render(request, 'pages/partner.html', {'info': info})

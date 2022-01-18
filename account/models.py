@@ -88,13 +88,14 @@ class User(AbstractUser):
         db_table = 'tbia_user'
 
 
-class Unit(models.Model):
+class Partner(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     db_name = models.CharField(max_length=100, null=True, blank=True)
     content = models.TextField(null=True, blank=True)
+    link = models.TextField(null=True, blank=True)
     image = models.TextField(null=True, blank=True)
-    contact = models.CharField(max_length=1000, null=True, blank=True)
+    logo = models.TextField(null=True, blank=True)
     created = models.DateField(auto_now_add=True)
     modifed = models.DateField(auto_now_add=True)
     class Meta:
-        db_table = 'unit'
+        db_table = 'partner'

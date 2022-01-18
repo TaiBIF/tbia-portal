@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models.fields import TextField
-from account.models import User, Unit
+from account.models import User, Partner
 
 
 class Keyword(models.Model):
@@ -20,7 +20,7 @@ class News(models.Model):
     ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=1000, blank=True, null=True)
     content = models.TextField( blank=True, null=True)
     image = models.TextField( blank=True, null=True)
@@ -43,7 +43,7 @@ class Resource(models.Model):
     extension = models.CharField(max_length=10, blank=True, null=True)
     url = models.CharField(max_length=1000, blank=True, null=True)
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
@@ -51,7 +51,7 @@ class Resource(models.Model):
 
 
 class Feedback(models.Model):
-    unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     type = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
     content = TextField(null=True, blank=True)
@@ -65,7 +65,7 @@ class Feedback(models.Model):
 
 class Notification(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created = models.DateField(auto_now_add=True)
     notified = models.DateField(auto_now_add=True)
@@ -77,7 +77,7 @@ class Notification(models.Model):
 class Download(models.Model):
     file = models.CharField(max_length=1000, blank=True, null=True)
     user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    unit_id = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=10, blank=True, null=True)
     submitted = models.DateField(auto_now_add=True)
     expired = models.DateField()
