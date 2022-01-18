@@ -21,6 +21,16 @@
     .header .right_btn2 .member_login:hover p {
       color: #76A578;
     }
+
+    .footer .right_inf .addpart {
+      width: 190px;
+    }
+
+    @media only screen and (max-width: 767px) {
+      .footer .right_inf .addpart {
+          width: 100%;
+      }
+    }
     </style>
   </head>
 
@@ -55,7 +65,7 @@
                 </a>
               </li>
               <li>
-                <a href="#" class="one_set">
+                <a href="{% url 'about' %}" class="one_set">
                   <p>關於TBIA</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
@@ -132,7 +142,7 @@
         <div class="right_menu">
           <ul>
             <li>
-              <a href="#" class="big_title">關於TBIA</a>
+              <a href="{% url 'about' %}" class="big_title">關於TBIA</a>
               <div class="line"></div>
             </li>
             <li>
@@ -222,14 +232,14 @@
             <a href="#" class="sma_link">教學文件</a>
           </li>
           <li>
-            <a href="#" class="big_link">關於TBIA</a>
+            <a href="{% url 'about' %}" class="big_link">關於TBIA</a>
             <a href="{% url 'qa' %}" class="big_link">常見Q&A</a>
           </li>
         </ul>
         <div class="right_inf">
           <div class="addpart">
             <p>贊助單位</p>
-            <div style="display: flex; justify-content: space-between">
+            <div style="display: flex; justify-content: space-between;">
               <a href="https://www.forest.gov.tw" class="cir" target="_blank">
                 <img src="{% static 'image/parlogo_4.svg' %}" alt="贊助單位" />
               </a>
