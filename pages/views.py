@@ -45,6 +45,6 @@ def about(request):
     return render(request, 'pages/about.html')
 
 
-def partner(request, pk): 
-    info = Partner.objects.get(pk=pk)
-    return render(request, 'pages/partner.html', {'info': info})
+def partner(request, abbr): 
+    rows = Partner.objects.filter(abbreviation=abbr)
+    return render(request, 'pages/partner.html', {'rows': rows})

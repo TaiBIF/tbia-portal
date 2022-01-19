@@ -89,9 +89,11 @@ class User(AbstractUser):
 
 
 class Partner(models.Model):
-    name = models.CharField(max_length=100, null=True, blank=True)
-    db_name = models.CharField(max_length=100, null=True, blank=True)
-    content = models.TextField(null=True, blank=True)
+    breadtitle = models.CharField(max_length=100, null=True, blank=True)
+    abbreviation = models.CharField(max_length=100, null=True, blank=True)
+    title = models.CharField(max_length=100, null=True, blank=True)
+    subtitle = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     link = models.TextField(null=True, blank=True)
     image = models.TextField(null=True, blank=True)
     logo = models.TextField(null=True, blank=True)
