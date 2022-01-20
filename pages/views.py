@@ -1,10 +1,10 @@
 import re
-from django.http import request
+from django.http import request, HttpResponse
 from django.shortcuts import render, redirect
 from .models import *
 from utils.solr_query import SolrQuery
 from account.models import Partner
-
+import json
 
 def qa(request):
     # 加上now class 如果有request get指定是哪個問題
@@ -31,7 +31,7 @@ def index(request):
     # resource
     resource = Resource.objects.order_by('-modified')
     resource_rows = []
-    for x in resource[:6]:
+    for x in resource[:8]:
         resource_rows.append({
             'title': x.title,
             'extension': x.extension,
@@ -41,6 +41,24 @@ def index(request):
                                                 'count_collection': count_collection})
 
 
+def get_resources(request):
+    type = request.POST.get('type')
+    print(type)
+    if type == 'all':
+        resource = Resource.objects.order_by('-modified')
+    else:
+        resource = Resource.objects.filter(type=type).order_by('-modified')
+
+    resource_rows = []
+    for x in resource[:8]:
+        resource_rows.append({
+            'title': x.title,
+            'extension': x.extension,
+            'url': x.url,
+            'date': x.modified.strftime("%Y.%m.%d")})
+    return HttpResponse(json.dumps(resource_rows), content_type='application/json')
+
+
 def about(request):
     return render(request, 'pages/about.html')
 
@@ -48,3 +66,7 @@ def about(request):
 def partner(request, abbr): 
     rows = Partner.objects.filter(abbreviation=abbr)
     return render(request, 'pages/partner.html', {'rows': rows})
+
+
+def resources(request):
+    return render(request, 'pages/resources.html')

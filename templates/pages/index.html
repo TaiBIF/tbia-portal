@@ -1,5 +1,13 @@
-{% extends 'base.html' %} {% load static %} {% block body %}
-
+{% extends 'base.html' %} 
+{% load static %} 
+{% block style %}
+<style>
+  .edu_list li .title {
+    -webkit-line-clamp: 1;
+  }
+</style>
+{% endblock style %}
+{% block body %}
 <div class="section_1">
   <div class="rel flex_center">
     <div class="bn_bg">
@@ -227,19 +235,19 @@
         <span></span>
       </div>
       <ul class="edu_tag">
-        <li class="now">
+        <li id="all" class="now">
           <p>所有資源<span></span></p>
         </li>
-        <li>
+        <li id="strategy">
           <p>TBIA 策略文件<span></span></p>
         </li>
-        <li>
+        <li id="guide" >
           <p>開放資料指引<span></span></p>
         </li>
-        <li>
-          <p>參考文件/工具<span></span></p>
+        <li id="tool">
+          <p >參考文件/工具<span></span></p>
         </li>
-        <li>
+        <li id="tutorial">
           <p>教學文件<span></span></p>
         </li>
       </ul>
@@ -258,73 +266,8 @@
         </li>
         {% endfor %}
       </ul>
-
-      <!--
-      <ul class="edu_list">
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.09.29</div>
-            </div>
-            <a href="#" class="title" target="_blank"> TBIA 手冊-生物多樣性資訊行動倡議-閱讀版 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.06.25</div>
-            </div>
-            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.06.25</div>
-            </div>
-            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.06.25</div>
-            </div>
-            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.06.25</div>
-            </div>
-            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate pdf">PDF</div>
-              <div class="date">2021.06.25</div>
-            </div>
-            <a href="#" class="title"> 2021下半年度生物多樣性物種出現紀錄與報告 </a>
-            <a href="#" class="dow_btn"> </a>
-          </div>
-        </li>
-      </ul>
-      -->
       <div class="more_right clearfix">
-        <a href="#" class="go_more">
+        <a href="{% url 'resources' %}" class="go_more">
           <p>查看更多資源</p>
           <span class="line"></span>
           <span class="arrow">
@@ -363,7 +306,6 @@
             </div>
           </a>
         </li>
-
         <li>
           <a href="{% url 'partner' 'cpami' %}">
             <div class="imgbox">
@@ -433,11 +375,57 @@
         $(".section_4").addClass("vivi");
       },
     });
-
-    /*
-    $(".popbg .xx,.popbg .ovhy").click(function (e) {
-      if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) $(".popbg").hide();
-    });*/
   });
+</script>
+<script>
+$('.edu_tag li').click(function(){
+    $.ajax({
+        url: "{% url 'get_resources' %}",
+        data: {
+          type: this.id,
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+      // change active tab
+      $('.edu_tag li').removeClass('now');
+      $(this).addClass('now');
+      // remove all resources first
+      $('.edu_list li').remove()
+      // append rows
+      if (response.length > 0){
+        for (let i = 0; i < response.length; i++) {
+          $('.edu_list').append(`
+          <li>
+            <div class="item">
+              <div class="cate_dbox">
+                <div class="cate pdf">${response[i].extension}</div>
+                <div class="date">${response[i].date}</div>
+              </div>
+              <a href="/static/${response[i].url}" class="title" target="_blank">${response[i].title}</a>
+              <a href="/static/${response[i].url}" download class="dow_btn"> </a>
+            </div>
+          </li>`)
+        }
+      } else {
+      // if no row, show '更新中'
+        $('.edu_list').append(`<li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="cate pdf" style="color: #D22F2F">-----</div>
+              <div class="date">2000.5.22</div>
+            </div>
+            <a class="title">更新中</a>
+          </div>
+        </li>`)
+      }
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      alert('發生未知錯誤！請聯絡管理員')
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+  })
 </script>
 {% endblock script %}
