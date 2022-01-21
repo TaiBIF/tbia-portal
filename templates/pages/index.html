@@ -257,7 +257,7 @@
         <li>
           <div class="item">
             <div class="cate_dbox">
-              <div class="cate pdf">{{ i.extension }}</div>
+              <div class="cate {{ i.cate }}">{{ i.extension }}</div>
               <div class="date">{{ i.date }}</div>
             </div>
             <a href="{% static i.url %}" class="title" target="_blank">{{ i.title }}</a>
@@ -379,6 +379,7 @@
 </script>
 <script>
 $('.edu_tag li').click(function(){
+    let li_element = $(this)
     $.ajax({
         url: "{% url 'get_resources' %}",
         data: {
@@ -391,21 +392,21 @@ $('.edu_tag li').click(function(){
     .done(function(response) {
       // change active tab
       $('.edu_tag li').removeClass('now');
-      $(this).addClass('now');
+      li_element.addClass('now');
       // remove all resources first
       $('.edu_list li').remove()
       // append rows
-      if (response.length > 0){
-        for (let i = 0; i < response.length; i++) {
+      if (response.rows.length > 0){
+        for (let i = 0; i < response.rows.length; i++) {
           $('.edu_list').append(`
           <li>
             <div class="item">
               <div class="cate_dbox">
-                <div class="cate pdf">${response[i].extension}</div>
-                <div class="date">${response[i].date}</div>
+                <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+                <div class="date">${response.rows[i].date}</div>
               </div>
-              <a href="/static/${response[i].url}" class="title" target="_blank">${response[i].title}</a>
-              <a href="/static/${response[i].url}" download class="dow_btn"> </a>
+              <a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+              <a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
             </div>
           </li>`)
         }
@@ -414,7 +415,7 @@ $('.edu_tag li').click(function(){
         $('.edu_list').append(`<li>
           <div class="item">
             <div class="cate_dbox">
-              <div class="cate pdf" style="color: #D22F2F">-----</div>
+              <div class="cate other" style="color: #888">-----</div>
               <div class="date">2000.5.22</div>
             </div>
             <a class="title">更新中</a>

@@ -1,0 +1,382 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block head %}
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+{% endblock head %}
+{% block title %}開放資料相關資源｜{% endblock %}
+{% block style %}
+<style>
+  .edu_list li .title {
+    -webkit-line-clamp: 1;
+  }
+
+  .search_btn {
+    color: #FFF;
+    background: #76A578;
+    height: 40px;
+	padding: 0 15px;
+    border-radius: 3px;
+    font-size: 18px;
+	margin-left: 10px;
+	transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+  }
+
+  @media only screen and (min-width: 1000px) {
+    .search_btn:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #E2A460
+    }
+}
+</style>
+{% endblock style %}
+{% block body %}
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>開放資料相關資源</p>
+	</div>
+</div>
+<div class="in_bn resource_bn">
+	<div class="title">
+		<h2>開放資料相關資源</h2>
+		<h3>Resources</h3>
+	</div>
+</div>
+<div class="container_area">
+	<div class="main_1240"> 
+		<div class="tab_scromb">
+			<!--目前位置給class>now-->
+			<ul class="news_tab_in">
+				<li id="all" class="now">
+					<p>所有資源</p>
+					<div class="arr"></div>
+				</li>
+				<li id="strategy">
+					<p>TBIA 策略文件</p>
+					<div class="arr"></div>
+				</li>
+				<li id="guide">
+					<p>開放資料指引</p>
+					<div class="arr"></div>
+				</li>
+				<li id="tool">
+					<p>參考文件/工具</p>
+					<div class="arr"></div>
+				</li>
+				<li id="tutorial">
+					<p>教學文件</p>
+					<div class="arr"></div>
+				</li>
+			</ul> 
+		</div>
+
+		<div class="date_select">
+			<p>篩選</p>
+			<div class="input_item"> 
+                <input name="start_date" id="start_date" type="text" value="{% now 'Y-m-d' %}" />
+                <a onclick="$('#start_date').datepicker('show')" class="dateicon"></a>
+			</div>
+			<span>~</span>
+			<div class="input_item">
+                <input name="end_date" id="end_date" type="text" value="{% now 'Y-m-d' %}" />
+                <a onclick="$('#end_date').datepicker('show')" class="dateicon"></a>
+			</div>
+			<button class="search_btn" onclick="">送出</button>
+		</div>
+
+		<ul class="edu_list two_set"> 
+			{% if resource|length > 0 %}
+				{% for i in resource %}
+				<li>
+					<div class="item">
+						<div class="cate_dbox">
+						<div class="cate {{ i.cate|lower }}">{{ i.extension }}</div>
+						<div class="date">{{ i.date }}</div>
+						</div>
+						<a href="{% static i.url %}" class="title" target="_blank">{{ i.title }}</a>
+						<a href="{% static i.url %}" download class="dow_btn"> </a>
+					</div>
+				</li>
+				{% endfor %}
+			{% else %}
+				<li>
+					<div class="item">
+					<div class="cate_dbox">
+						<div class="cate other" style="color: #888">-----</div>
+						<div class="date">2000.5.22</div>
+					</div>
+					<a class="title">更新中</a>
+					</div>
+				</li>
+			{% endif %}
+		</ul> 
+
+		<div class="page_number">
+		{% if total_page > 1 %}
+			<a class="num">1</a>
+			<a class="pre">
+				<span></span>上一頁
+			</a>
+			<a class="num now">1</a>
+			<a href="javascript:" onclick="get_resource_by_page(2, 'resource')" class="num">2</a>
+			<a href="javascript:" onclick="get_resource_by_page(2, 'resource')" class="next">
+				下一頁<span></span>
+			</a>
+			<a href="javascript:" onclick="get_resource_by_page({{ total_page }}, 'resource')" class="num">{{ total_page }}</a>
+		{% endif %}
+		</div>
+
+	</div>
+</div>
+{% endblock body %}
+{% block script %}
+<script>
+// default active page
+{% if type != 'all' %}
+	$('.news_tab_in li').removeClass('now');
+	$(`#{{type}}`).addClass('now');
+{% endif %}
+
+// date picker
+$( function() {
+	$( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+	$( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+});
+
+$('.news_tab_in li').click(function(){
+	let li_element = $(this)
+	let type = this.id
+    $.ajax({
+        url: "{% url 'get_resources' %}",
+        data: {
+          type: type,
+          from: 'resource',
+		  get_page: 1,
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+      // change active tab
+      $('.news_tab_in li').removeClass('now');
+      li_element.addClass('now');
+	  if (type == 'all'){
+		window.history.pushState('page', 'Title', '/resources')
+	  } else {
+		window.history.pushState('page', 'Title', `/resources?type=${type}`)}
+	  // remove all resources first
+      $('.edu_list li').remove()
+      // append rows
+      if (response.rows.length > 0){
+        for (let i = 0; i < response.rows.length; i++) {
+			$('.edu_list').append(`
+			<li>
+			  <div class="item">
+				<div class="cate_dbox">
+				  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+				  <div class="date">${response.rows[i].date}</div>
+				</div>
+				<a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+				<a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
+			  </div>
+			</li>`)  
+        }
+      } else {
+	  $('.edu_list').append(`<li>
+		<div class="item">
+		  <div class="cate_dbox">
+			<div class="cate other" style="color: #888">-----</div>
+			<div class="date">2000.5.22</div>
+		  </div>
+		  <a class="title">更新中</a>
+		</div>
+	  </li>`)
+	  }
+	  // pagination
+	  if (response.total_page > 1){
+		$('.page_number').html(`
+		  <a class="num">1</a>
+		  <a class="pre">
+			  <span></span>上一頁
+		  </a>
+		  <a class="num now">1</a>
+		  <a href="javascript:" onclick="get_resource_by_page(2, 'resource')" class="num">2</a>
+		  <a href="javascript:" onclick="get_resource_by_page(2, 'resource')" class="next">
+			  下一頁<span></span>
+		  </a>
+		  <a href="javascript:" onclick="get_resource_by_page(${response.total_page}, 'resource')" class="num">${response.total_page}</a>`)
+	  } else {
+		  $('.page_number').html('')
+	  }
+	})
+    .fail(function( xhr, status, errorThrown ) {
+      alert('發生未知錯誤！請聯絡管理員')
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+  })
+
+  $('.search_btn').click(function(){
+	$.ajax({
+        url: "{% url 'get_resources' %}",
+        data: {
+          type: $('.news_tab_in li.now').prop('id'),
+          from: 'resource',
+		  start_date: $("#start_date").val(),
+		  end_date: $("#end_date").val(),
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+	  // remove all resources first
+      $('.edu_list li').remove()
+      // append rows
+      if (response.rows.length > 0){
+        for (let i = 0; i < response.rows.length; i++) {
+			$('.edu_list').append(`
+			<li>
+			  <div class="item">
+				<div class="cate_dbox">
+				  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+				  <div class="date">${response.rows[i].date}</div>
+				</div>
+				<a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+				<a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
+			  </div>
+			</li>`)  
+        }
+      } else {
+      // if no row, show '更新中'
+	  $('.edu_list').append(`<li>
+		<div class="item no_data" style="border: 0">
+		  <a class="title">查無資料</a>
+		</div>
+	  </li>`)
+	  }
+	  // pagination
+	  if (response.total_page > 1){
+		  $('.page_number').html(`
+			<a class="num">1</a>
+			<a class="pre">
+				<span></span>上一頁
+			</a>
+			<a class="num now">1</a>
+			<a href="javascript:" onclick="get_resource_by_page(2, 'search')" class="num">2</a>
+			<a href="javascript:" onclick="get_resource_by_page(2, 'search')" class="next">
+				下一頁<span></span>
+			</a>
+			<a href="javascript:" onclick="get_resource_by_page(${response.total_page}, 'search')" class="num">${response.total_page}</a>`)
+		} else {
+			$('.page_number').html('')
+		}
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      alert('發生未知錯誤！請聯絡管理員')
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+  })
+
+  function get_resource_by_page (page, by){
+	  // 如果是從search，要把日期篩選也算進去
+	let start_date, end_date
+	if (by == 'search'){
+		start_date = $("#start_date").val()
+		end_date = $("#end_date").val()
+  	} 
+
+	$.ajax({
+        url: "{% url 'get_resources' %}",
+        data: {
+          type: $('.news_tab_in li.now').prop('id'),
+          from: 'resource',
+		  start_date: start_date,
+		  end_date: end_date,
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+		  get_page: page
+        },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+	  // remove all resources first
+      $('.edu_list li').remove()
+      // append rows
+      if (response.rows.length > 0){
+        for (let i = 0; i < response.rows.length; i++) {
+			$('.edu_list').append(`
+			<li>
+			  <div class="item">
+				<div class="cate_dbox">
+				  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+				  <div class="date">${response.rows[i].date}</div>
+				</div>
+				<a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+				<a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
+			  </div>
+			</li>`)  
+        }
+      } else {
+      // if no row, show '更新中'
+	  $('.edu_list').append(`<li>
+		<div class="item no_data" style="border: 0">
+		  <a class="title">查無資料</a>
+		</div>
+	  </li>`)
+	  }
+	  // pagination
+	  $('.page_number').html('')
+		if (response.total_page > 1){  // 判斷是否有下一頁
+			$('.page_number').append(`
+				<a href="javascript:;" class="num now"> ${response.current_page}</a>
+			`)}	
+		// append previous & next page 
+		if ((response.current_page - 1) > 0 ){
+			$('.page_number').prepend(`
+			<a href="javascript:;" onclick="get_resource_by_page(1, ${by})" class="num">1</a> 
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, ${by})" class="pre">
+			<span></span>上一頁
+			</a>
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, ${by})" class="num">${response.current_page - 1}</a>`)
+		} else {
+			$('.page_number').prepend(`
+			<a href="javascript:;" class="num">1</a>
+			<a href="javascript:;" class="pre">
+			<span></span>上一頁
+			</a>`)
+		}        
+		if (response.current_page < response.total_page){
+			$('.page_number').append(`
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, ${by})" class="num">${response.current_page +1}</a>
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, ${by})" class="next">
+			下一頁<span></span>
+			</a>
+			<a href="javascript:;" onclick="get_resource_by_page(${response.total_page}, ${by})" class="num">${response.total_page}</a>`)
+		} else {
+			$('.page_number').append(`
+			<a href="javascript:;" class="next">
+			下一頁<span></span>
+			</a>
+			<a href="javascript:;" class="num">${response.total_page}</a>
+			`)
+		}
+
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      alert('發生未知錯誤！請聯絡管理員')
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+  }
+
+</script>
+{% endblock script %}
