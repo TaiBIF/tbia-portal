@@ -65,7 +65,7 @@
             <img src="{% static 'image/mapicon.svg' %}" alt="" />
             <span>物種出現紀錄查詢</span>
           </a>
-          <a href="" class="hvmask">物種出現紀錄查詢</a>
+          <a href="{% url 'search_occurrence' %}" class="hvmask">物種出現紀錄查詢</a>
           <div class="line"></div>
         </div>
         <div class="item">
@@ -73,7 +73,7 @@
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>⾃然史典藏查詢</span>
           </a>
-          <a href="" class="hvmask">⾃然史典藏查詢</a>
+          <a href="{% url 'search_collection' %}" class="hvmask">⾃然史典藏查詢</a>
         </div>
       </div>
     </div>
