@@ -23,6 +23,186 @@ import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 from datetime import datetime
 
+
+def search_full(request):
+    keyword = request.GET.get('keyword', '')
+
+    if keyword:
+        # TODO 階層
+        # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
+        # if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
+        #     keyword_str = f'"{keyword}"'
+        # else:
+        #     keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+        #     keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+
+        query = {
+            "query": '',
+            "filter": ['recordType:col'],
+            "limit": 0,
+            "facet": {},
+            "sort":  "scientificName asc"
+            }
+
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+
+        # collection
+        facet_list = col_facets
+        q = ''
+        for i in facet_list['facet']:
+            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+        query.update(facet_list)
+        q = q[:-4]
+        query.update({'query': q})
+
+        # s = time.time()
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        # print('get collection', time.time() - s)
+        facets = response.json()['facets']
+        facets.pop('count', None)
+
+        c_collection = response.json()['response']['numFound']
+        # c_collection = 0
+        collection_rows = []
+        result = []
+        for i in facets:
+            x = facets[i]
+            if x['buckets']:
+                collection_rows.append({
+                    'title': map_collection[i],
+                    'total_count': sum(item['count'] for item in x['buckets']),
+                    'key': i
+                })
+            for k in x['buckets']:
+                bucket = k['scientificName']['buckets']
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        col_result_df = pd.DataFrame(result)
+        col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
+        if len(col_result_df_duplicated):
+            col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
+            col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
+        if len(col_result_df):
+            col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
+            col_card_len = len(col_result_df)
+            col_result_df = col_result_df[:9]
+            col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
+        else:
+            col_card_len = 0
+
+        # occurrence
+        facet_list = occ_facets
+        q = ''
+        for i in facet_list['facet']:
+            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        query.pop('filter', None)
+        query.update(facet_list)
+        q = q[:-4]
+        query.update({'query': q})
+
+        # s = time.time()
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        # print('get occurrence', time.time() - s)
+        facets = response.json()['facets']
+        facets.pop('count', None)
+        
+        c_occurrence = response.json()['response']['numFound']
+        occurrence_rows = []
+        result = []
+        for i in facets:
+            x = facets[i]
+            if x['buckets']:
+                total_count =  sum(item['count'] for item in x['buckets'])
+                occurrence_rows.append({
+                    'title': map_occurrence[i],
+                    'total_count': total_count,
+                    'key': i
+                })
+            for k in x['buckets']:
+                bucket = k['scientificName']['buckets']
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        occ_result_df = pd.DataFrame(result)
+        occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
+        if len(occ_result_df_duplicated):
+            occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
+            occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]        
+        if len(occ_result_df):
+            occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
+            occ_card_len = len(occ_result_df)
+            occ_result_df = occ_result_df[:9]
+            occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
+        else:
+            occ_card_len = 0
+
+        # news
+        news = News.objects.filter(type='news').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        c_news = news.count()
+        news_rows = []
+        for x in news.all()[:6]:
+            news_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+        event = News.objects.filter(type='event').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        c_event = event.count()
+        event_rows = []
+        for x in event.all()[:6]:
+            event_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+        project = News.objects.filter(type='project').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        c_project = project.count()
+        project_rows = []
+        for x in project.all()[:6]:
+            project_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+        # resource
+        resource = Resource.objects.filter(title__icontains=keyword)
+        c_resource = resource.count()
+        resource_rows = []
+        for x in resource.all()[:6]:
+            resource_rows.append({
+                'title': x.title,
+                'extension': x.extension,
+                'url': x.url,
+                'date': x.modified.strftime("%Y.%m.%d")
+            })
+        
+        occurrence_more = True if occ_card_len > 9 else False
+        collection_more = True if col_card_len > 9 else False
+
+        response = {
+            'keyword': keyword,
+            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occ_result_df.to_dict('records'), 'more': occurrence_more},
+            'collection': {'rows': collection_rows, 'count': c_collection, 'card': col_result_df.to_dict('records'), 'more': collection_more},
+            'news': {'rows': news_rows, 'count': c_news},
+            'event': {'rows': event_rows, 'count': c_event},
+            'project': {'rows': project_rows, 'count': c_project},
+            'resource': {'rows': resource_rows, 'count': c_resource},
+            }
+    else:
+        response = {
+            'keyword': keyword,
+            'occurrence': {'count': 0},
+            'collection': {'count': 0},
+            'news': {'count': 0},
+            'event': {'count': 0},
+            'project': {'count': 0},
+            'resource': {'count': 0},
+        }
+
+    return render(request, 'pages/search_full.html', response)
+
+
 def get_records(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
@@ -46,15 +226,19 @@ def get_records(request):
 
         key = get_key(key, map_dict)
 
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
-            keyword_str = f'"{keyword}"'
-        else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+        # if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
+        #     keyword_str = f'"{keyword}"'
+        # else:
+        #     keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
+        #     keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        q = f'{key}:/.*{keyword_reg}.*/' 
         
         offset = (page-1)*10
         solr = SolrQuery('tbia_records')
-        query_list += [('q', keyword_str),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
+        query_list += [('q', q),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -128,11 +312,16 @@ def get_focus_cards(request):
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
 
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        q = f'{key}:/.*{keyword_reg}.*/' 
+        
         if record_type == 'col':
             facet_list = {'facet': {k: v for k, v in col_facets['facet'].items() if k == key} }
             map_dict = map_collection
             query = {
-                "query": f'"{keyword}"',
+                "query": q,
                 "limit": 0,
                 "filter": ['recordType:col'],
                 "facet": {},
@@ -146,21 +335,22 @@ def get_focus_cards(request):
             # core = 'tbia_occurrence'
             title_prefix = '物種出現紀錄 > '
             query = {
-                "query": f'"{keyword}"',
+                "query": q,
                 "limit": 0,
                 "facet": {},
                 "sort":  "scientificName asc"
                 } 
 
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        # keyword_reg = ''
+        # for j in keyword:
+        #     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
         for i in facet_list['facet']:
             if record_type == 'col':
                 facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
             else:
                 facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
+
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
@@ -205,43 +395,43 @@ def get_more_cards(request):
         is_sub = request.POST.get('is_sub', '')
         offset = request.POST.get('offset', '')
         offset = int(offset) if offset else offset
-        
+        key = card_class.split('-')[1]
 
-
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
-            keyword_str = f'"{keyword}"'
-        else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
+        query = {
+            "query": '',
+            "limit": 0,
+            "filter": ['recordType:col'],
+            "facet": {},
+            "sort":  "scientificName asc"
+            }        
 
         if card_class.startswith('.col'):
             facet_list = col_facets
             map_dict = map_collection
-            # core = 'tbia_collection'
-            query = {
-                "query": keyword_str,
-                "limit": 0,
-                "filter": ['recordType:col'],
-                "facet": {},
-                "sort":  "scientificName asc"
-                }
         elif card_class.startswith('.occ'):
             facet_list = occ_facets
             map_dict = map_occurrence
-            # core = 'tbia_occurrence'
-            query = {
-                "query": keyword_str,
-                "limit": 0,
-                "facet": {},
-                "sort":  "scientificName asc"
-                }
+            query.pop('filter', None)
 
         keyword_reg = ''
+        q = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+
+        
+        if is_sub == 'true':
+            facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
+            # query.update({'query': f'{key}:/.*{keyword_reg}.*/'})
+
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+            if card_class.startswith('.col'):
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': ['recordType:col']}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+
         query.update(facet_list)
+        query.update({'query': q[:-4]})
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
@@ -260,7 +450,6 @@ def get_more_cards(request):
                 remove_index = result_df_duplicated[result_df_duplicated.matched_col.isin(dup_col)].index
                 result_df = result_df.loc[~result_df.index.isin(remove_index)]
         else:
-            key = card_class.split('-')[1]
             x = facets[key]
             for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
@@ -286,175 +475,6 @@ def get_more_cards(request):
         }
 
         return HttpResponse(json.dumps(response), content_type='application/json')
-
-
-def search_full(request):
-    keyword = request.GET.get('keyword', '')
-
-    if keyword:
-        # TODO 階層
-        # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
-        if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
-            keyword_str = f'"{keyword}"'
-        else:
-            keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
-            keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
-
-        query = {
-            "query": keyword_str,
-            "filter": ['recordType:col'],
-            "limit": 0,
-            "facet": {},
-            "sort":  "scientificName asc"
-            }
-
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
-
-        # collection
-        facet_list = col_facets
-        for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
-        query.update(facet_list)
-
-        s = time.time()
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        print('get collection', time.time() - s)
-        facets = response.json()['facets']
-        facets.pop('count', None)
-
-        c_collection = response.json()['response']['numFound']
-        collection_rows = []
-        result = []
-        for i in facets:
-            x = facets[i]
-            if x['buckets']:
-                collection_rows.append({
-                    'title': map_collection[i],
-                    'total_count': sum(item['count'] for item in x['buckets']),
-                    'key': i
-                })
-            for k in x['buckets']:
-                bucket = k['scientificName']['buckets']
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-        col_result_df = pd.DataFrame(result)
-        col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
-        if len(col_result_df_duplicated):
-            col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
-            col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
-        if len(col_result_df):
-            col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
-            col_card_len = len(col_result_df)
-            col_result_df = col_result_df[:9]
-            col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
-        else:
-            col_card_len = 0
-
-        # occurrence
-        facet_list = occ_facets
-        for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
-        query.pop('filter', None)
-        query.update(facet_list)
-
-        s = time.time()
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        print('get occurrence', time.time() - s)
-        facets = response.json()['facets']
-        facets.pop('count', None)
-        
-        c_occurrence = response.json()['response']['numFound']
-        occurrence_rows = []
-        result = []
-        for i in facets:
-            x = facets[i]
-            if x['buckets']:
-                occurrence_rows.append({
-                    'title': map_occurrence[i],
-                    'total_count': sum(item['count'] for item in x['buckets']),
-                    'key': i
-                })
-            for k in x['buckets']:
-                bucket = k['scientificName']['buckets']
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-        occ_result_df = pd.DataFrame(result)
-        occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
-        if len(occ_result_df_duplicated):
-            occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
-            occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]
-        if len(occ_result_df):
-            occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
-            occ_card_len = len(occ_result_df)
-            occ_result_df = occ_result_df[:9]
-            occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
-        else:
-            occ_card_len = 0
-
-        # news
-        news = News.objects.filter(type='news').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
-        c_news = news.count()
-        news_rows = []
-        for x in news.all()[:6]:
-            news_rows.append({
-                'title': x.title,
-                'content': x.content,
-                'id': x.id
-            })
-        event = News.objects.filter(type='event').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
-        c_event = event.count()
-        event_rows = []
-        for x in event.all()[:6]:
-            event_rows.append({
-                'title': x.title,
-                'content': x.content,
-                'id': x.id
-            })
-        project = News.objects.filter(type='project').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
-        c_project = project.count()
-        project_rows = []
-        for x in project.all()[:6]:
-            project_rows.append({
-                'title': x.title,
-                'content': x.content,
-                'id': x.id
-            })
-        # resource
-        resource = Resource.objects.filter(title__icontains=keyword)
-        c_resource = resource.count()
-        resource_rows = []
-        for x in resource.all()[:6]:
-            resource_rows.append({
-                'title': x.title,
-                'extension': x.extension,
-                'url': x.url,
-                'date': x.modified.strftime("%Y.%m.%d")
-            })
-        
-        occurrence_more = True if occ_card_len > 9 else False
-        collection_more = True if col_card_len > 9 else False
-
-        response = {
-            'keyword': keyword,
-            'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occ_result_df.to_dict('records'), 'more': occurrence_more},
-            'collection': {'rows': collection_rows, 'count': c_collection, 'card': col_result_df.to_dict('records'), 'more': collection_more},
-            'news': {'rows': news_rows, 'count': c_news},
-            'event': {'rows': event_rows, 'count': c_event},
-            'project': {'rows': project_rows, 'count': c_project},
-            'resource': {'rows': resource_rows, 'count': c_resource},
-            }
-    else:
-        response = {
-            'keyword': keyword,
-            'occurrence': {'count': 0},
-            'collection': {'count': 0},
-            'news': {'count': 0},
-            'event': {'count': 0},
-            'project': {'count': 0},
-            'resource': {'count': 0},
-        }
-
-    return render(request, 'pages/search_full.html', response)
 
 
 def search_collection(request):
@@ -550,7 +570,10 @@ def get_conditional_records(request):
         for i in ['rightsHolder', 'locality', 'organismQuantity', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
-                query_list += [f'{i}:*{val}*']
+                keyword_reg = ''
+                for j in val:
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+                query_list += [f'{i}:/.*{keyword_reg}.*/']
 
         for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']:
             if val := request.POST.get(i):
@@ -578,7 +601,10 @@ def get_conditional_records(request):
                 pass
         
         if val := request.POST.get('name'):
-            col_list = [ f'{i}:*{val}*' for i in dup_col ]
+            keyword_reg = ''
+            for j in val:
+                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
 
