@@ -31,6 +31,14 @@
           width: 100%;
       }
     }
+    
+    .loginbox .right_cont {
+      z-index: 2;
+    }
+
+    .popbg .xx {
+      z-index: 3;
+    }
     </style>
   </head>
 
@@ -53,17 +61,40 @@
             <span></span>
           </div>
         </div>
-
+      
         <!--手機選單-->
         <div class="mb_bmenu">
           <div class="ovh">
             <ul>
+              {% if user.is_authenticated %}
+              <li class="rd_mb_two_menu_li">
+                <a href="#" class="one_set">
+                  <p class="gres">Hello,Amy</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}" >
+                </a>
+                <div class="mbmu2">
+                  <a href="#" class="s_title">
+                    <p>設定</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" >
+                  </a>
+                  <a href="#" class="s_title">
+                    <p>系統管理後台</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" >
+                  </a>
+                  <a href="{% url 'logout' %}" class="s_title">
+                    <p>登出</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" >
+                  </a>						
+                </div>
+              </li>   
+              {% else %}
               <li>
-                <a href="javascript:;" onclick="$('.login_pop').css('display', '')" class="one_set">
+                <a href="javascript:;" onclick="$('.login_pop').show();$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="one_set">
                   <p>會員登入</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </li>
+              {% endif %}
               <li>
                 <a href="{% url 'about' %}" class="one_set">
                   <p>關於TBIA</p>
@@ -139,6 +170,7 @@
             </ul>
           </div>
         </div>
+        <!--主選單-->
         <div class="right_menu">
           <ul>
             <li>
@@ -184,20 +216,62 @@
             </li>
           </ul>
         </div>
+        {% if user.is_authenticated %}
+        <div class="right_btn2 login_done">
+        {% else %}
         <div class="right_btn2">
+        {% endif %}
           <div class="feedback"></div>
-          {% if user.is_authenticated %}
+          <div class="ringbox ">
+            <div class="num_message">20</div>
+            <div class="messagebox">
+              <div class="wbox">
+                <div class="titlebox">
+                  <p>最近20筆通知</p>
+                  <button>全部已讀</button>
+                </div>
+                <ul class="message_list">
+                  <li>
+                    <div class="dottt"></div>
+                    <div class="txtcont">
+                      <p class="date">2022-01-02 13:15:30</p>
+                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+                    </div>
+                    <a href="#" class="learmore">查看</a>
+                  </li>
+                  <li>
+                    <!--已讀拔掉點點-->
+                    <div class="dottt"></div>
+                    <div class="txtcont">
+                      <p class="date">2022-01-02 13:15:30</p>
+                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+                    </div>
+                    <a href="#" class="learmore">查看</a>
+                  </li>
+                  <li>							
+                    <div class="txtcont">
+                      <p class="date">2022-01-02 13:15:30</p>
+                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+                    </div>
+                    <a href="#" class="learmore">查看</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
           <div class="member_login">
+
+          {% comment %} <div onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="member_login"> {% endcomment %}
             <div class="icon"></div>
-            <!-- <p>{{ user.first_name }}</p> -->
-            <a href="{% url 'logout' %}">登出</a>
+              <p onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')"  style="">登入</p>
+              <div class="member_slimenu">
+                <ul>
+                  <li>設定</li>
+                  <li>系統後台管理</li>
+                  <li onclick="window.location='/logout'">登出</li>
+                </ul>
+              </div>        
           </div>
-          {% else %}
-          <div onclick="$('.login_pop').css('display', '')" class="member_login">
-            <div class="icon"></div>
-              <p style="">登入</p>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -277,7 +351,7 @@
 				<img src="{% static 'image/loginbga.svg' %}" > 
 			</div>
 			<!--會員登入-->
-			<div class="loginbox" >				
+			<div class="loginbox login_area" >				
 				<div class="right_cont">
 					<div class="alcont_center">
 						<div class="titlegreen">
@@ -290,7 +364,7 @@
                 <input type="text" name="email" placeholder="請輸入您的帳號(email)">
                 <!--送出時錯誤出現-->
                 <div class="noticbox" style="display: none">
-                  <div class="in1">格式錯誤</div>
+                  <div class="in1">錯誤</div>
                   <p>請輸入正確信箱</p>
                 </div>
               </div>
@@ -298,7 +372,7 @@
                 <input type="password" name="password" placeholder="請輸入您的密碼">
                 <!--送出時錯誤出現-->
                 <div class="noticbox" style="display:none;">
-                  <div class="in1">格式錯誤</div>
+                  <div class="in1">錯誤</div>
                   <p>請輸入6~10位英文或數字</p>
                 </div>
               </div>
@@ -309,77 +383,78 @@
           </form>
 						<button class="loginbtn" onclick="login()">登入</button>
 						<div class="linkbtn_2">
-							<a href="#">我要註冊</a>
-							<a href="#">忘記密碼?</a>
+							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .register_area').css('display', '')">我要註冊</a>
+							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .password_area').css('display', '')">忘記密碼?</a>
 						</div>
 					</div>
 				</div>
 			</div>
 			<!--會員註冊-->
-			<div class="loginbox" style="display: none;">				
+			<div class="loginbox register_area" style="display: none;">				
 				<div class="right_cont">
 					<div class="alcont_center">
 						<div class="titlegreen">
 							會員註冊
-							<span>register</span>
+							<span>Register</span>
 						</div>
-						<div class="input_item">
-							<input type="text" placeholder="姓名">
-						</div>
-						<div class="input_item">
-							<input type="text" placeholder="請輸入您的Email作為帳號">
-							<!--送出時錯誤出現-->
-							<div class="noticbox" style="display: none;">
-								<div class="in1">格式錯誤</div>
-								<p>請輸入正確信箱</p>
-							</div>
-						</div>
-						<div class="input_item">
-							<input type="text" placeholder="請輸入您的密碼">
-							<!--送出時錯誤出現-->
-							<div class="noticbox" style="display: none;">
-								<div class="in1">格式錯誤</div>
-								<p>請輸入6~10位英文或數字</p>
-							</div>
-
-						</div>
-						<div class="input_item">
-							<input type="text" placeholder="請再次輸入密碼">
-							<!--送出時錯誤出現-->
-							<div class="noticbox" style="display: none;">
-								<div class="in1">錯誤</div>
-								<p>兩次密碼輸入不同</p>
-							</div>xw
-						</div>
-
-
-						<button class="loginbtn">註冊</button>
+            <form id="registerForm">
+            {% csrf_token %}
+              <div class="input_item">
+                <input type="text" name="name" placeholder="姓名">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display: none;">
+                  <div class="in1">錯誤</div>
+                  <p>請輸入姓名</p>
+                </div>
+              </div>
+              <div class="input_item">
+                <input type="text" name="email" placeholder="請輸入您的Email作為帳號">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display: none;">
+                  <div class="in1">錯誤</div>
+                  <p>請輸入正確信箱</p>
+                </div>
+              </div>
+              <div class="input_item">
+                <input type="text" name="password" placeholder="請輸入您的密碼">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display: none;">
+                  <div class="in1">錯誤</div>
+                  <p>請輸入6~10位英文或數字</p>
+                </div>
+              </div>
+              <div class="input_item">
+                <input type="text" name="repassword" placeholder="請再次輸入密碼">
+                <!--送出時錯誤出現-->
+                <div class="noticbox" style="display: none;">
+                  <div class="in1">錯誤</div>
+                  <p>兩次密碼輸入不同</p>
+                </div>
+              </div>
+            </form>
+						<button class="loginbtn" onclick="register()">註冊</button>
 						<div class="linkbtn_1">
-							*註冊即同意 <a href="#">使⽤者條款</a>
+							*註冊即同意<a href="#">使⽤者條款</a>
 						</div>
 					</div>
 				</div>
 			</div> 
 			<!--忘記密碼-->
-			<div class="loginbox" style="display: none;">				
+			<div class="loginbox password_area" style="display: none;">				
 				<div class="right_cont">
 					<div class="alcont_center">
 						<div class="titlegreen">
 							忘記密碼
-							<span>password</span>
+							<span>Password</span>
 						</div>
-
 						<p class="center">請輸入當初加入會員使用的E-Mail，我們將協助您重新設定密碼。</p>
-
 						<div class="input_item">
 							<input type="text" placeholder="請輸入您的email">
 						</div>
-
-
 						<button class="loginbtn">確認送出</button>
 						<div class="linkbtn_2">
-							<a href="#">我要註冊</a>
-							<a href="#">返回登入?</a>
+							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .register_area').css('display', '')">我要註冊</a>
+							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')">返回登入?</a>
 						</div>
 					</div>
 				</div>
@@ -418,6 +493,16 @@
         },
       });
     });
+    // detect event on show / hide
+    (function ($) {
+      $.each(['show', 'hide'], function (i, ev) {
+        var el = $.fn[ev];
+        $.fn[ev] = function () {
+          this.trigger(ev);
+          return el.apply(this, arguments);
+        };
+      });
+    })(jQuery);
   </script>
   <script>
     // loader
@@ -444,6 +529,18 @@
         $(".mb_bmenu").slideToggle();
       });
     });
+
+    $('.ringbox').on('click',function (event) {
+      if( $(this).hasClass('mb_open')){
+        $(this).removeClass('mb_open');
+      
+      }else{
+        $(this).addClass('mb_open');
+
+      }
+    
+    });
+
 
     $(".rd_mb_two_menu_li").on("click", function (event) {
       event.preventDefault();
@@ -491,12 +588,20 @@
     function login(){
       // remove all notice first
       $('#loginForm .noticbox').css('display','none')
-      // check email
-      if (!validateEmail($('#loginForm input[name=email]').val())){
+
+      let checked = true
+      
+      if (!validateEmail($('#loginForm input[name=email]').val())){ // check email
         $('#loginForm input[name=email]').next('.noticbox').css('display','')
-      } else if (!checkPasswordStr($('#loginForm input[name=password]').val())) {
+        checked = false
+      }  
+      
+      if (!checkPasswordStr($('#loginForm input[name=password]').val())) { // check password
         $('#loginForm input[name=password]').next('.noticbox').css('display','')
-      } else {
+        checked = false
+      } 
+
+      if (checked) {
         $.ajax({
             url: "{% url 'login' %}",
             data: $('#loginForm').serialize() ,
@@ -513,11 +618,63 @@
           alert('發生未知錯誤！請聯絡管理員')
           console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
           $('.login_pop').css('display','none')
-        })
-        
-      }
-      
+        }) 
+      } 
     }
+
+    function register(){
+      // remove all notice first
+      $('#registerForm .noticbox').css('display','none')
+
+      let checked = true
+
+      if (!$('#registerForm input[name=name]').val()){ // check name
+        $('#registerForm input[name=name]').next('.noticbox').css('display','')
+        checked = false
+      }  
+
+      if (!validateEmail($('#registerForm input[name=email]').val())){ // check email
+        $('#registerForm input[name=email]').next('.noticbox').css('display','')
+        checked = false
+      }  
+      
+      if (!checkPasswordStr($('#registerForm input[name=password]').val())) { // check password
+        $('#registerForm input[name=password]').next('.noticbox').css('display','')
+        checked = false
+      } 
+      
+      if ($('#registerForm input[name=password]').val() != $('#registerForm input[name=repassword]').val()) { // check repassword
+        $('#registerForm input[name=repassword]').next('.noticbox').css('display','')
+        checked = false
+      } 
+
+        
+        $.ajax({
+            url: "{% url 'register' %}",
+            data: $('#registerForm').serialize() ,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+          console.log(response)
+          /*
+          alert(response.message)
+          if (response.status=='success'){
+            location.reload() }
+            */
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+          $('.login_pop').css('display','none')
+        })  
+      }
+
+      $('.login_pop').on('show', function(){
+        $('.login_pop input').not('input[type="hidden"]').val('');
+        $('.login_pop .noticbox').css('display','none')
+      })
+
   </script>
   {% block script %}{% endblock script %}
 </html>
