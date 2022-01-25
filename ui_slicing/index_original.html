@@ -29,12 +29,36 @@
 				<div class="mb_bmenu">
 					<div class="ovh">
 						<ul>
+							<!--登入前-->
 							<li>
 								<a href="#" class="one_set">
 									<p>會員登入</p>
 									<img class="arright" src="image/next.svg" >
-								</a>
+								</a>							
 							</li>
+							<!--登入後-->
+							<li class="rd_mb_two_menu_li">
+								<a href="#" class="one_set">
+									<p class="gres">Hello,Amy</p>
+									<img class="ardown" src="image/ardown.svg" >
+								</a>
+								<div class="mbmu2">
+									<a href="#" class="s_title">
+										<p>設定</p>
+										<img class="arright" src="image/next.svg" >
+									</a>
+									<a href="#" class="s_title">
+										<p>系統管理後台</p>
+										<img class="arright" src="image/next.svg" >
+									</a>
+									<a href="#" class="s_title">
+										<p>登出</p>
+										<img class="arright" src="image/next.svg" >
+									</a>						
+								</div>
+
+							</li>
+
 							<li>
 								<a href="#" class="one_set">
 									<p>關於TBIA</p>
@@ -108,7 +132,12 @@
 									<img class="arright" src="image/next.svg" >
 								</a>							
 							</li>
-
+							<li>
+								<a href="#" class="one_set">
+									<p>意見回饋</p>
+									<img class="arright" src="image/next.svg" >
+								</a>							
+							</li>
 
 						</ul>
 					</div>
@@ -126,7 +155,7 @@
 							<div class="menu_2">
 								<div class="item">
 									<a href="#" class="s_title">物種出現紀錄查詢</a>
-									<a href="#" class="s_title">自然史典藏查詢</a>
+									<a href="#" class="s_title">自然史典藏<br>查詢</a>
 								</div>
 							</div>							
 						</li>
@@ -160,14 +189,63 @@
 
 					</ul>
 				</div>
-				<div class="right_btn2">
+				<!--登入後 加上class>login_done-->
+				<div class="right_btn2 login_done">
 					<div class="feedback"></div>
+					<div class="ringbox ">
+						<div class="num_message">20</div>
+						<div class="messagebox">
+							<div class="wbox">
+								<div class="titlebox">
+									<p>最近20筆通知</p>
+									<button>全部已讀</button>
+								</div>
+								<ul class="message_list">
+									<li>
+										<div class="dottt"></div>
+										<div class="txtcont">
+											<p class="date">2022-01-02 13:15:30</p>
+											<p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+										</div>
+										<a href="#" class="learmore">查看</a>
+									</li>
+									<li>
+										<!--已讀拔掉點點-->
+										<div class="dottt"></div>
+										<div class="txtcont">
+											<p class="date">2022-01-02 13:15:30</p>
+											<p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+										</div>
+										<a href="#" class="learmore">查看</a>
+									</li>
+									<li>							
+										<div class="txtcont">
+											<p class="date">2022-01-02 13:15:30</p>
+											<p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
+										</div>
+										<a href="#" class="learmore">查看</a>
+									</li>
+									
+								</ul>
+
+							</div>
+						</div>
+					</div>
 					<div class="member_login">
 						<div class="icon"></div>
 						<p>登入</p>
+						<div class="member_slimenu">
+							<ul>
+								<li>設定</li>
+								<li>系統後台管理</li>
+								<li>登出</li>
+							</ul>
+						</div>
 					</div>
 				</div>
+
 			</div>
+
 			
 		</div>
 
@@ -792,7 +870,17 @@
 	        });
 	    });
 
+	     $('.ringbox').on('click',function (event) {
+	     	if( $(this).hasClass('mb_open')){
+	     		$(this).removeClass('mb_open');
+	     	
+	     	}else{
+	     		$(this).addClass('mb_open');
 
+	     	}
+	     
+	     });
+	     
         $('.rd_mb_two_menu_li').on('click',function (event) {
 
             event.preventDefault();
