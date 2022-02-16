@@ -1,0 +1,492 @@
+
+@include keyframes(item_01){
+	0%{left: -5%;@include alpha(0);}
+	100%{left: 0%;@include alpha(1);}
+}
+@include keyframes(alpha01){
+	0%{@include alpha(0);}
+	100%{@include alpha(1);}
+}
+@include keyframes(item_01_rotate){
+	0%{@include rotate(-3deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-3deg);}
+}
+
+@include keyframes(item_03){
+	0%{right: -5%;top:-25%;@include alpha(0);}
+	100%{right: -3.6%;top: -23%;@include alpha(1);}
+}
+@include keyframes(item_03_m){
+	0%{right: -5%;top:-1%;@include alpha(0);}
+	100%{right: -3.6%;top: 0%;@include alpha(1);}
+}
+@include keyframes(item_03_rotate){
+	0%{@include rotate(-2deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-2deg);}
+}
+@include keyframes(item_02){
+	0%{right: -5%;top:0%;@include alpha(0);}
+	100%{right: 0%;top: 0%;@include alpha(1);}
+}
+@include keyframes(item_02_rotate){
+	0%{@include rotate(-2deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-2deg);}
+}
+@include keyframes(item_05){
+	0%{left: -5%;bottom:-17%;@include alpha(0);} 
+	100%{left: -1%;bottom:-16%;@include alpha(1);}
+}
+@include keyframes(item_05_rotate){
+	0%{@include rotate(-2deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-2deg);}
+}
+@include keyframes(item_06){
+	0%{right: -5%;bottom:-36%;@include alpha(0);} 
+	100%{right: 0%;bottom:-35%;@include alpha(1);}
+}
+@include keyframes(item_06_m){
+	0%{right: -5%;bottom:-31%;@include alpha(0);} 
+	100%{right: 0%;bottom:-29%;@include alpha(1);}
+}
+
+@include keyframes(item_06_rotate){
+	0%{@include rotate(-2deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-2deg);}
+}
+@include keyframes(item_07){
+	0%{right: 5%;bottom: -13%;@include alpha(0);} 
+	100%{right: 6.5%;bottom: -12%;@include alpha(1);}
+}
+@include keyframes(item_07_m){
+	0%{right: 5%;bottom: -8%;@include alpha(0);} 
+	100%{right: 6.5%;bottom: -6%;@include alpha(1);}
+}
+
+@include keyframes(item_08){
+	0%{width: 0;} 
+	100%{width: 100%;}
+}
+@include keyframes(item_07_rotate){
+	0%{@include rotate(-3deg);}
+	50%{@include rotate(0deg);}
+	100%{@include rotate(-3deg);}
+}
+@include keyframes(top_search){
+	0%{margin-top:-3%;@include alpha(0);}
+	100%{margin-top:-5%;@include alpha(1);}
+}
+@include keyframes(top_20){
+	0%{top:20px;@include alpha(0);}
+	100%{top:0px;@include alpha(1);}
+}
+@include keyframes(top_-10){
+	0%{top:-10px;@include alpha(0);}
+	100%{top:0px;@include alpha(1);}
+}
+@include keyframes(rotate360){
+	0%{top:20px;@include rotate(0deg);}
+	100%{top:0px;@include rotate(360deg);}
+}
+@include keyframes(index_bird){
+	0%{left: 2%;top:-75%;@include alpha(0);@include rotate(0deg);}
+	25%{left: 3%;top:-78%;@include alpha(0.5);@include rotate(2deg);}
+	50%{left: 4.5%;top:-75%;@include alpha(1);@include rotate(0deg);}
+	75%{left: 5%;top:-78%;@include alpha(1);@include rotate(2deg);}
+	100%{left: 6.5%;top:-75%;@include alpha(1);@include rotate(0deg);}
+}
+@include keyframes(index_bird_m){
+	0%{left: -10.5%;top:-41%;@include alpha(0);@include rotate(0deg);}
+	25%{left: -9.5%;top:-44%;@include alpha(0.5);@include rotate(2deg);}
+	50%{left: -8%;top:-41%;@include alpha(1);@include rotate(0deg);}
+	75%{left: -7.5%;top:-44%;@include alpha(1);@include rotate(2deg);}
+	100%{left: -6.5%;top:-41%;@include alpha(1);@include rotate(0deg);}
+}
+@include keyframes(index_bird_pcs){
+	0%{left: -10.5%;top:-59%;@include alpha(0);@include rotate(0deg);}
+	25%{left: -9.5%;top:-61%;@include alpha(0.5);@include rotate(2deg);}
+	50%{left: -8%;top:-59%;@include alpha(1);@include rotate(0deg);}
+	75%{left: -7.5%;top:-61%;@include alpha(1);@include rotate(2deg);}
+	100%{left: -6.5%;top:-59%;@include alpha(1);@include rotate(0deg);}
+}
+@include keyframes(left_20){
+	0%{left:-20px;@include alpha(0);}
+	100%{left:-0px;@include alpha(1);}
+}
+@include keyframes(w_101){
+	0%{width: 0;}
+	50%{width:100%;}
+	70%{width:100%;}
+	100%{width:0%;}
+}
+@include keyframes(s2_bg){
+	0%{width: 0;@include alpha(0);}
+	100%{width:calc((1384/1920)*100%);@include alpha(1);}
+}
+@include keyframes(s3_bg){
+	0%{width: 0;@include alpha(0);}
+	100%{width:calc((1385/1920)*100%);@include alpha(1);}
+}
+@include keyframes(s3_bgs){
+	0%{width: 0;@include alpha(0);}
+	100%{width:calc((1500/1920)*100%);@include alpha(1);}
+}
+@include keyframes(s3_bgss){
+	0%{width: 0;@include alpha(0);}
+	100%{width:calc((1650/1920)*100%);@include alpha(1);}
+}
+@include keyframes(s3_bgssm){
+	0%{width: 0;@include alpha(0);}
+	100%{width:100%;@include alpha(1);}
+}
+@include keyframes(sharkkk){
+	0%{right: 48%;@include alpha(0);}
+	100%{right: 50%;@include alpha(1);}
+}
+@include keyframes(sharkkks){
+	0%{right: 40%;@include alpha(0);}
+	100%{right: 42%;@include alpha(1);}
+}
+@include keyframes(sharkkksm){
+	0%{right:25%;@include alpha(0);}
+	100%{right: 30%;@include alpha(1);}
+}
+
+@include keyframes(wave){
+	0%{left: 0%;}
+	50%{left: 10%;}
+	100%{left: 0%;}
+}
+@include keyframes(w_100){
+	0%{width: 0%;}
+	100%{width: 100%;}
+}
+@include keyframes(ab_bird_pcs){
+	0%{left: -1%;margin-top:0%;@include rotate(0deg);}
+	25%{left: -2%;margin-top:-3%;@include rotate(2deg);}
+	50%{left: -3.5%;margin-top:0%;@include rotate(0deg);}
+	75%{left: -4%;margin-top:-2%;@include rotate(2deg);}
+	100%{left: -5%;margin-top:0%;@include rotate(0deg);}
+}
+@include keyframes(bgt){
+	0%{left: -20px;top: -20px;@include alpha(0);}
+	100%{left: 0;top: 0;@include alpha(1);}
+}
+@include keyframes(bgb){
+	0%{right: -20px;top: -20px;@include alpha(0);}
+	100%{right: 0;top: 0;@include alpha(1);}
+}
+@include keyframes(bgi){
+	0%{left: -20px;bottom: -20px;@include alpha(0);}
+	100%{left: 0;bottom: 0;@include alpha(1);}
+}
+@include keyframes(bga){
+	0%{right: -20px;bottom: -20px;@include alpha(0);}
+	100%{right: 0;bottom: 0;@include alpha(1);}
+}
+body{
+	overflow-x: hidden;
+}
+.section_1{
+
+	.topbox2{
+		.main_center{
+			.itembox{
+				top: 0px;
+				@include alpha(0);
+				&:nth-child(1){
+					@include animation(top_20 0.3s 0.9s linear forwards);
+				}
+				&:nth-child(2){
+					@include animation(top_20 0.3s 1.1s linear forwards);
+				}
+
+			}
+		}
+		.bird{
+			@include alpha(0);
+			@include animation(index_bird 0.8s 1.2s linear forwards);
+			@media #{$pc_s}{
+				@include animation(index_bird_pcs 0.8s 1.2s linear forwards);
+			}
+			@media #{$pad}{
+				@include animation(index_bird_m 0.8s 1.2s linear forwards);
+			}
+			@media #{$mobile}{
+				@include animation(index_bird_m 0.8s 1.2s linear forwards);
+			}
+		}
+	}
+	.content_area{
+		@include alpha(0);
+		@include animation(top_search 0.3s 0.7s linear forwards);
+	}
+	.item_01{
+		@include alpha(0);
+		@include animation(item_01 0.6s 0s linear forwards);
+		.img{
+			transform-origin: 0% 50%;
+
+			@include animation(item_01_rotate 4s 0s linear infinite);
+		}
+	}
+	.item_02{
+		@include alpha(0);
+		@include animation(item_02 0.6s 0.2s linear forwards);
+
+		.img{
+			transform-origin: 0% 0%;
+			@include animation(item_02_rotate 10s 0s linear infinite);
+		}
+	}	
+	.item_03{
+		@include alpha(0);
+		@include animation(item_03 0.6s 0.2s linear forwards);
+		@media #{$mobile}{
+		@include animation(item_03_m 0.6s 0.2s linear forwards);
+		}
+		.img{
+			transform-origin: 0% 0%;
+
+			@include animation(item_03_rotate 8s 0s linear infinite);
+		}
+	}
+	.item_05{
+		@include alpha(0); 
+		@include animation(item_05 0.6s 0.2s linear forwards);
+		.img{
+			transform-origin: 0% 50%;
+
+			@include animation(item_05_rotate 7s 0s linear infinite);
+		}
+	}
+	.item_06{
+		@include alpha(0); 
+		@include animation(item_06 0.6s 0.4s linear forwards);
+		.img{
+			transform-origin: 0% 0%;
+
+		}
+		@media #{$mobile}{
+			@include animation(item_06_m 0.6s 0.2s linear forwards);
+			.img{
+				@include animation(none);
+			}
+		}
+
+
+	}
+	.item_07{
+		@include alpha(0); 
+		@include animation(item_07 0.6s 0.6s linear forwards);
+		@media #{$mobile}{
+			@include animation(item_07_m 0.6s 0.2s linear forwards);
+		}		
+		.img{
+			transform-origin: 0% 0%;
+
+			@include animation(item_07_rotate 5s 0s linear infinite);
+		}
+	}
+	.item_08{
+		@include alpha(0); 
+		@include animation(alpha01 0.6s 0.6s linear forwards);
+		.rel{
+			@include animation(item_08 1s 0s linear forwards);
+		}
+	}
+} 
+
+.section_2{
+	.news_list{
+		li{
+			@include alpha(0);
+		}
+	}
+	&.vivi{ 
+		.title{
+			@include animation(left_20 0.5s 0s linear forwards);
+		}
+		.news_tab{
+			@include animation(alpha01 0.5s 0.3s linear forwards);
+		}
+		.bg_area{
+			@include animation(s2_bg 0.5s 0.3s linear forwards);
+		}
+		.bg_item{
+			@include animation(alpha01 0.5s 0.8s linear forwards);
+		}
+		.flower{
+			@include animation(alpha01 0.5s 1.8s linear forwards);
+		}
+		.news_list{
+			li:nth-child(1){
+				@include animation(top_20 0.5s 1s linear forwards);
+				@media #{$mobile}{
+					@include animation(top_20 0.5s 0.5s linear forwards);
+				}
+			}
+			li:nth-child(2){
+				@include animation(top_20 0.5s 1.2s linear forwards);
+				@media #{$mobile}{
+					@include animation(top_20 0.5s 0.7s linear forwards);
+				}
+			}
+			li:nth-child(3){
+				@include animation(top_20 0.5s 1.4s linear forwards);
+				@media #{$mobile}{
+					@include animation(top_20 0.5s 0.9s linear forwards);
+				}
+			}
+			li:nth-child(4){
+				@include animation(top_20 0.5s 1.6s linear forwards);
+				@media #{$mobile}{
+					@include animation(top_20 0.5s 1.1s linear forwards);
+				}
+			}
+		}
+		.go_more{
+			@include animation(left_20 0.5s 1.6s linear forwards);
+		}
+		.bg_rightline{
+			@include animation(alpha01 0.5s 1.7s linear forwards);
+		}
+	}
+}
+
+.section_3{
+	.edu_list{
+		li{
+			@include alpha(0); 
+			position: relative; 
+		}
+	}
+	&.vivi{
+		.bg_area{
+			@include animation(s3_bg 0.5s 0s linear forwards);
+			@media #{$pc_m}{
+				@include animation(s3_bgs 0.5s 0s linear forwards);
+			}
+			@media #{$pc_s}{
+				@include animation(s3_bgss 0.5s 0s linear forwards);
+			}
+			@media #{$pad}{
+				@include animation(s3_bgssm 0.5s 0s linear forwards);
+			}			
+		}
+		.bg_item{
+			@include animation(alpha01 0.5s 0.5s linear forwards);
+		}
+		.titletop{
+			@include animation(top_20 0.3s 0.5s linear forwards);
+		}	
+		.edu_tag{
+			@include animation(top_20 0.3s 0.7s linear forwards);
+		}
+		.edu_list{
+			li:nth-child(odd){
+				@include animation(top_20 0.5s 0.9s linear forwards);
+			}
+			li:nth-child(even){
+				@include animation(top_20 0.5s 1.2s linear forwards);
+			}			
+		}
+		.go_more{
+			@include animation(left_20 0.5s 1.4s linear forwards);
+		}
+		.shark{
+			@include animation(sharkkk 0.5s 1.4s linear forwards);
+			@media #{$pc_m}{
+				@include animation(sharkkks 0.5s 1.4s linear forwards);
+			}
+			@media #{$mobile}{
+				@include animation(sharkkksm 0.5s 0.5s linear forwards);
+			}			
+		}
+		.wave{
+			@include animation(alpha01 0.5s 1.4s linear forwards);
+			img{
+				@include animation(wave 2.5s 0s linear infinite);
+			}
+		}			
+	}
+}
+
+.section_4{
+
+	&.vivi{ 
+		.title{
+			@include animation(left_20 0.5s 0.3s linear forwards);
+		}
+
+		.bg_area{
+			@include animation(s2_bg 0.5s 0s linear forwards);
+		}
+		.bg_item{
+			@include animation(alpha01 0.5s 0.5s linear forwards);
+		}
+		.ani{
+			@include animation(alpha01 0.5s 0.8s linear forwards);
+		}
+
+		.mask{ 
+			@include animation(w_101 5s 1.3s linear infinite);
+		}
+		.index_partner{
+			@include animation(top_20 0.5s 0.6s linear forwards);
+		}
+	}
+}
+
+.about_bn{
+	.bgcolor{
+		@include animation(w_100 0.8s 0s linear forwards);
+	}
+	.bg_pattern{
+		@include animation(alpha01 0.5s 0.5s linear forwards);
+	}
+	.bird{
+		@include animation(alpha01 0.5s 1s linear forwards);
+		img{
+			@include animation(ab_bird_pcs 0.5s 1s linear forwards);
+		}
+	}
+	.w_bg{
+		@include animation(top_20 0.4s 0.8s linear forwards);
+
+	}
+}
+
+.partner_area{
+	.colorarea{
+		@include animation(w_100 0.5s 0s linear forwards);
+	}
+	.leftbox{
+		@include animation(top_20 0.4s 0.5s linear forwards);
+	}
+	.rightbox{
+		@include animation(top_20 0.4s 0.7s linear forwards);
+	}	
+}
+
+.popbg{
+	.bgt{
+		@include animation(bgt 0.5s 0s linear forwards);
+	}
+	.bgb{
+		@include animation(bgb 0.5s 0s linear forwards);
+	}
+	.bgi{
+		@include animation(bgi 0.5s 0s linear forwards);
+	}
+	.bga{
+		@include animation(bga 0.5s 0s linear forwards);
+	}
+	.wbox_center{
+		@include animation(top_20 0.3s 0.2s linear forwards);
+	}
+}

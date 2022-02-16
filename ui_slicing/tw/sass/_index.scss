@@ -140,21 +140,21 @@ body{
 		}
 	}
 	.right_mbhambuger{
-		display: none;
+		display: flex;
+		position: fixed;
+		right: 0;
+		z-index:50;
+		width: 60px;
+		height: 60px;		
+		float: right; 
+		cursor: pointer;
+		align-items:center;
+		justify-content:center;
+		@media #{$pc}{
+			display: none;
+		}
 		@media #{$pad}{
-			display: block;
-			position: fixed;
-			right: 0;
-			z-index:50;
-			width: 60px;
-			height: 60px;
-			
-			float: right;
-			cursor: pointer;
 			display: flex;
-			align-items:center;
-			justify-content:center;
-
 		}
 		.hmenu {
 			height: 25px;

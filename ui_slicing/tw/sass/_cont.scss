@@ -1212,6 +1212,11 @@
 			right: 15px;
 			width: 40px;
 			height: 40px;
+			&:hover{
+				width: 40px;
+				height: 40px;
+				background-size:40px auto;
+			}
 
 		}
 	}
