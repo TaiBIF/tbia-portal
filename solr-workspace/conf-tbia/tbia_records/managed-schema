@@ -650,8 +650,10 @@
   <dynamicField name="*_p" type="location" indexed="true" stored="true"/>
   <!-- Full text search -->
   <copyField source="rightsHolder" dest="_text_"/>
+  <!--
   <copyField source="sourceScientificName" dest="_text_"/>
   <copyField source="sourceVernacularName" dest="_text_"/>
+  -->
   <copyField source="sensitiveCategory" dest="_text_"/>
   <copyField source="taxonRank" dest="_text_"/>
   <copyField source="typeStatus" dest="_text_"/>
