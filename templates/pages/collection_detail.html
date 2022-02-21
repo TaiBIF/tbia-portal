@@ -39,15 +39,15 @@
       <div class="left_area">
         <div class="cont_padbox">
           {% if row.references != '' %}
-          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="gbg_title">典藏單位：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
+          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="gbg_title">來源資料庫：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
           {% else %}
-          <a class="gbg_title">典藏單位：{{ row.rightsHolder }}</a>
+          <a class="gbg_title">來源資料庫：{{ row.rightsHolder }}</a>
           {% endif %}
           <h2>中⽂名：{{ row.common_name_c }}</h2>
           <h2>學名：{{ row.scientificName }}</h2>
           <div class="short">
-            <p>典藏單位使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-            <p>典藏單位使⽤學名：{{ row.sourceScientificName }}</p>
+            <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
+            <p>來源資料庫使⽤學名：{{ row.sourceScientificName }}</p>
           </div>
           <p class="code">Name code：{{ row.scientificNameID }}</p>
         </div>
@@ -164,35 +164,6 @@
         </ul>
       </div>
     </div>
-
-    <!--假設沒有上下則時給a一個class="gray_style"-->
-    <!--
-    <div class="btn_three">
-      <a href="#">
-        <svg xmlns="http://www.w3.org/2000/svg" width="9.187" height="17.053" viewBox="0 0 9.187 17.053">
-          <g id="pre" transform="translate(111.483 17.054) rotate(180)">
-            <g id="Group_17" data-name="Group 17" transform="translate(102.297 0)">
-              <path id="Path_59" data-name="Path 59" d="M111.291,8.059,103.417.185a.656.656,0,0,0-.928.928L109.9,8.523l-7.411,7.411a.656.656,0,0,0,.928.928l7.874-7.874A.656.656,0,0,0,111.291,8.059Z" transform="translate(-102.297 0)" fill="#3f5146" />
-            </g>
-          </g>
-        </svg>
-
-        <p>上一則</p>
-      </a>
-      <a href="#"><p>回列表</p></a>
-      <a href="#">
-        <p>下一則</p>
-        <svg xmlns="http://www.w3.org/2000/svg" width="9.187" height="17.053" viewBox="0 0 9.187 17.053">
-          <g id="next" transform="translate(-102.297 0)">
-            <g id="Group_17" data-name="Group 17" transform="translate(102.297 0)">
-              <path id="Path_59" data-name="Path 59" d="M111.291,8.059,103.417.185a.656.656,0,0,0-.928.928L109.9,8.523l-7.411,7.411a.656.656,0,0,0,.928.928l7.874-7.874A.656.656,0,0,0,111.291,8.059Z" transform="translate(-102.297 0)" fill="#3f5146" />
-            </g>
-          </g>
-        </svg>
-      </a>
-    </div>
-    -->
-
   </div>
 </div>
 {% endblock body %}
@@ -208,10 +179,17 @@
     shadowSize: [41, 41]
   });
 
+  {% if row.sensitiveCategory in '座標不開放,縣市' %}
+  let map = L.map('map').setView([0,0],0);
+  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  {% else %}
   let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],6);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   L.marker(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'], {icon: redIcon}).addTo(map);
+  {% endif %}
 </script>
 {% endblock script %}

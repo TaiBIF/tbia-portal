@@ -34,7 +34,7 @@
           <div class="leftbox">
             <div class="two_input">
               <div class="input_item">
-                <input type="text" name="name" placeholder="中文名/學名" />
+                <input type="text" name="name" placeholder="中文名/學名/中文別名" />
               </div>
             </div>
             <div class="two_input">
@@ -92,7 +92,12 @@
                 <input name="recordedBy" type="text" placeholder="紀錄者" />
               </div>
               <div class="input_item">
-                <input name="basisOfRecord" type="text" placeholder="資料基底" />
+                <select name="basisOfRecord">
+                  <option value="" readonly="true" selected>資料基底</option>
+                  {% for i in basis_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
             <div class="two_input">

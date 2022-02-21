@@ -34,7 +34,7 @@
           <div class="leftbox">
             <div class="two_input">
               <div class="input_item">
-                <input type="text" name="name" placeholder="中文名/學名" />
+                <input type="text" name="name" placeholder="中文名/學名/中文別名" />
               </div>
               <div class="input_item">
                 <select name="typeStatus">
@@ -47,7 +47,7 @@
             <div class="two_input">
               <div class="input_item">
                 <select name="rightsHolder" id="">
-                  <option value="" readonly="true" selected>典藏單位</option>
+                  <option value="" readonly="true" selected>來源資料庫</option>
                   {% for i in holder_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
@@ -165,7 +165,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-rightsHolder">
-					<p>典藏單位</p>
+					<p>來源資料庫</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-scientificNameID">

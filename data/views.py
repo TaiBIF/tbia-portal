@@ -498,9 +498,10 @@ def search_occurrence(request):
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+    basis_list = ['PreservedSpecimen', 'FossilSpecimen', 'LivingSpecimen', 'MaterialSample', 'HumanObservation', 'MachineObservation', 'MaterialCitation']
         
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
-        'rank_list': rank_list})
+        'rank_list': rank_list, 'basis_list': basis_list})
 
 
 def occurrence_detail(request, id):
@@ -554,7 +555,6 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
-
         # default columns
         selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
         # use JSON API to avoid overlong query url
@@ -619,6 +619,7 @@ def get_conditional_records(request):
                     "limit": 10,
                     "filter": query_list,
                     "sort":  "scientificName asc" }
+            print(query)
 
             response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
             
