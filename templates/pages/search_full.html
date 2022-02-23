@@ -26,6 +26,15 @@
       height: 45px;
   }
 }
+
+.two_cont_area .rightbox_content .card_list_1 li .num {
+  right: 10px;
+  top: 6px
+}
+
+.two_cont_area .rightbox_content .card_list_1 li {
+  padding: 15px 15px 1px 15px;
+}
 </style>
 {% endblock style %}
 {% block body %}
@@ -174,7 +183,7 @@
             {% for i in occurrence.card %}
               <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
                 <div class="num">{{ i.count }}</div>
-                <div style="height: 20px; margin-bottom: 2px"></div>
+                <div style="height: 20px; margin-bottom: 6px"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
                 {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
@@ -208,7 +217,7 @@
             {% for i in collection.card %}
             <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
               <div class="num">{{ i.count }}</div>
-              <div style="height: 20px; margin-bottom: 2px"></div>
+              <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
               {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
@@ -829,7 +838,7 @@
             $(`.${response.card_class}`).append( `
             <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1','card')">
               <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 2px"></div>
+              <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
               <p>${ x.matched_col }：${x.matched_value}</p>
@@ -838,7 +847,7 @@
             $(`.${response.card_class}`).append( `
             <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
               <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 2px"></div>
+              <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
               <p>學名：${x.val}</p>
             </li>`)
@@ -944,7 +953,7 @@
           $(card_class).append( `
           <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
             <div class="num">${x.count}</div>
-            <div style="height: 20px; margin-bottom: 2px"></div>
+            <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>
             <p>${ x.matched_col }：${x.matched_value}</p>
@@ -953,7 +962,7 @@
           $(card_class).append( `
           <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
             <div class="num">${x.count}</div>
-            <div style="height: 20px; margin-bottom: 2px"></div>
+            <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>
             <p>學名：${x.val}</p>
           </li>` )
