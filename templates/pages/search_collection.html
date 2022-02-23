@@ -350,7 +350,7 @@ function submitSearch (page, from){
           <div class="result_inf_top">
             <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
             <div class="rightmore">
-              <p class="datenum">資料筆數 ： ${response.count}</p>
+              <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
               <button class="dw">下載所有結果</button>
               <a href="#" class="qmark"></a>
             </div>
