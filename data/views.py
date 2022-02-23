@@ -567,13 +567,16 @@ def get_conditional_records(request):
         else:
             map_dict = map_occurrence
 
-        for i in ['rightsHolder', 'locality', 'organismQuantity', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
+        for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
+        
+        if quantity := request.POST.get('organismQuantity'):
+            query_list += [f'standardOrganismQuantity: {quantity}']
 
         for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']:
             if val := request.POST.get(i):
