@@ -320,9 +320,14 @@
 
   // submit search form
 function submitSearch (page, from){
+
+    if (from == 'search'){
+      window.condition = $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val()})
+    } 
+
     $.ajax({
       url: "{% url 'get_conditional_records' %}",
-      data: $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val(), 'page': page}),
+      data: window.condition + '&' + $.param({'page': page}),
       type: 'POST',
       dataType : 'json',
     })
@@ -489,6 +494,12 @@ function submitSearch (page, from){
       window.selected.prop('checked', true);
     }
   });
+
+    // disable string input in 數量單位
+    $("input[name=organismQuantity]").on("keyup", function() {
+      this.value = this.value.replace(/\D/g,'');
+    });
+  
 
 </script>
 {% endblock %}
