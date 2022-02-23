@@ -676,7 +676,7 @@
         </div>
         <div class="result_inf_top">
           <button class="cate_btn" onclick="popupField('${record_type}')">欄位選項 +</button>
-          <p class="datenum">資料筆數：${limit}</p>
+          <p class="datenum">資料筆數：${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
         </div>
         <div class="result_table" style="overflow-x: auto;">
           <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
