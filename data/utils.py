@@ -2,6 +2,134 @@ import pandas as pd
 import numpy as np
 import math
 
+var_df = pd.DataFrame([
+('臺','[臺台]'),
+('台','[臺台]'),
+('羣','[群羣]'),
+('群','[群羣]'),
+('峯','[峯峰]'),
+('峰','[峯峰]'),
+('曬','[晒曬]'),
+('晒','[晒曬]'),
+('裏','[裏裡]'),
+('裡','[裏裡]'),
+('薦','[荐薦]'),
+('荐','[荐薦]'),
+('艷','[豔艷]'),
+('豔','[豔艷]'),
+('粧','[妝粧]'),
+('妝','[妝粧]'),
+('濕','[溼濕]'),
+('溼','[溼濕]'),
+('樑','[梁樑]'),
+('梁','[梁樑]'),
+('秘','[祕秘]'),
+('祕','[祕秘]'),
+('污','[汙污]'),
+('汙','[汙污]'),
+('册','[冊册]'),
+('冊','[冊册]'),
+('唇','[脣唇]'),
+('脣','[脣唇]'),
+('朶','[朵朶]'),
+('朵','[朵朶]'),
+('鷄','[雞鷄]'),
+('雞','[雞鷄]'),
+('猫','[貓猫]'),
+('貓','[貓猫]'),
+('踪','[蹤踪]'),
+('蹤','[蹤踪]'),
+('恒','[恆恒]'),
+('恆','[恆恒]'),
+('獾','[貛獾]'),
+('貛','[貛獾]'),
+('万','[萬万]'),
+('萬','[萬万]'),
+('两','[兩两]'),
+('兩','[兩两]'),
+('椮','[槮椮]'),
+('槮','[槮椮]'),
+('体','[體体]'),
+('體','[體体]'),
+('鳗','[鰻鳗]'),
+('鰻','[鰻鳗]'),
+('蝨','[虱蝨]'),
+('虱','[虱蝨]'),
+('鲹','[鰺鲹]'),
+('鰺','[鰺鲹]'),
+('鳞','[鱗鳞]'),
+('鱗','[鱗鳞]'),
+('鳊','[鯿鳊]'),
+('鯿','[鯿鳊]'),
+('鯵','[鰺鯵]'),
+('鰺','[鰺鯵]'),
+('鲨','[鯊鲨]'),
+('鯊','[鯊鲨]'),
+('鹮','[䴉鹮]'),
+('䴉','[䴉鹮]'),
+
+('鴴','[行鳥鴴]'),
+('鵐','[鵐巫鳥]'),
+('䱵','[䱵魚翁]'),
+('䲗','[䲗魚銜]'),
+('䱀','[䱀魚央]'),
+('䳭','[䳭即鳥]'),
+('鱼','[魚鱼]'),
+('魚','[魚鱼]'),
+('万','[萬万]'),
+('萬','[萬万]'),
+('鹨','[鷚鹨]'),
+('鷚','[鷚鹨]'),
+('蓟','[薊蓟]'),
+('薊','[薊蓟]'),
+('黒','[黑黒]'),
+('黑','[黑黒]'),
+('隠','[隱隠]'),
+('隱','[隱隠]'),
+('黄','[黃黄]'),
+('黃','[黃黄]'),
+('囓','[嚙囓]'),
+('嚙','[嚙囓]'),
+('莨','[茛莨]'),
+('茛','[茛莨]'),
+('霉','[黴霉]'),
+('黴','[黴霉]'),
+('莓','[苺莓]'),  
+('苺','[苺莓]'),  
+('菫','[堇菫]'),
+('堇','[堇菫]')], columns=['char','pattern'])
+var_df['idx'] = var_df.groupby(['pattern']).ngroup()
+
+var_df_2 = pd.DataFrame([('行鳥','[行鳥鴴]'),
+('蝦虎','[鰕蝦]虎'),
+('鰕虎','[鰕蝦]虎'),
+('巫鳥','[鵐巫鳥]'),
+('魚翁','[䱵魚翁]'),
+('魚銜','[䲗魚銜]'),
+('魚央','[䱀魚央]'),
+('游蛇','[遊游]蛇'),
+('遊蛇','[遊游]蛇'),
+('即鳥','[䳭即鳥]'),
+('椿象','[蝽椿]象'),
+('蝽象','[蝽椿]象')], columns=['char','pattern'])
+
+# 先對一個字再對兩個字
+
+def get_variants(string):
+  new_string = ''
+  # 單個異體字
+  for s in string:    
+    if len(var_df[var_df['char']==s]):
+      new_string += var_df[var_df['char']==s].pattern.values[0]
+    else:
+      new_string += s
+  # 兩個異體字
+  for i in var_df_2.index:
+    char = var_df_2.loc[i, 'char']
+    if char in new_string:
+      new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
+  return new_string
+
 
 def get_page_list(current_page, total_page, window=5):
   list_index = math.ceil(current_page/window)
@@ -30,13 +158,6 @@ def get_key(val, my_dict):
              return key
  
     return "key doesn't exist"
-
-taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
-# taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
-taicol = taicol[taicol['is_accepted_name']==True][['name','common_name_c']]
-taicol = taicol.replace({np.nan: ''})
-taicol['common_name_c'] = taicol['common_name_c'].apply(lambda x: x.split(';')[0] if x else x)
-
 
 facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
                     'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
@@ -110,7 +231,7 @@ map_collection = {
     'scientificName': '學名', 
     'alternative_name_c': '中文別名', 
     'synonyms': '同物異名',
-    'rightsHolder': '典藏單位', 
+    'rightsHolder': '來源資料庫', 
     'scientificNameID': 'Name Code', 
     'collectionID': '館藏號', 
     'taxonRank': '分類層級', 

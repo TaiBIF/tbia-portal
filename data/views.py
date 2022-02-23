@@ -4,6 +4,7 @@ from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
 from .utils import *
+from .taicol import taicol
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -45,8 +46,10 @@ def search_full(request):
             }
 
         keyword_reg = ''
-        for j in keyword:
+        for j in keyword:    
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        keyword_reg = get_variants(keyword_reg)
+        print(keyword_reg)
 
         # collection
         facet_list = col_facets
@@ -138,7 +141,7 @@ def search_full(request):
             occ_card_len = 0
 
         # news
-        news = News.objects.filter(type='news').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_news = news.count()
         news_rows = []
         for x in news.all()[:6]:
@@ -147,7 +150,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        event = News.objects.filter(type='event').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        event = News.objects.filter(type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_event = event.count()
         event_rows = []
         for x in event.all()[:6]:
@@ -156,7 +159,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        project = News.objects.filter(type='project').filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+        project = News.objects.filter(type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_project = project.count()
         project_rows = []
         for x in project.all()[:6]:
@@ -166,7 +169,7 @@ def search_full(request):
                 'id': x.id
             })
         # resource
-        resource = Resource.objects.filter(title__icontains=keyword)
+        resource = Resource.objects.filter(title__regex=keyword_reg)
         c_resource = resource.count()
         resource_rows = []
         for x in resource.all()[:6]:
@@ -234,6 +237,7 @@ def get_records(request):
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        keyword_reg = get_variants(keyword_reg)
         q = f'{key}:/.*{keyword_reg}.*/' 
         
         offset = (page-1)*10
@@ -271,6 +275,11 @@ def get_records(request):
 def get_more_docs(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
+        keyword_reg = ''
+        for j in keyword:    
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        keyword_reg = get_variants(keyword_reg)
+
         doc_type = request.POST.get('doc_type', '')
         offset = request.POST.get('offset', '')
         if offset:
@@ -278,7 +287,7 @@ def get_more_docs(request):
 
         rows = []
         if doc_type == 'resource':
-            resource = Resource.objects.filter(title__icontains=keyword)
+            resource = Resource.objects.filter(title__regex=keyword_reg)
             for x in resource.all()[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
@@ -288,7 +297,7 @@ def get_more_docs(request):
                 })
             has_more = True if resource.all()[offset+6:].count() > 0 else False
         else:
-            news = News.objects.filter(type=doc_type).filter(Q(title__icontains=keyword)|Q(content__icontains=keyword))
+            news = News.objects.filter(type=doc_type).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
             for x in news.all()[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
@@ -315,6 +324,7 @@ def get_focus_cards(request):
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        keyword_reg = get_variants(keyword_reg)
         q = f'{key}:/.*{keyword_reg}.*/' 
         
         if record_type == 'col':
@@ -417,6 +427,7 @@ def get_more_cards(request):
         q = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        keyword_reg = get_variants(keyword_reg)
 
         
         if is_sub == 'true':
@@ -570,6 +581,8 @@ def get_conditional_records(request):
         for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
+                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                    val = get_variants(val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
@@ -578,7 +591,7 @@ def get_conditional_records(request):
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
 
-        for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']:
+        for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
@@ -608,6 +621,7 @@ def get_conditional_records(request):
         
         if val := request.POST.get('name'):
             keyword_reg = ''
+            val = get_variants(val)
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
