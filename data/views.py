@@ -496,7 +496,7 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無'] # TODO 物種不開放僅開放有權限的人查詢
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
     basis_list = ['PreservedSpecimen', 'FossilSpecimen', 'LivingSpecimen', 'MaterialSample', 'HumanObservation', 'MachineObservation', 'MaterialCitation']
         
@@ -580,7 +580,10 @@ def get_conditional_records(request):
 
         for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']:
             if val := request.POST.get(i):
-                query_list += [f'{i}:{val}']
+                if i == 'sensitiveCategory' and val == '無':
+                    query_list += [f'-(-{i}:{val} {i}:*)']
+                else:
+                    query_list += [f'{i}:{val}']
 
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
