@@ -3,9 +3,15 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
   crossorigin=""/>
+<!--
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+-->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
   crossorigin=""></script>
+<!--
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+-->
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
 {% endblock head %}
@@ -121,7 +127,9 @@
             </div>
             <div class="clearfix">
               <label class="btnupload">
-                <p onclick="popupGeo()">上傳Polygon</p>
+              <p onclick="popupGeo()">上傳Polygon</p>
+              <label class="btnupload" style="margin-left: 5px;">
+              <p style=" width: 80px" onclick="clearGeo()">重設</p>
             </div>
           </div>
         </div>
@@ -279,6 +287,7 @@
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
+
   $( function() {
 
   // date picker
@@ -292,16 +301,22 @@
     $(".geojson_popup").show()
   }
 
+  function clearGeo(){
+    window.geoJSON.remove();
+    $('#geojson_textarea').val('')
+  }
+
   $('.geojson_send').click( function(){
     try {
       let geoObj = JSON.parse($('#geojson_textarea').val());
-      let geoJSON = L.geoJSON(geoObj).addTo(map);
-      map.fitBounds(geoJSON.getBounds());
+      window.geoJSON = L.geoJSON(geoObj).addTo(map);
+      map.fitBounds(window.geoJSON.getBounds());
     } catch (e) {
       alert('上傳失敗！請檢查GeoJSON格式是否正確')
     }
     $(".geojson_popup").hide()
   })
+
 
 
   // submit search form

@@ -123,7 +123,9 @@
             </div>
             <div class="clearfix">
               <label class="btnupload">
-                <p onclick="popupGeo()">上傳Polygon</p>
+              <p onclick="popupGeo()">上傳Polygon</p>
+              <label class="btnupload" style="margin-left: 5px;">
+              <p style=" width: 80px" onclick="clearGeo()">重設</p>  
             </div>
           </div>
         </div>
@@ -306,11 +308,16 @@
     $(".geojson_popup").show()
   }
 
+  function clearGeo(){
+    window.geoJSON.remove();
+    $('#geojson_textarea').val('')
+  }
+
   $('.geojson_send').click( function(){
     try {
       let geoObj = JSON.parse($('#geojson_textarea').val());
-      let geoJSON = L.geoJSON(geoObj).addTo(map);
-      map.fitBounds(geoJSON.getBounds());
+      window.geoJSON = L.geoJSON(geoObj).addTo(map);
+      map.fitBounds(window.geoJSON.getBounds());
     } catch (e) {
       alert('上傳失敗！請檢查GeoJSON格式是否正確')
     }
