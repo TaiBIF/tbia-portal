@@ -35,6 +35,14 @@
 .two_cont_area .rightbox_content .card_list_1 li {
   padding: 15px 15px 1px 15px;
 }
+
+@media only screen and (max-width: 767px) {
+  .searchbar_top .rightbox_select .icon_two .hvmask {
+    display: flex;
+    align-items: center;
+  }
+
+}
 </style>
 {% endblock style %}
 {% block body %}
@@ -77,7 +85,7 @@
           <a class="hvmask">物種出現紀錄查詢</a>
           <div class="line"></div>
         </div>
-        <div class="item"  onclick='location.href="{% url "search_collection" %}"' style="cursor: pointer">
+        <div class="item" onclick='location.href="{% url "search_collection" %}"' style="cursor: pointer">
           <a>
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>⾃然史典藏查詢</span>
