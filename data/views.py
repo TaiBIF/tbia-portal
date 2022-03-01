@@ -22,7 +22,7 @@ import requests
 import geopandas as gpd
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def search_full(request):
@@ -601,7 +601,8 @@ def get_conditional_records(request):
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
                 start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').isoformat() + 'Z'
+                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d') + timedelta(days = 1) 
+                end_date = end_date.isoformat() + 'Z'
                 query_list += [f'standardDate:[{start_date} TO {end_date}]']
             except:
                 pass
