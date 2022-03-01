@@ -39,7 +39,7 @@
       <div class="left_area">
         <div class="cont_padbox">
           {% if row.references != '' %}
-          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="gbg_title">來源資料庫：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
+          <a href="{{ row.references }}" target="_blank" class="gbg_title">來源資料庫：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
           {% else %}
           <a class="gbg_title">來源資料庫：{{ row.rightsHolder }}</a>
           {% endif %}
@@ -49,7 +49,11 @@
             <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
             <p>來源資料庫使⽤學名：{{ row.sourceScientificName }}</p>
           </div>
+          {% if row.scientificNameID %}
+          <a class="code" target="_blank" href="https://taibnet.sinica.edu.tw/chi/taibnet_species_detail.php?name_code={{ row.scientificNameID }}">Name code：{{ row.scientificNameID }} <i class="fas fa-external-link-alt"></i></a>
+          {% else %}
           <p class="code">Name code：{{ row.scientificNameID }}</p>
+          {% endif %}
         </div>
       </div>
       {% if row.associatedMedia is not None  %}

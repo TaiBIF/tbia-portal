@@ -47,7 +47,11 @@
             <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
             <p>來源資料庫使⽤學名：{{ row.sourceScientificName }}</p>
           </div>
+          {% if row.scientificNameID %}
+          <a class="code" target="_blank" href="https://taibnet.sinica.edu.tw/chi/taibnet_species_detail.php?name_code={{ row.scientificNameID }}">Name code：{{ row.scientificNameID }} <i class="fas fa-external-link-alt"></i></a>
+          {% else %}
           <p class="code">Name code：{{ row.scientificNameID }}</p>
+          {% endif %}        
         </div>
       </div>
     </div>
