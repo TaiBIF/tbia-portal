@@ -95,6 +95,8 @@ var_df = pd.DataFrame([
 ('黴','[黴霉]'),
 ('莓','[苺莓]'),  
 ('苺','[苺莓]'),  
+('藥','[葯藥]'),  
+('葯','[葯藥]'),  
 ('菫','[堇菫]'),
 ('堇','[堇菫]')], columns=['char','pattern'])
 var_df['idx'] = var_df.groupby(['pattern']).ngroup()

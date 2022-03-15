@@ -23,6 +23,7 @@ import geopandas as gpd
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 from datetime import datetime, timedelta
+import re
 
 
 def search_full(request):
@@ -46,10 +47,9 @@ def search_full(request):
             }
 
         keyword_reg = ''
-        for j in keyword:    
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
-        print(keyword_reg)
 
         # collection
         facet_list = col_facets
@@ -236,7 +236,7 @@ def get_records(request):
         #     keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
         keyword_reg = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
         q = f'{key}:/.*{keyword_reg}.*/' 
         
@@ -277,7 +277,7 @@ def get_more_docs(request):
         keyword = request.POST.get('keyword', '')
         keyword_reg = ''
         for j in keyword:    
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
 
         doc_type = request.POST.get('doc_type', '')
@@ -323,7 +323,7 @@ def get_focus_cards(request):
 
         keyword_reg = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
         q = f'{key}:/.*{keyword_reg}.*/' 
         
@@ -426,7 +426,7 @@ def get_more_cards(request):
         keyword_reg = ''
         q = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
 
         
@@ -581,11 +581,11 @@ def get_conditional_records(request):
         for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
-                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
-                    val = get_variants(val)
                 keyword_reg = ''
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                    keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
         
         if quantity := request.POST.get('organismQuantity'):
@@ -622,9 +622,9 @@ def get_conditional_records(request):
         
         if val := request.POST.get('name'):
             keyword_reg = ''
-            val = get_variants(val)
             for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else j
+                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg = get_variants(keyword_reg)
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
@@ -640,7 +640,6 @@ def get_conditional_records(request):
                     "limit": 10,
                     "filter": query_list,
                     "sort":  "scientificName asc" }
-            print(query)
 
             response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
             
