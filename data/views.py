@@ -30,6 +30,7 @@ def search_full(request):
     keyword = request.GET.get('keyword', '')
 
     if keyword:
+        keyword = keyword.strip()
         # TODO 階層
         # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
         # if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
@@ -581,6 +582,7 @@ def get_conditional_records(request):
         for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'scientificNameID', 'preservation']:
             if val := request.POST.get(i):
+                val = val.strip()
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -621,6 +623,7 @@ def get_conditional_records(request):
                 pass
         
         if val := request.POST.get('name'):
+            val = val.strip()
             keyword_reg = ''
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)

@@ -649,6 +649,7 @@
   <dynamicField name="*_d" type="pdouble" indexed="true" stored="true"/>
   <dynamicField name="*_p" type="location" indexed="true" stored="true"/>
   <!-- Full text search -->
+  <copyField source="eventDate" dest="_text_"/>
   <copyField source="rightsHolder" dest="_text_"/>
   <!--
   <copyField source="sourceScientificName" dest="_text_"/>
