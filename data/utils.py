@@ -2,9 +2,14 @@ import pandas as pd
 import numpy as np
 import math
 
+# TODO 懸鈎子=>懸鉤子
+
+
 var_df = pd.DataFrame([
 ('臺','[臺台]'),
 ('台','[臺台]'),
+('螺','[螺螺]'),
+('螺','[螺螺]'),
 ('羣','[群羣]'),
 ('群','[群羣]'),
 ('峯','[峯峰]'),
@@ -190,7 +195,7 @@ map_occurrence = {
     'scientificName': '學名',
     'alternative_name_c': '中文別名', 
     'synonyms': '同物異名',
-    'taxonRank': '分類層級', 
+    'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
     'scientificNameID': 'Name Code', 
@@ -198,7 +203,7 @@ map_occurrence = {
     'locality': '出現地', 
     'organismQuantity': '數量',
     'organismQuantityType': '數量單位',
-    'recordedBy': '紀錄者', 
+    'recordedBy': '記錄者', 
     'verbatimLongitude': '經度',
     'verbatimLatitude': '緯度',
     'verbatimSRS': '空間參考系統',
@@ -206,7 +211,7 @@ map_occurrence = {
     'coordinateUncertaintyInMeters': '座標誤差',
     'dataGeneralizations': '座標是否有模糊化',
     'coordinatePrecision': '座標模糊化程度',
-    'basisOfRecord': '資料基底', 
+    'basisOfRecord': '紀錄類型', 
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
@@ -235,7 +240,7 @@ map_collection = {
     'rightsHolder': '來源資料庫', 
     'scientificNameID': 'Name Code', 
     'collectionID': '館藏號', 
-    'taxonRank': '分類層級', 
+    'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'typeStatus': '標本類型', 
     'preservation': '保存方式', 

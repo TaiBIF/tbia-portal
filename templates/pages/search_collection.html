@@ -68,7 +68,7 @@
               </div>
               <div class="input_item">
                 <select name="taxonRank" id="">
-                  <option value="" readonly="true" selected>分類層級</option>
+                  <option value="" readonly="true" selected>鑑定層級</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
@@ -179,7 +179,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-taxonRank">
-					<p>分類層級</p>
+					<p>鑑定層級</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-sensitiveCategory">

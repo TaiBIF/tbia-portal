@@ -67,7 +67,7 @@
               </div>
               <div class="input_item">
                 <select name="taxonRank" id="">
-                  <option value="" readonly="true" selected>分類層級</option>
+                  <option value="" readonly="true" selected>鑑定層級</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
@@ -95,7 +95,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <input name="recordedBy" type="text" placeholder="紀錄者" />
+                <input name="recordedBy" type="text" placeholder="記錄者" />
               </div>
               <div class="input_item">
                 <select name="basisOfRecord">
@@ -169,7 +169,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonRank">
-					<p>分類層級</p>
+					<p>鑑定層級</p>
 				</li>				
 				<li>
 					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
@@ -201,7 +201,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-recordedBy">
-					<p>紀錄者</p>
+					<p>記錄者</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
@@ -233,7 +233,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
-					<p>資料基底</p>
+					<p>紀錄類型</p>
 				</li>
 				<li>				
 					<input type="checkbox" class="chebox" id="occ-datasetName">
