@@ -84,25 +84,28 @@ def verify_user(request, uidb64, token):
 
 # @auth_user_should_not_access
 def register(request):
+    print('hi')
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
         email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
+        name = request.POST.get('name')
+        password = request.POST.get('password')
         
         # make sure email is unique
         if User.objects.filter(username=email).exists():
-            messages.add_message(request, messages.ERROR, '此信箱已註冊過')
-            return render(request,'account/register.html', context, status=409) # conflict
-        
-        user=User.objects.create_user(username=email, first_name=first_name, last_name=last_name)
-        user.save()
-        send_verification_email(user, request)
-        messages.add_message(request, messages.SUCCESS,
-        '註冊成功，請至註冊信箱收信進行驗證')
-        return redirect(reverse('login'))
+            # messages.add_message(request, messages.ERROR, '此信箱已註冊過')
+            response = {'status':'fail', 'message': '此信箱已註冊過'}
+            # return render(request,'account/register.html', context, status=409) # conflict
+        else:
+            user=User.objects.create_user(username=email, name=name)
+            user.save()
+            send_verification_email(user, request)
+            # messages.add_message(request, messages.SUCCESS,
+            # '註冊成功，請至註冊信箱收信進行驗證')
+            response = {'status':'success', 'message': '註冊成功，請至註冊信箱收信進行驗證'}
+            # return redirect(reverse('login'))
 
-    return render(request,'account/register.html')
+    return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 # @auth_user_should_not_access

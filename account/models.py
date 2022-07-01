@@ -12,8 +12,7 @@ class UserManager(BaseUserManager):
         """
         user = self.model(
             username=self.normalize_email(username),
-            first_name=kwargs['first_name'],
-            last_name=kwargs['last_name'],
+            name=kwargs['name'],
         )
 
         # user.set_password(password)
@@ -41,8 +40,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    first_name = models.CharField(max_length=20, blank=True)
-    last_name = models.CharField(max_length=20, blank=True)
+    name = models.CharField(max_length=20, blank=True)
     username = models.EmailField(max_length=254, blank=False, unique=True)
     is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -59,7 +57,7 @@ class User(AbstractUser):
         ('forest', '林務局'),
         ('tbia', 'TBIA'),
     ]
-    unit = models.CharField(
+    partner = models.CharField(
         max_length=20,
         choices=unit_choice,
         default='none'
