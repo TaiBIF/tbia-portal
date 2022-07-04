@@ -74,11 +74,23 @@
             </li>
             <li>
               <h3>紀錄日期：</h3>
-              <p>{{ row.eventDate }}</p>
+              {% if row.date != None %}
+              <p>{{ row.date }}</p>
+              {% elif row.date == None and row.eventDate != None %}
+              <p>---<br><small style="color: silver">[原始紀錄日期]{{ row.eventDate }}</small></p>
+              {% else %}
+              <p></p>
+              {% endif %}
             </li>
             <li>
               <h3>數量：</h3>
-              <p>{{ row.organismQuantity }}</p>
+              {% if row.quantity != None %}
+              <p>{{ row.quantity }}</p>
+              {% elif row.quantity == None and row.organismQuantity != None %}
+              <p>---<br><small style="color: silver">[原始紀錄數量]{{ row.organismQuantity }}</small></p>
+              {% else %}
+              <p></p>
+              {% endif %}
             </li>
             <li>
               <h3>數量單位：</h3>
@@ -114,10 +126,14 @@
         <ul class="inforall">
           <li>
             <h3>經度：</h3>
-            {% if row.sensitiveCategory in '座標不開放,縣市' %}
+            {% if row.sensitiveCategory == '座標不開放' %}
             <p></p>
+            {% elif row.lon != None %}
+            <p>{{ row.lon }}</p>
+            {% elif row.lon == None and row.verbatimLongitude != None %}
+            <p>---<br><small style="color: silver">[原始紀錄經度]{{ row.verbatimLongitude }}</small></p>
             {% else %}
-            <p>{{ row.verbatimLongitude }}</p>
+            <p></p>
             {% endif %}
           </li>
           <li>
@@ -126,10 +142,14 @@
           </li>
           <li>
             <h3>緯度：</h3>
-            {% if row.sensitiveCategory in '座標不開放,縣市' %}
+            {% if row.sensitiveCategory == '座標不開放' %}
             <p></p>
+            {% elif row.lat != None %}
+            <p>{{ row.lat }}</p>
+            {% elif row.lat == None and row.verbatimLatitude != None %}
+            <p>---<br><small style="color: silver">[原始紀錄緯度]{{ row.verbatimLatitude }}</small></p>
             {% else %}
-            <p>{{ row.verbatimLatitude }}</p>
+            <p></p>
             {% endif %}
           </li>
           <li>
@@ -168,12 +188,12 @@
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
-  {% else %}
-  let map = L.map('map').setView(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'],6);
+  {% elif row.lat != None and row.lon != None %}
+  let map = L.map('map').setView(['{{ row.lat }}', '{{ row.lon }}'],6);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
-  L.marker(['{{ row.standardLatitude.0 }}', '{{ row.standardLongitude.0 }}'], {icon: redIcon}).addTo(map);
+  L.marker(['{{ row.lat }}', '{{ row.lon }}'], {icon: redIcon}).addTo(map);
   {% endif %}
 
 </script>

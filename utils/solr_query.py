@@ -11,6 +11,19 @@ else:
 
 JSON_FACET_MAP = {
     'tbia_collection': {
+        'eventDate': {
+            'type': 'terms',
+            'field': 'eventDate',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
+        },
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',
@@ -358,6 +371,19 @@ JSON_FACET_MAP = {
         }
     },
     'tbia_occurrence': {
+        'eventDate': {
+            'type': 'terms',
+            'field': 'eventDate',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
+        },
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',
@@ -1180,6 +1206,19 @@ class SolrQuery(object):
 # }'
 
 occ_facets = {  'facet': {
+        'eventDate': {
+            'type': 'terms',
+            'field': 'eventDate',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
+        },
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',
@@ -1511,6 +1550,19 @@ occ_facets = {  'facet': {
 
 
 col_facets =    { 'facet': {
+        'eventDate': {
+            'type': 'terms',
+            'field': 'eventDate',
+            'mincount': 1,
+            'limit': -1,
+            'facet':{
+                'scientificName':{
+                    'type': 'terms',
+                    'field': 'scientificName',
+                    'limit': -1,
+                },
+            }        
+        },
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',

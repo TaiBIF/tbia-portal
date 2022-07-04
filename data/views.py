@@ -3,8 +3,8 @@ from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
-from .utils import *
-from .taicol import taicol
+from data.utils import *
+from data.taicol import taicol
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -82,7 +82,12 @@ def search_full(request):
                 })
             for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                if i == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                else:
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
         col_result_df = pd.DataFrame(result)
         col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
         if len(col_result_df_duplicated):
@@ -127,7 +132,12 @@ def search_full(request):
                 })
             for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                if i == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                else:
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
@@ -246,8 +256,43 @@ def get_records(request):
         query_list += [('q', q),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
+
+        # print(docs.keys())
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
+
+        for i in docs.index:
+            row = docs.iloc[i]
+            # date
+            if date := row.get('standardDate'):
+                # date = date[0].replace('T', ' ').replace('Z','')
+                docs.loc[i , 'date'] = date[0].replace('T', ' ').replace('Z','')
+            else:
+                if row.get('eventDate'):
+                    docs.loc[i , 'date'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+            # 經緯度
+            if lat := row.get('standardLatitude'):
+                docs.loc[i , 'lat'] = lat[0]
+            else:
+                if row.get('verbatimLatitude'):
+                    docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+            if lon := row.get('standardLongitude'):
+                docs.loc[i , 'lon'] = lon[0]
+            else:
+                if row.get('verbatimLongitude'):
+                    docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+            # 數量
+            if quantity := row.get('standardOrganismQuantity'):
+                docs.loc[i , 'quantity'] = int(quantity[0])
+            else:
+                if row.get('organismQuantity'):
+                    docs.loc[i , 'quantity'] = '---<br><small style="color: silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+
+        docs = docs.replace({np.nan: ''})
+        docs = docs.replace({'nan': ''})
+
+
         docs = docs.to_dict('records')
 
         current_page = offset / 10 + 1
@@ -321,6 +366,7 @@ def get_focus_cards(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
+        
 
         keyword_reg = ''
         for j in keyword:
@@ -372,18 +418,24 @@ def get_focus_cards(request):
         result = []
         for k in x['buckets']:
             bucket = k['scientificName']['buckets']
-            result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+            if key == 'eventDate':
+                if f_date := convert_date(k['val']):
+                    f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                    result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
+            else:
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
         result_df = pd.DataFrame(result)
         if len(result_df):
             result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
             card_len = len(result_df)
             result_df = result_df[:9]
-            result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value_ori'] = result_df['matched_value']
             result_df['val_ori'] = result_df['val']
+            result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
             result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+
         else:
             card_len = 0
         
@@ -455,7 +507,12 @@ def get_more_cards(request):
                 x = facets[i]
                 for k in x['buckets']:
                     bucket = k['scientificName']['buckets']
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                    if i == 'eventDate':
+                        if f_date := convert_date(k['val']):
+                            f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                            result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                    else:
+                        result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             result_df = pd.DataFrame(result)
             result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
             if len(result_df_duplicated):
@@ -465,7 +522,12 @@ def get_more_cards(request):
             x = facets[key]
             for k in x['buckets']:
                 bucket = k['scientificName']['buckets']
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+                if i == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
+                else:
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
             result_df = pd.DataFrame(result)
 
         if len(result_df):
@@ -537,6 +599,32 @@ def occurrence_detail(request, id):
             row.update({'dataGeneralizations': '否'})
         else:
             pass
+    # date
+    if date := row.get('standardDate'):
+        date = date[0].replace('T', ' ').replace('Z','')
+    else:
+        date = None
+    row.update({'date': date})
+
+    # 經緯度
+    if lat := row.get('standardLatitude'):
+        lat = lat[0]
+    else:
+        lat = None
+    row.update({'lat': lat})
+
+    if lon := row.get('standardLongitude'):
+        lon = lon[0]
+    else:
+        lon = None
+    row.update({'lon': lon})
+
+    # 數量
+    if quantity := row.get('standardOrganismQuantity'):
+        quantity = int(quantity[0])
+    else:
+        quantity = None
+    row.update({'quantity': quantity})
 
     return render(request, 'pages/occurrence_detail.html', {'row': row})
 
@@ -561,6 +649,33 @@ def collection_detail(request, id):
             row.update({'dataGeneralizations': '否'})
         else:
             pass
+
+    # date
+    if date := row.get('standardDate'):
+        date = date[0].replace('T', ' ').replace('Z','')
+    else:
+        date = None
+    row.update({'date': date})
+
+    # 經緯度
+    if lat := row.get('standardLatitude'):
+        lat = lat[0]
+    else:
+        lat = None
+    row.update({'lat': lat})
+
+    if lon := row.get('standardLongitude'):
+        lon = lon[0]
+    else:
+        lon = None
+    row.update({'lon': lon})
+
+    # 數量
+    if quantity := row.get('standardOrganismQuantity'):
+        quantity = int(quantity[0])
+    else:
+        quantity = None
+    row.update({'quantity': quantity})
 
     return render(request, 'pages/collection_detail.html', {'row': row})
 
@@ -650,6 +765,38 @@ def get_conditional_records(request):
             docs = pd.DataFrame(response.json()['response']['docs'])
             docs = docs.replace({np.nan: ''})
             docs = docs.replace({'nan': ''})
+
+            for i in docs.index:
+                row = docs.iloc[i]
+                # date
+                if date := row.get('standardDate'):
+                    # date = date[0].replace('T', ' ').replace('Z','')
+                    docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+                else:
+                    if row.get('eventDate'):
+                        docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                # 經緯度
+                if lat := row.get('standardLatitude'):
+                    docs.loc[i , 'verbatimLatitude'] = lat[0]
+                else:
+                    if row.get('verbatimLatitude'):
+                        docs.loc[i , 'verbatimLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+                if lon := row.get('standardLongitude'):
+                    docs.loc[i , 'verbatimLongitude'] = lon[0]
+                else:
+                    if row.get('verbatimLongitude'):
+                        docs.loc[i , 'verbatimLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                # 數量
+                if quantity := row.get('standardOrganismQuantity'):
+                    docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
+                else:
+                    if row.get('organismQuantity'):
+                        docs.loc[i , 'organismQuantity'] = '---<br><small style="color: silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+
+            docs = docs.replace({np.nan: ''})
+            docs = docs.replace({'nan': ''})
+            
             docs = docs.to_dict('records')
 
             current_page = offset / 10 + 1

@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import math
+from dateutil import parser
+from datetime import datetime, timedelta
 
 # TODO 懸鈎子=>懸鉤子
 
@@ -200,12 +202,16 @@ map_occurrence = {
     'rightsHolder': '來源資料庫', 
     'scientificNameID': 'Name Code', 
     'eventDate': '紀錄日期', 
+    'date': '紀錄日期', 
     'locality': '出現地', 
     'organismQuantity': '數量',
+    'quantity': '數量',
     'organismQuantityType': '數量單位',
     'recordedBy': '記錄者', 
     'verbatimLongitude': '經度',
     'verbatimLatitude': '緯度',
+    'lon': '經度',
+    'lat': '緯度',
     'verbatimSRS': '空間參考系統',
     'verbatimCoordinateSystem': '座標系統',
     'coordinateUncertaintyInMeters': '座標誤差',
@@ -245,13 +251,17 @@ map_collection = {
     'typeStatus': '標本類型', 
     'preservation': '保存方式', 
     'eventDate': '採集日期', 
+    'date': '採集日期', 
     'locality': '採集地', 
     'recordedBy': '採集者', 
     'recordNumber': '採集號', 
     'organismQuantity': '數量',
+    'quantity': '數量',
     'organismQuantityType': '數量單位',
     'verbatimLongitude': '經度',
     'verbatimLatitude': '緯度',
+    'lon': '經度',
+    'lat': '緯度',
     'verbatimCoordinateSystem': '座標系統',
     'verbatimSRS': '空間參考系統',
     'coordinateUncertaintyInMeters': '座標誤差',
@@ -263,3 +273,16 @@ map_collection = {
     'sourceScientificName': '原資料庫使用學名',
     'sourceVernacularName': '原資料庫使用中文名',
 }
+
+
+
+def convert_date(date):
+    formatted_date = None
+    if date != '' and date is not None:
+        try:
+            formatted_date = parser.parse(date) 
+        except parser._parser.ParserError:
+            formatted_date = datetime.fromtimestamp(int(date))
+        except:
+            formatted_date = None
+    return formatted_date

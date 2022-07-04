@@ -121,7 +121,7 @@
               </p>
               <div class="arrd"></div>
             </div>
-            <div class="second_menu">
+            <div class="occ_menu second_menu">
               <a href="javascript:;" onclick="focusComponent('item_occ')">全部({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
               <a href="javascript:;" onclick="focusCards('occ','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
@@ -138,7 +138,7 @@
               </p>
               <div class="arrd"></div>
             </div>
-            <div class="second_menu">
+            <div class="col_menu second_menu">
               <a href="javascript:;" onclick="focusComponent('item_col')">全部({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
                 <a href="javascript:;" onclick="focusCards('col','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
@@ -426,7 +426,7 @@
 					<p>保存方式</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-eventDate">
+					<input type="checkbox" class="chebox" id="col-date">
 					<p>採集日期</p>
 				</li>
 				<li>
@@ -442,7 +442,7 @@
 					<p>採集號</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-organismQuantity">
+					<input type="checkbox" class="chebox" id="col-quantity">
 					<p>數量</p>
 				</li>				
         <li>
@@ -450,11 +450,11 @@
 					<p>數量單位</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
+					<input type="checkbox" class="chebox" id="col-lon">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
+					<input type="checkbox" class="chebox" id="col-lat">
 					<p>緯度</p>
 				</li>
 				<li>
@@ -540,7 +540,7 @@
 					<p>Name code</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<input type="checkbox" class="chebox" id="occ-date">
 					<p>觀察日期</p>
 				</li>
 				<li>
@@ -548,7 +548,7 @@
 					<p>出現地</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-organismQuantity">
+					<input type="checkbox" class="chebox" id="occ-quantity">
 					<p>數量</p>
 				</li>
 				<li>
@@ -560,11 +560,11 @@
 					<p>記錄者</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
+					<input type="checkbox" class="chebox" id="occ-lon">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
+					<input type="checkbox" class="chebox" id="occ-lat">
 					<p>緯度</p>
 				</li>
 				<li>
@@ -613,6 +613,11 @@
 
 {% block script %}
 <script>
+
+  $( document ).ready(function() {
+    $('.occ_menu, .col_menu').slideToggle();
+  })
+
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
     $(this).toggleClass("now");
@@ -675,6 +680,7 @@
         dataType : 'json',
       })
       .done(function(response) {
+        console.log(response)
         $('.rightbox_content').append(`
         <div class="titlebox_line record_title">
           <div class="title">
@@ -719,6 +725,9 @@
           let tmp_value;
           for (let j = 0; j < Object.keys(map_dict).length; j++){
             tmp_value = tmp[Object.keys(map_dict)[j]];
+            // 日期
+            // 經緯度
+            // 數量
             if (tmp_value == null){
               tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
             } else {
