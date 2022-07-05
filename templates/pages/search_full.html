@@ -104,14 +104,14 @@
         <span>關閉</span>
       </div>
       <div class="mb_scroll">
-        <ul>
-          <li class="now">
-            <a href="javascript:;" onclick="focusComponent('all')" class="big_link rd_click">
+        <ul class="item_list">
+          <li class="now li-all">
+            <a href="javascript:;" onclick="focusComponent('all', false)" class="big_link rd_click">
               <p>所有結果</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
+          <li class="li-item_occ">
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
               <p>
@@ -122,13 +122,13 @@
               <div class="arrd"></div>
             </div>
             <div class="occ_menu second_menu">
-              <a href="javascript:;" onclick="focusComponent('item_occ')">全部({{ occurrence.count|intcomma }})</a>
+              <a id="facet_occ_all"href="javascript:;" onclick="focusComponent('item_occ', false)">全部({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
-              <a href="javascript:;" onclick="focusCards('occ','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              <a id="facet_occ_{{ i.key }}" href="javascript:;" onclick="focusCards('occ','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
-          <li>
+          <li class="li-item_col">
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
               <p>
@@ -139,33 +139,33 @@
               <div class="arrd"></div>
             </div>
             <div class="col_menu second_menu">
-              <a href="javascript:;" onclick="focusComponent('item_col')">全部({{ collection.count|intcomma }})</a>
+              <a id="facet_col_all" href="javascript:;" onclick="focusComponent('item_col', false)">全部({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
-                <a href="javascript:;" onclick="focusCards('col','{{ i.key }}')">{{ i.title }}({{ i.total_count|intcomma }})</a>
+                <a id="facet_col_{{ i.key }}" href="javascript:;" onclick="focusCards('col','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
 
-          <li>
-            <a href="#" onclick="focusComponent('item_news')" class="big_link rd_click">
+          <li class="li-item_news">
+            <a href="javascript:;" onclick="focusComponent('item_news', false)" class="big_link rd_click">
               <p>新聞公告</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
-            <a href="#" onclick="focusComponent('item_event')" class="big_link rd_click">
+          <li class="li-item_event">
+            <a href="javascript:;" onclick="focusComponent('item_event', false)" class="big_link rd_click">
               <p>活動公告</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
-            <a href="#" onclick="focusComponent('item_project')" class="big_link rd_click">
+          <li class="li-item_project">
+            <a href="javascript:;" onclick="focusComponent('item_project', false)" class="big_link rd_click">
               <p>計畫徵求</p>
               <div class="arr"></div>
             </a>
           </li>
-          <li>
-            <a href="#" onclick="focusComponent('item_resource')" class="big_link rd_click">
+          <li class="li-item_resource">
+            <a href="javascript:;" onclick="focusComponent('item_resource', false)" class="big_link rd_click">
               <p>開放資料相關資源</p>
               <div class="arr"></div>
             </a>
@@ -179,7 +179,7 @@
 
 
       <!----- 物種出現紀錄 ----->
-      <div class="item item_occ">
+      <div class="item item_occ" id="item_occ">
         <div class="titlebox_line">
           <div class="title">
             <p>物種出現紀錄 ({{ occurrence.count|intcomma }})</p>
@@ -189,7 +189,7 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
+              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card', false)">
                 <div class="num">{{ i.count }}</div>
                 <div style="height: 20px; margin-bottom: 6px"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -213,7 +213,7 @@
 
 
       <!----- 自然史典藏 ----->
-      <div class="item item_col">
+      <div class="item item_col" id="item_col">
         <div class="titlebox_line">
           <div class="title">
             <p>⾃然史典藏 ({{ collection.count|intcomma }})</p>
@@ -223,7 +223,7 @@
         {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
-            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card')">
+            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card', false)">
               <div class="num">{{ i.count }}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -247,7 +247,7 @@
 
 
       <!-- 新聞公告 -->
-      <div class="item item_news">
+      <div class="item item_news" id="item_news">
         <div class="titlebox_line">
           <div class="title">
             <p>新聞公告 ({{ news.count }})</p>
@@ -276,7 +276,7 @@
 
 
       <!-- 活動公告 -->
-      <div class="item item_event">
+      <div class="item item_event" id="item_event">
         <div class="titlebox_line">
           <div class="title">
             <p>活動公告 ({{ event.count }})</p>
@@ -305,7 +305,7 @@
 
 
       <!----- 計畫徵求 ----->
-      <div class="item item_project">
+      <div class="item item_project" id="item_project">
         <div class="titlebox_line">
           <div class="title">
             <p>計畫徵求 ({{ project.count }})</p>
@@ -334,7 +334,7 @@
 
 
       <!----- 開放資料相關資源 ----->
-      <div class="item item_resource">
+      <div class="item item_resource" id="item_resource">
         <div class="titlebox_line">
           <div class="title">
             <p>開放資料相關資源 ({{ resource.count }})</p>
@@ -613,10 +613,52 @@
 
 {% block script %}
 <script>
+  let params = ['item_class', 'record_type','key','value','scientific_name','limit','page','from',
+                'doc_type', 'offset_value', 'more_class', 'card_class', 'is_sub', 'focus_card', 'get_record']
+
+  function changeAction(){
+    let queryString = window.location.search;
+    let urlParams = new URLSearchParams(queryString);
+    // 如果只有keyword, show全部elements
+    if ((queryString.split('&').length==1)&&(queryString.startsWith('?keyword='))){
+      $('.rightbox_content .item').css({display: ''})
+      $('.rightbox_content .subitem').css({display: 'none'})
+    }
+    if (urlParams.get('item_class')){
+      focusComponent(urlParams.get('item_class'), true)
+    } else if (urlParams.get('focus_card')){
+      focusCards(urlParams.get('record_type'), urlParams.get('key'), true)
+    } else if (urlParams.get('get_record')){
+      getRecords(urlParams.get('record_type'),urlParams.get('key'),urlParams.get('value'),urlParams.get('scientific_name'),urlParams.get('limit'),urlParams.get('page'),urlParams.get('from'),true)
+    } 
+  }
+
+  function clickToAnchor(id){
+      let offset;
+      if ($(window).width() > 1599){
+        offset = 145
+      } else if ($(window).width() > 999){
+        offset = 120
+      } else {
+        offset = 100
+      }
+      var target = $(id).offset().top - offset;
+      $('html, body').animate({scrollTop:target}, 500);
+  }
 
   $( document ).ready(function() {
+
     $('.occ_menu, .col_menu').slideToggle();
+
+    // 如果直接從帶有參數網址列進入
+    changeAction(); 
+
+    // 如果按上下一頁
+    window.onpopstate = function(event) {
+      changeAction();
+    };
   })
+  
 
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
@@ -638,7 +680,35 @@
     $(this).parent().parent('li').addClass('now')
   });
 
-  function focusComponent(item_class){
+  function focusComponent(item_class, go_back){
+
+    // 先移除掉原本的
+    $('.item_list li').removeClass('now')
+    $('.second_menu a').removeClass('now')
+    // 加上現在的
+    $(`.li-${item_class}`).addClass('now')
+    if (item_class=='item_occ'){
+      $(`#facet_occ_all`).addClass('now')
+    } else if  (item_class=='item_col'){
+      $(`#facet_col_all`).addClass('now')
+    }
+
+    if ((!go_back)&& ('URLSearchParams' in window)) {
+      var searchParams = new URLSearchParams(window.location.search)
+      searchParams.set("item_class", item_class);
+
+      params.forEach(function(item, index, array) {
+        if (item != 'item_class'){
+          searchParams.delete(item)
+        }
+      });
+      
+      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
+      history.pushState(null, '', newRelativePathQuery);
+    }
+
+    
+
     // 不顯示最底層結果列表
     $('.record_title').remove()
     $('.result_inf_top').remove()
@@ -652,10 +722,32 @@
     } else {
       $(`.rightbox_content .${item_class}`).css({display: ''})
       $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).css({display: 'none'})
+      clickToAnchor(`#${item_class}`)
     }
+
   }
 
-  function getRecords(record_type,key,value,scientific_name,limit,page,from){
+  function getRecords(record_type,key,value,scientific_name,limit,page,from, go_back){
+
+    if ((!go_back)&& ('URLSearchParams' in window)) {
+      var searchParams = new URLSearchParams(window.location.search)
+
+      params.forEach(function(item, index, array) {
+          searchParams.delete(item)
+      });
+      searchParams.set("record_type", record_type);
+      searchParams.set("key", key);
+      searchParams.set("value", value);
+      searchParams.set("scientific_name", scientific_name);
+      searchParams.set("limit", limit);
+      searchParams.set("page", page);
+      searchParams.set("from", from);
+      searchParams.set("get_record", true);
+      
+      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
+      history.pushState(null, '', newRelativePathQuery);
+    }
+
     // hide all items
     $('.rightbox_content .item').css({display: 'none'})
 
@@ -680,9 +772,8 @@
         dataType : 'json',
       })
       .done(function(response) {
-        console.log(response)
         $('.rightbox_content').append(`
-        <div class="titlebox_line record_title">
+        <div class="titlebox_line record_title" id="records">
           <div class="title">
               <p>${response.title} > 結果列表</p>
               <div class="line"></div>
@@ -746,13 +837,14 @@
         }
         
         // 判斷是從分頁或卡片點選
-        if (from == 'card'){
+        if ((from == 'card') || ( $(`.${record_type}-choice input:checked`).length==0 )){ //如果都沒有選的話用預設值
           // uncheck all first
           $(`input[id^="${record_type}-"]`).prop('checked',false)
           // show selected columns
           for (let i = 0; i < response.selected_col.length; i++) {
             $(`.row-${response.selected_col[i]}`).show();
             $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);}
+            clickToAnchor('#records')
         } else {
           sendSelected(record_type)
         }
@@ -778,32 +870,32 @@
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
           if (response.page_list[i] == response.current_page){
-            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page')" class="num now">${response.page_list[i]}</a>  `;
+            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page', false)" class="num now">${response.page_list[i]}</a>  `;
           } else {
-            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page')" class="num">${response.page_list[i]}</a>  `
+            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page', false)" class="num">${response.page_list[i]}</a>  `
           }
         }
         $('.pre').after(html)
 
         // 如果有上一頁，改掉pre的onclick
         if ((response.current_page - 1) > 0 ){
-          $('.pre').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page - 1}, 'page')`);
+          $('.pre').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page - 1}, 'page', false)`);
         }
         // 如果有下一頁，改掉next的onclick
         if (response.current_page < response.total_page){
-          $('.next').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page + 1}, 'page')`);
+          $('.next').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page + 1}, 'page', false)`);
         }
 
         // 如果有前面的page list, 加上...
         if (response.current_page > 5){
-          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page -5 }, 'page')">...</a> `)
+          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page -5 }, 'page', false)">...</a> `)
         }
         // 如果有後面的page list, 加上...
         if (response.page_list[response.page_list.length - 1] < response.total_page){
           if (response.current_page +5 > response.total_page){
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.total_page}, 'page')">...</a> `)
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.total_page}, 'page', false)">...</a> `)
           } else {
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page +5}, 'page')">...</a>`)
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page +5}, 'page', false)">...</a>`)
           }
         }
       })
@@ -815,9 +907,34 @@
         }
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
       })
+
     }
 
-  function focusCards(record_type,key){
+  function focusCards(record_type,key, go_back){
+    if ((!go_back)&& ('URLSearchParams' in window)) {
+      var searchParams = new URLSearchParams(window.location.search)
+
+      params.forEach(function(item, index, array) {
+          searchParams.delete(item)
+      });
+
+      searchParams.set("record_type", record_type);
+      searchParams.set("key", key);
+      searchParams.set("focus_card", true);
+
+      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
+      history.pushState(null, '', newRelativePathQuery);
+
+    }
+
+    //先移除掉原本的
+    $('.item_list li').removeClass('now')
+    $('.second_menu a').removeClass('now')
+    //加上現在的
+    $(`.li-item_${record_type}`).addClass('now')
+    $(`#facet_${record_type}_${key}`).addClass('now')
+
+
     // 如果focus已存在則不呼叫ajax，但顯示出來
     $('.record_title').remove()
     $('.result_inf_top').remove()
@@ -837,7 +954,7 @@
       .done(function(response) {
         // append item area
         $('.rightbox_content').append(
-          `<div class="item subitem ${response.item_class}">
+          `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
             <div class="titlebox_line">
               <div class="title">
                 <p>${response.title} (${response.total_count})</p>
@@ -853,7 +970,7 @@
           let html;
           if ( x.matched_col != '中文名' && x.matched_col != '學名'){
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1','card')">
+            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1','card', false)">
               <div class="num">${x.count}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
@@ -862,7 +979,7 @@
             </li>`)
           } else {
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
               <div class="num">${x.count}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
@@ -879,6 +996,7 @@
         $(`.rightbox_content .${response.item_class}`).css({display: ''})
         $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
 
+        clickToAnchor(`#${response.item_class}_cards`)
       })
       .fail(function( xhr, status, errorThrown ) {
         if (xhr.status==504){
@@ -891,10 +1009,13 @@
     } else {
       $(`.rightbox_content .item_${record_type}_${key}`).css({display: ''})
       $('.rightbox_content .item').not($(`.item_${record_type}_${key}`)).not($('.items')).css({display: 'none'})
+      clickToAnchor(`#item_${record_type}_${key}_cards`)
     }
+
   }
 
   function getMoreDocs(doc_type, offset_value, more_class, card_class){
+
     //console.log(doc_type, offset_value)
     let offset = $(offset_value).val()
     $.ajax({
@@ -968,7 +1089,7 @@
         let x = response.data[i]
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
             <div class="num">${x.count}</div>
             <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>
@@ -977,7 +1098,7 @@
           </li>` )
         } else {
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card')">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
             <div class="num">${x.count}</div>
             <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>
