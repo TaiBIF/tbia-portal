@@ -451,134 +451,164 @@
   <field name="_root_" type="string" docValues="false" indexed="true" stored="false"/>
   <field name="_text_" type="text_general" multiValued="true" indexed="true" stored="false"/>
   <field name="_version_" type="plong" indexed="false" stored="false"/>
-  <field name="aberration" type="string"/>
-  <field name="alternative_name_c" type="string"/>
+  <field name="associatedMedia" type="string"/>
   <field name="basisOfRecord" type="string"/>
-  <field name="class" type="string"/>
-  <field name="class_c" type="string"/>
   <field name="collectionID" type="string"/>
-  <field name="common_name_c" type="string"/>
   <field name="coordinatePrecision" type="string"/>
   <field name="coordinateUncertaintyInMeters" type="string"/>
   <field name="created" type="pdates"/>
   <field name="dataGeneralizations" type="string"/>
   <field name="datasetName" type="string"/>
-  <field name="division" type="string"/>
-  <field name="division_c" type="string"/>
-  <field name="domain" type="string"/>
-  <field name="domain_c" type="string"/>
   <field name="eventDate" type="string"/>
-  <field name="family" type="string"/>
-  <field name="family_c" type="string"/>
-  <field name="form" type="string"/>
-  <field name="genus" type="string"/>
-  <field name="genus_c" type="string"/>
-  <field name="hybridFormula" type="string"/>
-  <field name="infraclass" type="string"/>
-  <field name="infraclass_c" type="string"/>
-  <field name="infradivision" type="string"/>
-  <field name="infradivision_c" type="string"/>
-  <field name="infrakingdom" type="string"/>
-  <field name="infrakingdom_c" type="string"/>
-  <field name="infraorder" type="string"/>
-  <field name="infraorder_c" type="string"/>
-  <field name="infraphylum" type="string"/>
-  <field name="infraphylum_c" type="string"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
-  <field name="kingdom" type="string"/>
-  <field name="kingdom_c" type="string"/>
   <field name="license" type="string"/>
   <field name="locality" type="string"/>
   <field name="location_rpt" type="location_rpt"/>
-  <field name="microphylum" type="string"/>
-  <field name="microphylum_c" type="string"/>
-  <field name="misapplied" type="string"/>
   <field name="modified" type="pdates"/>
-  <field name="morph" type="string"/>
-  <field name="nothosubspecies" type="string"/>
-  <field name="nothovariety" type="string"/>
   <field name="occurrenceID" type="string"/>
-  <field name="order" type="string"/>
-  <field name="order_c" type="string"/>
   <field name="organismQuantity" type="string"/>
   <field name="organismQuantityType" type="string"/>
   <field name="originalScientificName" type="string"/>
-  <field name="parvdivision" type="string"/>
-  <field name="parvdivision_c" type="string"/>
-  <field name="parvphylum" type="string"/>
-  <field name="parvphylum_c" type="string"/>
-  <field name="phylum" type="string"/>
-  <field name="phylum_c" type="string"/>
   <field name="preservation" type="string"/>
-  <field name="race" type="string"/>
   <field name="recordedBy" type="string"/>
   <field name="recordNumber" type="string"/>
   <field name="recordType" type="text_general"/>
   <field name="references" type="string"/>
   <field name="resourceContacts" type="string"/>
   <field name="rightsHolder" type="string"/>
-  <field name="scientificName" type="string" docValues="true"/>
-  <field name="scientificNameID" type="string"/>
-  <field name="section" type="string"/>
-  <field name="section_c" type="string"/>
   <field name="selfProduced" type="boolean"/>
   <field name="sensitiveCategory" type="string"/>
   <field name="sourceCreated" type="pdates"/>
   <field name="sourceModified" type="pdates"/>
   <field name="sourceScientificName" type="string"/>
   <field name="sourceVernacularName" type="string"/>
-  <field name="specialForm" type="string"/>
-  <field name="species" type="string"/>
   <field name="standardDate" type="pdates"/>
   <field name="standardLatitude" type="pdoubles"/>
   <field name="standardLongitude" type="pdoubles"/>
   <field name="standardOrganismQuantity" type="pdoubles"/>
-  <field name="stirp" type="string"/>
-  <field name="subclass" type="string"/>
-  <field name="subclass_c" type="string"/>
-  <field name="subdivision" type="string"/>
-  <field name="subdivision_c" type="string"/>
-  <field name="subfamily" type="string"/>
-  <field name="subfamily_c" type="string"/>
-  <field name="subform" type="string"/>
-  <field name="subgenus" type="string"/>
-  <field name="subgenus_c" type="string"/>
-  <field name="subkingdom" type="string"/>
-  <field name="subkingdom_c" type="string"/>
-  <field name="suborder" type="string"/>
-  <field name="suborder_c" type="string"/>
-  <field name="subphylum" type="string"/>
-  <field name="subphylum_c" type="string"/>
-  <field name="subsection" type="string"/>
-  <field name="subsection_c" type="string"/>
-  <field name="subspecies" type="string"/>
-  <field name="subtribe" type="string"/>
-  <field name="subtribe_c" type="string"/>
-  <field name="subvariety" type="string"/>
-  <field name="superclass" type="string"/>
-  <field name="superclass_c" type="string"/>
-  <field name="superdivision" type="string"/>
-  <field name="superdivision_c" type="string"/>
-  <field name="superfamily" type="string"/>
-  <field name="superfamily_c" type="string"/>
-  <field name="superkingdom" type="string"/>
-  <field name="superkingdom_c" type="string"/>
-  <field name="superorder" type="string"/>
-  <field name="superorder_c" type="string"/>
-  <field name="superphylum" type="string"/>
-  <field name="superphylum_c" type="string"/>
-  <field name="synonyms" type="string"/>
-  <field name="taxonRank" type="string"/>
-  <field name="taxonUUID" type="string"/>
-  <!-- <field name="tbiaUUID" type="string"/> -->
-  <field name="tribe" type="string"/>
-  <field name="tribe_c" type="string"/>
+  <field name="taxonID" type="string"/>
   <field name="typeStatus" type="string"/>
-  <field name="variety" type="string"/>
   <field name="verbatimCoordinateSystem" type="string"/>
   <field name="verbatimLatitude" type="string"/>
   <field name="verbatimLongitude" type="string"/>
   <field name="verbatimSRS" type="string"/>
+
+
+    <!-- taxa fields start -->
+    <field name="aberration" type="string"/>
+    <field name="alternative_name_c" type="string"/>
+    <field name="class" type="string"/>
+    <field name="class_c" type="string"/>
+    <field name="common_name_c" type="string"/>
+    <field name="division" type="string"/>
+    <field name="division_c" type="string"/>
+    <field name="domain" type="string"/>
+    <field name="domain_c" type="string"/>
+    <field name="family" type="string"/>
+    <field name="family_c" type="string"/>
+    <!-- 帶有HTML格式的階層學名 -->
+    <field name="formatted_genus" type="string"/>
+    <field name="formatted_subgenus" type="string"/>
+    <field name="formatted_section" type="string"/>
+    <field name="formatted_subsection" type="string"/>
+    <field name="formatted_species" type="string"/>
+    <field name="formatted_subspecies" type="string"/>
+    <field name="formatted_nothosubspecies" type="string"/>
+    <field name="formatted_variety" type="string"/>
+    <field name="formatted_subvariety" type="string"/>
+    <field name="formatted_nothovariety" type="string"/>
+    <field name="formatted_form" type="string"/>
+    <field name="formatted_subform" type="string"/>
+    <field name="formatted_specialform" type="string"/>
+    <field name="formatted_race" type="string"/>
+    <field name="formatted_strip" type="string"/>
+    <field name="formatted_morph" type="string"/>
+    <field name="formatted_aberration" type="string"/>
+    <field name="formatted_hybridformula" type="string"/>
+    <!-- 帶有HTML格式的學名 -->
+    <field name="formatted_name" type="string"/>
+    <field name="formatted_synonyms" type="string"/>
+    <field name="formatted_misapplied" type="string"/>
+    <field name="form" type="string"/>
+    <field name="genus" type="string"/>
+    <field name="genus_c" type="string"/>
+    <field name="hybridformula" type="string"/>
+    <field name="infraclass" type="string"/>
+    <field name="infraclass_c" type="string"/>
+    <field name="infradivision" type="string"/>
+    <field name="infradivision_c" type="string"/>
+    <field name="infrakingdom" type="string"/>
+    <field name="infrakingdom_c" type="string"/>
+    <field name="infraorder" type="string"/>
+    <field name="infraorder_c" type="string"/>
+    <field name="infraphylum" type="string"/>
+    <field name="infraphylum_c" type="string"/>
+    <field name="kingdom" type="string"/>
+    <field name="kingdom_c" type="string"/>
+    <field name="microphylum" type="string"/>
+    <field name="microphylum_c" type="string"/>
+    <field name="misapplied" type="string"/>
+    <field name="morph" type="string"/>
+    <field name="name_author" type="string"/>
+    <field name="nothosubspecies" type="string"/>
+    <field name="nothovariety" type="string"/>
+    <field name="order" type="string"/>
+    <field name="order_c" type="string"/>
+    <field name="parvdivision" type="string"/>
+    <field name="parvdivision_c" type="string"/>
+    <field name="parvphylum" type="string"/>
+    <field name="parvphylum_c" type="string"/>
+    <field name="phylum" type="string"/>
+    <field name="phylum_c" type="string"/>
+    <field name="race" type="string"/>
+    <field name="scientificName" type="string" docValues="true"/>
+    <field name="scientificNameID" type="string"/>
+    <field name="section" type="string"/>
+    <field name="section_c" type="string"/>
+    <field name="specialform" type="string"/>
+    <field name="species" type="string"/>
+    <field name="species_c" type="string"/>
+    <field name="stirp" type="string"/>
+    <field name="subclass" type="string"/>
+    <field name="subclass_c" type="string"/>
+    <field name="subdivision" type="string"/>
+    <field name="subdivision_c" type="string"/>
+    <field name="subfamily" type="string"/>
+    <field name="subfamily_c" type="string"/>
+    <field name="subform" type="string"/>
+    <field name="subgenus" type="string"/>
+    <field name="subgenus_c" type="string"/>
+    <field name="subkingdom" type="string"/>
+    <field name="subkingdom_c" type="string"/>
+    <field name="suborder" type="string"/>
+    <field name="suborder_c" type="string"/>
+    <field name="subphylum" type="string"/>
+    <field name="subphylum_c" type="string"/>
+    <field name="subsection" type="string"/>
+    <field name="subsection_c" type="string"/>
+    <field name="subspecies" type="string"/>
+    <field name="subtribe" type="string"/>
+    <field name="subtribe_c" type="string"/>
+    <field name="subvariety" type="string"/>
+    <field name="superclass" type="string"/>
+    <field name="superclass_c" type="string"/>
+    <field name="superdivision" type="string"/>
+    <field name="superdivision_c" type="string"/>
+    <field name="superfamily" type="string"/>
+    <field name="superfamily_c" type="string"/>
+    <field name="superkingdom" type="string"/>
+    <field name="superkingdom_c" type="string"/>
+    <field name="superorder" type="string"/>
+    <field name="superorder_c" type="string"/>
+    <field name="superphylum" type="string"/>
+    <field name="superphylum_c" type="string"/>
+    <field name="synonyms" type="string"/>
+    <field name="taxonRank" type="string"/>
+    <field name="tribe" type="string"/>
+    <field name="tribe_c" type="string"/>
+    <field name="variety" type="string"/>
+    <!-- taxa fields end -->
+
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
   <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
@@ -651,12 +681,7 @@
   <!-- Full text search -->
   <copyField source="eventDate" dest="_text_"/>
   <copyField source="rightsHolder" dest="_text_"/>
-  <!--
-  <copyField source="sourceScientificName" dest="_text_"/>
-  <copyField source="sourceVernacularName" dest="_text_"/>
-  -->
   <copyField source="sensitiveCategory" dest="_text_"/>
-  <copyField source="taxonRank" dest="_text_"/>
   <copyField source="typeStatus" dest="_text_"/>
   <copyField source="verbatimCoordinateSystem" dest="_text_"/>
   <copyField source="verbatimSRS" dest="_text_"/>
@@ -669,6 +694,8 @@
   <copyField source="resourceContacts" dest="_text_"/>
   <copyField source="license" dest="_text_"/>
   <copyField source="sensitiveCategory" dest="_text_"/>
+  <!-- taxa -->
+  <copyField source="taxonRank" dest="_text_"/>
   <copyField source="scientificName" dest="_text_"/>
   <copyField source="synonyms" dest="_text_"/>
   <copyField source="misapplied" dest="_text_"/>
@@ -708,6 +735,7 @@
   <copyField source="section" dest="_text_"/>
   <copyField source="subsection" dest="_text_"/>
   <copyField source="species" dest="_text_"/>
+  <copyField source="species_c" dest="_text_"/>
   <copyField source="domain_c" dest="_text_"/>
   <copyField source="superkingdom_c" dest="_text_"/>
   <copyField source="kingdom_c" dest="_text_"/>
@@ -748,10 +776,10 @@
   <copyField source="nothovariety" dest="_text_"/>
   <copyField source="form" dest="_text_"/>
   <copyField source="subform" dest="_text_"/>
-  <copyField source="specialForm" dest="_text_"/>
+  <copyField source="specialform" dest="_text_"/>
   <copyField source="race" dest="_text_"/>
   <copyField source="stirp" dest="_text_"/>
   <copyField source="morph" dest="_text_"/>
   <copyField source="aberration" dest="_text_"/>
-  <copyField source="hybridFormula" dest="_text_"/>
+  <copyField source="hybridformula" dest="_text_"/>
 </schema>
