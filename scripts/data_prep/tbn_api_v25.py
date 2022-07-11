@@ -91,8 +91,8 @@ files = glob.glob('*.{}'.format(extension))
 # len_f = len(files)
 
 for f in files:
-    print(d)
     d = f.split('.csv')[0]
+    print(d)
     df = pd.read_csv(f'/tbia-volumes/bucket/tbn_v25/{f}', index_col=0)
 
     sci_names = df.simplifiedScientificName.unique()
