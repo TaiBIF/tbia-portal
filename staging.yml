@@ -16,6 +16,7 @@ services:
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
       - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/solr:/tbia-volumes/solr
     # command: "./scripts/docker-web-entry.sh"
     command: "./scripts/wait-for-it.sh solr:8983 -t 5 -- ./scripts/docker-web-entry.sh"
     restart: always
