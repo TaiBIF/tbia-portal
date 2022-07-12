@@ -165,7 +165,7 @@ for f in files:
             'associatedMedia' : row.associatedMedia,
             'recordNumber' : row.recordNumber,
             'preservation' : None,
-            'taxonID' : row.taxon_id,
+            'taxonID' : row.get('taxon_id'),
             'location_rpt' : location_rpt,
             'rightsHolder': 'TBN'
             }
