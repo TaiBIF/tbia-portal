@@ -126,7 +126,11 @@ for f in files:
             quantity = None
         standardLon = float(row.decimalLongitude) if row.decimalLongitude not in ['', None, '0', 'WGS84'] else None
         standardLat = float(row.decimalLatitude) if row.decimalLatitude not in ['', None] else None
-        location_rpt = f'POINT({standardLon} {standardLat})' if standardLon and standardLat else None
+        if standardLon and standardLat:
+            if -180 <= standardLon  and standardLon <= 180 and -90 <= standardLat and standardLat <= 90:
+                location_rpt = f'POINT({standardLon} {standardLat})' 
+        else:
+            location_rpt = None
         tmp = {
             'recordType' : 'occ' if '標本' not in str(row.basisOfRecord) else 'col',
             'id' : bson.objectid.ObjectId(),
