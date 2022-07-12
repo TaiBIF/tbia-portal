@@ -612,12 +612,16 @@ def occurrence_detail(request, id):
     if lat := row.get('standardLatitude'):
         if -90 <= lat[0] and lat[0] <= 90:        
             lat = lat[0]
+        else:
+            lat = None
     row.update({'lat': lat})
 
     lon = None
     if lon := row.get('standardLongitude'):
         if -180 <= lon[0] and lon[0] <= 180:             
             lon = lon[0]
+        else:
+            lon = None
     row.update({'lon': lon})
 
     # 數量
@@ -663,12 +667,16 @@ def collection_detail(request, id):
     if lat := row.get('standardLatitude'):
         if -90 <= lat[0] and lat[0] <= 90:        
             lat = lat[0]
+        else:
+            lat = None
     row.update({'lat': lat})
 
     lon = None
     if lon := row.get('standardLongitude'):
         if -180 <= lon[0] and lon[0] <= 180:             
             lon = lon[0]
+        else:
+            lon = None
     row.update({'lon': lon})
 
     # 數量
