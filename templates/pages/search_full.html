@@ -43,6 +43,10 @@
   }
 
 }
+
+.card_list_1 li {
+  word-wrap:break-word;
+}
 </style>
 {% endblock style %}
 {% block body %}
@@ -189,7 +193,7 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card', false)">
+              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.name }}','{{ i.count }}','1','card', false)">
                 <div class="num">{{ i.count }}</div>
                 <div style="height: 20px; margin-bottom: 6px"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -223,7 +227,7 @@
         {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
-            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.val }}','{{ i.count }}','1','card', false)">
+            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.name }}','{{ i.count }}','1','card', false)">
               <div class="num">{{ i.count }}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -808,6 +812,7 @@
         table_title.appendChild(function_td); 
 
         $('.record_table').append(table_title);
+
         
         // append rows
         for (let i = 0; i < response.rows.length; i++) {
@@ -970,7 +975,7 @@
           let html;
           if ( x.matched_col != '中文名' && x.matched_col != '學名'){
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.val_ori }','${ x.count }','1','card', false)">
+            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.name }','${ x.count }','1','card', false)">
               <div class="num">${x.count}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
@@ -979,7 +984,7 @@
             </li>`)
           } else {
             $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
               <div class="num">${x.count}</div>
               <div style="height: 20px; margin-bottom: 6px"></div>
               <p>中文名：${x.common_name_c}</p>
@@ -1089,7 +1094,7 @@
         let x = response.data[i]
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
             <div class="num">${x.count}</div>
             <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>
@@ -1098,7 +1103,7 @@
           </li>` )
         } else {
           $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.val_ori }','${ x.count }','1','card', false)">
+          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
             <div class="num">${x.count}</div>
             <div style="height: 20px; margin-bottom: 6px"></div>
             <p>中文名：${x.common_name_c}</p>

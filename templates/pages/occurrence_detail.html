@@ -42,10 +42,10 @@
           <a class="gbg_title">來源資料庫：{{ row.rightsHolder }}</a>
           {% endif %}
           <h2>中⽂名：{{ row.common_name_c }}</h2>
-          <h2>學名：{{ row.scientificName }}</h2>
+          <h2>學名：{{ row.formatted_name|safe }}</h2>
           <div class="short">
             <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-            <p>來源資料庫使⽤學名：{{ row.sourceScientificName }}</p>
+            <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
           </div>
           {% if row.scientificNameID %}
           <a class="code" target="_blank" href="https://taibnet.sinica.edu.tw/chi/taibnet_species_detail.php?name_code={{ row.scientificNameID }}">Name code：{{ row.scientificNameID }} <i class="fas fa-external-link-alt"></i></a>
@@ -183,7 +183,7 @@
     shadowSize: [41, 41]
   });
   
-  {% if row.sensitiveCategory in '座標不開放,縣市' %}
+  {% if row.sensitiveCategory in '座標不開放,縣市' or row.lat == None or row.lon == None %}
   let map = L.map('map').setView([0,0],0);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

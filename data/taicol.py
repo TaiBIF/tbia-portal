@@ -1,10 +1,33 @@
+from urllib import request
 import pandas as pd
 import numpy as np
+from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
+import requests
 
 
-taicol = pd.read_csv('/tbia-volumes/bucket/TaiwanSpecies20211019_UTF8.csv')
-# taicol = pd.read_csv('/Users/taibif/Documents/GitHub/tbia-volumes/TaiwanSpecies20210618_UTF8.csv')
-taicol = taicol[taicol['is_accepted_name']==True][['name','common_name_c']]
-taicol = taicol.replace({np.nan: ''})
-taicol['common_name_c'] = taicol['common_name_c'].apply(lambda x: x.split(';')[0] if x else x)
 
+rows = 0
+start = 0
+
+url = f"{SOLR_PREFIX}taxa/select?indent=on&q=*:*&wt=json&rows={rows}&start={start}"
+init = requests.get(url).json()
+
+len_taxa = init['response']['numFound']
+
+get_data = True
+rows = 20000
+start = 0
+
+taxa = []
+while get_data:
+    print(start)
+    url = f"{SOLR_PREFIX}taxa/select?indent=on&q=*:*&wt=json&fl=id,scientificName,formatted_name,common_name_c&rows={rows}&start={start}"
+    res = requests.get(url).json()
+    taxa += res['response']['docs']
+    if start > len_taxa:
+        get_data = False
+    else:
+        start += 20000
+
+taicol = pd.DataFrame(taxa)
+taicol = taicol.rename(columns={'id': 'taxonID', 'scientificName': 'name'})

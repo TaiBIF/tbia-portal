@@ -1,3 +1,4 @@
+from itertools import count
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
@@ -31,13 +32,6 @@ def search_full(request):
 
     if keyword:
         keyword = keyword.strip()
-        # TODO 階層
-        # 如果keyword全部是中文 -> 加雙引號, 如果前後不是中文,加米字號
-        # if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
-        #     keyword_str = f'"{keyword}"'
-        # else:
-        #     keyword_str = f"*{keyword}" if is_alpha(keyword[0]) or keyword[0].isdigit() else f"{keyword}"
-        #     keyword_str += "*" if is_alpha(keyword[-1]) or keyword[-1].isdigit() else ""
 
         query = {
             "query": '',
@@ -81,7 +75,7 @@ def search_full(request):
                     'key': i
                 })
             for k in x['buckets']:
-                bucket = k['scientificName']['buckets']
+                bucket = k['taxonID']['buckets']
                 if i == 'eventDate':
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -94,13 +88,13 @@ def search_full(request):
             col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
             col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
         if len(col_result_df):
-            col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='name')
             col_card_len = len(col_result_df)
             col_result_df = col_result_df[:9]
+            col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID')
+            col_result_df['val'] = col_result_df['formatted_name']
             col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
         else:
             col_card_len = 0
-
         # occurrence
         facet_list = occ_facets
         q = ''
@@ -131,7 +125,7 @@ def search_full(request):
                     'key': i
                 })
             for k in x['buckets']:
-                bucket = k['scientificName']['buckets']
+                bucket = k['taxonID']['buckets']
                 if i == 'eventDate':
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -144,9 +138,10 @@ def search_full(request):
             occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
             occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]        
         if len(occ_result_df):
-            occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='name')
             occ_card_len = len(occ_result_df)
             occ_result_df = occ_result_df[:9]
+            occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID')
+            occ_result_df['val'] = occ_result_df['formatted_name']
             occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
         else:
             occ_card_len = 0
@@ -250,7 +245,7 @@ def get_records(request):
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
         q = f'{key}:/.*{keyword_reg}.*/' 
-        
+
         offset = (page-1)*10
         solr = SolrQuery('tbia_records')
         query_list += [('q', q),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
@@ -261,8 +256,12 @@ def get_records(request):
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
+        # docs['scientificName'] = docs['formatted_name']
+
         for i in docs.index:
             row = docs.iloc[i]
+            if f_name := row.get('formatted_name'):
+                docs.loc[i , 'scientificName'] = f_name
             # date
             if date := row.get('standardDate'):
                 # date = date[0].replace('T', ' ').replace('Z','')
@@ -367,7 +366,6 @@ def get_focus_cards(request):
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
         
-
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -417,7 +415,7 @@ def get_focus_cards(request):
         total_count =  sum(item['count'] for item in x['buckets'])
         result = []
         for k in x['buckets']:
-            bucket = k['scientificName']['buckets']
+            bucket = k['taxonID']['buckets']
             if key == 'eventDate':
                 if f_date := convert_date(k['val']):
                     f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -426,11 +424,13 @@ def get_focus_cards(request):
                 result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
         result_df = pd.DataFrame(result)
         if len(result_df):
-            result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
+            # result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
             card_len = len(result_df)
             result_df = result_df[:9]
+            result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
+            result_df['val'] = result_df['formatted_name']
             result_df['matched_value_ori'] = result_df['matched_value']
-            result_df['val_ori'] = result_df['val']
+            # result_df['val_ori'] = result_df['name']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
@@ -506,7 +506,7 @@ def get_more_cards(request):
             for i in facets:
                 x = facets[i]
                 for k in x['buckets']:
-                    bucket = k['scientificName']['buckets']
+                    bucket = k['taxonID']['buckets']
                     if i == 'eventDate':
                         if f_date := convert_date(k['val']):
                             f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -521,7 +521,7 @@ def get_more_cards(request):
         else:
             x = facets[key]
             for k in x['buckets']:
-                bucket = k['scientificName']['buckets']
+                bucket = k['taxonID']['buckets']
                 if i == 'eventDate':
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -531,12 +531,13 @@ def get_more_cards(request):
             result_df = pd.DataFrame(result)
 
         if len(result_df):
-            result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
             card_len = len(result_df[offset:])
             result_df = result_df[offset:offset+9]
+            result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
+            result_df['val'] = result_df['formatted_name']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value_ori'] = result_df['matched_value']
-            result_df['val_ori'] = result_df['val']
+            # result_df['val_ori'] = result_df['val']
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
             result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
@@ -768,6 +769,7 @@ def get_conditional_records(request):
 
             for i in docs.index:
                 row = docs.iloc[i]
+                docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
                 # date
                 if date := row.get('standardDate'):
                     # date = date[0].replace('T', ' ').replace('Z','')
