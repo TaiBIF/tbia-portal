@@ -485,12 +485,16 @@
   <field name="standardDate" type="pdates"/>
   <field name="standardLatitude" type="pdoubles"/>
   <field name="standardLongitude" type="pdoubles"/>
+  <field name="standardRawLatitude" type="pdoubles"/>
+  <field name="standardRawLongitude" type="pdoubles"/>
   <field name="standardOrganismQuantity" type="pdoubles"/>
   <field name="taxonID" type="string"/>
   <field name="typeStatus" type="string"/>
   <field name="verbatimCoordinateSystem" type="string"/>
   <field name="verbatimLatitude" type="string"/>
   <field name="verbatimLongitude" type="string"/>
+  <field name="verbatimRawLatitude" type="string"/>
+  <field name="verbatimRawLongitude" type="string"/>
   <field name="verbatimSRS" type="string"/>
 
 
