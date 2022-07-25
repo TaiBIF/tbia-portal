@@ -5,7 +5,6 @@
 
 from operator import xor
 import re
-from tkinter import X
 from numpy import nan
 import requests
 import pandas as pd
