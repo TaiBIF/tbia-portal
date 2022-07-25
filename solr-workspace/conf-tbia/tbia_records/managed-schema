@@ -464,6 +464,7 @@
   <field name="license" type="string"/>
   <field name="locality" type="string"/>
   <field name="location_rpt" type="location_rpt"/>
+  <field name="raw_location_rpt" type="location_rpt"/>
   <field name="modified" type="pdates"/>
   <field name="occurrenceID" type="string"/>
   <field name="organismQuantity" type="string"/>
