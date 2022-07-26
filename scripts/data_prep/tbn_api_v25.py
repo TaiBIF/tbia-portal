@@ -32,53 +32,53 @@ def convert_date(date):
     return formatted_date
 
 
-request_url = "https://www.tbn.org.tw/api/v25/dataset?modified=1000-01-01"
-response = requests.get(request_url)
-data = response.json()
-len_of_data = data['meta']['total'] # 1452
-j = 0
-total_data = data["data"]
-while data['links']['next'] != "":
-    request_url = data['links']['next']
-    response = requests.get(request_url)
-    data = response.json()
-    total_data += data["data"]
-    j += 1
-df = pd.DataFrame(total_data)
+# request_url = "https://www.tbn.org.tw/api/v25/dataset?modified=1000-01-01"
+# response = requests.get(request_url)
+# data = response.json()
+# len_of_data = data['meta']['total'] # 1452
+# j = 0
+# total_data = data["data"]
+# while data['links']['next'] != "":
+#     request_url = data['links']['next']
+#     response = requests.get(request_url)
+#     data = response.json()
+#     total_data += data["data"]
+#     j += 1
+# df = pd.DataFrame(total_data)
 
-for i in df.index:
-    print(i)
-    request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
-    response = requests.get(request_url)
-    data = response.json()
-    d = data["data"]
-    if d:
-        df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
+# for i in df.index:
+#     print(i)
+#     request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
+#     response = requests.get(request_url)
+#     data = response.json()
+#     d = data["data"]
+#     if d:
+#         df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
 
-# # 只取自產資料
-datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
+# # # 只取自產資料
+# datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
 
-# # 536dbfa2-6972-495c-a051-77312f04072b
-# # 6f689983-76a3-4d82-a393-ab731c5655da
-# # 97c21d3f-774b-45e7-9149-4c0697fadbde
+# # # 536dbfa2-6972-495c-a051-77312f04072b
+# # # 6f689983-76a3-4d82-a393-ab731c5655da
+# # # 97c21d3f-774b-45e7-9149-4c0697fadbde
 
-for d in datasets:
-    print('get:'+d)
-    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
-    response = requests.get(request_url)
-    data = response.json()
-    len_of_data = data['meta']['total'] # 43242
-    j = 0
-    total_data = data["data"]
-    while data['links']['next'] != "":
-        print('get:'+d)
-        request_url = data['links']['next']
-        response = requests.get(request_url)
-        data = response.json()
-        total_data += data["data"]
-        j += 1
-    df = pd.DataFrame(total_data)
-    df.to_csv(f"/tbia-volumes/bucket/tbn_v25/{d}.csv")
+# for d in datasets:
+#     print('get:'+d)
+#     request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+#     response = requests.get(request_url)
+#     data = response.json()
+#     len_of_data = data['meta']['total'] # 43242
+#     j = 0
+#     total_data = data["data"]
+#     while data['links']['next'] != "":
+#         print('get:'+d)
+#         request_url = data['links']['next']
+#         response = requests.get(request_url)
+#         data = response.json()
+#         total_data += data["data"]
+#         j += 1
+#     df = pd.DataFrame(total_data)
+#     df.to_csv(f"/tbia-volumes/bucket/tbn_v25/{d}.csv")
 
 
 # 學名比對
@@ -201,7 +201,7 @@ for f in files:
             data = response.json()
             total_data += data["data"]
             j += 1
-        x = x.DataFrame(total_data)
+        x = pd.DataFrame(total_data)
         # 如果有模糊化才撈
         x = x[x.dataGeneralizations==True]
         if len(x) > 1:
