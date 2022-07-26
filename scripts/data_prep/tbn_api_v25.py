@@ -223,7 +223,7 @@ for f in files:
             x = x.rename(columns={'standardLat':'standardRawLatitude','standardLon':'standardRawLongitude',
                                     'decimalLatitude':'verbatimRawLatitude','decimalLongitude':'verbatimRawLongitude',
                                     'location_rpt':'raw_location_rpt'})
-            final = final.merge(x,by='occurrenceID',how='left')
+            final = final.merge(x,on='occurrenceID',how='left')
 
     # merge with taxa info
     final = final.merge(taicol,how='left')
