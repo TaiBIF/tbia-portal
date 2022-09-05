@@ -16,8 +16,11 @@ import time
 import os
 from conf.settings import env
 
-taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220707.csv')
+taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220905.csv')
 taicol = taicol.rename(columns={'id': 'taxonID'})
+
+# TaiCOL新舊namecode對應
+namecodes = pd.read_csv('/tbia-volumes/bucket/namecode_to_taxon_name_id.csv')
 
 
 def convert_date(date):
@@ -114,6 +117,19 @@ for f in files:
             if data['info']['total'] == 1: # 只對到一個taxon
                 df.loc[df.simplifiedScientificName==s,'taxon_id'] = data['data'][0]['taxon_id']
         # TODO 沒對到的另外處理, 有可能是同名異物
+    
+    
+    # 如果沒對到taxon 看原資料庫有沒有提供namecode 有的話直接對應taxon id
+    for n in df[df.taxon_id.isnull()].index:
+        nc = df.loc[n,'taiColNameCode']
+        if len(namecodes[namecodes.namecode==nc])==1:
+            taxon_name_id = namecodes[namecodes.namecode==nc].taxon_name_id.values[0]
+            request_url = f"http://18.183.59.124/v1/nameMatch?name_id={taxon_name_id}"    
+            response = requests.get(request_url)
+            if response.status_code == 200:
+                data = response.json()
+                if data['info']['total'] == 1: # 只對到一個taxon
+                    df.loc[n,'taxon_id'] = data['data'][0]['taxon_id']
         
     row_list = []
 
