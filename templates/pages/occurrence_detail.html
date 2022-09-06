@@ -41,16 +41,17 @@
           {% else %}
           <a class="gbg_title">來源資料庫：{{ row.rightsHolder }}</a>
           {% endif %}
+          <p style="font-size: 16px; margin-bottom: 5px">{{ path_str|safe }}</p>
           <h2>中⽂名：{{ row.common_name_c }}</h2>
           <h2>學名：{{ row.formatted_name|safe }}</h2>
           <div class="short">
             <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
             <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
           </div>
-          {% if row.scientificNameID %}
-          <a class="code" target="_blank" href="https://taibnet.sinica.edu.tw/chi/taibnet_species_detail.php?name_code={{ row.scientificNameID }}">Name code：{{ row.scientificNameID }} <i class="fas fa-external-link-alt"></i></a>
+          {% if row.taxonID %}
+          <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt"></i></a>
           {% else %}
-          <p class="code">Name code：{{ row.scientificNameID }}</p>
+          <p class="code">物種編號：</p>
           {% endif %}        
         </div>
       </div>

@@ -4,6 +4,13 @@ import math
 from dateutil import parser
 from datetime import datetime, timedelta
 
+
+rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
+          'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
+            'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 
+            'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
+              'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'special-form', 'race', 'stirp', 'morph', 'aberration', 'hybrid-formula']
+
 # TODO 懸鈎子=>懸鉤子
 
 

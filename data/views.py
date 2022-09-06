@@ -580,7 +580,6 @@ def search_occurrence(request):
 
 
 def occurrence_detail(request, id):
-
     solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
@@ -631,10 +630,32 @@ def occurrence_detail(request, id):
         quantity = None
     row.update({'quantity': quantity})
 
-    return render(request, 'pages/occurrence_detail.html', {'row': row})
+    # taxon
+    path_str = ''
+    path = []
+    if row.get('taxonID'):
+        solr = SolrQuery('taxa')
+        url = f"{SOLR_PREFIX}taxa/select?indent=true&q.op=OR&q=id%3A%20{row.get('taxonID')}"
+        x = requests.get(url)
+        if x.status_code==200:
+            data = x.json()
+            data = data['response']['docs'][0]
+            for r in rank_list:
+                if data.get(r):
+                    if data.get(f"formatted_{r}"):
+                        current_str = data.get(f"formatted_{r}")
+                    else:
+                        current_str = data.get(r)
+                    if data.get(f"{r}_c"):
+                        current_str += ' ' + data.get(f"{r}_c")
+                    path.append(current_str)
+    path_str = ' > '.join(path)
+
+    return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str})
 
 
 def collection_detail(request, id):
+    path_str = ''
     solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
@@ -643,50 +664,73 @@ def collection_detail(request, id):
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
+    if row.get('record_type') == 'col':
 
-    if row.get('taxonRank', ''):
-        row.update({'taxonRank': map_collection[row['taxonRank']]})
+        if row.get('taxonRank', ''):
+            row.update({'taxonRank': map_collection[row['taxonRank']]})
 
-    if row.get('dataGeneralizations', ''):
-        if row['dataGeneralizations'] == 'True':
-            row.update({'dataGeneralizations': '是'})
-        elif row['dataGeneralizations'] == 'False':
-            row.update({'dataGeneralizations': '否'})
+        if row.get('dataGeneralizations', ''):
+            if row['dataGeneralizations'] == 'True':
+                row.update({'dataGeneralizations': '是'})
+            elif row['dataGeneralizations'] == 'False':
+                row.update({'dataGeneralizations': '否'})
+            else:
+                pass
+
+        # date
+        if date := row.get('standardDate'):
+            date = date[0].replace('T', ' ').replace('Z','')
         else:
-            pass
+            date = None
+        row.update({'date': date})
 
-    # date
-    if date := row.get('standardDate'):
-        date = date[0].replace('T', ' ').replace('Z','')
+        # 經緯度
+        lat = None
+        if lat := row.get('standardLatitude'):
+            if -90 <= lat[0] and lat[0] <= 90:        
+                lat = lat[0]
+            else:
+                lat = None
+        row.update({'lat': lat})
+
+        lon = None
+        if lon := row.get('standardLongitude'):
+            if -180 <= lon[0] and lon[0] <= 180:             
+                lon = lon[0]
+            else:
+                lon = None
+        row.update({'lon': lon})
+
+        # 數量
+        if quantity := row.get('standardOrganismQuantity'):
+            quantity = int(quantity[0])
+        else:
+            quantity = None
+        row.update({'quantity': quantity})
+
+        # taxon
+        path = []
+        if row.get('taxonID'):
+            solr = SolrQuery('taxa')
+            url = f"{SOLR_PREFIX}taxa/select?indent=true&q.op=OR&q=id%3A%20{row.get('taxonID')}"
+            x = requests.get(url)
+            if x.status_code==200:
+                data = x.json()
+                data = data['response']['docs'][0]
+                for r in rank_list:
+                    if data.get(r):
+                        if data.get(f"formatted_{r}"):
+                            current_str = data.get(f"formatted_{r}")
+                        else:
+                            current_str = data.get(r)
+                        if data.get(f"{r}_c"):
+                            current_str += ' ' + data.get(f"{r}_c")
+                        path.append(current_str)
+        path_str = ' > '.join(path)
     else:
-        date = None
-    row.update({'date': date})
+        row = []
 
-    # 經緯度
-    lat = None
-    if lat := row.get('standardLatitude'):
-        if -90 <= lat[0] and lat[0] <= 90:        
-            lat = lat[0]
-        else:
-            lat = None
-    row.update({'lat': lat})
-
-    lon = None
-    if lon := row.get('standardLongitude'):
-        if -180 <= lon[0] and lon[0] <= 180:             
-            lon = lon[0]
-        else:
-            lon = None
-    row.update({'lon': lon})
-
-    # 數量
-    if quantity := row.get('standardOrganismQuantity'):
-        quantity = int(quantity[0])
-    else:
-        quantity = None
-    row.update({'quantity': quantity})
-
-    return render(request, 'pages/collection_detail.html', {'row': row})
+    return render(request, 'pages/collection_detail.html', {'row': row, 'path_str': path_str})
 
 
 def get_conditional_records(request):
