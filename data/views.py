@@ -93,6 +93,7 @@ def search_full(request):
             col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID')
             col_result_df['val'] = col_result_df['formatted_name']
             col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
+            col_result_df = col_result_df.replace({np.nan: ''})
         else:
             col_card_len = 0
         # occurrence
@@ -143,6 +144,7 @@ def search_full(request):
             occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID')
             occ_result_df['val'] = occ_result_df['formatted_name']
             occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
+            occ_result_df = occ_result_df.replace({np.nan: ''})
         else:
             occ_card_len = 0
 
@@ -430,6 +432,7 @@ def get_focus_cards(request):
             result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
             result_df['val'] = result_df['formatted_name']
             result_df['matched_value_ori'] = result_df['matched_value']
+            result_df = result_df.replace({np.nan: ''})
             # result_df['val_ori'] = result_df['name']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
@@ -537,6 +540,7 @@ def get_more_cards(request):
             result_df['val'] = result_df['formatted_name']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value_ori'] = result_df['matched_value']
+            result_df = result_df.replace({np.nan: ''}) 
             # result_df['val_ori'] = result_df['val']
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
@@ -748,7 +752,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
 
         for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                  'scientificNameID', 'preservation']:
+                  'taxonID', 'preservation']:
             if val := request.POST.get(i):
                 val = val.strip()
                 keyword_reg = ''

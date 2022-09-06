@@ -406,8 +406,8 @@
 					<p>來源資料庫</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-scientificNameID">
-					<p>Name code</p>
+					<input type="checkbox" class="chebox" id="col-taxonID">
+					<p>TaiCOL物種編號</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-collectionID">
@@ -540,8 +540,8 @@
 					<p>來源資料庫</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-scientificNameID">
-					<p>Name code</p>
+					<input type="checkbox" class="chebox" id="occ-taxonID">
+					<p>TaiCOL物種編號</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-date">
@@ -710,8 +710,6 @@
       var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
       history.pushState(null, '', newRelativePathQuery);
     }
-
-    
 
     // 不顯示最底層結果列表
     $('.record_title').remove()
