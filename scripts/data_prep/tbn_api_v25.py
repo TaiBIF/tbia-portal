@@ -102,19 +102,19 @@ for f in files:
     print(d)
     df = pd.read_csv(f'/tbia-volumes/bucket/tbn_v25/{f}', index_col=0)
 
-    sci_names = df.scientificName.unique()
+    sci_names = df.simplifiedScientificName.unique()
     unique_sci = [x for x in sci_names if str(x) != 'nan']
 
     count = 0
     for s in unique_sci:
         count +=1
         print(count)
-        request_url = f"http://18.183.59.124/v1/nameMatch?name={s.replace('<i>','').replace('</i>','')}"    
+        request_url = f"http://18.183.59.124/v1/nameMatch?name={s}"    
         response = requests.get(request_url)
         if response.status_code == 200:
             data = response.json()
             if data['info']['total'] == 1: # 只對到一個taxon
-                df.loc[df.scientificName==s,'taxon_id'] = data['data'][0]['taxon_id']
+                df.loc[df.simplifiedScientificName==s,'taxon_id'] = data['data'][0]['taxon_id']
         # TODO 沒對到的另外處理, 有可能是同名異物
     
     
