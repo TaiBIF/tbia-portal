@@ -17,6 +17,7 @@ from conf.settings import env
 
 taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220905.csv')
 taicol = taicol.rename(columns={'id': 'taxonID'})
+taicol = taicol.drop(columns=['scientificNameID'])
 
 # TaiCOL新舊namecode對應
 namecodes = pd.read_csv('/tbia-volumes/bucket/namecode_to_taxon_name_id.csv')
@@ -195,7 +196,8 @@ for f in files:
             'preservation' : None,
             'taxonID' : row.get('taxon_id'),
             'location_rpt' : location_rpt,
-            'rightsHolder': 'TBN'
+            'rightsHolder': 'TBN',
+            'scientificNameID': row.scientificNameID
             }
         row_list.append(tmp)
 
@@ -251,6 +253,8 @@ for f in files:
     # 改成不要區分
     final.to_csv(f'/tbia-volumes/solr/csvs/get/{d}.csv', index=False)
 
+
+print('done!')
     # df_occ = final[final['recordType']=='occ']
     # df_col = final[final['recordType']=='col']
 
