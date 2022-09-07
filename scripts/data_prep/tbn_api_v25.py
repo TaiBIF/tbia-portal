@@ -101,6 +101,7 @@ for f in files:
     d = f.split('.csv')[0]
     print(d)
     df = pd.read_csv(f'/tbia-volumes/bucket/tbn_v25/{f}', index_col=0)
+    df['taxon_id'] = ''
 
     sci_names = df.simplifiedScientificName.unique()
     unique_sci = [x for x in sci_names if str(x) != 'nan']
