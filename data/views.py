@@ -26,6 +26,9 @@ from shapely.geometry import MultiPolygon
 from datetime import datetime, timedelta
 import re
 
+basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
+                'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
+                'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
 
 def search_full(request):
     keyword = request.GET.get('keyword', '')
@@ -76,12 +79,12 @@ def search_full(request):
                 })
             for k in x['buckets']:
                 bucket = k['taxonID']['buckets']
-                if i == 'eventDate':
-                    if f_date := convert_date(k['val']):
-                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                        result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
-                else:
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                # if i == 'eventDate':
+                #     if f_date := convert_date(k['val']):
+                #         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                #         result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                # else:
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
         col_result_df = pd.DataFrame(result)
         col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
         if len(col_result_df_duplicated):
@@ -127,12 +130,12 @@ def search_full(request):
                 })
             for k in x['buckets']:
                 bucket = k['taxonID']['buckets']
-                if i == 'eventDate':
-                    if f_date := convert_date(k['val']):
-                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                        result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
-                else:
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                # if i == 'eventDate':
+                #     if f_date := convert_date(k['val']):
+                #         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                #         result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                # else:
+                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
@@ -577,7 +580,7 @@ def search_occurrence(request):
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無'] # TODO 物種不開放僅開放有權限的人查詢
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
-    basis_list = ['PreservedSpecimen', 'FossilSpecimen', 'LivingSpecimen', 'MaterialSample', 'HumanObservation', 'MachineObservation', 'MaterialCitation']
+    basis_list = basis_dict.values()
         
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_list': basis_list})
@@ -638,21 +641,15 @@ def occurrence_detail(request, id):
     path_str = ''
     path = []
     if row.get('taxonID'):
-        solr = SolrQuery('taxa')
-        url = f"{SOLR_PREFIX}taxa/select?indent=true&q.op=OR&q=id%3A%20{row.get('taxonID')}"
-        x = requests.get(url)
-        if x.status_code==200:
-            data = x.json()
-            data = data['response']['docs'][0]
-            for r in rank_list:
-                if data.get(r):
-                    if data.get(f"formatted_{r}"):
-                        current_str = data.get(f"formatted_{r}")
-                    else:
-                        current_str = data.get(r)
-                    if data.get(f"{r}_c"):
-                        current_str += ' ' + data.get(f"{r}_c")
-                    path.append(current_str)
+        for r in rank_list:
+            if row.get(r):
+                if row.get(f"formatted_{r}"):
+                    current_str = row.get(f"formatted_{r}")
+                else:
+                    current_str = row.get(r)
+                if row.get(f"{r}_c"):
+                    current_str += ' ' + row.get(f"{r}_c")
+                path.append(current_str)
     path_str = ' > '.join(path)
 
     return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str})
@@ -715,21 +712,15 @@ def collection_detail(request, id):
         # taxon
         path = []
         if row.get('taxonID'):
-            solr = SolrQuery('taxa')
-            url = f"{SOLR_PREFIX}taxa/select?indent=true&q.op=OR&q=id%3A%20{row.get('taxonID')}"
-            x = requests.get(url)
-            if x.status_code==200:
-                data = x.json()
-                data = data['response']['docs'][0]
-                for r in rank_list:
-                    if data.get(r):
-                        if data.get(f"formatted_{r}"):
-                            current_str = data.get(f"formatted_{r}")
-                        else:
-                            current_str = data.get(r)
-                        if data.get(f"{r}_c"):
-                            current_str += ' ' + data.get(f"{r}_c")
-                        path.append(current_str)
+            for r in rank_list:
+                if row.get(r):
+                    if row.get(f"formatted_{r}"):
+                        current_str = row.get(f"formatted_{r}")
+                    else:
+                        current_str = row.get(r)
+                    if row.get(f"{r}_c"):
+                        current_str += ' ' + row.get(f"{r}_c")
+                    path.append(current_str)
         path_str = ' > '.join(path)
     else:
         row = []
@@ -829,7 +820,8 @@ def get_conditional_records(request):
                 # date
                 if date := row.get('standardDate'):
                     # date = date[0].replace('T', ' ').replace('Z','')
-                    docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+                    docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
+                    # 如果原本調查的時間是區段
                 else:
                     if row.get('eventDate'):
                         docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'

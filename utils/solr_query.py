@@ -1135,9 +1135,9 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': -1,
             'facet':{
-                    'scientificName':{
+                    'taxonID':{
                         'type': 'terms',
-                        'field': 'scientificName',
+                        'field': 'taxonID',
                         'limit': -1,
                     },
                 }
