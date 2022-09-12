@@ -46,6 +46,7 @@ import bson
 import time
 import os
 from conf.settings import env
+import string
 
 taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220905.csv')
 taicol = taicol.rename(columns={'id': 'taxonID'})
@@ -105,7 +106,8 @@ for f in files:
     for s in unique_sci:
         count +=1
         print(count)
-        request_url = f"http://18.183.59.124/v1/nameMatch?name={s}"    
+        new_s = s.translate(str.maketrans('', '', string.punctuation))
+        request_url = f"http://18.183.59.124/v1/nameMatch?name={new_s}"    
         response = requests.get(request_url)
         if response.status_code == 200:
             data = response.json()
