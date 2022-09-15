@@ -1,4 +1,3 @@
-from itertools import count
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
@@ -35,7 +34,11 @@ def search_full(request):
 
     if keyword:
         keyword = keyword.strip()
-
+        try:
+            int(keyword)
+            only_number = True
+        except:
+            only_number = False
         query = {
             "query": '',
             "filter": ['recordType:col'],
@@ -71,20 +74,19 @@ def search_full(request):
         result = []
         for i in facets:
             x = facets[i]
-            if x['buckets']:
-                collection_rows.append({
-                    'title': map_collection[i],
-                    'total_count': sum(item['count'] for item in x['buckets']),
-                    'key': i
-                })
-            for k in x['buckets']:
-                bucket = k['taxonID']['buckets']
-                # if i == 'eventDate':
-                #     if f_date := convert_date(k['val']):
-                #         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                #         result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
-                # else:
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            if not only_number or (only_number and i != 'eventDate'):    
+                if x['buckets']:
+                    collection_rows.append({
+                        'title': map_collection[i],
+                        'total_count': sum(item['count'] for item in x['buckets']),
+                        'key': i
+                    })
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            else:
+                if x['buckets']:
+                    c_collection -= sum(item['count'] for item in x['buckets'])
         col_result_df = pd.DataFrame(result)
         col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
         if len(col_result_df_duplicated):
@@ -121,21 +123,21 @@ def search_full(request):
         result = []
         for i in facets:
             x = facets[i]
-            if x['buckets']:
-                total_count =  sum(item['count'] for item in x['buckets'])
-                occurrence_rows.append({
-                    'title': map_occurrence[i],
-                    'total_count': total_count,
-                    'key': i
-                })
-            for k in x['buckets']:
-                bucket = k['taxonID']['buckets']
-                # if i == 'eventDate':
-                #     if f_date := convert_date(k['val']):
-                #         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                #         result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
-                # else:
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            if not only_number or (only_number and i != 'eventDate'):
+                if x['buckets']:
+                    total_count =  sum(item['count'] for item in x['buckets'])
+                    occurrence_rows.append({
+                        'title': map_occurrence[i],
+                        'total_count': total_count,
+                        'key': i
+                    })
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+            else:
+                if x['buckets']:
+                    c_occurrence -= sum(item['count'] for item in x['buckets'])
+
         occ_result_df = pd.DataFrame(result)
         occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
         if len(occ_result_df_duplicated):
@@ -730,10 +732,20 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
+        # TODO 這邊要紀錄query_string
+        print(request.POST)
+        query_string = request.POST.urlencode()
+        
+        map_geojson = {}
+        map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
+        map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
+        map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
+        map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
         # default columns
         selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
         # use JSON API to avoid overlong query url
         query_list = []
+
 
         record_type = request.POST.get('record_type')
         if record_type == 'col': # occurrence include occurrence + collection
@@ -745,13 +757,14 @@ def get_conditional_records(request):
         for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
                   'taxonID', 'preservation']:
             if val := request.POST.get(i):
-                val = val.strip()
-                keyword_reg = ''
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
-                    keyword_reg = get_variants(keyword_reg)
-                query_list += [f'{i}:/.*{keyword_reg}.*/']
+                if val != 'undefined':
+                    val = val.strip()
+                    keyword_reg = ''
+                    for j in val:
+                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                        keyword_reg = get_variants(keyword_reg)
+                    query_list += [f'{i}:/.*{keyword_reg}.*/']
         
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
@@ -766,24 +779,29 @@ def get_conditional_records(request):
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
                 start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d') + timedelta(days = 1) 
+                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d')
                 end_date = end_date.isoformat() + 'Z'
+                end_date = end_date.replace('00:00:00','23:59:59')
                 query_list += [f'standardDate:[{start_date} TO {end_date}]']
             except:
                 pass
 
         if g_str := request.POST.get('geojson'):
             geojson = json.loads(g_str)
-            geo_df = gpd.GeoDataFrame.from_features(geojson)
-            g_list = []
-            for i in geo_df.to_wkt()['geometry']:
-                if str(i).startswith('POLYGON'):
-                    g_list += [i]
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            except:
-                pass
+            if geojson['features']:
+                if circle_radius := request.POST.get('circle_radius'):
+                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+                else:
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        if str(i).startswith('POLYGON'):
+                            g_list += [i]
+                    try:
+                        mp = MultiPolygon(map(wkt.loads, g_list))
+                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                    except:
+                        pass
         
         if val := request.POST.get('name'):
             val = val.strip()
@@ -794,7 +812,6 @@ def get_conditional_records(request):
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
-
         # 如果有其他條件才進行搜尋，否則回傳空值
         if query_list and query_list != ['recordType:col']:
 
@@ -805,10 +822,36 @@ def get_conditional_records(request):
                     "offset": offset,
                     "limit": 10,
                     "filter": query_list,
-                    "sort":  "scientificName asc" }
+                    "sort":  "scientificName asc",
+                    }
+            if request.POST.get('from') == 'page':
+                response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+            else:
+                for grid in [1,5,10,100]:
+                    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_{grid},grid_y_{grid}', data=json.dumps(query), headers={'content-type': "application/json" })
+                    # map
+                    data_c = {}
+                    data_c = response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
 
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-            
+                    for i in data_c:
+                        current_grid_x = i['value']
+                        for j in i['pivot']:
+                            current_grid_y = j['value']
+                            current_count = j['count']
+                            # current_center_x, current_center_y = convert_grid_to_coor(current_grid_x, current_grid_y)
+                            if current_grid_x != -1 and current_grid_y != -1:
+                                borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                                # print(borders)
+                                tmp = [{
+                                    "type": "Feature",
+                                    "geometry":{"type":"Polygon","coordinates":[borders]},
+                                    "properties": {
+                                        "counts": current_count
+                                    }
+                                }]
+                                map_geojson[f'grid_{grid}']['features'] += tmp
+
+
             count = response.json()['response']['numFound']
             docs = pd.DataFrame(response.json()['response']['docs'])
             docs = docs.replace({np.nan: ''})
@@ -816,12 +859,16 @@ def get_conditional_records(request):
 
             for i in docs.index:
                 row = docs.iloc[i]
-                docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
+                if row.get('scientificName') and row.get('formatted_name'):
+                    docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
                 # date
                 if date := row.get('standardDate'):
                     # date = date[0].replace('T', ' ').replace('Z','')
-                    docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
-                    # 如果原本調查的時間是區段
+                    # 如果是國家公園，原本調查的時間是區段
+                    if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
+                        docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
+                    else:
+                        docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
                 else:
                     if row.get('eventDate'):
                         docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
@@ -861,6 +908,7 @@ def get_conditional_records(request):
                 'total_page' : total_page,
                 'selected_col': selected_col,
                 'map_dict': map_dict,
+                'map_geojson': map_geojson
             }
         
         else:
@@ -871,6 +919,7 @@ def get_conditional_records(request):
                 'total_page' : 0,
                 'selected_col': selected_col,
                 'map_dict': map_dict,
+                'map_geojson': map_geojson,
             }
 
-        return HttpResponse(json.dumps(response), content_type='application/json')
+        return HttpResponse(json.dumps(response, default=str), content_type='application/json')

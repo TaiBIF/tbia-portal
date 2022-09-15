@@ -14,7 +14,47 @@
 -->
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock head %}
+{% block style %}
+<style>
+  
+  p.active {
+    background: #3F5146;
+    color: #FFF !important;
+  }
+  
+  .circle-select {
+    display: flex;
+    margin-bottom: 10px
+  }
+
+  .circle-select p {
+    width: 20%;
+    font-size: 16px;
+    color: #707070;
+    margin: auto 0;
+  }
+
+  .circle-select select, .circle-select input {
+    width: 90%;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    height: 50px;
+    font-size: 16px;
+    padding: 0px 10px;
+    color: #707070
+  }
+
+  .circle-select {
+    display: flex;
+    margin-bottom: 10px
+  }
+
+</style>
+{% endblock style %}
+
 {% block title %}物種出現紀錄查詢｜{% endblock %}
 {% block body %}
 <div class="path">
@@ -125,12 +165,20 @@
                 <div id="map" class="img"></div>
               </div>
             </div>
-            <div class="clearfix">
+            <div class="clearfix" style="display: flex; justify-content: space-between">
               <label class="btnupload">
-              <p onclick="popupGeo()">上傳Polygon</p>
-              <label class="btnupload" style="margin-left: 5px;">
-              <p style=" width: 80px" onclick="clearGeo()">重設</p>
-            </div>
+                <p data-type="map" onclick="mapGeo(this)" style="width: 110px">地圖框選</p>
+              </label>
+              <label class="btnupload">
+                <p data-type="circle" onclick="circleGeo(this)" style="width: 120px">圓中心框選</p>
+              </label>
+              <label class="btnupload">
+                <p data-type="polygon" onclick="popupGeo(this)" style="width: 130px">上傳Polygon</p>
+              </label>
+              <label class="btnupload">
+                <p onclick="clearGeo()" style="width: 50px">重設</p>  
+              </label>
+            </div>          
           </div>
         </div>
         </form>
@@ -279,56 +327,237 @@
 	</div>
 </div>
 
+<!--圓中心查詢popbox-->
+<div class="popbg circle_popup" style="display:none; ">
+	<div class="ovhy">
+		<div class="wbox_center"  style="max-height: 380px">
+			<div class="xx">
+			</div>
+			<div class="titlegreen">
+				 圓中心框選
+			</div>
+			<div class="from_area" style="height: 100%">
+				<div class="txt_area" style="margin-top: 5%">
+          <div class="circle-select">
+            <p>半徑</p>
+            <select name="circle_radius" id="circle_radius">
+              <option value="1">1KM</option>
+              <option value="2">2KM</option>
+              <option value="5">5KM</option>
+              <option value="10">10KM</option>
+              <option value="25">25KM</option>
+              <option value="50">50KM</option>
+            </select>
+          </div>
+          <div class="circle-select">
+            <p>中心點經度</p>
+            <input name="center_lon" type="text">
+          </div>
+          <div class="circle-select">
+            <p>中心點緯度</p>
+            <input name="center_lat" type="text">
+          </div>
+				</div>
+				<button  style="margin-top: 5%"class="send circle_send">確認送出</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock body %}
 {% block script %}
 <script>
-  let map = L.map('map').setView([23.5, 121.2],7);
-  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
 
-
-  $( function() {
-
+    function getColor(d) {
+      return d > 1000 ? '#4c00b0' :
+              d > 500  ? '#7600bc' :
+              d > 200  ? '#8a00c2' :
+              d > 100  ? '#a000c8' :
+              d > 50   ? '#b100cd' :
+              d > 20   ? '#be2ed6' :
+              d > 10   ? '#ca5cdd' :
+                        '#da8ee7';
+    }
+    
+    function style(feature) {
+      return {
+          fillColor: getColor(feature.properties.counts),
+          weight: 1,
+          opacity: 0.5,
+          color: 'black',
+          //dashArray: '3',
+          fillOpacity: 1
+      };
+    }
+    
+    let map = L.map('map').setView([23.5, 121.2],7);
+    L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    drawControl = new L.Control.Draw({
+        draw : {
+            position : 'topleft',
+            polyline : false,
+            rectangle : true,
+            circle : false,
+            polygon: true,
+            marker: false,
+            circlemarker: false
+        },
+        edit : {
+          featureGroup: drawnItems,
+          edit: false
+        }
+    });
+    
+    map.addControl(drawControl); 
+    
+    $('.leaflet-control.leaflet-draw').css('display', 'none')
+    map.on(L.Draw.Event.CREATED, function (e) {
+      var layer = e.layer;
+      drawnItems.addLayer(layer);
+    });
+    
+    map.on('zoomend', function zoomendEvent(ev) {
+      var currentZoomLevel = ev.target.getZoom()
+    
+        if (currentZoomLevel < 5) {
+          $('[class^=resultG_]').css('display','none')
+          $('.resultG_100').css('display','')
+        } else if (currentZoomLevel < 8){
+          $('[class^=resultG_]').css('display','none')
+          $('.resultG_10').css('display','')
+        } else if (currentZoomLevel < 9){
+          $('[class^=resultG_]').css('display','none')
+          $('.resultG_5').css('display','')
+        } else {
+          $('[class^=resultG_]').css('display','none')
+          $('.resultG_1').css('display','')
+        }
+    });
+    
+    
   // date picker
+  $( function() {
 
     $( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
     $( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
   } );
 
-  function popupGeo(){
+  // 從地圖框選
+  function mapGeo(e){
+    $('.addC, .addG').remove()
+    $('p.active').removeClass('active')
+    $(e).addClass('active');
+    $('.leaflet-control.leaflet-draw').css('display', '')
     //$('.geojson_popup').css({display: ''})
+  }
+
+  // 從圓中心框選
+  function circleGeo(e){
+    $('.addC, .addG').remove()
+    drawnItems.clearLayers();
+    $('p.active').removeClass('active')
+    $(e).addClass('active');
+    $('.leaflet-control.leaflet-draw').css('display', 'none')
+    $(".circle_popup").show()
+  }
+
+
+  function popupGeo(e){
+    $('.addC').remove()
+    drawnItems.clearLayers();
+    $('p.active').removeClass('active')
+    $(e).addClass('active');
+    $('.leaflet-control.leaflet-draw').css('display', 'none')
     $(".geojson_popup").show()
   }
 
   function clearGeo(){
-    window.geoJSON.remove();
+    $('p.active').removeClass('active')
+    $('.leaflet-control.leaflet-draw').css('display', 'none')
+    drawnItems.clearLayers();
+    $('.addG, .addC').remove()
+     $('input[name=center_lat]').val('')
+    $('input[name=center_lon]').val('')
+    $("#circle_radius").val("1").trigger("change");
     $('#geojson_textarea').val('')
   }
 
+
+  $('.circle_send').click( function(){
+    // 先把舊的移除
+    $('.addC, [class^=resultG_]').remove()
+    if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
+      alert('框選失敗！請檢查經緯度格式是否正確')
+    } else {
+      try {
+        let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
+                    parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
+        drawnItems.addLayer(circle);
+        map.fitBounds(circle.getBounds());
+        $(".circle_popup").hide()
+      } catch (e) {
+        alert('框選失敗！請檢查經緯度格式是否正確')
+      }
+    }
+  })
+
+
+
   $('.geojson_send').click( function(){
+    // 先把舊的移除
+    $('.addG, [class^=resultG_]').remove()
     try {
       let geoObj = JSON.parse($('#geojson_textarea').val());
-      window.geoJSON = L.geoJSON(geoObj).addTo(map);
-      map.fitBounds(window.geoJSON.getBounds());
+      geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
+      map.fitBounds(geoJSON.getBounds());
+      $(".geojson_popup").hide()
     } catch (e) {
       alert('上傳失敗！請檢查GeoJSON格式是否正確')
     }
-    $(".geojson_popup").hide()
   })
-
 
 
   // submit search form
 function submitSearch (page, from){
 
+    let map_condition = '';
+    if ($('p.active').data('type')=='map'){
+      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON())})
+    } else if ($('p.active').data('type')=='polygon'){
+      map_condition = '&' + $.param({'geojson': $('#geojson_textarea').val()})
+    } else if ($('p.active').data('type')=='circle'){
+    //map_condition = '&circle_radius=' +$('select[name=circle_radius]').val() + '&circle_lat=' +$('input[name=circle_lat]').val()  + '&circle_lon=' +$('input[name=circle_lon]').val()
+      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val()})
+    }
+
     if (from == 'search'){
-      window.condition = $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val()})
+      //window.condition = $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val()})
+      
+      var form = $(); //Initialize empty jQuery object
+
+      //Iterate through all inputs, textareas
+      $('#searchForm input,#searchForm select').each(function() {
+          //Add to jQuery object if not empty
+          if ($(this).val().length) {
+             form = form.add($(this)); 
+          }
+      })
+  
+      window.condition = form.serialize() + map_condition
+
+      // 把之前的清掉
+      drawnItems.clearLayers();
+      $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+
     } 
 
     $.ajax({
       url: "{% url 'get_conditional_records' %}",
-      data: window.condition + '&' + $.param({'page': page}),
+      data: window.condition + '&' + $.param({'page': page})+ '&from=' + from,
       type: 'POST',
       dataType : 'json',
     })
@@ -338,6 +567,24 @@ function submitSearch (page, from){
       if (response.count == 0){
         $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
       } else {
+        L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
+        //map.fitBounds(geoResult.getBounds());
+
+      $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
+
+      if (map.getZoom() < 5) {
+        $('.resultG_100').css('display','')
+      } else if (map.getZoom() < 8){
+        $('.resultG_10').css('display','')
+      } else if (map.getZoom() < 9){
+        $('.resultG_5').css('display','')
+      } else {
+        $('.resultG_1').css('display','')
+      }
+
         // 如果有資料回傳則顯示table
         $('.search_condition_are').after(`
         <div class="sc_result">

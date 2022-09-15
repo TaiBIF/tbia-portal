@@ -5,6 +5,38 @@ from dateutil import parser
 from datetime import datetime, timedelta
 
 
+
+import numpy as np
+import bisect
+
+# x: longtitude, y: latitude
+
+
+def convert_grid_to_coor(grid_x, grid_y, list_x, list_y):
+  center_x = (list_x[grid_x] + list_x[grid_x+1])/2
+  center_y = (list_y[grid_y] + list_y[grid_y+1])/2
+  return center_x, center_y
+
+
+
+def convert_coor_to_grid(x, y, grid):
+    list_x = np.arange(-180, 180, grid)
+    list_y = np.arange(-90, 90, grid)
+    grid_x = bisect.bisect(list_x, x)-1
+    grid_y = bisect.bisect(list_y, y)-1
+    return grid_x, grid_y
+
+def convert_grid_to_square(grid_x, grid_y, grid):
+    list_x = np.arange(-180, 180, grid)
+    list_y = np.arange(-90, 90, grid)
+    x1 = list_x[grid_x]
+    x2 = list_x[grid_x+1]
+    y1 = list_y[grid_y]
+    y2 = list_y[grid_y+1]
+    # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
+    return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
+
+
 rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
           'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
             'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 

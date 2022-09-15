@@ -613,6 +613,15 @@
     <field name="tribe_c" type="string"/>
     <field name="variety" type="string"/>
     <!-- taxa fields end -->
+    <!-- map -->
+    <field name="grid_x_1" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_y_1" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_x_5" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_y_5" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_x_10" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_y_10" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_x_100" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
+    <field name="grid_y_100" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
 
   <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
   <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
