@@ -23,3 +23,5 @@ urlpatterns = [
     path('', include('data.urls')),
     path('', include('account.urls')),
 ]
+
+handler404 = "pages.views.page_not_found_view"

@@ -34,11 +34,19 @@ def search_full(request):
 
     if keyword:
         keyword = keyword.strip()
-        try:
-            int(keyword)
-            only_number = True
-        except:
-            only_number = False
+        if re.match(r'^([\s\d]+)$', keyword):
+            # 純數字
+            enable_query_date = False
+        elif re.match(r'^[0-9-]*$', keyword):
+            # 數字和-的組合 一定要符合日期格式才行
+            try:
+                datetime.strptime(keyword, '%Y-%m-%d')
+                enable_query_date = True
+            except:
+                enable_query_date = False
+        else:
+            enable_query_date = True
+
         query = {
             "query": '',
             "filter": ['recordType:col'],
@@ -74,7 +82,7 @@ def search_full(request):
         result = []
         for i in facets:
             x = facets[i]
-            if not only_number or (only_number and i != 'eventDate'):    
+            if (i != 'eventDate') or (enable_query_date and i == 'eventDate'): 
                 if x['buckets']:
                     collection_rows.append({
                         'title': map_collection[i],
@@ -123,7 +131,7 @@ def search_full(request):
         result = []
         for i in facets:
             x = facets[i]
-            if not only_number or (only_number and i != 'eventDate'):
+            if (i!='eventDate') or (enable_query_date and i == 'eventDate'): 
                 if x['buckets']:
                     total_count =  sum(item['count'] for item in x['buckets'])
                     occurrence_rows.append({
@@ -610,7 +618,8 @@ def occurrence_detail(request, id):
             pass
     # date
     if date := row.get('standardDate'):
-        date = date[0].replace('T', ' ').replace('Z','')
+        # date = date[0].replace('T', ' ').replace('Z','')
+        date = date[0].split('T')[0]
     else:
         date = None
     row.update({'date': date})
@@ -667,7 +676,8 @@ def collection_detail(request, id):
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
-    if row.get('record_type') == 'col':
+    print(row.get('recordType'))
+    if row.get('recordType') == ['col']:
 
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
@@ -682,7 +692,8 @@ def collection_detail(request, id):
 
         # date
         if date := row.get('standardDate'):
-            date = date[0].replace('T', ' ').replace('Z','')
+            # date = date[0].replace('T', ' ').replace('Z','')
+            date = date[0].split('T')[0]
         else:
             date = None
         row.update({'date': date})
@@ -863,15 +874,21 @@ def get_conditional_records(request):
                     docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
                 # date
                 if date := row.get('standardDate'):
-                    # date = date[0].replace('T', ' ').replace('Z','')
-                    # 如果是國家公園，原本調查的時間是區段
-                    if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
-                        docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
-                    else:
-                        docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+                    date = date[0].split('T')[0]
+                    docs.loc[i , 'eventDate'] = date
                 else:
                     if row.get('eventDate'):
                         docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+
+                #     # date = date[0].replace('T', ' ').replace('Z','')
+                #     # 如果是國家公園，原本調查的時間是區段
+                #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
+                #         docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
+                #     else:
+                #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+                # else:
+                    # if row.get('eventDate'):
+                    #     docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
                 # 經緯度
                 if lat := row.get('standardLatitude'):
                     docs.loc[i , 'verbatimLatitude'] = lat[0]

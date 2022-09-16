@@ -1,10 +1,19 @@
 from django.http import request, HttpResponse
 from django.shortcuts import render, redirect
-from .models import *
+from pages.models import *
 from utils.solr_query import SolrQuery
 from account.models import Partner
 import json
 import math
+
+
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)
+
+
+def news_detail(request):
+    return render(request, 'pages/news_detail.html')
+
 
 def get_resource_cate(extension):
     if extension.lower() in ['docs','csv','json','.xlsx', '.xls']:
