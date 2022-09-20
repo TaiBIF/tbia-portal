@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('account', '0001_initial'),
+        ('manager', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('url', models.CharField(blank=True, max_length=1000, null=True)),
                 ('created', models.DateField(auto_now_add=True)),
                 ('modified', models.DateField(auto_now_add=True)),
-                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='account.unit')),
+                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='manager.unit')),
                 ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateField(auto_now_add=True)),
                 ('notified', models.DateField(auto_now_add=True)),
                 ('content', models.TextField(blank=True, null=True)),
-                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='account.unit')),
+                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='manager.unit')),
                 ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('attachments', models.TextField(blank=True, null=True)),
                 ('created', models.DateField(auto_now_add=True)),
                 ('modified', models.DateField(auto_now_add=True)),
-                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='account.unit')),
+                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='manager.unit')),
                 ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
                 ('is_replied', models.BooleanField(default=False)),
                 ('created', models.DateField(auto_now_add=True)),
                 ('replied', models.DateField()),
-                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='account.unit')),
+                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='manager.unit')),
                 ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(blank=True, max_length=10, null=True)),
                 ('submitted', models.DateField(auto_now_add=True)),
                 ('expired', models.DateField()),
-                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='account.unit')),
+                ('unit_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='manager.unit')),
                 ('user_id', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
             options={

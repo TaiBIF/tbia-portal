@@ -1,3 +1,4 @@
+from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import django
@@ -5,26 +6,28 @@ import django
 # Create your models here.
 
 
+
 class UserManager(BaseUserManager):
-    def create_user(self, username, **kwargs):
+    def create_user(self, email, **kwargs):
         """
-        Creates and saves a User with the given email (username)
+        Creates and saves a User with the given email (email)
         """
         user = self.model(
-            username=self.normalize_email(username),
+            email=self.normalize_email(email),
             name=kwargs['name'],
+            is_email_verified=kwargs['is_email_verified'],
+            is_active=kwargs['is_active'],
         )
-
-        # user.set_password(password)
+        user.set_password(kwargs['password'])
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password, **kwargs):
+    def create_superuser(self, email, password, **kwargs):
         """
-        Creates and saves a superuser with the given email (username) and password
+        Creates and saves a superuser with the given email (email) and password
         """
         user = self.model(
-            username=self.normalize_email(username),
+            email=self.normalize_email(email),
             # first_name=kwargs['first_name'],
             # last_name=kwargs['last_name'],
         )
@@ -41,11 +44,11 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     name = models.CharField(max_length=20, blank=True)
-    username = models.EmailField(max_length=254, blank=False, unique=True)
-    is_active = models.BooleanField(default=False)
+    email = models.EmailField(max_length=254, blank=False, unique=True)
+    is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
-    is_email_verified = models.BooleanField(default=False)
-    email = None
+    is_email_verified = models.BooleanField(default=True)
+    first_login = models.BooleanField(default=True)
 
     unit_choice = [
         ('none', '無'),
@@ -80,7 +83,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.username
+        return self.email
 
     class Meta:
         db_table = 'tbia_user'
@@ -99,3 +102,21 @@ class Partner(models.Model):
     modifed = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'partner'
+
+
+class SearchQuery(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query = models.TextField(null=True, blank=True)
+    download_times = models.IntegerField(default=0)
+    created = models.DateField(auto_now_add=True)
+
+
+
+# class DownloadStat(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     query = models.TextField(null=True, blank=True)
+#     created = models.DateField(auto_now_add=True)
+
+
+
+

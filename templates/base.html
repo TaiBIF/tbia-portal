@@ -1,4 +1,6 @@
 {% load static %}
+{% load socialaccount %}
+
 <!DOCTYPE html>
 <html lang="zh-TW">
   <head>
@@ -15,9 +17,21 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
     <style>
+      .popbg .loginbox .right_cont .checkbox_area {
+        margin-bottom: 20px;
+    }
+    
+
+      .popbg .wbox_center {
+
+        max-height: 650px;
+    }
+    
+
     ::placeholder{
       color: #707070;
     }  
@@ -82,7 +96,7 @@
               {% if user.is_authenticated %}
               <li class="rd_mb_two_menu_li">
                 <a href="#" class="one_set">
-                  <p class="gres">Hello,Amy</p>
+                  <p class="gres">Hello, {{ user.name }}</p>
                   <img class="ardown" src="{% static 'image/ardown.svg' %}" >
                 </a>
                 <div class="mbmu2">
@@ -393,8 +407,25 @@
                 <input type="checkbox" name="rememberme">
                 <p>記住我的帳號</p>
               </div>
+              <div  class="input_item">
+              <div
+                class="g-recaptcha "
+                data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
+                data-theme="light" data-size="normal"
+                data-callback="verify"
+                data-expired-callback="expired"
+                data-error-callback="error">
+                </div>
+                <div class="noticbox" style="display:none;">
+                  <div class="in1">錯誤</div>
+                  <p>登入前請完成驗證</p>
+                </div>
+              </div>
+
           </form>
 						<button class="loginbtn" onclick="login()">登入</button>
+            <a class="btn btn-danger" href="{% provider_login_url 'google' %}" method="post">Google登入/註冊</a>
+
 						<div class="linkbtn_2">
 							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .register_area').css('display', '')">我要註冊</a>
 							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .password_area').css('display', '')">忘記密碼?</a>
@@ -429,7 +460,7 @@
                 </div>
               </div>
               <div class="input_item">
-                <input type="text" name="password" placeholder="請輸入您的密碼">
+                <input type="password" name="password" placeholder="請輸入您的密碼">
                 <!--送出時錯誤出現-->
                 <div class="noticbox" style="display: none;">
                   <div class="in1">錯誤</div>
@@ -437,7 +468,7 @@
                 </div>
               </div>
               <div class="input_item">
-                <input type="text" name="repassword" placeholder="請再次輸入密碼">
+                <input type="password" name="repassword" placeholder="請再次輸入密碼">
                 <!--送出時錯誤出現-->
                 <div class="noticbox" style="display: none;">
                   <div class="in1">錯誤</div>
@@ -462,9 +493,9 @@
 						</div>
 						<p class="center">請輸入當初加入會員使用的E-Mail，我們將協助您重新設定密碼。</p>
 						<div class="input_item">
-							<input type="text" placeholder="請輸入您的email">
+							<input type="text" name="reset_email" placeholder="請輸入您的email">
 						</div>
-						<button class="loginbtn">確認送出</button>
+						<button class="loginbtn resetbtn">確認送出</button>
 						<div class="linkbtn_2">
 							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .register_area').css('display', '')">我要註冊</a>
 							<a href="javascript:;" onclick="$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')">返回登入?</a>
@@ -479,6 +510,27 @@
   </body>
   <script>
     $(function () {
+
+
+      $('.resetbtn').on('click',function(){
+        $.ajax({
+          url: "{% url 'send_reset_password' %}",
+          data: {'email': $('input[name=reset_email]').val(), csrfmiddlewaretoken: '{{ csrf_token }}'} ,
+          type: 'POST',
+          dataType : 'json',
+      })
+      .done(function(response) {
+        alert(response.message)
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        alert('發生未知錯誤！請聯絡管理員')
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+              $('.login_pop').css('display','none')
+
+      }) 
+      })
+
+
       gsap.registerPlugin(ScrollTrigger);
 
       ScrollTrigger.create({
@@ -602,6 +654,9 @@
 
 
     function login(){
+      console.log($('#g-recaptcha-response').val()=='')
+
+      
       // remove all notice first
       $('#loginForm .noticbox').css('display','none')
 
@@ -609,6 +664,11 @@
       
       if (!validateEmail($('#loginForm input[name=email]').val())){ // check email
         $('#loginForm input[name=email]').next('.noticbox').css('display','')
+        checked = false
+      }  
+
+      if ($('#g-recaptcha-response').val()==''){ // check email
+        $('.g-recaptcha').next('.noticbox').css('display','')
         checked = false
       }  
       
@@ -664,26 +724,31 @@
         checked = false
       } 
 
-        
-        $.ajax({
-            url: "{% url 'register' %}",
-            data: $('#registerForm').serialize() ,
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-          console.log(response)
-          /*
-          alert(response.message)
-          if (response.status=='success'){
-            location.reload() }
-            */
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-          $('.login_pop').css('display','none')
-        })  
+      if (checked)
+      {
+          $.ajax({
+              url: "{% url 'register' %}",
+              data: $('#registerForm').serialize() ,
+              type: 'POST',
+              dataType : 'json',
+          })
+          .done(function(response) {
+            
+            if (response.status=='success'){
+              window.location.href = "{% url 'register_verification' %}";
+              
+            } else {
+              alert(response.message)
+              $('.login_pop').css('display','none')
+            }
+              
+          })
+          .fail(function( xhr, status, errorThrown ) {
+            alert('發生未知錯誤！請聯絡管理員')
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            $('.login_pop').css('display','none')
+          })  
+        }
       }
 
       $('.login_pop').on('show', function(){

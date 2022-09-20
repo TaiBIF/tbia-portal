@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models.fields import TextField
-from account.models import User, Partner
+from manager.models import User, Partner
 
 
 class Keyword(models.Model):

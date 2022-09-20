@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}註冊｜{% endblock %}
+
+{% block style %}
+<style>
+
+    .minh_content {
+        min-height: calc(100% - 340px);
+    }
+    
+    ul {
+        list-style: none;
+    }
+
+    .resgister-list li {
+        padding: 10px;
+    }
+
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="path"> 
+    <div class="main_1240"> 
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p>會員註冊</p>
+    </div>
+</div>
+ 
+ <div class="minh_content">
+    <div class="nbn_title">
+        <h2>會員註冊</h2>
+    </div>
+    <div class="main_1240"> 
+        <div class="w_border10_box">
+            <div class="maxw_760"> 
+                <p class="marb_20">
+                    我們將寄出一封驗證信至您填寫的信箱，請完成您的電子信箱認證就可啟用會員帳號。謝謝！！
+                </p>
+                <div class="gray_box">
+                    {{ email }}
+                </div>
+                <div class="bt_center">
+                    <button onclick="resendEmail()">重新寄送</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+
+function resendEmail(){
+    $.ajax({
+        url: "{% url 'resend_verification_email' %}",
+        data: {'email': '{{ email }}',csrfmiddlewaretoken: '{{ csrf_token }}'} ,
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+      
+      if (response.status=='success'){
+        alert('已重新寄送')
+        
+      } else {
+        alert('發生未知錯誤！請聯絡管理員')
+      }
+        
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      alert('發生未知錯誤！請聯絡管理員')
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      $('.login_pop').css('display','none')
+    })  
+  
+
+}
+    
+
+</script>
+{% endblock %}

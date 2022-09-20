@@ -21,7 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('pages.urls')),
     path('', include('data.urls')),
-    path('', include('account.urls')),
+    path('', include('manager.urls')),
+    path('accounts/', include('allauth.urls')),  # django-allauth網址
 ]
 
 handler404 = "pages.views.page_not_found_view"

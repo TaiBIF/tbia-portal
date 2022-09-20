@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('pages', '0005_auto_20220118_0719'),
-        ('account', '0003_auto_20220118_0658'),
+        ('manager', '0003_auto_20220118_0658'),
     ]
 
     operations = [

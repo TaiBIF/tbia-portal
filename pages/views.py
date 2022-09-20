@@ -2,7 +2,7 @@ from django.http import request, HttpResponse
 from django.shortcuts import render, redirect
 from pages.models import *
 from utils.solr_query import SolrQuery
-from account.models import Partner
+from manager.models import Partner
 import json
 import math
 

@@ -38,7 +38,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
     'pages',
-    'account',
+    'manager',
     'data',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,8 +46,32 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize'
+    'django.contrib.humanize',
+    # allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # google provider
+    'allauth.socialaccount.providers.google',
 ]
+
+SITE_ID = 1 # oauth
+LOGIN_REDIRECT_URL = '/google/callback'  # 登入後的首頁網址
+SOCIALACCOUNT_LOGIN_ON_GET=True
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -140,14 +164,13 @@ STATICFILES_DIRS = [default_static_dir, ]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # login
-AUTH_USER_MODEL = "account.User" 
+AUTH_USER_MODEL = "manager.User" 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    "account.views.registerBackend"
+    "manager.views.registerBackend"
 )
 
 LOGIN_URL = '/login'
-LOGIN_REDIRECT_URL = '/home'
 
 SESSION_COOKIE_AGE = 604800 # automatically logout after a week
 
@@ -156,9 +179,8 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
 # email
-EMAIL_FROM_USER = env('EMAIL_FROM_USER')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
+AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='')
+AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
