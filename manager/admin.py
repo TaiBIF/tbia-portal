@@ -7,10 +7,10 @@ from .models import User, Partner
 class CustomUserAdmin(UserAdmin):
     ...
     fieldsets =  (
-        (None, {'fields': ('email', 'password', 'name', 'is_active', 'is_superuser', 'is_email_verified', 'partner', 'role', 'last_login','date_joined','is_staff')}),
+        (None, {'fields': ('email', 'password', 'name', 'is_active', 'is_superuser', 'is_email_verified', 'partner', 'last_login','date_joined','is_staff')}),
     )
     add_fieldsets = (
-        (None, {'fields': ('email', 'password', 'name', 'is_active', 'is_superuser', 'is_email_verified', 'partner', 'role', 'last_login','date_joined','is_staff')}),
+        (None, {'fields': ('email', 'password', 'name', 'is_active', 'is_superuser', 'is_email_verified', 'partner', 'last_login','date_joined','is_staff')}),
     )
     list_filter = ()
 

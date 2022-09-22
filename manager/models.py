@@ -50,7 +50,7 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=True)
     first_login = models.BooleanField(default=True)
 
-    unit_choice = [
+    partner_choice = [
         ('none', '無'),
         ('taibif', 'TaiBIF'),
         ('tesri', '特生中心'),
@@ -62,22 +62,25 @@ class User(AbstractUser):
     ]
     partner = models.CharField(
         max_length=20,
-        choices=unit_choice,
+        choices=partner_choice,
         default='none'
     )
 
-    role_choice = [
-        ('gu', '一般使用者'),
-        ('uu', '單位帳號'),
-        ('ua', '單位管理員'),
-        ('sa', '系統管理員'),
-        ('de', '開發者/superuser'),
-    ]
-    role = models.CharField(
-        max_length=2,
-        choices=role_choice,
-        default='gu',
-    )
+    # role_choice = [
+    #     ('gu', '一般使用者'),
+    #     ('uu', '單位帳號'),
+    #     ('ua', '單位管理員'),
+    #     ('sa', '系統管理員'),
+    #     ('de', '開發者/superuser'),
+    # ]
+    # role = models.CharField(
+    #     max_length=2,
+    #     choices=role_choice,
+    #     default='gu',
+    # )
+    is_partner_account = models.BooleanField(default=False)
+    is_partner_admin = models.BooleanField(default=False)
+    is_system_admin = models.BooleanField(default=False)
 
     REQUIRED_FIELDS = []
     objects = UserManager()

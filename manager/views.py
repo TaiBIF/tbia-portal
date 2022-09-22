@@ -27,6 +27,7 @@ from django.http import (
 import json
 from allauth.socialaccount.models import SocialAccount
 
+
 class registerBackend(ModelBackend):
     def authenticate(self, email):
         user = User.objects.get(email=email, is_email_verified=True)
@@ -42,10 +43,33 @@ class EmailThread(threading.Thread):
         self.email.send()
 
 
+def manager(request):
+    partners = User._meta.get_field('partner').choices
+    partners = [i for i in partners if i[0] != 'none']
+    return render(request, 'manager/manager.html', {'partners': partners})
+
+
+def update_personal_info(request):
+    if request.method == 'POST':
+        user = User.objects.get(email=request.POST.get('email'))
+        user.name = request.POST.get('name')
+        user.save()
+        response = {'message': '修改完成'}
+        # 不一定要修改密碼
+        if request.POST.get('has_password') == 'true':
+        # 確定密碼是否正確
+            if user.check_password(request.POST.get('now_password')):
+                user.set_password(request.POST.get('new_password'))
+                user.save()
+                logout(request)
+                response = {'message': '修改完成！請重新登入'}
+            else:
+                response = {'message': '現在的密碼錯誤'}
+        
+        return JsonResponse(response, safe=False)
+
+
 def get_auth_callback(request):
-    print('hello')
-    # print(request.user.name)
-    # check if exists
     if email := request.user.email:
         if User.objects.filter(email=email).exists():
             u = User.objects.filter(email=email).first()
@@ -55,6 +79,7 @@ def get_auth_callback(request):
             else:
                 u.first_login = False
                 u.username = email
+                u.name = u.first_name +  ' ' + u.last_name
                 u.save()
                 login(request, u, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('register_success')
@@ -235,7 +260,7 @@ def register_success(request):
 # @auth_user_should_not_access
 def login_user(request):
     if request.method == 'POST':
-        # context = {'data': request.POST}
+        # username是django用來登入的default
         email = request.POST.get('email')
         if User.objects.filter(email=email).exists():
             username = User.objects.get(email=email).username
@@ -274,9 +299,6 @@ def logout_user(request):
     return redirect(request.META.get('HTTP_REFERER')) # return to previous page
 
 
-@login_required
-def personal_info(request):
-    return render(request, 'manager/personal-info.html')
 
 # ---- system ---- #
 @login_required

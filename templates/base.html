@@ -104,10 +104,18 @@
                     <p>設定</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" >
                   </a>
+                  {% if user.is_partner_admin or user.is_partner_account %}
+                  <a href="#" class="s_title">
+                    <p>單位後台</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" >
+                  </a>
+                  {% endif %}
+                  {% if user.is_system_admin %}
                   <a href="#" class="s_title">
                     <p>系統管理後台</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" >
                   </a>
+                  {% endif %}
                   <a href="{% url 'logout' %}" class="s_title">
                     <p>登出</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" >
@@ -293,8 +301,14 @@
               <p onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')"  style="">登入</p>
               <div class="member_slimenu">
                 <ul>
-                  <li>設定</li>
-                  <li>系統後台管理</li>
+                  <li onclick="window.location=`{% url 'manager' %}`">設定
+                  </li>
+                  {% if user.is_partner_admin or user.is_partner_account %}
+                  <li>單位後台</li>
+                  {% endif %}
+                  {% if user.is_system_admin %}
+                  <li>系統管理後台</li>
+                  {% endif %}
                   <li onclick="window.location='/logout'">登出</li>
                 </ul>
               </div>        
@@ -654,8 +668,6 @@
 
 
     function login(){
-      console.log($('#g-recaptcha-response').val()=='')
-
       
       // remove all notice first
       $('#loginForm .noticbox').css('display','none')

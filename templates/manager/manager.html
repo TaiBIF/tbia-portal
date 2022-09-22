@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% block style %}
+<style>
+
+    .two_cont_area {
+        margin-bottom: 50px
+    }
+
+   .search_btn {
+        color: #FFF;
+        background: #76A578;
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        width: 15%;
+        height: 35px;
+        border-radius: 3px;
+        font-size: 16px;
+    }
+    
+    @media only screen and (min-width: 1000px) {
+       .search_btn:hover {
+            transition: all .3s;
+            -moz-transition: all .3s;
+            -o-transition: all .3s;
+            -ms-transition: all .3s;
+            -webkit-transition: all .3s;
+            background: #E2A460
+        }
+    }
+    
+    .edit-list {
+        margin-left: 10px; 
+        list-style: none;
+    }
+
+    .edit-list li {
+        margin: 10px
+    }
+
+    .nohover {
+        pointer-events: none;
+        text-align: center
+    }
+
+    .dottt{
+        width: 10px;
+        height: 10px;
+        border-radius:50%;
+        background:#76A578;
+        margin: auto 10px auto 0;
+    }
+
+    input {
+        padding: 0px 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        width: 50%;
+        font-size: 16px;
+        height: 35px
+        }
+
+        @media only screen and (max-width: 767px) {
+            input {
+                width: 70%;
+            }
+        }
+
+        select {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: calc(50% - 10px);
+            height: 35px;
+            font-size: 16px
+        
+        }
+
+        .main_1240 {
+            min-height: calc(100% - 340px);
+        }
+        
+    
+        .noticbox {
+            display: flex;
+            align-items: center;
+            margin-top: 5px
+        }
+        
+        .noticbox .in1 {
+            background: #C65454;
+            color: #FFF;
+            padding: 5px;
+            font-size: 14px;
+            line-height: 16px;
+            border-radius: 5px;
+            margin-right: 5px
+        }
+        
+        .noticbox p {
+            font-size: 14px;
+            color: #C65454
+        }
+        
+</style>
+{% endblock style %}
+{% block body %}
+
+<div class="path"> 
+    <div class="main_1240"> 
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 設定</p>
+    </div>
+</div>
+ 
+<div class="nbn_title">
+</div>
+<div class="main_1240"> 
+    <div class="two_cont_area">
+        {% if user.is_authenticated %}
+        <div class="left_menu mbmove">
+            <!--手機用的按鈕-->
+            <div class="mb_fixed_btn">
+                <p>展<br>開</p>
+                <span>關閉</span>
+            </div>					
+            <div class="mb_scroll">
+                <ul>
+                    <li class="nohover">
+                        <a class="big_link rd_click ">
+                            <p>{{ user.name }}</p> 
+                        </a>
+                    </li>
+                    <li class="now">
+                        <a href="javascript:;" class="big_link rd_click" data-type="info">
+                            <p>個人資訊</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" class="big_link rd_click" data-type="download">
+                            <p>資料下載</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content info">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>基本資料編輯</div>
+                    <ul class="edit-list">
+                        <form id="updateForm">
+                            {% csrf_token %}
+                            <li>帳號</li>
+                            <li><input type="text" name="email" value="{{ user.email }}" disabled></li>
+                            <li>姓名</li>
+                            <li><input type="text" name="name" value="{{ user.name }}" >
+                                <div class="noticbox" style="display:none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
+                            <li>密碼變更</li>
+                            <li><input type="password" name="now_password" placeholder="現在的密碼">
+                                <div class="noticbox" style="display:none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>請輸入6~10位英文或數字</p>
+                                </div>
+                            </li>
+                            <li><input type="password" name="new_password" placeholder="新的密碼">
+                                <div class="noticbox" style="display:none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>請輸入6~10位英文或數字</p>
+                                </div>              
+                            </li>
+                            <li><input type="password" name="re_password" placeholder="再次確認新的密碼">
+                                <div class="noticbox" style="display:none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>兩次密碼輸入不同</p>
+                                </div>              
+                            </li>
+                        </form>
+                        <li ><button class="search_btn" onclick="updateInfo()">確認修改</button></li>
+                    </ul>
+            </div>
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>申請成為夥伴帳號</div>
+                <ul class="edit-list">
+                    <li>選擇所屬夥伴單位</li>
+                    <li>
+                    <select>
+                        {% for p in partners %}
+                        <option value='{{ p.0 }}'>{{ p.1 }} </option>
+                        {% endfor %}
+                    </select>
+                    </li>
+                    <li>
+                        <button class="search_btn" >送出</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content download" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>資料下載</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>檔案產生日期</td>
+                            <td>查詢條件</td>
+                            <td>狀態</td>
+                            <td>檔案連結</td>
+                        </tr>
+                    </table>						
+                </div>
+            </div>
+        </div>
+        {% else %}
+        請先登入
+        {% endif %}
+    </div>
+
+    </div>
+
+</div>
+  {% endblock %}
+
+  {% block script %}
+  <script>
+
+
+    function updateInfo(){
+        console.log('hello')
+        // remove all notice first
+        $('.noticbox').css('display','none')
+  
+        let checked = true;
+        let has_password = false;
+  
+        if (!$('input[name=name]').val()){ // check name
+          $('input[name=name]').next('.noticbox').css('display','')
+          checked = false
+        }  
+        console.log(checked)
+
+        // 如果有任何一個跟密碼相關的欄位不是空白才判斷是否正確
+        if (($('input[name=now_password]').val()!='')|($('input[name=new_password]').val()!='')|($('input[name=re_password]').val()!='')){
+            has_password = true
+            if (!checkPasswordStr($('input[name=now_password]').val())) { // check now password
+            $('input[name=now_password]').next('.noticbox').css('display','')
+            checked = false
+            } 
+
+            if (!checkPasswordStr($('input[name=new_password]').val())) { // check new password
+            $('input[name=new_password]').next('.noticbox').css('display','')
+            checked = false
+            } 
+            
+            if ($('input[name=new_password]').val() != $('input[name=re_password]').val()) { // check repassword
+            $('input[name=re_password]').next('.noticbox').css('display','')
+            checked = false
+            } 
+        }
+  
+        
+        if (checked)
+        {
+            $.ajax({
+                url: "{% url 'update_personal_info' %}",
+                data: $('#updateForm').serialize() + '&email={{ user.email }}&has_password=' + has_password,
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert(response.message)
+                if (response.message=='修改完成！請重新登入'){
+                    window.location = '{% url "index" %}'
+                }
+                
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+          }
+        }
+  
+
+
+
+    $(".mb_fixed_btn").on("click", function (event) {
+        $(".mbmove").toggleClass("open");
+        $(this).toggleClass("now");
+      });
+    
+      $(".rd_click").on("click", function (event) {
+        $(".rd_click").closest("li").removeClass("now");
+        $('.rightbox_content').css('display', 'none')
+        $(`.rightbox_content.${$(this).data('type')}`).css('display', '')
+        $(this).closest("li").toggleClass("now");
+        $(this).closest("li").find(".second_menu").slideToggle();
+      });
+    
+    
+      $(".second_menu a").on("click", function (event) {
+        $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
+        $(".second_menu a").removeClass("now");
+        $(this).addClass("now")
+        $(this).parent().parent('li').addClass('now')
+      });
+    
+  </script>
+  {% endblock script %}
