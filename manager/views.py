@@ -302,7 +302,7 @@ def logout_user(request):
 
     logout(request)
 
-    return redirect(request.META.get('HTTP_REFERER')) # return to previous page
+    return redirect('index') # return to previous page
 
 
 def manager_partner(request):
@@ -421,7 +421,7 @@ def generate_no_taxon_csv(p_name,scheme,host,update=False):
     filename = f'{p_name}_no_taxon.csv'
     csv_file_path = os.path.join(csv_folder, filename)
     
-    solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID"
+    solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
 
     downloadURL = scheme+"://"+host+settings.MEDIA_URL+os.path.join(CSV_MEDIA_FOLDER, filename)
     if update or not os.path.exists(csv_file_path): # 指定要更新或沒有檔案才執行

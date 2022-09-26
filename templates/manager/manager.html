@@ -198,7 +198,11 @@
                     <li>
                     <select>
                         {% for p in partners %}
-                        <option value='{{ p.id }}'>{{ p.breadtitle }}</option>
+                        {% if p.title == '營建署城鄉發展分署' %}
+                            <option value='{{ p.id }}'>內政部營建署城鄉發展分署</option>
+                        {% else %}
+                            <option value='{{ p.id }}'>{{ p.breadtitle }}</option>
+                        {% endif %}
                         {% endfor %}
                     </select>
                     </li>
