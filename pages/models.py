@@ -19,8 +19,8 @@ class News(models.Model):
         ('project', '計畫徵求'),
     ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=1000, blank=True, null=True)
     content = models.TextField( blank=True, null=True)
     image = models.TextField( blank=True, null=True)
@@ -42,8 +42,8 @@ class Resource(models.Model):
     title = models.CharField(max_length=100, blank=True, null=True)
     extension = models.CharField(max_length=10, blank=True, null=True)
     url = models.CharField(max_length=1000, blank=True, null=True)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
@@ -51,7 +51,7 @@ class Resource(models.Model):
 
 
 class Feedback(models.Model):
-    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     type = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
     content = TextField(null=True, blank=True)
@@ -64,8 +64,8 @@ class Feedback(models.Model):
 
 
 class Notification(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created = models.DateField(auto_now_add=True)
     notified = models.DateField(auto_now_add=True)
@@ -76,8 +76,8 @@ class Notification(models.Model):
 
 class Download(models.Model):
     file = models.CharField(max_length=1000, blank=True, null=True)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner_id = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=10, blank=True, null=True)
     submitted = models.DateField(auto_now_add=True)
     expired = models.DateField()

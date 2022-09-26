@@ -102,6 +102,12 @@
             font-size: 14px;
             color: #C65454
         }
+
+        @media only screen and (max-width: 999px) {
+            .mb_scroll {
+                margin-top: 60px
+            }
+        }
         
 </style>
 {% endblock style %}
@@ -192,7 +198,7 @@
                     <li>
                     <select>
                         {% for p in partners %}
-                        <option value='{{ p.0 }}'>{{ p.1 }} </option>
+                        <option value='{{ p.id }}'>{{ p.breadtitle }}</option>
                         {% endfor %}
                     </select>
                     </li>

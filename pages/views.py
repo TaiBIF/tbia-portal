@@ -105,8 +105,14 @@ def about(request):
 
 
 def partner(request, abbr): 
-    rows = Partner.objects.filter(abbreviation=abbr)
-    return render(request, 'pages/partner.html', {'rows': rows})
+    rows = []
+    pt = Partner.objects.filter(abbreviation=abbr).order_by('id')
+    for p in pt:
+        for pi in p.info:
+            pi['title'] = p.title
+            rows += [pi]
+    breadtitle = Partner.objects.filter(abbreviation=abbr).first().breadtitle
+    return render(request, 'pages/partner.html', {'rows': rows, 'breadtitle': breadtitle})
 
 
 def resources(request):

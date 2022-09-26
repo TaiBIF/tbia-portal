@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
-from .models import User
+from .models import User, Partner
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -14,7 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
-from .utils import generate_token
+from .utils import generate_token, partner_source_map
 from django.conf import settings
 import threading
 from django.http import (
@@ -26,6 +26,12 @@ from django.http import (
 )
 import json
 from allauth.socialaccount.models import SocialAccount
+from utils.solr_query import SOLR_PREFIX
+import requests
+from utils.solr_query import SolrQuery
+import subprocess
+import os
+import time
 
 
 class registerBackend(ModelBackend):
@@ -44,8 +50,7 @@ class EmailThread(threading.Thread):
 
 
 def manager(request):
-    partners = User._meta.get_field('partner').choices
-    partners = [i for i in partners if i[0] != 'none']
+    partners = Partner.objects.all()
     return render(request, 'manager/manager.html', {'partners': partners})
 
 
@@ -104,6 +109,7 @@ def send_verification_email(user, request):
 
     email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
     email_body = render_to_string('manager/verification.html',{
+        'scheme': request.scheme,
         'user': user,
         'domain': current_site,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -124,6 +130,7 @@ def resend_verification_email(request):
 
             email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
             email_body = render_to_string('manager/verification.html',{
+                'scheme': request.scheme,
                 'user': user,
                 'domain': current_site,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -169,6 +176,7 @@ def send_reset_password(request):
 
             email_subject = '[生物多樣性資料庫共通查詢系統] 重設您的密碼'
             email_body = render_to_string('manager/verification_reset_password.html',{
+                'scheme': request.scheme,
                 'user': user,
                 'domain': current_site,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -287,8 +295,6 @@ def login_user(request):
         else:
             response = {'status':'fail', 'message': '此Email不存在，請先註冊'}
 
-        print(response)
-
     return HttpResponse(json.dumps(response), content_type='application/json')
 
 
@@ -299,74 +305,199 @@ def logout_user(request):
     return redirect(request.META.get('HTTP_REFERER')) # return to previous page
 
 
+def manager_partner(request):
+    p_count = 0
+    total_count = 0
+    no_taxon = 0
+    has_taxon = 0
+    partner_admin = ''
+    if not request.user.is_anonymous:
+        current_user = request.user
+        download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'])
+        # TODO 這邊會有問題
+        partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
+        partner_admin = [p[0] for p in partner_admin]
+        partner_admin = ','.join(partner_admin)
+        if current_user.partner.id:
+            # info
+            info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
+            # TODO subtitle 和 rightsHolder寫法可能不同
+            # partner_db = Partner.objects.filter(group=current_user.partner.group).values_list('subtitle')
+            # partner_db = [p[0] for p in partner_db]
+            # f = []
+            # f += [f'rightsHolder:"{pdb}"']
+            f = ['-taxonID:*',f'group:{current_user.partner.group}']
+            # TaiCOL對應狀況
+            query = {
+                "query": '*:*',
+                "filter": f,
+                "limit": 0,
+                "facet": {},
+                }
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            no_taxon = response.json()['response']['numFound']
+            # 資料筆數
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
+            data = requests.get(url).json()
+            if data['responseHeader']['status'] == 0:
+                facets = data['facet_counts']['facet_fields']['rightsHolder']
+                for r in range(0,len(facets),2):
+                    p_count += facets[r+1]
 
-# ---- system ---- #
-@login_required
-def system_feedback(request):
-    return render(request, 'manager/system/feedback.html')
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
+            data = requests.get(url).json()
+            data_total = []
+            if data['responseHeader']['status'] == 0:
+                facets = data['facet_counts']['facet_fields']['rightsHolder']
+                for r in range(0,len(facets),2):
+                    if facets[r+1] > 0 :
+                        data_total.append({'name': facets[r],'y': facets[r+1]})
+            solr = SolrQuery('tbia_records')
+            query_list = [('q', '*:*'),('rows', 0)]
+            req = solr.request(query_list)
+            total_count = req['solr_response']['response']['numFound']
+            total_count = total_count - p_count
+            data_total += [{'name':'其他單位','y':total_count}]
+            has_taxon = p_count-no_taxon
+    return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
+                                                            'total_count': total_count, 'p_count': p_count, 'download_url': download_url,
+                                                            'info': info, 'data_total': data_total})
+
+def update_partner_info(request):
+    if request.method == 'POST':
+        # 先取得原本的dictionary
+        partner_id = request.POST.get('partner_id')
+        info = Partner.objects.get(id=partner_id).info
+        new_info = []
+        for l in range(len(info)):
+            i = info[l]
+            new_info.append({
+                'id': i['id'],
+                'link': request.POST.get(f'link_{l}'),
+                'logo': i['logo'],
+                'image': i['image'],
+                'subtitle': i['subtitle'],
+                'description': request.POST.get(f'description_{l}'),
+            })
+        p = Partner.objects.get(id=partner_id)
+        p.info = new_info
+        p.save()
+        response = {'message': '修改完成'}
+        
+        return JsonResponse(response, safe=False)
 
 
-@login_required
-def system_index(request):
-    return render(request, 'manager/system/index.html')
+
+def manager_system(request):
+    no_taxon = 0
+    has_taxon = 0
+    partner_admin = ''
+    data_total = []
+    if not request.user.is_anonymous:
+        # 資料筆數 - 改成用單位?
+        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+        data = requests.get(url).json()
+        if data['responseHeader']['status'] == 0:
+            facets = data['facet_counts']['facet_fields']['rightsHolder']
+            for r in range(0,len(facets),2):
+                data_total.append({'name': facets[r],'y': facets[r+1]})
+        # TaiCOL對應狀況
+        solr = SolrQuery('tbia_records')
+        query_list = [('q', '*:*'),('rows', 0)]
+        req = solr.request(query_list)
+        total_count = req['solr_response']['response']['numFound']
+        solr = SolrQuery('tbia_records')
+        query_list = [('q', '-taxonID:*'),('rows', 0)]
+        req = solr.request(query_list)
+        no_taxon = req['solr_response']['response']['numFound']
+        has_taxon = total_count - no_taxon
+    return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
+                                                            'data_total':data_total,})
 
 
-@login_required
-def system_resource(request):
-    return render(request, 'manager/system/resource.html')
+def generate_no_taxon_csv(p_name,scheme,host,update=False):
+    CSV_MEDIA_FOLDER = 'no_taxon'
+    csv_folder = os.path.join(settings.MEDIA_ROOT, CSV_MEDIA_FOLDER)
+    filename = f'{p_name}_no_taxon.csv'
+    csv_file_path = os.path.join(csv_folder, filename)
+    
+    solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID"
+
+    downloadURL = scheme+"://"+host+settings.MEDIA_URL+os.path.join(CSV_MEDIA_FOLDER, filename)
+    if update or not os.path.exists(csv_file_path): # 指定要更新或沒有檔案才執行
+        commands = f'curl "{solr_url}"  > {csv_file_path} '
+        process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return downloadURL
+    # curl "http://localhost:8888/solr/collection1/select?q=*%3A*&wt=cvs&indent=true&start=0&rows=2000000000&fl=id,title" > full-output-of-my-solr-index.csv
 
 
-@login_required
-def system_review(request):
-    return render(request, 'manager/system/review.html')
+# # ---- system ---- #
+# @login_required
+# def system_feedback(request):
+#     return render(request, 'manager/system/feedback.html')
 
 
-@login_required
-def system_download(request):
-    return render(request, 'manager/system/download.html')
+# @login_required
+# def system_index(request):
+#     return render(request, 'manager/system/index.html')
 
 
-# ---- unit ---- #
-@login_required
-def unit_feedback(request):
-    return render(request, 'manager/unit/feedback.html')
+# @login_required
+# def system_resource(request):
+#     return render(request, 'manager/system/resource.html')
 
 
-@login_required
-def unit_index(request):
-    return render(request, 'manager/unit/index.html')
+# @login_required
+# def system_review(request):
+#     return render(request, 'manager/system/review.html')
 
 
-@login_required
-def unit_resource(request):
-    return render(request, 'manager/unit/resource.html')
+# @login_required
+# def system_download(request):
+#     return render(request, 'manager/system/download.html')
 
 
-@login_required
-def unit_review(request):
-    return render(request, 'manager/unit/review.html')
+# # ---- unit ---- #
+# @login_required
+# def unit_feedback(request):
+#     return render(request, 'manager/unit/feedback.html')
 
 
-@login_required
-def unit_download(request):
-    return render(request, 'manager/unit/download.html')
+# @login_required
+# def unit_index(request):
+#     return render(request, 'manager/unit/index.html')
 
 
-@login_required
-def unit_event(request):
-    return render(request, 'manager/unit/event.html')
+# @login_required
+# def unit_resource(request):
+#     return render(request, 'manager/unit/resource.html')
 
 
-@login_required
-def unit_info(request):
-    return render(request, 'manager/unit/info.html')
+# @login_required
+# def unit_review(request):
+#     return render(request, 'manager/unit/review.html')
 
 
-@login_required
-def unit_news(request):
-    return render(request, 'manager/unit/news.html')
+# @login_required
+# def unit_download(request):
+#     return render(request, 'manager/unit/download.html')
 
 
-@login_required
-def unit_project(request):
-    return render(request, 'manager/unit/project.html')
+# @login_required
+# def unit_event(request):
+#     return render(request, 'manager/unit/event.html')
+
+
+# @login_required
+# def unit_info(request):
+#     return render(request, 'manager/unit/info.html')
+
+
+# @login_required
+# def unit_news(request):
+#     return render(request, 'manager/unit/news.html')
+
+
+# @login_required
+# def unit_project(request):
+#     return render(request, 'manager/unit/project.html')

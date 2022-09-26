@@ -4,7 +4,7 @@
 
 感謝您申請TBIA帳號，請點擊下方連結進行驗證：
 
-http://{{domain}}{% url 'verify' uidb64=uid token=token %}
+{{ scheme }}://{{domain}}{% url 'verify' uidb64=uid token=token %}
 
 
 {% endautoescape %}

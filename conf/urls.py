@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,6 +25,6 @@ urlpatterns = [
     path('', include('data.urls')),
     path('', include('manager.urls')),
     path('accounts/', include('allauth.urls')),  # django-allauth網址
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = "pages.views.page_not_found_view"

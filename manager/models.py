@@ -40,31 +40,43 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+# partner_choice = [
+#     ('none', '無'),
+#     ('taibif', 'TaiBIF'),
+#     ('tesri', '特生中心'),
+#     ('tfri', '林試所'),
+#     ('oca', '海保署'),
+#     ('cpami', '營建署'),
+#     ('forest', '林務局'),
+#     ('tbia', 'TBIA'),
+# ]
+
+class Partner(models.Model):
+    breadtitle = models.CharField(max_length=100, null=True, blank=True)
+    abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上呈現在一起
+    group = models.CharField(max_length=100, null=True, blank=True) # 後台group
+    title = models.CharField(max_length=100, null=True, blank=True)
+    # subtitle = models.CharField(max_length=100, null=True, blank=True)
+    # description = models.TextField(null=True, blank=True)
+    # link = models.TextField(null=True, blank=True)
+    # image = models.TextField(null=True, blank=True)
+    # logo = models.TextField(null=True, blank=True)
+    info = models.JSONField(null=True, blank=True)
+    created = models.DateField(auto_now_add=True)
+    modifed = models.DateField(auto_now_add=True)
+    class Meta:
+        db_table = 'partner'
 
 
 class User(AbstractUser):
     name = models.CharField(max_length=20, blank=True)
     email = models.EmailField(max_length=254, blank=False, unique=True)
     is_active = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=False)
+    # is_superuser = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=True)
     first_login = models.BooleanField(default=True)
 
-    partner_choice = [
-        ('none', '無'),
-        ('taibif', 'TaiBIF'),
-        ('tesri', '特生中心'),
-        ('tfri', '林試所'),
-        ('oca', '海保署'),
-        ('cpami', '營建署'),
-        ('forest', '林務局'),
-        ('tbia', 'TBIA'),
-    ]
-    partner = models.CharField(
-        max_length=20,
-        choices=partner_choice,
-        default='none'
-    )
+    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
 
     # role_choice = [
     #     ('gu', '一般使用者'),
@@ -90,21 +102,6 @@ class User(AbstractUser):
 
     class Meta:
         db_table = 'tbia_user'
-
-
-class Partner(models.Model):
-    breadtitle = models.CharField(max_length=100, null=True, blank=True)
-    abbreviation = models.CharField(max_length=100, null=True, blank=True)
-    title = models.CharField(max_length=100, null=True, blank=True)
-    subtitle = models.CharField(max_length=100, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    link = models.TextField(null=True, blank=True)
-    image = models.TextField(null=True, blank=True)
-    logo = models.TextField(null=True, blank=True)
-    created = models.DateField(auto_now_add=True)
-    modifed = models.DateField(auto_now_add=True)
-    class Meta:
-        db_table = 'partner'
 
 
 class SearchQuery(models.Model):
