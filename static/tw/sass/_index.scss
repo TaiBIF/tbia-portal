@@ -605,7 +605,7 @@ body{
 				padding-top:15px;
 				@include bg_change(0.3s);
 				@include alpha(0);
-				visibility:none;
+				visibility:hidden;
 				@media #{$pc_s}{
 					right: 0;
 					margin-right:0;
@@ -1911,6 +1911,9 @@ body{
 		padding:0px 40px 40px 40px;
 		display: flex;
 		justify-content:space-between;
+		@media #{$pad}{
+			flex-wrap: wrap;
+		}
 		@media #{$mobile}{
 			display: block;
 			padding:0px 20px 20px 20px;
@@ -1928,9 +1931,10 @@ body{
 	}
 
 	.ftlogo_inf{
-		@media #{$mobile}{
+		@media #{$pad}{
 			margin-bottom:10px;
 			text-align:center;
+			width: 100%;
 		}
 		.inf{
 			font-size:14px;

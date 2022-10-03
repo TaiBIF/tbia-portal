@@ -1,0 +1,122 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% block title %}申請表單{% endblock %}
+
+{% block body %}
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="#" class="home"></a> <span>></span> <p>申請表單</p>
+	</div>
+</div>
+ 
+ <div class="minh_content">
+	<div class="nbn_title">
+		<h2>申請表單</h2>
+	</div>
+	<div class="main_1240"> 
+		<div class="w_border10_box application_form marb_30">
+			<div class="form_top">
+				<div class="apply_date">
+					申請日期：2022/09/15
+				</div>
+				<div class="path_inf">
+					<p>申請資料搜尋條件</p>
+					<span> > </span>
+					<div class="riginf">
+						<p>物種：石虎</p>
+						<span> | </span>
+						<p>來源資料庫：特生中心</p>
+					</div>
+				</div>
+			</div>
+			<p class="notice"><span>*</span>為必填欄位</p>
+			<div class="form_box">
+				<div class="inpu_3">
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>申請人姓名
+						</p>
+						<input type="text">
+					</div>
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>聯絡電話
+						</p>
+						<input type="text">
+					</div>
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>聯絡地址
+						</p>
+						<input type="text">
+					</div>
+				</div>
+				<div class="inpu_2">
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>申請人所屬單位
+						</p>
+						<input type="text">
+					</div>
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>計畫類型
+						</p>
+						<select name="" id="">
+							<option value="">委辦工作計畫</option>
+						</select>
+					</div>
+
+				</div>
+				<div class="inpu_2">
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>委辦工作計畫名稱
+						</p>
+						<input type="text">
+					</div>
+					<div class="input_item">
+						<p>
+							委託計畫單位
+						</p>
+						<input type="text">
+					</div>
+				</div>
+				<div class="apply_peo">
+					<p class="title">申請資料使用者</p>
+					<div class="item_set1">
+						<input type="text" placeholder="姓名">
+						<input type="text" placeholder="單位">
+						<input type="text" placeholder="職稱">
+						<button class="delete">
+							<div class="line1"></div>
+						</button>
+					</div>
+					<div class="item_set1">
+						<input type="text" placeholder="姓名">
+						<input type="text" placeholder="單位">
+						<input type="text" placeholder="職稱">
+						<button class="add">
+							<div class="line1"></div>
+							<div class="line2"></div>
+						</button>
+					</div>
+				</div>
+				<div class="text_area">
+					<p>
+						<span class="color_red">*</span>計畫摘要
+					</p>
+					<textarea placeholder="請描述申請用途"></textarea>
+				</div>
+			</div>
+		</div>
+
+		<div class="bt_center two">
+			<button>回上一頁</button>
+			<button>確認送出</button>
+		</div>
+	</div>
+</div>
+
+
+{% endblock %}

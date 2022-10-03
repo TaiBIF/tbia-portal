@@ -153,7 +153,7 @@
                             <p>系統管理</p> 
                         </a>
                     </li>
-                    <li>
+                    <li class="now">
                         <div class="big_link">
                           <div class="maskfor_click rd_click"></div>
                           <p>
@@ -162,9 +162,9 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'system_info' %}?menu=info" onclick="">修改TBIA資訊</a>
-                            <a href="{% url 'system_info' %}?menu=feedback" onclick="">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=data">單次使用去模糊化敏感資料申請</a>
+                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show()">修改TBIA資訊</a>
+                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
+                            <a class="data" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.data').show()">單次使用去模糊化敏感資料申請</a>
                         </div>
                     </li>
                     <li>
@@ -176,12 +176,12 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'system_news' %}?menu=edit" onclick="">消息發佈</a>
-                            <a href="{% url 'system_news' %}?menu=list" onclick="">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=edit">消息發佈</a>
+                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
                         </div>
                     </li>
-                    <li class="now">
-                        <a href="javascript:;" class="big_link rd_click">
+                    <li>
+                        <a href="{% url 'system_resource' %}" class="big_link rd_click">
                             <p>教育資源管理</p>
                             <div class="arr"></div>
                         </a>
@@ -197,9 +197,61 @@
             </div>
         </div>
 
-        <div class="rightbox_content">
+        <div class="rightbox_content info" style="display: none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>教育資源管理</div>
+                <div style="display: flex; color: black"><div class="dottt"></div>TBIA資訊</div>
+                    <ul class="edit-list">
+                        <form id="updateForm">
+                            {% csrf_token %}
+                            <li>系統管理員名稱</li>
+                            <li><input type="text" name="name" value="{{ system_admin }}" disabled>
+                            </li>
+                            <li>TBIA簡介</li>
+                            <li><textarea name="content">{{ content }}</textarea>
+                                <div class="noticbox" style="display:none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
+                        </form>
+                        <li ><button class="search_btn" onclick="updateInfo()">確認修改</button></li>
+                    </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content feedback" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>意見回饋紀錄</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>帳號</td>
+                            <td>姓名</td>
+                            <td>權限</td>
+                            <td>狀態</td>
+                            <td></td> <!-- 刪除 -->
+                            <td></td> <!-- 送出按鈕？ -->
+                        </tr> 
+                    </table>						
+                </div>
+            </div>
+        </div>
+
+        <div class="rightbox_content data" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>帳號</td>
+                            <td>姓名</td>
+                            <td>權限</td>
+                            <td>狀態</td>
+                            <td></td> <!-- 刪除 -->
+                            <td></td> <!-- 送出按鈕？ -->
+                        </tr> 
+                    </table>						
+                </div>
             </div>
         </div>
         {% else %}
@@ -216,7 +268,46 @@
   <script>
     $(document).ready(function () {
     
+        $('a.{{ menu }}').addClass('now')
+        $('a.{{ menu }}').parent(".second_menu").slideToggle();
+
+        $('.rightbox_content.{{ menu }}').show()
+
     })
+
+
+    function updateInfo(){
+        // remove all notice first
+        $('.noticbox').css('display','none')
+  
+        let checked = true;
+  
+        if (!$('textarea[name=content]').val()){ // check name
+          $('textarea[name=content]').next('.noticbox').css('display','')
+          checked = false
+        }  
+  
+        
+        if (checked)
+        {
+            $.ajax({
+                url: "{% url 'update_tbia_about' %}",
+                data: $('#updateForm').serialize(),
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert('修改完成')                
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+          }
+        }
+  
+
+
 
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");

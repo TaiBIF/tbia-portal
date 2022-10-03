@@ -196,7 +196,7 @@
                 <ul class="edit-list">
                     <li>選擇所屬夥伴單位</li>
                     <li>
-                    <select>
+                    <select id="partner-select">
                         {% for p in partners %}
                         {% if p.title == '營建署城鄉發展分署' %}
                             <option value='{{ p.id }}'>內政部營建署城鄉發展分署</option>
@@ -207,7 +207,7 @@
                     </select>
                     </li>
                     <li>
-                        <button class="search_btn" >送出</button>
+                        <button class="search_btn" onclick="sendRequest()">送出</button>
                     </li>
                 </ul>
             </div>
@@ -241,9 +241,31 @@
   {% block script %}
   <script>
 
+    function sendRequest(){
+        console.log($('#partner-select').val());
+
+        $.ajax({
+            url: "",
+            data: $('#updateForm').serialize() + '&email={{ user.email }}&has_password=' + has_password,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            alert(response.message)
+            if (response.message=='修改完成！請重新登入'){
+                window.location = '{% url "index" %}'
+            }
+            
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })  
+
+    }
+
 
     function updateInfo(){
-        console.log('hello')
         // remove all notice first
         $('.noticbox').css('display','none')
   
@@ -254,8 +276,6 @@
           $('input[name=name]').next('.noticbox').css('display','')
           checked = false
         }  
-        console.log(checked)
-
         // 如果有任何一個跟密碼相關的欄位不是空白才判斷是否正確
         if (($('input[name=now_password]').val()!='')|($('input[name=new_password]').val()!='')|($('input[name=re_password]').val()!='')){
             has_password = true

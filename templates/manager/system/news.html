@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+{% block style %}
+<style>
+
+    .two_cont_area {
+        margin-bottom: 50px
+    }
+
+   .search_btn {
+        color: #FFF;
+        background: #76A578;
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        width: 15%;
+        height: 35px;
+        border-radius: 3px;
+        font-size: 16px;
+    }
+    
+    @media only screen and (min-width: 1000px) {
+       .search_btn:hover {
+            transition: all .3s;
+            -moz-transition: all .3s;
+            -o-transition: all .3s;
+            -ms-transition: all .3s;
+            -webkit-transition: all .3s;
+            background: #E2A460
+        }
+    }
+    
+    .edit-list {
+        margin-left: 10px; 
+        list-style: none;
+    }
+
+    .edit-list li {
+        margin: 10px
+    }
+
+    .nohover {
+        /*pointer-events: none;*/
+        text-align: center
+    }
+
+    .dottt{
+        width: 10px;
+        height: 10px;
+        border-radius:50%;
+        background:#76A578;
+        margin: auto 10px auto 0;
+    }
+
+    input {
+        padding: 0px 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        width: 50%;
+        font-size: 16px;
+        height: 35px
+        }
+
+        select {
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 0px 10px;
+            width: 50%;
+            border: 1px solid #ddd;
+            height: 35px;
+            color: #707070;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: url("/static/image/ardownselect.svg") right 10px top 12.5px no-repeat
+                                
+        }
+
+        @media only screen and (max-width: 767px) {
+            input, select {
+                width: 70%;
+            }
+        }
+
+        textarea {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 150px;
+            font-size: 16px;
+            resize: none
+        }
+
+        .main_1240 {
+            min-height: calc(100% - 340px);
+        }
+        
+    
+        .noticbox {
+            display: flex;
+            align-items: center;
+            margin-top: 5px
+        }
+        
+        .noticbox .in1 {
+            background: #C65454;
+            color: #FFF;
+            padding: 5px;
+            font-size: 14px;
+            line-height: 16px;
+            border-radius: 5px;
+            margin-right: 5px
+        }
+        
+        .noticbox p {
+            font-size: 14px;
+            color: #C65454
+        }
+
+        @media only screen and (max-width: 999px) {
+            .mb_scroll {
+                margin-top: 60px
+            }
+        }
+        
+
+        .form-control {
+            display: block;
+            width: 50%;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border-radius: .375rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        @media (prefers-reduced-motion:reduce) {
+            .form-control {
+                transition: none
+            }
+        }
+        
+        .form-control[type=file] {
+            overflow: hidden
+        }
+        
+        .form-control[type=file]:not(:disabled):not([readonly]) {
+            cursor: pointer
+        }
+        
+        .form-control:focus {
+            color: #212529;
+            background-color: #fff;
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25)
+        }
+        
+        .form-control::-webkit-date-and-time-value {
+            height: 1.5em
+        }
+        
+        .form-control::-moz-placeholder {
+            color: #6c757d;
+            opacity: 1
+        }
+        
+        .form-control::placeholder {
+            color: #6c757d;
+            opacity: 1
+        }
+        
+        .form-control:disabled, .form-control[readonly] {
+            background-color: #e9ecef;
+            opacity: 1
+        }
+        
+        .form-control::-webkit-file-upload-button {
+            padding: .375rem .75rem;
+            margin: -.375rem -.75rem;
+            -webkit-margin-end: .75rem;
+            margin-inline-end: .75rem;        
+            color: #212529;
+            background-color: #e9ecef;
+            pointer-events: none;
+            border-color: inherit;
+            border-style: solid;
+            border-width: 0;
+            border-inline-end-width: 1px;
+            border-radius: 0;
+            -webkit-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        .form-control::file-selector-button {
+            padding: .75rem .75rem;
+            margin: -.75rem -.75rem;
+            -webkit-margin-end: .75rem;
+            margin-inline-end: .75rem;
+            color: #212529;
+            background-color: #e9ecef;
+            pointer-events: none;
+            border-color: inherit;
+            border-style: solid;
+            border-width: 0;
+            border-inline-end-width: 1px;
+            border-radius: 0;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        @media (prefers-reduced-motion:reduce) {
+            .form-control::-webkit-file-upload-button {
+                -webkit-transition: none;
+                transition: none
+            }
+        
+            .form-control::file-selector-button {
+                transition: none
+            }
+        }
+        
+        .form-control:hover:not(:disabled):not([readonly])::-webkit-file-upload-button {
+            background-color: #dde0e3
+        }
+        
+        .form-control:hover:not(:disabled):not([readonly])::file-selector-button {
+            background-color: #dde0e3
+        }
+        
+</style>
+{% endblock style %}
+{% block head %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+{% endblock head %}
+{% block body %}
+
+<div class="path"> 
+    <div class="main_1240"> 
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+    </div>
+</div>
+ 
+<div class="nbn_title">
+</div>
+<div class="main_1240"> 
+    <div class="two_cont_area">
+        {% if user.is_authenticated %}
+        <div class="left_menu mbmove">
+            <!--手機用的按鈕-->
+            <div class="mb_fixed_btn">
+                <p>展<br>開</p>
+                <span>關閉</span>
+            </div>					
+            <div class="mb_scroll">
+                <ul>
+                    <li class="nohover" onclick="window.location='/manager/system'">
+                        <a class="big_link rd_click ">
+                            <p>系統管理</p> 
+                        </a>
+                    </li>
+                    <li>
+                        <div class="big_link">
+                          <div class="maskfor_click rd_click"></div>
+                          <p>
+                            TBIA資訊
+                          </p>
+                          <div class="arrd"></div>
+                        </div>
+                        <div class="col_menu second_menu">
+                            <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
+                            <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
+                            <a href="{% url 'system_info' %}?menu=data">單次使用去模糊化敏感資料申請</a>
+                        </div>
+                    </li>
+                    <li class="now">
+                        <div class="big_link">
+                          <div class="maskfor_click rd_click"></div>
+                          <p>
+                            最新消息管理
+                          </p>
+                          <div class="arrd"></div>
+                        </div>
+                        <div class="col_menu second_menu">
+                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show()">消息發佈</a>
+                            <a class="list" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.list').show()">審核狀態</a>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="{% url 'system_resource' %}" class="big_link rd_click">
+                            <p>教育資源管理</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'system_keyword' %}" class="big_link rd_click">
+                            <p>全站搜尋推薦關鍵字設定</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content edit" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>消息發佈</div>
+                    <ul class="edit-list">
+                        <form enctype="multipart/form-data" id="newsForm" action="{% url 'submit_news' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="news_id" value="{{ n.id }}">
+                            <input type="hidden" name="from_system" value="yes">
+                            <li>審核狀態</li>
+                            <li>
+                                <select name="status">
+                                    {% for st in status_list %}
+                                        {% if st.0 == n.status  %}
+                                            <option value="{{ st.0 }}" selected>{{ st.1 }}</option>
+                                        {% else %}
+                                            <option value="{{ st.0 }}">{{ st.1 }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select> 
+                            </li>
+                            <li>標題</li>
+                            <li>
+                                <input type="text" name="title" value="{{ n.title }}">
+                                <div class="noticbox" style="display: none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
+                            <li>類別</li>
+                            <li>
+                                <select name="type">
+                                    <option value="news" checked>新聞公告</option>
+                                    <option value="event">活動訊息</option>
+                                    <option value="project">計畫徵求</option>
+                                </select>
+                            </li>
+                            <li>代表圖片</li>
+                            <li><input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg"></li> 
+                            {% if n.image != None %}           
+                            <li>
+                              <img style="max-height: 200px; margin: auto" src="/media/news/{{ n.image }}">  
+                            </li>
+                            {% endif %}                  
+                            <li>內文</li>
+                            <li>            
+                                {{ form.media }}
+                                {{ form.as_p }}
+                                <div class="noticbox editor-content" style="display: none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
+                        </form>
+                        <li ><button class="search_btn" onclick="submitNews()">儲存</button></li>
+                    </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content list" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>審核狀態</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td style="width: 25%">標題</td>
+                            <td style="width: 8%">類別</td>
+                            <td style="width: 20%">單位</td>
+                            <td style="width: 15%">申請者</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 8%">狀態</td>
+                            <td style="width: 8%"></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                        </tr>
+                        {% for n in news_list %}
+                        <tr>
+                            <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
+                            <td>{{ n.get_type_display }}</td>
+                            <td>{{ n.partner.breadtitle|default_if_none:'' }}</td>
+                            <td>{{ n.user.name }}</td>
+                            <td>{{ n.modified|date:'Y-m-d'|default_if_none:'' }}</td>
+                            <td>
+                                {{ n.get_status_display }}
+                                <!--
+                                <select style="width: 100%">
+                                    {% for st in status_list %}
+                                        {% if st.0 == n.status  %}
+                                            <option value="{{ st.0 }}" checked>{{ st.1 }}</option>
+                                        {% else %}
+                                            <option value="{{ st.0 }}">{{ st.1 }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>    -->
+                            </td>
+                            <td><a href="{% url 'system_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
+            </div>
+        </div>
+
+
+        {% else %}
+        請先登入
+        {% endif %}
+    </div>
+
+    </div>
+
+</div>
+  {% endblock %}
+
+  {% block script %}
+  <script>
+    $(document).ready(function () {
+        $('label[for="id_content"]').html('')
+
+        var $radios = $('input:radio[name=type]');
+        if (('{{ n.type }}'!='')&&('{{ n.type }}'!='None')){
+          $radios.prop('checked', false);
+    
+          if($radios.is(':checked') === false) {
+              $radios.filter('[value={{ n.type }}]').prop('checked', true);
+          }
+        }
+
+        $('a.{{ menu }}').addClass('now')
+        $('a.{{ menu }}').parent(".second_menu").slideToggle();
+
+        $('.rightbox_content.{{ menu }}').show()
+
+    })
+
+    function submitNews(){
+        // remove all notice first
+        $('.noticbox').css('display','none')
+  
+        let checked = true;
+  
+        if (!$('input[name=title]').val()){ 
+          $('input[name=title]').next('.noticbox').css('display','')
+          checked = false
+        }  
+  
+        if (CKEDITOR.instances['id_content'].getData() == "") {
+            $('.editor-content').css('display','')
+            checked = false
+         }  
+  
+        if (checked) {
+           $('#newsForm').submit()
+        }
+    }
+
+
+
+    $(".mb_fixed_btn").on("click", function (event) {
+        $(".mbmove").toggleClass("open");
+        $(this).toggleClass("now");
+      });
+    
+      $(".rd_click").on("click", function (event) {
+        $(".rd_click").closest("li").removeClass("now");
+        $(this).closest("li").toggleClass("now");
+        $(this).closest("li").find(".second_menu").slideToggle();
+      });
+    
+    
+      $(".second_menu a").on("click", function (event) {
+        $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
+        $(".second_menu a").removeClass("now");
+        $(this).addClass("now")
+        $(this).parent().parent('li').addClass('now')
+      });
+    
+  </script>
+  {% endblock script %}

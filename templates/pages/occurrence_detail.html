@@ -33,29 +33,36 @@
 </div>
 <div class="container_area">
   <div class="main_1240">
+
+
     <div class="sc_de_top">
       <div class="left_area">
         <div class="cont_padbox">
-          {% if row.references != '' %}
-          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="gbg_title">來源資料庫：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
-          {% else %}
-          <a class="gbg_title">來源資料庫：{{ row.rightsHolder }}</a>
-          {% endif %}
-          <p style="font-size: 16px; margin-bottom: 5px">{{ path_str|safe }}</p>
+          <div class="logo_area">
+            <img src="image/logooth.svg" >
+          </div>
           <h2>中⽂名：{{ row.common_name_c }}</h2>
           <h2>學名：{{ row.formatted_name|safe }}</h2>
           <div class="short">
-            <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-            <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
+            <p>典藏單位使⽤中⽂名：{{ row.sourceVernacularName }}</p>
+            <p>典藏單位使⽤學名：{{ row.sourceScientificName|safe }}</p>
           </div>
+        </div>
+      </div>
+      <div class="right_rankbox">
+        <div class="rank_path">
           {% if row.taxonID %}
-          <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt"></i></a>
+          <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>
           {% else %}
           <p class="code">物種編號：</p>
           {% endif %}        
+          {% if path_str %}
+          {{ path_str|safe }}
+          {% endif %}
         </div>
       </div>
     </div>
+
 
     <div class="sc_de_main">
       <div class="left_area">
@@ -116,6 +123,12 @@
               <p>{{ row.resourceContacts }}</p>
             </li>          
           </ul>
+          {% if row.references != '' %}
+          <a style="cursor: pointer" href="{{ row.references }}" target="_blank" class="from_data">來源資料庫：{{ row.rightsHolder }} <i class="fas fa-external-link-alt"></i></a>
+          {% else %}
+          <a class="from_data">來源資料庫：{{ row.rightsHolder }}</a>
+          {% endif %}
+
         </div>
       </div>
       <div class="right_area">

@@ -104,10 +104,23 @@ class User(AbstractUser):
         db_table = 'tbia_user'
 
 
+class PartnerRequest(models.Model):
+    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
+    created = models.DateField(auto_now_add=True) # 申請時間
+    # 如果該帳號只剩下fail，開放再申請
+
+
 class SearchQuery(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     query = models.TextField(null=True, blank=True)
     download_times = models.IntegerField(default=0)
+    created = models.DateField(auto_now_add=True)
+
+
+class About(models.Model):
+    content = models.TextField(null=True, blank=True)
     created = models.DateField(auto_now_add=True)
 
 

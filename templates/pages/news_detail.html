@@ -1,12 +1,22 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% block style %}
+<style>
+	
+	.news_de .editor img {
+		display: block; 
+		margin: auto;
+		max-width: 100% !important;
+		height: auto !important;
+		margin-bottom: 20px
+		}
+	
+</style>
+{% endblock style %}
 {% block body %}
-
-		<div class="header clearfix"></div>
-
 		<div class="path"> 
 			<div class="main_1240"> 
-				<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>最新消息</p> <span>></span> <p>新聞公告</p>
+				<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'news' %}" >最新消息</a> <span>></span> <p>新聞公告</p>
 			</div>
 		</div>
 		<div class="in_bn news_bn">
@@ -20,24 +30,25 @@
 				<div class="w_bgr10 news_de">
 					<div class="nstitlebox">
 						<div class="tag_date">
-							<div class="tag green">
-								新聞公告
+							<div class="tag {{ color }}">
+								{{ n.get_type_display }}
 							</div> 
-							<div class="date">2021.06.05</div>
+							<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
 						</div>
-						<h3>生物開放資料勇闖新領域，前進2020 g0v 雙年會</h3>
+						<h3>{{ n.title }}</h3>
 					</div>
 					<div class="editor">
+						<!-- 這邊放代表圖片 -->
+						{% if n.image %}
 						<div class="center marb_20">
-							<img src="{% static 'image/btm.jpg' %}" >
+							<img src="/media/news/{{ n.image }}" >
 						</div>
-						<p>
-							來自南投集集小鎮的特有生物研究保育中心，自嘲為政府的邊緣人，帶著台灣生物多樣性網絡（Taiwan Biodiversity Network，簡稱TBN）內的1000萬筆、989個資料集的生物多樣性開放資料，出發去台南參加2020 g0v summit 台灣零時政府雙年會，希望能在這有別以往的場合，碰撞出新的資料應用想法。特生中心團隊也提出了已有的應用案例，透過開放的生物多樣性資料，協助今年光電開發案件的環境與社會檢核機制，篩選出生態敏感度較低的區域，供能源局參考光電版的設置。而公眾要如何協助生態保育？則可以藉由參與不同的公民科學計畫，補足特定生物類群或地區的資料缺口。
-						</p>
+						{% endif %}
+
+						{{ n.content|safe }}
 					</div>
 				</div> 
-
-				<!--假設沒有上下則時給a一個class="gray_style"-->
+				<!--
 				<div class="btn_three">
 					<a href="#">
 						<svg xmlns="http://www.w3.org/2000/svg" width="9.187" height="17.053" viewBox="0 0 9.187 17.053">
@@ -63,16 +74,11 @@
 
 					</a>
 				</div>
-
+				-->
 
 
 
 			</div>
 		</div>
-
-
-
-
-		<div class="footer"></div>
 
 {% endblock body %}	

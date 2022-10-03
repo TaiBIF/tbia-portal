@@ -50,6 +50,25 @@
 </style>
 {% endblock style %}
 {% block body %}
+		<!--分布圖彈出視窗-->
+		<div class="popbg pic_pop" style="display: none;" >
+			<div class="ovhy">
+				<div class="wbox_center">
+					<div class="xx">
+
+					</div>
+					<div class="map_img">
+						<div class="imgbox">
+							<!--800*500 or 1600*1000 用background-image替換連結-->
+							<div class="img"></div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -115,6 +134,20 @@
               <div class="arr"></div>
             </a>
           </li>
+          <li class="li-item_spe">
+            <div class="big_link">
+              <div class="maskfor_click rd_click"></div>
+              <p>
+                物種
+                <!-- <a href="{% url 'qa' %}" target="_blank" class="qusemark"></a> -->
+                <a href="#" class="qusemark"></a>
+              </p>
+              <div class="arrd"></div>
+            </div>
+            <div class="spe_menu second_menu">
+              <a id="facet_spe_all"href="javascript:;" onclick="focusComponent('item_spe', false)">全部({{ occurrence.count|intcomma }})</a>
+            </div>
+          </li>
           <li class="li-item_occ">
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
@@ -158,7 +191,7 @@
           </li>
           <li class="li-item_event">
             <a href="javascript:;" onclick="focusComponent('item_event', false)" class="big_link rd_click">
-              <p>活動公告</p>
+              <p>活動訊息</p>
               <div class="arr"></div>
             </a>
           </li>
@@ -180,6 +213,90 @@
 
     <div class="rightbox_content">
       <!----- 所有結果 內容欄 ----->
+
+
+					<div class="item item-species">
+						<div class="titlebox_line">
+							<div class="title">
+								<p>物種 (14)</p>
+								<div class="line"></div>
+							</div>
+						</div>
+						<ul class="card_list_2 species_list">
+							<li>
+								<div class="flex_top">
+									<div class="lefttxt">
+										<p>中⽂名：<span class="col_red">楝</span></p>
+										<p>學名：Melia azedarach</p>
+										<p>中文別名：楝楝</p>
+										<p>同物異名：楝楝楝楝</p>
+										<p>出現記錄筆數：50</p>
+										<p>自然使典藏筆數：100</p>
+									</div>
+									<div class="right_img">
+										<div class="imgbox">
+											<!--435*390 or 870*780 用background-image替換連結-->
+											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
+										</div>
+									</div>
+								</div>
+								<div class="btn_area">
+									<a href="#">其他介紹</a>
+									<button>分布圖</button>
+								</div>
+
+
+							</li>
+							<li>
+								<div class="flex_top">
+									<div class="lefttxt">
+										<p>中⽂名：<span class="col_red">楝</span></p>
+										<p>學名：Melia azedarach</p>
+										<p>中文別名：楝楝</p>
+										<p>同物異名：楝楝楝楝</p>
+										<p>出現記錄筆數：50</p>
+										<p>自然使典藏筆數：100</p>
+									</div>
+									<div class="right_img">
+										<div class="imgbox">
+											<!--400*270 OR 800*540 換圖只換background-image屬性-->
+											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
+										</div>
+									</div>
+								</div>
+								<div class="btn_area">
+									<a href="#">其他介紹</a>
+									<button>分布圖</button>
+								</div>
+
+
+							</li>
+							<li>
+								<div class="flex_top">
+									<div class="lefttxt">
+										<p>中⽂名：<span class="col_red">楝</span></p>
+										<p>學名：Melia azedarach</p>
+										<p>中文別名：楝楝</p>
+										<p>同物異名：楝楝楝楝</p>
+										<p>出現記錄筆數：50</p>
+										<p>自然使典藏筆數：100</p>
+									</div>
+									<div class="right_img">
+										<div class="imgbox">
+											<!--400*270 OR 800*540 換圖只換background-image屬性-->
+											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
+										</div>
+									</div>
+								</div>
+								<div class="btn_area">
+									<a href="#">其他介紹</a>
+									<button>分布圖</button>
+								</div>
+
+
+							</li>
+						</ul>
+					</div>
 
 
       <!----- 物種出現紀錄 ----->
@@ -279,11 +396,11 @@
       </div>
 
 
-      <!-- 活動公告 -->
+      <!-- 活動訊息 -->
       <div class="item item_event" id="item_event">
         <div class="titlebox_line">
           <div class="title">
-            <p>活動公告 ({{ event.count }})</p>
+            <p>活動訊息 ({{ event.count }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -652,7 +769,7 @@
 
   $( document ).ready(function() {
 
-    $('.occ_menu, .col_menu').slideToggle();
+    $('.occ_menu, .col_menu, .spe_menu').slideToggle();
 
     // 如果直接從帶有參數網址列進入
     changeAction(); 
@@ -695,6 +812,8 @@
       $(`#facet_occ_all`).addClass('now')
     } else if  (item_class=='item_col'){
       $(`#facet_col_all`).addClass('now')
+    } else if (item_class=='item_spe'){
+      $(`#facet_spe_all`).addClass('now')
     }
 
     if ((!go_back)&& ('URLSearchParams' in window)) {

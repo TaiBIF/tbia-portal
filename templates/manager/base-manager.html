@@ -1,0 +1,248 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      {% block title %}{% endblock %}生物多樣性資料庫共通查詢系統
+    </title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script> 
+    <link href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css" />
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap5.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0"
+      crossorigin="anonymous"/>
+    <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css"  rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8"
+    crossorigin="anonymous"></script>
+
+    {% block head %}{% endblock %}
+    <style type="text/css">
+      html,
+      body {
+        height: 100%;
+      }
+
+      .sidebar li .submenu{ 
+        list-style: none; 
+        margin: 0; 
+        padding: 0; 
+        padding-left: 1rem; 
+        padding-right: 1rem;
+      }
+      .sidebar .nav-link {
+          font-weight: 500;
+          color: var(--bs-dark);
+      }
+      .sidebar .nav-link:hover {
+          color: var(--bs-primary);
+      }
+            
+    </style>
+    {% block style %}{% endblock %}
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#"> 
+          TBIA
+        </a>
+        <button class="navbar-toggler" type="button"
+          data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="#">關於TBIA</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                role="button"data-bs-toggle="dropdown" aria-expanded="false">
+                條件搜尋
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="#">物種出現紀錄查詢</a></li>
+                <li><a class="dropdown-item" href="#">自然史典藏查詢</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                最新消息
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="#">新聞公告</a></li>
+                <li><a class="dropdown-item" href="#">活動公告</a></li>
+                <li><a class="dropdown-item" href="#">計畫徵求</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">教育資源</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                role="button"data-bs-toggle="dropdown" aria-expanded="false">
+                常見Q&A
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink" >
+                <li><a class="dropdown-item" href="#">常見Q&A</a></li>
+                <li><a class="dropdown-item" href="#">意見回饋</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <div class="navbar-nav">
+          <ul class="navbar-nav">
+            {% if user.is_authenticated %}
+            <!-- if login -->
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="navbarDropdownMenuLink"
+                role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <div class="position-relative">
+                    <img src="{% static 'icon/bell.svg' %}">
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                      <span class="visually-hidden">New alerts</span>
+                    </span>
+                  </div>
+              </a>
+              <!-- remain for notifications -->
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink" >
+                <li></li>
+              </ul>
+              <!-- end -->
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="#" id="navbarDropdownMenuLink"
+                role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if user.is_authenticated %}
+                哈囉，{{ user.first_name }}
+              {% endif %}
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="#">設定</a></li>
+                <!-- if unit -->
+                {% if user.role in 'uu,ua,de' %}
+                <li><a class="dropdown-item" href="#">單位後台</a></li>
+                {% endif %}
+                <!-- if system -->
+                {% if user.role in 'sa,de' %}
+                <li><a class="dropdown-item" href="#">系統管理後台</a></li>
+                {% endif %}
+                <li><a class="dropdown-item" href="{% url 'logout' %}">登出</a></li>
+              </ul>
+            </li>  
+            {% else %}
+            <!-- if not login -->
+            <li class="nav-item">
+              <a class="btn btn-success" href="{% url 'login' %}">登入</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container-fluid" style="padding-top: 50px;">
+      <div class="row d-flex justify-content-center" >
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert" style="width: 50%;">
+              {{ msg.message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+    </div>
+      <aside class="col-lg-3"> 
+        {% if request.get_full_path == "/manager/personal-info" %}
+          <nav class="sidebar card py-2 mb-4">
+            <ul class="nav flex-column" id="nav_accordion">
+              <li><h3 class="text-center">{{ user.name }}</h3></li>
+              <li class="nav-item">
+                <a class="nav-link" href="#"> 個人資訊 </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#"> 資料下載 </a>
+              </li>
+            </ul>
+          </nav>
+        {% elif user.role in 'uu,ua,de' %}
+          <nav class="sidebar card py-2 mb-4">
+            <ul class="nav flex-column" id="nav_accordion">
+              <li><h3 class="text-center">{{ user.unit }}</h3></li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> 單位資訊 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
+                <ul id="menu_item1" class="submenu collapse" data-bs-parent="#nav_accordion">
+                  <li><a class="nav-link" href="#">意見回饋紀錄</a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
+                <ul id="menu_item2" class="submenu collapse" data-bs-parent="#nav_accordion">
+                  <li><a class="nav-link" href="#">新聞發佈 </a></li>
+                    <li><a class="nav-link" href="#">活動發佈</a></li>
+                    <li><a class="nav-link" href="#">計畫徵求</a></li>
+                    <li><a class="nav-link" href="#">最新消息審核狀態</a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">資料下載</a>
+              </li>
+            </ul>
+          </nav>
+        {% elif user.role in 'sa,de' %}
+          <nav class="sidebar card py-2 mb-4">
+            <ul class="nav flex-column" id="nav_accordion">
+              <li><h3 class="text-center">{{ user.get_role_display }}</h3></li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item1" href="#"> TBIA資訊 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg></i> </a>
+                <ul id="menu_item1" class="submenu collapse" data-bs-parent="#nav_accordion">
+                  <li><a class="nav-link" href="#">意見回饋紀錄</a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="collapse" data-bs-target="#menu_item2" href="#"> 最新消息管理 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg> </a>
+                <ul id="menu_item2" class="submenu collapse" data-bs-parent="#nav_accordion">
+                  <li><a class="nav-link" href="#">新聞發佈 </a></li>
+                    <li><a class="nav-link" href="#">活動發佈</a></li>
+                    <li><a class="nav-link" href="#">計畫徵求</a></li>
+                    <li><a class="nav-link" href="#">最新消息審核狀態</a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">教育資源管理</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">資料下載</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">全站搜尋推薦關鍵字設定</a>
+              </li>
+            </ul>
+          </nav>
+        {% endif %}
+      </aside>
+      {% block body %} {% endblock %}
+    </div>
+
+    <footer class="text-center footer" style="background: lightgrey;">
+    </footer>
+    {% block script %} {% endblock %}
+  </body>
+</html>

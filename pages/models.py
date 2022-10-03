@@ -1,12 +1,14 @@
 from django.db import models
 from django.db.models.fields import TextField
 from manager.models import User, Partner
+from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Keyword(models.Model):
     keyword = models.TextField( blank=True, null=True)
-    displayed = models.BooleanField(blank=True, null=True)
-    created = models.DateField(auto_now_add=True)
+    order = models.IntegerField(blank=True, null=True)
+    # created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'keyword'
@@ -18,15 +20,23 @@ class News(models.Model):
         ('event', '活動訊息'),
         ('project', '計畫徵求'),
     ]
+    status_choice = [
+        ('pending', '等待審核'),
+        ('pass', '通過'),
+        ('fail', '不通過'),
+        ('withdraw', '撤回'),
+    ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=1000, blank=True, null=True)
-    content = models.TextField( blank=True, null=True)
+    content = RichTextUploadingField( blank=True, null=True)
     image = models.TextField( blank=True, null=True)
-    attachments = models.TextField( blank=True, null=True)
+    status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
+    # attachments = models.TextField( blank=True, null=True)
     created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
+    publish_date = models.DateField( null=True, blank=True)
     class Meta:
         db_table = 'news'
 

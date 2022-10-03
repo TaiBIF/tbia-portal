@@ -158,24 +158,24 @@
               <h3>空間查詢</h3>
               <a href="#" class="qmark"></a>
             </div>
+            <div class="btn_area">
+              <label class="btnupload">
+                <p data-type="map" onclick="mapGeo(this)" >地圖框選</p>
+              </label>
+              <label class="btnupload">
+                <p data-type="circle" onclick="circleGeo(this)">圓中心框選</p>
+              </label>
+              <label class="btnupload">
+                <p data-type="polygon" onclick="popupGeo(this)" >上傳Polygon</p>
+              </label>
+              <label class="btnupload">
+                <p onclick="clearGeo()">重設</p>
+              </label>
+            </div>
             <div class="map_img">
               <div class="imgbox" style="height: 390px; width: auto;">
                 <div id="map" class="img"></div>
               </div>
-            </div>
-            <div class="clearfix" style="display: flex; justify-content: space-between">
-              <label class="btnupload">
-                <p data-type="map" onclick="mapGeo(this)" style="width: 110px">地圖框選</p>
-              </label>
-              <label class="btnupload">
-                <p data-type="circle" onclick="circleGeo(this)" style="width: 120px">圓中心框選</p>
-              </label>
-              <label class="btnupload">
-                <p data-type="polygon" onclick="popupGeo(this)" style="width: 130px">上傳Polygon</p>
-              </label>
-              <label class="btnupload">
-                <p onclick="clearGeo()" style="width: 50px">重設</p>  
-              </label>
             </div>
           </div>
         </div>
@@ -603,8 +603,11 @@ function submitSearch (page, from){
             <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
             <div class="rightmore">
               <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-              <button class="dw">下載所有結果</button>
-              <a href="#" class="qmark"></a>
+							<button class="dw">資料下載</button>
+							<button class="dw">名錄下載</button>
+							<a href="#" class="qmark"></a>
+							<button class="dw">申請單次使用去模糊化敏感資料</button>
+							<a href="#" class="qmark"></a>
             </div>
           </div>
           <div class="result_table" style="overflow-x: auto;">

@@ -162,8 +162,8 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'system_info' %}?menu=info" onclick="">修改TBIA資訊</a>
-                            <a href="{% url 'system_info' %}?menu=feedback" onclick="">意見回饋紀錄</a>
+                            <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
+                            <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
                             <a href="{% url 'system_info' %}?menu=data">單次使用去模糊化敏感資料申請</a>
                         </div>
                     </li>
@@ -176,18 +176,18 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'system_news' %}?menu=edit" onclick="">消息發佈</a>
-                            <a href="{% url 'system_news' %}?menu=list" onclick="">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=edit">消息發佈</a>
+                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
                         </div>
                     </li>
-                    <li class="now">
-                        <a href="javascript:;" class="big_link rd_click">
+                    <li>
+                        <a href="{% url 'system_resource' %}" class="big_link rd_click">
                             <p>教育資源管理</p>
                             <div class="arr"></div>
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'system_keyword' %}" class="big_link rd_click">
+                    <li class="now">
+                        <a href="javascript:;" class="big_link rd_click">
                             <p>全站搜尋推薦關鍵字設定</p>
                             <div class="arr"></div>
                         </a>
@@ -199,7 +199,22 @@
 
         <div class="rightbox_content">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>教育資源管理</div>
+                <div style="display: flex; color: black"><div class="dottt"></div>全站搜尋推薦關鍵字設定</div>
+                    <ul class="edit-list">
+                        <form id="keywordForm">
+                            {% csrf_token %}
+                            {% for k in keywords %}
+                            <li>關鍵字{{ forloop.counter }}</li>
+                            <li><input type="text" name="keyword_{{ forloop.counter }}" value="{{ k }}">
+                                <div class="noticbox" style="display: none;">
+                                    <div class="in1">錯誤</div>
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </form>
+                        <li ><button class="search_btn" onclick="updateKeyword()">確認修改</button></li>
+                    </ul>
             </div>
         </div>
         {% else %}
@@ -217,6 +232,48 @@
     $(document).ready(function () {
     
     })
+
+    
+function updateKeyword(){
+    $('.noticbox').css('display','none')
+  
+    let checked = true;
+
+    if (!$('input[name=keyword_1]').val()){
+      $('input[name=keyword_1]').next('.noticbox').css('display','')
+      checked = false
+    }  
+    if (!$('input[name=keyword_2]').val()){
+      $('input[name=keyword_2]').next('.noticbox').css('display','')
+      checked = false
+    }  
+    if (!$('input[name=keyword_3]').val()){ 
+      $('input[name=keyword_3]').next('.noticbox').css('display','')
+      checked = false
+    }  
+
+
+    if (checked)
+    {
+        $.ajax({
+            url: "{% url 'update_keywords' %}",
+            data: $('#keywordForm').serialize(),
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            if (response.status=='success'){
+                alert('修改成功')
+            }
+            
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })  
+      }
+}
+
 
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");

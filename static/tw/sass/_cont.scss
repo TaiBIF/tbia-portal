@@ -1107,7 +1107,33 @@
 	background:rgba(0,0,0,0.8);
 	top: 0;
 	left: 0;
+	&.pic_pop{
+		.ovhy{
+			@media #{$mobile}{
+				display:flex;
+				padding:30px 15px;
+			}
+		}
+		.wbox_center{
+			@media #{$mobile}{
+				padding: 15px 10px 15px 10px;
+			}
+		}
+		.xx{
+			@media #{$mobile}{
+				width: 30px;
+				height: 30px;
+				right: 10px;
+				top: 10px;
+				&:hover{
+					width: 30px;
+					height:30px;
+					background-size:30px auto;
+				}
 
+			}
+		}
+	}
 	.bgt{
 		position: absolute;
 		top: 0;
@@ -1195,17 +1221,19 @@
 		position: absolute;
 		right: 20px;
 		top: 20px;
+		z-index: 5;
 		cursor: pointer;
 		@include bg_change(0.3s);
 		background: url('../image/xx.svg') no-repeat left top;
 		background-size:cover;
 		width: 50px;
-		height: 50px;  
+		height: 50px;
 
-
-		&:hover{
-				@include bg_change(0.3s);
-				background: url('../image/xxs.svg') no-repeat left top;
+		@media #{$pc}{
+			&:hover{
+					@include bg_change(0.3s);
+					background: url('../image/xxs.svg') no-repeat left top;
+			}
 		}
 		@media #{$mobile}{
 			top:15px;
@@ -1226,7 +1254,7 @@
 		position: relative;
 		border-radius:10px;
 		@include alpha(0);
-		max-width:800px;
+		max-width:860px;
 		max-height:560px;
 		height: 100%;
 		width: 100%;
@@ -1236,6 +1264,27 @@
 			max-height:initial;
 			height: initial;
 			padding:20px 15px 15px 15px;
+		}
+		.map_img{
+			width: 100%;
+			position: relative;
+			z-index: 1;
+			.imgbox{
+				position: relative;
+				width: 100%;
+				padding-bottom: calc((500/800)*100%);
+
+			}
+			.img{
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				z-index: 5;
+				top: 0px;
+				left: 0;
+				background: url('../image/mapimg.jpg') no-repeat center;
+				background-size: cover;
+			}
 		}
 		.arl{
 			position: absolute;
@@ -1448,6 +1497,9 @@
 		img{
 			height: 100%;
 		}
+		@media #{$pad}{
+			left: -100px;
+		}
 		@media #{$mobile}{
 			display:none;
 		}
@@ -1512,13 +1564,31 @@
 					}
 				}
 			}
+			.loginbtn{
+				width: 100%;
+				height: 50px;
+				border-radius:5px;
+				background:$col_greenb;
+				color: #FFF;
+				font-size: 16px;
+				@include bg_change(0.3s);
+				margin-bottom:0px;
+				&:hover{
+					background:$col_greena;
+					@include bg_change(0.3s);
+				}
+			}
 			.checkbox_area{
 				display: flex;
 				align-items:center;
-				margin-bottom:30px;
-				font-size: 16px;
+				margin-bottom:20px;
+				font-size: 16px;justify-content: space-between;
 				@media #{$mobile}{
 					margin-bottom:20px;
+				}
+				.flex_center{
+					display: flex;
+					align-items: center;
 				}
 				input{
 					margin-right:10px;
@@ -1528,19 +1598,41 @@
 					height: 18px;
 
 				}
+				.loginbtn{
+					width: 50%;
+					height: 50px;
+					border-radius:5px;
+					background:$col_greenb;
+					color: #FFF;
+					font-size: 16px;
+					@include bg_change(0.3s);
+					margin-bottom:0px;
+					&:hover{
+						background:$col_greena;
+						@include bg_change(0.3s);
+					}
+				}
 			}
-			.loginbtn{
+			.google_login{
 				width: 100%;
 				height: 50px;
-				border-radius:5px;
-				background:$col_greenb;
-				color: #FFF;
-				font-size: 16px;
+				border: 1px solid #ddd;
+				border-radius: 25px;
+				background: #FFF;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-bottom: 10px;
 				@include bg_change(0.3s);
-				margin-bottom:10px;
 				&:hover{
-					background:$col_greena;
+					border: 1px solid #EEE;
+					background: #EEE;
 					@include bg_change(0.3s);
+					color: $col-greenb;
+				}
+				p{
+					margin-left: 10px;
+					font-size: 16px;
 				}
 			}
 			.linkbtn_2{
@@ -1690,6 +1782,97 @@
 	background:#FFF;
 	border-radius:10px;
 	padding:30px;
+	&.agree_arae{
+		@media #{$mobile}{
+			padding: 20px 15px;
+		}
+	}
+	&.application_form{
+		position: relative;
+		@media #{$mobile}{
+			padding: 20px 15px;
+		}
+	}
+}
+.form_top{
+	display: flex;
+	align-items: center;
+	@media #{$pad}{
+		flex-wrap: wrap;
+	}
+	.apply_date{
+		background: $col-greena;
+		color: #FFF;
+		padding: 10px 15px;
+		border-radius: 5px;
+		line-height: 20px;
+		margin-left: -45px;
+		margin-right: 20px;
+		margin-bottom: 10px;
+		@media #{$mobile}{
+			margin-left: 0;
+		}
+	}
+	.path_inf{
+		display: flex;
+		align-items: center;
+		margin-bottom: 10px;
+		@media #{$mobile}{
+			flex-wrap: wrap;
+		}
+		.riginf{
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			@media #{$mobile}{
+				p{
+					width: 100%;
+				}
+				span{
+					display: none;
+				}
+			}
+		}
+		span{
+			display: block;
+			margin:0px 10px
+		}
+	}
+}
+.notice{
+	margin-bottom: 30px;
+	span{
+		color: #ED0000;
+	}
+}
+.color_red{
+	color: #ED0000;
+}
+.scrollbox{
+	width: 100%;
+	font-size: 16px;
+	line-height: 25px;
+	height: 500px;
+	overflow: auto;
+	@media #{$mobile}{
+		font-size: 14px;
+		line-height: 22px;
+		height: 400px;
+	}
+}
+.agreebox{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 30px;
+	input{
+		flex: 0 0 25px;
+		width: 25px;
+		height: 25px;
+		border-radius: 3px;
+		margin-right: 10px;
+		border: 1px solid #ddd;
+	}
 }
 .maxw_760{ 
 	max-width: 760px;
@@ -1730,6 +1913,13 @@
 			@include bg_change(0.3s);
 		}
 	}
+	&.two{
+		display: flex;
+		justify-content: center;
+		button{
+			margin: 0px 5px;
+		}
+	}
 }
 .inpu_2{
 	display: flex;
@@ -1745,6 +1935,31 @@
 			width: 100%;
 			margin-bottom:10px;
 		}
+		input,select{
+			border-radius:10px;
+			border:1px solid #ddd;
+			height: 50px;
+			width: 100%;
+			font-size: 16px;
+			padding:0px 10px;
+			color: #555;
+		}
+	}
+}
+.inpu_3{
+	display: flex;
+	justify-content:space-between;
+	margin-bottom:20px;
+	@media #{$mobile}{
+		display: block;
+		margin-bottom: 10px;
+	}
+	.input_item{
+		width: calc(33.333% - 10px);
+		@media #{$mobile}{
+			width: 100%;
+			margin-bottom:10px;
+		}
 		input{
 			border-radius:10px;
 			border:1px solid #ddd;
@@ -1752,9 +1967,111 @@
 			width: 100%;
 			font-size: 16px;
 			padding:0px 10px;
+			@media #{$mobile}{
+				height: 40px;
+			}
 		}
 	}
 }
+.form_box{
+	.text_area{
+		textarea{
+			width: 100%;
+			height: 130px;
+			border: 1px solid #ddd;
+			border-radius: 10px;
+			resize: none;
+			padding: 15px;
+			font-size: 16px;
+		}
+	}
+	.inpu_2{
+		margin-bottom: 20px;
+		@media #{$mobile}{
+			margin-bottom: 10px;
+			input,select{
+				height: 40px;
+			}
+		}
+	}
+	.apply_peo{
+		p.title{
+			color: #333;
+
+		}
+		.item_set1{
+			background: #f7f7f7;
+			padding: 10px;
+			display: flex;
+			border-radius: 10px;
+			margin-bottom: 15px;
+			justify-content: space-between;
+			@media #{$mobile}{
+				flex-wrap: wrap;
+				padding: 10px;
+			}
+			input{
+				background: #FFF;
+				height: 50px;
+				border-radius: 10px;
+				padding: 0px 10px;
+				width: calc(33.333% - 30px);
+				font-size: 16px;
+				@media #{$mobile}{
+					width: 100%;
+					height: 40px;
+					margin-bottom: 10px;
+				}
+			}
+			button{
+				width: 50px;
+				height: 50px;
+				flex: 0 0 50px;
+				border-radius: 10px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+				@include bg_change(0.3s);
+				@media #{$mobile}{
+					width: 100%;
+					height: 40px;
+					flex: 0 0 100%;
+				}
+				.line1{
+					width: 25px;
+					height: 2px;
+					border-radius: 4px;
+					background: #FFF;
+				}
+				.line2{
+					width: 2px;
+					height: 25px;
+					background: #FFF;
+					border-radius: 4px;
+					position: absolute;
+					left: 50%;
+					margin-left: -1px;
+					top: 50%;
+					margin-top: -13px;
+				}
+				&.delete{
+					background: $col-greena;
+				}
+				&.add{
+					background: $col_greenb;
+				}
+				@media #{$pc}{
+					&:hover{
+						@include bg_change(0.3s);
+						background: $col-yel;
+					}
+				}
+			}
+		}
+	}
+}
+
 .col_rel{
 	color: $col_red;
 }
@@ -2225,6 +2542,9 @@
 				cursor: pointer; 
 				margin-bottom:15px;
 				@include bg_change(0.3s);
+				@media #{$pc_s}{
+					width: 100%;
+				}
 				@media #{$mobile}{
 					width: 100%;
 					margin-bottom:10px;
@@ -2262,6 +2582,69 @@
 
 				}
 			}
+			&.species_list{
+				li{
+					cursor: initial;
+				}
+				.flex_top{
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					margin-bottom: 10px;
+					@media #{$mobile}{
+						flex-wrap: wrap;
+						flex-direction: column-reverse;
+					}
+					.lefttxt{
+						width: calc(50% - 10px);
+						@media #{$mobile}{
+							width: 100%;
+						}
+					}
+					.right_img{
+						width: 50%;
+						@media #{$mobile}{
+							width: 100%;
+							margin-bottom:10px;
+						}
+						.imgbox{
+							width: 100%;
+							position: relative;
+							border-radius: 10px;
+							overflow: hidden;
+							.imgarea{
+								padding-bottom:calc((260/435)*100%);
+								width: 100%;
+								background: url('../image/searpicub@2x.jpg') no-repeat center;
+								background-size: cover;
+							}
+						}
+					}
+				}
+				.btn_area{
+					display: flex;
+					justify-content:space-between;
+					border-top: 1px dashed #ddd;
+					padding-top: 10px;
+					a,button{
+						background: $col-greenb;
+						height: 35px;
+						color: #FFFFFF;
+						width: calc(50% - 5px);
+						border-radius: 5px;
+						font-size: 16px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						@include bg_change(0.3s);
+						&:hover{
+							background: $col-greena;
+							@include bg_change(0.3s);
+						}
+					}
+				}
+
+			}
 		}
 
 
@@ -2270,6 +2653,9 @@
 	.titlebox_line{
 		border-bottom:1px solid #ddd;
 		margin-bottom:25px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		.title{
 			position: relative;
 			display:inline-block;	
@@ -2294,6 +2680,54 @@
 				border-bottom:1px solid $col_greena;
 			}
 		}
+		.rightdow{
+			display: flex;
+			align-items: center;
+		}
+		.dow_btn{
+			padding: 0px 10px;
+			font-size: 16px;
+			color:$col_greena;
+			height: 32px;
+			min-width: 110px;
+			@include bg_change(0.3s);
+			border-radius: 20px;
+			margin-right: 5px;
+			border:1px solid $col_greena;
+			background:none;
+			display: flex;
+			align-items: center;
+			svg{
+				width: 16px;
+				height: 16px;
+				margin-right: 5px;
+			}
+			@media #{$mobile}{
+				font-size: 14px;
+				padding: 0 10px;
+				height: 30px;
+				margin-bottom: 5px;
+				min-width: initial;
+				svg{
+					margin-right: 0;
+				}
+				p{
+					display: none;
+				}
+			}
+			&:hover{
+				@include bg_change(0.3s);
+				background:$col_greena;
+				color: #FFF;
+				svg{
+					path{
+						@include bg_change(0.3s);
+						stroke: #FFFFFF;
+					}
+				}
+			}
+
+		}
 	}
 }
 
@@ -2310,6 +2744,9 @@
 	justify-content:space-between;
 	align-items:center;
 	margin-bottom:15px;
+	@media #{$pad}{
+		flex-wrap: wrap;
+	}
 	.cate_btn{
 		border-radius:20px;
 		width: 120px;
@@ -2319,6 +2756,10 @@
 		color: $col_greena;
 		background:#FFF;
 		@include bg_change(0.3s);
+		@media #{$pad}{
+			position: absolute;
+			top: -20px;
+		}
 		@media #{$mobile}{
 			font-size: 16px;
 		}
@@ -2333,6 +2774,11 @@
 		color: #888;
 		font-size: 14px;
 		text-align:right;
+		@media #{$mobile}{
+			position: absolute;
+			right: 15px;
+			top: 10px;
+		}
 	}
 }
 
@@ -2487,18 +2933,21 @@
 	width: 100%;
 	padding: 40px 30px;
 	margin-bottom: 40px;
+	@media #{$pad}{
+		padding: 30px 20px;
+	}
 	@media #{$mobile}{
 		padding: 20px 15px;
 	}
 	.secboxtop2{
 		display: flex;
 		width: 100%;
-		margin-bottom: 40px;
+		margin-bottom: 30px;
 		@media #{$mobile}{
 			display: block;
 		}
 		.leftbox{
-			width: calc(100% - 455px);
+			width: calc(100% - 500px);
 			padding-right: 2px;
 			border-right: 1px dashed #ddd;
 			padding-right: 20px;
@@ -2537,6 +2986,9 @@
 			}
 			.one_input{
 				margin-bottom: 15px;
+				@media #{$mobile}{
+					margin-bottom: 10px;
+				}
 				input,select{
 					width: 100%;
 					border-radius: 5px;
@@ -2602,7 +3054,7 @@
 		}
 		.rightbox{
 			padding-left: 20px;
-			max-width: 455px;
+			max-width: 500px;
 			width: 100%;
 			@media #{$pad}{
 				width: 50%;
@@ -2631,7 +3083,7 @@
 				.imgbox{
 					position: relative;
 					width: 100%;
-					padding-bottom: calc((390/435)*100%);
+					padding-bottom: calc((320/435)*100%);
 
 				}
 				.img{
@@ -2645,19 +3097,35 @@
 					background-size: cover;
 				}
 			}
+			.btn_area{
+				display: flex;
+				flex-wrap: wrap;
+				@media #{$pad}{
+					justify-content: space-between;
+				}
+			}
 			.btnupload{
-				float: right;
+				margin: 0px 5px 10px 0px;
+				@media #{$pad}{
+					width: calc(50% - 5px);
+					margin: 0px 0px 10px 0px;
+				}
 				p{
-					display: inline-block;
 					border-radius: 20px;
-					width: 170px;
-					height: 40px;
+					height: 35px;
+					font-size: 16px;
 					border:1px solid $col_greena;
 					text-align:center;
-					line-height: 38px;
 					cursor: pointer;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 0px 15px;
 					@include bg_change(0.3s);
 					color:$col_greena;
+					@media #{$pad}{
+						width: 100%;
+					}
 					&:hover{
 						@include bg_change(0.3s);
 						background:$col_greena;
@@ -2673,10 +3141,12 @@
 		color: #FFF;
 		background: $col_greenb;
 		@include bg_change(0.3s);
-		width: 100%;
+		width: 50%;
 		height: 50px;
-		border-radius: 3px;
+		border-radius: 25px;
 		font-size: 19px;
+		display: block;
+		margin: 0 auto;
 		@media #{$pc}{
 			&:hover{
 				@include bg_change(0.3s);
@@ -2703,8 +3173,12 @@
 	border-radius: 10px;
 	width: 100%;
 	padding: 40px 30px;
+	@media #{$pad}{
+		padding: 30px 20px;
+		position: relative;
+	}
 	@media #{$mobile}{
-		padding: 20px 15px;
+		padding: 30px 15px 20px 15px;
 	}
 	.result_inf_top{
 		@media #{$mobile}{
@@ -2715,28 +3189,32 @@
 	.rightmore{
 		display: flex;
 		align-items:center;
-		min-width: 330px;
 		justify-content: flex-end;
+		width: 100%;
 		@media #{$mobile}{
 			margin-top: 15px;
 			width: 100%;
 			min-width: inherit;
 			justify-content: flex-start;
+			white-space: nowrap;
+			overflow: scroll;
 		}
 		.dw{
 			padding: 0px 10px;
-			font-size: 18px;
+			font-size: 16px;
 			color:$col_greena;
 			height: 40px;
 			@include bg_change(0.3s);
-			border-radius: 20px;
-			margin:0px 10px;
+			border-radius: 10px;
+			margin-left:10px ;
 			border:1px solid $col_greena;
 			background:none;
 			@media #{$mobile}{
 				font-size: 16px;
 				padding: 0 10px;
 				height: 30px;
+				margin-left: 0px;
+				margin-right: 10px;
 			}
 			&:hover{
 				@include bg_change(0.3s);
@@ -2746,11 +3224,19 @@
 			}			
 
 		}
+		.qmark{
+			margin-left: 5px;
+			@media #{$mobile}{
+				margin-left: -5px;
+				margin-right: 10px;
+			}
+		}
 	}
 }
 
 .sc_de_top{
 	display: flex;
+	align-items: flex-end;
 	margin-bottom: 30px;
 	@media #{$pad}{
 		margin-bottom: 20px;
@@ -2771,7 +3257,7 @@
 			padding-right: 0px;
 		}
 		.cont_padbox{
-			padding: 50px 0px 0px 30px;
+			padding: 0px 0px 0px 0px;
 			@media #{$pad}{
 				padding: 0px 0px 0px 0px;
 			}
@@ -2792,32 +3278,65 @@
 					font-size: 18px;
 				}
 			}
+			.logo_area{
+				width: 240px;
+				height: 60px;
+				display: flex;
+				align-items: center;
+				margin-bottom: 15px;
+				img{
+					max-width: 100%;
+					max-height: 100%;
+					display: block;
+				}
+			}
 			h2{
-				font-size: 35px;
+				font-size: 32px;
 				color: $col_greena;
-				line-height: 40px;
+				line-height: 35px;
 				margin-bottom: 10px;
 				@media #{$pad}{
 					font-size: 26px;
 					line-height: 30px;
 				}
 			}
-			.short{
-				font-size: 16px;
-				margin-top: 20px;
-				line-height: 25px;
-				margin-bottom: 20px;
+			.flex_inf{
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+				margin-bottom: 15px;
+				margin-top: 15px;
 				@media #{$pad}{
-					margin-top: 10px;
-					margin-bottom:10px;
+					flex-wrap: wrap;
+				}
+				.short{
+					font-size: 16px;
+					line-height: 25px;
+					@media #{$pad}{
+						margin-bottom: 10px;
+					}
+				}
+				.code{
+					padding: 10px 15px;
+					border-radius: 20px;
+					font-size: 18px;
+					line-height: 20px;
+					color: #FFF;
+					background: $col_greena;
+					@include bg_change(0.3s);
+					&:hover{
+						@include bg_change(0.3s);
+						background: $col_greenb;
+					}
+					@media #{$pad}{
+						margin-bottom: 0px;
+					}
+					@media #{$mobile}{
+						font-size: 16px;
+					}
 				}
 			}
-			.code{
-				font-size: 20px;
-				@media #{$pad}{
-					margin-bottom: 20px;
-				}
-			}
+
 		}
 	}
 	.right_area{
@@ -2849,6 +3368,63 @@
 		}
 
 	}
+	.rank_path{
+		border: 1px solid $col_greena;
+		padding:10px 10px 10px 15px;
+		border-radius: 10px;
+		font-size: 16px;
+		line-height: 24px;
+		color: $col_greena;
+		@media #{$pad}{
+			font-size: 14px;
+			line-height: 20px;
+		}
+		@media #{$mobile}{
+			margin-bottom: 20px;
+		}
+	}
+	.right_rankbox{
+		max-width: 500px;
+		width: 100%;
+		@media #{$pad}{
+			width: 50%;
+		}
+		@media #{$mobile}{
+			width: 100%;
+		}
+		.rank_path{
+			position: relative;
+			padding: 30px 10px 10px 15px;
+			@media #{$mobile}{
+				padding: 10px 10px 10px 15px;
+				margin-top: 70px;
+			}
+		}
+		.code{
+			position: absolute;
+			left: 15px;
+			top: -20px;
+			padding: 10px 15px;
+			border-radius: 20px;
+			font-size: 18px;
+			line-height: 20px;
+			color: #FFF;
+			background: $col_greena;
+			@include bg_change(0.3s);
+			@media #{$mobile}{
+				top: -55px;
+				left: 0;
+				font-size: 16px;
+			}
+			&:hover{
+				@include bg_change(0.3s);
+				background: $col_greenb;
+			}
+			@media #{$pad}{
+				margin-bottom: 0px;
+			}
+		}
+	}
 }
 .sc_de_main{
 	display: flex;	
@@ -2873,14 +3449,41 @@
 			background: #FFF;
 			border-radius: 10px;
 			width: 100%;
-			padding: 30px;
+			padding: 30px 30px 30px 30px;
 			height: 100%;
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: flex-start;
+			.from_data{
+				margin-top: 25px;
+				font-size: 16px;
+				color: #FFF;
+				background: $col_greena;
+				padding: 10px 15px;
+				border-radius: 40px;
+				line-height: 20px;
+				bottom: 30px;
+				left: 30px;
+				@include bg_change(0.3s);
+				@media #{$pad}{
+
+					font-size: 14px;
+
+				}
+				&:hover{
+					background: $col_greenb;
+					@include bg_change(0.3s);
+				}
+			}
 			@media #{$pad}{
-				padding: 15px;
+				padding: 15px 15px 15px 15px;
 			}
 			@media #{$mobile}{
 				border-radius: 5px;
-				padding: 15px;
+				padding: 15px 15px 15px 15px;
+
 			}
 		}
 
@@ -2940,6 +3543,7 @@
 		li{
 			width: 50%;
 			margin-top: 20px;
+			padding-right: 10px;
 			&:nth-child(1),&:nth-child(2){
 				margin-top: 0px;
 			}
@@ -2979,6 +3583,8 @@
 
 
 .loading_area{
+	top:0px;
+	left: 0;
 	display: flex;
 	width: 100%;
 	height: 100%;
