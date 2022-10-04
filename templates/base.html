@@ -274,13 +274,13 @@
               </div>
             </li>
             <li>
-              <a href="#" class="big_title">最新消息</a>
+              <a href="{% url 'news' %}" class="big_title">最新消息</a>
               <div class="line"></div>
               <div class="menu_2">
                 <div class="item">
-                  <a href="#" class="s_title">新聞公告</a>
-                  <a href="#" class="s_title">活動訊息</a>
-                  <a href="#" class="s_title">計畫徵求</a>
+                  <a href="{% url 'news' %}?type=news" class="s_title">新聞公告</a>
+                  <a href="{% url 'news' %}?type=event" class="s_title">活動訊息</a>
+                  <a href="{% url 'news' %}?type=project" class="s_title">計畫徵求</a>
                 </div>
               </div>
             </li>
@@ -385,10 +385,10 @@
             <a href="{% url 'search_collection' %}" class="sma_link">自然史典藏查詢</a>
           </li>
           <li>
-            <a href="#" class="big_link">最新消息</a>
-            <a href="#" class="sma_link">新聞公告</a>
-            <a href="#" class="sma_link">活動訊息</a>
-            <a href="#" class="sma_link">計畫徵求</a>
+            <a href="{% url 'news' %}" class="big_link">最新消息</a>
+            <a href="{% url 'news' %}?type=news" class="sma_link">新聞公告</a>
+            <a href="{% url 'news' %}?type=event" class="sma_link">活動訊息</a>
+            <a href="{% url 'news' %}?type=project" class="sma_link">計畫徵求</a>
           </li>
           <li>
             <a href="{% url 'resources' %}" class="big_link">開放資料相關資源</a>

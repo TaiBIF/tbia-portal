@@ -2116,7 +2116,7 @@ body {
     width: calc(50% - 10px);
     padding: 20px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 20px;
     position: relative
 }
@@ -2214,12 +2214,18 @@ body {
 
 .news_list li .infbox {
     display: flex;
-    margin-left: 20px
+    margin-left: 20px;
+    padding-top: 20px
+}
+
+@media only screen and (max-width: 1279px) {
+    .news_list li .infbox {
+        padding-top: 0
+    }
 }
 
 @media only screen and (max-width: 999px) {
     .news_list li .infbox {
-        flex: 0 1 150px;
         margin-left: 10px
     }
 }
@@ -2230,7 +2236,7 @@ body {
     margin-bottom: 10px
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 1279px) {
     .news_list li .infbox .center_box .tag_date {
         margin-bottom: 5px
     }
@@ -2296,14 +2302,17 @@ body {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    max-height: 60px
+    max-height: 50px;
+    line-height: 25px;
+    margin-bottom: 5px
 }
 
 @media only screen and (max-width: 767px) {
     .news_list li .infbox .center_box .nstitle {
         font-size: 16px;
         line-height: 22px;
-        max-height: 44px
+        max-height: 44px;
+        margin-bottom: 0
     }
 }
 
@@ -5005,8 +5014,8 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    /*background: url("../image/mapimg.jpg") no-repeat center;
-    background-size: cover*/
+    background: url("../image/mapimg.jpg") no-repeat center;
+    background-size: cover
 }
 
 .popbg .wbox_center .arl {
@@ -5720,7 +5729,6 @@ body {
     padding: 10px 15px;
     border-radius: 5px;
     line-height: 20px;
-    margin-left: -45px;
     margin-right: 20px;
     margin-bottom: 10px
 }
@@ -7428,8 +7436,8 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    /*background: url("../image/mapimg.jpg") no-repeat center;
-    background-size: cover*/
+    background: url("../image/mapimg.jpg") no-repeat center;
+    background-size: cover
 }
 
 .search_condition_are .secboxtop2 .rightbox .btn_area {
@@ -7750,6 +7758,7 @@ body {
     font-size: 18px;
     line-height: 20px;
     color: #FFF;
+    display: flex;
     background: #3F5146;
     transition: all .3s;
     -moz-transition: all .3s;
@@ -8046,8 +8055,8 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    /*background: url("../image/mapimg.jpg") no-repeat center;
-    background-size: cover*/
+    background: url("../image/mapimg.jpg") no-repeat center;
+    background-size: cover
 }
 
 .sc_de_main .inforall {

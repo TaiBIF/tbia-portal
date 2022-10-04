@@ -31,6 +31,7 @@ urlpatterns = [
     path('update_keywords', views.update_keywords, name='update_keywords'),
     path('update_tbia_about', views.update_tbia_about, name='update_tbia_about'),
     path('submit_news', views.submit_news, name='submit_news'),
+    path('withdraw_news', views.withdraw_news, name='withdraw_news'),
     # path('manager/personal-info', views.personal_info, name='personal_info'),
     # path('manager/system-feedback', views.system_feedback, name='system_feedback'),
     # path('manager/system-index', views.system_index, name='system_index'),

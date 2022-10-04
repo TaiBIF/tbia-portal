@@ -385,8 +385,16 @@ def partner_news(request):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
+    if not request.user.is_anonymous:
+        current_user = request.user
+        if current_user.is_partner_admin:
+            # 如果是單位管理者 -> 回傳所有
+            news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-modified')
+        else:
+            # 如果是單位帳號 -> 只回傳自己申請的
+            news_list = News.objects.filter(user_id=current_user).order_by('-modified')
 
-    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n})
+    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n, 'news_list': news_list})
 
 
 def partner_info(request):
@@ -627,6 +635,14 @@ def submit_news(request):
             return redirect('system_news')
         else:
             return redirect('partner_news')
+
+def withdraw_news(request):
+    if news_id := request.GET.get('news_id'):
+        if News.objects.filter(id=news_id).exists():
+            n = News.objects.get(id=news_id)
+            n.status = 'withdraw'
+            n.save()
+    return redirect('partner_news')
 
 
 

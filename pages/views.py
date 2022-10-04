@@ -26,12 +26,18 @@ def page_not_found_view(request, exception):
 
 
 def news(request):
-    news_list = News.objects.filter(status='pass').order_by('-publish_date')[:10]
+    if type := request.GET.get('type'):
+        news = News.objects.filter(status='pass',type=type)
+    else:
+        news = News.objects.filter(status='pass')
+    news_list = news.order_by('-publish_date')[:10]
     current_page = 0 / 10 + 1
-    total_page = math.ceil(News.objects.all().count() / 10)
+    total_page = math.ceil(news.count() / 10)
     page_list = get_page_list(current_page,total_page,3)
+
+
     return render(request, 'pages/news.html', {'news_list': news_list, 'page_list': page_list,
-           'total_page': total_page, 'current_page': current_page})
+           'total_page': total_page, 'current_page': current_page, 'type': type})
 
 
 def news_detail(request, news_id):
@@ -130,7 +136,24 @@ def index(request):
             'extension': x.extension,
             'url': x.url,
             'date': x.modified.strftime("%Y.%m.%d")})
-    news_list = News.objects.filter(status='pass').order_by('-publish_date')[:4]
+    news = News.objects.filter(status='pass').order_by('-publish_date')[:4]
+
+    news_list = []
+    for n in news:
+        if n.publish_date:
+            n.publish_date = n.publish_date.strftime("%Y-%m-%d")
+        else:
+            n.publish_date = ''
+        n.color = news_type_map[n.type]
+        n.type_c = news_type_c_map[n.type]
+        if n.image:
+            n.image = '/media/news/' + n.image
+        else:
+            n.image = '/static/image/news_ub_img.jpg'
+        news_list.append({'id': n.id,'image':n.image,'color':n.color, 
+                            'type_c':n.type_c,'publish_date':n.publish_date,'title':n.title})
+
+
     return render(request, 'pages/index.html', {'resource': resource_rows, 'keywords': keywords, 'count_occurrence': count_occurrence, 
                                                 'count_collection': count_collection, 'news_list': news_list})
 

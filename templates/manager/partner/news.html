@@ -348,7 +348,7 @@
                             </div>
                         </li>
                     </form>
-                    <li ><button class="search_btn" onclick="submitNews()">發佈</button></li>
+                    <li ><button class="search_btn" onclick="submitNews()">送審</button></li>
                 </ul>
             </div>
         </div>
@@ -359,16 +359,36 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
-                            <td>標題</td>
-                            <td>類別</td>
-                            <td>審核狀態</td>
-                            <td></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td style="width: 25%">標題</td>
+                            <td style="width: 12%">類別</td>
+                            <td style="width: 15%">申請者</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 12%">狀態</td>
+                            <td style="width: 10%"></td> 
+                            <td style="width: 12%"></td> 
                         </tr>
+                        {% for n in news_list %}
+                        <tr>
+                            <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
+                            <td>{{ n.get_type_display }}</td>
+                            <td>{{ n.user.name }}</td>
+                            <td>{{ n.modified|date:'Y-m-d'|default_if_none:'' }}</td>
+                            <td>
+                                {{ n.get_status_display }}
+                            </td>
+                            <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td><a href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td>
+                                {% if n.status != 'withdraw' %}
+                                <a href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回申請</a>
+                                {% endif %}
+                            </td> 
+                        </tr>
+                        {% endfor %}
                     </table>						
                 </div>
             </div>
         </div>
-
 
         {% else %}
         請先登入

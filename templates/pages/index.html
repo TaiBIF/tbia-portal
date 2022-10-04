@@ -6,20 +6,9 @@
     -webkit-line-clamp: 1;
   }
 
-  /*.news_list li .imgbox .img_area {
-    background: url('');
-  }*/
-
-  .img_area img {
-    max-width: 100%;
+  .infbox, .center_box {
+    width: 100%
   }
-
-  @media only screen and (max-width: 767px) {
-    .news_de .tag_date .date {
-        display: block
-    }
-}
-
 
 </style>
 {% endblock style %}
@@ -156,30 +145,22 @@
       </ul>
       <ul class="news_list">
         {% for n in news_list %}
-        <li onclick="window.open(`{% url 'news_detail' n.id %}`)">
-          <a href="javascript:;" class="imgbox">
-            <div class="img_area">
-              {% if n.image %}
-                <img src='/media/news/{{ n.image }}'>
-              {% else %}
-                <img src='/static/image/news_ub_img.jpg'>
-              {% endif %}
+        <li>
+          <a href="{% url 'news_detail' n.id %}" target="_blank" class="imgbox">
+            <div class="img_area" style="background-image: url('{{ n.image }}')">
             </div>
           </a>
           <div class="infbox">
             <div class="center_box">
               <div class="tag_date">
-                {% if n.type == 'news' %}
-                  <div class="tag green">
-                {% elif n.type == 'project' %}
-                  <div class="tag red">
-                {% else %}
-                  <div class="tag yellow">
-                {% endif %}
-                  {{ n.get_type_display }}</div>
-                <p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
+                <div class="tag {{ n.color }}">{{ n.type_c }}</div>
+                <p class="date">{{ n.publish_date }}</p>
               </div>
-              <a href="javascript:;" class="nstitle"> {{ n.title }} </a>
+              <a href="{% url 'news_detail' n.id %}" target="_blank" class="nstitle">
+                {{ n.title }}
+              </a>
+              <p>
+              </p>
             </div>
           </div>
         </li>
@@ -380,10 +361,9 @@
                 for (let d of response.data) {
                     $('.news_list').append(
                         `
-                        <li onclick="window.open('/news/detail/${d.id}')">
-                          <a href="javascript:;" class="imgbox">
-                            <div class="img_area">
-                              <img src='${d.image}'>
+                        <li>
+                          <a href="/news/detail/${d.id}" target="_blank" class="imgbox">
+                            <div class="img_area" style="background-image:url('${d.image}')">
                             </div>
                           </a>
                           <div class="infbox">
@@ -392,20 +372,20 @@
                                 <div class="tag ${d.color}">${d.type_c}</div>
                                 <p class="date">${d.publish_date}</p>
                               </div>
-                              <a href="javascript:;" class="nstitle">
+                              <a href="/news/detail/${d.id}" target="_blank" class="nstitle">
                                 ${d.title}
                               </a>
                             </div>
                           </div>
                         </li>
-              
                         `
                     )
                   }                        
 
                 
                 } else {
-                        $('.news-list').html('<li>暫無資料</li>')
+                  
+                        $('.news_list').html('<li>暫無資料</li>')
                 }
             $('.loadingbox').addClass('d-none');
 
