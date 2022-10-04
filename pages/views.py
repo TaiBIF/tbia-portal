@@ -62,10 +62,10 @@ def get_news_list(request):
         offset = limit*(current_page-1)
         if type != 'all':
             # news = News.objects.filter(type=type).order_by('-publish_date')[:limit]
-            news = News.objects.filter(type=type)
+            news = News.objects.filter(type=type,status='pass')
         else:
             # news = News.objects.all().order_by('-publish_date')[offset:offset+limit]
-            news = News.objects.all()
+            news = News.objects.filter(status='pass')
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__range=[request.POST.get('start_date'), request.POST.get('end_date')])
         total_page = math.ceil(news.count() / limit)
