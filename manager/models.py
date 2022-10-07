@@ -77,22 +77,19 @@ class User(AbstractUser):
     first_login = models.BooleanField(default=True)
 
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
+    
+    
+    status_choice = [
+        ('pending', '等待審核'),
+        ('pass', '通過'),
+        ('fail', '不通過'),
+        ('withdraw', '撤回'),
+    ]
 
-    # role_choice = [
-    #     ('gu', '一般使用者'),
-    #     ('uu', '單位帳號'),
-    #     ('ua', '單位管理員'),
-    #     ('sa', '系統管理員'),
-    #     ('de', '開發者/superuser'),
-    # ]
-    # role = models.CharField(
-    #     max_length=2,
-    #     choices=role_choice,
-    #     default='gu',
-    # )
     is_partner_account = models.BooleanField(default=False)
     is_partner_admin = models.BooleanField(default=False)
     is_system_admin = models.BooleanField(default=False)
+    status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
 
     REQUIRED_FIELDS = []
     objects = UserManager()
@@ -104,12 +101,20 @@ class User(AbstractUser):
         db_table = 'tbia_user'
 
 
-class PartnerRequest(models.Model):
-    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
+# class PartnerRequest(models.Model):
+#     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+#     status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
+#     created = models.DateField(auto_now_add=True) # 申請時間
+    # 如果該帳號只剩下fail，開放再申請
+
+
+class SensitiveDataRequest(models.Model):
+    # 同一份資料可能會有很多單位
+    partner_coverage =  models.CharField(max_length=200, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
     created = models.DateField(auto_now_add=True) # 申請時間
-    # 如果該帳號只剩下fail，開放再申請
 
 
 class SearchQuery(models.Model):

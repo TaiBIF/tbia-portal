@@ -27,6 +27,7 @@
 		</div>
 		<div class="container_area">
 			<div class="main_1240"> 
+			{% if n.status == 'pass' or is_authorized %}
 				<div class="w_bgr10 news_de">
 					<div class="nstitlebox">
 						<div class="tag_date">
@@ -75,10 +76,11 @@
 					</a>
 				</div>
 				-->
-
-
-
+			{% else %}
+			<p>暫無資料</p>
+			{% endif %}
 			</div>
+
 		</div>
 
 {% endblock body %}	

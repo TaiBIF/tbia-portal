@@ -1,3 +1,4 @@
+from random import choices
 from django.db import models
 from django.db.models.fields import TextField
 from manager.models import User, Partner
@@ -74,12 +75,22 @@ class Feedback(models.Model):
 
 
 class Notification(models.Model):
+    type_choice = [
+        (1,'下載資料 #0000 已處理完成，請至後台查看'),
+        (2,'有新的意見回饋，請至後台回覆'),
+        (3,'有新的單次使用敏感資料申請 #0000，請至後台審核'),
+        (4,'單次使用敏感資料申請 #0000 審核已完成，請至後台查看'),
+        (5,'有新的單位帳號 #0000 申請，請至後台審核'),
+        (6,'申請單位帳號審核已完成，結果為：0000'),
+        (7,'有新的消息 #0000 發布申請，請至後台審核'),
+        (8,'消息 #0000 發布審核已完成，請至後台查看')]
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    # partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
-    created = models.DateField(auto_now_add=True)
-    notified = models.DateField(auto_now_add=True)
-    content = models.TextField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    # notified = models.DateField(auto_now_add=True)
+    content = models.CharField(max_length=100, null=True, blank=True)
+    type = models.IntegerField(null=True, blank=True, choices=type_choice)
     class Meta:
         db_table = 'notification'
 

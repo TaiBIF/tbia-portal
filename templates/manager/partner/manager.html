@@ -139,7 +139,7 @@
 </div>
 <div class="main_1240"> 
     <div class="two_cont_area">
-        {% if user.is_authenticated %}
+        {% if user.is_partner_account or user.is_partner_admin %}
         <div class="left_menu mbmove">
             <!--手機用的按鈕-->
             <div class="mb_fixed_btn">
@@ -183,7 +183,7 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'partner_news' %}?menu=edit">消息發佈</a>
+                            <a href="{% url 'partner_news' %}?menu=edit">消息發布</a>
                             <a href="{% url 'partner_news' %}?menu=list">審核狀態</a>
                         </div>
                     </li>
@@ -285,12 +285,28 @@
                             <td></td> <!-- 刪除 -->
                             <td></td> <!-- 送出按鈕？ -->
                         </tr> 
+                        {% for pm in partner_members %}
+                        <tr>
+                            <td>{{ pm.email }}</td>
+                            <td>{{ pm.name }}</td>
+                            <td>
+                                {% if pm.is_partner_admin %}
+                                單位管理員
+                                {% else %}
+                                單位帳號
+                                {% endif %}
+                            </td>
+                            <td>{{ pm.get_status_display }}</td>
+                            <td></td> <!-- 刪除 -->
+                            <td></td> <!-- 送出按鈕？ -->
+                        </tr>
+                        {% endfor %}
                     </table>						
                 </div>
             </div>
         </div>
         {% else %}
-        請先登入
+        您的權限不足
         {% endif %}
     </div>
 

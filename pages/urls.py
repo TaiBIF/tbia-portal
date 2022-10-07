@@ -14,4 +14,5 @@ urlpatterns = [
     path('partner/<abbr>', views.partner, name='partner'),
     path('agreement', views.agreement, name='agreement'),
     path('application', views.application, name='application'),
+    path('update_is_read', views.update_is_read, name='update_is_read'),
 ]

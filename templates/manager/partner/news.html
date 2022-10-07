@@ -255,7 +255,7 @@
 </div>
 <div class="main_1240"> 
     <div class="two_cont_area">
-        {% if user.is_authenticated %}
+        {% if user.is_partner_account or user.is_partner_admin %}
         <div class="left_menu mbmove">
             <!--手機用的按鈕-->
             <div class="mb_fixed_btn">
@@ -299,7 +299,7 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show()">消息發佈</a>
+                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show()">消息發布</a>
                             <a class="list" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.list').show()">審核狀態</a>
                         </div>
                     </li>
@@ -310,11 +310,12 @@
 
         <div class="rightbox_content edit" style="display: none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>消息發佈</div>
+                <div style="display: flex; color: black"><div class="dottt"></div>消息發布</div>
                 <ul class="edit-list">
                     <form enctype="multipart/form-data" id="newsForm" action="{% url 'submit_news' %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="news_id" value="{{ n.id }}">
+                        <input type="hidden" name="status" value="pending">
                         <li>標題</li>
                         <li>
                             <input type="text" name="title" value="{{ n.title }}">
@@ -359,16 +360,17 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
-                            <td style="width: 25%">標題</td>
+                            <td style="width: 5%"></td>
+                            <td style="width: 20%">標題</td>
                             <td style="width: 12%">類別</td>
                             <td style="width: 15%">申請者</td>
                             <td style="width: 15%">最近修改</td>
                             <td style="width: 12%">狀態</td>
-                            <td style="width: 10%"></td> 
                             <td style="width: 12%"></td> 
                         </tr>
                         {% for n in news_list %}
                         <tr>
+                            <td>#{{ n.id }}</td>
                             <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
                             <td>{{ n.get_type_display }}</td>
                             <td>{{ n.user.name }}</td>
@@ -377,10 +379,11 @@
                                 {{ n.get_status_display }}
                             </td>
                             <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td><a href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                             <td>
-                                {% if n.status != 'withdraw' %}
+                                {% if n.status == 'pending' %}
                                 <a href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回申請</a>
+                                {% else %}
+                                <a href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
                                 {% endif %}
                             </td> 
                         </tr>
@@ -391,7 +394,7 @@
         </div>
 
         {% else %}
-        請先登入
+        您的權限不足
         {% endif %}
     </div>
 

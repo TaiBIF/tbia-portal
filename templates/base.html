@@ -1,5 +1,6 @@
 {% load static %}
 {% load socialaccount %}
+{% load tags %}
 
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -21,6 +22,23 @@
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
     <style>
+
+      .message_list li, .ringbox .titlebox p {
+        cursor: default
+      }
+
+
+      .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
+        height: 20px;
+    }
+    
+
+      .header .right_btn2 .ringbox .messagebox .wbox .titlebox button:hover {
+        color: #E2A460;
+    }
+    
+    
+
       /*
       .popbg .loginbox .right_cont .checkbox_area {
         margin-bottom: 20px;
@@ -152,7 +170,7 @@
                 </a>
                 <div class="mbmu2">
                   <a href="#" class="s_title">
-                    <p>設定</p>
+                    <p>帳號後台</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" >
                   </a>
                   {% if user.is_partner_admin or user.is_partner_account %}
@@ -309,38 +327,20 @@
         {% endif %}
           <div class="feedback"></div>
           <div class="ringbox ">
-            <div class="num_message">20</div>
+            {% if user.id|get_notif_count > 0 %}
+            <div class="num_message">{{ user.id|get_notif_count }}</div>
+            {% endif %}
             <div class="messagebox">
               <div class="wbox">
                 <div class="titlebox">
-                  <p>最近20筆通知</p>
-                  <button>全部已讀</button>
+                  <p>最近10筆通知</p>
+                  <div>
+                  <button onclick="updateIsRead()">全部已讀</button>
+                  <a href="{% url 'manager' %}?menu=notification">查看全部</a>
+                  </div>
                 </div>
                 <ul class="message_list">
-                  <li>
-                    <div class="dottt"></div>
-                    <div class="txtcont">
-                      <p class="date">2022-01-02 13:15:30</p>
-                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
-                    </div>
-                    <a href="#" class="learmore">查看</a>
-                  </li>
-                  <li>
-                    <!--已讀拔掉點點-->
-                    <div class="dottt"></div>
-                    <div class="txtcont">
-                      <p class="date">2022-01-02 13:15:30</p>
-                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
-                    </div>
-                    <a href="#" class="learmore">查看</a>
-                  </li>
-                  <li>							
-                    <div class="txtcont">
-                      <p class="date">2022-01-02 13:15:30</p>
-                      <p>個人通知內容內容內容內容內容內個人通知內容內容內容容內容容內容內容內容容...</p>
-                    </div>
-                    <a href="#" class="learmore">查看</a>
-                  </li>
+                  {{ user.id|get_notif }}
                 </ul>
               </div>
             </div>
@@ -352,8 +352,7 @@
               <p onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')"  style="">登入</p>
               <div class="member_slimenu">
                 <ul>
-                  <li onclick="window.location=`{% url 'manager' %}`">設定
-                  </li>
+                  <li onclick="window.location=`{% url 'manager' %}`">帳號後台</li>
                   {% if user.is_partner_admin or user.is_partner_account %}
                   <li onclick="window.location=`{% url 'manager_partner' %}`">單位後台</li>
                   {% endif %}
@@ -597,6 +596,19 @@
 
   </body>
   <script>
+
+
+    function updateIsRead(){
+      $.ajax({
+        url: "{% url 'update_is_read' %}",
+        type: 'GET',
+        success: function(){
+          $('.message_list li .dottt, .num_message').hide()
+        }
+       });
+    }
+
+
     $(function () {
 
 
@@ -841,6 +853,7 @@
         $('.login_pop input').not('input[type="hidden"]').val('');
         $('.login_pop .noticbox').css('display','none')
       })
+      
 
   </script>
   {% block script %}{% endblock script %}

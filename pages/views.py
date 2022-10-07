@@ -21,6 +21,15 @@ news_type_c_map = {
     'project': '計畫徵求',
 
 }
+
+
+def update_is_read(request):
+    if request.method == 'GET':
+        if user_id := request.user.id:
+            Notification.objects.filter(user_id=user_id).update(is_read=True)
+    return JsonResponse({'data': 'success'}, safe=False) 
+
+
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 
@@ -44,7 +53,18 @@ def news_detail(request, news_id):
     if News.objects.filter(id=news_id).exists():
         n = News.objects.get(id=news_id)
         color = news_type_map[n.type]
-        return render(request, 'pages/news_detail.html', {'n': n, 'color': color})
+        # 系統管理員, 單位帳號, 單位管理者
+        is_authorized = False
+        if not request.user.is_anonymous:  
+            u = request.user
+            if u.is_system_admin:
+                is_authorized = True
+            elif u.id == n.user_id:
+                is_authorized = True
+            elif u.partner_id == n.partner_id:
+                is_authorized = True
+                
+        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized})
 
 
 def get_news_list(request):
@@ -195,9 +215,6 @@ def get_resources(request):
         'total_page': total_page
     }
     return HttpResponse(json.dumps(response), content_type='application/json')
-
-
-
 
 
 def about(request):

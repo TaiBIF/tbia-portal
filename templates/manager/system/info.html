@@ -139,7 +139,7 @@
 </div>
 <div class="main_1240"> 
     <div class="two_cont_area">
-        {% if user.is_authenticated %}
+        {% if user.is_system_admin %}
         <div class="left_menu mbmove">
             <!--手機用的按鈕-->
             <div class="mb_fixed_btn">
@@ -163,6 +163,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show()">修改TBIA資訊</a>
+                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show()">帳號管理</a>
                             <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
                             <a class="data" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.data').show()">單次使用去模糊化敏感資料申請</a>
                         </div>
@@ -176,7 +177,7 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'system_news' %}?menu=edit">消息發佈</a>
+                            <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
                             <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
                         </div>
                     </li>
@@ -194,6 +195,54 @@
                     </li>
 
                 </ul>
+            </div>
+        </div>
+
+        <div class="rightbox_content account" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>帳號管理</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td style="width: 8%">編號</td>
+                            <td style="width: 25%">姓名</td>
+                            <td style="width: 20%">單位</td>
+                            <td style="width: 20%">權限</td>
+                            <td style="width: 15%">狀態</td>
+                            <td></td>
+                        </tr> 
+                        {% for pm in partner_members %}
+                        <tr>
+                            <td>#{{ pm.id }}</td>
+                            <td>{{ pm.name }} ({{ pm.email }})</td>
+                            <td>{{ pm.partner.breadtitle|default_if_none:'' }}</td>
+                            <td>
+                                <select name="role" style="width: 100%" data-id="{{ pm.id }}">
+                                {% if pm.is_partner_admin %}
+                                    <option value="is_partner_admin" selected>單位管理員</option>
+                                    <option value="is_partner_account">單位帳號</option>
+                                {% else %}
+                                    <option value="is_partner_admin">單位管理員</option>
+                                    <option value="is_partner_account" selected>單位帳號</option>
+                                {% endif %}
+                                </select>
+                            </td>
+                            <td>
+                                <select name="status" style="width: 100%" data-id="{{ pm.id }}">
+                                    {% for s in status_choice %}
+                                        {% if s.0 == pm.status %}
+                                        <option value="{{ s.0 }}" selected>{{ s.1 }}</option>
+                                        {% else %}
+                                        <option value="{{ s.0 }}">{{ s.1 }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><button class="search_btn save_btn" data-id="{{ pm.id }}" style="width: 100%">儲存</button></td>
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
             </div>
         </div>
 
@@ -255,7 +304,7 @@
             </div>
         </div>
         {% else %}
-        請先登入
+        您的權限不足
         {% endif %}
     </div>
 
@@ -267,6 +316,28 @@
   {% block script %}
   <script>
     $(document).ready(function () {
+
+        $('.save_btn').on('click',function(){
+            let current_id = $(this).data('id')
+            $.ajax({
+                url: "{% url 'update_user_status' %}",
+                data: {'user_id': current_id,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'role': $(`select[name="role"][data-id=${current_id}]`).val(),
+                        'status': $(`select[name="status"][data-id=${current_id}]`).val(),
+                    },
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert('修改完成')                
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+
+        })
     
         $('a.{{ menu }}').addClass('now')
         $('a.{{ menu }}').parent(".second_menu").slideToggle();

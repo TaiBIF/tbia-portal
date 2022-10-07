@@ -139,7 +139,7 @@
 </div>
 <div class="main_1240"> 
     <div class="two_cont_area">
-        {% if user.is_authenticated %}
+        {% if user.is_partner_account or user.is_partner_admin %}
         <div class="left_menu mbmove">
             <!--手機用的按鈕-->
             <div class="mb_fixed_btn">
@@ -183,7 +183,7 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a href="{% url 'partner_news' %}?menu=edit">消息發佈</a>
+                            <a href="{% url 'partner_news' %}?menu=edit">消息發布</a>
                             <a href="{% url 'partner_news' %}?menu=list">審核狀態</a>
                         </div>
                     </li>
@@ -257,13 +257,29 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
-                            <td>帳號</td>
+                            <td>編號</td>
                             <td>姓名</td>
-                            <td>權限</td>
                             <td>狀態</td>
-                            <td></td> <!-- 刪除 -->
-                            <td></td> <!-- 送出按鈕？ -->
+                            <td></td>
                         </tr> 
+                        {% for pm in partner_members %}
+                        <tr>
+                            <td>#{{ pm.id }}</td>
+                            <td>{{ pm.name }} ({{ pm.email }})</td>
+                            <td>
+                                <select name="status" style="width: 100%" data-id="{{ pm.id }}">
+                                    {% for s in status_choice %}
+                                        {% if s.0 == pm.status %}
+                                        <option value="{{ s.0 }}" selected>{{ s.1 }}</option>
+                                        {% else %}
+                                        <option value="{{ s.0 }}">{{ s.1 }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><button class="search_btn save_btn" data-id="{{ pm.id }}" style="width: 100%">儲存</button></td>
+                        </tr>
+                        {% endfor %}
                     </table>						
                 </div>
             </div>
@@ -281,7 +297,7 @@
             </div>
         </div>
         {% else %}
-        請先登入
+        您的權限不足
         {% endif %}
     </div>
 
@@ -294,6 +310,29 @@
   {% block script %}
   <script>
     $(document).ready(function () {
+
+        $('.save_btn').on('click',function(){
+            let current_id = $(this).data('id')
+            $.ajax({
+                url: "{% url 'update_user_status' %}",
+                data: {'user_id': current_id,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'role': 'is_partner_account',
+                        'status': $(`select[name="status"][data-id=${current_id}]`).val(),
+                    },
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert('修改完成')                
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+
+        })
+
         $('a.{{ menu }}').addClass('now')
         $('a.{{ menu }}').parent(".second_menu").slideToggle();
 

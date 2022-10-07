@@ -1,3 +1,4 @@
+from asyncio import staggered
 from pickle import NONE
 from django.contrib.auth.backends import ModelBackend
 from django.http import request
@@ -5,8 +6,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
-from manager.models import User, Partner, PartnerRequest, About
-from pages.models import News
+from manager.models import User, Partner, About
+from pages.models import News, Notification
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -38,6 +39,8 @@ from ckeditor.fields import RichTextField
 from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 
 class NewsForm(forms.ModelForm):
@@ -65,8 +68,13 @@ class EmailThread(threading.Thread):
 
 
 def manager(request):
+    menu = request.GET.get('menu','info')
     partners = Partner.objects.all()
-    return render(request, 'manager/manager.html', {'partners': partners})
+    # pr = []
+    # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
+    #     pr = PartnerRequest.objects.get(user_id=request.user.id)
+
+    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu,})
 
 
 def update_personal_info(request):
@@ -131,7 +139,7 @@ def send_verification_email(user, request):
         'token': generate_token.make_token(user)
     })
 
-    email = EmailMessage(subject=email_subject, body=email_body, from_email='no-reply@tbiadata.tw',to=[user.email])
+    email = EmailMessage(subject=email_subject, body=email_body, from_email='TBIA <no-reply@tbiadata.tw>',to=[user.email])
 
     EmailThread(email).start()
 
@@ -152,7 +160,7 @@ def resend_verification_email(request):
                 'token': generate_token.make_token(user)
             })
 
-            email = EmailMessage(subject=email_subject, body=email_body, from_email='no-reply@tbiadata.tw',to=[user.email])
+            email = EmailMessage(subject=email_subject, body=email_body, from_email='TBIA <no-reply@tbiadata.tw>',to=[user.email])
 
             EmailThread(email).start()
             return JsonResponse({"status": 'success'}, safe=False)
@@ -198,7 +206,7 @@ def send_reset_password(request):
                 'token': generate_token.make_token(user)
             })
 
-            email = EmailMessage(subject=email_subject, body=email_body, from_email='no-reply@tbiadata.tw',to=[user.email])
+            email = EmailMessage(subject=email_subject, body=email_body, from_email='TBIA <no-reply@tbiadata.tw>',to=[user.email])
 
             EmailThread(email).start()
             return JsonResponse({"message": '已送出重設密碼信件'}, safe=False)
@@ -373,8 +381,29 @@ def send_partner_request(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         partner_id = request.POST.get('partner_id')
-        PartnerRequest.objects.create(user_id=user_id, partner_id=partner_id, status='pending')
-        # 寄送通知
+        u = User.objects.get(id=user_id)
+        u.partner_id = partner_id
+        u.status = 'pending'
+        u.save()
+        # 寄送通知給系統管理員 & 單位管理員
+        # type = 5
+        for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)):
+            nn = Notification.objects.create(
+                type = 5,
+                content = user_id,
+                user = u
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([u.id],content,'單位帳號申請通知')
+        response = {'message': '申請已送出'}
+        return JsonResponse(response, safe=False)
+
+
+def withdraw_partner_request(request):
+    user_id = request.POST.get('user_id')
+    User.objects.filter(id=user_id).update(status='withdraw')
+    response = {'message': '申請已撤回'}
+    return JsonResponse(response, safe=False)
 
 
 def partner_news(request):
@@ -401,6 +430,8 @@ def partner_info(request):
     menu = request.GET.get('menu','info')
     partner_admin = ''
     info = []
+    partner_members = []
+    # pr = []
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
@@ -410,7 +441,14 @@ def partner_info(request):
             partner_admin = ','.join(partner_admin)
             # info
             info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
-    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'menu': menu})
+            # 單位帳號管理，統一由partner request判斷，但還要加partner_admin進去
+            # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
+
+            partner_members = User.objects.filter(partner_id=current_user.partner.id).exclude(status='withdraw').exclude(id=current_user.id)
+            status_choice = User._meta.get_field('status').choices[:-1]
+
+    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 
+                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice})
 
 
 def manager_partner(request):
@@ -535,7 +573,12 @@ def system_info(request):
 
     content = About.objects.all().first().content
     menu = request.GET.get('menu','list')
-    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'system_admin': system_admin})
+    partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')
+    status_choice = User._meta.get_field('status').choices[:-1]
+
+    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
+                        'system_admin': system_admin, 'partner_members': partner_members,
+                        'status_choice': status_choice})
 
 
 def system_resource(request):
@@ -572,8 +615,6 @@ def submit_news(request):
             fs = FileSystemStorage()
             image_name = fs.save(f'news/' + image.name, image)
 
-
-        
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             if status == 'pass' and n.status != 'pass':
@@ -611,7 +652,7 @@ def submit_news(request):
                 publish_date = None
 
             if image_name:
-                News.objects.create(
+                n = News.objects.create(
                     type = type,
                     user = current_user,
                     partner = partner_id,
@@ -622,7 +663,7 @@ def submit_news(request):
                     publish_date = publish_date
                 )
             else:
-                News.objects.create(
+                n = News.objects.create(
                     type = type,
                     user = current_user,
                     partner = partner_id,
@@ -634,7 +675,18 @@ def submit_news(request):
         if request.POST.get('from_system'):
             return redirect('system_news')
         else:
+            # 新增送審通知
+            if status == 'pending':
+                for u in User.objects.filter(is_system_admin=True):
+                    nn = Notification.objects.create(
+                        type = 7,
+                        content = n.id,
+                        user = u
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([u.id],content,'消息發布申請通知')
             return redirect('partner_news')
+
 
 def withdraw_news(request):
     if news_id := request.GET.get('news_id'):
@@ -644,6 +696,70 @@ def withdraw_news(request):
             n.save()
     return redirect('partner_news')
 
+
+def send_msg(msg):
+    msg.send()
+
+
+@csrf_exempt
+def send_notification(user_list, content, title):
+    try:
+        email_list = []
+        email = User.objects.filter(id__in=user_list).values('email')
+        for e in email:
+            email_list += [e['email']]
+
+        # send email
+        html_content = f"""
+        您好：
+        <br>
+        <br>
+        {content}
+        <br>
+
+        """
+        subject = '[生物多樣性資料庫共通查詢系統] ' + title
+
+        msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
+        msg.content_subtype = "html"  # Main content is now text/html
+        # 改成背景執行
+        task = threading.Thread(target=send_msg, args=(msg,))
+        # task.daemon = True
+        task.start()
+        return {"status": 'success'}
+    except:
+        return {"status": 'fail'}
+
+
+def update_user_status(request):
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        if User.objects.filter(id=request.POST.get('user_id')).exists():
+            u = User.objects.get(id=request.POST.get('user_id'))
+            u.status = status
+            if status == 'pass':
+                if request.POST.get('role') == 'is_partner_account':
+                    u.is_partner_account = True
+                    u.is_partner_admin = False
+                else:
+                    u.is_partner_account = False
+                    u.is_partner_admin = True
+            else:
+                u.is_partner_account = False
+                u.is_partner_admin = False
+            u.save()
+
+            if status != 'pending':
+                nn = Notification.objects.create(
+                    type = 6,
+                    content = u.get_status_display(),
+                    user = u
+                )
+                content = nn.get_type_display().replace('0000', str(nn.content))
+                send_notification([u.id],content,'單位帳號申請結果通知')
+
+
+        return JsonResponse({"status": 'success'}, safe=False)
 
 
 

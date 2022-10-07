@@ -2,6 +2,15 @@
 {% block style %}
 <style>
 
+    .checka {
+        color: #C65454; 
+        cursor: pointer
+    }
+
+    .checka:hover {
+        color: #e36262
+    }
+
     .two_cont_area {
         margin-bottom: 50px
     }
@@ -115,7 +124,7 @@
 
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 設定</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 帳號後台</p>
     </div>
 </div>
  
@@ -137,9 +146,15 @@
                             <p>{{ user.name }}</p> 
                         </a>
                     </li>
-                    <li class="now">
+                    <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="info">
                             <p>個人資訊</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" class="big_link rd_click" data-type="notification">
+                            <p>通知</p>
                             <div class="arr"></div>
                         </a>
                     </li>
@@ -153,7 +168,7 @@
             </div>
         </div>
 
-        <div class="rightbox_content info">
+        <div class="rightbox_content info" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>基本資料編輯</div>
                     <ul class="edit-list">
@@ -193,23 +208,44 @@
             </div>
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>申請成為夥伴帳號</div>
-                <ul class="edit-list">
-                    <li>選擇所屬夥伴單位</li>
-                    <li>
-                    <select id="partner-select">
-                        {% for p in partners %}
-                        {% if p.title == '營建署城鄉發展分署' %}
-                            <option value='{{ p.id }}'>內政部營建署城鄉發展分署</option>
-                        {% else %}
-                            <option value='{{ p.id }}'>{{ p.breadtitle }}</option>
-                        {% endif %}
-                        {% endfor %}
-                    </select>
-                    </li>
-                    <li>
-                        <button class="search_btn" onclick="sendRequest()">送出</button>
-                    </li>
-                </ul>
+                    <ul class="edit-list">
+                        <li style="color: #C65454; font-size: 15px">*申請即代表您同意我們的<a class="checka"target="_blank" href="{% url 'agreement' %}">保密協議</a>
+                        </li>
+                        <li>選擇所屬夥伴單位</li>
+                        <li>
+                            <form id="partnerForm">
+                                {% csrf_token %}
+                                {% if user.status == 'pending' or user.status == 'pass' %}
+                                <select id="partner-select" name="partner_id" disabled>
+                                {% else %} 
+                                <select id="partner-select" name="partner_id">
+                                {% endif %}
+                                {% for p in partners %} 
+                                    {% if p.id == user.partner_id %}
+                                    <option value='{{ p.id }}' selected>
+                                    {% else %}
+                                    <option value='{{ p.id }}'>
+                                    {% endif %}
+                                        {% if p.title == '營建署城鄉發展分署' %}
+                                        內政部營建署城鄉發展分署
+                                        {% else %}
+                                        {{ p.breadtitle }}
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                                </select>
+                            </form>
+                        </li>
+                        <li>                                
+                            {% if user.status == 'pending' %}
+                            單位帳號申請已送出審核中 <button class="search_btn" onclick="withdrawRequest({{ user.id }})">撤回申請</button>
+                            {% elif user.status == 'pass' %}
+                            單位帳號申請已通過
+                            {% else %}
+                            <button class="search_btn" onclick="sendRequest()">送出</button>
+                            {% endif %}
+                        </li>
+                    </ul>
             </div>
         </div>
 
@@ -219,10 +255,25 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
+                            <td>編號</td>
                             <td>檔案產生日期</td>
                             <td>查詢條件</td>
                             <td>狀態</td>
                             <td>檔案連結</td>
+                        </tr>
+                    </table>						
+                </div>
+            </div>
+        </div>
+
+        <div class="rightbox_content notification" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>通知</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>日期</td>
+                            <td>內容</td>
                         </tr>
                     </table>						
                 </div>
@@ -241,21 +292,43 @@
   {% block script %}
   <script>
 
-    function sendRequest(){
-        console.log($('#partner-select').val());
+
+    function withdrawRequest(user_id){
 
         $.ajax({
-            url: "",
-            data: $('#updateForm').serialize() + '&email={{ user.email }}&has_password=' + has_password,
+            url: "{% url 'withdraw_partner_request' %}",
+            data: {'user_id': user_id,csrfmiddlewaretoken: '{{ csrf_token }}'},
             type: 'POST',
             dataType : 'json',
         })
         .done(function(response) {
             alert(response.message)
-            if (response.message=='修改完成！請重新登入'){
-                window.location = '{% url "index" %}'
+            if (response.message=='申請已撤回'){
+                window.location = '{% url "manager" %}'
             }
-            
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })  
+
+    }
+
+
+    
+    function sendRequest(){
+
+        $.ajax({
+            url: "{% url 'send_partner_request' %}",
+            data: $('#partnerForm').serialize() + '&user_id={{ user.id }}',
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            alert(response.message)
+            if (response.message=='申請已送出'){
+                window.location = '{% url "manager" %}'
+            }
         })
         .fail(function( xhr, status, errorThrown ) {
           alert('發生未知錯誤！請聯絡管理員')
@@ -319,7 +392,15 @@
         }
   
 
+        $(document).ready(function () {
 
+        $('.rd_click[data-type={{ menu }}]').parent().addClass('now')
+
+        //$('a.{{ menu }}').addClass('now')
+
+        $('.rightbox_content.{{ menu }}').show()
+
+        })
 
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");
