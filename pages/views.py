@@ -23,6 +23,14 @@ news_type_c_map = {
 }
 
 
+def policy(request):
+    return render(request, 'pages/policy.html')
+
+
+def terms(request):
+    return render(request, 'pages/terms.html')
+
+
 def update_is_read(request):
     if request.method == 'GET':
         if user_id := request.user.id:
