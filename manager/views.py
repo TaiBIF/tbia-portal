@@ -741,12 +741,15 @@ def update_user_status(request):
                 if request.POST.get('role') == 'is_partner_account':
                     u.is_partner_account = True
                     u.is_partner_admin = False
+                    u.is_staff = True
                 else:
                     u.is_partner_account = False
                     u.is_partner_admin = True
+                    u.is_staff = True
             else:
                 u.is_partner_account = False
                 u.is_partner_admin = False
+                u.is_staff = False
             u.save()
 
             if status != 'pending':
