@@ -36,6 +36,15 @@ def get_notif(user_id):
                     </div>
                   </li>
                 """
+    if not results:
+        results = """
+                    <li>
+                    <div class="txtcont">
+                      <p class="date"></p>
+                      <p>暫無通知</p>
+                    </div>
+                  </li>
+                """
     return mark_safe(results)
 
 
