@@ -22,7 +22,12 @@
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
     <style>
-      .checka {
+
+    .header .right_btn2 .member_login .member_slimenu ul li {
+      border-bottom-left-radius: 15px;
+    }
+
+     .checka {
         cursor: pointer
     }
 
@@ -30,7 +35,7 @@
         color: #e36262 !important
     }
     
-      .footer .copy a {
+    .footer .copy a {
         color: #FFF;
         text-align: center;
         font-size: 14px;
@@ -40,37 +45,47 @@
     }
     
 
-      .message_list li, .ringbox .titlebox p {
-        cursor: default
-      }
+    .message_list li, .ringbox .titlebox p {
+      cursor: default
+    }
 
 
-      .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
+    .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
         height: 20px;
     }
     
 
-      .header .right_btn2 .ringbox .messagebox .wbox .titlebox button:hover {
+    .header .right_btn2 .ringbox .messagebox .wbox .titlebox button:hover {
         color: #E2A460;
     }
     
-    
-
       /*
       .popbg .loginbox .right_cont .checkbox_area {
         margin-bottom: 20px;
     }*/
     
+  .popbg .wbox_center {
 
-      .popbg .wbox_center {
-
-        max-height: 650px;
-    }
+      max-height: 650px;
+  }
     
 
-    ::placeholder{
+  ::placeholder {
       color: #707070;
     }  
+    select {
+      -webkit-appearance: menulist-button;
+      color: black !important;
+    }
+    
+    select:invalid {
+      color: #707070 !important;
+    }
+    
+  
+    input {
+      color: black !important;
+    }
 
     .section_1 .content_area .input_set button svg {
       height: 39px
@@ -127,7 +142,7 @@
 </div>
 
 <!--意見回饋popbox-->
-<div class="popbg" style="display:none;">
+<div class="popbg feedback-pop" style="display:none;">
 	<div class="ovhy">
 		<div class="wbox_center">
 			<div class="xx">
@@ -137,14 +152,14 @@
 				意見回饋
 			</div>
 			<p class="shortxt">
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ia.
+        請填寫下列表格，我們會將會盡快回覆
 			</p>
 			<div class="from_area">
 				<div class="select_twobox"> 
-					<select name="" id="">
+					<select name="" id="" required>
 						<option value="">請選擇回饋對象</option>
 					</select>
-					<select name="" id="">
+					<select name="" id="" required>
 						<option value="">請選擇問題類型</option>
 					</select>				
 				</div>
@@ -153,8 +168,8 @@
 					<textarea></textarea>
 				</div>
 				<div class="email_area">
-					<p>您的電⼦郵件 或 <a href="#">登入</a></p>
-					<input type="text">
+					<p>您的電⼦郵件
+					<input type="text" value="{{ request.user.email|default_if_none:'' }}">
 				</div>
 				<button class="send">確認送出</button>
 			</div>
@@ -342,7 +357,7 @@
         {% else %}
         <div class="right_btn2">
         {% endif %}
-          <div class="feedback"></div>
+          <div class="feedback" onclick="$('.feedback-pop').show()"></div>
           <div class="ringbox ">
             {% if user.id|get_notif_count > 0 %}
             <div class="num_message">{{ user.id|get_notif_count }}</div>
@@ -625,6 +640,20 @@
         type: 'GET',
         success: function(){
           $('.message_list li .dottt, .num_message').hide()
+        }
+       });
+    }
+    function updateThisRead(n_id){
+      $.ajax({
+        url: `{% url 'update_this_read' %}?n_id=${n_id}`,
+        type: 'GET',
+        success: function(response){
+          $(`.message_list li[data-nid=${n_id}] .dottt`).hide()
+          if (response.count > 0){
+              $('.num_message').html(response.count)
+          } else {
+              $('.num_message').hide()
+          }
         }
        });
     }

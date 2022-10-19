@@ -275,6 +275,12 @@
                             <td>日期</td>
                             <td>內容</td>
                         </tr>
+                        {% for n in notis %}
+                        <tr>
+                            <td>{{ n.created }}</td>
+                            <td>{{ n.content }}</td>
+                        </tr>
+                        {% endfor %}
                     </table>						
                 </div>
             </div>

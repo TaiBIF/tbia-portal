@@ -85,7 +85,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="rightsHolder" id="">
+                <select name="rightsHolder" id="" required>
                   <option value="" readonly="true" selected>來源資料庫</option>
                   {% for i in holder_list %}
                   <option value="{{ i }}">{{ i }}</option>
@@ -98,7 +98,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="sensitiveCategory" id="">
+                <select name="sensitiveCategory" id="" required>
                   <option value="" readonly="true" selected>敏感層級</option>
                   {% for i in sensitive_list %}
                   <option value="{{ i }}">{{ i }}</option>
@@ -106,7 +106,7 @@
                 </select>
               </div>
               <div class="input_item">
-                <select name="taxonRank" id="">
+                <select name="taxonRank" id="" required>
                   <option value="" readonly="true" selected>鑑定層級</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
@@ -138,7 +138,7 @@
                 <input name="recordedBy" type="text" placeholder="記錄者" />
               </div>
               <div class="input_item">
-                <select name="basisOfRecord">
+                <select name="basisOfRecord" required>
                   <option value="" readonly="true" selected>紀錄類型</option>
                   {% for i in basis_list %}
                   <option value="{{ i }}">{{ i }}</option>
@@ -340,7 +340,7 @@
 				<div class="txt_area" style="margin-top: 5%">
           <div class="circle-select">
             <p>半徑</p>
-            <select name="circle_radius" id="circle_radius">
+            <select name="circle_radius" id="circle_radius" required>
               <option value="1">1KM</option>
               <option value="2">2KM</option>
               <option value="5">5KM</option>
