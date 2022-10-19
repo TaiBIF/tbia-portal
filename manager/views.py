@@ -73,8 +73,9 @@ def manager(request):
     # pr = []
     # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
+    notis = Notification.objects.filter(user_id=request.user.id)
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu,})
+    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis})
 
 
 def update_personal_info(request):
@@ -617,9 +618,10 @@ def submit_news(request):
 
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
-            if status == 'pass' and n.status != 'pass':
+            ori_status = n.status
+            if status == 'pass' and ori_status != 'pass':
                 publish_date = timezone.now()
-            elif status == 'pass' and n.status == 'pass':
+            elif status == 'pass' and ori_status == 'pass':
                 publish_date = n.publish_date
             else:
                 publish_date = None
@@ -646,6 +648,7 @@ def submit_news(request):
                 n.modified = timezone.now()
                 n.save()
         else:
+            ori_status = 'pending'
             if status == 'pass':
                 publish_date = timezone.now()
             else:
@@ -673,6 +676,15 @@ def submit_news(request):
                     publish_date = publish_date
                 )
         if request.POST.get('from_system'):
+            if ori_status =='pending' and status in ['pass', 'fail']:
+                for u in User.objects.filter(is_system_admin=True):
+                    nn = Notification.objects.create(
+                        type = 8,
+                        content = n.id,
+                        user = u
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([u.id],content,'消息發布申請結果')
             return redirect('system_news')
         else:
             # 新增送審通知
@@ -685,6 +697,16 @@ def submit_news(request):
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
                     send_notification([u.id],content,'消息發布申請通知')
+            if ori_status =='pending' and status in ['pass', 'fail']:
+                for u in User.objects.filter(is_system_admin=True):
+                    nn = Notification.objects.create(
+                        type = 8,
+                        content = n.id,
+                        user = u
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([u.id],content,'消息發布申請結果')
+
             return redirect('partner_news')
 
 
