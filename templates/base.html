@@ -23,6 +23,18 @@
     {% block style %}{% endblock style %}
     <style>
 
+    .popbg .wbox_center .map_img .img {
+        background: none;
+    }
+    
+    .search_condition_are .secboxtop2 .rightbox .map_img .img {
+      background: none;
+    }
+
+    .sc_de_main .right_area .map_img .img {
+      background: none;
+    }
+
     .header .right_btn2 .member_login .member_slimenu ul li {
       border-bottom-left-radius: 15px;
     }
@@ -73,12 +85,13 @@
   ::placeholder {
       color: #707070;
     }  
-    select {
+
+    .input_item select {
       -webkit-appearance: menulist-button;
       color: black !important;
     }
     
-    select:invalid {
+    .input_item select:invalid {
       color: #707070 !important;
     }
     
@@ -314,7 +327,7 @@
               <div class="line"></div>
             </li>
             <li>
-              <a class="big_title">條件搜尋</a>
+              <a href="javascript:;" class="big_title">條件搜尋</a>
               <div class="line"></div>
               <div class="menu_2">
                 <div class="item">
