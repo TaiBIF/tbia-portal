@@ -45,8 +45,8 @@
             <h2>學名：{{ row.formatted_name|safe }}</h2>
             <div class="flex_inf">
               <div class="short">
-                <p>典藏單位使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-                <p>典藏單位使⽤學名：{{ row.sourceScientificName|safe }}</p>
+                <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
+                <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
               </div>
               {% if row.taxonID %}
               <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt"></i></a>

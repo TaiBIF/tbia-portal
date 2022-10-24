@@ -24,10 +24,31 @@ import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 from datetime import datetime, timedelta
 import re
+from bson.objectid import ObjectId
 
 basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
+
+
+def save_geojson(request):
+    if request.method == 'POST':
+        geojson = json.loads(request.POST.get('geojson_text'))
+        oid = str(ObjectId())
+        with open(f'/tbia-volumes/media/geojson/{oid}.json', 'w') as f:
+            json.dump(geojson, f)
+        return JsonResponse({"geojson_id": oid}, safe=False)
+
+
+def send_download_request(request):
+    if request.method == 'POST':
+        print(request.POST)
+
+
+        return JsonResponse({"status": 'success'}, safe=False)
+
+
+
 
 def search_full(request):
     keyword = request.GET.get('keyword', '')
@@ -236,7 +257,6 @@ def get_records(request):
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
-
         # only facet selected field
         if record_type == 'col':
             map_dict = map_collection
@@ -249,6 +269,9 @@ def get_records(request):
             title = '物種出現紀錄'
 
         key = get_key(key, map_dict)
+        search_str = f'keyword={keyword}&{key}={value}&record_type={record_type}'
+        if 'scientificName' not in search_str:
+            search_str += f'&scientificName={scientific_name}'
 
         # if not any([ is_alpha(i) for i in keyword ]) and not any([ i.isdigit() for i in keyword ]):
         #     keyword_str = f'"{keyword}"'
@@ -325,7 +348,8 @@ def get_records(request):
             'total_page' : total_page,
             'selected_col': selected_col,
             'map_dict': map_dict,
-            'page_list': page_list
+            'page_list': page_list,
+            'search_str': search_str
         }
 
         return HttpResponse(json.dumps(response), content_type='application/json')
@@ -797,22 +821,32 @@ def get_conditional_records(request):
             except:
                 pass
 
+        geojson = {}
+        geojson['features'] = ''
+
         if g_str := request.POST.get('geojson'):
             geojson = json.loads(g_str)
-            if geojson['features']:
-                if circle_radius := request.POST.get('circle_radius'):
-                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-                else:
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        if str(i).startswith('POLYGON'):
-                            g_list += [i]
-                    try:
-                        mp = MultiPolygon(map(wkt.loads, g_list))
-                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                    except:
-                        pass
+        elif g_id := request.POST.get('geojson_id'):
+            try:
+                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                    geojson = json.loads(j.read())
+            except:
+                pass
+
+        if geojson['features']:
+            if circle_radius := request.POST.get('circle_radius'):
+                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+            else:
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    if str(i).startswith('POLYGON'):
+                        g_list += [i]
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                except:
+                    pass
         
         if val := request.POST.get('name'):
             val = val.strip()

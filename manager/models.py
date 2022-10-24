@@ -122,6 +122,7 @@ class SearchQuery(models.Model):
     query = models.TextField(null=True, blank=True)
     download_times = models.IntegerField(default=0)
     created = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
 
 
 class About(models.Model):

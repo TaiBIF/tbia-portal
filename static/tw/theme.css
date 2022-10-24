@@ -6986,12 +6986,21 @@ body {
     -webkit-transition: all .3s
 }
 
+
+@media only screen and (max-width: 999px) {
+    .result_inf_top .cate_btn {
+        height: 32px;
+    }
+}
+
+
+/*
 @media only screen and (max-width: 999px) {
     .result_inf_top .cate_btn {
         position: absolute;
         top: -20px
     }
-}
+}*/
 
 @media only screen and (max-width: 767px) {
     .result_inf_top .cate_btn {

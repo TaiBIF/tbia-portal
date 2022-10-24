@@ -5,6 +5,76 @@
 {% block title %}全站搜尋｜{% endblock %}
 {% block style %}
 <style>
+.rightdow {
+    display: flex;
+    align-items: center
+}
+
+.dow_btn {
+    padding: 0px 10px;
+    font-size: 16px;
+    color: #3F5146;
+    height: 32px;
+    min-width: 110px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    border-radius: 20px;
+    margin-right: 5px;
+    border: 1px solid #3F5146;
+    background: none;
+    display: flex;
+    align-items: center
+}
+
+.dow_btn svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px
+}
+
+@media only screen and (max-width: 767px) {
+.dow_btn {
+        font-size: 14px;
+        padding: 0 10px;
+        height: 30px;
+        margin-bottom: 5px;
+        min-width: initial
+    }
+
+  .dow_btn svg {
+        margin-right: 0
+    }
+
+    .dow_btn p {
+        display: none
+    }
+}
+
+.dow_btn:hover {
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    background: #3F5146;
+    color: #FFF
+}
+
+.dow_btn:hover svg path {
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    stroke: #FFFFFF
+}
+
+
+
+
 .searchbar_top .left_search {
   background: transparent;
   padding: 10px 0;
@@ -902,7 +972,19 @@
         </div>
         <div class="result_inf_top">
           <button class="cate_btn" onclick="popupField('${record_type}')">欄位選項 +</button>
-          <p class="datenum">資料筆數：${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+          <div style="display: flex">
+            <p class="datenum" style="margin-right: 10px">資料筆數：${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+            <div class="rightdow">
+              <button class="dow_btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p onclick="downlaodData('${response.search_str}')">資料下載</p>
+              </button>
+              <a href="#" class="qmark"></a>
+            </div>
+          </div>
+
         </div>
         <div class="result_table" style="overflow-x: auto;">
           <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
@@ -1272,6 +1354,28 @@
       //console.log(selected_field[i].id.split('-')[1])
     }
     $(".popbg").hide();
+  }
+
+  function downlaodData(search_str){
+    $.ajax({
+      url: "{% url 'send_download_request' %}",
+      data: {
+        search_str: search_str,
+        csrfmiddlewaretoken: '{{ csrf_token }}',
+      },
+      type: 'POST',
+      dataType : 'json',
+  })
+  .done(function(response) {
+  })
+  .fail(function( xhr, status, errorThrown ) {
+    if (xhr.status==504){
+      alert('要求連線逾時')
+    } else {
+      alert('發生未知錯誤！請聯絡管理員')
+    }      
+    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+  })
   }
 
 </script>

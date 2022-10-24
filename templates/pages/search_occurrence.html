@@ -16,6 +16,8 @@
 <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
 {% endblock head %}
 {% block style %}
 <style>
@@ -74,8 +76,8 @@
   <div class="main_1240">
     <div class="search_condition_are">
       <form id="searchForm">
-        {% csrf_token %}
         <input type="hidden" name="record_type" value="occ">
+        <input type="hidden" name="geojson_id" value="">
         <div class="secboxtop2">
           <div class="leftbox">
             <div class="two_input">
@@ -319,7 +321,10 @@
 					<textarea id="geojson_textarea" style="height: 300px"></textarea>
 				</div>
         <p class="shortxt" style="text-align: right; color:#C65454">
-          僅支援Polygon（上限2.5 MB）
+          *僅支援Polygon（上限2.5 MB）
+        </p>
+        <p class="shortxt" style="text-align: right; color:#C65454">
+          *Polygon會經過dissolve處理
         </p>
 				<button class="send geojson_send">確認送出</button>
 			</div>
@@ -369,14 +374,14 @@
 <script>
 
     function getColor(d) {
-      return d > 1000 ? '#4c00b0' :
-              d > 500  ? '#7600bc' :
-              d > 200  ? '#8a00c2' :
-              d > 100  ? '#a000c8' :
-              d > 50   ? '#b100cd' :
-              d > 20   ? '#be2ed6' :
-              d > 10   ? '#ca5cdd' :
-                        '#da8ee7';
+      return d > 1000 ? '#C50101' :
+              d > 500  ? '#D71414' :
+              d > 200  ? '#E72424' :
+              d > 100  ? '#F73535' :
+              d > 50   ? '#FB4C4C' :
+              d > 20   ? '#FB6262' :
+              d > 10   ? '#FC7E7E' :
+                        '#FD9696';
     }
     
     function style(feature) {
@@ -438,13 +443,253 @@
         }
     });
     
+
     
-  // date picker
   $( function() {
+  // date picker
 
     $( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
     $( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
+
+    // 如果直接從帶有參數網址列進入
+    changeAction(); 
+
+    // 如果按上下一頁
+    window.onpopstate = function(event) {
+      drawnItems.clearLayers();
+      $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+      changeAction();
+    };
+
   } );
+
+  
+
+  function changeAction(){
+    let queryString = window.location.search;
+    if (queryString.split('&').length>1){
+      // 把條件填入表格
+
+      let urlParams = new URLSearchParams(queryString);
+      let entries = urlParams.entries(); 
+      
+      for(const [key, value] of entries) { 
+        $(`[name=${key}]`).val(value)
+          // map按鈕
+          if (key == 'geo_type'){
+            $(`p[data-type=${value}]`).addClass("active")
+          }
+
+          if (key == 'geojson') {
+            if (urlParams.get('geo_type') == 'map') {
+              geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
+              drawnItems.addLayer(geoJSON);
+              map.fitBounds(geoJSON.getBounds());
+            } else if (urlParams.get('geo_type') == 'circle') {
+              let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
+              parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
+              drawnItems.addLayer(circle);
+              map.fitBounds(circle.getBounds());
+            }
+          }
+          if ((key == 'geojson_id') && (value != '')){
+              fetch(`/media/geojson/${value}.json`).then((res) => {
+              if (res.ok) {
+                $('#geojson_textarea').val(JSON.stringify(res.json()))
+                $.getJSON(`/media/geojson/${value}.json`, function (ret) {
+                  geoJSON = L.geoJSON(ret,{ className: 'addG'}).addTo(map);
+                  map.fitBounds(geoJSON.getBounds());
+                });
+              } else {
+                $(`p[data-type=polygon]`).removeClass("active")
+              }
+          });
+                
+        }
+        
+      }
+      getRecordByURL(queryString,null)
+
+    }
+
+  }
+
+  function setTable(response){
+    drawnItems.clearLayers();
+    $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+    
+    L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
+    L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
+    L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
+    L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
+    //map.fitBounds(geoResult.getBounds());
+
+    $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
+
+    if (map.getZoom() < 5) {
+      $('.resultG_100').css('display','')
+    } else if (map.getZoom() < 8){
+      $('.resultG_10').css('display','')
+    } else if (map.getZoom() < 9){
+      $('.resultG_5').css('display','')
+    } else {
+      $('.resultG_1').css('display','')
+    }
+      // 如果有資料回傳則顯示table
+      $('.search_condition_are').after(`
+      <div class="sc_result">
+        <div class="result_inf_top">
+          <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
+          <div class="rightmore">
+            <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+            <button class="dw">資料下載</button>
+            <button class="dw">名錄下載</button>
+            <a href="#" class="qmark"></a>
+            <button class="dw">申請單次使用去模糊化敏感資料</button>
+            <a href="#" class="qmark"></a>
+          </div>
+
+        </div>
+        <div class="result_table" style="overflow-x: auto;">
+          <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+          </table>						
+        </div>
+      </div>`)
+      // table title
+      var table_title = document.createElement("tr");
+      table_title.classList.add('table_title');
+      let map_dict = response.map_dict;
+
+      for (let i = 0; i < Object.keys(map_dict).length; i++) {
+          var this_td = document.createElement("td");
+          this_td.className = `row-${Object.keys(map_dict)[i]}`;
+          this_td.style.cssText = 'display:none';
+          var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
+          this_td.appendChild(text);
+          table_title.appendChild(this_td); 
+      }
+      var function_td = document.createElement("td");
+      var text = document.createTextNode('功能');
+      function_td.appendChild(text);
+      table_title.appendChild(function_td); 
+
+      $('.record_table').append(table_title);
+      
+      // append rows
+      for (let i = 0; i < response.rows.length; i++) {
+        let tmp = response.rows[i];
+        let tmp_td;
+        let tmp_value;
+        for (let j = 0; j < Object.keys(map_dict).length; j++){
+          tmp_value = tmp[Object.keys(map_dict)[j]];
+          if (tmp_value == null){
+            tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
+          } else {
+            tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
+          }
+        }
+        let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
+        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+        $('.record_table').append(
+          `<tr>${tmp_td}</tr>`)
+      }
+  }
+
+  function getRecordByURL(queryString,page) {
+    // 如果從頁碼點選, 修改page參數
+    if (page != null){
+      let urlParams = new URLSearchParams(queryString);
+      urlParams.set('page',page)
+      queryString = urlParams.toString()
+      history.pushState(null, '', window.location.pathname + '?'  + queryString);
+    }
+
+    $.ajax({
+      url: "{% url 'get_conditional_records' %}",
+      data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}',
+      type: 'POST',
+      dataType : 'json',
+    })
+    .done(function(response) {
+      // clear previous results
+      $('.sc_result').remove()
+      if (response.count == 0){
+        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
+      } else {
+        // 把之前的清掉
+
+
+        setTable(response)
+
+        // 欄位選項
+        $(`input[id^="occ-"]`).prop('checked',false)
+        // show selected columns
+        for (let i = 0; i < response.selected_col.length; i++) {
+          $(`.row-${response.selected_col[i]}`).show();
+          $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
+
+        // disable checkebox for common_name_c & scientificName
+        $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
+        $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
+
+        // append pagination
+        if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+          $('.result_table').after(
+            `<div class="page_number">
+              <a href="javascript:;" class="pre">
+                <span></span>
+              </a>
+              <a href="javascript:;" class="next">
+                <span></span>
+              </a>
+            </div>`)}		
+        
+        let html = ''
+        for (let i = 0; i < response.page_list.length; i++) {
+          
+          if (response.page_list[i] == response.current_page){
+            html += `<a href="javascript:;" onclick="getRecordByURL('${queryString}',${response.page_list[i]})" class="num now">${response.page_list[i]}</a>  `;
+          } else {
+            html += `<a href="javascript:;" onclick="getRecordByURL('${queryString}',${response.page_list[i]})" class="num">${response.page_list[i]}</a>  `
+          }
+        }
+        $('.pre').after(html)
+
+        // 如果有上一頁，改掉pre的onclick
+        if ((response.current_page - 1) > 0 ){
+          $('.pre').attr('onclick',`getRecordByURL('${queryString}',${response.current_page - 1})`);
+        }
+        // 如果有下一頁，改掉next的onclick
+        if (response.current_page < response.total_page){
+          $('.next').attr('onclick',`getRecordByURL('${queryString}',${response.current_page + 1})`);
+        }
+
+        // 如果有前面的page list, 加上...
+        if (response.current_page > 5){
+          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.current_page -5 })">...</a> `)
+        }
+        // 如果有後面的page list, 加上...
+        if (response.page_list[response.page_list.length - 1] < response.total_page){
+          if (response.current_page +5 > response.total_page){
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.total_page})">...</a> `)
+          } else {
+            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.current_page +5})">...</a>`)
+          }
+        }
+    }
+    })
+
+    .fail(function( xhr, status, errorThrown ) {
+      if (xhr.status==504){
+        alert('要求連線逾時')
+      } else {
+        alert('發生未知錯誤！請聯絡管理員')
+      }
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+  }
+
 
   // 從地圖框選
   function mapGeo(e){
@@ -484,6 +729,7 @@
     $('input[name=center_lon]').val('')
     $("#circle_radius").val("1").trigger("change");
     $('#geojson_textarea').val('')
+    $('input[name=geojson_id]').val('')
   }
 
 
@@ -512,11 +758,36 @@
     $('.addG, [class^=resultG_]').remove()
     try {
       let geoObj = JSON.parse($('#geojson_textarea').val());
-      geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
+      //geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
+
+      //var ucbRegions = L.geoJson(data).addTo(map);
+      var regionsDissolved = turf.dissolve(geoObj);
+      
+
+      $.ajax({
+        url: "{% url 'save_geojson' %}",
+        data: { geojson_text: JSON.stringify(regionsDissolved ),csrfmiddlewaretoken:'{{ csrf_token }}'},
+        type: 'POST',
+        dataType : 'json',
+      })
+      .done(function(response) {
+        $('input[name=geojson_id]').val(response.geojson_id)
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        if (xhr.status==504){
+          alert('要求連線逾時')
+        } else {
+          alert('發生未知錯誤！請聯絡管理員')
+        }
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+
+      geoJSON = L.geoJSON(regionsDissolved,{ className: 'addG'}).addTo(map);
+    
       map.fitBounds(geoJSON.getBounds());
       $(".geojson_popup").hide()
     } catch (e) {
-      alert('上傳失敗！請檢查GeoJSON格式是否正確')
+      alert('上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限')
     }
   })
 
@@ -526,14 +797,15 @@ function submitSearch (page, from){
 
     let map_condition = '';
     if ($('p.active').data('type')=='map'){
-      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON())})
+      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()),'geo_type': 'map'})
     } else if ($('p.active').data('type')=='polygon'){
-      map_condition = '&' + $.param({'geojson': $('#geojson_textarea').val()})
+      map_condition = '&' + $.param({'geo_type': 'polygon'})
     } else if ($('p.active').data('type')=='circle'){
-    //map_condition = '&circle_radius=' +$('select[name=circle_radius]').val() + '&circle_lat=' +$('input[name=circle_lat]').val()  + '&circle_lon=' +$('input[name=circle_lon]').val()
-      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val()})
+      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val(),
+      'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val(), 'geo_type': 'circle'})
     }
 
+    // 如果是按搜尋，重新給query參數，若是從分頁則不用
     if (from == 'search'){
       //window.condition = $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val()})
       
@@ -549,15 +821,14 @@ function submitSearch (page, from){
   
       window.condition = form.serialize() + map_condition
 
-      // 把之前的清掉
-      drawnItems.clearLayers();
-      $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-    } 
+     } 
+    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&' + $.param({'page': page})+ '&from=' + from);
+
 
     $.ajax({
       url: "{% url 'get_conditional_records' %}",
-      data: window.condition + '&' + $.param({'page': page})+ '&from=' + from,
+      data: window.condition + '&' + $.param({'page': page})+ '&from=' + from + '&csrfmiddlewaretoken={{ csrf_token }}',
       type: 'POST',
       dataType : 'json',
     })
@@ -567,83 +838,11 @@ function submitSearch (page, from){
       if (response.count == 0){
         $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
       } else {
-        L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
-        L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
-        L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
-        L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
-        //map.fitBounds(geoResult.getBounds());
 
-      $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
 
-      if (map.getZoom() < 5) {
-        $('.resultG_100').css('display','')
-      } else if (map.getZoom() < 8){
-        $('.resultG_10').css('display','')
-      } else if (map.getZoom() < 9){
-        $('.resultG_5').css('display','')
-      } else {
-        $('.resultG_1').css('display','')
-      }
+      setTable(response)
 
-        // 如果有資料回傳則顯示table
-        $('.search_condition_are').after(`
-        <div class="sc_result">
-          <div class="result_inf_top">
-            <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
-            <div class="rightmore">
-							<p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-							<button class="dw">資料下載</button>
-							<button class="dw">名錄下載</button>
-							<a href="#" class="qmark"></a>
-							<button class="dw">申請單次使用去模糊化敏感資料</button>
-							<a href="#" class="qmark"></a>
-						</div>
-
-          </div>
-          <div class="result_table" style="overflow-x: auto;">
-            <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
-            </table>						
-          </div>
-        </div>`)
-        // table title
-        var table_title = document.createElement("tr");
-        table_title.classList.add('table_title');
-        let map_dict = response.map_dict;
-
-        for (let i = 0; i < Object.keys(map_dict).length; i++) {
-            var this_td = document.createElement("td");
-            this_td.className = `row-${Object.keys(map_dict)[i]}`;
-            this_td.style.cssText = 'display:none';
-            var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
-            this_td.appendChild(text);
-            table_title.appendChild(this_td); 
-        }
-        var function_td = document.createElement("td");
-        var text = document.createTextNode('功能');
-        function_td.appendChild(text);
-        table_title.appendChild(function_td); 
-
-        $('.record_table').append(table_title);
-        
-        // append rows
-        for (let i = 0; i < response.rows.length; i++) {
-          let tmp = response.rows[i];
-          let tmp_td;
-          let tmp_value;
-          for (let j = 0; j < Object.keys(map_dict).length; j++){
-            tmp_value = tmp[Object.keys(map_dict)[j]];
-            if (tmp_value == null){
-              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
-            } else {
-              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
-            }
-          }
-          let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
-          tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-          $('.record_table').append(
-            `<tr>${tmp_td}</tr>`)
-        }
-        // 判斷是從分頁或搜尋點選
+      // 判斷是從分頁或搜尋點選
         if (from == 'search'){
           // uncheck all first
           $(`input[id^="occ-"]`).prop('checked',false)

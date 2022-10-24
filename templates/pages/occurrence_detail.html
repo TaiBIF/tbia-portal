@@ -43,23 +43,24 @@
           </div>
           <h2>中⽂名：{{ row.common_name_c }}</h2>
           <h2>學名：{{ row.formatted_name|safe }}</h2>
-          <div class="short">
-            <p>典藏單位使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-            <p>典藏單位使⽤學名：{{ row.sourceScientificName|safe }}</p>
-          </div>
-        </div>
+          <div class="flex_inf">
+            <div class="short">
+              <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
+              <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
+            </div>
+            {% if row.taxonID %}
+            <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt"></i></a>
+            {% else %}
+            <a class="code">物種編號：</a>
+            {% endif %}
+              </div>
+              <div class="rank_path">
+                {{ path_str|safe }}
+              </div>
+  
+      </div>
       </div>
       <div class="right_rankbox">
-        <div class="rank_path">
-          {% if row.taxonID %}
-          <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>
-          {% else %}
-          <p class="code">物種編號：</p>
-          {% endif %}        
-          {% if path_str %}
-          {{ path_str|safe }}
-          {% endif %}
-        </div>
       </div>
     </div>
 
