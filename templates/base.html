@@ -157,7 +157,7 @@
 </div>
 
 <!--意見回饋popbox-->
-<div class="popbg feedback-pop" style="display:none;">
+<div class="popbg feedback-pop " style="display:none;">
 	<div class="ovhy">
 		<div class="wbox_center">
 			<div class="xx">
@@ -173,6 +173,7 @@
 				<div class="select_twobox"> 
 					<select name="partner_id" id="" required>
 						<option value="">請選擇回饋對象</option>
+						<option value="0">TBIA聯盟</option>
             {% for p in partners %} 
               <option value='{{ p.id }}'>
                   {% if p.title == '營建署城鄉發展分署' %}
@@ -329,6 +330,11 @@
                 <a href="{% url 'qa' %}" class="one_set">
                   <p>常見Q&A</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
+                </a>
+              </li>
+              <li>
+                <a href="javascript:;" class="one_set" onclick="$('.feedback-pop').show()">
+                  <p>意見回饋</p>
                 </a>
               </li>
             </ul>

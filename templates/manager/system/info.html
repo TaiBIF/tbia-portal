@@ -293,18 +293,27 @@
                             <td>
                             {% if f.partner.title == '營建署城鄉發展分署' %}
                             內政部營建署城鄉發展分署
-                            {% else %}
+                            {% elif f.partner %}
                             {{ f.partner.breadtitle }}
+                            {% else %}
+                            TBIA聯盟
                             {% endif %}
                             </td>
                             <td>{{ f.created_8|date:'Y-m-d H:i:s' }}</td>
                             <td>{{ f.email }}</td>
                             <td>{{ f.get_type_display }}</td>
                             <td class="fb-content">{{ f.content }}</td>
-                            <td>{% if f.is_replied %}
+                            <td>{% if f.partner %}{% if f.is_replied %}
                                 是
                                 {% else %}
                                 否
+                                {% endif %}
+                                {% else %}
+                                {% if f.is_replied %}
+                                是 <button class="search_btn feedback_btn" data-id="{{ f.id }}" style="width: 95%">修改為未回覆</button>
+                                {% else %}
+                                否<button class="search_btn feedback_btn" data-id="{{ f.id }}" style="width: 95%">修改為已回覆</button>
+                                {% endif %}
                                 {% endif %}
                             </td>
                         </tr>

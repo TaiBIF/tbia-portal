@@ -73,6 +73,8 @@ def send_feedback(request):
     if request.method == 'POST':
         # print(request.POST)
         partner_id = request.POST.get('partner_id')
+        if partner_id == '0':
+            partner_id = None
         email = request.POST.get('email')
         content = request.POST.get('content')
         type = request.POST.get('type')
