@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 import numpy as np
 import bisect
 
+from pages.models import Download
+
 # x: longtitude, y: latitude
 
 
@@ -487,3 +489,72 @@ def convert_date(date):
         except:
             formatted_date = None
     return formatted_date
+
+
+
+download_cols = [
+  'scientificNameID',
+'associatedMedia',
+'basisOfRecord',
+'collectionID',
+'coordinatePrecision',
+'coordinateUncertaintyInMeters',
+'created',
+'dataGeneralizations',
+'datasetName',
+'eventDate',
+'id',
+'license',
+'locality',
+'modified',
+'occurrenceID',
+'organismQuantity',
+'organismQuantityType',
+'preservation',
+'recordedBy',
+'recordNumber',
+'references',
+'resourceContacts',
+'rightsHolder',
+'selfProduced',
+'sensitiveCategory',
+'sourceCreated',
+'sourceModified',
+'sourceScientificName',
+'sourceVernacularName',
+'standardDate',
+'standardLatitude',
+'standardLongitude',
+'standardOrganismQuantity',
+'taxonID',
+'typeStatus',
+'verbatimCoordinateSystem',
+'verbatimLatitude',
+'verbatimLongitude',
+'verbatimSRS',
+'taxonID',
+'scientificName',
+'name_author',
+'common_name_c',
+'alternative_name_c',
+'taxonRank',
+'misapplied',
+'synonyms',
+'kingdom',
+'kingdom_c',
+'phylum',
+'phylum_c',
+'class',
+'class_c',
+'order',
+'order_c',
+'family',
+'family_c',
+'genus',
+'genus_c',
+]
+
+sensitive_cols = ['standardRawLatitude',
+'standardRawLongitude',
+'verbatimRawLatitude',
+'verbatimRawLongitude']

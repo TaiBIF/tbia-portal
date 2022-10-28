@@ -217,6 +217,11 @@ def generate_download_csv(req_dict,user_id):
         type = 'record',
         query_id = download_id.split('_')[-1]
     )
+    
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        fl_cols = download_cols + sensitive_cols
+    else:
+        fl_cols = download_cols
 
     # 先取得筆數，export to csv
     query_list = []
@@ -301,6 +306,7 @@ def generate_download_csv(req_dict,user_id):
                 "limit": req_dict.get('total_count'),
                 "filter": query_list,
                 "sort":  "scientificName asc",
+                "fields": fl_cols
                 }
 
         csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
@@ -464,6 +470,11 @@ def generate_species_csv(req_dict,user_id):
     # return csv file
 
 def generate_download_csv_full(req_dict,user_id):
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        fl_cols = download_cols + sensitive_cols
+    else:
+        fl_cols = download_cols
+
     query_string = req_dict.urlencode()
     # req_dict_query = req_dict.get('search_str')
     req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
@@ -519,13 +530,13 @@ def generate_download_csv_full(req_dict,user_id):
                 "limit": req_dict.get('total_count'),
                 "filter": query_list,
                 "sort":  "scientificName asc",
+                "fields": fl_cols,
                 }
 
         csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
         csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
         solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
         commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
-        print(commands)
 
         process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
