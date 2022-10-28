@@ -62,22 +62,28 @@ class Resource(models.Model):
 
 
 class Feedback(models.Model):
+
+    type_choice = [
+        (1,'網頁操作'),
+        (2,'網頁內容'),
+        (3,'聯盟相關'),]
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
-    type = models.CharField(max_length=100, blank=True, null=True)
+    type = models.IntegerField(choices=type_choice,blank=True, null=True)
     email = models.CharField(max_length=100, blank=True, null=True)
     content = TextField(null=True, blank=True)
     is_replied = models.BooleanField(default=False)
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    created = models.DateField(auto_now_add=True)
-    replied = models.DateField()
+    # user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    # replied = models.DateField()
     class Meta:
         db_table = 'feedback'
 
 
 class Notification(models.Model):
     type_choice = [
+        (0,'下載名錄 #0000 已處理完成，請至後台查看'),
         (1,'下載資料 #0000 已處理完成，請至後台查看'),
-        (2,'有新的意見回饋，請至後台回覆'),
+        (2,'有新的意見回饋 #0000，請至後台查看'),
         (3,'有新的單次使用敏感資料申請 #0000，請至後台審核'),
         (4,'單次使用敏感資料申請 #0000 審核已完成，請至後台查看'),
         (5,'有新的單位帳號 #0000 申請，請至後台審核'),

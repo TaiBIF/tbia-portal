@@ -1,4 +1,5 @@
 from pyexpat import model
+from xml.dom.minidom import Comment
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import django
@@ -69,7 +70,7 @@ class Partner(models.Model):
 
 
 class User(AbstractUser):
-    name = models.CharField(max_length=20, blank=True)
+    name = models.CharField(max_length=1000, blank=True)
     email = models.EmailField(max_length=254, blank=False, unique=True)
     is_active = models.BooleanField(default=True)
     # is_superuser = models.BooleanField(default=False)
@@ -109,20 +110,60 @@ class User(AbstractUser):
     # 如果該帳號只剩下fail，開放再申請
 
 
-class SensitiveDataRequest(models.Model):
-    # 同一份資料可能會有很多單位
-    partner_coverage =  models.CharField(max_length=200, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
-    created = models.DateField(auto_now_add=True) # 申請時間
-
 
 class SearchQuery(models.Model):
+    status_choice = [
+        ('pending', '處理中'),
+        ('pass', '完成'),
+        ('fail', '失敗'),
+        ('expired', '過期'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     query = models.TextField(null=True, blank=True)
-    download_times = models.IntegerField(default=0)
-    created = models.DateField(auto_now_add=True)
-    status = models.CharField(max_length=20, blank=True) # pending, pass, fail 
+    # download_times = models.IntegerField(default=0)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
+    type = models.CharField(max_length=20, blank=True) # taxon, record, sensitive
+    query_id = models.CharField(max_length=50, blank=True)
+
+
+class SensitiveDataRequest(models.Model):
+    # 用query_id和SearchQuery串接
+    # 每個單位為一筆
+    status_choice = [
+        ('pending', '等待審核'),
+        ('pass', '通過'),
+        ('fail', '不通過'),
+    ]
+
+    # partner_id =  models.
+    # reviewer_id =  models.
+    status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 
+    created = models.DateField(auto_now_add=True) # 申請時間
+    query_id = models.CharField(max_length=50, blank=True)
+    comment = models.TextField(null=True, blank=True)
+
+
+
+
+# class SensitiveQuery(models.Model):
+#     # 用query_id和SearchQuery串接
+#     # 每個單位為一筆
+#     status_choice = [
+#         ('pending', '等待審核'),
+#         ('pass', '通過'),
+#         ('fail', '不通過'),
+#     ]
+
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     query = models.TextField(null=True, blank=True)
+#     # download_times = models.IntegerField(default=0)
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(null=True, blank=True)
+#     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
+#     query_id = models.CharField(max_length=50, blank=True)
 
 
 class About(models.Model):

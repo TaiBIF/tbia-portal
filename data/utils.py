@@ -341,8 +341,8 @@ map_occurrence = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'sourceScientificName': '原資料庫使用學名',
-    'sourceVernacularName': '原資料庫使用中文名',
+    'sourceScientificName': '來源資料庫使用學名',
+    'sourceVernacularName': '來源資料庫使用中文名',
 }
 
 map_collection = {
@@ -471,8 +471,8 @@ map_collection = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'sourceScientificName': '原資料庫使用學名',
-    'sourceVernacularName': '原資料庫使用中文名',
+    'sourceScientificName': '來源資料庫使用學名',
+    'sourceVernacularName': '來源資料庫使用中文名',
 }
 
 

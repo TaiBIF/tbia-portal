@@ -2,6 +2,11 @@
 {% block style %}
 <style>
 
+    .fb-content {
+        white-space: pre-wrap;
+        text-align: left !important;
+    }
+
     .two_cont_area {
         margin-bottom: 50px
     }
@@ -294,6 +299,33 @@
         <div class="rightbox_content feedback" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>意見回饋紀錄</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>編號</td>
+                            <td>時間</td>
+                            <td>Email</td>
+                            <td>類型</td>
+                            <td>內容</td>
+                            <td style="width: 15%">已回覆</td>
+                        </tr> 
+                        {% for f in feedback %}
+                        <tr>
+                            <td>#{{ f.id }}</td>
+                            <td>{{ f.created_8|date:'Y-m-d H:i:s' }}</td>
+                            <td>{{ f.email }}</td>
+                            <td>{{ f.get_type_display }}</td>
+                            <td class="fb-content">{{ f.content }}</td>
+                            <td>{% if f.is_replied %}
+                                是 <button class="search_btn feedback_btn" data-id="{{ f.id }}" style="width: 95%">修改為未回覆</button>
+                                {% else %}
+                                否<button class="search_btn feedback_btn" data-id="{{ f.id }}" style="width: 95%">修改為已回覆</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
             </div>
         </div>
         {% else %}
@@ -310,6 +342,29 @@
   {% block script %}
   <script>
     $(document).ready(function () {
+
+
+
+        $('.feedback_btn').on('click',function(){
+            let current_id = $(this).data('id')
+            $.ajax({
+                url: "{% url 'update_feedback' %}",
+                data: {'current_id': current_id,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert('修改完成')
+                window.location.reload()
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+
+        })
 
         $('.save_btn').on('click',function(){
             let current_id = $(this).data('id')

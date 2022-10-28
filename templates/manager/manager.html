@@ -164,6 +164,18 @@
                             <div class="arr"></div>
                         </a>
                     </li>
+                    <li>
+                        <a href="javascript:;" class="big_link rd_click" data-type="download_taxon">
+                            <p>名錄下載</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:;" class="big_link rd_click" data-type="sensitive">
+                            <p>單次使用去模糊化敏感資料</p>
+                            <div class="arr"></div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -255,11 +267,75 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
-                            <td>編號</td>
-                            <td>檔案產生日期</td>
-                            <td>查詢條件</td>
-                            <td>狀態</td>
-                            <td>檔案連結</td>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:20%;">查詢條件</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
+                        </tr>
+                        {% for r in record %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td style="text-align: left">{{ r.query|safe }}</td>
+                            <td>{{ r.status }}</td>
+                            <td>{% if r.status == '完成' %}
+                                <a target="_blank" href="/media/download/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
+            </div>
+        </div>
+
+
+        <div class="rightbox_content download_taxon" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>名錄下載</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:20%;">查詢條件</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
+                        </tr>
+                        {% for r in taxon %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td style="text-align: left">{{ r.query|safe }}</td>
+                            <td>{{ r.status }}</td>
+                            <td>{% if r.status == '完成' %}
+                                <a target="_blank" href="/media/download/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
+            </div>
+        </div>
+
+        <div class="rightbox_content sensitive" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:20%;">查詢條件</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
                         </tr>
                     </table>						
                 </div>

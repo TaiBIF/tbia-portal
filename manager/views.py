@@ -6,8 +6,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
-from manager.models import User, Partner, About
-from pages.models import News, Notification
+from manager.models import SearchQuery, User, Partner, About
+from pages.models import Feedback, News, Notification
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -40,7 +40,11 @@ from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
+from django.db.models import Q, F, DateTimeField, ExpressionWrapper
+from datetime import datetime, timedelta
+from urllib import parse
+from data.utils import map_collection, map_occurrence, get_key
+from os.path import exists
 
 
 class NewsForm(forms.ModelForm):
@@ -49,7 +53,6 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model  = News
         fields = ('content',)
-
 
 
 class registerBackend(ModelBackend):
@@ -66,6 +69,47 @@ class EmailThread(threading.Thread):
     def run(self):
         self.email.send()
 
+def send_feedback(request):
+    if request.method == 'POST':
+        # print(request.POST)
+        partner_id = request.POST.get('partner_id')
+        email = request.POST.get('email')
+        content = request.POST.get('content')
+        type = request.POST.get('type')
+        fb = Feedback.objects.create(
+            partner_id = partner_id,
+            email= email,
+            content= content,
+            type = type
+        )
+
+        for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
+            nn = Notification.objects.create(
+                type = 2,
+                content = fb.id,
+                user = u
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([u.id],content,'意見回饋通知')
+
+        return JsonResponse({'status': 'success'}, safe=False)
+
+
+def update_feedback(request):
+    if request.method == 'POST':
+        # print(request.POST)
+        current_id = request.POST.get('current_id')
+        if Feedback.objects.filter(id=current_id).exists():
+            fb = Feedback.objects.get(id=current_id)
+            if fb.is_replied:
+                fb.is_replied = False
+            else:
+                fb.is_replied = True
+            fb.save()
+
+        return JsonResponse({'status': 'success'}, safe=False)
+
+
 
 def manager(request):
     menu = request.GET.get('menu','info')
@@ -74,8 +118,118 @@ def manager(request):
     # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
     notis = Notification.objects.filter(user_id=request.user.id)
+    # TODO 未來要考慮檔案是否過期
+    record = []
+    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record'):
+        if r.modified:
+            date = r.modified + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date = ''
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis})
+        # 整理查詢條件
+        query = ""
+        # 全站搜尋
+        if 'from_full=yes' in r.query:
+            search_str = dict(parse.parse_qsl(r.query)).get('search_str')
+            search_dict = dict(parse.parse_qsl(search_str))
+
+            query += f"<b>關鍵字</b>：{search_dict['keyword']}"
+            
+            if search_dict.get('record_type') == 'occ':
+                map_dict = map_occurrence
+            else:
+                map_dict = map_collection
+            key = map_dict.get(search_dict['key'])
+            query += f"<br><b>{key}</b>：{search_dict['value']}"
+            query += f"<br><b>學名</b>：{search_dict['scientificName']}"
+        else:
+        # 條件搜尋
+        # 如果有geojson_id要給geojson連結
+            search_dict = dict(parse.parse_qsl(r.query))
+            if search_dict.get('record_type') == 'occ':
+                query += '<b>類別</b>：物種出現紀錄'
+                map_dict = map_occurrence
+            else:
+                map_dict = map_collection
+                query += '<b>類別</b>：自然史典藏'
+
+            for k in search_dict.keys():
+                if k in map_dict.keys():
+                    if k == 'taxonRank':
+                        query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+                    else:
+                        query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
+                # 地圖搜尋
+                elif k == 'geo_type':
+                    if search_dict[k] == 'polygon':
+                        geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
+                        if exists(os.path.join('/tbia-volumes/', geojson_path)):
+                            query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
+                    elif search_dict[k] == 'circle':
+                        if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
+                            query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
+                    elif search_dict[k] == 'map':
+                        query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+
+        record.append({
+            'id': r.id,
+            'query_id': r.query_id,
+            'date':  date,
+            'query':   query,
+            'status': r.get_status_display()
+        })
+
+
+
+    taxon = []
+    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon'):
+        if t.modified:
+            date = t.modified + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date = ''
+
+        # 整理查詢條件
+        query = ""
+        # 條件搜尋
+
+        search_dict = dict(parse.parse_qsl(t.query))
+        if search_dict.get('record_type') == 'occ':
+            query += '<b>類別</b>：物種出現紀錄'
+            map_dict = map_occurrence
+        else:
+            map_dict = map_collection
+            query += '<b>類別</b>：自然史典藏'
+
+        for k in search_dict.keys():
+            if k in map_dict.keys():
+                if k == 'taxonRank':
+                    query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+                else:
+                    query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
+            # 地圖搜尋
+            elif k == 'geo_type':
+                if search_dict[k] == 'polygon':
+                    geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
+                    if exists(os.path.join('/tbia-volumes/', geojson_path)):
+                        query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
+                elif search_dict[k] == 'circle':
+                    if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
+                        query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
+                elif search_dict[k] == 'map':
+                    query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+
+        taxon.append({
+            'id': t.id,
+            'query_id': t.query_id,
+            'date':  date,
+            'query':   query,
+            'status': t.get_status_display()
+        })
+
+    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis,
+    'record': record, 'taxon': taxon})
 
 
 def update_personal_info(request):
@@ -116,11 +270,11 @@ def get_auth_callback(request):
             data = SocialAccount.objects.get(user=request.user).extra_data
             name = data.get('name')
             new_user = User(
-                name = name,
-                email = request.user.email,
-                username = request.user.email,
-                last_name =request.user.last_name,
-                first_name =request.user.first_name,
+                name = data.get('name'),
+                email = data.get('email'),
+                username = data.get('email'),
+                last_name = data.get('family_name'),
+                first_name = data.get('given_name'),
                 is_email_verified = True,
                 is_active = True,
             )
@@ -447,8 +601,14 @@ def partner_info(request):
 
             partner_members = User.objects.filter(partner_id=current_user.partner.id).exclude(status='withdraw').exclude(id=current_user.id)
             status_choice = User._meta.get_field('status').choices[:-1]
+            feedback = Feedback.objects.filter(partner_id=current_user.partner.id).annotate(
+                created_8=ExpressionWrapper(
+                    F('created') + timedelta(hours=8),
+                    output_field=DateTimeField()
+                ))
+            
 
-    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 
+    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
                                     'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice})
 
 
@@ -576,10 +736,15 @@ def system_info(request):
     menu = request.GET.get('menu','list')
     partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')
     status_choice = User._meta.get_field('status').choices[:-1]
+    feedback = Feedback.objects.all().annotate(
+        created_8=ExpressionWrapper(
+            F('created') + timedelta(hours=8),
+            output_field=DateTimeField()
+        ))
 
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
                         'system_admin': system_admin, 'partner_members': partner_members,
-                        'status_choice': status_choice})
+                        'status_choice': status_choice, 'feedback': feedback})
 
 
 def system_resource(request):

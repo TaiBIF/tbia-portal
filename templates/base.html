@@ -63,7 +63,9 @@
 
 
     .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
-        height: 20px;
+        height: auto;
+        max-height: 36px;
+    
     }
     
 
@@ -159,7 +161,6 @@
 	<div class="ovhy">
 		<div class="wbox_center">
 			<div class="xx">
-
 			</div>
 			<div class="titlegreen">
 				意見回饋
@@ -168,22 +169,36 @@
         請填寫下列表格，我們會將會盡快回覆
 			</p>
 			<div class="from_area">
+        <form id="feedback_form">
 				<div class="select_twobox"> 
-					<select name="" id="" required>
+					<select name="partner_id" id="" required>
 						<option value="">請選擇回饋對象</option>
+            {% for p in partners %} 
+              <option value='{{ p.id }}'>
+                  {% if p.title == '營建署城鄉發展分署' %}
+                  內政部營建署城鄉發展分署
+                  {% else %}
+                  {{ p.breadtitle }}
+                  {% endif %}
+              </option>
+            {% endfor %}
 					</select>
-					<select name="" id="" required>
+					<select name="type" id="" required>
 						<option value="">請選擇問題類型</option>
+						<option value="1">網頁操作</option>
+						<option value="2">網頁內容</option>
+						<option value="3">聯盟相關</option>
 					</select>				
 				</div>
 				<div class="txt_area">
 					<p>問題描述：</p>
-					<textarea></textarea>
+					<textarea name="content"></textarea>
 				</div>
 				<div class="email_area">
 					<p>您的電⼦郵件
-					<input type="text" value="{{ request.user.email|default_if_none:'' }}">
+					<input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
 				</div>
+        </form>
 				<button class="send">確認送出</button>
 			</div>
 		</div>
@@ -238,7 +253,7 @@
               </li>   
               {% else %}
               <li>
-                <a href="javascript:;" onclick="$('.login_pop').show();$('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="one_set">
+                <a href="javascript:;" onclick="showLogin()" class="one_set">
                   <p>會員登入</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
@@ -390,11 +405,11 @@
               </div>
             </div>
           </div>
-          <div class="member_login">
+          <div  onclick="showLogin()"  class="member_login">
 
           {% comment %} <div onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="member_login"> {% endcomment %}
             <div class="icon"></div>
-              <p onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')"  style="">登入</p>
+              <p style="">登入</p>
               <div class="member_slimenu">
                 <ul>
                   <li onclick="window.location=`{% url 'manager' %}`">帳號後台</li>
@@ -646,6 +661,13 @@
   </body>
   <script>
 
+    function showLogin(){
+      if ('{{ user.is_authenticated }}'=='False'){
+        $('.login_pop').show();
+        $('.login_pop .loginbox').css('display', 'none'); 
+        $('.login_pop .login_area').css('display', '')
+      }
+    }
 
     function updateIsRead(){
       $.ajax({
@@ -656,6 +678,7 @@
         }
        });
     }
+
     function updateThisRead(n_id){
       $.ajax({
         url: `{% url 'update_this_read' %}?n_id=${n_id}`,
@@ -673,6 +696,33 @@
 
 
     $(function () {
+
+      $('.feedback-pop .send').on('click',function() {
+
+
+        if ((!$('#feedback_form select[name=partner_id]').val())|(!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|(!$('#feedback_form textarea[name=content]').val())){
+          alert('請完整填寫表格並檢查email格式是否正確')
+        } else {
+          
+          $.ajax({
+            url: "{% url 'send_feedback' %}",
+            data: $('#feedback_form').serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+            type: 'POST',
+
+            })
+            .done(function(response) {
+              alert('謝謝您的回饋，我們將會儘速回覆')
+              $('.feedback-pop').hide()
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.login_pop').css('display','none')
+
+            }) 
+        }
+
+      })
 
       $('.google_login').on('click', function(){
         let next_url = window.location.pathname;

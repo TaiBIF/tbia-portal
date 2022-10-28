@@ -373,6 +373,64 @@
 {% block script %}
 <script>
 
+
+
+  function downloadData(queryString, total_count) {
+    if ('{{ user.is_authenticated }}'=='True'){
+
+      $.ajax({
+        url: "{% url 'send_download_request' %}",
+        data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}' + '&total_count=' + total_count,
+        type: 'POST',
+        dataType : 'json',
+      })
+      .done(function(response) {
+        alert('請求已送出，下載檔案處理完成後將以email通知')
+
+      })
+
+      .fail(function( xhr, status, errorThrown ) {
+        if (xhr.status==504){
+          alert('要求連線逾時')
+        } else {
+          alert('發生未知錯誤！請聯絡管理員')
+        }
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+    } else {
+      alert('請先登入')
+    }
+
+  }
+
+
+
+  function downloadTaxon(queryString) {
+    if ('{{ user.is_authenticated }}'=='True'){
+
+      $.ajax({
+        url: "{% url 'send_download_request' %}",
+        data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}' + '&taxon=yes',
+        type: 'POST',
+        dataType : 'json',
+      })
+      .done(function(result) {
+        alert('請求已送出，下載檔案處理完成後將以email通知')
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        if (xhr.status==504){
+          alert('要求連線逾時')
+        } else {
+          alert('發生未知錯誤！請聯絡管理員')
+        }
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+    } else {
+      alert('請先登入')
+    }
+  }
+
+
     function getColor(d) {
       return d > 1000 ? '#C50101' :
               d > 500  ? '#D71414' :
@@ -514,7 +572,7 @@
 
   }
 
-  function setTable(response){
+  function setTable(response, queryString){
     drawnItems.clearLayers();
     $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
     
@@ -542,13 +600,12 @@
           <button class="cate_btn" onclick="popupField()">欄位選項 +</button>
           <div class="rightmore">
             <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-            <button class="dw">資料下載</button>
-            <button class="dw">名錄下載</button>
+            <button class="dw" onclick="downloadData('${queryString}', ${response.count})">資料下載</button>
+            <button class="dw" onclick="downloadTaxon('${queryString}')">名錄下載</button>
             <a href="#" class="qmark"></a>
             <button class="dw">申請單次使用去模糊化敏感資料</button>
             <a href="#" class="qmark"></a>
           </div>
-
         </div>
         <div class="result_table" style="overflow-x: auto;">
           <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
@@ -619,7 +676,7 @@
         // 把之前的清掉
 
 
-        setTable(response)
+        setTable(response, queryString)
 
         // 欄位選項
         $(`input[id^="occ-"]`).prop('checked',false)
@@ -840,7 +897,7 @@ function submitSearch (page, from){
       } else {
 
 
-      setTable(response)
+      setTable(response, window.condition)
 
       // 判斷是從分頁或搜尋點選
         if (from == 'search'){

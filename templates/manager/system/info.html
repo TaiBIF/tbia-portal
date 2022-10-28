@@ -2,6 +2,11 @@
 {% block style %}
 <style>
 
+    .fb-content {
+        white-space: pre-wrap;
+        text-align: left !important;
+    }
+
     .two_cont_area {
         margin-bottom: 50px
     }
@@ -274,13 +279,36 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
                         <tr>
-                            <td>帳號</td>
-                            <td>姓名</td>
-                            <td>權限</td>
-                            <td>狀態</td>
-                            <td></td> <!-- 刪除 -->
-                            <td></td> <!-- 送出按鈕？ -->
+                            <td>編號</td>
+                            <td>單位</td>
+                            <td>時間</td>
+                            <td>Email</td>
+                            <td>類型</td>
+                            <td>內容</td>
+                            <td>已回覆</td>
                         </tr> 
+                        {% for f in feedback %}
+                        <tr>
+                            <td>#{{ f.id }}</td>
+                            <td>
+                            {% if f.partner.title == '營建署城鄉發展分署' %}
+                            內政部營建署城鄉發展分署
+                            {% else %}
+                            {{ f.partner.breadtitle }}
+                            {% endif %}
+                            </td>
+                            <td>{{ f.created_8|date:'Y-m-d H:i:s' }}</td>
+                            <td>{{ f.email }}</td>
+                            <td>{{ f.get_type_display }}</td>
+                            <td class="fb-content">{{ f.content }}</td>
+                            <td>{% if f.is_replied %}
+                                是
+                                {% else %}
+                                否
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </table>						
                 </div>
             </div>

@@ -18,5 +18,6 @@ urlpatterns = [
     path('collection/<str:id>/', views.collection_detail, name='collection_detail'),
     path('occurrence/<str:id>/', views.occurrence_detail, name='occurrence_detail'),
     path('send_download_request', views.send_download_request, name='send_download_request'),
+    # path('generate_download_csv_full', views.generate_download_csv_full, name='generate_download_csv_full'),
     path('save_geojson', views.save_geojson, name='save_geojson'),
 ]
