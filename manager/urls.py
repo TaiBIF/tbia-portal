@@ -36,6 +36,7 @@ urlpatterns = [
     path('withdraw_news', views.withdraw_news, name='withdraw_news'),
     path('send_feedback', views.send_feedback, name='send_feedback'),
     path('update_feedback', views.update_feedback, name='update_feedback'),
+    path('get_request_detail', views.get_request_detail, name='get_request_detail'),
     # path('manager/personal-info', views.personal_info, name='personal_info'),
     # path('manager/system-feedback', views.system_feedback, name='system_feedback'),
     # path('manager/system-index', views.system_index, name='system_index'),

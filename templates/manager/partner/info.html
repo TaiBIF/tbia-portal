@@ -2,6 +2,53 @@
 {% block style %}
 <style>
 
+    .send-submitted {
+        background: #eee;
+        width: 100%;
+        font-size: 18px;
+        color: #444;
+        height: 50px;
+        border-radius: 3px;
+        cursor: default;
+    }
+
+    .form_top .path_inf .riginf {
+		display: block;
+	}
+
+    .accordion.active, .accordion:hover {
+        background-color: #76A578;
+        color: white
+      }
+      
+      .accordion {
+        background-color: white;
+        color: black;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        transition: 0.4s;
+      }
+      
+
+
+      .accordion:after {
+        content: '\02795'; /* Unicode character for "plus" sign (+) */
+        font-size: 13px;
+        color: #777;
+        float: right;
+        margin-left: 5px;
+        
+      }
+      
+      .active:after {
+        content: "\2796"; /* Unicode character for "minus" sign (-) */
+      }
+
     .fb-content {
         white-space: pre-wrap;
         text-align: left !important;
@@ -293,6 +340,26 @@
         <div class="rightbox_content data" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td>編號</td>
+                            <td>申請時間</td>
+                            <td>搜尋條件</td>
+                            <td>狀態</td>
+                            <td></td>
+                        </tr> 
+                        {% for s in sensitive %}
+                        <tr>
+                            <td>#{{ s.id }}</td>
+                            <td>{{ s.created }}</td>
+                            <td style="text-align: left">{{ s.query|safe }}</td>
+                            <td>{{ s.status }}</td>
+                            <td><a style="cursor: pointer" onclick="showRequest('{{ s.query_id }}','{{ s.query }}', '{{ s.id }}')">查看</a></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -324,7 +391,7 @@
                             </td>
                         </tr>
                         {% endfor %}
-                    </table>						
+                    </table>
                 </div>
             </div>
         </div>
@@ -337,13 +404,270 @@
 
 </div>
 
+
+<!--意見回饋popbox-->
+<div class="popbg detail-pop" style="display:none;">
+	<div class="ovhy"> 
+		<div class="wbox_center">
+			<div class="xx">
+			</div>
+			<div class="titlegreen">
+			</div>
+			<p class="shortxt">
+			</p>
+			<div class="from_area">
+                <div class="w_border10_box application_form panel">
+                    <div class="form_top">
+                        <div class="apply_date">
+                            申請日期：{{ today }}
+                        </div>
+                    </div>
+                    <button class="accordion">申請詳細資訊</button>
+                    <div class="form_box panel" style= "max-height: 300px; overflow-y: scroll;display: none">
+                        <form id="detailForm">
+                        <div class="path_inf">
+                            <p>搜尋條件</p>
+                            <div class="riginf">
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="inpu_3">
+                            <div class="input_item">
+                                <p>申請人姓名</p>
+                                <input name="applicant" type="text" disabled>
+                            </div>
+                            <div class="input_item">
+                                <p>聯絡電話</p>
+                                <input name="phone" type="text" disabled>
+                            </div>
+                            <div class="input_item">
+                                <p>聯絡地址</p>
+                                <input name="address" type="text" disabled>
+                            </div> 
+                        </div>
+                        <div class="inpu_2">
+                            <div class="input_item">
+                                <p>申請人所屬單位</p>
+                                <input name="affiliation" type="text" disabled>
+                            </div>
+                            <div class="input_item">
+                                <p>計畫類型</p>
+                                <input name="type" type="text" disabled>
+                            </div>
+                        </div>
+                        <div class="inpu_2">
+                            <div class="input_item">
+                                <p class="project_type">個人研究計畫名稱</p>
+                                <input name="project_name" type="text" disabled>
+                            </div>
+                            <div class="input_item p_affli" style="display: none">
+                                <p>委託計畫單位</p>
+                                <input name="project_affiliation" type="text" disabled>
+                            </div>
+
+                        </div>
+                        <div class="text_area">
+                            <p>計畫摘要</p>
+                            <textarea name="abstract" disabled></textarea>
+                        </div>
+                        </form>
+                        <div class="apply_peo">
+                            <p class="title">申請資料使用者</p>
+                        </div>
+                    </div>
+                    <button class="accordion">審查意見</button>
+                    <div class="form_box panel" style= "max-height: 300px; overflow-y: scroll; display: none">
+                        <form id="reviewForm">
+                        <div class="inpu_2">
+                            <input type="hidden" name="query_id">
+                            <input type="hidden" name="sdr_id">
+                            <div class="input_item">
+                                <p>審核者姓名</p>
+                                <input name="reviewer_name" type="text" value="{{ request.user.name }}">
+                            </div>
+                        </div>
+                        <div class="text_area">
+                            <p>審核意見</p>
+                            <textarea name="comment" placeholder=""></textarea>
+                        </div>
+                        <div class="inpu_2">
+                            <div class="input_item">
+                                <p>通過與否</p>
+                                <select name="status">
+                                    <option value="pass">通過</option>
+                                    <option value="fail">不通過</option>
+                                </select>
+                            </div>
+                        </div>
+                        </form>
+                    </div>                
+                    <button class="send send-check" style="margin-top: 15px">確認送出</button>
+                    <button class="send-submitted" style="margin-top: 15px; display: none" disabled>審核已完成不得修改</button>
+                </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+  <!--通用訊息匡pop-->
+  <div class="messageboxfix submit-check" style="display: none;">
+	<div class="message_box">
+		<div class="informationicon">!</div>
+		<p>送出後無法修改，確認送出？</p>
+		<div class="btn_area">
+			<button onclick="$('.submit-check').hide()">取消</button>
+			<button class="send_review">確認</button>
+		</div>
+	</div>
+</div>
+
+
   {% endblock %}
 
   {% block script %}
   <script>
+
+    function showRequest(query_id,query,sdr_id){
+        $.ajax({
+            url: "{% url 'get_request_detail' %}?query_id=" + query_id + '&sdr_id=' + sdr_id,
+            type: 'GET',
+        })
+        .done(function(response) {
+
+           $('.detail-pop .send-check').show()
+           $('.detail-pop .send-submitted').hide()
+
+           // 要先全部清除
+           $("#detailForm").trigger("reset");
+           $("#reviewForm").trigger("reset");
+
+           $('#reviewForm input[name=query_id] ').val(query_id)
+           $('#reviewForm input[name=sdr_id] ').val(sdr_id)
+
+           $('.detail-pop').show()
+           $('.detail-pop .riginf').html(query)
+           $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
+           $('.detail-pop input[name=phone] ').val(response.detail.phone)
+           $('.detail-pop input[name=address] ').val(response.detail.address)
+           $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
+           $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
+           $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+
+            
+           if (response.detail.type=='0'){
+            $('.detail-pop input[name=type] ').val('個人研究計畫')
+            $('.project_type').html('個人研究計畫名稱')
+            $('.p_affli').hide()
+
+           } else {
+            $('.detail-pop input[name=type] ').val('委辦工作計畫')
+            $('.project_type').html('委辦工作計畫名稱')
+            $('.p_affli').show()
+            $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
+
+
+           }
+
+           $('.apply_peo .item_set1').remove()
+           if (response.detail.users.length > 0) {
+                for (let i = 0; i < response.detail.users.length; i++) {
+                    $('.apply_peo').append(`
+                        <div class="item_set1">
+                            <span style="margin-left: 10px">姓名</span>
+                            <input type="text" value="${response.detail.users[i]['user_name']}" disabled>
+                            <span style="margin-left: 10px">單位</span>
+                            <input type="text" value="${response.detail.users[i]['user_affiliation']}" disabled>
+                            <span style="margin-left: 10px">職稱</span>
+                            <input type="text" name="user_job_title" value="${response.detail.users[i]['user_job_title']}" disabled>
+                        </div>`)
+                }
+            } else {
+                $('.apply_peo').append('<div class="item_set1" style="background: transparent">無</div>')
+            }
+
+            // 審查意見
+            
+            if (response.review.status != 'pending') {
+                $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
+                $('#reviewForm textarea[name=comment]').val(response.review.comment)
+                $('#reviewForm select[name=status]').val(response.review.status)
+                $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
+                $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
+                $('#reviewForm select[name=status]').attr('disabled', 'disabled');
+
+                $('.detail-pop .send-check').hide()
+                $('.detail-pop .send-submitted').show()
+            } else {
+                $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
+                $('#reviewForm textarea[name=comment]').attr('disabled', false);
+                $('#reviewForm select[name=status]').attr('disabled', false);
+            }
+   
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          alert('發生未知錯誤！請聯絡管理員')
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })  
+
+
+    }
+
     $(document).ready(function () {
 
 
+        $('.send-check').on('click',function(){
+
+
+            let checked = true;
+
+            if ((!$(`input[name=reviewer_name]`).val())|(!$(`textarea[name=comment]`).val())){
+                checked = false;
+            }
+
+            if (checked) {
+                $('.submit-check').show()
+
+            } else {
+                alert('請完整填寫審查意見表格')
+            }
+
+        })
+
+        $('.send_review').on('click', function (){
+            $.ajax({
+                url: "{% url 'submit_sensitive_response' %}",
+                type: 'POST',
+                data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
+                dataType: 'json'
+            })
+            .done(function(response) {
+                alert('送出成功')
+                window.location.reload()
+            })
+            .fail(function( xhr, status, errorThrown ) {
+                alert('發生未知錯誤！請聯絡管理員')
+                console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+
+        })
+
+
+        $('.accordion').on('click', function(){
+
+            if ($(this).hasClass('active')){
+
+                $(this).removeClass('active')
+                $(this).next('.panel').css('display','none')
+            } else {
+                // 
+                $('.accordion').not(this).removeClass('active')
+                $('.accordion').not(this).next('.panel').css('display','none')
+                $(this).addClass('active')
+                $(this).next('.panel').css('display','block')
+            }
+        })
 
         $('.feedback_btn').on('click',function(){
             let current_id = $(this).data('id')
@@ -413,6 +737,8 @@
           checked = false
         }  */
   
+
+
         
         if (checked)
         {

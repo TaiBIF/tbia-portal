@@ -2,53 +2,60 @@
 {% load static %}
 {% block title %}申請表單{% endblock %}
 
+{% block style %}
+<style>
+	.form_top .path_inf .riginf {
+		display: block;
+	}
+</style>
+{% endblock style %}
+
 {% block body %}
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="#" class="home"></a> <span>></span> <p>申請表單</p>
+		<a href="#" class="home"></a> <span>></span> <p>申請單次使用去模糊化敏感資料</p>
 	</div>
 </div>
  
  <div class="minh_content">
 	<div class="nbn_title">
-		<h2>申請表單</h2>
+		<h2>申請單次使用去模糊化敏感資料</h2>
 	</div>
 	<div class="main_1240"> 
 		<div class="w_border10_box application_form marb_30">
 			<div class="form_top">
 				<div class="apply_date">
-					申請日期：2022/09/15
+					申請日期：{{ today }}
 				</div>
 				<div class="path_inf">
 					<p>申請資料搜尋條件</p>
 					<span> > </span>
 					<div class="riginf">
-						<p>物種：石虎</p>
-						<span> | </span>
-						<p>來源資料庫：特生中心</p>
+						{{ query|safe }}
 					</div>
 				</div>
 			</div>
 			<p class="notice"><span>*</span>為必填欄位</p>
 			<div class="form_box">
+				<form id="appilcationForm">
 				<div class="inpu_3">
 					<div class="input_item">
 						<p>
 							<span class="color_red">*</span>申請人姓名
 						</p>
-						<input type="text">
+						<input name="applicant" type="text">
 					</div>
 					<div class="input_item">
 						<p>
 							<span class="color_red">*</span>聯絡電話
 						</p>
-						<input type="text">
+						<input name="phone" type="text">
 					</div>
 					<div class="input_item">
 						<p>
 							<span class="color_red">*</span>聯絡地址
 						</p>
-						<input type="text">
+						<input name="address" type="text">
 					</div>
 				</div>
 				<div class="inpu_2">
@@ -56,67 +63,161 @@
 						<p>
 							<span class="color_red">*</span>申請人所屬單位
 						</p>
-						<input type="text">
+						<input name="affiliation" type="text">
 					</div>
 					<div class="input_item">
 						<p>
 							<span class="color_red">*</span>計畫類型
 						</p>
-						<select name="" id="" required>
-							<option value="">委辦工作計畫</option>
+						<select name="type" id="" required>
+							<option value="0">個人研究計畫</option>
+							<option value="1">委辦工作計畫</option>
 						</select>
 					</div>
 
 				</div>
 				<div class="inpu_2">
 					<div class="input_item">
-						<p>
-							<span class="color_red">*</span>委辦工作計畫名稱
+						<p class="project_type">
+							<span class="color_red">*</span>個人研究計畫名稱
 						</p>
-						<input type="text">
+						<input name="project_name" type="text">
 					</div>
-					<div class="input_item">
+					<div class="input_item p_affli" style="display: none">
 						<p>
 							委託計畫單位
 						</p>
-						<input type="text">
+						<input name="project_affiliation" type="text">
 					</div>
+
 				</div>
+				<div class="text_area">
+					<p>
+						<span class="color_red">*</span>計畫摘要
+					</p>
+					<textarea name="abstract" placeholder="請描述申請用途"></textarea>
+				</div>
+				</form>
 				<div class="apply_peo">
 					<p class="title">申請資料使用者</p>
 					<div class="item_set1">
-						<input type="text" placeholder="姓名">
-						<input type="text" placeholder="單位">
-						<input type="text" placeholder="職稱">
-						<button class="delete">
-							<div class="line1"></div>
-						</button>
-					</div>
-					<div class="item_set1">
-						<input type="text" placeholder="姓名">
-						<input type="text" placeholder="單位">
-						<input type="text" placeholder="職稱">
+						<input type="text" name="user" placeholder="姓名">
+						<input type="text" name="user_affiliation" placeholder="單位">
+						<input type="text" name="user_job_title" placeholder="職稱">
 						<button class="add">
 							<div class="line1"></div>
 							<div class="line2"></div>
 						</button>
 					</div>
 				</div>
-				<div class="text_area">
-					<p>
-						<span class="color_red">*</span>計畫摘要
-					</p>
-					<textarea placeholder="請描述申請用途"></textarea>
-				</div>
 			</div>
 		</div>
 
 		<div class="bt_center two">
-			<button>回上一頁</button>
-			<button>確認送出</button>
+			<!--<button>回上一頁</button>-->
+			<button onclick="sendRequest()">確認送出</button>
 		</div>
 	</div>
 </div>
 
 
 {% endblock %}
+
+{% block script %}
+<script>
+	$( function() {
+
+		$('.inpu_2 .input_item select[name=type]').on('change', function(){
+			if ($('.inpu_2 .input_item select[name=type]').val()=='1'){
+				$('.p_affli').show()
+				//$('.inpu_2.personal').hide()
+				$('.project_type').html('<span class="color_red">*</span>委辦工作計畫名稱')
+			} else {
+				$('.p_affli').hide()
+				//$('.inpu_2.personal').show()
+				$('.project_type').html('<span class="color_red">*</span>個人研究計畫名稱')
+
+			}
+		})
+
+		$('.item_set1 .add').on('click', function(){
+			$('.apply_peo').append(`
+			<div class="item_set1">
+				<input type="text" name="user" placeholder="姓名">
+				<input type="text" name="user_affiliation" placeholder="單位">
+				<input type="text" name="user_job_title" placeholder="職稱">
+				<button class="delete" onclick="$(this).parent().remove()">
+					<div class="line1"></div>
+				</button>
+			</div>
+			
+			`)
+		})
+
+
+		// 申請資料使用者在送出的時候就先整理好成dict list
+		
+	})
+
+	function sendRequest(){
+		//alert($('#appilcationForm').serialize())
+		if ('{{ user.is_authenticated }}'=='True'){
+
+			let checked = true;
+
+			let users = [];
+			$('.apply_peo .item_set1').each(function(){
+				if ( // 如果不是全空才加上去
+					!((!$(this).children('input[name=user]').val()) & (!$(this).children('input[name=user_affiliation]').val())& (!$(this).children('input[name=user_job_title]').val()))
+				) {
+				users.push(
+					{
+						'user_name': $(this).children('input[name=user]').val(),
+						'user_affiliation': $(this).children('input[name=user_affiliation]').val(),
+						'user_job_title': $(this).children('input[name=user_job_title]').val(),
+					}
+				)}
+			})
+
+			let cols = ['applicant','phone','address','affiliation','project_name']
+			cols.forEach(function(c){
+				if (!$(`input[name=${c}]`).val()){
+					checked = false;
+				}
+			})
+
+			if (!$('textarea[name=abstract]').val()){
+				checked = false;
+			}
+
+
+			if (checked){
+				$.ajax({
+					url: "{% url 'submit_sensitive_request' %}",
+					data: $('#appilcationForm').serialize() + '&users='+ JSON.stringify(users)  + '&csrfmiddlewaretoken={{ csrf_token }}' +
+					'&query_string=' + window.location.search,
+					type: 'POST',
+					dataType : 'json',
+				})
+				.done(function(result) {
+					alert('請求已送出，審核完畢後將以email通知')
+				})
+				.fail(function( xhr, status, errorThrown ) {
+					if (xhr.status==504){
+					alert('要求連線逾時')
+					} else {
+					alert('發生未知錯誤！請聯絡管理員')
+					}
+					console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+				})
+			} else {
+				alert('請完整填寫表格')
+			}
+		} else {
+		alert('請先登入')
+		}
+	
+		//console.log(users)
+	}
+</script>
+{% endblock script %}

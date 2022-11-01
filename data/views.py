@@ -29,156 +29,368 @@ import subprocess
 import os
 from conf import settings
 import threading
-from manager.models import SearchQuery, User
+from manager.models import SearchQuery, User, SensitiveDataRequest, SensitiveDataResponse, Partner
 from pages.models import Notification
 from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
+from os.path import exists
 
 basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
 
 
+def sensitive_agreement(request):
+    return render(request, 'pages/agreement.html')
+
+
 def send_sensitive_request(request):
+    if request.method == 'GET':
+        # 整理查詢條件
+        search_dict = request.GET
+        query = create_query_display(search_dict)
+        return render(request, 'pages/application.html', {'query': query})
+
+
+def submit_sensitive_request(request):
     if request.method == 'POST':
-        req_dict = request.POST
+        req_dict = dict(request.POST)
+        not_query = ['applicant','phone','address','affliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
+        for nq in not_query:
+            if nq in req_dict.keys():
+                req_dict.pop(nq)
+        for rd in req_dict.keys():
+            # list to str
+            req_dict[rd] = req_dict[rd][0]
+        query_string = parse.urlencode(req_dict)
         user_id = request.user.id
-        query_string = req_dict.urlencode()
-        download_id = f"{user_id}_{str(ObjectId())}"
-        # TODO 這邊要改成敏感資料自己的table
-        # sq = SearchQuery.objects.create(
-        #     user = User.objects.filter(id=user_id).first(),
-        #     query = query_string,
-        #     status = 'pending',
-        #     type = 'taxon',
-        #     query_id = download_id.split('_')[-1]
-        # )
-        # 先取得筆數，export to csv
-        query_list = []
-
-        record_type = req_dict.get('record_type')
-        if record_type == 'col': # occurrence include occurrence + collection
-            query_list += ['recordType:col']
-
-        for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                    'taxonID', 'preservation']:
-            if val := req_dict.get(i):
-                if val != 'undefined':
-                    val = val.strip()
-                    keyword_reg = ''
-                    for j in val:
-                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                    if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
-                        keyword_reg = get_variants(keyword_reg)
-                    query_list += [f'{i}:/.*{keyword_reg}.*/']
+        query_id = str(ObjectId())
         
-        if quantity := req_dict.get('organismQuantity'):
-            query_list += [f'standardOrganismQuantity: {quantity}']
+        sq = SearchQuery.objects.create(
+            user = User.objects.filter(id=user_id).first(),
+            query = query_string,
+            status = 'pending', # 如果單位都同意,檔案也製作好,這邊才會變成pass
+            type = 'sensitive',
+            query_id = query_id
+        )
 
-        for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
-            if val := req_dict.get(i):
-                if i == 'sensitiveCategory' and val == '無':
-                    query_list += [f'-(-{i}:{val} {i}:*)']
-                else:
-                    query_list += [f'{i}:{val}']
+        # SensitiveDataRequest
+        SensitiveDataRequest.objects.create(
+            applicant = request.POST.get('applicant'),
+            phone = request.POST.get('phone'),
+            address = request.POST.get('address'),
+            affiliation = request.POST.get('affiliation'),
+            project_name = request.POST.get('project_name'),
+            project_affiliation = request.POST.get('project_affiliation'),
+            type = request.POST.get('type'),
+            users = json.loads(request.POST.get('users')),
+            abstract = request.POST.get('abstract'),
+            query_id = query_id
+        )
 
-        if req_dict.get('start_date') and req_dict.get('end_date'):
-            try: 
-                start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-                end_date = end_date.isoformat() + 'Z'
-                end_date = end_date.replace('00:00:00','23:59:59')
-                query_list += [f'standardDate:[{start_date} TO {end_date}]']
-            except:
-                pass
+        # 抓出所有單位
+        if request.POST.get('type') == '0':
+            query_list = []
 
-        geojson = {}
-        geojson['features'] = ''
+            record_type = req_dict.get('record_type')
+            if record_type == 'col': # occurrence include occurrence + collection
+                query_list += ['recordType:col']
 
-        if g_str := req_dict.get('geojson'):
-            geojson = json.loads(g_str)
-        elif g_id := req_dict.get('geojson_id'):
-            try:
-                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                    geojson = json.loads(j.read())
-            except:
-                pass
+            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
+                        'taxonID', 'preservation']:
+                if val := req_dict.get(i):
+                    if val != 'undefined':
+                        print(val)
+                        val = val.strip()
+                        keyword_reg = ''
+                        for j in val:
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                            keyword_reg = get_variants(keyword_reg)
+                        query_list += [f'{i}:/.*{keyword_reg}.*/']
+            
+            if quantity := req_dict.get('organismQuantity'):
+                query_list += [f'standardOrganismQuantity: {quantity}']
 
-        if geojson['features']:
-            if circle_radius := req_dict.get('circle_radius'):
-                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-            else:
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    if str(i).startswith('POLYGON'):
-                        g_list += [i]
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+                if val := req_dict.get(i):
+                    if i == 'sensitiveCategory' and val == '無':
+                        query_list += [f'-(-{i}:{val} {i}:*)']
+                    else:
+                        query_list += [f'{i}:{val}']
+
+            if req_dict.get('start_date') and req_dict.get('end_date'):
+                try: 
+                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
+                    end_date = end_date.isoformat() + 'Z'
+                    end_date = end_date.replace('00:00:00','23:59:59')
+                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
                 except:
                     pass
-        
-        if val := req_dict.get('name'):
-            val = val.strip()
-            keyword_reg = ''
-            for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-            keyword_reg = get_variants(keyword_reg)
-            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
-            query_str = ' OR '.join( col_list )
-            query_list += [ '(' + query_str + ')' ]
-        # 如果有其他條件才進行搜尋，否則回傳空值
-        if query_list and query_list != ['recordType:col']:
 
-            query = { "query": "*:*",
-                    "offset": 0,
-                    "limit": 0,
-                    "filter": query_list,
-                    "sort":  "scientificName asc",
-                    "facet": {
-                        "scientificName": {
-                            "type": "terms",
-                            "field": "scientificName",
-                            "limit": -1,
-                            "facet": {
-                                "taxonID": {
+            geojson = {}
+            geojson['features'] = ''
+
+            if g_str := req_dict.get('geojson'):
+                geojson = json.loads(g_str)
+            elif g_id := req_dict.get('geojson_id'):
+                try:
+                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                        geojson = json.loads(j.read())
+                except:
+                    pass
+
+            if geojson['features']:
+                if circle_radius := req_dict.get('circle_radius'):
+                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+                else:
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        if str(i).startswith('POLYGON'):
+                            g_list += [i]
+                    try:
+                        mp = MultiPolygon(map(wkt.loads, g_list))
+                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                    except:
+                        pass
+            
+            if val := req_dict.get('name'):
+                val = val.strip()
+                keyword_reg = ''
+                for j in val:
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                keyword_reg = get_variants(keyword_reg)
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                query_str = ' OR '.join( col_list )
+                query_list += [ '(' + query_str + ')' ]
+            # 如果有其他條件才進行搜尋，否則回傳空值
+            if query_list and query_list != ['recordType:col']:
+
+                query = { "query": "*:*",
+                        "offset": 0,
+                        "limit": 0,
+                        "filter": query_list,
+                        "facet": {
+                            "group": {
                                 "type": "terms",
-                                "field": "taxonID",
-                                "limit": -1
+                                "field": "group",
+                                "limit": -1,
                                 }
                             }
-
-                            }
                         }
-                    }
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-            data = response.json()['facets']['scientificName']['buckets']
-            df = pd.DataFrame(columns=['taxonID','scientificName'])
-            for d in data:
-                # print(d)
-                df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
-            csv_folder = os.path.join(settings.MEDIA_ROOT, 'species_list')
-            csv_file_path = os.path.join(csv_folder, f'{download_id}_taxon.csv')
-            # print(csv_file_path)
-            df.to_csv(csv_file_path, index=None)
-            # return df
+                response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+                group = response.json()['facets']['group']['buckets']
+                groups = []
+                for g in group:
+                    groups.append(g['val'])
+            
+                for p in Partner.objects.filter(group__in=groups):
+                    sdr = SensitiveDataResponse.objects.create(
+                        partner = p,
+                        status = 'pending',
+                        query_id = query_id
+                    )       
+                    # 寄送通知給系統管理員 & 單位管理員
+                    usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
+                    for u in usrs:
+                        nn = Notification.objects.create(
+                            type = 3,
+                            content = sdr.id,
+                            user = u
+                        )
+                        content = nn.get_type_display().replace('0000', str(nn.content))
+                        send_notification([u.id],content,'單次使用敏感資料申請通知')
 
-            # TODO 儲存到下載統計
-            # sq.status = 'pass'
-            # sq.modified = timezone.now()
-            # sq.save()
+        else:
+            # 委辦工作計畫
+            sdr = SensitiveDataResponse.objects.create(
+                        status = 'pending',
+                        query_id = query_id
+                    )     
+            usrs = User.objects.filter(is_system_admin=True) 
+            for u in usrs:
+                nn = Notification.objects.create(
+                    type = 3,
+                    content = sdr.id,
+                    user = u
+                )
+                content = nn.get_type_display().replace('0000', str(nn.content))
+                send_notification([u.id],content,'單次使用敏感資料申請通知')
 
-            # TODO 寄送通知給相關的單位
-            # nn = Notification.objects.create(
-            #     type = 0,
-            #     content = sq.id,
-            #     user_id = user_id
-            # )
-            # content = nn.get_type_display().replace('0000', str(nn.content))
-            # send_notification([user_id],content,'下載名錄已完成通知')
+        
+        return JsonResponse({"status": 'success'}, safe=False)
 
+
+def submit_sensitive_response(request):
+    # print(request.POST)
+# <QueryDict: {'query_id': ['635f50691a60260085a182a5'], 'sdr_id': ['8'], 'reviewer_name': ['Jin-Ying Lee'], 'comment': ['aaa'], 'status': ['fail'],}>
+
+    if SensitiveDataResponse.objects.filter(id=request.POST.get('sdr_id')).exists():
+        sdr = SensitiveDataResponse.objects.get(id=request.POST.get('sdr_id'))
+        sdr.status = request.POST.get('status')
+        sdr.reviewer_name = request.POST.get('reviewer_name')
+        sdr.comment = request.POST.get('comment')
+        sdr.save()
+
+    # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
+    if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exists():
+        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),))
+        task.start()
+
+
+    return JsonResponse({"status": 'success'}, safe=False)
+
+
+def transfer_sensitive_response(request):
+    # 機關計畫送交給夥伴單位審核
+    # 原本的SensitiveDataResponse 改成is_transferred?
+
+    return JsonResponse({"status": 'success'}, safe=False)
+
+
+def generate_sensitive_csv(query_id):
+    
+    if SearchQuery.objects.filter(query_id=query_id).exists():
+        sq = SearchQuery.objects.get(query_id=query_id)
+        req_dict = dict(parse.parse_qsl(sq.query))
+
+        download_id = f"{sq.user_id}_{query_id}"
+
+        # 只給有同意單位的資料
+        ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
+        ps = [p for p in ps[0]]
+        group = list(Partner.objects.filter(id__in=ps).values_list('group'))
+        group = [g for g in group[0]]
+
+        if group:
+
+            fl_cols = download_cols + sensitive_cols
+            # 先取得筆數，export to csv
+            query_list = []
+
+            record_type = req_dict.get('record_type')
+            if record_type == 'col': # occurrence include occurrence + collection
+                query_list += ['recordType:col']
+
+            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
+                        'taxonID', 'preservation']:
+                if val := req_dict.get(i):
+                    if val != 'undefined':
+                        val = val.strip()
+                        keyword_reg = ''
+                        for j in val:
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                            keyword_reg = get_variants(keyword_reg)
+                        query_list += [f'{i}:/.*{keyword_reg}.*/']
+            
+            if quantity := req_dict.get('organismQuantity'):
+                query_list += [f'standardOrganismQuantity: {quantity}']
+
+            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+                if val := req_dict.get(i):
+                    if i == 'sensitiveCategory' and val == '無':
+                        query_list += [f'-(-{i}:{val} {i}:*)']
+                    else:
+                        query_list += [f'{i}:{val}']
+
+            if req_dict.get('start_date') and req_dict.get('end_date'):
+                try: 
+                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
+                    end_date = end_date.isoformat() + 'Z'
+                    end_date = end_date.replace('00:00:00','23:59:59')
+                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
+                except:
+                    pass
+
+            geojson = {}
+            geojson['features'] = ''
+
+            if g_str := req_dict.get('geojson'):
+                geojson = json.loads(g_str)
+            elif g_id := req_dict.get('geojson_id'):
+                try:
+                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                        geojson = json.loads(j.read())
+                except:
+                    pass
+
+            if geojson['features']:
+                if circle_radius := req_dict.get('circle_radius'):
+                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+                else:
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        if str(i).startswith('POLYGON'):
+                            g_list += [i]
+                    try:
+                        mp = MultiPolygon(map(wkt.loads, g_list))
+                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                    except:
+                        pass
+            
+            if val := req_dict.get('name'):
+                val = val.strip()
+                keyword_reg = ''
+                for j in val:
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                keyword_reg = get_variants(keyword_reg)
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                query_str = ' OR '.join( col_list )
+                query_list += [ '(' + query_str + ')' ]
+
+            group = [ f'group:{g}' for g in group ]
+            group_str = ' OR '.join( group )
+            query_list += [ '(' + group_str + ')' ]
+            print(query_list)
+            # 如果有其他條件才進行搜尋，否則回傳空值
+            if query_list and query_list != ['recordType:col']:
+
+                query = { "query": "*:*",
+                        "offset": 0,
+                        "limit": req_dict.get('total_count'),
+                        "filter": query_list,
+                        "sort":  "scientificName asc",
+                        "fields": fl_cols
+                        }
+
+                csv_folder = os.path.join(settings.MEDIA_ROOT, 'sensitive')
+                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+                commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+                process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                # 儲存到下載統計
+                # 要排除掉轉交的情況
+                tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+                if len(tmp) == len(tmp.filter(status='pass')):
+                    sq.status = 'pass'
+                else:
+                    sq.status = 'partial'
+                sq.modified = timezone.now()
+                sq.save()
+
+        else:
+            # 沒有帳號通過
+            
+            sq.status = 'fail'
+            sq.modified = timezone.now()
+            sq.save()
+
+
+        #  這邊要給審查意見
+        nn = Notification.objects.create(
+            type = 4,
+            content = sq.id,
+            user_id = sq.user_id
+        )
+        content = nn.get_type_display().replace('0000', str(nn.content))
+        send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知')
 
 
 

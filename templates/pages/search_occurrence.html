@@ -373,7 +373,15 @@
 {% block script %}
 <script>
 
+  function downloadSensitive(queryString, total_count) {
+    
+    if ('{{ user.is_authenticated }}'=='True'){
+      window.open('{% url "sensitive_agreement" %}?' + queryString + '&total_count=' + total_count)
+    } else {
+      alert('請先登入')
+    }
 
+  }
 
   function downloadData(queryString, total_count) {
     if ('{{ user.is_authenticated }}'=='True'){
@@ -603,7 +611,7 @@
             <button class="dw" onclick="downloadData('${queryString}', ${response.count})">資料下載</button>
             <button class="dw" onclick="downloadTaxon('${queryString}')">名錄下載</button>
             <a href="#" class="qmark"></a>
-            <button class="dw">申請單次使用去模糊化敏感資料</button>
+            <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
             <a href="#" class="qmark"></a>
           </div>
         </div>

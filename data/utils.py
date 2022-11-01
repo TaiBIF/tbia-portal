@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import bisect
-
-from pages.models import Download
+import os
+from os.path import exists
 
 # x: longtitude, y: latitude
 
@@ -558,3 +558,33 @@ sensitive_cols = ['standardRawLatitude',
 'standardRawLongitude',
 'verbatimRawLatitude',
 'verbatimRawLongitude']
+
+
+# 整理查詢條件
+def create_query_display(search_dict):
+    query = ''
+    if search_dict.get('record_type') == 'occ':
+        query += '<b>類別</b>：物種出現紀錄'
+        map_dict = map_occurrence
+    else:
+        map_dict = map_collection
+        query += '<b>類別</b>：自然史典藏'
+
+    for k in search_dict.keys():
+        if k in map_dict.keys():
+            if k == 'taxonRank':
+                query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+            else:
+                query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
+        # 地圖搜尋
+        elif k == 'geo_type':
+            if search_dict[k] == 'polygon':
+                geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
+                if exists(os.path.join('/tbia-volumes/', geojson_path)):
+                    query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
+            elif search_dict[k] == 'circle':
+                if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
+                    query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
+            elif search_dict[k] == 'map':
+                query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+    return query

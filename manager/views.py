@@ -1,12 +1,13 @@
 from asyncio import staggered
 from pickle import NONE
+from venv import create
 from django.contrib.auth.backends import ModelBackend
 from django.http import request
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
-from manager.models import SearchQuery, User, Partner, About
+from manager.models import SearchQuery, SensitiveDataRequest, SensitiveDataResponse, User, Partner, About
 from pages.models import Feedback, News, Notification
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -43,7 +44,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, F, DateTimeField, ExpressionWrapper
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key
+from data.utils import map_collection, map_occurrence, get_key, create_query_display
 from os.path import exists
 
 
@@ -68,6 +69,7 @@ class EmailThread(threading.Thread):
         threading.Thread.__init__(self)
     def run(self):
         self.email.send()
+
 
 def send_feedback(request):
     if request.method == 'POST':
@@ -130,7 +132,6 @@ def manager(request):
             date = ''
 
         # 整理查詢條件
-        query = ""
         # 全站搜尋
         if 'from_full=yes' in r.query:
             search_str = dict(parse.parse_qsl(r.query)).get('search_str')
@@ -147,32 +148,8 @@ def manager(request):
             query += f"<br><b>學名</b>：{search_dict['scientificName']}"
         else:
         # 條件搜尋
-        # 如果有geojson_id要給geojson連結
             search_dict = dict(parse.parse_qsl(r.query))
-            if search_dict.get('record_type') == 'occ':
-                query += '<b>類別</b>：物種出現紀錄'
-                map_dict = map_occurrence
-            else:
-                map_dict = map_collection
-                query += '<b>類別</b>：自然史典藏'
-
-            for k in search_dict.keys():
-                if k in map_dict.keys():
-                    if k == 'taxonRank':
-                        query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
-                    else:
-                        query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
-                # 地圖搜尋
-                elif k == 'geo_type':
-                    if search_dict[k] == 'polygon':
-                        geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
-                        if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                            query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
-                    elif search_dict[k] == 'circle':
-                        if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
-                            query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
-                    elif search_dict[k] == 'map':
-                        query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+            query = create_query_display(search_dict)
 
         record.append({
             'id': r.id,
@@ -192,35 +169,9 @@ def manager(request):
         else:
             date = ''
 
-        # 整理查詢條件
-        query = ""
         # 條件搜尋
-
         search_dict = dict(parse.parse_qsl(t.query))
-        if search_dict.get('record_type') == 'occ':
-            query += '<b>類別</b>：物種出現紀錄'
-            map_dict = map_occurrence
-        else:
-            map_dict = map_collection
-            query += '<b>類別</b>：自然史典藏'
-
-        for k in search_dict.keys():
-            if k in map_dict.keys():
-                if k == 'taxonRank':
-                    query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
-                else:
-                    query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
-            # 地圖搜尋
-            elif k == 'geo_type':
-                if search_dict[k] == 'polygon':
-                    geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
-                    if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                        query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
-                elif search_dict[k] == 'circle':
-                    if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
-                        query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
-                elif search_dict[k] == 'map':
-                    query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+        query = create_query_display(search_dict)
 
         taxon.append({
             'id': t.id,
@@ -609,9 +560,39 @@ def partner_info(request):
                     output_field=DateTimeField()
                 ))
             
+    sensitive = []
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id):
+        created = sdr.created + timedelta(hours=8)
+        created = created.strftime('%Y-%m-%d %H:%M:%S')
+
+        # 整理查詢條件
+        if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+            r = SearchQuery.objects.get(query_id=sdr.query_id)
+            search_dict = dict(parse.parse_qsl(r.query))
+            query = create_query_display(search_dict)
+
+        sensitive.append({
+            'id': sdr.id,
+            'query_id': r.query_id,
+            'created':  created,
+            'query':   query,
+            'status': sdr.get_status_display()
+        })
 
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
-                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice})
+                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive})
+
+
+def get_request_detail(request):
+    detail = {}
+    review = {}
+    if query_id := request.GET.get('query_id'):
+        if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
+            detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
+    if sdr_id := request.GET.get('sdr_id'):
+        if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
+            review = SensitiveDataResponse.objects.filter(id=sdr_id).values()[0]
+    return JsonResponse({'detail': detail, 'review': review}, safe=False)
 
 
 def manager_partner(request):

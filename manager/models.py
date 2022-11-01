@@ -131,6 +131,36 @@ class SearchQuery(models.Model):
 
 class SensitiveDataRequest(models.Model):
     # 用query_id和SearchQuery串接
+    status_choice = [
+        ('pending', '等待審核'),
+        ('pass', '通過'),
+        ('fail', '不通過'),
+        ('partial', '部分通過'),
+    ]
+
+    type_choice = [
+        (0, '個人研究計畫'),
+        (1, '委辦工作計畫'),
+    ]
+
+    applicant =  models.CharField(max_length=100, blank=True)
+    phone =  models.CharField(max_length=100, blank=True)
+    address =  models.CharField(max_length=100, blank=True)
+    affiliation =  models.CharField(max_length=100, blank=True)
+    project_name =  models.CharField(max_length=1000, blank=True)
+    project_affiliation =  models.CharField(max_length=1000, blank=True)
+    type = models.CharField(choices=status_choice, max_length=20, blank=True)
+    users = models.JSONField(null=True, blank=True) # 資料使用者
+    abstract = models.TextField(null=True, blank=True)
+    # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆
+    created = models.DateField(auto_now_add=True) # 申請時間
+    query_id = models.CharField(max_length=50, blank=True)
+
+
+
+# 單位意見回覆
+class SensitiveDataResponse(models.Model):
+    # 用query_id和SearchQuery串接
     # 每個單位為一筆
     status_choice = [
         ('pending', '等待審核'),
@@ -138,32 +168,14 @@ class SensitiveDataRequest(models.Model):
         ('fail', '不通過'),
     ]
 
-    # partner_id =  models.
-    # reviewer_id =  models.
-    status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 
-    created = models.DateField(auto_now_add=True) # 申請時間
-    query_id = models.CharField(max_length=50, blank=True)
+    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True) # 若空值則為秘書處
+    reviewer_name = models.CharField(max_length=1000, blank=True)
     comment = models.TextField(null=True, blank=True)
-
-
-
-
-# class SensitiveQuery(models.Model):
-#     # 用query_id和SearchQuery串接
-#     # 每個單位為一筆
-#     status_choice = [
-#         ('pending', '等待審核'),
-#         ('pass', '通過'),
-#         ('fail', '不通過'),
-#     ]
-
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     query = models.TextField(null=True, blank=True)
-#     # download_times = models.IntegerField(default=0)
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(null=True, blank=True)
-#     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
-#     query_id = models.CharField(max_length=50, blank=True)
+    status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
+    query_id = models.CharField(max_length=50, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(null=True, blank=True)
+    is_transferred = models.BooleanField(default=False)
 
 
 class About(models.Model):
