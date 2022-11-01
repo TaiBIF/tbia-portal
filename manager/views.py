@@ -181,8 +181,51 @@ def manager(request):
             'status': t.get_status_display()
         })
 
+
+    sensitive = []
+
+    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive'):
+        if s.modified:
+            date = s.modified + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date = ''
+
+        # 條件搜尋
+        search_dict = dict(parse.parse_qsl(s.query))
+        query = create_query_display(search_dict)
+
+    # for sdr in SensitiveDataResponse.objects.filter(query_id__in=SearchQuery.objects.filter(user_id=request.user.id, type='senstive').values('query_id')):
+
+        # 審查意見
+        comment = []
+
+        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+            if sdr.partner:
+                partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+            else:
+                partner_name = 'TBIA聯盟'
+            comment.append(f"""
+            <b>審查單位：</b>{partner_name}
+            <br>
+            <b>審查者姓名：</b>{sdr.reviewer_name}
+            <br>
+            <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+            <br>
+            <b>審查結果：</b>{sdr.get_status_display()}
+            """)
+
+        sensitive.append({
+            'id': s.id,
+            'query_id': s.query_id,
+            'date':  date,
+            'query':   query,
+            'status': s.get_status_display(),
+            'comment': '<hr>'.join(comment) if comment else ''
+        })
+
     return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis,
-    'record': record, 'taxon': taxon})
+    'record': record, 'taxon': taxon, 'sensitive': sensitive})
 
 
 def update_personal_info(request):
@@ -725,9 +768,28 @@ def system_info(request):
             output_field=DateTimeField()
         ))
 
+    sensitive = []
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=None):
+        created = sdr.created + timedelta(hours=8)
+        created = created.strftime('%Y-%m-%d %H:%M:%S')
+
+        # 整理查詢條件
+        if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+            r = SearchQuery.objects.get(query_id=sdr.query_id)
+            search_dict = dict(parse.parse_qsl(r.query))
+            query = create_query_display(search_dict)
+
+        sensitive.append({
+            'id': sdr.id,
+            'query_id': r.query_id,
+            'created':  created,
+            'query':   query,
+            'status': sdr.get_status_display(),
+            'is_transferred': sdr.is_transferred
+        })
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
                         'system_admin': system_admin, 'partner_members': partner_members,
-                        'status_choice': status_choice, 'feedback': feedback})
+                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive})
 
 
 def system_resource(request):

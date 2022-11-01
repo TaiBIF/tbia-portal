@@ -101,7 +101,6 @@ def submit_sensitive_request(request):
                         'taxonID', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
-                        print(val)
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
@@ -225,9 +224,6 @@ def submit_sensitive_request(request):
 
 
 def submit_sensitive_response(request):
-    # print(request.POST)
-# <QueryDict: {'query_id': ['635f50691a60260085a182a5'], 'sdr_id': ['8'], 'reviewer_name': ['Jin-Ying Lee'], 'comment': ['aaa'], 'status': ['fail'],}>
-
     if SensitiveDataResponse.objects.filter(id=request.POST.get('sdr_id')).exists():
         sdr = SensitiveDataResponse.objects.get(id=request.POST.get('sdr_id'))
         sdr.status = request.POST.get('status')
@@ -236,7 +232,8 @@ def submit_sensitive_response(request):
         sdr.save()
 
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
-    if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exists():
+    # 排除已轉移給各單位審核的機關計畫
+    if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
         task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),))
         task.start()
 
@@ -245,8 +242,128 @@ def submit_sensitive_response(request):
 
 
 def transfer_sensitive_response(request):
-    # 機關計畫送交給夥伴單位審核
-    # 原本的SensitiveDataResponse 改成is_transferred?
+    # 原本的SensitiveDataResponse 改成is_transferred
+    if request.method == 'POST':
+        query_id = request.POST.get('query_id')
+        if SensitiveDataResponse.objects.filter(query_id=query_id, partner_id=None, is_transferred=False).exists() and SearchQuery.objects.filter(query_id=query_id).exists():
+            sdr = SensitiveDataResponse.objects.get(query_id=query_id, partner_id=None, is_transferred=False)
+            sdr.is_transferred = True
+            sdr.save()
+            
+            # 機關計畫送交給夥伴單位審核
+            sq = SearchQuery.objects.get(query_id=query_id)
+            req_dict = dict(parse.parse_qsl(sq.query))
+            query_list = []
+
+            record_type = req_dict.get('record_type')
+            if record_type == 'col': # occurrence include occurrence + collection
+                query_list += ['recordType:col']
+
+            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
+                        'taxonID', 'preservation']:
+                if val := req_dict.get(i):
+                    if val != 'undefined':
+                        val = val.strip()
+                        keyword_reg = ''
+                        for j in val:
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                            keyword_reg = get_variants(keyword_reg)
+                        query_list += [f'{i}:/.*{keyword_reg}.*/']
+            
+            if quantity := req_dict.get('organismQuantity'):
+                query_list += [f'standardOrganismQuantity: {quantity}']
+
+            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+                if val := req_dict.get(i):
+                    if i == 'sensitiveCategory' and val == '無':
+                        query_list += [f'-(-{i}:{val} {i}:*)']
+                    else:
+                        query_list += [f'{i}:{val}']
+
+            if req_dict.get('start_date') and req_dict.get('end_date'):
+                try: 
+                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
+                    end_date = end_date.isoformat() + 'Z'
+                    end_date = end_date.replace('00:00:00','23:59:59')
+                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
+                except:
+                    pass
+
+            geojson = {}
+            geojson['features'] = ''
+
+            if g_str := req_dict.get('geojson'):
+                geojson = json.loads(g_str)
+            elif g_id := req_dict.get('geojson_id'):
+                try:
+                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                        geojson = json.loads(j.read())
+                except:
+                    pass
+
+            if geojson['features']:
+                if circle_radius := req_dict.get('circle_radius'):
+                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+                else:
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        if str(i).startswith('POLYGON'):
+                            g_list += [i]
+                    try:
+                        mp = MultiPolygon(map(wkt.loads, g_list))
+                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                    except:
+                        pass
+            
+            if val := req_dict.get('name'):
+                val = val.strip()
+                keyword_reg = ''
+                for j in val:
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                keyword_reg = get_variants(keyword_reg)
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                query_str = ' OR '.join( col_list )
+                query_list += [ '(' + query_str + ')' ]
+            # 如果有其他條件才進行搜尋，否則回傳空值
+            if query_list and query_list != ['recordType:col']:
+
+                query = { "query": "*:*",
+                        "offset": 0,
+                        "limit": 0,
+                        "filter": query_list,
+                        "facet": {
+                            "group": {
+                                "type": "terms",
+                                "field": "group",
+                                "limit": -1,
+                                }
+                            }
+                        }
+                response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+                group = response.json()['facets']['group']['buckets']
+                groups = []
+                for g in group:
+                    groups.append(g['val'])
+            
+                for p in Partner.objects.filter(group__in=groups):
+                    new_sdr = SensitiveDataResponse.objects.create(
+                        partner = p,
+                        status = 'pending',
+                        query_id = query_id
+                    )       
+                    # 寄送通知給系統管理員 & 單位管理員
+                    usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
+                    for u in usrs:
+                        nn = Notification.objects.create(
+                            type = 3,
+                            content = new_sdr.id,
+                            user = u
+                        )
+                        content = nn.get_type_display().replace('0000', str(nn.content))
+                        send_notification([u.id],content,'單次使用敏感資料申請通知')
 
     return JsonResponse({"status": 'success'}, safe=False)
 
@@ -260,10 +377,14 @@ def generate_sensitive_csv(query_id):
         download_id = f"{sq.user_id}_{query_id}"
 
         # 只給有同意單位的資料
-        ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
-        ps = [p for p in ps[0]]
-        group = list(Partner.objects.filter(id__in=ps).values_list('group'))
-        group = [g for g in group[0]]
+        # 如果是機關委託計畫的話 則全部都給
+        if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass',is_transferred=False, partner_id=None).exists():
+            group = ['*']
+        else:
+            ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
+            ps = [p for p in ps[0]]
+            group = list(Partner.objects.filter(id__in=ps).values_list('group'))
+            group = [g for g in group[0]]
 
         if group:
 
@@ -359,7 +480,8 @@ def generate_sensitive_csv(query_id):
                         "fields": fl_cols
                         }
 
-                csv_folder = os.path.join(settings.MEDIA_ROOT, 'sensitive')
+                csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+                csv_folder = os.path.join(csv_folder, 'sensitive')
                 csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
                 solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
                 commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
@@ -368,10 +490,11 @@ def generate_sensitive_csv(query_id):
                 # 儲存到下載統計
                 # 要排除掉轉交的情況
                 tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
-                if len(tmp) == len(tmp.filter(status='pass')):
-                    sq.status = 'pass'
-                else:
-                    sq.status = 'partial'
+                # if len(tmp) == len(tmp.filter(status='pass')):
+                #     sq.status = 'pass'
+                # else:
+                #     sq.status = 'partial'
+                sq.status = 'pass'
                 sq.modified = timezone.now()
                 sq.save()
 
@@ -522,6 +645,7 @@ def generate_download_csv(req_dict,user_id):
                 }
 
         csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+        csv_folder = os.path.join(csv_folder, 'record')
         csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
         solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
         commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
@@ -658,8 +782,9 @@ def generate_species_csv(req_dict,user_id):
         for d in data:
             # print(d)
             df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
-        csv_folder = os.path.join(settings.MEDIA_ROOT, 'species_list')
-        csv_file_path = os.path.join(csv_folder, f'{download_id}_taxon.csv')
+        csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+        csv_folder = os.path.join(csv_folder, 'taxon')
+        csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
         # print(csv_file_path)
         df.to_csv(csv_file_path, index=None)
         # return df
@@ -746,6 +871,7 @@ def generate_download_csv_full(req_dict,user_id):
                 }
 
         csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+        csv_folder = os.path.join(csv_folder, 'record')
         csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
         solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
         commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "

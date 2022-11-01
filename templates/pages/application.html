@@ -201,6 +201,7 @@
 				})
 				.done(function(result) {
 					alert('請求已送出，審核完畢後將以email通知')
+					window.location.href = '{% url "manager" %}?menu=sensitive'
 				})
 				.fail(function( xhr, status, errorThrown ) {
 					if (xhr.status==504){

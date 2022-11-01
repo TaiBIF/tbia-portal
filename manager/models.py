@@ -131,12 +131,6 @@ class SearchQuery(models.Model):
 
 class SensitiveDataRequest(models.Model):
     # 用query_id和SearchQuery串接
-    status_choice = [
-        ('pending', '等待審核'),
-        ('pass', '通過'),
-        ('fail', '不通過'),
-        ('partial', '部分通過'),
-    ]
 
     type_choice = [
         (0, '個人研究計畫'),
@@ -149,7 +143,7 @@ class SensitiveDataRequest(models.Model):
     affiliation =  models.CharField(max_length=100, blank=True)
     project_name =  models.CharField(max_length=1000, blank=True)
     project_affiliation =  models.CharField(max_length=1000, blank=True)
-    type = models.CharField(choices=status_choice, max_length=20, blank=True)
+    type = models.CharField(choices=type_choice, max_length=20, blank=True)
     users = models.JSONField(null=True, blank=True) # 資料使用者
     abstract = models.TextField(null=True, blank=True)
     # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆

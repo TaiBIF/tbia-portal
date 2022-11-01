@@ -221,7 +221,7 @@
                             <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show()">修改單位資訊</a>
                             {% if user.is_partner_admin %}
                             <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show()">單位帳號管理</a>
-                            <a class="data" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.data').show()">單次使用去模糊化敏感資料申請</a>
+                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show()">單次使用去模糊化敏感資料申請</a>
                             {% endif %}
                             <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
                         </div>
@@ -337,7 +337,7 @@
             </div>
         </div>
 
-        <div class="rightbox_content data" style="display: none">
+        <div class="rightbox_content sensitive" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
@@ -405,7 +405,7 @@
 </div>
 
 
-<!--意見回饋popbox-->
+<!--審查意見popbox-->
 <div class="popbg detail-pop" style="display:none;">
 	<div class="ovhy"> 
 		<div class="wbox_center">
@@ -511,7 +511,7 @@
 
 
 
-  <!--通用訊息匡pop-->
+  <!--確認送出pop-->
   <div class="messageboxfix submit-check" style="display: none;">
 	<div class="message_box">
 		<div class="informationicon">!</div>
@@ -522,6 +522,8 @@
 		</div>
 	</div>
 </div>
+
+
 
 
   {% endblock %}
