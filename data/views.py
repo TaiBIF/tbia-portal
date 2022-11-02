@@ -232,7 +232,7 @@ def submit_sensitive_response(request):
         sdr.save()
 
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
-    # 排除已轉移給各單位審核的機關計畫
+    # 若是機關委託計畫，排除已轉移給各單位審核的
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
         task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),))
         task.start()
@@ -380,11 +380,16 @@ def generate_sensitive_csv(query_id):
         # 如果是機關委託計畫的話 則全部都給
         if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass',is_transferred=False, partner_id=None).exists():
             group = ['*']
+        elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
+            group = []
         else:
             ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
-            ps = [p for p in ps[0]]
-            group = list(Partner.objects.filter(id__in=ps).values_list('group'))
-            group = [g for g in group[0]]
+            if ps:
+                ps = [p for p in ps[0]]
+                group = list(Partner.objects.filter(id__in=ps).values_list('group'))
+                group = [g for g in group[0]]
+            else:
+                group = []
 
         if group:
 
@@ -468,7 +473,6 @@ def generate_sensitive_csv(query_id):
             group = [ f'group:{g}' for g in group ]
             group_str = ' OR '.join( group )
             query_list += [ '(' + group_str + ')' ]
-            print(query_list)
             # 如果有其他條件才進行搜尋，否則回傳空值
             if query_list and query_list != ['recordType:col']:
 

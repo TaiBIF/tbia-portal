@@ -787,9 +787,49 @@ def system_info(request):
             'status': sdr.get_status_display(),
             'is_transferred': sdr.is_transferred
         })
+
+    sensitive_track = []
+    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)):
+        if s.modified:
+            date = s.modified + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date = ''
+
+        # 條件搜尋
+        search_dict = dict(parse.parse_qsl(s.query))
+        query = create_query_display(search_dict)
+
+        # 審查意見
+        comment = []
+
+        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+            if sdr.partner:
+                partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+            else:
+                partner_name = 'TBIA聯盟'
+            comment.append(f"""
+            <b>審查單位：</b>{partner_name}
+            <br>
+            <b>審查者姓名：</b>{sdr.reviewer_name}
+            <br>
+            <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+            <br>
+            <b>審查結果：</b>{sdr.get_status_display()}
+            """)
+
+        sensitive_track.append({
+            'id': s.id,
+            'query_id': s.query_id,
+            'date':  date,
+            'query':   query,
+            'status': s.get_status_display(),
+            'comment': '<hr>'.join(comment) if comment else ''
+        })
+
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
                         'system_admin': system_admin, 'partner_members': partner_members,
-                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive})
+                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track})
 
 
 def system_resource(request):

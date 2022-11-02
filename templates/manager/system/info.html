@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% block style %}
 <style>
+    
+    td hr {
+        border-top: 1px dashed grey;
+      }
+
     .send-submitted {
         background: #eee;
         width: 100%;
@@ -228,6 +233,7 @@
                             <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show()">帳號管理</a>
                             <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
                             <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show()">單次使用去模糊化敏感資料申請</a>
+                            <a class="sensitive_track" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive_track').show()">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
                     <li>
@@ -405,6 +411,33 @@
                                 {% endif %}
                             </td>
                             <td><a style="cursor: pointer" onclick="showRequest('{{ s.query_id }}','{{ s.query }}', '{{ s.id }}', '{{ s.is_transferred }}')">查看</a></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>        
+        <div class="rightbox_content sensitive_track" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>敏感資料申請審核追蹤</div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                        <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:15%;">查詢條件</td>
+                            <td style="width:15%;">審查意見</td>
+                            <td style="width:5%;">狀態</td>
+                        </tr>
+                        {% for r in sensitive_track %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td style="text-align: left">{{ r.query|safe }}</td>
+                            <td style="text-align: left">{{ r.comment|safe }}</td>
+                            <td>{{ r.status }}</td>
                         </tr>
                         {% endfor %}
                     </table>
