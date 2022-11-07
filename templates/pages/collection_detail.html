@@ -158,10 +158,9 @@
         </div>
         <ul class="inforall">
           <li>
+            <!-- 判斷是否為夥伴單位帳號 -->
             <h3>經度：</h3>
-            {% if row.sensitiveCategory == '座標不開放' %}
-            <p></p>
-            {% elif row.lon != None %}
+            {% if row.lon != None %}
             <p>{{ row.lon }}</p>
             {% elif row.lon == None and row.verbatimLongitude != None %}
             <p>---<br><small style="color: silver">[原始紀錄經度]{{ row.verbatimLongitude }}</small></p>
@@ -174,10 +173,9 @@
             <p>{{ row.coordinateUncertaintyInMeters }}</p>
           </li>
           <li>
+            <!-- 判斷是否為夥伴單位帳號 -->
             <h3>緯度：</h3>
-            {% if row.sensitiveCategory == '座標不開放' %}
-            <p></p>
-            {% elif row.lat != None %}
+            {% if row.lat != None %}
             <p>{{ row.lat }}</p>
             {% elif row.lat == None and row.verbatimLatitude != None %}
             <p>---<br><small style="color: silver">[原始紀錄緯度]{{ row.verbatimLatitude }}</small></p>
@@ -215,12 +213,8 @@
     shadowSize: [41, 41]
   });
 
-  {% if row.sensitiveCategory in '座標不開放,縣市' or row.lat == None or row.lon == None %}
-  let map = L.map('map').setView([0,0],0);
-  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-  {% elif row.lat != None and row.lon != None %}
+
+  {% if row.lat != None and row.lon != None %}
   let map = L.map('map').setView(['{{ row.lat }}', '{{ row.lon }}'],6);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

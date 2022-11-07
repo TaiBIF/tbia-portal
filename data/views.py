@@ -168,7 +168,7 @@ def submit_sensitive_request(request):
             # 如果有其他條件才進行搜尋，否則回傳空值
             if query_list and query_list != ['recordType:col']:
 
-                query = { "query": "*:*",
+                query = { "query": "-raw_location_rpt:*",
                         "offset": 0,
                         "limit": 0,
                         "filter": query_list,
@@ -1158,17 +1158,31 @@ def get_records(request):
                 if row.get('eventDate'):
                     docs.loc[i , 'date'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
             # 經緯度
-            if lat := row.get('standardLatitude'):
-                docs.loc[i , 'lat'] = lat[0]
-            else:
-                if row.get('verbatimLatitude'):
-                    docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+            user_id = request.user.id if request.user.id else 0
+            if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+                if lat := row.get('standardRawLatitude'):
+                    docs.loc[i , 'lat'] = lat[0]
+                else:
+                    if row.get('verbatimRawLatitude'):
+                        docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
-            if lon := row.get('standardLongitude'):
-                docs.loc[i , 'lon'] = lon[0]
+                if lon := row.get('standardRawLongitude'):
+                    docs.loc[i , 'lon'] = lon[0]
+                else:
+                    if row.get('verbatimRawLongitude'):
+                        docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
             else:
-                if row.get('verbatimLongitude'):
-                    docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                if lat := row.get('standardLatitude'):
+                    docs.loc[i , 'lat'] = lat[0]
+                else:
+                    if row.get('verbatimLatitude'):
+                        docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+                if lon := row.get('standardLongitude'):
+                    docs.loc[i , 'lon'] = lon[0]
+                else:
+                    if row.get('verbatimLongitude'):
+                        docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
                 docs.loc[i , 'quantity'] = int(quantity[0])
@@ -1499,21 +1513,38 @@ def occurrence_detail(request, id):
     row.update({'date': date})
 
     # 經緯度
-    lat = None
-    if lat := row.get('standardLatitude'):
-        if -90 <= lat[0] and lat[0] <= 90:        
-            lat = lat[0]
-        else:
-            lat = None
-    row.update({'lat': lat})
+    user_id = request.user.id if request.user.id else 0
+    if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        lat = None
+        if lat := row.get('standardRawLatitude'):
+            if -90 <= lat[0] and lat[0] <= 90:        
+                lat = lat[0]
+            else:
+                lat = None
+        row.update({'lat': lat})
+        lon = None
+        if lon := row.get('standardRawLongitude'):
+            if -180 <= lon[0] and lon[0] <= 180:             
+                lon = lon[0]
+            else:
+                lon = None
+        row.update({'lon': lon})
+    else:
+        lat = None
+        if lat := row.get('standardLatitude'):
+            if -90 <= lat[0] and lat[0] <= 90:        
+                lat = lat[0]
+            else:
+                lat = None
+        row.update({'lat': lat})
 
-    lon = None
-    if lon := row.get('standardLongitude'):
-        if -180 <= lon[0] and lon[0] <= 180:             
-            lon = lon[0]
-        else:
-            lon = None
-    row.update({'lon': lon})
+        lon = None
+        if lon := row.get('standardLongitude'):
+            if -180 <= lon[0] and lon[0] <= 180:             
+                lon = lon[0]
+            else:
+                lon = None
+        row.update({'lon': lon})
 
     # 數量
     if quantity := row.get('standardOrganismQuantity'):
@@ -1550,7 +1581,6 @@ def collection_detail(request, id):
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
-    print(row.get('recordType'))
     if row.get('recordType') == ['col']:
 
         if row.get('taxonRank', ''):
@@ -1573,21 +1603,40 @@ def collection_detail(request, id):
         row.update({'date': date})
 
         # 經緯度
-        lat = None
-        if lat := row.get('standardLatitude'):
-            if -90 <= lat[0] and lat[0] <= 90:        
-                lat = lat[0]
-            else:
-                lat = None
-        row.update({'lat': lat})
 
-        lon = None
-        if lon := row.get('standardLongitude'):
-            if -180 <= lon[0] and lon[0] <= 180:             
-                lon = lon[0]
-            else:
-                lon = None
-        row.update({'lon': lon})
+        # 如果是夥伴單位直接給原始
+        user_id = request.user.id if request.user.id else 0
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+            lat = None
+            if lat := row.get('standardRawLatitude'):
+                if -90 <= lat[0] and lat[0] <= 90:        
+                    lat = lat[0]
+                else:
+                    lat = None
+            row.update({'lat': lat})
+            lon = None
+            if lon := row.get('standardRawLongitude'):
+                if -180 <= lon[0] and lon[0] <= 180:             
+                    lon = lon[0]
+                else:
+                    lon = None
+            row.update({'lon': lon})
+        else:
+            lat = None
+            if lat := row.get('standardLatitude'):
+                if -90 <= lat[0] and lat[0] <= 90:        
+                    lat = lat[0]
+                else:
+                    lat = None
+            row.update({'lat': lat})
+
+            lon = None
+            if lon := row.get('standardLongitude'):
+                if -180 <= lon[0] and lon[0] <= 180:             
+                    lon = lon[0]
+                else:
+                    lon = None
+            row.update({'lon': lon})
 
         # 數量
         if quantity := row.get('standardOrganismQuantity'):
@@ -1719,8 +1768,14 @@ def get_conditional_records(request):
                     "limit": 10,
                     "filter": query_list,
                     "sort":  "scientificName asc",
-                    
                     }
+
+            query2 = { "query": "raw_location_rpt:[* TO *]",
+                    "offset": 0,
+                    "limit": 0,
+                    "filter": query_list,
+                    }
+            # print()
             if request.POST.get('from') == 'page':
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
             else:
@@ -1736,6 +1791,7 @@ def get_conditional_records(request):
                             current_grid_y = j['value']
                             current_count = j['count']
                             # current_center_x, current_center_y = convert_grid_to_coor(current_grid_x, current_grid_y)
+                            # print(current_grid_x, current_grid_y)
                             if current_grid_x != -1 and current_grid_y != -1:
                                 borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
                                 # print(borders)
@@ -1750,6 +1806,13 @@ def get_conditional_records(request):
 
 
             count = response.json()['response']['numFound']
+            response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
+            if response2.json()['response']['numFound'] > 0:
+                has_sensitive = True
+            else:
+                has_sensitive = False
+
+
             docs = pd.DataFrame(response.json()['response']['docs'])
             docs = docs.replace({np.nan: ''})
             docs = docs.replace({'nan': ''})
@@ -1776,17 +1839,32 @@ def get_conditional_records(request):
                     # if row.get('eventDate'):
                     #     docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
                 # 經緯度
-                if lat := row.get('standardLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = lat[0]
-                else:
-                    if row.get('verbatimLatitude'):
-                        docs.loc[i , 'verbatimLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+                # 如果是夥伴單位直接給原始
+                user_id = request.user.id if request.user.id else 0
+                if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+                    if lat := row.get('standardRawLatitude'):
+                        docs.loc[i , 'verbatimRawLatitude'] = lat[0]
+                    else:
+                        if row.get('verbatimRawLatitude'):
+                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
-                if lon := row.get('standardLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = lon[0]
+                    if lon := row.get('standardRawLongitude'):
+                        docs.loc[i , 'verbatimRawLongitude'] = lon[0]
+                    else:
+                        if row.get('verbatimRawLongitude'):
+                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
                 else:
-                    if row.get('verbatimLongitude'):
-                        docs.loc[i , 'verbatimLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                    if lat := row.get('standardLatitude'):
+                        docs.loc[i , 'verbatimLatitude'] = lat[0]
+                    else:
+                        if row.get('verbatimLatitude'):
+                            docs.loc[i , 'verbatimLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+                    if lon := row.get('standardLongitude'):
+                        docs.loc[i , 'verbatimLongitude'] = lon[0]
+                    else:
+                        if row.get('verbatimLongitude'):
+                            docs.loc[i , 'verbatimLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
                 # 數量
                 if quantity := row.get('standardOrganismQuantity'):
                     docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
@@ -1811,7 +1889,8 @@ def get_conditional_records(request):
                 'total_page' : total_page,
                 'selected_col': selected_col,
                 'map_dict': map_dict,
-                'map_geojson': map_geojson
+                'map_geojson': map_geojson,
+                'has_sensitive': has_sensitive
             }
         
         else:

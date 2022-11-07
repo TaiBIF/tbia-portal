@@ -31,10 +31,10 @@ def convert_coor_to_grid(x, y, grid):
 def convert_grid_to_square(grid_x, grid_y, grid):
     list_x = np.arange(-180, 180, grid)
     list_y = np.arange(-90, 90, grid)
-    x1 = list_x[grid_x]
-    x2 = list_x[grid_x+1]
-    y1 = list_y[grid_y]
-    y2 = list_y[grid_y+1]
+    x1 = list_x[grid_x-1]
+    x2 = list_x[grid_x]
+    y1 = list_y[grid_y-1]
+    y2 = list_y[grid_y]
     # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 

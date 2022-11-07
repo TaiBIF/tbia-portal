@@ -610,9 +610,7 @@
             <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
             <button class="dw" onclick="downloadData('${queryString}', ${response.count})">資料下載</button>
             <button class="dw" onclick="downloadTaxon('${queryString}')">名錄下載</button>
-            <a href="#" class="qmark"></a>
-            <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
-            <a href="#" class="qmark"></a>
+            <a id="before_sensitive" href="#" class="qmark"></a>
           </div>
         </div>
         <div class="result_table" style="overflow-x: auto;">
@@ -620,6 +618,13 @@
           </table>						
         </div>
       </div>`)
+
+      // 如果有敏感資料才有申請按鈕
+      if (response.has_sensitive){
+        $('#before_sensitive').after(`
+            <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
+            <a href="#" class="qmark"></a>`)
+      }
       // table title
       var table_title = document.createElement("tr");
       table_title.classList.add('table_title');
