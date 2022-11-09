@@ -3,9 +3,18 @@
 {% load static %}
 {% load humanize %}
 {% block title %}全站搜尋｜{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+{% endblock head %}
 {% block style %}
 <style>
-.rightdow {
+
+  .rightdow {
     display: flex;
     align-items: center
 }
@@ -215,7 +224,10 @@
               <div class="arrd"></div>
             </div>
             <div class="spe_menu second_menu">
-              <a id="facet_spe_all"href="javascript:;" onclick="focusComponent('item_spe', false)">全部({{ occurrence.count|intcomma }})</a>
+              <a id="facet_spe_all"href="javascript:;" onclick="focusComponent('item_spe', false)">全部({{ taxon.count|intcomma }})</a>
+              {% for i in taxon.rows %} 
+              <a id="facet_taxon_{{ i.key }}" href="javascript:;" onclick="focusCards('taxon','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              {% endfor %}
             </div>
           </li>
           <li class="li-item_occ">
@@ -283,89 +295,57 @@
 
     <div class="rightbox_content">
       <!----- 所有結果 內容欄 ----->
-
-
-					<div class="item item-species">
+					<div class="item item_spe"  id="item_spe">
 						<div class="titlebox_line">
 							<div class="title">
-								<p>物種 (14)</p>
+								<p>物種 ({{ taxon.count|intcomma }})</p>
 								<div class="line"></div>
 							</div>
 						</div>
-						<ul class="card_list_2 species_list">
+            {% if taxon.count > 0 %}
+						<ul class="card_list_2 species_list taxon-card">
+              {% for i in taxon.card %}
 							<li>
 								<div class="flex_top">
 									<div class="lefttxt">
-										<p>中⽂名：<span class="col_red">楝</span></p>
-										<p>學名：Melia azedarach</p>
-										<p>中文別名：楝楝</p>
-										<p>同物異名：楝楝楝楝</p>
-										<p>出現記錄筆數：50</p>
-										<p>自然使典藏筆數：100</p>
+                    {% if i.matched_col != '中文名' and i.matched_col != '學名' and i.matched_col != '中文別名' and  i.matched_col != '同物異名' %}
+                    <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
+                    {% endif %}    
+										<p>中⽂名：{{ i.common_name_c|highlight:keyword }}</p>
+										<p>學名：{{ i.formatted_name|highlight:keyword }}</p>
+										<p>中文別名：{{ i.alternative_name_c|highlight:keyword }}</p>
+										<p>同物異名：{{ i.formatted_synonyms|highlight:keyword }}</p>
+										<p>出現記錄筆數：{{ i.occ_count|intcomma }}</p>
+										<p>自然史典藏筆數：{{ i.col_count|intcomma }}</p>
 									</div>
 									<div class="right_img">
 										<div class="imgbox">
-											<!--435*390 or 870*780 用background-image替換連結-->
-											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
+                      {% if i.images %}
+											<div class="imgarea" style="background-image:url('{{ i.images.src }}');"></div>
+                      {% else %}
+                      <div class="imgarea" style=""></div>
+                      {% endif %}
 										</div>
 									</div>
 								</div>
 								<div class="btn_area">
-									<a href="#">其他介紹</a>
-									<button>分布圖</button>
+                  {% if i.taieol_id %}
+									<a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
+                  {% endif %}
+									<button onclick="getDist('{{ i.taxonID }}')">分布圖</button>
 								</div>
-
-
 							</li>
-							<li>
-								<div class="flex_top">
-									<div class="lefttxt">
-										<p>中⽂名：<span class="col_red">楝</span></p>
-										<p>學名：Melia azedarach</p>
-										<p>中文別名：楝楝</p>
-										<p>同物異名：楝楝楝楝</p>
-										<p>出現記錄筆數：50</p>
-										<p>自然使典藏筆數：100</p>
-									</div>
-									<div class="right_img">
-										<div class="imgbox">
-											<!--400*270 OR 800*540 換圖只換background-image屬性-->
-											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
-										</div>
-									</div>
-								</div>
-								<div class="btn_area">
-									<a href="#">其他介紹</a>
-									<button>分布圖</button>
-								</div>
-
-
-							</li>
-							<li>
-								<div class="flex_top">
-									<div class="lefttxt">
-										<p>中⽂名：<span class="col_red">楝</span></p>
-										<p>學名：Melia azedarach</p>
-										<p>中文別名：楝楝</p>
-										<p>同物異名：楝楝楝楝</p>
-										<p>出現記錄筆數：50</p>
-										<p>自然使典藏筆數：100</p>
-									</div>
-									<div class="right_img">
-										<div class="imgbox">
-											<!--400*270 OR 800*540 換圖只換background-image屬性-->
-											<div class="imgarea" style="background-image:url(/static/image/news_listdemo.jpg);"></div>
-										</div>
-									</div>
-								</div>
-								<div class="btn_area">
-									<a href="#">其他介紹</a>
-									<button>分布圖</button>
-								</div>
-
-
-							</li>
+              {% endfor %}
 						</ul>
+            {% else %}
+            <div class="no_data">暫無資料</div>
+            {% endif %}
+            <!--超過4個才有更多按鈕-->
+            {% if taxon.more %}
+            <a href="javascript:;" onclick="getMoreCards('.taxon-card','#taxon_offset','.taxon_more','false')" class="more taxon_more"> 更多結果 </a>
+            <input type="hidden" id="taxon_offset" value="4">
+            {% endif %}
+
 					</div>
 
 
@@ -800,10 +780,122 @@
 	</div>
 </div>
 
+
+<div class="popbg taxon-dist" style="display: none;">
+	<div class="ovhy taxon-dist">
+		<div class="wbox_center">
+			<div class="xx taxon-dist">
+			</div>
+			<div class="titlegreen">
+				分布圖
+			</div>
+      <div id="map-box">
+      <div id="map" style="height: 500px; margin: 40px 0 10px 10px"></div>
+      </div>
+		</div>
+	</div>
+</div>
+
+
+
 {% endblock body %} 
 
 {% block script %}
 <script>
+
+  $('.popbg.taxon-dist').on('hide', function(){
+    $("#map-box").html(""); 
+    $("#map-box").html('<div id="map" style="height: 500px; margin: 40px 0 10px 10px"></div>');
+  })
+
+  function getColor(d) {
+    return d > 1000 ? '#C50101' :
+            d > 500  ? '#D71414' :
+            d > 200  ? '#E72424' :
+            d > 100  ? '#F73535' :
+            d > 50   ? '#FB4C4C' :
+            d > 20   ? '#FB6262' :
+            d > 10   ? '#FC7E7E' :
+                      '#FD9696';
+  }
+  
+  function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.counts),
+        weight: 1,
+        opacity: 0.5,
+        color: 'black',
+        //dashArray: '3',
+        fillOpacity: 1
+    };
+  }
+
+  function getDist(taxonID){
+    $('.popbg.taxon-dist').show()
+
+    $.ajax({
+      url: "{% url 'get_taxon_dist' %}?taxonID=" + taxonID,
+      type: 'GET',
+    })
+    .done(function(response) {
+        // 把之前的清掉
+        let map = L.map('map').setView([23.5, 121.2],7);
+        L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        map.on('zoomend', function zoomendEvent(ev) {
+          var currentZoomLevel = ev.target.getZoom()
+        
+            if (currentZoomLevel < 5) {
+              $('[class^=resultG_]').css('display','none')
+              $('.resultG_100').css('display','')
+            } else if (currentZoomLevel < 8){
+              $('[class^=resultG_]').css('display','none')
+              $('.resultG_10').css('display','')
+            } else if (currentZoomLevel < 9){
+              $('[class^=resultG_]').css('display','none')
+              $('.resultG_5').css('display','')
+            } else {
+              $('[class^=resultG_]').css('display','none')
+              $('.resultG_1').css('display','')
+            }
+        });
+    
+
+        L.geoJSON(response.grid_1,{className: 'resultG_1',style: style}).addTo(map);
+        L.geoJSON(response.grid_5,{className: 'resultG_5',style: style}).addTo(map);
+        L.geoJSON(response.grid_10,{className: 'resultG_10',style: style}).addTo(map);
+        L.geoJSON(response.grid_100,{className: 'resultG_100',style: style}).addTo(map);
+
+        $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
+        if (map.getZoom() < 5) {
+          $('.resultG_100').css('display','')
+        } else if (map.getZoom() < 8){
+          $('.resultG_10').css('display','')
+        } else if (map.getZoom() < 9){
+          $('.resultG_5').css('display','')
+        } else {
+          $('.resultG_1').css('display','')
+        }
+
+        map.setView([23.5, 121.2],7)
+
+    })
+    .fail(function( xhr, status, errorThrown ) {
+      if (xhr.status==504){
+        alert('要求連線逾時')
+      } else {
+        alert('發生未知錯誤！請聯絡管理員')
+      }
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+  }
+
+
+  
+
   let params = ['item_class', 'record_type','key','value','scientific_name','limit','page','from',
                 'doc_type', 'offset_value', 'more_class', 'card_class', 'is_sub', 'focus_card', 'get_record']
 
@@ -1146,70 +1238,164 @@
     $('.page_number').remove()
 
     if (! $(`.item_${record_type}_${key}`).length){
-      $.ajax({
-          url: "{% url 'get_focus_cards' %}",
-          data: { record_type: record_type,
-                  keyword: '{{ keyword }}',
-                  csrfmiddlewaretoken: '{{ csrf_token }}',
-                  key: key },
-          type: 'POST',
-          dataType : 'json',
-      })
-      .done(function(response) {
-        // append item area
-        $('.rightbox_content').append(
-          `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
-            <div class="titlebox_line">
-              <div class="title">
-                <p>${response.title} (${response.total_count})</p>
-                <div class="line"></div>
+      // taxon
+      if (record_type == 'taxon') {
+          $.ajax({
+            url: "{% url 'get_focus_cards_taxon' %}",
+            data: { record_type: record_type,
+                    keyword: '{{ keyword }}',
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    key: key },
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+          // append item area
+          $('.rightbox_content').append(
+            `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
+              <div class="titlebox_line">
+                <div class="title">
+                  <p>${response.title} (${response.total_count})</p>
+                  <div class="line"></div>
+                </div>
+              </div>
+              <ul class="card_list_2 species_list ${response.card_class}">
+              </ul>
+            </div>`)
+          // append cards
+          for (let i = 0; i < response.data.length; i++) {
+            let x = response.data[i];
+            let html;
+            let matched = '';
+
+            if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
+              matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
+            }
+
+            let image = '<div class="imgarea" style=""></div>'
+
+            if (x.images){
+              image = `<div class="imgarea" style="background-image:url('${ x.images.src }');"></div>`
+            }
+
+            let taieol = '';
+
+            if (x.taieol_id){
+              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">生命大百科介紹</a>`
+            }
+
+
+            html = `	<li>							
+            <div class="flex_top">
+              <div class="lefttxt">
+                ${matched}
+                <p>中⽂名：${x.common_name_c}</p>
+                <p>學名：${x.formatted_name}</p>
+                <p>中文別名：${ x.alternative_name_c }</p>
+                <p>同物異名：${ x.formatted_synonyms }</p>
+                <p>出現記錄筆數：${ x.occ_count }</p>
+                <p>自然史典藏筆數：${ x.col_count }</p>
+              </div>
+              <div class="right_img">
+                <div class="imgbox">
+                  ${image}
+                </div>
               </div>
             </div>
-            <ul class="card_list_1 ${response.card_class}">
-            </ul>
-          </div>`)
-        // append cards
-        for (let i = 0; i < response.data.length; i++) {
-          let x = response.data[i];
-          let html;
-          if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-            $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.name }','${ x.count }','1','card', false)">
-              <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 6px"></div>
-              <p>中文名：${x.common_name_c}</p>
-              <p>學名：${x.val}</p>
-              <p>${ x.matched_col }：${x.matched_value}</p>
-            </li>`)
-          } else {
-            $(`.${response.card_class}`).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-              <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 6px"></div>
-              <p>中文名：${x.common_name_c}</p>
-              <p>學名：${x.val}</p>
-            </li>`)
-          }
-        }
-        // append 更多結果 button if more than 9 cards
-        if (response.has_more == true) {
-          $(`.${response.card_class}`).after(`
-            <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
-            <input type="hidden" id="${record_type}_${key}_offset" value="9">`)
-        }
-        $(`.rightbox_content .${response.item_class}`).css({display: ''})
-        $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
+            <div class="btn_area">
+              ${taieol}
+              <button onclick="getDist('${x.taxonID}')">分布圖</button>
+            </div></li>`
 
-        clickToAnchor(`#${response.item_class}_cards`)
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
+              $(`.${response.card_class}`).append(html)
+          }
+          // append 更多結果 button if more than 4 cards
+          if (response.has_more == true) {
+            $(`.${response.card_class}`).after(`
+              <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
+              <input type="hidden" id="${record_type}_${key}_offset" value="4">`)
+          }
+          $(`.rightbox_content .${response.item_class}`).css({display: ''})
+          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
+
+          clickToAnchor(`#${response.item_class}_cards`)
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          if (xhr.status==504){
+            alert('要求連線逾時')
+          } else {
+            alert('發生未知錯誤！請聯絡管理員')
+          }
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+      // occ 或 col
+      } else {
+        $.ajax({
+            url: "{% url 'get_focus_cards' %}",
+            data: { record_type: record_type,
+                    keyword: '{{ keyword }}',
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    key: key },
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+          // append item area
+          $('.rightbox_content').append(
+            `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
+              <div class="titlebox_line">
+                <div class="title">
+                  <p>${response.title} (${response.total_count})</p>
+                  <div class="line"></div>
+                </div>
+              </div>
+              <ul class="card_list_1 ${response.card_class}">
+              </ul>
+            </div>`)
+          // append cards
+          for (let i = 0; i < response.data.length; i++) {
+            let x = response.data[i];
+            let html;
+            if ( x.matched_col != '中文名' && x.matched_col != '學名'){
+              $(`.${response.card_class}`).append( `
+              <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.name }','${ x.count }','1','card', false)">
+                <div class="num">${x.count}</div>
+                <div style="height: 20px; margin-bottom: 6px"></div>
+                <p>中文名：${x.common_name_c}</p>
+                <p>學名：${x.val}</p>
+                <p>${ x.matched_col }：${x.matched_value}</p>
+              </li>`)
+            } else {
+              $(`.${response.card_class}`).append( `
+              <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
+                <div class="num">${x.count}</div>
+                <div style="height: 20px; margin-bottom: 6px"></div>
+                <p>中文名：${x.common_name_c}</p>
+                <p>學名：${x.val}</p>
+              </li>`)
+            }
+          }
+          // append 更多結果 button if more than 9 cards
+          if (response.has_more == true) {
+            $(`.${response.card_class}`).after(`
+              <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
+              <input type="hidden" id="${record_type}_${key}_offset" value="9">`)
+          }
+          $(`.rightbox_content .${response.item_class}`).css({display: ''})
+          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
+
+          clickToAnchor(`#${response.item_class}_cards`)
+        })
+        .fail(function( xhr, status, errorThrown ) {
+          if (xhr.status==504){
+            alert('要求連線逾時')
+          } else {
+            alert('發生未知錯誤！請聯絡管理員')
+          }
+          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+      }
     } else {
       $(`.rightbox_content .item_${record_type}_${key}`).css({display: ''})
       $('.rightbox_content .item').not($(`.item_${record_type}_${key}`)).not($('.items')).css({display: 'none'})
@@ -1273,52 +1459,138 @@
 
   function getMoreCards(card_class, offset_value, more_type, is_sub){
     let record_type;
-    (card_class.startsWith('.occ')) ? record_type = 'occ' : record_type = 'col';
+    if (card_class.startsWith('.col')) {
+      record_type = 'col'
+    } else if (card_class.startsWith('.occ')){
+      record_type = 'occ'
+    } else {
+      record_type = 'taxon'
+    }
+
     let offset = $(offset_value).val()
-    $.ajax({
-        url: "{% url 'get_more_cards' %}",
-        data: {
-          card_class: card_class,
-          keyword: '{{ keyword }}',
-          csrfmiddlewaretoken: '{{ csrf_token }}',
-          offset: offset,
-          is_sub: is_sub,
-        },
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).css({display: 'none'})
-      for (let i = 0; i < response.data.length; i++) {
-        let x = response.data[i]
-        if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-          $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-            <div class="num">${x.count}</div>
-            <div style="height: 20px; margin-bottom: 6px"></div>
-            <p>中文名：${x.common_name_c}</p>
-            <p>學名：${x.val}</p>
-            <p>${ x.matched_col }：${x.matched_value}</p>
-          </li>` )
-        } else {
-          $(card_class).append( `
-          <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-            <div class="num">${x.count}</div>
-            <div style="height: 20px; margin-bottom: 6px"></div>
-            <p>中文名：${x.common_name_c}</p>
-            <p>學名：${x.val}</p>
-          </li>` )
+    if (record_type == 'taxon') {
+        $.ajax({
+          url: "{% url 'get_more_cards_taxon' %}",
+          data: {
+            card_class: card_class,
+            keyword: '{{ keyword }}',
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            offset: offset,
+            is_sub: is_sub,
+          },
+          type: 'POST',
+          dataType : 'json',
+      })
+      .done(function(response) {
+
+        (response.has_more==true) ? $(offset_value).val(Number(offset)+ 4 ) : $(more_type).css({display: 'none'})
+        
+        for (let i = 0; i < response.data.length; i++) {
+          let x = response.data[i]
+
+          let html;
+          let matched = '';
+
+          if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
+            matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
+          }
+
+          let image = '<div class="imgarea" style=""></div>'
+
+          if (x.images){
+            image = `<div class="imgarea" style="background-image:url('${ x.images.src }');"></div>`
+          }
+
+          let taieol = '';
+
+          if (x.taieol_id){
+            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">生命大百科介紹</a>`
+          }
+
+
+          html = `	<li>							
+          <div class="flex_top">
+            <div class="lefttxt">
+              ${matched}
+              <p>中⽂名：${x.common_name_c}</p>
+              <p>學名：${x.formatted_name}</p>
+              <p>中文別名：${ x.alternative_name_c }</p>
+              <p>同物異名：${ x.formatted_synonyms }</p>
+              <p>出現記錄筆數：${ x.occ_count }</p>
+              <p>自然史典藏筆數：${ x.col_count }</p>
+            </div>
+            <div class="right_img">
+              <div class="imgbox">
+                ${image}
+              </div>
+            </div>
+          </div>
+          <div class="btn_area">
+            ${taieol}
+            <button onclick="getDist('${x.taxonID}')">分布圖</button>
+          </div></li>`
+
+            $(`${card_class}`).append(html)
+
+
         }
-      }
-    })
-    .fail(function( xhr, status, errorThrown ) {
-      if (xhr.status==504){
-        alert('要求連線逾時')
-      } else {
-        alert('發生未知錯誤！請聯絡管理員')
-      }      
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        if (xhr.status==504){
+          alert('要求連線逾時')
+        } else {
+          alert('發生未知錯誤！請聯絡管理員')
+        }      
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+
+
+    } else {
+      $.ajax({
+          url: "{% url 'get_more_cards' %}",
+          data: {
+            card_class: card_class,
+            keyword: '{{ keyword }}',
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            offset: offset,
+            is_sub: is_sub,
+          },
+          type: 'POST',
+          dataType : 'json',
+      })
+      .done(function(response) {
+        (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).css({display: 'none'})
+        for (let i = 0; i < response.data.length; i++) {
+          let x = response.data[i]
+          if ( x.matched_col != '中文名' && x.matched_col != '學名'){
+            $(card_class).append( `
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
+              <div class="num">${x.count}</div>
+              <div style="height: 20px; margin-bottom: 6px"></div>
+              <p>中文名：${x.common_name_c}</p>
+              <p>學名：${x.val}</p>
+              <p>${ x.matched_col }：${x.matched_value}</p>
+            </li>` )
+          } else {
+            $(card_class).append( `
+            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
+              <div class="num">${x.count}</div>
+              <div style="height: 20px; margin-bottom: 6px"></div>
+              <p>中文名：${x.common_name_c}</p>
+              <p>學名：${x.val}</p>
+            </li>` )
+          }
+        }
+      })
+      .fail(function( xhr, status, errorThrown ) {
+        if (xhr.status==504){
+          alert('要求連線逾時')
+        } else {
+          alert('發生未知錯誤！請聯絡管理員')
+        }      
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+    }
   }
 
 
@@ -1336,7 +1608,7 @@
     window.selected = $(`.${record_type}-choice input:checked`)
   }
 
-  $(".popbg .xx,.popbg .ovhy").click(function (e) {
+  $(".popbg .xx,.popbg .ovhy").not('.taxon-dist').click(function (e) {
     if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) {
       window.not_selected.prop('checked', false);
       window.selected.prop('checked', true);

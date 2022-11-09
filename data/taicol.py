@@ -21,7 +21,7 @@ start = 0
 taxa = []
 while get_data:
     print(start)
-    url = f"{SOLR_PREFIX}taxa/select?indent=on&q=*:*&wt=json&fl=id,scientificName,formatted_name,common_name_c&rows={rows}&start={start}"
+    url = f"{SOLR_PREFIX}taxa/select?indent=on&q=*:*&wt=json&fl=id,scientificNameID,scientificName,formatted_name,common_name_c,alternative_name_c,formatted_synonyms&rows={rows}&start={start}"
     res = requests.get(url).json()
     taxa += res['response']['docs']
     if start > len_taxa:
@@ -30,4 +30,4 @@ while get_data:
         start += 20000
 
 taicol = pd.DataFrame(taxa)
-taicol = taicol.rename(columns={'id': 'taxonID', 'scientificName': 'name'})
+taicol = taicol.rename(columns={'id': 'taxonID', 'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})

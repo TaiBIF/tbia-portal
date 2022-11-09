@@ -6726,6 +6726,7 @@ body {
     }
 }
 
+/*
 .two_cont_area .rightbox_content .card_list_2 li:hover {
     transition: all .3s;
     -moz-transition: all .3s;
@@ -6733,7 +6734,7 @@ body {
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
     border: 1px solid #76A578
-}
+}*/
 
 .two_cont_area .rightbox_content .card_list_2 li .nstitle {
     font-size: 18px;

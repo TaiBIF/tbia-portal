@@ -35,10 +35,49 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
+from data.models import Namecode
 
 basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
+
+
+def get_taxon_dist(request):
+    taxon_id = request.GET.get('taxonID')
+    map_geojson = {}
+    map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
+    map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
+    map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
+    map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
+
+    query = {"query": f"taxonID:{taxon_id}",
+            "offset": 0,
+            "limit": 0}
+    
+    for grid in [1,5,10,100]:
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_{grid},grid_y_{grid}', data=json.dumps(query), headers={'content-type': "application/json" })
+        # map
+        data_c = {}
+        data_c = response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
+
+        for i in data_c:
+            current_grid_x = i['value']
+            for j in i['pivot']:
+                current_grid_y = j['value']
+                current_count = j['count']
+                # current_center_x, current_center_y = convert_grid_to_coor(current_grid_x, current_grid_y)
+                if current_grid_x != -1 and current_grid_y != -1:
+                    borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                    tmp = [{
+                        "type": "Feature",
+                        "geometry":{"type":"Polygon","coordinates":[borders]},
+                        "properties": {
+                            "counts": current_count
+                        }
+                    }]
+                    map_geojson[f'grid_{grid}']['features'] += tmp
+
+    return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
 
 def sensitive_agreement(request):
@@ -947,10 +986,14 @@ def search_full(request):
         facets = response.json()['facets']
         facets.pop('count', None)
 
+        # 物種結果
+        # taxon_list = []
+
         c_collection = response.json()['response']['numFound']
         # c_collection = 0
         collection_rows = []
         result = []
+        taxon_result = []
         for i in facets:
             x = facets[i]
             if (i != 'eventDate') or (enable_query_date and i == 'eventDate'): 
@@ -963,6 +1006,8 @@ def search_full(request):
                 for k in x['buckets']:
                     bucket = k['taxonID']['buckets']
                     result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                    if i in taxon_cols:
+                        taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             else:
                 if x['buckets']:
                     c_collection -= sum(item['count'] for item in x['buckets'])
@@ -980,6 +1025,13 @@ def search_full(request):
             col_result_df = col_result_df.replace({np.nan: ''})
         else:
             col_card_len = 0
+        # 物種整理
+        taxon_result_df = pd.DataFrame(taxon_result)
+        # taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','count'])]
+        # if len(taxon_result_df_duplicated):
+        #     taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
+        #     taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
+
         # occurrence
         facet_list = occ_facets
         q = ''
@@ -1000,6 +1052,7 @@ def search_full(request):
         c_occurrence = response.json()['response']['numFound']
         occurrence_rows = []
         result = []
+        taxon_result = []
         for i in facets:
             x = facets[i]
             if (i!='eventDate') or (enable_query_date and i == 'eventDate'): 
@@ -1013,6 +1066,8 @@ def search_full(request):
                 for k in x['buckets']:
                     bucket = k['taxonID']['buckets']
                     result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                    if i in taxon_cols:
+                        taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             else:
                 if x['buckets']:
                     c_occurrence -= sum(item['count'] for item in x['buckets'])
@@ -1031,6 +1086,76 @@ def search_full(request):
             occ_result_df = occ_result_df.replace({np.nan: ''})
         else:
             occ_card_len = 0
+        # 物種整理
+        taxon_occ_result_df = pd.DataFrame(taxon_result)
+        # taxon_occ_result_df_duplicated = taxon_occ_result_df[taxon_occ_result_df.duplicated(['val','count'])]
+        # if len(taxon_occ_result_df_duplicated):
+        #     taxon_occ_remove_index = taxon_occ_result_df_duplicated[taxon_occ_result_df_duplicated.matched_col.isin(dup_col)].index
+        #     taxon_occ_result_df = taxon_occ_result_df.loc[~taxon_occ_result_df.index.isin(taxon_occ_remove_index)]
+        # 這邊要把兩種類型的資料加在一起
+        taxon_occ_result_df = taxon_occ_result_df.rename(columns={'count': 'occ_count'})
+        taxon_result_df = taxon_result_df.rename(columns={'count': 'col_count'})
+        if len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df.merge(taxon_result_df,how='left')
+        elif len(taxon_occ_result_df) and not len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df
+            taxon_result_df['col_count'] = 0
+        elif not len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df['occ_count'] = 0
+
+
+        # 整理側邊欄
+        taxon_rows = []
+        taxon_groupby = taxon_result_df.groupby('matched_col')['val'].nunique()
+        for tt in taxon_groupby.index:
+            taxon_rows.append({
+                'title': map_occurrence[tt],
+                'total_count': taxon_groupby[tt],
+                'key': tt
+            })
+
+        taxon_result_df = taxon_result_df.reset_index(drop=True)
+        taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','col_count','occ_count'])]
+        if len(taxon_result_df_duplicated):
+            taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
+            taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
+
+        taxon_card_len = len(taxon_result_df)
+
+        taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
+        taxon_result_df['val'] = taxon_result_df['formatted_name']
+        taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+        taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
+        taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
+        taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
+        taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
+        taxon_result_df = taxon_result_df.replace({np.nan: ''})
+
+        # 照片
+        # taxon_result_df['images'] = ''
+        taxon_result_df = taxon_result_df.to_dict('records')
+        taxon_result_dict = []
+        for tr in taxon_result_df:
+            if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+                url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+                r = requests.get(url)
+                img = r.json()
+                images = []
+                for ii in img:
+                    foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                    images.append(foto)
+                if images:
+                    tr['images'] = images[0]
+                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
+                r = requests.get(url)
+                data = r.json()
+                if data:
+                    if data.get('tid'):
+                        tr['taieol_id'] = data.get('tid')
+            taxon_result_dict.append(tr)
+                # taxon_result_df.loc[i,'images'] = json.dumps(images)
+            
 
         # news
         news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
@@ -1074,8 +1199,11 @@ def search_full(request):
         
         occurrence_more = True if occ_card_len > 9 else False
         collection_more = True if col_card_len > 9 else False
+        taxon_more = True if taxon_card_len > 4 else False
+
 
         response = {
+            'taxon': {'rows': taxon_rows, 'count': taxon_card_len, 'card': taxon_result_dict,'more':taxon_more},
             'keyword': keyword,
             'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occ_result_df.to_dict('records'), 'more': occurrence_more},
             'collection': {'rows': collection_rows, 'count': c_collection, 'card': col_result_df.to_dict('records'), 'more': collection_more},
@@ -1086,6 +1214,7 @@ def search_full(request):
             }
     else:
         response = {
+            'taxon': {'count': 0},
             'keyword': keyword,
             'occurrence': {'count': 0},
             'collection': {'count': 0},
@@ -1265,6 +1394,7 @@ def get_more_docs(request):
 
 def get_focus_cards(request):
     if request.method == 'POST':
+        # print(request.POST)
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
@@ -1355,6 +1485,276 @@ def get_focus_cards(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
+def get_focus_cards_taxon(request):
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '')
+        record_type = request.POST.get('record_type', '')
+        key = request.POST.get('key', '')
+        
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+        keyword_reg = get_variants(keyword_reg)
+        q = f'{key}:/.*{keyword_reg}.*/' 
+
+        title_prefix = '物種 > '
+
+        map_dict = map_occurrence # occ或col沒有差別
+
+        query = {
+            "query": '',
+            "filter": ['recordType:col'],
+            "limit": 0,
+            "facet": {},
+            "sort":  "scientificName asc"
+            }
+
+        facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
+        for i in facet_list['facet']:
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        query.update(facet_list)
+
+        query.update({'query': q})
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+        facets.pop('count', None)
+
+        taxon_result = []
+        for i in facets:
+            if i == key:
+                x = facets[i]
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        # 物種整理
+        taxon_result_df = pd.DataFrame(taxon_result)
+
+        # occurrence
+        query.pop('filter', None)
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+        facets.pop('count', None)
+        
+        taxon_result = []
+        for i in facets:
+            if i == key:
+                x = facets[i]
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+
+        # 物種整理
+        taxon_occ_result_df = pd.DataFrame(taxon_result)
+
+        # 這邊要把兩種類型的資料加在一起
+        taxon_occ_result_df = taxon_occ_result_df.rename(columns={'count': 'occ_count'})
+        taxon_result_df = taxon_result_df.rename(columns={'count': 'col_count'})
+
+        if len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df.merge(taxon_result_df,how='left')
+        elif len(taxon_occ_result_df) and not len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df
+            taxon_result_df['col_count'] = 0
+        elif not len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df['occ_count'] = 0
+
+
+        taxon_card_len = len(taxon_result_df)
+        if taxon_card_len:
+            taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
+            taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+            taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
+            taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
+            taxon_result_df = taxon_result_df.replace({np.nan: ''})
+            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
+
+        # 照片
+        taxon_result_df = taxon_result_df.to_dict('records')
+        taxon_result_dict = []
+        for tr in taxon_result_df:
+            if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+                url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+                r = requests.get(url)
+                img = r.json()
+                images = []
+                for ii in img:
+                    foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                    images.append(foto)
+                if images:
+                    tr['images'] = images[0]
+                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
+                r = requests.get(url)
+                data = r.json()
+                if data:
+                    if data.get('tid'):
+                        tr['taieol_id'] = data.get('tid')
+            taxon_result_dict.append(tr)
+        
+        response = {
+            'title': f"{title_prefix}{map_dict[key]}",
+            'total_count': taxon_card_len,
+            'item_class': f"item_{record_type}_{key}",
+            'card_class': f"{record_type}-{key}-card",
+            'data': taxon_result_df,
+            'has_more': True if taxon_card_len > 4 else False
+        }
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
+
+
+def get_more_cards_taxon(request):
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '')
+        card_class = request.POST.get('card_class', '')
+        is_sub = request.POST.get('is_sub', '')
+        offset = request.POST.get('offset', '')
+        offset = int(offset) if offset else offset
+        key = card_class.split('-')[1]
+
+        query = {
+            "query": '',
+            "limit": 0,
+            "filter": ['recordType:col'],
+            "facet": {},
+            "sort":  "scientificName asc"
+            }        
+
+        # taxon 跟 occ 都算在這裡
+        facet_list = occ_facets
+        map_dict = map_occurrence
+
+        keyword_reg = ''
+        q = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+        keyword_reg = get_variants(keyword_reg)
+        
+        if is_sub == 'true':
+            facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
+
+        for i in facet_list['facet']:
+            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+
+        query.update(facet_list)
+        query.update({'query': q[:-4]})
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+        facets.pop('count', None)      
+
+        taxon_result = []
+        if is_sub == 'false':
+            for i in facets:
+                x = facets[i]
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        else:
+            x = facets[key]
+            for k in x['buckets']:
+                bucket = k['taxonID']['buckets']
+                taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+        taxon_result_df = pd.DataFrame(taxon_result)
+
+        # occurrence
+        query.pop('filter', None)
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+        facets.pop('count', None)
+
+        taxon_result = []
+        if is_sub == 'false':
+            for i in facets:
+                x = facets[i]
+                for k in x['buckets']:
+                    bucket = k['taxonID']['buckets']
+                    taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+        else:
+            x = facets[key]
+            for k in x['buckets']:
+                bucket = k['taxonID']['buckets']
+                taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+
+        taxon_occ_result_df = pd.DataFrame(taxon_result)
+
+        # 這邊要把兩種類型的資料加在一起
+        taxon_occ_result_df = taxon_occ_result_df.rename(columns={'count': 'occ_count'})
+        taxon_result_df = taxon_result_df.rename(columns={'count': 'col_count'})
+
+        if len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df.merge(taxon_result_df,how='left')
+        elif len(taxon_occ_result_df) and not len(taxon_result_df):
+            taxon_result_df = taxon_occ_result_df
+            taxon_result_df['col_count'] = 0
+        elif not len(taxon_occ_result_df) and len(taxon_result_df):
+            taxon_result_df['occ_count'] = 0
+
+        taxon_result_df = taxon_result_df.reset_index(drop=True)
+        if is_sub == 'false':
+            taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','col_count','occ_count'])]
+            if len(taxon_result_df_duplicated):
+                taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
+                taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
+
+
+        taxon_card_len = len(taxon_result_df[offset:])
+        if taxon_card_len:
+            taxon_result_df = pd.merge(taxon_result_df[offset:offset+4],taicol,left_on='val',right_on='taxonID')
+            taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+            taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
+            taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
+            taxon_result_df = taxon_result_df.replace({np.nan: ''})
+            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
+
+        # 照片
+        taxon_result_df = taxon_result_df.to_dict('records')
+        taxon_result_dict = []
+        for tr in taxon_result_df:
+            if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+                url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+                r = requests.get(url)
+                img = r.json()
+                images = []
+                for ii in img:
+                    foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                    images.append(foto)
+                if images:
+                    tr['images'] = images[0]
+                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
+                r = requests.get(url)
+                data = r.json()
+                if data:
+                    if data.get('tid'):
+                        tr['taieol_id'] = data.get('tid')
+            taxon_result_dict.append(tr)
+        
+
+
+        response = {
+            'data': taxon_result_dict,
+            'has_more': True if taxon_card_len > 4 else False
+        }
+
+        return HttpResponse(json.dumps(response), content_type='application/json')
+
+
+
 def get_more_cards(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
@@ -1375,7 +1775,7 @@ def get_more_cards(request):
         if card_class.startswith('.col'):
             facet_list = col_facets
             map_dict = map_collection
-        elif card_class.startswith('.occ'):
+        else: # taxon 跟 occ 都算在這裡
             facet_list = occ_facets
             map_dict = map_occurrence
             query.pop('filter', None)
@@ -1389,7 +1789,6 @@ def get_more_cards(request):
         
         if is_sub == 'true':
             facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
-            # query.update({'query': f'{key}:/.*{keyword_reg}.*/'})
 
         for i in facet_list['facet']:
             q += f'{i}:/.*{keyword_reg}.*/ OR ' 
@@ -1411,12 +1810,16 @@ def get_more_cards(request):
                 x = facets[i]
                 for k in x['buckets']:
                     bucket = k['taxonID']['buckets']
-                    if i == 'eventDate':
-                        if f_date := convert_date(k['val']):
-                            f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                            result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                    if card_class.startswith('.taxon'):
+                        if i in taxon_cols:
+                            result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
                     else:
-                        result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                        if i == 'eventDate':
+                            if f_date := convert_date(k['val']):
+                                f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                                result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                        else:
+                            result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             result_df = pd.DataFrame(result)
             result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
             if len(result_df_duplicated):
