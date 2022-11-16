@@ -44,9 +44,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, F, DateTimeField, ExpressionWrapper
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key, create_query_display
+from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list
 from os.path import exists
+import math
 
+import pandas as pd
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -114,6 +116,499 @@ def update_feedback(request):
         return JsonResponse({'status': 'success'}, safe=False)
 
 
+def change_manager_page(request):
+    page = request.GET.get('page')
+    menu = request.GET.get('menu')
+    offset = (int(page)-1) * 10
+    response = {}
+    # print(page)
+    data = []
+    if menu == 'notification':
+        # notis = []
+        notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
+        # results = ""
+        for n in notifications:
+            created = n.created + timedelta(hours=8)
+            content = '<p>' + n.get_type_display().replace('0000', n.content)+ '</p>'
+            if not n.is_read:
+                content = '<div class="noti-dottt"></div>' + content
+            data.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 
+                        'content': content})
+        response['header'] = """
+                        <tr>
+                    <td>日期</td>
+                    <td>內容</td>
+                </tr>"""
+
+        total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
+
+    elif menu == 'download_taxon':
+        response['header'] = """
+                                <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:20%;">查詢條件</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
+                        </tr>
+                """
+        # taxon = []
+        for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon')[offset:offset+10]:
+            if t.modified:
+                date = t.modified + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = ''
+
+            # 條件搜尋
+            search_dict = dict(parse.parse_qsl(t.query))
+            query = create_query_display(search_dict)
+            link = ''
+            if t.status == 'pass':
+                link = f'<a target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.csv">下載</a>'
+
+            data.append({
+                'id': f"#{t.id}",
+                'query_id': t.query_id,
+                'date':  date,
+                'query':   query,
+                'status': t.get_status_display(),
+                'link': link
+            })
+
+        total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
+    elif menu == 'sensitive':
+        response['header'] = """
+                                <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:15%;">查詢條件</td>
+                            <td style="width:15%;">審查意見</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
+                        </tr>
+        """
+        for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[offset:offset+10]:
+            if s.modified:
+                date = s.modified + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = ''
+
+            # 條件搜尋
+            search_dict = dict(parse.parse_qsl(s.query))
+            query = create_query_display(search_dict)
+
+            # 審查意見
+            comment = []
+
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+                if sdr.partner:
+                    partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                else:
+                    partner_name = 'TBIA聯盟'
+                comment.append(f"""<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else "" }<br><b>審查結果：</b>{sdr.get_status_display()}""")
+
+            link = ''
+            if s.status == 'pass':
+                link = f'<a target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.csv">下載</a>'
+
+            data.append({
+                'id': f'#{s.id}',
+                'query_id': s.query_id,
+                'date':  date,
+                'query':   query,
+                'comment': '<hr>'.join(comment) if comment else '',
+                'status': s.get_status_display(),
+                'link': link
+            })
+        total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
+    elif menu == 'download':
+        response['header'] = """
+                                <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:20%;">查詢條件</td>
+                            <td style="width:5%;">狀態</td>
+                            <td style="width:5%;">檔案連結</td>
+                        </tr>
+        """
+        for r in SearchQuery.objects.filter(user_id=request.user.id,type='record')[offset:offset+10]:
+            if r.modified:
+                date = r.modified + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = ''
+
+            # 整理查詢條件
+            # 全站搜尋
+            query = ''
+            if 'from_full=yes' in r.query:
+                search_str = dict(parse.parse_qsl(r.query)).get('search_str')
+                search_dict = dict(parse.parse_qsl(search_str))
+                # print(search_dict)
+
+                query += f"<b>關鍵字</b>：{search_dict['keyword']}"
+                
+                if search_dict.get('record_type') == 'occ':
+                    map_dict = map_occurrence
+                else:
+                    map_dict = map_collection
+                key = map_dict.get(search_dict['key'])
+                query += f"<br><b>{key}</b>：{search_dict['value']}"
+                query += f"<br><b>學名</b>：{search_dict['scientificName']}"
+            else:
+            # 條件搜尋
+                search_dict = dict(parse.parse_qsl(r.query))
+                query = create_query_display(search_dict)
+
+
+            link = ''
+            if r.status == 'pass':
+                link = f'<a target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.csv">下載</a>'
+
+
+            data.append({
+                'id': f'#{r.id}',
+                'query_id': r.query_id,
+                'date':  date,
+                'query':   query,
+                'status': r.get_status_display(),
+                'link': link
+            })
+
+        total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
+
+    elif menu == 'feedback':
+        if request.GET.get('from') == 'partner':
+            response['header'] = """<tr>
+                            <td>編號</td>
+                            <td>時間</td>
+                            <td>Email</td>
+                            <td>類型</td>
+                            <td>內容</td>
+                            <td style="width: 15%">已回覆</td>
+                        </tr> 
+            """
+            for f in Feedback.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
+                if f.created:
+                    date = f.created + timedelta(hours=8)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    date = ''
+
+                if f.is_replied:
+                    a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
+                else:
+                    a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
+                
+                data.append({
+                    'id': f"#{f.id}",
+                    'created': date,
+                    'email': f.email,
+                    'type': f.get_type_display(),
+                    'content': f.content,
+                    'a': a
+                })
+
+            total_page = math.ceil(Feedback.objects.filter(partner_id=request.user.partner.id).count() / 10)
+        else:
+            response['header'] = """
+                        <tr>
+                            <td>編號</td>
+                            <td>單位</td>
+                            <td>時間</td>
+                            <td>Email</td>
+                            <td>類型</td>
+                            <td>內容</td>
+                            <td>已回覆</td>
+                        </tr> 
+            """
+            for f in Feedback.objects.all()[offset:offset+10]:
+                if f.created:
+                    date = f.created + timedelta(hours=8)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    date = ''
+
+                if f.is_replied:
+                    a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
+                else:
+                    a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
+                
+                if f.partner:
+                    if f.partner.title =='營建署城鄉發展分署':
+                        partner_title = '內政部營建署城鄉發展分署'
+                    else:
+                        partner_title = f.partner.breadtitle
+                else:
+                    partner_title = 'TBIA聯盟'
+
+                if f.partner:
+                    if f.is_replied:
+                        a = '是'
+                    else:
+                        a = '否'
+                else:
+                    if f.is_replied:
+                        a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
+                    else:
+                        a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
+
+                data.append({
+                    'id': f"#{f.id}",
+                    'partner': partner_title,
+                    'created': date,
+                    'email': f.email,
+                    'type': f.get_type_display(),
+                    'content': f.content,
+                    'a': a
+                })
+
+            total_page = math.ceil(Feedback.objects.all().count() / 10)
+
+    elif menu == 'track':
+        response['header'] = '''
+                                <tr>
+                            <td style="width:5%;">下載編號</td>
+                            <td style="width:10%;">檔案編號</td>
+                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:15%;">查詢條件</td>
+                            <td style="width:15%;">審查意見</td>
+                            <td style="width:5%;">狀態</td>
+                        </tr>'''
+        for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[offset:offset+10]:
+            if s.modified:
+                date = s.modified + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = ''
+
+            # 條件搜尋
+            search_dict = dict(parse.parse_qsl(s.query))
+            query = create_query_display(search_dict)
+
+            # 審查意見
+            comment = []
+
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+                if sdr.partner:
+                    partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                else:
+                    partner_name = 'TBIA聯盟'
+                comment.append(f"<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審查結果：</b>{sdr.get_status_display()}")
+
+            data.append({
+                'id': f"#{s.id}",
+                'query_id': s.query_id,
+                'date':  date,
+                'query':   query,
+                'comment': '<hr>'.join(comment) if comment else '',
+                'status': s.get_status_display(),
+            })
+
+        total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
+
+    elif menu == 'sensitive_apply':
+        response['header'] = """<tr>
+                            <td>編號</td>
+                            <td>申請時間</td>
+                            <td>搜尋條件</td>
+                            <td>狀態</td>
+                            <td></td>
+                        </tr> """
+        if request.GET.get('from') == 'partner':
+            for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
+                created = sdr.created + timedelta(hours=8)
+                created = created.strftime('%Y-%m-%d %H:%M:%S')
+
+                # 整理查詢條件
+                if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+                    r = SearchQuery.objects.get(query_id=sdr.query_id)
+                    search_dict = dict(parse.parse_qsl(r.query))
+                    query = create_query_display(search_dict)
+                                
+                function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }'"
+
+                a = f'<a style="cursor: pointer" onclick="showRequest({function_par})">查看</a>'
+                data.append({
+                    'id': f'#{sdr.id}',
+                    #'query_id': r.query_id,
+                    'created':  created,
+                    'query':   query,
+                    'status': sdr.get_status_display(),
+                    'a': a
+                })
+
+            total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
+
+        else:
+            for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[offset:offset+10]:
+                created = sdr.created + timedelta(hours=8)
+                created = created.strftime('%Y-%m-%d %H:%M:%S')
+
+                # 整理查詢條件
+                if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+                    r = SearchQuery.objects.get(query_id=sdr.query_id)
+                    search_dict = dict(parse.parse_qsl(r.query))
+                    query = create_query_display(search_dict)
+                
+                if sdr.is_transferred:
+                    status = '已轉交單位審核'
+                else:
+                    status = sdr.get_status_display()
+                
+                function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
+
+                a = f'<a style="cursor: pointer" onclick="showRequest({function_par})">查看</a>'
+                data.append({
+                    'id': f'#{sdr.id}',
+                    #'query_id': r.query_id,
+                    'created':  created,
+                    'query':   query,
+                    'status': status,
+                    'a': a
+                })
+
+            total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
+    elif menu == 'account':
+        response['header'] = '''
+                                <tr>
+                            <td style="width: 8%">編號</td>
+                            <td style="width: 25%">姓名</td>
+                            <td style="width: 20%">單位</td>
+                            <td style="width: 20%">權限</td>
+                            <td style="width: 15%">狀態</td>
+                            <td></td>
+                        </tr> 
+        '''
+        for a in User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[offset:offset+10]:
+            if a.partner:
+                if a.partner.title =='營建署城鄉發展分署':
+                    partner_title = '內政部營建署城鄉發展分署'
+                else:
+                    partner_title = a.partner.breadtitle
+            else:
+                partner_title = ''
+
+            if a.is_partner_admin:
+                select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
+            else:
+                select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
+
+            status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
+            
+            for s in User._meta.get_field('status').choices[:-1]:
+                if s[0] == a.status:
+                    status += f'<option value="{ s[0] }" selected>{ s[1] }</option>'
+                else:
+                    status += f'<option value="{ s[0] }">{ s[1] }</option>'
+
+            status +=  '</select>'
+
+            data.append({
+                'id': f"#{a.id}",
+                'name': f"{a.name} ({a.email})",
+                'partner_title': partner_title,
+                'select': select,
+                'status': status,
+                'a': f'<button class="search_btn save_btn" onclick="saveStatus({ a.id })" style="width: 100%">儲存</button>'
+                
+            })
+
+        total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
+    elif menu == 'news_apply':
+        response['header'] = '''
+                                <tr>
+                            <td style="width: 8%">編號</td>
+                            <td style="width: 18%">標題</td>
+                            <td style="width: 8%">類別</td>
+                            <td style="width: 20%">單位</td>
+                            <td style="width: 15%">申請者</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 8%">狀態</td>
+                            <td style="width: 8%"></td>
+                        </tr>'''
+        for n in News.objects.all()[offset:offset+10]:
+            if n.partner:
+                if n.partner.title =='營建署城鄉發展分署':
+                    partner_title = '內政部營建署城鄉發展分署'
+                else:
+                    partner_title = n.partner.breadtitle
+            else:
+                partner_title = ''
+            if n.modified:
+                modified = n.modified + timedelta(hours=8)
+                modified = modified.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                modified = ''
+
+            data.append({
+                'id': f'#{n.id}',
+                'a': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'type': n.get_type_display(),
+                'partner_title': partner_title,
+                'user': n.user.name,
+                'modified': modified,
+                'status': n.get_status_display(),
+                'edit': f'<a href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
+            })
+        total_page = math.ceil(News.objects.all().count() / 10)
+    elif menu == 'news':
+        response['header'] = '''
+                                <tr>
+                            <td style="width: 5%"></td>
+                            <td style="width: 20%">標題</td>
+                            <td style="width: 12%">類別</td>
+                            <td style="width: 15%">申請者</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 12%">狀態</td>
+                            <td style="width: 12%"></td> 
+                        </tr>
+        ''' 
+        if request.user.is_partner_admin:
+            # 如果是單位管理者 -> 回傳所有
+            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-modified')
+        else:
+            # 如果是單位帳號 -> 只回傳自己申請的
+            news_list = News.objects.filter(user_id=request.user).order_by('-modified')
+        total_page = math.ceil(news_list.count()/10)
+
+        for n in news_list[offset:offset+10]:
+            if n.modified:
+                modified = n.modified + timedelta(hours=8)
+                modified = modified.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                modified = ''
+            
+            if n.status == 'pending':
+                a = f'<a href="/withdraw_news?news_id={ n.id }">撤回申請</a>'
+            else:
+                a = f'<a href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
+
+            data.append({
+                'id': f"#{n.id}",
+                'title': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'type': n.get_type_display(),
+                'user': n.user.name,
+                'modified': modified,
+                'status': n.get_status_display(),
+                'a': a
+            })
+
+    df = pd.DataFrame(data)
+    html_table = df.to_html(index=False,escape=False)
+    page_list = get_page_list(int(page), total_page)
+    response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
+    response['page_list'] = page_list
+    response['total_page'] = total_page
+    response['current_page'] = int(page)
+
+    return HttpResponse(json.dumps(response), content_type='application/json')
+
 
 def manager(request):
     menu = request.GET.get('menu','info')
@@ -121,10 +616,24 @@ def manager(request):
     # pr = []
     # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
-    notis = Notification.objects.filter(user_id=request.user.id)
+    # notis = Notification.objects.filter(user_id=request.user.id)
+    
+    notis = []
+    notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
+    # results = ""
+    for n in notifications:
+        created = n.created + timedelta(hours=8)
+        content = n.get_type_display().replace('0000', n.content)
+        notis.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 'id': n.id,
+                    'content': content, 'is_read': n.is_read})
+
+    n_total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
+    n_page_list = get_page_list(1, n_total_page)
+    # print(page_list)
+
     # TODO 未來要考慮檔案是否過期
     record = []
-    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record'):
+    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record')[:10]:
         if r.modified:
             date = r.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -158,11 +667,12 @@ def manager(request):
             'query':   query,
             'status': r.get_status_display()
         })
+    r_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
+    r_page_list = get_page_list(1, r_total_page)
 
-
-
+    # print(r_total_page, r_page_list)
     taxon = []
-    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon'):
+    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon')[:10]:
         if t.modified:
             date = t.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -181,10 +691,12 @@ def manager(request):
             'status': t.get_status_display()
         })
 
+    t_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count()/10)
+    t_page_list = get_page_list(1, t_total_page)
 
     sensitive = []
 
-    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive'):
+    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[:10]:
         if s.modified:
             date = s.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -224,8 +736,13 @@ def manager(request):
             'comment': '<hr>'.join(comment) if comment else ''
         })
 
+    s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
+    s_page_list = get_page_list(1, s_total_page)
+
     return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis,
-    'record': record, 'taxon': taxon, 'sensitive': sensitive})
+    'record': record, 'taxon': taxon, 'sensitive': sensitive, 'n_page_list': n_page_list, 'n_total_page': n_total_page,
+    't_page_list': t_page_list, 't_total_page': t_total_page, 's_page_list': s_page_list, 's_total_page': s_total_page,
+    'r_page_list': r_page_list, 'r_total_page': r_total_page})
 
 
 def update_personal_info(request):
@@ -573,8 +1090,19 @@ def partner_news(request):
         else:
             # 如果是單位帳號 -> 只回傳自己申請的
             news_list = News.objects.filter(user_id=current_user).order_by('-modified')
+        n_total_page = math.ceil(news_list.count()/10)
+        n_page_list = get_page_list(1, n_total_page)
 
-    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n, 'news_list': news_list})
+        news_list = news_list[:10]
+        news_list.annotate(
+                modified_8=ExpressionWrapper(
+                    F('modified') + timedelta(hours=8),
+                    output_field=DateTimeField()
+                ))
+
+
+    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n, 'news_list': news_list,
+                'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def partner_info(request):
@@ -597,14 +1125,16 @@ def partner_info(request):
 
             partner_members = User.objects.filter(partner_id=current_user.partner.id).exclude(status='withdraw').exclude(id=current_user.id)
             status_choice = User._meta.get_field('status').choices[:-1]
-            feedback = Feedback.objects.filter(partner_id=current_user.partner.id).annotate(
+            feedback = Feedback.objects.filter(partner_id=current_user.partner.id)[:10].annotate(
                 created_8=ExpressionWrapper(
                     F('created') + timedelta(hours=8),
                     output_field=DateTimeField()
                 ))
-            
+            f_total_page = math.ceil(Feedback.objects.filter(partner_id=current_user.partner.id).count() / 10)
+            f_page_list = get_page_list(1, f_total_page)
+
     sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id):
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id)[:10]:
         created = sdr.created + timedelta(hours=8)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -622,8 +1152,13 @@ def partner_info(request):
             'status': sdr.get_status_display()
         })
 
+    s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
+    s_page_list = get_page_list(1, s_total_page)
+
+
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
-                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive})
+                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive,
+                                    'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list})
 
 
 def get_request_detail(request):
@@ -742,14 +1277,22 @@ def system_news(request):
     form = NewsForm()
     # if current_a:
     #     form.fields["content"].initial = current_a.content
-    news_list = News.objects.all().order_by('-modified')
+    news_list = News.objects.all().order_by('-modified')[:10].annotate(
+                modified_8=ExpressionWrapper(
+                    F('modified') + timedelta(hours=8),
+                    output_field=DateTimeField()
+                ))
+    n_total_page = math.ceil(News.objects.all().count()/10)
+    n_page_list = get_page_list(1, n_total_page)
+
     status_list = News.status.field.choices
     n = []
     if news_id:= request.GET.get('news_id'):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
-    return render(request, 'manager/system/news.html', {'form':form, 'menu': menu, 'news_list': news_list, 'status_list': status_list, 'n': n})
+    return render(request, 'manager/system/news.html', {'form':form, 'menu': menu, 'news_list': news_list, 'status_list': status_list, 'n': n,
+    'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def system_info(request):
@@ -760,16 +1303,23 @@ def system_info(request):
 
     content = About.objects.all().first().content
     menu = request.GET.get('menu','list')
-    partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')
+    partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[:10]
+
+    a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
+    a_page_list = get_page_list(1, a_total_page)
+
+
     status_choice = User._meta.get_field('status').choices[:-1]
-    feedback = Feedback.objects.all().annotate(
+    feedback = Feedback.objects.all()[:10].annotate(
         created_8=ExpressionWrapper(
             F('created') + timedelta(hours=8),
             output_field=DateTimeField()
         ))
+    f_total_page = math.ceil(Feedback.objects.all().count() / 10)
+    f_page_list = get_page_list(1, f_total_page)
 
     sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=None):
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[:10]:
         created = sdr.created + timedelta(hours=8)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -788,8 +1338,12 @@ def system_info(request):
             'is_transferred': sdr.is_transferred
         })
 
+    s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
+    s_page_list = get_page_list(1, s_total_page)
+
+
     sensitive_track = []
-    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)):
+    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[:10]:
         if s.modified:
             date = s.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -827,9 +1381,14 @@ def system_info(request):
             'comment': '<hr>'.join(comment) if comment else ''
         })
 
+    sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
+    sr_page_list = get_page_list(1, sr_total_page)
+
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
                         'system_admin': system_admin, 'partner_members': partner_members,
-                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track})
+                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track,
+                        'f_page_list': f_page_list, 'f_total_page': f_total_page, 'sr_page_list': sr_page_list, 'sr_total_page': sr_total_page,
+                        's_page_list': s_page_list, 's_total_page': s_total_page,'a_page_list': a_page_list, 'a_total_page': a_total_page,})
 
 
 def system_resource(request):

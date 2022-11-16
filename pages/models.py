@@ -35,9 +35,9 @@ class News(models.Model):
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
     # attachments = models.TextField( blank=True, null=True)
-    created = models.DateField(auto_now_add=True)
-    modified = models.DateField(auto_now_add=True)
-    publish_date = models.DateField( null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now_add=True)
+    publish_date = models.DateTimeField( null=True, blank=True)
     class Meta:
         db_table = 'news'
 

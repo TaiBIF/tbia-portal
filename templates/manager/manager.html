@@ -2,6 +2,58 @@
 {% block style %}
 <style>
 
+
+    .download_table tr:not(:first-child) td:nth-child(2) {
+        word-wrap: break-word;
+        word-break: break-all;
+        white-space: normal;
+    }
+    
+    .download_table tr:not(:first-child) td:nth-child(4) {
+        text-align: left
+    }
+
+    .download_taxon_table tr:not(:first-child) td:nth-child(2) {
+        word-wrap: break-word;
+        word-break: break-all;
+        white-space: normal;
+    }
+    
+    .download_taxon_table tr:not(:first-child) td:nth-child(4) {
+        text-align: left
+    }
+
+
+    .sensitive_table tr:not(:first-child) td:nth-child(2) {
+        word-wrap: break-word;
+        word-break: break-all;
+        white-space: normal;
+    }
+    
+    .sensitive_table tr:not(:first-child) td:nth-child(4) {
+        text-align: left
+    }
+
+    .sensitive_table tr:not(:first-child) td:nth-child(5) {
+        text-align: left
+    }
+
+
+    .notification_table tr:not(:first-child) td:nth-child(2n){
+       display: flex
+    }
+
+
+    .read_btn {
+        color: #76A578;
+        background: none;
+        font-size: 16px;
+    }
+
+    .read_btn:hover {
+        color: #EAD065
+    }
+
    td hr {
         border-top: 1px dashed grey;
       }
@@ -59,11 +111,21 @@
     }
 
     .dottt{
+        
         width: 10px;
         height: 10px;
         border-radius:50%;
         background:#76A578;
         margin: auto 10px auto 0;
+         
+    }
+
+    .noti-dottt{
+        width: 8px;
+        height: 8px;
+        border-radius:50%;
+        background:#C65454;
+        margin: 0 10px auto 0;
     }
 
     input {
@@ -265,11 +327,13 @@
             </div>
         </div>
 
+
+
         <div class="rightbox_content download" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>資料下載</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 download_table">
                         <tr>
                             <td style="width:5%;">下載編號</td>
                             <td style="width:10%;">檔案編號</td>
@@ -281,9 +345,9 @@
                         {% for r in record %}
                         <tr>
                             <td>{{ r.id }}</td>
-                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.query_id }}</td>
                             <td>{{ r.date|default_if_none:'' }}</td>
-                            <td style="text-align: left">{{ r.query|safe }}</td>
+                            <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
                                 <a target="_blank" href="/media/download/record/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
@@ -293,6 +357,32 @@
                         {% endfor %}
                     </table>						
                 </div>
+                <div class="page_number">
+					{% if r_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'download')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in r_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'download')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'download')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in r_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'download')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ r_total_page }}, 'download')" class="num">{{ r_total_page }}</a>
+                    {% endif %}
+				</div>
             </div>
         </div>
 
@@ -301,7 +391,7 @@
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>名錄下載</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 download_taxon_table">
                         <tr>
                             <td style="width:5%;">下載編號</td>
                             <td style="width:10%;">檔案編號</td>
@@ -313,9 +403,9 @@
                         {% for r in taxon %}
                         <tr>
                             <td>{{ r.id }}</td>
-                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.query_id }}</td>
                             <td>{{ r.date|default_if_none:'' }}</td>
-                            <td style="text-align: left">{{ r.query|safe }}</td>
+                            <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
                                 <a target="_blank" href="/media/download/taxon/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
@@ -325,6 +415,32 @@
                         {% endfor %}
                     </table>						
                 </div>
+                <div class="page_number">
+					{% if t_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'download_taxon')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in t_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'download_taxon')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'download_taxon')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in t_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'download_taxon')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ t_total_page }}, 'download_taxon')" class="num">{{ t_total_page }}</a>
+                    {% endif %}
+				</div>
             </div>
         </div>
 
@@ -332,7 +448,7 @@
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_table">
                         <tr>
                             <td style="width:5%;">下載編號</td>
                             <td style="width:10%;">檔案編號</td>
@@ -345,10 +461,10 @@
                         {% for r in sensitive %}
                         <tr>
                             <td>{{ r.id }}</td>
-                            <td style=" word-wrap: break-word;word-break: break-all;white-space: normal;">{{ r.query_id }}</td>
+                            <td>{{ r.query_id }}</td>
                             <td>{{ r.date|default_if_none:'' }}</td>
-                            <td style="text-align: left">{{ r.query|safe }}</td>
-                            <td style="text-align: left">{{ r.comment|safe }}</td>
+                            <td>{{ r.query|safe }}</td>
+                            <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
                                 <a target="_blank" href="/media/download/sensitive/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
@@ -358,26 +474,91 @@
                         {% endfor %}
                     </table>						
                 </div>
+                <div class="page_number">
+					{% if s_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'sensitive')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in s_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in s_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'sensitive')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ s_total_page }}, 'sensitive')" class="num">{{ s_total_page }}</a>
+                    {% endif %}
+				</div>
             </div>
         </div>
 
         <div class="rightbox_content notification" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>通知</div>
+                <div style="display: flex; justify-content: flex-end">
+                <button class="read_btn" onclick="updateIsRead()">全部已讀</button>
+                </div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1  notification_table">
                         <tr>
                             <td>日期</td>
                             <td>內容</td>
                         </tr>
                         {% for n in notis %}
                         <tr>
-                            <td>{{ n.created }}</td>
-                            <td>{{ n.content }}</td>
+                            <td>
+                                {{ n.created }}
+                            </td>
+                            <td>                                
+                                {% if not n.is_read %}
+                                <div class="noti-dottt"></div>
+                                {% endif %}
+                                <p>{{ n.content }}</p>
+                            </td>
                         </tr>
                         {% endfor %}
-                    </table>						
+                    </table>					
                 </div>
+
+                <!--目前位置給class>now-->
+                
+				<div class="page_number">
+					{% if n_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'notification')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in n_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'notification')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'notification')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in n_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'notification')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ n_total_page }}, 'notification')" class="num">{{ n_total_page }}</a>
+                    {% endif %}
+				</div>
             </div>
         </div>
         {% else %}
@@ -393,7 +574,72 @@
   {% block script %}
   <script>
 
+    function changePage(page, menu){
+        $.ajax({
+            url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
+            type: 'GET',
+            success: function(response){
+                console.log(response)
+                // 修改表格內容
 
+                $(`.${menu}_table`).html(`
+                ${response.header}
+                ${response.data}
+                `)
+
+                $(`.${menu}_table`).parent().next('.page_number').remove()
+
+                // 修改頁碼
+                if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                    $(`.${menu}_table`).parent().after(
+                      `<div class="page_number">
+                        <a href="javascript:;" onclick="changePage(1, '${menu}')" class="num">1</a>
+                        <a href="javascript:;" class="pre">上一頁</a>  
+                        <a href="javascript:;" class="next">下一頁</a>
+                        <a href="javascript:;" onclick="changePage(${response.total_page}, '${menu}')" class="num">${response.total_page}</a>
+                      </div>`)}		
+                  
+                      if (response.page_list.includes(response.current_page-1)){
+                        $('.pre').attr('onclick',`changePage(${response.current_page-1}, '${menu}')`);
+                      } else {
+                        $('.pre').css('pointer-events','none')
+                      }
+
+
+                  let html = ''
+                  for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page){
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num now">${response.page_list[i]}</a>  `;
+                    } else {
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num">${response.page_list[i]}</a>  `
+                    }
+                  }
+
+                  $('.pre').after(html)
+          
+                  // 如果有下一頁，改掉next的onclick
+                  if (response.current_page < response.total_page){
+                    $('.next').attr('onclick',`changePage(${response.current_page+1}, '${menu}')`);
+                  } else {
+                    $('.next').css('pointer-events','none')
+                  }
+                  
+            }
+        });
+
+    }
+
+
+    function updateIsRead(){
+        $.ajax({
+          url: "{% url 'update_is_read' %}",
+          type: 'GET',
+          success: function(){
+            $('.message_list li .dottt, .num_message, .noti-dottt').hide()
+          }
+         });
+      }
+  
     function withdrawRequest(user_id){
 
         $.ajax({
@@ -526,3 +772,5 @@
     
   </script>
   {% endblock script %}
+
+

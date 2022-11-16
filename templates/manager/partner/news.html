@@ -358,7 +358,7 @@
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>審核狀態</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 news_table">
                         <tr>
                             <td style="width: 5%"></td>
                             <td style="width: 20%">標題</td>
@@ -374,7 +374,7 @@
                             <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
                             <td>{{ n.get_type_display }}</td>
                             <td>{{ n.user.name }}</td>
-                            <td>{{ n.modified|date:'Y-m-d'|default_if_none:'' }}</td>
+                            <td>{{ n.modified|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
                             <td>
                                 {{ n.get_status_display }}
                             </td>
@@ -390,6 +390,33 @@
                         {% endfor %}
                     </table>						
                 </div>
+                <div class="page_number">
+					{% if n_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'news')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in n_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'news')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'news')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in n_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'news')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ n_total_page }}, 'news')" class="num">{{ n_total_page }}</a>
+                    {% endif %}
+				</div>
+
             </div>
         </div>
 
@@ -406,6 +433,62 @@
 
   {% block script %}
   <script>
+
+
+    function changePage(page, menu){
+        $.ajax({
+            url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
+            type: 'GET',
+            success: function(response){
+                // 修改表格內容
+
+                $(`.${menu}_table`).html(`
+                ${response.header}
+                ${response.data}
+                `)
+
+                $(`.${menu}_table`).parent().next('.page_number').remove()
+
+                // 修改頁碼
+                if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                    $(`.${menu}_table`).parent().after(
+                      `<div class="page_number">
+                        <a href="javascript:;" onclick="changePage(1, '${menu}')" class="num">1</a>
+                        <a href="javascript:;" class="pre">上一頁</a>  
+                        <a href="javascript:;" class="next">下一頁</a>
+                        <a href="javascript:;" onclick="changePage(${response.total_page}, '${menu}')" class="num">${response.total_page}</a>
+                      </div>`)}		
+                  
+                      if (response.page_list.includes(response.current_page-1)){
+                        $('.pre').attr('onclick',`changePage(${response.current_page-1}, '${menu}')`);
+                      } else {
+                        $('.pre').css('pointer-events','none')
+                      }
+
+                  let html = ''
+                  for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page){
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num now">${response.page_list[i]}</a>  `;
+                    } else {
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num">${response.page_list[i]}</a>  `
+                    }
+                  }
+
+                  $('.pre').after(html)
+          
+                  // 如果有下一頁，改掉next的onclick
+                  if (response.current_page < response.total_page){
+                    $('.next').attr('onclick',`changePage(${response.current_page+1}, '${menu}')`);
+                  } else {
+                    $('.next').css('pointer-events','none')
+                  }
+                  
+            }
+        });
+
+    }
+
+
     $(document).ready(function () {
         $('label[for="id_content"]').html('')
 
