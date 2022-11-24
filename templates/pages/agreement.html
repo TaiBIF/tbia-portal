@@ -91,6 +91,7 @@
 						<br>					
 					</div>
 				</div>
+				{% if not request.GET.from == 'manager' %}
 				<div class="agreebox">
 					<input name="policy" type="checkbox">
 					<p>我已閱讀並同意以上協議</p>
@@ -98,6 +99,7 @@
 				<div class="bt_center">
 					<button onclick="">確認送出</button>
 				</div>
+				{% endif %}
 			</div>
 		</div>
 

@@ -119,11 +119,11 @@
             <div class="two_input">
               <div class="line_cneter">~</div>
               <div class="input_item">
-                <input name="start_date" id="start_date" type="text" placeholder="觀察紀錄日期（起）" />
+                <input name="start_date" id="start_date" type="text" placeholder="起始日期（YYYY-MM-DD）" />
                 <a onclick="$('#start_date').datepicker('show')" class="dateicon"></a>
               </div>
               <div class="input_item">
-                <input name="end_date" id="end_date" type="text" placeholder="觀察紀錄日期（迄）" value="" />
+                <input name="end_date" id="end_date" type="text" placeholder="結束日期（YYYY-MM-DD）" value="" />
                 <a onclick="$('#end_date').datepicker('show')" class="dateicon"></a>
               </div>
             </div>
@@ -663,6 +663,8 @@
         $('.record_table').append(
           `<tr>${tmp_td}</tr>`)
       }
+
+
   }
 
   function getRecordByURL(queryString,page) {
@@ -687,8 +689,6 @@
         $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
       } else {
         // 把之前的清掉
-
-
         setTable(response, queryString)
 
         // 欄位選項
@@ -747,6 +747,11 @@
           }
         }
     }
+
+      $([document.documentElement, document.body]).animate({
+        scrollTop: $(".sc_result").offset().top
+      }, 200);
+
     })
 
     .fail(function( xhr, status, errorThrown ) {
@@ -972,6 +977,11 @@ function submitSearch (page, from){
           }
         }
     }
+
+    $([document.documentElement, document.body]).animate({
+      scrollTop: $(".sc_result").offset().top
+    }, 200);
+
     })
 
     .fail(function( xhr, status, errorThrown ) {

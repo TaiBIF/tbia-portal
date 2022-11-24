@@ -1889,6 +1889,7 @@ def search_occurrence(request):
 
 def occurrence_detail(request, id):
     solr = SolrQuery('tbia_records')
+    logo = ''
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
     row = pd.DataFrame(req['solr_response']['response']['docs'])
@@ -1971,11 +1972,21 @@ def occurrence_detail(request, id):
                 path.append(current_str)
     path_str = ' > '.join(path)
 
-    return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str})
+    # logo
+    if group := row.get('group'):
+        if info := Partner.objects.filter(group=group[0]).values('info'):
+            info = info[0]
+            for i in info['info']:
+                if i.get('subtitle') == row.get('rightsHolder'):
+                    logo = i.get('logo')
+
+
+    return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
 def collection_detail(request, id):
     path_str = ''
+    logo = ''
     solr = SolrQuery('tbia_records')
     query_list = [('id', id), ('row',1)]
     req = solr.request(query_list)
@@ -2061,10 +2072,19 @@ def collection_detail(request, id):
                         current_str += ' ' + row.get(f"{r}_c")
                     path.append(current_str)
         path_str = ' > '.join(path)
+
+        # logo
+        if group := row.get('group'):
+            if info := Partner.objects.filter(group=group[0]).values('info'):
+                info = info[0]
+                for i in info['info']:
+                    if i.get('subtitle') == row.get('rightsHolder'):
+                        logo = i.get('logo')
+
     else:
         row = []
 
-    return render(request, 'pages/collection_detail.html', {'row': row, 'path_str': path_str})
+    return render(request, 'pages/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
 

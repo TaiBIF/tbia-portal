@@ -1,4 +1,3 @@
-from email import contentmanager
 from django.http import request, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from pages.models import *
@@ -58,7 +57,7 @@ def news(request):
     news_list = news.order_by('-publish_date')[:10]
     current_page = 0 / 10 + 1
     total_page = math.ceil(news.count() / 10)
-    page_list = get_page_list(current_page,total_page,3)
+    page_list = get_page_list(current_page,total_page)
 
 
     return render(request, 'pages/news.html', {'news_list': news_list, 'page_list': page_list,

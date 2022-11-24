@@ -39,7 +39,11 @@
       <div class="left_area">
           <div class="cont_padbox">
             <div class="logo_area">
-              <img src="image/logooth.svg" >
+              {% if logo and row.references %}
+              <img src="/static/image/partner/{{ logo }}" onclick="window.open('{{ row.references }}')" style="cursor:pointer">
+              {% elif logo %}
+              <img src="/static/image/partner/{{ logo }}" >
+              {% endif %}
             </div>
             <h2>中⽂名：{{ row.common_name_c }}</h2>
             <h2>學名：{{ row.formatted_name|safe }}</h2>
@@ -221,6 +225,7 @@
   }).addTo(map);
   L.marker(['{{ row.lat }}', '{{ row.lon }}'], {icon: redIcon}).addTo(map);
   {% endif %}
+
 </script>
 {% endblock script %}
 

@@ -287,8 +287,6 @@
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>申請成為夥伴帳號</div>
                     <ul class="edit-list">
-                        <li style="color: #C65454; font-size: 15px">*申請即代表您同意我們的<a class="checka"target="_blank" href="{% url 'agreement' %}">保密協議</a>
-                        </li>
                         <li>選擇所屬夥伴單位</li>
                         <li>
                             <form id="partnerForm">
@@ -313,6 +311,12 @@
                                 {% endfor %}
                                 </select>
                             </form>
+                        </li>
+                        <li style="color: #C65454; font-size: 15px">
+                            <div class="agreebox" style="justify-content: start;">
+                            <input type="checkbox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}></input>
+                            我已閱讀並同意<a class="checka"target="_blank" href="{% url 'agreement' %}?from=manager">保密協議</a>
+                            </div>
                         </li>
                         <li>                                
                             {% if user.status == 'pending' %}
@@ -665,22 +669,30 @@
     
     function sendRequest(){
 
-        $.ajax({
-            url: "{% url 'send_partner_request' %}",
-            data: $('#partnerForm').serialize() + '&user_id={{ user.id }}',
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            alert(response.message)
-            if (response.message=='申請已送出'){
-                window.location = '{% url "manager" %}'
-            }
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+        if ($('input[name=checked-policy]').is(':checked')) {
+
+            $.ajax({
+                url: "{% url 'send_partner_request' %}",
+                data: $('#partnerForm').serialize() + '&user_id={{ user.id }}',
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                alert(response.message)
+                if (response.message=='申請已送出'){
+                    window.location = '{% url "manager" %}'
+                }
+            })
+            .fail(function( xhr, status, errorThrown ) {
+              alert('發生未知錯誤！請聯絡管理員')
+              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })  
+    
+
+        } else {
+            alert('送出前請閱讀並勾選同意保密協議')
+        }
+
 
     }
 

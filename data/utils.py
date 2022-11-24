@@ -45,10 +45,10 @@ rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 
             'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
               'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'special-form', 'race', 'stirp', 'morph', 'aberration', 'hybrid-formula']
 
-# TODO 懸鈎子=>懸鉤子
-
 
 var_df = pd.DataFrame([
+('鈎','[鈎鉤]'),
+('鉤','[鈎鉤]'),
 ('臺','[臺台]'),
 ('台','[臺台]'),
 ('螺','[螺螺]'),

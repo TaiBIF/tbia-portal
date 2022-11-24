@@ -349,44 +349,45 @@
 					
 					$('.news-list ul').after(`<div class="page_number"></div>`)
 
-					// 頁碼
-					if (response.page_list.length > 1){
-					page_str = `<a href="javascript:;" onclick="changePage(1, '${type}')" class="num">1</a>`
-					if (response.page_list.includes(response.current_page-1)){
-					  page_str += ` <a href="javascript:;" class="pre" onclick="changePage(${response.current_page-1}, '${type}')">
-						  上一頁
-					  </a>`
-					} else {
-					  page_str += `
-					  <a href="javascript:;" class="pre" style="pointer-events: none;">
-						  上一頁
-					  </a>
-					  `
-					}
-  
-					for (p of response.page_list) {
-					  if (p==response.current_page){
-						  page_str += `<a href="javascript:;" onclick="changePage(${p}, '${type}')" class="num now">${p}</a>                            `
-					  } else {
-						  page_str += `<a href="javascript:;" onclick="changePage(${p}, '${type}')" class="num">${p}</a>`
+					//$('.page_number').remove()
+
+					console.log(response)
+
+					// 修改頁碼
+					if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+						$(`.page_number`).append(
+						  `
+							<a href="javascript:;" onclick="changePage(1, '${type}')" class="num">1</a>
+							<a href="javascript:;" class="pre">上一頁</a>  
+							<a href="javascript:;" class="next">下一頁</a>
+							<a href="javascript:;" onclick="changePage(${response.total_page}, '${type}')" class="num">${response.total_page}</a>
+						 `)}		
+					  
+						  if (response.page_list.includes(response.current_page-1)){
+							$('.pre').attr('onclick',`changePage(${response.current_page-1}, '${type}')`);
+						  } else {
+							$('.pre').css('pointer-events','none')
+						  }
+	
+	
+					  let html = ''
+					  for (let i = 0; i < response.page_list.length; i++) {
+						if (response.page_list[i] == response.current_page){
+						  html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${type}')" class="num now">${response.page_list[i]}</a>  `;
+						} else {
+						  html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${type}')" class="num">${response.page_list[i]}</a>  `
+						}
 					  }
-					}
-					if (response.page_list.includes(response.current_page+1)){
-					  page_str += `
-					  <a href="javascript:;" onclick="changePage(${response.current_page+1}, '${type}')" class="next">
-						  下一頁
-					  </a>`
-  
-					} else {
-					  page_str += `
-					  <a href="javascript:;" class="next" style="pointer-events: none;">
-						  下一頁
-					  </a>`
-					}
-					page_str += `<a href="javascript:;" onclick="changePage(${response.total_page}, '${type}')" class="num">{{ total_page }}</a>`
-					$('.page_number').html(page_str) // clear
-  
-				}
+	
+					  $('.pre').after(html)
+			  
+					  // 如果有下一頁，改掉next的onclick
+					  if (response.current_page < response.total_page){
+						$('.next').attr('onclick',`changePage(${response.current_page+1}, '${type}')`);
+					  } else {
+						$('.next').css('pointer-events','none')
+					  }  
+				
 				  
 				  } else {
 						  $('.news_list').html('<li>暫無資料</li>')

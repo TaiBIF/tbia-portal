@@ -332,7 +332,7 @@
                   {% if i.taieol_id %}
 									<a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
                   {% endif %}
-									<button onclick="getDist('{{ i.taxonID }}')">分布圖</button>
+									<button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
 								</div>
 							</li>
               {% endfor %}
@@ -790,7 +790,8 @@
 				分布圖
 			</div>
       <div id="map-box">
-      <div id="map" style="height: 500px; margin: 40px 0 10px 10px"></div>
+        <p id="taxon_name"><p>
+        <div id="map" style="height: 500px; margin: 20px 0 0 0"></div>
       </div>
 		</div>
 	</div>
@@ -830,8 +831,10 @@
     };
   }
 
-  function getDist(taxonID){
+  function getDist(taxonID, common_name_c, formatted_name){
     $('.popbg.taxon-dist').show()
+
+    $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
 
     $.ajax({
       url: "{% url 'get_taxon_dist' %}?taxonID=" + taxonID,
