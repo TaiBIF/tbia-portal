@@ -16,7 +16,10 @@
 
 {% block style %}
 <style>
-
+  .leaflet-draw-actions {
+    display: none !important;
+  }
+  
   p.active {
     background: #3F5146;
     color: #FFF !important;
@@ -481,13 +484,16 @@ drawControl = new L.Control.Draw({
         circle : false,
         polygon: true,
         marker: false,
-        circlemarker: false
+        circlemarker: false,
+
     },
     edit : {
       featureGroup: drawnItems,
-      edit: false
+      edit: false,
+      remove: false 
     }
 });
+
 
 map.addControl(drawControl); 
 

@@ -21,7 +21,10 @@
 {% endblock head %}
 {% block style %}
 <style>
-  
+  .leaflet-draw-actions {
+    display: none !important;
+  }
+
   p.active {
     background: #3F5146;
     color: #FFF !important;
@@ -479,7 +482,8 @@
         },
         edit : {
           featureGroup: drawnItems,
-          edit: false
+          edit: false,
+          remove: false 
         }
     });
     
