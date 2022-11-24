@@ -54,13 +54,13 @@
               </div>
               {% if row.taxonID %}
               <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fas fa-external-link-alt"></i></a>
-              {% else %}
-              <a class="code">物種編號：</a>
               {% endif %}
                 </div>
+                {% if path_str %}
             <div class="rank_path">
               {{ path_str|safe }}
             </div>
+            {% endif %}
           </div>
 
       </div>

@@ -586,16 +586,8 @@ def send_download_request(request):
 
 # 這邊是for條件搜尋 全站搜尋要先另外寫
 def generate_download_csv(req_dict,user_id):
-    query_string = req_dict.urlencode()
     download_id = f"{user_id}_{str(ObjectId())}"
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'record',
-        query_id = download_id.split('_')[-1]
-    )
-    
+
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
@@ -676,6 +668,25 @@ def generate_download_csv(req_dict,user_id):
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
+
+
+    req_dict = dict(req_dict)
+    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    for nq in not_query:
+        if nq in req_dict.keys():
+            req_dict.pop(nq)
+
+    query_string = parse.urlencode(req_dict)
+
+    sq = SearchQuery.objects.create(
+        user = User.objects.filter(id=user_id).first(),
+        query = query_string,
+        status = 'pending',
+        type = 'record',
+        query_id = download_id.split('_')[-1]
+    )
+    
+
     # 如果有其他條件才進行搜尋，否則回傳空值
     if query_list and query_list != ['recordType:col']:
 
@@ -711,15 +722,8 @@ def generate_download_csv(req_dict,user_id):
 
 
 def generate_species_csv(req_dict,user_id):
-    query_string = req_dict.urlencode()
     download_id = f"{user_id}_{str(ObjectId())}"
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'taxon',
-        query_id = download_id.split('_')[-1]
-    )
+
     # 先取得筆數，export to csv
     query_list = []
 
@@ -795,6 +799,22 @@ def generate_species_csv(req_dict,user_id):
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
+
+    req_dict = dict(req_dict)
+    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    for nq in not_query:
+        if nq in req_dict.keys():
+            req_dict.pop(nq)
+    query_string = parse.urlencode(req_dict)
+
+    sq = SearchQuery.objects.create(
+        user = User.objects.filter(id=user_id).first(),
+        query = query_string,
+        status = 'pending',
+        type = 'taxon',
+        query_id = download_id.split('_')[-1]
+    )
+
     # 如果有其他條件才進行搜尋，否則回傳空值
     if query_list and query_list != ['recordType:col']:
 
@@ -854,18 +874,9 @@ def generate_download_csv_full(req_dict,user_id):
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
-
-    query_string = req_dict.urlencode()
     # req_dict_query = req_dict.get('search_str')
-    req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
     download_id = f"{user_id}_{str(ObjectId())}"
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'record',
-        query_id = download_id.split('_')[-1]
-    )
+    req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
 
     keyword = req_dict_query.get('keyword', '')
     key = req_dict_query.get('key', '')
@@ -903,6 +914,22 @@ def generate_download_csv_full(req_dict,user_id):
     # docs = pd.DataFrame(req['solr_response']['response']['docs'])
 
     # download_id = 'test'
+    req_dict = dict(req_dict)
+    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    for nq in not_query:
+        if nq in req_dict.keys():
+            req_dict.pop(nq)
+            
+    query_string = parse.urlencode(req_dict)
+    sq = SearchQuery.objects.create(
+        user = User.objects.filter(id=user_id).first(),
+        query = query_string,
+        status = 'pending',
+        type = 'record',
+        query_id = download_id.split('_')[-1]
+    )
+
+
     if query_list:
 
         query = { "query": q,

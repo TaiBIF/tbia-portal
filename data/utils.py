@@ -587,6 +587,12 @@ def create_query_display(search_dict):
                     query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
             elif search_dict[k] == 'map':
                 query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+        # 日期
+        elif k == 'start_date':
+            query += f"<br><b>起始日期</b>：{search_dict.get('start_date')}" 
+        elif k == 'end_date':
+            query += f"<br><b>結束日期</b>：{search_dict.get('end_date')}" 
+
     return query
 
 # taxon-related columns
