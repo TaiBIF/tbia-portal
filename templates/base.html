@@ -23,6 +23,10 @@
     {% block style %}{% endblock style %}
     <style>
 
+      .from_area {
+        height: 100%
+      }
+
       .message_list li:hover {
         cursor: pointer
       }
@@ -741,7 +745,9 @@
           var searchParams = new URLSearchParams(window.location.search)          
           next_url = window.location.pathname + '?' + searchParams.toString();
         } 
-       window.location.href = "{% provider_login_url 'google' %}?next=" + encodeURIComponent(next_url);
+       //window.location.href = "{% provider_login_url 'google' %}?next=/login/google/callback" ;
+       window.location.href = "{% provider_login_url 'google' %}?next=/login/google/callback?next2=" + encodeURIComponent(next_url);
+
         
       })
 
@@ -805,7 +811,7 @@
   </script>
   <script>
     // loader
-    var ajaxLoadTimeout;
+ /*    var ajaxLoadTimeout;
     $(document).ajaxStart(function() {
         ajaxLoadTimeout = setTimeout(function() { 
             $(".loading_area").css("display","block");
@@ -816,11 +822,11 @@
         $(".loading_area").css("display","none");
     });
 
-    window.addEventListener('error', function(event) {
+   window.addEventListener('error', function(event) {
       $(".loading_area").css("display","none");
       clearTimeout(ajaxLoadTimeout);
       alert('發生未知錯誤！請通知管理員')
-    })
+    })*/
 
     $(function () {
       $(window).resize(function(){
@@ -828,7 +834,6 @@
  					$('.mb_bmenu').hide();
  					$('.hmenu').removeClass('active')
 				}
-				console.log(12);
 			})	
 
       $(".hmenu").on("click", function () {

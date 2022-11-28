@@ -4980,8 +4980,12 @@ body {
     -moz-opacity: 0;
     filter: alpha(opacity=100);
     max-width: 860px;
-    max-height: 560px;
-    height: 100%;
+    /*max-height: 560px;
+    height: 100%;*/
+    min-height: 100px;
+    max-height: initial;
+    height: initial;
+
     width: 100%;
     overflow: hidden
 }

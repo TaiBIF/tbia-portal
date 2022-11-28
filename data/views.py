@@ -4,7 +4,7 @@ from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
 from data.utils import *
-from data.taicol import taicol
+# from data.taicol import taicol
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -35,7 +35,7 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
-from data.models import Namecode
+from data.models import Namecode, Taxon
 
 basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
@@ -1046,6 +1046,10 @@ def search_full(request):
         if len(col_result_df):
             col_card_len = len(col_result_df)
             col_result_df = col_result_df[:9]
+
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID')
             col_result_df['val'] = col_result_df['formatted_name']
             col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
@@ -1107,6 +1111,9 @@ def search_full(request):
         if len(occ_result_df):
             occ_card_len = len(occ_result_df)
             occ_result_df = occ_result_df[:9]
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=occ_result_df.val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID')
             occ_result_df['val'] = occ_result_df['formatted_name']
             occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
@@ -1148,6 +1155,10 @@ def search_full(request):
             taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
 
         taxon_card_len = len(taxon_result_df)
+
+        taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[:4].val.unique()).values())
+        taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
 
         taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
         taxon_result_df['val'] = taxon_result_df['formatted_name']
@@ -1487,6 +1498,9 @@ def get_focus_cards(request):
             # result_df = pd.merge(result_df,taicol,left_on='val',right_on='name')
             card_len = len(result_df)
             result_df = result_df[:9]
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
             result_df['val'] = result_df['formatted_name']
             result_df['matched_value_ori'] = result_df['matched_value']
@@ -1590,6 +1604,10 @@ def get_focus_cards_taxon(request):
 
         taxon_card_len = len(taxon_result_df)
         if taxon_card_len:
+
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[:4].val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
@@ -1736,6 +1754,9 @@ def get_more_cards_taxon(request):
 
         taxon_card_len = len(taxon_result_df[offset:])
         if taxon_card_len:
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[offset:offset+4].val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             taxon_result_df = pd.merge(taxon_result_df[offset:offset+4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
@@ -1867,6 +1888,9 @@ def get_more_cards(request):
         if len(result_df):
             card_len = len(result_df[offset:])
             result_df = result_df[offset:offset+9]
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+
             result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
             result_df['val'] = result_df['formatted_name']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])

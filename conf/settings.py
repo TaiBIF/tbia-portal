@@ -59,8 +59,9 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 1 # oauth
-LOGIN_REDIRECT_URL = '/google/callback'  # 登入後的首頁網址
 SOCIALACCOUNT_LOGIN_ON_GET=True
+
+# ACCOUNT_ADAPTER = 'conf.users.adapter.MyAccountAdapter'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

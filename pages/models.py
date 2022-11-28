@@ -37,7 +37,7 @@ class News(models.Model):
     # attachments = models.TextField( blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
-    publish_date = models.DateTimeField( null=True, blank=True)
+    publish_date = models.DateTimeField( null=True, blank=True) # 已轉換成UTF+8
     class Meta:
         db_table = 'news'
 
@@ -55,8 +55,8 @@ class Resource(models.Model):
     url = models.CharField(max_length=1000, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
-    created = models.DateField(auto_now_add=True)
-    modified = models.DateField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now_add=True) # 已經是UTF+8
     class Meta:
         db_table = 'resource'
 
@@ -106,7 +106,7 @@ class Download(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=10, blank=True, null=True)
-    submitted = models.DateField(auto_now_add=True)
-    expired = models.DateField()
+    submitted = models.DateTimeField(auto_now_add=True)
+    expired = models.DateTimeField()
     class Meta:
         db_table = 'download'

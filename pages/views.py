@@ -6,7 +6,9 @@ from manager.models import Partner, About
 import json
 import math
 from data.utils import get_page_list
+from django.utils import timezone
 
+from datetime import datetime, timedelta
 
 news_type_map = {
     'news':'green',
@@ -58,7 +60,6 @@ def news(request):
     current_page = 0 / 10 + 1
     total_page = math.ceil(news.count() / 10)
     page_list = get_page_list(current_page,total_page)
-
 
     return render(request, 'pages/news.html', {'news_list': news_list, 'page_list': page_list,
            'total_page': total_page, 'current_page': current_page, 'type': type})
@@ -165,6 +166,7 @@ def index(request):
     resource = Resource.objects.order_by('-modified')
     resource_rows = []
     for x in resource[:8]:
+        # modified =  x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
             'title': x.title,
@@ -217,6 +219,7 @@ def get_resources(request):
     limit = get_page*12 if request.POST.get('from') == 'resource' else 8
     offset = (get_page-1)*12 if request.POST.get('from') == 'resource' else 0
     for x in resource[offset:limit]:
+        # modified = x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
             'title': x.title,
@@ -242,7 +245,9 @@ def agreement(request):
 
 
 def application(request):
-    return render(request, 'pages/application.html')
+    today = timezone.now() + timedelta(hours=8)
+    today = today.strftime('%Y-%m-%d')
+    return render(request, 'pages/application.html', {'today': today})
 
 
 def partner(request, abbr): 
@@ -267,11 +272,12 @@ def resources(request):
     has_more = True if resource_count > 12 else False
     total_page = math.ceil(resource_count / 12)
     for x in resource[:12]:
+        modified = x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
             'title': x.title,
             'extension': x.extension,
             'url': x.url,
-            'date': x.modified.strftime("%Y.%m.%d")})
+            'date': modified.strftime("%Y.%m.%d")})
     return render(request, 'pages/resources.html', {'resource': resource_rows, 'has_more': has_more,
             'total_page': total_page, 'type': type})

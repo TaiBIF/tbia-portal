@@ -766,22 +766,26 @@ def update_personal_info(request):
 
 
 def get_auth_callback(request):
+    # print(request.GET.get('next2'))
+    next2 = request.GET.get('next2','index')
     if email := request.user.email:
         if User.objects.filter(email=email).exists():
             u = User.objects.filter(email=email).first()
             if not u.first_login:
                 login(request, u, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('index')
+                return redirect(next2)
             else:
+                if SocialAccount.objects.filter(user=request.user).exists():
+                    data = SocialAccount.objects.get(user=request.user).extra_data
+                    u.name = data.get('name')
                 u.first_login = False
                 u.username = email
-                u.name = u.first_name +  ' ' + u.last_name
+                # u.name = u.first_name +  ' ' + u.last_name
                 u.save()
                 login(request, u, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('register_success')
         else:
             data = SocialAccount.objects.get(user=request.user).extra_data
-            name = data.get('name')
             new_user = User(
                 name = data.get('name'),
                 email = data.get('email'),
@@ -920,6 +924,7 @@ def reset_password_submit(request):
 
 # @auth_user_should_not_access
 def register(request):
+    print('pppppppp')
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
         email = request.POST.get('email')
@@ -1429,7 +1434,7 @@ def submit_news(request):
             n = News.objects.get(id=news_id)
             ori_status = n.status
             if status == 'pass' and ori_status != 'pass':
-                publish_date = timezone.now()
+                publish_date = timezone.now() + timedelta(hours=8)
             elif status == 'pass' and ori_status == 'pass':
                 publish_date = n.publish_date
             else:
@@ -1459,7 +1464,7 @@ def submit_news(request):
         else:
             ori_status = 'pending'
             if status == 'pass':
-                publish_date = timezone.now()
+                publish_date = timezone.now() + timedelta(hours=8)
             else:
                 publish_date = None
 

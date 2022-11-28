@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('google/callback', views.get_auth_callback, name='get_auth_callback'),
+    path('login/google/callback', views.get_auth_callback, name='get_auth_callback'),
     path('verify-user/<uidb64>/<token>', views.verify_user, name='verify'),
     path('verify-reset-password/<uidb64>/<token>', views.verify_reset_password, name='verify_reset_password'),
     path('reset_password', views.reset_password, name='reset_password'),

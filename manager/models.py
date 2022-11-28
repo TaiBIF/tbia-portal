@@ -63,8 +63,8 @@ class Partner(models.Model):
     # image = models.TextField(null=True, blank=True)
     # logo = models.TextField(null=True, blank=True)
     info = models.JSONField(null=True, blank=True)
-    created = models.DateField(auto_now_add=True)
-    modifed = models.DateField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modifed = models.DateTimeField(auto_now_add=True)
     class Meta:
         db_table = 'partner'
 
@@ -147,7 +147,7 @@ class SensitiveDataRequest(models.Model):
     users = models.JSONField(null=True, blank=True) # 資料使用者
     abstract = models.TextField(null=True, blank=True)
     # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆
-    created = models.DateField(auto_now_add=True) # 申請時間
+    created = models.DateTimeField(auto_now_add=True) # 申請時間
     query_id = models.CharField(max_length=50, blank=True)
 
 
@@ -174,7 +174,7 @@ class SensitiveDataResponse(models.Model):
 
 class About(models.Model):
     content = models.TextField(null=True, blank=True)
-    created = models.DateField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
 
 
 
