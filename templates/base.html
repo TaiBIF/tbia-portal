@@ -238,7 +238,7 @@
                   <img class="ardown" src="{% static 'image/ardown.svg' %}" >
                 </a>
                 <div class="mbmu2">
-                  <a href="#" class="s_title">
+                  <a href="{% url 'manager' %}" class="s_title">
                     <p>帳號後台</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" >
                   </a>
@@ -291,20 +291,20 @@
                 </div>
               </li>
               <li class="rd_mb_two_menu_li">
-                <a href="#" class="one_set rd_mb_two_menu">
+                <a href="{% url 'news' %}" class="one_set rd_mb_two_menu">
                   <p>最新消息</p>
                   <img class="ardown" src="{% static 'image/ardown.svg' %}" />
                 </a>
                 <div class="mbmu2">
-                  <a href="#" class="s_title">
+                  <a href="{% url 'news' %}?type=news" class="s_title">
                     <p>新聞公告</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" />
                   </a>
-                  <a href="#" class="s_title">
+                  <a href="{% url 'news' %}?type=event" class="s_title">
                     <p>活動訊息</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" />
                   </a>
-                  <a href="#" class="s_title">
+                  <a href="{% url 'news' %}?type=project" class="s_title">
                     <p>計畫徵求</p>
                     <img class="arright" src="{% static 'image/next.svg' %}" />
                   </a>
