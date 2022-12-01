@@ -7,6 +7,10 @@
         text-align: left !important;
     }
 
+    .sensitive_apply_table tr:not(:first-child) td:nth-child(3) {
+        text-align: left !important;
+    }
+
     .send-submitted {
         background: #eee;
         width: 100%;
@@ -218,12 +222,12 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show()">修改單位資訊</a>
+                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show(); changeURL('info')">修改單位資訊</a>
                             {% if user.is_partner_admin %}
-                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show()">單位帳號管理</a>
-                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show()">單次使用去模糊化敏感資料申請</a>
+                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show(); changeURL('account')">單位帳號管理</a>
+                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show(); changeURL('sensitive')">單次使用去模糊化敏感資料申請</a>
                             {% endif %}
-                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
+                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show(); changeURL('feedback')">意見回饋紀錄</a>
                         </div>
                     </li>
                     <li>
@@ -307,17 +311,30 @@
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>單位帳號管理</div>
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 account_table">
                         <tr>
-                            <td>編號</td>
-                            <td>姓名</td>
-                            <td>狀態</td>
+                            <td style="width: 8%">編號</td>
+                            <td style="width: 25%">姓名</td>
+                            <td style="width: 20%">單位</td>
+                            <td style="width: 20%">權限</td>
+                            <td style="width: 15%">狀態</td>
                             <td></td>
                         </tr> 
                         {% for pm in partner_members %}
                         <tr>
                             <td>#{{ pm.id }}</td>
                             <td>{{ pm.name }} ({{ pm.email }})</td>
+                            <td>
+                                <select name="role" style="width: 100%" data-id="{{ pm.id }}">
+                                    {% if pm.is_partner_admin %}
+                                        <option value="is_partner_admin" selected>單位管理員</option>
+                                        <option value="is_partner_account">單位帳號</option>
+                                    {% else %}
+                                        <option value="is_partner_admin">單位管理員</option>
+                                        <option value="is_partner_account" selected>單位帳號</option>
+                                    {% endif %}
+                                    </select>
+                                </td>
                             <td>
                                 <select name="status" style="width: 100%" data-id="{{ pm.id }}">
                                     {% for s in status_choice %}
@@ -334,8 +351,35 @@
                         {% endfor %}
                     </table>						
                 </div>
+                <div class="page_number">
+					{% if a_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'account')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in a_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'account')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'account')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in a_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'account')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ a_total_page }}, 'account')" class="num">{{ a_total_page }}</a>
+                    {% endif %}
+				</div>
             </div>
         </div>
+    
 
         <div class="rightbox_content sensitive" style="display: none">
             <div class="item">
@@ -352,7 +396,7 @@
                         {% for s in sensitive %}
                         <tr>
                             <td>#{{ s.id }}</td>
-                            <td>{{ s.created }}</td>
+                            <td>{{ s.created }}<br>審核期限：{{ s.due }}</td>
                             <td style="text-align: left">{{ s.query|safe }}</td>
                             <td>{{ s.status }}</td>
                             <td><a style="cursor: pointer" onclick="showRequest('{{ s.query_id }}','{{ s.query }}', '{{ s.id }}')">查看</a></td>
@@ -585,6 +629,32 @@
   <script>
 
 
+    function changeURL(menu){
+        history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
+    }
+
+    // 如果按上下一頁
+    window.onpopstate = function(e) {
+        e.preventDefault(); 
+
+        $('.rightbox_content').hide()
+        $('.col_menu.second_menu a').removeClass('now')
+        $('.col_menu.second_menu').hide()
+
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString);
+
+        let menu = urlParams.get('menu')
+        if (menu){
+
+            $(`a.${ menu }`).addClass('now')
+            $(`a.${ menu }`).parent(".second_menu").slideToggle();
+
+            $(`.rightbox_content.${ menu }`).show()
+        }
+      };
+  
+
     function updateFeedback(current_id){
         $.ajax({
             url: "{% url 'update_feedback' %}",
@@ -746,7 +816,6 @@
 
     $(document).ready(function () {
 
-
         $('.send-check').on('click',function(){
 
 
@@ -806,7 +875,7 @@
                 url: "{% url 'update_user_status' %}",
                 data: {'user_id': current_id,
                         csrfmiddlewaretoken: '{{ csrf_token }}',
-                        'role': 'is_partner_account',
+                        'role': $('select[name=role]').find(':selected').val(),
                         'status': $(`select[name="status"][data-id=${current_id}]`).val(),
                     },
                 type: 'POST',
@@ -822,6 +891,7 @@
 
         })
 
+        
         $('a.{{ menu }}').addClass('now')
         $('a.{{ menu }}').parent(".second_menu").slideToggle();
 

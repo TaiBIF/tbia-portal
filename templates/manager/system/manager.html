@@ -183,10 +183,17 @@
                         </div>
                     </li>
                     <li>
-                        <a href="{% url 'system_resource' %}" class="big_link rd_click">
-                            <p>教育資源管理</p>
-                            <div class="arr"></div>
-                        </a>
+                        <div class="big_link">
+                            <div class="maskfor_click rd_click"></div>
+                            <p>
+                              教育資源管理
+                            </p>
+                            <div class="arrd"></div>
+                          </div>
+                          <div class="col_menu second_menu">
+                              <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
+                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                          </div>                    
                     </li>
                     <li>
                         <a href="{% url 'system_keyword' %}" class="big_link rd_click">

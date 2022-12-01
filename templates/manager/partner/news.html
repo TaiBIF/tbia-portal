@@ -299,8 +299,8 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show()">消息發布</a>
-                            <a class="list" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.list').show()">審核狀態</a>
+                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show(); changeURL('edit')">消息發布</a>
+                            <a class="list" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.list').show(); changeURL('list')">審核狀態</a>
                         </div>
                     </li>
                 </ul>
@@ -433,6 +433,31 @@
 
   {% block script %}
   <script>
+    function changeURL(menu){
+        history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
+    }
+
+    // 如果按上下一頁
+    window.onpopstate = function(e) {
+        e.preventDefault(); 
+
+        $('.rightbox_content').hide()
+        $('.col_menu.second_menu a').removeClass('now')
+        $('.col_menu.second_menu').hide()
+
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString);
+
+        let menu = urlParams.get('menu')
+        if (menu){
+
+            $(`a.${ menu }`).addClass('now')
+            $(`a.${ menu }`).parent(".second_menu").slideToggle();
+
+            $(`.rightbox_content.${ menu }`).show()
+        }
+      };
+  
 
 
     function changePage(page, menu){

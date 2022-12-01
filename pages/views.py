@@ -132,7 +132,7 @@ def get_news_list(request):
 
 
 def get_resource_cate(extension):
-    if extension.lower() in ['docs','csv','json','.xlsx', '.xls']:
+    if extension.lower() in ['docx','csv','json','xlsx', 'xls']:
         cate = 'doc'
     elif extension.lower() in ['ppt','doc','pdf','xml']:
         cate = extension.lower()
@@ -281,3 +281,13 @@ def resources(request):
             'date': modified.strftime("%Y.%m.%d")})
     return render(request, 'pages/resources.html', {'resource': resource_rows, 'has_more': has_more,
             'total_page': total_page, 'type': type})
+
+
+def resources_link(request):
+    n = Link.objects.all().first()
+    return render(request, 'pages/resources_link.html', {'n': n})
+
+
+def update_not_show(request):
+    request.session['not_show_tech'] = True
+    return JsonResponse({}, safe=False) 

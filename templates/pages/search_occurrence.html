@@ -689,6 +689,8 @@
     .done(function(response) {
       // clear previous results
       $('.sc_result').remove()
+      $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+
       if (response.count == 0){
         $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
       } else {
@@ -914,6 +916,9 @@ function submitSearch (page, from){
     .done(function(response) {
       // clear previous results
       $('.sc_result').remove()
+      $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+
+
       if (response.count == 0){
         $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
       } else {

@@ -42,6 +42,14 @@ class News(models.Model):
         db_table = 'news'
 
 
+class Link(models.Model): # 推薦連結
+    content = RichTextUploadingField( blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        db_table = 'link'
+
+
 class Resource(models.Model):
     type_choice = [
         ('strategy', 'TBIA策略文件'),

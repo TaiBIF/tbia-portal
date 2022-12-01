@@ -13,6 +13,52 @@
 </style>
 {% endblock style %}
 {% block body %}
+
+
+<!--
+
+如果登入 -> 不顯示
+如果沒有登入 -> 看session
+
+-->
+
+<!--教學popbox-->
+<div class="popbg tech-pop" {% if request.session.not_show_tech %} style="display: none" {% endif %}>
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+
+			</div>
+
+			<div class="arl"></div>
+			<div class="arr"></div>
+			<div class="dot_area">
+				<!--目前的加上now-->
+				<div class="dot"></div>
+				<div class="dot now"></div>
+				<div class="dot"></div>
+
+			</div>
+
+			<div class="techbox">
+        <div style="display: flex; justify-content: flex-end;">
+          <a id="not_show_tech" style="cursor: pointer">不再顯示</a>
+        </div>
+				<div class="tech_pic">
+					<!--565*340或者兩倍大小1130*680-->
+					<img src="/static/image/news_ub_img.jpg" >
+				</div>
+				<!--盡量不要超過三行-->
+				<p class="text_tec">
+					使用說明文字，使用說明文字，使用說明文字，使用說明文字，使用說明文字，使用說明文字，使用說明文字，使用說明文字，使用說明文
+				</p>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
 <div class="section_1">
   <div class="rel flex_center">
     <div class="bn_bg">
@@ -315,6 +361,20 @@
 {% endblock body %} {% block script %}
 <script>
   $(document).ready(function () {
+
+
+  $('#not_show_tech').on('click',function(){
+
+      $.ajax({
+        url: "{% url 'update_not_show' %}",
+        type: 'GET',
+      })
+      .done(function(response) {
+        $('.tech-pop').hide()
+      })
+
+  })
+
     gsap.registerPlugin(ScrollTrigger);
 
     ScrollTrigger.create({

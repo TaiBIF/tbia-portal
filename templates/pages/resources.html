@@ -91,7 +91,20 @@
 			</div>
 			<button class="search_btn" onclick="">送出</button>
 		</div>
-
+		<ul class="news_list" id="db-intro">
+			<li>
+				<a href="{% url 'resources_link' %}" class="imgbox">
+					<div class="img_area" style="background-image: url('/static/image/news_ub_img.jpg')"></div>
+				</a>
+				<div class="infbox">
+					<div class="center_box">
+						<a href="{% url 'resources_link' %}" target="_blank" class="nstitle">
+							國內外各大資料庫及推薦網站連結
+						</a>
+					</div>
+				</div>
+			</li>
+		</ul>
 		<ul class="edu_list two_set"> 
 			{% if resource|length > 0 %}
 				{% for i in resource %}
@@ -101,8 +114,8 @@
 						<div class="cate {{ i.cate|lower }}">{{ i.extension }}</div>
 						<div class="date">{{ i.date }}</div>
 						</div>
-						<a href="{% static i.url %}" class="title" target="_blank">{{ i.title }}</a>
-						<a href="{% static i.url %}" download class="dow_btn"> </a>
+						<a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
+						<a href="/media/{{ i.url }}" download class="dow_btn"> </a>
 					</div>
 				</li>
 				{% endfor %}
@@ -143,6 +156,7 @@
 {% if type != 'all' %}
 	$('.news_tab_in li').removeClass('now');
 	$(`#{{type}}`).addClass('now');
+	$('#db-intro').hide()
 {% endif %}
 
 // date picker
@@ -170,9 +184,12 @@ $('.news_tab_in li').click(function(){
       $('.news_tab_in li').removeClass('now');
       li_element.addClass('now');
 	  if (type == 'all'){
+		$('#db-intro').show()
 		window.history.pushState('page', 'Title', '/resources')
 	  } else {
-		window.history.pushState('page', 'Title', `/resources?type=${type}`)}
+		$('#db-intro').hide()
+		window.history.pushState('page', 'Title', `/resources?type=${type}`)
+	}
 	  // remove all resources first
       $('.edu_list li').remove()
       // append rows
@@ -225,6 +242,7 @@ $('.news_tab_in li').click(function(){
   })
 
   $('.search_btn').click(function(){
+	$('#db-intro').hide()
 	$.ajax({
         url: "{% url 'get_resources' %}",
         data: {
@@ -294,6 +312,14 @@ $('.news_tab_in li').click(function(){
 		end_date = $("#end_date").val()
   	} 
 
+	if ($('.news_tab_in li.now').prop('id') == 'all'){
+		if (page >1) {
+			$('#db-intro').hide()
+		} else  {
+			$('#db-intro').show()
+		}
+	}
+
 	$.ajax({
         url: "{% url 'get_resources' %}",
         data: {
@@ -342,11 +368,11 @@ $('.news_tab_in li').click(function(){
 		// append previous & next page 
 		if ((response.current_page - 1) > 0 ){
 			$('.page_number').prepend(`
-			<a href="javascript:;" onclick="get_resource_by_page(1, ${by})" class="num">1</a> 
-			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, ${by})" class="pre">
+			<a href="javascript:;" onclick="get_resource_by_page(1, '${by}')" class="num">1</a> 
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, '${by}')" class="pre">
 			<span></span>上一頁
 			</a>
-			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, ${by})" class="num">${response.current_page - 1}</a>`)
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page -1}, '${by}')" class="num">${response.current_page - 1}</a>`)
 		} else {
 			$('.page_number').prepend(`
 			<a href="javascript:;" class="num">1</a>
@@ -356,11 +382,11 @@ $('.news_tab_in li').click(function(){
 		}        
 		if (response.current_page < response.total_page){
 			$('.page_number').append(`
-			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, ${by})" class="num">${response.current_page +1}</a>
-			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, ${by})" class="next">
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, '${by}')" class="num">${response.current_page +1}</a>
+			<a href="javascript:;" onclick="get_resource_by_page(${response.current_page +1}, '${by}')" class="next">
 			下一頁<span></span>
 			</a>
-			<a href="javascript:;" onclick="get_resource_by_page(${response.total_page}, ${by})" class="num">${response.total_page}</a>`)
+			<a href="javascript:;" onclick="get_resource_by_page(${response.total_page}, '${by}')" class="num">${response.total_page}</a>`)
 		} else {
 			$('.page_number').append(`
 			<a href="javascript:;" class="next">

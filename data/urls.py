@@ -29,4 +29,5 @@ urlpatterns = [
     path('submit_sensitive_response', views.submit_sensitive_response, name='submit_sensitive_response'),
     path('generate_sensitive_csv', views.generate_sensitive_csv, name='generate_sensitive_csv'),
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
+    path('get_geojson/<str:id>/', views.get_geojson, name='get_geojson'),
 ]

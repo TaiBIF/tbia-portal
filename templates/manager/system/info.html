@@ -2,6 +2,11 @@
 {% block style %}
 <style>
 
+    .sensitive_apply_table tr:not(:first-child) td:nth-child(3) {
+        text-align: left !important;
+    }
+
+
     .feedback_table tr:not(:first-child) td:nth-child(6) {
         white-space: pre-wrap;
         text-align: left !important;
@@ -240,11 +245,11 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show()">修改TBIA資訊</a>
-                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show()">帳號管理</a>
-                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show()">意見回饋紀錄</a>
-                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show()">單次使用去模糊化敏感資料申請</a>
-                            <a class="sensitive_track" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive_track').show()">敏感資料申請審核追蹤</a>
+                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show(); changeURL('info')">修改TBIA資訊</a>
+                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show(); changeURL('account')">帳號管理</a>
+                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show(); changeURL('feedback')">意見回饋紀錄</a>
+                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show(); changeURL('sensitive')">單次使用去模糊化敏感資料申請</a>
+                            <a class="sensitive_track" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive_track').show(); changeURL('sensitive_track')">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
                     <li>
@@ -261,10 +266,17 @@
                         </div>
                     </li>
                     <li>
-                        <a href="{% url 'system_resource' %}" class="big_link rd_click">
-                            <p>教育資源管理</p>
-                            <div class="arr"></div>
-                        </a>
+                        <div class="big_link">
+                            <div class="maskfor_click rd_click"></div>
+                            <p>
+                              教育資源管理
+                            </p>
+                            <div class="arrd"></div>
+                          </div>
+                          <div class="col_menu second_menu">
+                              <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
+                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                          </div>                    
                     </li>
                     <li>
                         <a href="{% url 'system_keyword' %}" class="big_link rd_click">
@@ -464,7 +476,7 @@
                         {% for s in sensitive %}
                         <tr>
                             <td>#{{ s.id }}</td>
-                            <td>{{ s.created }}</td>
+                            <td>{{ s.created }}<br>審核期限：{{ s.due }} </td>
                             <td style="text-align: left">{{ s.query|safe }}</td>
                             <td>
                                 {% if s.is_transferred %}
@@ -512,9 +524,9 @@
                 <div class="result_table" style="overflow-x: auto; margin-top: 10px">
                     <table cellspacing="0" cellspacing="0" class="table_style1 track_table">
                         <tr>
-                            <td style="width:5%;">下載編號</td>
+                            <td style="width:5%;">申請編號</td>
                             <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:10%;">申請日期</td>
                             <td style="width:15%;">查詢條件</td>
                             <td style="width:15%;">審查意見</td>
                             <td style="width:5%;">狀態</td>
@@ -523,7 +535,7 @@
                         <tr>
                             <td>#{{ r.id }}</td>
                             <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td>{{ r.date|default_if_none:'' }}<br>審核期限：{{ r.due }}</td>
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
@@ -704,6 +716,31 @@
 
   {% block script %}
   <script>
+    function changeURL(menu){
+        history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
+    }
+
+    // 如果按上下一頁
+    window.onpopstate = function(e) {
+        e.preventDefault(); 
+
+        $('.rightbox_content').hide()
+        $('.col_menu.second_menu a').removeClass('now')
+        $('.col_menu.second_menu').hide()
+
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString);
+
+        let menu = urlParams.get('menu')
+        if (menu){
+
+            $(`a.${ menu }`).addClass('now')
+            $(`a.${ menu }`).parent(".second_menu").slideToggle();
+
+            $(`.rightbox_content.${ menu }`).show()
+        }
+      };
+  
 
     function updateFeedback(current_id){
         $.ajax({

@@ -119,6 +119,118 @@
             }
         }
         
+
+        .form-control {
+            display: block;
+            width: 50%;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border-radius: .375rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        @media (prefers-reduced-motion:reduce) {
+            .form-control {
+                transition: none
+            }
+        }
+        
+        .form-control[type=file] {
+            overflow: hidden
+        }
+        
+        .form-control[type=file]:not(:disabled):not([readonly]) {
+            cursor: pointer
+        }
+        
+        .form-control:focus {
+            color: #212529;
+            background-color: #fff;
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25)
+        }
+        
+        .form-control::-webkit-date-and-time-value {
+            height: 1.5em
+        }
+        
+        .form-control::-moz-placeholder {
+            color: #6c757d;
+            opacity: 1
+        }
+        
+        .form-control::placeholder {
+            color: #6c757d;
+            opacity: 1
+        }
+        
+        .form-control:disabled, .form-control[readonly] {
+            background-color: #e9ecef;
+            opacity: 1
+        }
+        
+        .form-control::-webkit-file-upload-button {
+            padding: .375rem .75rem;
+            margin: -.375rem -.75rem;
+            -webkit-margin-end: .75rem;
+            margin-inline-end: .75rem;        
+            color: #212529;
+            background-color: #e9ecef;
+            pointer-events: none;
+            border-color: inherit;
+            border-style: solid;
+            border-width: 0;
+            border-inline-end-width: 1px;
+            border-radius: 0;
+            -webkit-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        .form-control::file-selector-button {
+            padding: .75rem .75rem;
+            margin: -.75rem -.75rem;
+            -webkit-margin-end: .75rem;
+            margin-inline-end: .75rem;
+            color: #212529;
+            background-color: #e9ecef;
+            pointer-events: none;
+            border-color: inherit;
+            border-style: solid;
+            border-width: 0;
+            border-inline-end-width: 1px;
+            border-radius: 0;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
+        }
+        
+        @media (prefers-reduced-motion:reduce) {
+            .form-control::-webkit-file-upload-button {
+                -webkit-transition: none;
+                transition: none
+            }
+        
+            .form-control::file-selector-button {
+                transition: none
+            }
+        }
+        
+        .form-control:hover:not(:disabled):not([readonly])::-webkit-file-upload-button {
+            background-color: #dde0e3
+        }
+        
+        .form-control:hover:not(:disabled):not([readonly])::file-selector-button {
+            background-color: #dde0e3
+        }
+
 </style>
 {% endblock style %}
 {% block head %}
@@ -183,10 +295,17 @@
                         </div>
                     </li>
                     <li class="now">
-                        <a href="javascript:;" class="big_link rd_click">
-                            <p>教育資源管理</p>
-                            <div class="arr"></div>
-                        </a>
+                        <div class="big_link">
+                            <div class="maskfor_click rd_click"></div>
+                            <p>
+                              教育資源管理
+                            </p>
+                            <div class="arrd"></div>
+                          </div>
+                          <div class="col_menu second_menu">
+                            <a class="edit" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.edit').show(); changeURL('edit')">資源發布</a>
+                            <a class="list" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.list').show(); changeURL('list')">資源列表</a>
+                          </div>                    
                     </li>
                     <li>
                         <a href="{% url 'system_keyword' %}" class="big_link rd_click">
@@ -199,11 +318,138 @@
             </div>
         </div>
 
-        <div class="rightbox_content">
+        <div class="rightbox_content edit" style="display: none">
             <div class="item">
                 <div style="display: flex; color: black"><div class="dottt"></div>教育資源管理</div>
+                <ul class="edit-list">
+                        {% csrf_token %}
+                        <input type="hidden" name="resource_id" value="{{ current_r.id }}">
+                        <li>標題</li>
+                        <li>
+                            <input type="text" name="title" value="{{ current_r.title }}">
+                            <div class="noticbox" style="display: none;">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                        <li>類型</li>
+                        <li>
+                            <select name="resource_type">
+                                {% for t in type_choice %}
+                                    {% if t.0 == current_r.type %}
+                                        <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
+                                    {% else %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+
+                        </li>
+                        <li>檔案</li>                    
+                        <form id="saveForm" method="POST">
+                        <li style="display: flex">
+                                {% csrf_token %}
+                                <input id="file" type="file" name="file" class="form-control">
+                                <input type="hidden" name="url" value="{{ current_r.url }}">
+                            </li>
+                        </form>
+                        <li>
+                            <span id="preview" {% if not current_r.url %} style="display: none "{% endif %}>
+                                {% if current_r.url %}
+                                    目前檔案：{{ current_r.filename }}
+                                    <a target="_blank" href="/media/{{ current_r.url }}">(預覽)</a>
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li><div class="noticbox" id="file_error" style="display: none">
+                            <div class="in1">錯誤</div>
+                            <p>發布前請先上傳檔案</p>
+                        </div>                            
+                        </li>
+                    </form>
+                    <li  style="margin-top: 20px;"><button class="search_btn" id="save_resource_file">上傳</button>        
+                        <button class="search_btn" style="margin-left: 10px" id="publish">發布</button>           
+                     </li>
+                </ul>
             </div>
         </div>
+
+
+        <div class="rightbox_content list" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>資源列表</div>
+                <div style="display: flex; justify-content: end;">
+                <button class="search_btn" id="link_button">編輯推薦連結</button>
+                </div>
+                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 resource_table">
+                        <tr>
+                            <td style="width: 18%">標題</td>
+                            <td style="width: 18%">類型</td>
+                            <td style="width: 20%">檔名</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 8%"></td> 
+                            <td style="width: 8%"></td> 
+                        </tr>
+                        {% for r in resource_list %}
+                        <tr>
+                            <td>{{ r.title }}</td>
+                            <td>{{ r.type }}</a></td>
+                            <td><a href="/media/resources/{{ r.filename }}" target="_blank">{{ r.filename }}</a></td>
+                            <td>{{ r.modified|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
+                            <td><a href="{% url 'system_resource' %}?menu=edit&resource_id={{ r.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td><a href="javascript:;" class="delete_resource" data-resource_id='{{ r.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                        </tr>
+                        {% endfor %}
+                    </table>						
+                </div>
+                <div class="page_number">
+					{% if r_page_list|length > 1 %}
+                    <a href="javascript:;" onclick="changePage(1, 'resource')" class="num">1</a>
+                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                        上一頁
+                    </a>
+                    <!--目前頁面給 now-->
+                    {% for p in r_page_list %}
+                        {% if p == 1 %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'resource')" class="num now">{{ p }}</a>
+                        {% else %}
+                            <a href="javascript:;" onclick="changePage({{ p }}, 'resource')" class="num">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if 2 in r_page_list %}
+                    <a href="javascript:;" onclick="changePage(2, 'news_apply')" class="next">
+                        下一頁
+                    </a>
+                    {% else %}
+                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                        下一頁
+                    </a>
+                    {% endif %}
+                    <a href="javascript:;" onclick="changePage({{ r_total_page }}, 'resource')" class="num">{{ r_total_page }}</a>
+                    {% endif %}
+				</div>
+            </div>
+        </div>
+
+
+        <div class="rightbox_content edit-link" style="display: none">
+            <div class="item">
+                <div style="display: flex; color: black"><div class="dottt"></div>編輯推薦連結</div>
+                    <ul class="edit-list">
+                        <form enctype="multipart/form-data" id="linkForm" action="{% url 'edit_link' %}" method="POST">            
+                            {% csrf_token %}
+                            <li>            
+                                {{ form.media }}
+                                {{ form.as_p }}
+                            </li>
+                            <li ><button class="search_btn">儲存</button></li>
+                        </form>
+                    </ul>
+            </div>
+        </div>
+
+
         {% else %}
         您的權限不足
         {% endif %}
@@ -216,8 +462,117 @@
 
   {% block script %}
   <script>
+
+
+    function changeURL(menu){
+        history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
+    }
+
+    // 如果按上下一頁
+    window.onpopstate = function(e) {
+        e.preventDefault(); 
+
+        $('.rightbox_content').hide()
+        $('.col_menu.second_menu a').removeClass('now')
+        $('.col_menu.second_menu').hide()
+
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString);
+
+        let menu = urlParams.get('menu')
+        if (menu){
+
+            $(`a.${ menu }`).addClass('now')
+            $(`a.${ menu }`).parent(".second_menu").slideToggle();
+
+            $(`.rightbox_content.${ menu }`).show()
+        }
+      };
+
     $(document).ready(function () {
+        $('label[for="id_content"]').html('')
+
+        $('#link_button').on('click',function(){
+            $('.rightbox_content').hide()
+            $('.rightbox_content.edit-link').show()
+        })
+
+        $('.delete_resource').on('click', function(){
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'delete_resource' %}",
+                data: {'resource_id': $(this).data('resource_id')},
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function (response) {
+                    alert('刪除成功')
+                    window.location = '/manager/system/resource?menu=list';
+                }
+            })
+        })
+
+        $('#save_resource_file').on('click',function(){
+            $('.noticbox').hide()
+            var form = new FormData()
+            form.append('file', $('#file')[0].files[0])
     
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'save_resource_file' %}",
+                data: form,
+                processData: false,
+                contentType: false,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function (response) {
+                    if (response.url != null){
+                        $('#preview').html(`目前檔案：${response['filename']} <a target="_blank" href="/media/${response['url']}">(預覽)</a>`)
+                        $('#preview').show()
+                        $('input[name=url]').val(response['url'])
+                    } else {
+                        $('#preview').hide()
+                        $('input[name=url]').val('')
+                    }
+                }
+            })
+        })
+
+        // TODO 還要確認有沒有上傳檔案 filename統一改成帶有resources/的檔名
+        $('#publish').on('click',function(){
+            let checked = true;
+
+            if ($('input[name=title]').val()== ''){
+                $('input[name=title]').next('.noticbox').show()
+                checked = false
+            } 
+            
+            if ($('input[name=url]').val()=='') {
+                $('#file_error').show()
+                checked = false
+            } 
+            
+            
+            
+            if (checked) {
+                
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'submit_resource' %}",
+                    data: {'url':$('input[name=url]').val() , 'type': $('select[name=resource_type]').find(":selected").val(), 'resource_id': $('input[name= v]').val(), 'title': $('input[name=title]').val()},
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    success: function (response) {
+                        window.location = '/manager/system/resource?menu=list';
+                    }
+                })
+    
+            }
+        })
+
+
+        $('a.{{ menu }}').addClass('now')
+        $('a.{{ menu }}').parent(".second_menu").slideToggle();
+
+        $('.rightbox_content.{{ menu }}').show()
+
+        
     })
 
     $(".mb_fixed_btn").on("click", function (event) {
@@ -239,5 +594,62 @@
         $(this).parent().parent('li').addClass('now')
       });
     
+
+      function changePage(page, menu){
+        $.ajax({
+            url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
+            type: 'GET',
+            success: function(response){
+                console.log(response)
+                // 修改表格內容
+
+                $(`.${menu}_table`).html(`
+                ${response.header}
+                ${response.data}
+                `)
+
+                $(`.${menu}_table`).parent().next('.page_number').remove()
+
+                // 修改頁碼
+                if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                    $(`.${menu}_table`).parent().after(
+                      `<div class="page_number">
+                        <a href="javascript:;" onclick="changePage(1, '${menu}')" class="num">1</a>
+                        <a href="javascript:;" class="pre">上一頁</a>  
+                        <a href="javascript:;" class="next">下一頁</a>
+                        <a href="javascript:;" onclick="changePage(${response.total_page}, '${menu}')" class="num">${response.total_page}</a>
+                      </div>`)}		
+                  
+                      if (response.page_list.includes(response.current_page-1)){
+                        $('.pre').attr('onclick',`changePage(${response.current_page-1}, '${menu}')`);
+                      } else {
+                        $('.pre').css('pointer-events','none')
+                      }
+
+
+                  let html = ''
+                  for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page){
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num now">${response.page_list[i]}</a>  `;
+                    } else {
+                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num">${response.page_list[i]}</a>  `
+                    }
+                  }
+
+                  $('.pre').after(html)
+          
+                  // 如果有下一頁，改掉next的onclick
+                  if (response.current_page < response.total_page){
+                    $('.next').attr('onclick',`changePage(${response.current_page+1}, '${menu}')`);
+                  } else {
+                    $('.next').css('pointer-events','none')
+                  }
+                  
+            }
+        });
+
+    }
+
+
   </script>
   {% endblock script %}

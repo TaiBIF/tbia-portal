@@ -42,6 +42,15 @@ basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標
                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
 
 
+def get_geojson(request,id):
+    if SearchQuery.objects.filter(id=id).exists():
+        sq = SearchQuery.objects.get(id=id)
+        search_dict = dict(parse.parse_qsl(sq.query))
+        map_json = search_dict.get('geojson')
+        response = HttpResponse(map_json, content_type='application/json')
+        response['Content-Disposition'] = 'attachment; filename="geojson.json"'
+        return response
+
 def get_taxon_dist(request):
     taxon_id = request.GET.get('taxonID')
     map_geojson = {}
@@ -88,7 +97,7 @@ def send_sensitive_request(request):
     if request.method == 'GET':
         # 整理查詢條件
         search_dict = request.GET
-        query = create_query_display(search_dict)
+        query = create_query_display(search_dict,None)
         return render(request, 'pages/application.html', {'query': query})
 
 
@@ -99,9 +108,10 @@ def submit_sensitive_request(request):
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
-        for rd in req_dict.keys():
-            # list to str
-            req_dict[rd] = req_dict[rd][0]
+        for k in req_dict.keys():
+            if len(req_dict[k])==1:
+                req_dict[k] = req_dict[k][0]
+
         query_string = parse.urlencode(req_dict)
         user_id = request.user.id
         query_id = str(ObjectId())
@@ -675,7 +685,9 @@ def generate_download_csv(req_dict,user_id):
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
-
+    for k in req_dict.keys():
+        if len(req_dict[k])==1:
+            req_dict[k] = req_dict[k][0]
     query_string = parse.urlencode(req_dict)
 
     sq = SearchQuery.objects.create(
@@ -805,6 +817,9 @@ def generate_species_csv(req_dict,user_id):
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
+    for k in req_dict.keys():
+        if len(req_dict[k])==1:
+            req_dict[k] = req_dict[k][0]
     query_string = parse.urlencode(req_dict)
 
     sq = SearchQuery.objects.create(
@@ -919,7 +934,10 @@ def generate_download_csv_full(req_dict,user_id):
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
-            
+    for k in req_dict.keys():
+        if len(req_dict[k])==1:
+            req_dict[k] = req_dict[k][0]
+
     query_string = parse.urlencode(req_dict)
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),

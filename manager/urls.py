@@ -38,4 +38,8 @@ urlpatterns = [
     path('update_feedback', views.update_feedback, name='update_feedback'),
     path('get_request_detail', views.get_request_detail, name='get_request_detail'),
     path('change_manager_page', views.change_manager_page, name='change_manager_page'),
+    path('save_resource_file', views.save_resource_file, name='save_resource_file'),
+    path('submit_resource', views.submit_resource, name='submit_resource'),
+    path('delete_resource', views.delete_resource, name='delete_resource'),
+    path('edit_link', views.edit_link, name='edit_link'),
 ]

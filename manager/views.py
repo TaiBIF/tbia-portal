@@ -1,6 +1,3 @@
-from asyncio import staggered
-from pickle import NONE
-from venv import create
 from django.contrib.auth.backends import ModelBackend
 from django.http import request
 from django.shortcuts import render
@@ -8,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
 from manager.models import SearchQuery, SensitiveDataRequest, SensitiveDataResponse, User, Partner, About
-from pages.models import Feedback, News, Notification
+from pages.models import Feedback, News, Notification, Resource, Link
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -17,7 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
-from manager.utils import generate_token, partner_source_map
+from manager.utils import generate_token, partner_source_map, check_due
 from django.conf import settings
 import threading
 from django.http import (
@@ -49,12 +46,20 @@ from os.path import exists
 import math
 
 import pandas as pd
+from pathlib import Path
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
 
     class Meta:
         model  = News
+        fields = ('content',)
+
+
+class LinkForm(forms.ModelForm):
+    content = RichTextField()
+    class Meta:
+        model  = Link
         fields = ('content',)
 
 
@@ -163,7 +168,7 @@ def change_manager_page(request):
 
             # 條件搜尋
             search_dict = dict(parse.parse_qsl(t.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,t.id)
             link = ''
             if t.status == 'pass':
                 link = f'<a target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.csv">下載</a>'
@@ -199,7 +204,7 @@ def change_manager_page(request):
 
             # 條件搜尋
             search_dict = dict(parse.parse_qsl(s.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,s.id)
 
             # 審查意見
             comment = []
@@ -251,7 +256,7 @@ def change_manager_page(request):
                 search_dict = dict(parse.parse_qsl(search_str))
                 # print(search_dict)
 
-                query += f"<b>關鍵字</b>：{search_dict['keyword']}"
+                query += f"<br><b>關鍵字</b>：{search_dict['keyword']}"
                 
                 if search_dict.get('record_type') == 'occ':
                     map_dict = map_occurrence
@@ -263,7 +268,7 @@ def change_manager_page(request):
             else:
             # 條件搜尋
                 search_dict = dict(parse.parse_qsl(r.query))
-                query = create_query_display(search_dict)
+                query = create_query_display(search_dict,r.id)
 
 
             link = ''
@@ -373,23 +378,24 @@ def change_manager_page(request):
     elif menu == 'track':
         response['header'] = '''
                                 <tr>
-                            <td style="width:5%;">下載編號</td>
+                            <td style="width:5%;">申請編號</td>
                             <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
+                            <td style="width:10%;">申請日期</td>
                             <td style="width:15%;">查詢條件</td>
                             <td style="width:15%;">審查意見</td>
                             <td style="width:5%;">狀態</td>
                         </tr>'''
         for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[offset:offset+10]:
-            if s.modified:
-                date = s.modified + timedelta(hours=8)
+            if s.created:
+                date = s.created + timedelta(hours=8)
+                due = check_due(date.strftime('%Y-%m-%d'),14) # 已經是轉交單位審核的，期限為14天
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 date = ''
 
             # 條件搜尋
             search_dict = dict(parse.parse_qsl(s.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,s.id)
 
             # 審查意見
             comment = []
@@ -404,7 +410,7 @@ def change_manager_page(request):
             data.append({
                 'id': f"#{s.id}",
                 'query_id': s.query_id,
-                'date':  date,
+                'date':  date + '<br>審核期限：' + due,
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': s.get_status_display(),
@@ -423,13 +429,14 @@ def change_manager_page(request):
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
+                due = check_due(created.strftime('%Y-%m-%d'), 14)
                 created = created.strftime('%Y-%m-%d %H:%M:%S')
 
                 # 整理查詢條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
-                    query = create_query_display(search_dict)
+                    query = create_query_display(search_dict,r.id)
                                 
                 function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }'"
 
@@ -437,7 +444,7 @@ def change_manager_page(request):
                 data.append({
                     'id': f'#{sdr.id}',
                     #'query_id': r.query_id,
-                    'created':  created,
+                    'created':  created + '<br>審核期限：'+due,
                     'query':   query,
                     'status': sdr.get_status_display(),
                     'a': a
@@ -448,18 +455,23 @@ def change_manager_page(request):
         else:
             for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
-                created = created.strftime('%Y-%m-%d %H:%M:%S')
 
                 # 整理查詢條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
-                    query = create_query_display(search_dict)
+                    query = create_query_display(search_dict,r.id)
                 
                 if sdr.is_transferred:
                     status = '已轉交單位審核'
+                    due = check_due(created.strftime('%Y-%m-%d'), 14)
+                    created = created.strftime('%Y-%m-%d %H:%M:%S')
                 else:
                     status = sdr.get_status_display()
+                    due = check_due(created.strftime('%Y-%m-%d'), 7)
+                    created = created.strftime('%Y-%m-%d %H:%M:%S')
+                
+                date = created + '<br>審核期限：' + due
                 
                 function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
@@ -467,7 +479,7 @@ def change_manager_page(request):
                 data.append({
                     'id': f'#{sdr.id}',
                     #'query_id': r.query_id,
-                    'created':  created,
+                    'created':  date,
                     'query':   query,
                     'status': status,
                     'a': a
@@ -485,41 +497,68 @@ def change_manager_page(request):
                             <td></td>
                         </tr> 
         '''
-        for a in User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[offset:offset+10]:
-            if a.partner:
-                if a.partner.title =='營建署城鄉發展分署':
-                    partner_title = '內政部營建署城鄉發展分署'
+        if request.GET.get('from') == 'partner':
+            for a in User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
+
+                if a.is_partner_admin:
+                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
                 else:
-                    partner_title = a.partner.breadtitle
-            else:
-                partner_title = ''
+                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
 
-            if a.is_partner_admin:
-                select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
-            else:
-                select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
-
-            status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
-            
-            for s in User._meta.get_field('status').choices[:-1]:
-                if s[0] == a.status:
-                    status += f'<option value="{ s[0] }" selected>{ s[1] }</option>'
-                else:
-                    status += f'<option value="{ s[0] }">{ s[1] }</option>'
-
-            status +=  '</select>'
-
-            data.append({
-                'id': f"#{a.id}",
-                'name': f"{a.name} ({a.email})",
-                'partner_title': partner_title,
-                'select': select,
-                'status': status,
-                'a': f'<button class="search_btn save_btn" onclick="saveStatus({ a.id })" style="width: 100%">儲存</button>'
+                status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
                 
-            })
+                for s in User._meta.get_field('status').choices[:-1]:
+                    if s[0] == a.status:
+                        status += f'<option value="{ s[0] }" selected>{ s[1] }</option>'
+                    else:
+                        status += f'<option value="{ s[0] }">{ s[1] }</option>'
 
-        total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
+                status +=  '</select>'
+                data.append({
+                    'id': f"#{a.id}",
+                    'name': f"{a.name} ({a.email})",
+                    'select': select,
+                    'status': status,
+                    'a': f'<button class="search_btn save_btn" data-id="{ a.id }" style="width: 100%">儲存</button>'
+                })
+            total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
+
+        else:
+            for a in User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[offset:offset+10]:
+                if a.partner:
+                    if a.partner.title =='營建署城鄉發展分署':
+                        partner_title = '內政部營建署城鄉發展分署'
+                    else:
+                        partner_title = a.partner.breadtitle
+                else:
+                    partner_title = ''
+
+                if a.is_partner_admin:
+                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
+                else:
+                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
+
+                status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
+                
+                for s in User._meta.get_field('status').choices[:-1]:
+                    if s[0] == a.status:
+                        status += f'<option value="{ s[0] }" selected>{ s[1] }</option>'
+                    else:
+                        status += f'<option value="{ s[0] }">{ s[1] }</option>'
+
+                status +=  '</select>'
+
+                data.append({
+                    'id': f"#{a.id}",
+                    'name': f"{a.name} ({a.email})",
+                    'partner_title': partner_title,
+                    'select': select,
+                    'status': status,
+                    'a': f'<button class="search_btn save_btn" onclick="saveStatus({ a.id })" style="width: 100%">儲存</button>'
+                    
+                })
+
+            total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
     elif menu == 'news_apply':
         response['header'] = '''
                                 <tr>
@@ -598,6 +637,28 @@ def change_manager_page(request):
                 'status': n.get_status_display(),
                 'a': a
             })
+    elif menu == 'resource':
+        response['header'] = """
+                                <tr>
+                            <td style="width: 18%">標題</td>
+                            <td style="width: 18%">類型</td>
+                            <td style="width: 20%">檔名</td>
+                            <td style="width: 15%">最近修改</td>
+                            <td style="width: 8%"></td> 
+                            <td style="width: 8%"></td> 
+                        </tr>
+        """
+        for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
+            data.append({
+                'title': r.title,
+                'type': r.get_type_display(),
+                'filename': f"<a href='/media/{r.url}' target='_blank'>{r.url.split('resources/')[1]}</a>",
+                'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'edit': f'<a href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
+                'delete': f'<a href="javascript:;" class="delete_resource" data-resource_id="{ r.id }">刪除</a>'
+            })
+
+        total_page = math.ceil(Resource.objects.all().count() / 10)
 
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
@@ -646,7 +707,7 @@ def manager(request):
             search_str = dict(parse.parse_qsl(r.query)).get('search_str')
             search_dict = dict(parse.parse_qsl(search_str))
 
-            query += f"<b>關鍵字</b>：{search_dict['keyword']}"
+            query += f"<br><b>關鍵字</b>：{search_dict['keyword']}"
             
             if search_dict.get('record_type') == 'occ':
                 map_dict = map_occurrence
@@ -658,7 +719,7 @@ def manager(request):
         else:
         # 條件搜尋
             search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,r.id)
 
         record.append({
             'id': r.id,
@@ -678,10 +739,9 @@ def manager(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date = ''
-
         # 條件搜尋
         search_dict = dict(parse.parse_qsl(t.query))
-        query = create_query_display(search_dict)
+        query = create_query_display(search_dict,t.id)
 
         taxon.append({
             'id': t.id,
@@ -705,7 +765,7 @@ def manager(request):
 
         # 條件搜尋
         search_dict = dict(parse.parse_qsl(s.query))
-        query = create_query_display(search_dict)
+        query = create_query_display(search_dict,s.id)
 
     # for sdr in SensitiveDataResponse.objects.filter(query_id__in=SearchQuery.objects.filter(user_id=request.user.id, type='senstive').values('query_id')):
 
@@ -924,7 +984,6 @@ def reset_password_submit(request):
 
 # @auth_user_should_not_access
 def register(request):
-    print('pppppppp')
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
         email = request.POST.get('email')
@@ -1129,6 +1188,10 @@ def partner_info(request):
             # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
 
             partner_members = User.objects.filter(partner_id=current_user.partner.id).exclude(status='withdraw').exclude(id=current_user.id)
+            
+            a_total_page = math.ceil(partner_members.count() / 10)
+            a_page_list = get_page_list(1, a_total_page)
+
             status_choice = User._meta.get_field('status').choices[:-1]
             feedback = Feedback.objects.filter(partner_id=current_user.partner.id)[:10].annotate(
                 created_8=ExpressionWrapper(
@@ -1141,20 +1204,22 @@ def partner_info(request):
     sensitive = []
     for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id)[:10]:
         created = sdr.created + timedelta(hours=8)
+        due = check_due(created.strftime('%Y-%m-%d'),14)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
         # 整理查詢條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,r.id)
 
         sensitive.append({
             'id': sdr.id,
             'query_id': r.query_id,
             'created':  created,
             'query':   query,
-            'status': sdr.get_status_display()
+            'status': sdr.get_status_display(),
+            'due': due
         })
 
     s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
@@ -1163,7 +1228,8 @@ def partner_info(request):
 
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
                                     'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive,
-                                    'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list})
+                                    'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list,
+                                    'a_total_page': a_total_page, 'a_page_list': a_page_list})
 
 
 def get_request_detail(request):
@@ -1326,13 +1392,17 @@ def system_info(request):
     sensitive = []
     for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[:10]:
         created = sdr.created + timedelta(hours=8)
+        if sdr.is_transferred:
+            due = check_due(created.strftime('%Y-%m-%d'),14)
+        else:
+            due = check_due(created.strftime('%Y-%m-%d'),7)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
         # 整理查詢條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict,r.id)
 
         sensitive.append({
             'id': sdr.id,
@@ -1340,7 +1410,8 @@ def system_info(request):
             'created':  created,
             'query':   query,
             'status': sdr.get_status_display(),
-            'is_transferred': sdr.is_transferred
+            'is_transferred': sdr.is_transferred,
+            'due': due,
         })
 
     s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
@@ -1349,15 +1420,17 @@ def system_info(request):
 
     sensitive_track = []
     for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[:10]:
-        if s.modified:
-            date = s.modified + timedelta(hours=8)
+        if s.created:
+            date = s.created + timedelta(hours=8)
+            due = check_due(date.strftime('%Y-%m-%d'), 14)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date = ''
+            due = ''
 
         # 條件搜尋
         search_dict = dict(parse.parse_qsl(s.query))
-        query = create_query_display(search_dict)
+        query = create_query_display(search_dict,s.id)
 
         # 審查意見
         comment = []
@@ -1383,7 +1456,8 @@ def system_info(request):
             'date':  date,
             'query':   query,
             'status': s.get_status_display(),
-            'comment': '<hr>'.join(comment) if comment else ''
+            'comment': '<hr>'.join(comment) if comment else '',
+            'due': due
         })
 
     sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
@@ -1398,7 +1472,27 @@ def system_info(request):
 
 def system_resource(request):
     menu = request.GET.get('menu','list')
-    return render(request, 'manager/system/resource.html', {'menu': menu})
+
+    resource_list = []
+    for r in Resource.objects.all().order_by('-modified')[:10]:
+        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1]})
+    r_total_page = math.ceil(Resource.objects.all().count()/10)
+    r_page_list = get_page_list(1, r_total_page)
+    type_choice = Resource._meta.get_field('type').choices
+
+    current_r = []
+    if request.GET.get('resource_id'):
+        if Resource.objects.filter(id=request.GET.get('resource_id')).exists():
+            current_r = Resource.objects.get(id=request.GET.get('resource_id'))
+            current_r.filename =  current_r.url.split('resources/')[1]
+
+    form = LinkForm()
+    n = []
+    if n := Link.objects.all().first():
+        form.fields["content"].initial = n.content
+
+    return render(request, 'manager/system/resource.html', {'menu': menu, 'resource_list': resource_list,
+    'r_total_page': r_total_page, 'r_page_list': r_page_list, 'type_choice': type_choice, 'current_r': current_r, 'form': form, 'n': n})
 
 
 def system_keyword(request):
@@ -1601,76 +1695,74 @@ def update_user_status(request):
         return JsonResponse({"status": 'success'}, safe=False)
 
 
+def save_resource_file(request):
+    response = {'file': None}
+    if file := request.FILES.get('file'):
+        fs = FileSystemStorage()
+        file_name = fs.save(f'resources/' + file.name, file)
+        response['url'] = file_name
+        response['filename'] = file.name
 
-# # ---- system ---- #
-# @login_required
-# def system_feedback(request):
-#     return render(request, 'manager/system/feedback.html')
-
-
-# @login_required
-# def system_index(request):
-#     return render(request, 'manager/system/index.html')
-
-
-# @login_required
-# def system_resource(request):
-#     return render(request, 'manager/system/resource.html')
+    return JsonResponse(response, safe=False)
 
 
-# @login_required
-# def system_review(request):
-#     return render(request, 'manager/system/review.html')
+def submit_resource(request):
+    if request.method == 'POST':
+        now = timezone.now() + timedelta(hours=8)
+        url = request.POST.get('url')
+        # url = 'resources/' + filename
+        extension = url.split('.')[-1]
+        if request.POST.get('resource_id'):
+            resource_id = int(request.POST.get('resource_id'))
+        else:
+            resource_id = 0
+
+        if Resource.objects.filter(id=resource_id).exists():
+            Resource.objects.filter(id=resource_id).update(
+                type = request.POST.get('type'),
+                title = request.POST.get('title'),
+                url = url,
+                extension = extension,
+                modified = now
+            )
+        else: 
+            Resource.objects.create(
+                type = request.POST.get('type'),
+                title = request.POST.get('title'),
+                url = url,
+                extension = extension,
+                created = now,
+                modified = now
+            )
+        return redirect('system_resource')
 
 
-# @login_required
-# def system_download(request):
-#     return render(request, 'manager/system/download.html')
+def delete_resource(request):
+    if request.method == 'POST':
+        if resource_id := request.POST.get('resource_id'):
+            if Resource.objects.filter(id=resource_id).exists():
+                r = Resource.objects.get(id=resource_id)
+                my_file = Path(os.path.join('/tbia-volumes/media',r.url))
+                my_file.unlink(missing_ok=True)
+                r.delete()
+                return JsonResponse({}, safe=False)
 
 
-# # ---- unit ---- #
-# @login_required
-# def unit_feedback(request):
-#     return render(request, 'manager/unit/feedback.html')
+def edit_link(request):
+    if request.method == 'POST':
+        content = ''
+        form = LinkForm(request.POST)
+        if form.is_valid():
+            content = form.cleaned_data['content']       
 
-
-# @login_required
-# def unit_index(request):
-#     return render(request, 'manager/unit/index.html')
-
-
-# @login_required
-# def unit_resource(request):
-#     return render(request, 'manager/unit/resource.html')
-
-
-# @login_required
-# def unit_review(request):
-#     return render(request, 'manager/unit/review.html')
-
-
-# @login_required
-# def unit_download(request):
-#     return render(request, 'manager/unit/download.html')
-
-
-# @login_required
-# def unit_event(request):
-#     return render(request, 'manager/unit/event.html')
-
-
-# @login_required
-# def unit_info(request):
-#     return render(request, 'manager/unit/info.html')
-
-
-# @login_required
-# def unit_news(request):
-#     return render(request, 'manager/unit/news.html')
-
-
-# @login_required
-# def unit_project(request):
-#     return render(request, 'manager/unit/project.html')
-
+        if Link.objects.exists():
+            n = Link.objects.all().first()
+            n.modified = timezone.now()
+            n.content = content
+            n.save()
+        else:
+            Link.objects.create(
+                content = content
+            )
+        return redirect('resources_link')
 

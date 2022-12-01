@@ -18,3 +18,32 @@ partner_source_map = {
     'oca': ['iOcean海洋保育網'],
     'tfri': ['林業試驗所植物標本資料庫'],
 }
+
+from datetime import datetime, tzinfo,timedelta
+import pandas as pd
+from os.path import exists
+
+today = datetime.today() + timedelta(hours=8)
+
+this_year = today.year
+c_cal = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year}.csv')
+if exists(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv'):
+    c_cal_1 = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv')
+    c_cal = c_cal.append(c_cal_1, ignore_index=True)
+
+
+def check_due(checked_date, review_days): # 日期, 審核期限
+    final_due = ''
+    checked_date = checked_date.replace('-','')
+    c = 0
+    row_i = c_cal[c_cal.西元日期 == int(checked_date)].index[0]
+    while c < review_days:
+        row_i += 1
+        if not row_i > c_cal.index.max():
+            if c_cal.iloc[row_i].是否放假 == 0:
+                due = c_cal.iloc[row_i]
+                final_due = str(due.西元日期)
+                final_due = datetime.strptime(final_due,'%Y%m%d').strftime('%Y-%m-%d')
+                c += 1
+    return final_due
+

@@ -561,7 +561,7 @@ sensitive_cols = ['standardRawLatitude',
 
 
 # 整理查詢條件
-def create_query_display(search_dict):
+def create_query_display(search_dict,sq_id):
     query = ''
     if search_dict.get('record_type') == 'occ':
         query += '<b>類別</b>：物種出現紀錄'
@@ -581,12 +581,12 @@ def create_query_display(search_dict):
             if search_dict[k] == 'polygon':
                 geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
                 if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                    query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載</a>"
+                    query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載geojson</a>"
             elif search_dict[k] == 'circle':
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
                     query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
             elif search_dict[k] == 'map':
-                query += f"<br><b>地圖框選</b>：{search_dict.get('geojson')}" 
+                query += f"<br><b>地圖框選</b>：<a target='_blank' href='/get_geojson/{sq_id}'>點此下載geojson</a>" 
         # 日期
         elif k == 'start_date':
             query += f"<br><b>起始日期</b>：{search_dict.get('start_date')}" 
