@@ -2047,11 +2047,12 @@ def occurrence_detail(request, id):
 
     # logo
     if group := row.get('group'):
-        if info := Partner.objects.filter(group=group[0]).values('info'):
-            info = info[0]
-            for i in info['info']:
-                if i.get('subtitle') == row.get('rightsHolder'):
-                    logo = i.get('logo')
+        if logo := Partner.objects.filter(group=group[0]).values('logo'):
+            # info = info[0]
+            # for i in info['info']:
+            #     if i.get('subtitle') == row.get('rightsHolder'):
+            logo = logo[0]['logo']
+
 
 
     return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
@@ -2151,11 +2152,11 @@ def collection_detail(request, id):
 
         # logo
         if group := row.get('group'):
-            if info := Partner.objects.filter(group=group[0]).values('info'):
-                info = info[0]
-                for i in info['info']:
-                    if i.get('subtitle') == row.get('rightsHolder'):
-                        logo = i.get('logo')
+            if logo := Partner.objects.filter(group=group[0]).values('logo'):
+                # info = info[0]
+                # for i in info['info']:
+                #     if i.get('subtitle') == row.get('rightsHolder'):
+                logo = logo[0]['logo']
 
     else:
         row = []

@@ -26,7 +26,7 @@
 					<div class="logo_area">
 						<img src="/static/image/partner/{{ i.logo }}" >
 					</div>
-					<h2>{{ i.title }}</h2><h3><a {% if l.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}</a></h3>
+					<h2>{{ i.title }}</h2><h3><a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}</a></h3>
 					<p>{{ i.description }}</p>
 				</div>
 				<div class="rightbox">
