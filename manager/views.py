@@ -1072,9 +1072,9 @@ def update_partner_info(request):
             new_info.append({
                 'id': i['id'],
                 'link': request.POST.get(f'link_{l}'),
-                'logo': i['logo'],
+                # 'logo': request.POST.get(f'logo'),
                 'image': i['image'],
-                'subtitle': i['subtitle'],
+                'subtitle': request.POST.get(f'subtitle_{l}'),
                 'description': request.POST.get(f'description_{l}'),
             })
         p = Partner.objects.get(id=partner_id)

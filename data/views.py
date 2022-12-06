@@ -1970,6 +1970,10 @@ def occurrence_detail(request, id):
     if row.get('taxonRank', ''):
         row.update({'taxonRank': map_occurrence[row['taxonRank']]})
 
+    if am := row.get('associatedMedia'):
+        row.update({'associatedMedia': am.split(';')})
+
+
     if row.get('dataGeneralizations', ''):
         if row['dataGeneralizations'] == 'True':
             row.update({'dataGeneralizations': '是'})
@@ -2065,6 +2069,9 @@ def collection_detail(request, id):
     row = row.to_dict('records')
     row = row[0]
     if row.get('recordType') == ['col']:
+
+        if am := row.get('associatedMedia'):
+            row.update({'associatedMedia': am.split(';')})
 
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})

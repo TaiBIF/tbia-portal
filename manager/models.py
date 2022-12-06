@@ -61,7 +61,7 @@ class Partner(models.Model):
     # description = models.TextField(null=True, blank=True)
     # link = models.TextField(null=True, blank=True)
     # image = models.TextField(null=True, blank=True)
-    # logo = models.TextField(null=True, blank=True)
+    logo = models.TextField(null=True, blank=True)
     info = models.JSONField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)

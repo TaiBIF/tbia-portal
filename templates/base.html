@@ -186,6 +186,10 @@
               <option value='{{ p.id }}'>
                   {% if p.title == '營建署城鄉發展分署' %}
                   內政部營建署城鄉發展分署
+                  {% elif p.group == 'brcas' %}
+                  中央研究院生物多樣性研究中心 - 臺灣生物多樣性資訊機構 TaiBIF
+                  {% elif p.group == 'brmas' %}
+                  中央研究院生物多樣性研究中心 - 生物多樣性研究博物館
                   {% else %}
                   {{ p.breadtitle }}
                   {% endif %}

@@ -263,7 +263,7 @@
                             {% if user.partner.info|length > 1 %}
                                 {% for i in user.partner.info %}
                                 <li>資料庫名稱{{ forloop.counter }}</li>
-                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}" disabled>
+                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}">
                                 </li>
                                 <li>簡介{{ forloop.counter }}</li>
                                 <li><textarea name="description_{{ i.id }}">{{ i.description }}</textarea>
@@ -283,7 +283,7 @@
                             {% else %}
                                 {% for i in user.partner.info %}
                                 <li>資料庫名稱</li>
-                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}" disabled>
+                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}">
                                 </li>
                                 <li>簡介</li>
                                 <li><textarea name="description_{{ i.id }}">{{ i.description }}</textarea>

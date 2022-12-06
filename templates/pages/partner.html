@@ -26,14 +26,15 @@
 					<div class="logo_area">
 						<img src="/static/image/partner/{{ i.logo }}" >
 					</div>
-					<h2>{{ i.title }}</h2><h3>{{ i.subtitle }}</h3>
+					<h2>{{ i.title }}</h2><h3><a {% if l.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}</a></h3>
 					<p>{{ i.description }}</p>
 				</div>
 				<div class="rightbox">
 					<div class="pic">
 						<img src="/static/image/partner/{{ i.image }}" >
 					</div>
-					<a href="{{ i.link }}" class="linkto" target="_blank">
+					<!--<a href="{{ i.link }}" class="linkto" target="_blank">-->
+					<a href="javascript:;" data-partner_id="{{ i.id }}" class="linkto contact_partner">
 						聯絡我們
 					</a>
 				</div>
@@ -44,6 +45,11 @@
 {% endblock body %}
 {% block script %}
 <script>
+
+	$('.contact_partner').on('click',function(){
+	 $('.feedback-pop select[name="partner_id"]').val($(this).data('partner_id'));
+	 $('.feedback-pop').show()
+	})
 
 </script>
 {% endblock script %}

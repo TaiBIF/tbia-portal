@@ -211,67 +211,6 @@
             </div>
         </div>
 
-
-        <div class="rightbox_content info" style="display: none">
-            <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>單位基本資料</div>
-                    <ul class="edit-list">
-                        <form id="updateForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="partner_id" value="{{ user.partner.id }}">
-                            <li>單位名稱</li>
-                            <li><input type="text" name="partner" value="{{ user.partner.breadtitle }}" disabled></li>
-                            <li>單位管理者名稱</li>
-                            <li><input type="text" name="name" value="{{ partner_admin }}" disabled>
-                            </li>
-                            <!-- 這邊可能不只一個 -->
-                            {% if user.partner.info|length > 1 %}
-                                {% for i in user.partner.info %}
-                                <li>資料庫名稱{{ forloop.counter }}</li>
-                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}" disabled>
-                                </li>
-                                <li>簡介{{ forloop.counter }}</li>
-                                <li><textarea name="description_{{ i.id }}">{{ i.description }}</textarea>
-                                    <div class="noticbox" style="display: none;">
-                                        <div class="in1">錯誤</div>
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                                <li>聯絡網址{{ forloop.counter }}</li>
-                                <li><input name="link_{{ i.id }}" value="{{ i.link }}"></input>
-                                    <div class="noticbox" style="display: none;">
-                                        <div class="in1">錯誤</div>
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                {% for i in user.partner.info %}
-                                <li>資料庫名稱</li>
-                                <li><input type="text" name="subtitle_{{ i.id }}" value="{{ i.subtitle }}" disabled>
-                                </li>
-                                <li>簡介</li>
-                                <li><textarea name="description_{{ i.id }}">{{ i.description }}</textarea>
-                                    <div class="noticbox" style="display: none;">
-                                        <div class="in1">錯誤</div>
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                                <li>聯絡網址</li>
-                                <li><input name="link_{{ i.id }}" value="{{ i.link }}"></input>
-                                    <div class="noticbox" style="display: none;">
-                                        <div class="in1">錯誤</div>
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            {% endif %}
-                        </form>
-                        <li ><button class="search_btn" onclick="updateInfo()">確認修改</button></li>
-                    </ul>
-            </div>
-        </div>
-
         {% else %}
         您的權限不足
         {% endif %}

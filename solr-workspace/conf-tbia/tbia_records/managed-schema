@@ -550,6 +550,7 @@
     <field name="infraphylum_c" type="string"/>
     <field name="kingdom" type="string"/>
     <field name="kingdom_c" type="string"/>
+    <field name="mediaLicense" type="string"/>
     <field name="microphylum" type="string"/>
     <field name="microphylum_c" type="string"/>
     <field name="misapplied" type="string"/>

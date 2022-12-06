@@ -1,6 +1,9 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load tags %}
+
 {% block style %}
+
 <style>
   .edu_list li .title {
     -webkit-line-clamp: 1;
@@ -311,48 +314,26 @@
     <div class="main_1240">
       <h2 class="title"><span></span>夥伴單位</h2>
       <ul class="index_partner">
+        {% for p in index_partners|slice:":4" %}
         <li>
-          <a href="{% url 'partner' 'brcas' %}">
+          <a href="{% url 'partner' p.abbreviation %}">
             <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_1.svg' %}" />
+              <img src="/static/image/partner/{{ p.logo }}" />
             </div>
           </a>
         </li>
+        {% endfor %}
+      </ul>
+      <ul class="index_partner" style="margin-top: 20px">
+        {% for p in index_partners|slice:"4:" %}
         <li>
-          <a href="{% url 'partner' 'cpami' %}">
+          <a href="{% url 'partner' p.abbreviation %}">
             <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_3.png' %}" />
+              <img src="/static/image/partner/{{ p.logo }}" />
             </div>
           </a>
         </li>
-        <li>
-          <a href="{% url 'partner' 'forest' %}">
-            <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_4_with_text.png' %}" />
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'partner' 'oca' %}">
-            <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_5.svg' %}" />
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'partner' 'tfri' %}">
-            <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_6.svg' %}" />
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'partner' 'tesri' %}">
-            <div class="imgbox">
-              <img src="{% static 'image/partner/parlogo_7.svg' %}" />
-            </div>
-          </a>
-        </li>
+        {% endfor %}      
       </ul>
     </div>
   </div>
