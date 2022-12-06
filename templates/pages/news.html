@@ -190,6 +190,7 @@
 					</ul>
 				</div>
 				<ul class="news_list">
+					{% if news_list|length > 0 %}
 					{% for n in news_list %}
 					<li onclick="window.open(`{% url 'news_detail' n.id %}`)">
 					  <a href="javascript:;" class="imgbox">
@@ -218,6 +219,9 @@
 					  </div>
 					</li>
 					{% endfor %}
+					{% else %}
+					<li>暫無資料</li>
+					{% endif %}
 
 				</ul>
 

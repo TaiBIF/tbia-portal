@@ -193,27 +193,31 @@
         <li class="li-news-project " onclick="updateNews('project',1)">計畫徵求<span></span></li>
       </ul>
       <ul class="news_list">
-        {% for n in news_list %}
-        <li>
-          <a href="{% url 'news_detail' n.id %}" target="_blank" class="imgbox">
-            <div class="img_area" style="background-image: url('{{ n.image }}')">
-            </div>
-          </a>
-          <div class="infbox">
-            <div class="center_box">
-              <div class="tag_date">
-                <div class="tag {{ n.color }}">{{ n.type_c }}</div>
-                <p class="date">{{ n.publish_date }}</p>
+        {% if news_list|length > 0 %}
+          {% for n in news_list %}
+          <li>
+            <a href="{% url 'news_detail' n.id %}" target="_blank" class="imgbox">
+              <div class="img_area" style="background-image: url('{{ n.image }}')">
               </div>
-              <a href="{% url 'news_detail' n.id %}" target="_blank" class="nstitle">
-                {{ n.title }}
-              </a>
-              <p>
-              </p>
+            </a>
+            <div class="infbox">
+              <div class="center_box">
+                <div class="tag_date">
+                  <div class="tag {{ n.color }}">{{ n.type_c }}</div>
+                  <p class="date">{{ n.publish_date }}</p>
+                </div>
+                <a href="{% url 'news_detail' n.id %}" target="_blank" class="nstitle">
+                  {{ n.title }}
+                </a>
+                <p>
+                </p>
+              </div>
             </div>
-          </div>
-        </li>
-        {% endfor %}
+          </li>
+          {% endfor %}
+        {% else %}
+          <li>暫無資料</li>
+        {% endif %}
       </ul>
       <div class="more_right clearfix">
         <a href="{% url 'news' %}" class="go_more">
