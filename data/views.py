@@ -860,6 +860,10 @@ def generate_species_csv(req_dict,user_id):
         for d in data:
             # print(d)
             df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
+        if len(df):
+            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID'))
+            df = df.merge(subset_taxon, how='left')
+
         csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
         csv_folder = os.path.join(csv_folder, 'taxon')
         csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
@@ -1158,34 +1162,36 @@ def search_full(request):
 
         # 整理側邊欄
         taxon_rows = []
-        taxon_groupby = taxon_result_df.groupby('matched_col')['val'].nunique()
-        for tt in taxon_groupby.index:
-            taxon_rows.append({
-                'title': map_occurrence[tt],
-                'total_count': taxon_groupby[tt],
-                'key': tt
-            })
+        taxon_card_len = 0
+        if len(taxon_result_df):
+            taxon_groupby = taxon_result_df.groupby('matched_col')['val'].nunique()
+            for tt in taxon_groupby.index:
+                taxon_rows.append({
+                    'title': map_occurrence[tt],
+                    'total_count': taxon_groupby[tt],
+                    'key': tt
+                })
 
-        taxon_result_df = taxon_result_df.reset_index(drop=True)
-        taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','col_count','occ_count'])]
-        if len(taxon_result_df_duplicated):
-            taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
-            taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
+            taxon_result_df = taxon_result_df.reset_index(drop=True)
+            taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','col_count','occ_count'])]
+            if len(taxon_result_df_duplicated):
+                taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
+                taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
 
-        taxon_card_len = len(taxon_result_df)
+            taxon_card_len = len(taxon_result_df)
 
-        taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[:4].val.unique()).values())
-        taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[:4].val.unique()).values())
+            taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
 
 
-        taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
-        taxon_result_df['val'] = taxon_result_df['formatted_name']
-        taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
-        taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
-        taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
-        taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
-        taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
-        taxon_result_df = taxon_result_df.replace({np.nan: ''})
+            taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
+            taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+            taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
+            taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
+            taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
+            taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
+            taxon_result_df = taxon_result_df.replace({np.nan: ''})
 
         # 照片
         # taxon_result_df['images'] = ''
@@ -1975,9 +1981,9 @@ def occurrence_detail(request, id):
 
 
     if row.get('dataGeneralizations', ''):
-        if row['dataGeneralizations'] == 'True':
+        if row['dataGeneralizations'] in ['True', True]:
             row.update({'dataGeneralizations': '是'})
-        elif row['dataGeneralizations'] == 'False':
+        elif row['dataGeneralizations'] in ['True', False]:
             row.update({'dataGeneralizations': '否'})
         else:
             pass
@@ -2047,7 +2053,7 @@ def occurrence_detail(request, id):
 
     # logo
     if group := row.get('group'):
-        if logo := Partner.objects.filter(group=group[0]).values('logo'):
+        if logo := Partner.objects.filter(group=group).values('logo'):
             # info = info[0]
             # for i in info['info']:
             #     if i.get('subtitle') == row.get('rightsHolder'):
@@ -2078,9 +2084,9 @@ def collection_detail(request, id):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
 
         if row.get('dataGeneralizations', ''):
-            if row['dataGeneralizations'] == 'True':
+            if row['dataGeneralizations'] in ['True', True]:
                 row.update({'dataGeneralizations': '是'})
-            elif row['dataGeneralizations'] == 'False':
+            elif row['dataGeneralizations'] in ['False', False]:
                 row.update({'dataGeneralizations': '否'})
             else:
                 pass
@@ -2152,7 +2158,7 @@ def collection_detail(request, id):
 
         # logo
         if group := row.get('group'):
-            if logo := Partner.objects.filter(group=group[0]).values('logo'):
+            if logo := Partner.objects.filter(group=group).values('logo'):
                 # info = info[0]
                 # for i in info['info']:
                 #     if i.get('subtitle') == row.get('rightsHolder'):
