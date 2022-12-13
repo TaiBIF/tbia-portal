@@ -75,7 +75,6 @@
   <div class="main_1240">
     <div class="search_condition_are">
       <form id="searchForm">
-        {% csrf_token %}
         <input type="hidden" name="record_type" value="col">
         <div class="secboxtop2">
           <div class="leftbox">
@@ -790,6 +789,7 @@ function submitSearch (page, from){
   if (from == 'search'){   
     var form = $(); 
     $('#searchForm input,#searchForm select').each(function() {
+
         if ($(this).val().length) {
            form = form.add($(this)); 
         }
