@@ -750,8 +750,8 @@
           next_url = window.location.pathname + '?' + searchParams.toString();
         } 
        //window.location.href = "{% provider_login_url 'google' %}?next=/login/google/callback" ;
-       window.location.href = "{% provider_login_url 'google' %}?next=/login/google/callback?next2=" + encodeURIComponent(next_url);
 
+       window.location.href = "{% provider_login_url 'google' %}?next=/login/google/callback?next2=" + encodeURIComponent(next_url);
         
       })
 

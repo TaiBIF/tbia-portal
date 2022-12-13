@@ -826,8 +826,10 @@ def update_personal_info(request):
 
 
 def get_auth_callback(request):
-    # print(request.GET.get('next2'))
-    next2 = request.GET.get('next2','index')
+    next2 = request.GET.get('next2','/')
+    for k in request.GET.keys():
+        if k != 'next2':
+            next2 += f'&{k}={request.GET.get(k)}'
     if email := request.user.email:
         if User.objects.filter(email=email).exists():
             u = User.objects.filter(email=email).first()
