@@ -125,21 +125,21 @@
   
       </div>
       </div>
+      {% if row.associatedMedia|length > 0 %}
       <div class="right_area">
-
-
         <div class="imgbox">        
           {% if row.associatedMedia|length > 1 %}
-        <div class="arr-left" onclick="plusSlides(-1)">
-        </div>
-        <div class="arr-right" onclick="plusSlides(+1)">
-        </div>
-      {% endif %}
-        {% for am in row.associatedMedia %}
-          <div class="imgarea mySlides fade" style="background-image:url('{{ am }}') ;"></div>
-        {% endfor %}
+            <div class="arr-left" onclick="plusSlides(-1)">
+            </div>
+            <div class="arr-right" onclick="plusSlides(+1)">
+            </div>
+          {% endif %}
+          {% for am in row.associatedMedia %}
+            <div class="imgarea mySlides fade" style="background-image:url('{{ am }}') ;"></div>
+          {% endfor %}
         </div>
       </div>
+      {% endif %}
 
     </div>
 
@@ -267,8 +267,11 @@
 {% block script %}
 <script>
 
+  {% if row.associatedMedia|length > 0 %}
   let slideIndex = 1;
 	showSlides(slideIndex);
+  {% endif %}
+
 
 	function plusSlides(n) {
 		showSlides(slideIndex += n);

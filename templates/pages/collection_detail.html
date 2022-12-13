@@ -122,19 +122,22 @@
           </div>
 
       </div>
+      {% if row.associatedMedia|length > 0 %}
       <div class="right_area">
         {% if row.associatedMedia|length > 1 %}
         <div class="arr-left" onclick="plusSlides(-1)">
         </div>
         <div class="arr-right" onclick="plusSlides(+1)">
         </div>
-      {% endif %}
+        {% endif %}
         {% for am in row.associatedMedia %}
         <div class="imgbox">
           <div class="imgarea mySlides fade" style="background-image:url('{{ am }}') ;"></div>
         </div>
         {% endfor %}
       </div>
+      {% endif %}
+
     </div>
 
     <div class="sc_de_main">
@@ -295,9 +298,10 @@
   }).addTo(map);
   {% endif %}
 
-
+  {% if row.associatedMedia|length > 0 %}
   let slideIndex = 1;
 	showSlides(slideIndex);
+  {% endif %}
 
 	function plusSlides(n) {
 		showSlides(slideIndex += n);
