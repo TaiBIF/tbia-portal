@@ -580,7 +580,7 @@ map.on('zoomend', function zoomendEvent(ev) {
               </div>
             </div>`)
 
-                  // 如果有敏感資料才有申請按鈕
+            // 如果有敏感資料才有申請按鈕
             if (response.has_sensitive){
                 $('#before_sensitive').after(`
                     <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>

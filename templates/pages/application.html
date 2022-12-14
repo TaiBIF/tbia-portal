@@ -195,7 +195,7 @@
 				$.ajax({
 					url: "{% url 'submit_sensitive_request' %}",
 					data: $('#appilcationForm').serialize() + '&users='+ JSON.stringify(users)  + '&csrfmiddlewaretoken={{ csrf_token }}' +
-					'&query_string=' + window.location.search,
+					'&' + window.location.search.substr(1),
 					type: 'POST',
 					dataType : 'json',
 				})

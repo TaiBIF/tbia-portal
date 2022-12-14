@@ -104,7 +104,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['applicant','phone','address','affliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
+        not_query = ['applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -217,23 +217,24 @@ def submit_sensitive_request(request):
             # 如果有其他條件才進行搜尋，否則回傳空值
             if query_list and query_list != ['recordType:col']:
 
-                query = { "query": "-raw_location_rpt:*",
+                query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
                         "limit": 0,
                         "filter": query_list,
-                        "facet": {
+                        "facet":{  
                             "group": {
                                 "type": "terms",
                                 "field": "group",
                                 "limit": -1,
                                 }
-                            }
+                        }
                         }
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-                group = response.json()['facets']['group']['buckets']
                 groups = []
-                for g in group:
-                    groups.append(g['val'])
+                if  response.json()['facets'].get('group'):
+                    group = response.json()['facets']['group']['buckets']
+                    for g in group:
+                        groups.append(g['val'])
             
                 for p in Partner.objects.filter(group__in=groups):
                     sdr = SensitiveDataResponse.objects.create(
@@ -1979,10 +1980,11 @@ def occurrence_detail(request, id):
     if am := row.get('associatedMedia'):
         row.update({'associatedMedia': am.split(';')})
 
-    if row.get('dataGeneralizations', ''):
+    # print(row.get('dataGeneralizations'))
+    if str(row.get('dataGeneralizations')):
         if row['dataGeneralizations'] in ['True', True]:
             row.update({'dataGeneralizations': '是'})
-        elif row['dataGeneralizations'] in ['True', False]:
+        elif row['dataGeneralizations'] in ['False', False]:
             row.update({'dataGeneralizations': '否'})
         else:
             pass
@@ -2084,7 +2086,7 @@ def collection_detail(request, id):
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
 
-        if row.get('dataGeneralizations', ''):
+        if str(row.get('dataGeneralizations')):
             if row['dataGeneralizations'] in ['True', True]:
                 row.update({'dataGeneralizations': '是'})
             elif row['dataGeneralizations'] in ['False', False]:

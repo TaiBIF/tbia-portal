@@ -457,14 +457,16 @@
   <field name="coordinatePrecision" type="string"/>
   <field name="coordinateUncertaintyInMeters" type="string"/>
   <field name="created" type="pdates"/>
-  <field name="dataGeneralizations" type="string"/>
+  <field name="dataGeneralizations" type="boolean"/>
   <field name="datasetName" type="string"/>
   <field name="eventDate" type="string"/>
+  <field name="group" type="string"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="license" type="string"/>
   <field name="locality" type="string"/>
   <field name="location_rpt" type="location_rpt"/>
   <field name="raw_location_rpt" type="location_rpt"/>
+  <field name="mediaLicense" type="string"/>
   <field name="modified" type="pdates"/>
   <field name="occurrenceID" type="string"/>
   <field name="organismQuantity" type="string"/>
@@ -550,7 +552,6 @@
     <field name="infraphylum_c" type="string"/>
     <field name="kingdom" type="string"/>
     <field name="kingdom_c" type="string"/>
-    <field name="mediaLicense" type="string"/>
     <field name="microphylum" type="string"/>
     <field name="microphylum_c" type="string"/>
     <field name="misapplied" type="string"/>

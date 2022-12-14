@@ -592,6 +592,8 @@ def create_query_display(search_dict,sq_id):
             query += f"<br><b>起始日期</b>：{search_dict.get('start_date')}" 
         elif k == 'end_date':
             query += f"<br><b>結束日期</b>：{search_dict.get('end_date')}" 
+        elif k == 'name':
+            query += f"<br><b>中文名/學名/中文別名</b>：{search_dict.get('name')}" 
 
     return query
 
