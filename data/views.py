@@ -1979,7 +1979,6 @@ def occurrence_detail(request, id):
     if am := row.get('associatedMedia'):
         row.update({'associatedMedia': am.split(';')})
 
-
     if row.get('dataGeneralizations', ''):
         if row['dataGeneralizations'] in ['True', True]:
             row.update({'dataGeneralizations': '是'})
@@ -2040,15 +2039,17 @@ def occurrence_detail(request, id):
     path_str = ''
     path = []
     if row.get('taxonID'):
-        for r in rank_list:
-            if row.get(r):
-                if row.get(f"formatted_{r}"):
-                    current_str = row.get(f"formatted_{r}")
-                else:
-                    current_str = row.get(r)
-                if row.get(f"{r}_c"):
-                    current_str += ' ' + row.get(f"{r}_c")
-                path.append(current_str)
+        if Taxon.objects.filter(taxonID=row.get('taxonID')).exists():
+            t_rank = Taxon.objects.filter(taxonID=row.get('taxonID')).values()[0]
+            for r in rank_list:
+                if t_rank.get(r):
+                    if t_rank.get(f"formatted_{r}"):
+                        current_str = t_rank.get(f"formatted_{r}")
+                    else:
+                        current_str = t_rank.get(r)
+                    if t_rank.get(f"{r}_c"):
+                        current_str += ' ' + t_rank.get(f"{r}_c")
+                    path.append(current_str)
     path_str = ' > '.join(path)
 
     # logo
@@ -2145,15 +2146,17 @@ def collection_detail(request, id):
         # taxon
         path = []
         if row.get('taxonID'):
-            for r in rank_list:
-                if row.get(r):
-                    if row.get(f"formatted_{r}"):
-                        current_str = row.get(f"formatted_{r}")
-                    else:
-                        current_str = row.get(r)
-                    if row.get(f"{r}_c"):
-                        current_str += ' ' + row.get(f"{r}_c")
-                    path.append(current_str)
+            if Taxon.objects.filter(taxonID=row.get('taxonID')).exists():
+                t_rank = Taxon.objects.filter(taxonID=row.get('taxonID')).values()[0]
+                for r in rank_list:
+                    if t_rank.get(r):
+                        if t_rank.get(f"formatted_{r}"):
+                            current_str = t_rank.get(f"formatted_{r}")
+                        else:
+                            current_str = t_rank.get(r)
+                        if t_rank.get(f"{r}_c"):
+                            current_str += ' ' + t_rank.get(f"{r}_c")
+                        path.append(current_str)
         path_str = ' > '.join(path)
 
         # logo

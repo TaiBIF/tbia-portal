@@ -328,12 +328,19 @@
 										</div>
 									</div>
 								</div>
-								<div class="btn_area">
-                  {% if i.taieol_id %}
-									<a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
-                  {% endif %}
-									<button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
-								</div>
+
+                {% comment %} justify-content: center {% endcomment %}
+
+                {% if i.taieol_id %}
+                <div class="btn_area">
+                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
+                  <button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
+                </div>
+                {% else %}
+                <div class="btn_area" style="justify-content: flex-end">
+                  <button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
+                </div>
+                {% endif %}
 							</li>
               {% endfor %}
 						</ul>

@@ -649,10 +649,11 @@ def change_manager_page(request):
                         </tr>
         """
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
+            url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
                 'title': r.title,
                 'type': r.get_type_display(),
-                'filename': f"<a href='/media/{r.url}' target='_blank'>{r.url.split('resources/')[1]}</a>",
+                'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
                 'edit': f'<a href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
                 'delete': f'<a href="javascript:;" class="delete_resource" data-resource_id="{ r.id }">刪除</a>'
@@ -678,7 +679,7 @@ def manager(request):
     # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
     # notis = Notification.objects.filter(user_id=request.user.id)
-    
+
     notis = []
     notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
     # results = ""
@@ -700,15 +701,13 @@ def manager(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date = ''
-
+        query = ''
         # 整理查詢條件
         # 全站搜尋
         if 'from_full=yes' in r.query:
             search_str = dict(parse.parse_qsl(r.query)).get('search_str')
             search_dict = dict(parse.parse_qsl(search_str))
-
             query += f"<br><b>關鍵字</b>：{search_dict['keyword']}"
-            
             if search_dict.get('record_type') == 'occ':
                 map_dict = map_occurrence
             else:
@@ -734,6 +733,7 @@ def manager(request):
     # print(r_total_page, r_page_list)
     taxon = []
     for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon')[:10]:
+        query = ''
         if t.modified:
             date = t.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -757,6 +757,8 @@ def manager(request):
     sensitive = []
 
     for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[:10]:
+        query = ''
+
         if s.modified:
             date = s.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -1477,7 +1479,7 @@ def system_resource(request):
 
     resource_list = []
     for r in Resource.objects.all().order_by('-modified')[:10]:
-        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1]})
+        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
     r_total_page = math.ceil(Resource.objects.all().count()/10)
     r_page_list = get_page_list(1, r_total_page)
     type_choice = Resource._meta.get_field('type').choices
@@ -1486,7 +1488,10 @@ def system_resource(request):
     if request.GET.get('resource_id'):
         if Resource.objects.filter(id=request.GET.get('resource_id')).exists():
             current_r = Resource.objects.get(id=request.GET.get('resource_id'))
-            current_r.filename =  current_r.url.split('resources/')[1]
+            if 'resources/' in current_r.url:
+                current_r.filename =  current_r.url.split('resources/')[1]
+            else:
+                current_r.filename =  current_r.url
 
     form = LinkForm()
     n = []
