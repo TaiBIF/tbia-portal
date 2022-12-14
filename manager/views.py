@@ -707,7 +707,7 @@ def manager(request):
         if 'from_full=yes' in r.query:
             search_str = dict(parse.parse_qsl(r.query)).get('search_str')
             search_dict = dict(parse.parse_qsl(search_str))
-            query += f"<br><b>關鍵字</b>：{search_dict['keyword']}"
+            query += f"<b>關鍵字</b>：{search_dict['keyword']}"
             if search_dict.get('record_type') == 'occ':
                 map_dict = map_occurrence
             else:
