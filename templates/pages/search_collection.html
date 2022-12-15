@@ -51,6 +51,32 @@
     display: flex;
     margin-bottom: 10px
   }
+  .sc_result .rightmore .dwd {
+    padding: 0px 10px;
+    font-size: 16px;
+    color: lightgrey;
+    height: 40px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    border-radius: 10px;
+    margin-left: 10px;
+    border: 1px solid lightgrey;
+    background: none;
+    cursor: default;
+}
+
+@media only screen and (max-width: 767px) {
+    .sc_result .rightmore .dwd {
+        font-size: 16px;
+        padding: 0 10px;
+        height: 30px;
+        margin-left: 0px;
+        margin-right: 10px
+    }
+}
 
 </style>
 {% endblock style %}
@@ -585,6 +611,10 @@ map.on('zoomend', function zoomendEvent(ev) {
                 $('#before_sensitive').after(`
                     <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
                     <a href="#" class="qmark"></a>`)
+            } else {
+                $('#before_sensitive').after(`
+                <button class="dwd" disabled onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
+                <a href="#" class="qmark"></a>`)
             }
             // table title
             var table_title = document.createElement("tr");
