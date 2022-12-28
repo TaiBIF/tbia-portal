@@ -7033,7 +7033,7 @@ body {
     .result_inf_top p.datenum {
         position: absolute;
         right: 15px;
-        top: 10px
+        top: 30px
     }
 }
 
@@ -8137,6 +8137,7 @@ body {
     position: fixed;
     z-index: 100;
     background: #FFF;
+    opacity: 0.8;
     align-items: center;
     justify-content: center
 }
@@ -8151,7 +8152,8 @@ body {
     justify-content: center;
     color: #ccc;
     cursor: pointer;
-    transition: 0.3s linear
+    transition: 0.3s linear;
+    margin-top: 100px
 }
 
 .loading_area .load {

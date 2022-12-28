@@ -104,7 +104,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
+        not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -682,7 +682,7 @@ def generate_download_csv(req_dict,user_id):
 
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -814,7 +814,7 @@ def generate_species_csv(req_dict,user_id):
         query_list += [ '(' + query_str + ')' ]
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -935,7 +935,7 @@ def generate_download_csv_full(req_dict,user_id):
 
     # download_id = 'test'
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -2181,14 +2181,27 @@ def get_conditional_records(request):
     if request.method == 'POST':
         # print(request.POST)
         # query_string = request.POST.urlencode()
+        limit = int(request.POST.get('limit', 10))
+        orderby = request.POST.get('orderby','scientificName')
+        sort = request.POST.get('sort', 'asc')
+        # if orderby:
+        #     orderby += ' asc'
+        # else:
+        #     orderby = 'scientificName asc'
+
         
         map_geojson = {}
         map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
+
         # default columns
-        selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
+        # print(request.POST.getlist('selected_col'))
+        if request.POST.getlist('selected_col'):
+            selected_col = request.POST.getlist('selected_col')
+        else:
+            selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
         # use JSON API to avoid overlong query url
         query_list = []
 
@@ -2272,13 +2285,13 @@ def get_conditional_records(request):
         if query_list and query_list != ['recordType:col']:
 
             page = int(request.POST.get('page', 1))
-            offset = (page-1)*10
+            offset = (page-1)*limit
 
             query = { "query": "*:*",
                     "offset": offset,
-                    "limit": 10,
+                    "limit": limit,
                     "filter": query_list,
-                    "sort":  "scientificName asc",
+                    "sort":  orderby + ' ' + sort,
                     }
 
             query2 = { "query": "raw_location_rpt:[* TO *]",
@@ -2388,8 +2401,8 @@ def get_conditional_records(request):
             
             docs = docs.to_dict('records')
 
-            current_page = offset / 10 + 1
-            total_page = math.ceil(count / 10)
+            current_page = offset / limit + 1
+            total_page = math.ceil(count / limit)
             page_list = get_page_list(current_page, total_page)
 
             response = {
@@ -2401,7 +2414,10 @@ def get_conditional_records(request):
                 'selected_col': selected_col,
                 'map_dict': map_dict,
                 'map_geojson': map_geojson,
-                'has_sensitive': has_sensitive
+                'has_sensitive': has_sensitive,
+                'limit': limit,
+                'orderby': orderby,
+                'sort': sort,
             }
         
         else:
@@ -2413,6 +2429,9 @@ def get_conditional_records(request):
                 'selected_col': selected_col,
                 'map_dict': map_dict,
                 'map_geojson': map_geojson,
+                'limit': 10,
+                'orderby': orderby,
+                'sort': sort,
             }
 
         return HttpResponse(json.dumps(response, default=str), content_type='application/json')

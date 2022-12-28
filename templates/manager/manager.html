@@ -583,9 +583,7 @@
             url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
             type: 'GET',
             success: function(response){
-                console.log(response)
                 // 修改表格內容
-
                 $(`.${menu}_table`).html(`
                 ${response.header}
                 ${response.data}
