@@ -1,0 +1,64 @@
+{
+  "_from": "vanillaselectbox",
+  "_id": "vanillaselectbox@1.0.2",
+  "_inBundle": false,
+  "_integrity": "sha512-ppLlxBgjuvkUB28IYH1eHz5bVozAHlEzUK/mh7Mc/gUmcb5dkCpPpWX5+s+bW29FM32V3ADgnl0yfYM78ns5AQ==",
+  "_location": "/vanillaselectbox",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "vanillaselectbox",
+    "name": "vanillaselectbox",
+    "escapedName": "vanillaselectbox",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/vanillaselectbox/-/vanillaselectbox-1.0.2.tgz",
+  "_shasum": "025c03e4b1467f454ab0fe33f80a7ddbcd25b987",
+  "_spec": "vanillaselectbox",
+  "_where": "/Users/taibif/Documents/GitHub/tbia-portal",
+  "author": {
+    "name": "Philippemarcmeyer"
+  },
+  "bugs": {
+    "url": "https://github.com/PhilippeMarcMeyer/vanillaSelectBox/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "vanilla js plugin to transform a select tag into a nice drop-down",
+  "devDependencies": {},
+  "files": [
+    "vanillaSelectBox.css",
+    "vanillaSelectBox.js"
+  ],
+  "funding": "",
+  "homepage": "https://philippemarcmeyer.github.io/#vanillajs",
+  "keywords": [
+    "javascript",
+    "js",
+    "vanillajs",
+    "small",
+    "tiny",
+    "selectbox",
+    "dropdown"
+  ],
+  "license": "MIT",
+  "main": "vanillaSelectBox.js",
+  "name": "vanillaselectbox",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PhilippeMarcMeyer/vanillaSelectBox.git"
+  },
+  "scripts": {},
+  "semistandard": {
+    "ignore": [],
+    "globals": []
+  },
+  "version": "1.0.2"
+}

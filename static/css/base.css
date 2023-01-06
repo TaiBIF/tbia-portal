@@ -1,0 +1,197 @@
+.visible {
+    visibility: visible
+}
+
+.from_area {
+    height: 100%
+}
+
+.message_list li:hover {
+    cursor: pointer;
+    background: #EEF4EF
+}
+
+.popbg .wbox_center .map_img .img {
+    background: none;
+}
+
+.search_condition_are .secboxtop2 .rightbox .map_img .img {
+    background: none;
+}
+
+.sc_de_main .right_area .map_img .img {
+    background: none;
+}
+
+.header .right_btn2 .member_login .member_slimenu ul li {
+    border-bottom-left-radius: 15px;
+}
+
+.checka {
+    cursor: pointer;
+    text-decoration: underline;
+
+}
+
+.checka:hover {
+    color: grey !important
+}
+
+.footer .copy a {
+    color: #FFF;
+    text-align: center;
+    font-size: 14px;
+    font-weight: normal;
+    cursor: pointer;
+    margin: 0 5px
+}
+
+
+.message_list li, .ringbox .titlebox p {
+    cursor: default
+}
+
+
+.header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
+    height: auto;
+    max-height: 36px;
+
+}
+
+
+.header .right_btn2 .ringbox .messagebox .wbox .titlebox button:hover {
+    color: #E2A460;
+}
+
+/*
+  .popbg .loginbox .right_cont .checkbox_area {
+    margin-bottom: 20px;
+}*/
+
+.popbg .wbox_center {
+
+    max-height: 650px;
+}
+
+
+::placeholder {
+    color: #707070;
+}
+
+.input_item select {
+    -webkit-appearance: menulist-button;
+    color: black !important;
+}
+
+.input_item select:invalid {
+    color: #707070 !important;
+}
+
+
+input {
+    color: black !important;
+}
+
+.section_1 .content_area .input_set button svg {
+    height: 39px
+}
+
+.section_1 .content_area .input_set button {
+    margin-top: -20px
+}
+
+
+.header .right_btn2 .member_login:hover p {
+    color: #76A578;
+}
+
+.footer .right_inf .addpart {
+    width: 190px;
+}
+
+@media only screen and (max-width: 767px) {
+    .footer .right_inf .addpart {
+        width: 100%;
+    }
+}
+
+.loginbox .right_cont {
+    z-index: 2;
+}
+
+.popbg .xx {
+    z-index: 3;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.d-block {
+    display: block !important;
+}
+
+.d-flex-jc-sb {
+    display: flex; 
+    justify-content: space-between;
+}
+
+.d-flex-ai-c-jc-c {
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+}
+
+.d-flex-jc-fe {
+    display: flex; 
+    justify-content: flex-end
+}
+
+.d-flex-ai-c {
+    display: flex; 
+    align-items: center;
+}
+
+.pointer {
+    cursor: pointer
+}
+
+.pt-none {
+    pointer-events: none;
+}
+
+.w-5p {
+    width: 5% !important;
+}
+
+.w-8p {
+    width: 8% !important;
+}
+
+.w-10p {
+    width: 10% !important;
+}
+
+.w-15p {
+    width: 15% !important;
+}
+
+.w-20p {
+    width: 20% !important;
+}
+
+.w-25p {
+    width: 25% !important;
+}
+
+.w-95p {
+    width: 95% !important;
+}
+
+.w-100p {
+    width: 100% !important;
+}
+
+.h-100p {
+    height: 100% !important;
+}

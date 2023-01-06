@@ -28,7 +28,7 @@ def get_notif(user_id):
         else:
             is_read = ''
         results += f"""
-                    <li onclick="updateThisRead({n.id})" data-nid="{n.id}">
+                    <li class="updateThisRead" data-nid="{n.id}">
                     {is_read}
                     <div class="txtcont">
                       <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>

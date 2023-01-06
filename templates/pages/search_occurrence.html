@@ -1,5 +1,8 @@
-{% extends 'base.html' %} {% load static %} 
+{% extends 'base.html' %} 
+{% load static %} 
+
 {% block head %}
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
   crossorigin=""/>
@@ -16,108 +19,26 @@
 <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+{% comment %} <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script> {% endcomment %}
 {% comment %} <script src="https://kit.fontawesome.com/b8e586964f.js" crossorigin="anonymous"></script> {% endcomment %}
+<link href="/static/vanillaselectbox/vanillaSelectBox.css" rel="stylesheet" />
+<script src="/static/vanillaselectbox/vanillaSelectBox.js"></script>
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
 <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
-
 {% endblock head %}
+
 {% block style %}
-<style>
-
-  .sort-icon {
-    color: white; 
-    height: 14px; 
-    margin-left: 5px; 
-    opacity: 0.5
-  }
-
-  .sort-icon-active {
-    color: white; 
-    height: 14px; 
-    margin-left: 5px; 
-  }
-
-  .leaflet-draw-actions {
-    display: none !important;
-  }
-
-  p.active {
-    background: #3F5146;
-    color: #FFF !important;
-  }
-  
-  .circle-select {
-    display: flex;
-    margin-bottom: 10px
-  }
-
-  .circle-select p {
-    width: 20%;
-    font-size: 16px;
-    color: #707070;
-    margin: auto 0;
-  }
-
-  .circle-select select, .circle-select input {
-    width: 90%;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    height: 50px;
-    font-size: 16px;
-    padding: 0px 10px;
-    color: #707070
-  }
-
-  .circle-select {
-    display: flex;
-    margin-bottom: 10px
-  }
-
-
-
-  .sc_result .rightmore .dwd {
-    padding: 0px 10px;
-    font-size: 16px;
-    color: lightgrey;
-    height: 40px;
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    border-radius: 10px;
-    margin-left: 10px;
-    border: 1px solid lightgrey;
-    background: none;
-    cursor: default;
-}
-
-@media only screen and (max-width: 767px) {
-    .sc_result .rightmore .dwd {
-        font-size: 16px;
-        padding: 0 10px;
-        height: 30px;
-        margin-left: 0px;
-        margin-right: 10px
-    }
-}
-
-.orderby {
-  cursor: pointer
-}
-
-
-
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/search_occurrence.css' %}" />
 {% endblock style %}
 
 {% block title %}物種出現紀錄查詢｜{% endblock %}
+
 {% block body %}
+{% csrf_token %}
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -146,8 +67,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="rightsHolder" id="" required>
-                  <option value="" readonly="true" selected>來源資料庫</option>
+                <select name="rightsHolder" id="rightsHolder" required multiple size="1">
                   {% for i in holder_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
@@ -155,7 +75,7 @@
               </div>
               <div class="input_item">
                 <input name="taxonID" type="text" placeholder="TaiCOL物種編號" />
-              </div>
+              </div>            
             </div>
             <div class="two_input">
               <div class="input_item">
@@ -179,11 +99,11 @@
               <div class="line_cneter">~</div>
               <div class="input_item">
                 <input name="start_date" id="start_date" type="text" placeholder="起始日期（YYYY-MM-DD）" />
-                <a onclick="$('#start_date').datepicker('show')" class="dateicon"></a>
+                <a class="dateicon show_start"></a>
               </div>
               <div class="input_item">
                 <input name="end_date" id="end_date" type="text" placeholder="結束日期（YYYY-MM-DD）" value="" />
-                <a onclick="$('#end_date').datepicker('show')" class="dateicon"></a>
+                <a class="dateicon show_end"></a>
               </div>
             </div>
             <div class="two_input">
@@ -209,7 +129,11 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <input name="datasetName" type="text" placeholder="資料集名稱" />
+                <select name="datasetName" id="datasetName" required multiple size="1">
+                  {% for i in dataset_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
               </div>
               <div class="input_item">
                 <input name="resourceContacts" type="text" placeholder="資料集聯絡人" />
@@ -223,41 +147,41 @@
             </div>
             <div class="btn_area">
               <label class="btnupload">
-                <p data-type="map" onclick="mapGeo(this)" style="width: 110px">地圖框選</p>
+                <p class="w-110px mapGeo" data-type="map">地圖框選</p>
               </label>
               <label class="btnupload">
-                <p data-type="circle" onclick="circleGeo(this)" style="width: 120px">圓中心框選</p>
+                <p class="w-120px circleGeo" data-type="circle">圓中心框選</p>
               </label>
               <label class="btnupload">
-                <p data-type="polygon" onclick="popupGeo(this)" style="width: 130px">上傳Polygon</p>
+                <p class="w-130px popupGeo" data-type="polygon">上傳Polygon</p>
               </label>
               <label class="btnupload">
-                <p onclick="clearGeo()">重設</p>  
+                <p class="clearGeo">重設</p>  
               </label>
             </div>          
             <div class="map_img">
-              <div class="imgbox" style="height: 390px; width: auto;">
+              <div class="imgbox">
                 <div id="map" class="img"></div>
               </div>
             </div>
           </div>
         </div>
         </form>
-        <button class="search_btn" onclick="submitSearch(1,'search')">搜尋</button>
+        <button class="search_btn submitSearch" data-page="1" data-from="search">搜尋</button>
     </div>
   </div>
 </div>
 
 <!-- 物種出現紀錄欄位選擇 -->
-<div class="popbg occ-choice" style="display: none;">
+<div class="popbg occ-choice d-none">
 	<div class="ovhy choice-ovhy">
-		<div class="wbox_center" style="max-height: 100%; overflow-y: auto">
+		<div class="wbox_center choice-flow">
 			<div class="xx choice-xx">
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
-				<button class="selt" onclick="selectAll('.occ-choice')">全選</button>
-				<button class="selt" onclick="resetAll('.occ-choice')">重置</button>
+				<button class="selt selectAll">全選</button>
+				<button class="selt resetAll">重置</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -357,14 +281,14 @@
 					<p>授權狀況</p>
 				</li>
 			</ul>
-			<button class="send_bt" onclick="sendSelected('occ')">確認</button>
+			<button class="send_bt sendSelected">確認</button>
 		</div>
 	</div>
 </div>
 
 
 <!--空間查詢popbox-->
-<div class="popbg geojson_popup" style="display:none;">
+<div class="popbg geojson_popup d-none">
 	<div class="ovhy">
 		<div class="wbox_center">
 			<div class="xx">
@@ -375,14 +299,14 @@
 			<p class="shortxt">
         請以GeoJSON格式貼上欲查詢的Polygon：
 			</p>
-			<div class="from_area" style="height: 100%">
+			<div class="from_area h-100p">
 				<div class="txt_area">
-					<textarea id="geojson_textarea" style="height: 300px"></textarea>
+					<textarea id="geojson_textarea h-300px"></textarea>
 				</div>
-        <p class="shortxt" style="text-align: right; color:#C65454">
+        <p class="shortxt note-text">
           *僅支援Polygon（上限2.5 MB）
         </p>
-        <p class="shortxt" style="text-align: right; color:#C65454">
+        <p class="shortxt note-text">
           *Polygon會經過dissolve處理
         </p>
 				<button class="send geojson_send">確認送出</button>
@@ -392,16 +316,16 @@
 </div>
 
 <!--圓中心查詢popbox-->
-<div class="popbg circle_popup" style="display:none; ">
+<div class="popbg circle_popup d-none">
 	<div class="ovhy">
-		<div class="wbox_center"  style="max-height: 380px">
+		<div class="wbox_center mh-380px">
 			<div class="xx">
 			</div>
 			<div class="titlegreen">
 				 圓中心框選
 			</div>
-			<div class="from_area" style="height: 100%">
-				<div class="txt_area" style="margin-top: 5%">
+			<div class="from_area h-100p">
+				<div class="txt_area mt-5p">
           <div class="circle-select">
             <p>半徑</p>
             <select name="circle_radius" id="circle_radius" required>
@@ -422,793 +346,14 @@
             <input name="center_lat" type="text">
           </div>
 				</div>
-				<button  style="margin-top: 5%"class="send circle_send">確認送出</button>
+				<button class="send circle_send mt-5p">確認送出</button>
 			</div>
 		</div>
 	</div>
 </div>
-
 {% endblock body %}
+
+
 {% block script %}
-<script>
-
-  function downloadSensitive(queryString, total_count) {
-    
-    if ('{{ user.is_authenticated }}'=='True'){
-      window.open('{% url "sensitive_agreement" %}?' + queryString + '&total_count=' + total_count)
-    } else {
-      alert('請先登入')
-    }
-
-  }
-
-  function downloadData(queryString, total_count) {
-    if ('{{ user.is_authenticated }}'=='True'){
-
-      $.ajax({
-        url: "{% url 'send_download_request' %}",
-        data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}' + '&total_count=' + total_count,
-        type: 'POST',
-        dataType : 'json',
-      })
-      .done(function(response) {
-        alert('請求已送出，下載檔案處理完成後將以email通知')
-
-      })
-
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-    } else {
-      alert('請先登入')
-    }
-
-  }
-
-
-
-  function downloadTaxon(queryString) {
-    if ('{{ user.is_authenticated }}'=='True'){
-
-      $.ajax({
-        url: "{% url 'send_download_request' %}",
-        data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}' + '&taxon=yes',
-        type: 'POST',
-        dataType : 'json',
-      })
-      .done(function(result) {
-        alert('請求已送出，下載檔案處理完成後將以email通知')
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-    } else {
-      alert('請先登入')
-    }
-  }
-
-
-    function getColor(d) {
-      return d > 1000 ? '#C50101' :
-              d > 500  ? '#D71414' :
-              d > 200  ? '#E72424' :
-              d > 100  ? '#F73535' :
-              d > 50   ? '#FB4C4C' :
-              d > 20   ? '#FB6262' :
-              d > 10   ? '#FC7E7E' :
-                        '#FD9696';
-    }
-    
-    function style(feature) {
-      return {
-          fillColor: getColor(feature.properties.counts),
-          weight: 1,
-          opacity: 0.5,
-          color: 'black',
-          //dashArray: '3',
-          fillOpacity: 1
-      };
-    }
-    
-    let map = L.map('map').setView([23.5, 121.2],7);
-    L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    var drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    drawControl = new L.Control.Draw({
-        draw : {
-            position : 'topleft',
-            polyline : false,
-            rectangle : true,
-            circle : false,
-            polygon: true,
-            marker: false,
-            circlemarker: false
-        },
-        edit : {
-          featureGroup: drawnItems,
-          edit: false,
-          remove: false 
-        }
-    });
-    
-    map.addControl(drawControl); 
-    
-    $('.leaflet-control.leaflet-draw').css('display', 'none')
-    map.on(L.Draw.Event.CREATED, function (e) {
-      var layer = e.layer;
-      drawnItems.addLayer(layer);
-    });
-    
-    map.on('zoomend', function zoomendEvent(ev) {
-      var currentZoomLevel = ev.target.getZoom()
-    
-        if (currentZoomLevel < 5) {
-          $('[class^=resultG_]').css('display','none')
-          $('.resultG_100').css('display','')
-        } else if (currentZoomLevel < 8){
-          $('[class^=resultG_]').css('display','none')
-          $('.resultG_10').css('display','')
-        } else if (currentZoomLevel < 9){
-          $('[class^=resultG_]').css('display','none')
-          $('.resultG_5').css('display','')
-        } else {
-          $('[class^=resultG_]').css('display','none')
-          $('.resultG_1').css('display','')
-        }
-    });
-    
-
-    
-  $( function() {
-  // date picker
-
-    $( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
-    $( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
-
-    // 如果直接從帶有參數網址列進入
-    changeAction(); 
-
-    // 如果按上下一頁
-    window.onpopstate = function(event) {
-      drawnItems.clearLayers();
-      $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-      changeAction();
-    };
-
-  } );
-
-  
-
-  function changeAction(){
-    let queryString = window.location.search;
-    if (queryString.split('&').length>1){
-      // 把條件填入表格
-
-      let urlParams = new URLSearchParams(queryString);
-      let entries = urlParams.entries(); 
-      
-      for(const [key, value] of entries) { 
-        $(`[name=${key}]`).val(value)
-          // map按鈕
-          if (key == 'geo_type'){
-            $(`p[data-type=${value}]`).addClass("active")
-          }
-
-          if (key == 'geojson') {
-            if (urlParams.get('geo_type') == 'map') {
-              geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
-              drawnItems.addLayer(geoJSON);
-              map.fitBounds(geoJSON.getBounds());
-            } else if (urlParams.get('geo_type') == 'circle') {
-              let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
-              parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
-              drawnItems.addLayer(circle);
-              map.fitBounds(circle.getBounds());
-            }
-          }
-          if ((key == 'geojson_id') && (value != '')){
-              fetch(`/media/geojson/${value}.json`).then((res) => {
-              if (res.ok) {
-                $('#geojson_textarea').val(JSON.stringify(res.json()))
-                $.getJSON(`/media/geojson/${value}.json`, function (ret) {
-                  geoJSON = L.geoJSON(ret,{ className: 'addG'}).addTo(map);
-                  map.fitBounds(geoJSON.getBounds());
-                });
-              } else {
-                $(`p[data-type=polygon]`).removeClass("active")
-              }
-          });
-                
-        }
-        
-      }
-      getRecordByURL(queryString,null,null,null,null)
-
-    }
-
-  }
-
-  function setTable(response, queryString){
-    drawnItems.clearLayers();
-    $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-    
-    L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
-    //map.fitBounds(geoResult.getBounds());
-
-    $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
-
-    if (map.getZoom() < 5) {
-      $('.resultG_100').css('display','')
-    } else if (map.getZoom() < 8){
-      $('.resultG_10').css('display','')
-    } else if (map.getZoom() < 9){
-      $('.resultG_5').css('display','')
-    } else {
-      $('.resultG_1').css('display','')
-    }
-      // 如果有資料回傳則顯示table
-      $('.search_condition_are').after(`
-      <div class="sc_result">
-        <div class="result_inf_top">
-          <div style="display: flex; align-items: center;">
-            <button class="cate_btn" style="margin-right: 20px" onclick="popupField()">欄位選項 +</button>
-            <div style="width: 200px">每頁顯示
-              <select name="shownumber" data-query='${queryString}'>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select> 筆
-            </div>
-          </div>
-          <div class="rightmore">
-            <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-            <button class="dw" onclick="downloadData('${queryString}', ${response.count})">資料下載</button>
-            <button class="dw" onclick="downloadTaxon('${queryString}')">名錄下載</button>
-            <a id="before_sensitive" href="#" class="qmark"></a>
-          </div>
-        </div>
-        <div class="result_table" style="overflow-x: auto;">
-          <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
-          </table>						
-        </div>
-      </div>`)
-
-      $('select[name=shownumber]').on('change',function(){
-        getRecordByURL($(this).data('query'), 1,$(this).val(),null,null)
-      })
-
-      // 如果querystring裡面有limit的，修改shownumber
-      $("select[name=shownumber]").val(response.limit);
-
-      // 如果有敏感資料才有申請按鈕
-      if (response.has_sensitive){
-        $('#before_sensitive').after(`
-            <button class="dw" onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
-            <a href="#" class="qmark"></a>`)
-      } else {
-        $('#before_sensitive').after(`
-          <button class="dwd" disabled onclick="downloadSensitive('${queryString}', ${response.count})">申請單次使用去模糊化敏感資料</button>
-          <a href="#" class="qmark"></a>`)
-      }
-  // table title
-      var table_title = document.createElement("tr");
-      table_title.classList.add('table_title');
-      let map_dict = response.map_dict;
-
-      for (let i = 0; i < Object.keys(map_dict).length; i++) {
-          var this_td = document.createElement("td");
-          this_td.className = `row-${Object.keys(map_dict)[i]}`;
-          this_td.style.cssText = 'display:none';
-          var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
-          let a = document.createElement("a");
-          a.className = 'orderby';
-          a.dataset.orderby = Object.keys(map_dict)[i]; 
-          a.dataset.sort = 'asc'; 
-          this_td.appendChild(text);
-          this_td.appendChild(a);
-          table_title.appendChild(this_td); 
-      }
-      var function_td = document.createElement("td");
-      var text = document.createTextNode('功能');
-      function_td.appendChild(text);
-      table_title.appendChild(function_td); 
-
-      $('.record_table').append(table_title);
-      
-      // append rows
-      for (let i = 0; i < response.rows.length; i++) {
-        let tmp = response.rows[i];
-        let tmp_td;
-        let tmp_value;
-        for (let j = 0; j < Object.keys(map_dict).length; j++){
-          tmp_value = tmp[Object.keys(map_dict)[j]];
-          if (tmp_value == null){
-            tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
-          } else {
-            tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
-          }
-        }
-        let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
-        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-        $('.record_table').append(
-          `<tr>${tmp_td}</tr>`)
-      }
-
-
-      // 如果queryString裡面沒有指定orderby，使用scientificName
-      $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
-      if (response.sort == 'asc'){
-        $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
-      } else {
-        $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-up sort-icon-active"></i>')
-        $(`.orderby[data-orderby=${response.orderby}]`).data('sort','desc');
-      }
-
-      $('.orderby').on('click',function(){
-        if ($(this).children('svg').hasClass('fa-sort')){
-          $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
-          $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active');
-          $(this).data('sort','asc');
-        } else if ($(this).children('svg').hasClass('fa-sort-down')) {
-          $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
-          $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-up sort-icon-active')
-          $(this).data('sort','desc');
-        } else {
-          $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
-          $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
-          $(this).data('sort','asc');
-        }
-        getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
-      })
-
-  }
-
-  function getRecordByURL(queryString,page,limit,orderby,sort) {
-    // 如果從頁碼點選, 修改page參數
-    if (page != null){
-      let urlParams = new URLSearchParams(queryString);
-      urlParams.set('page',page)
-      queryString = urlParams.toString()
-      history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-    // 如果page等於null的話要把page的參數拿掉嗎？
-
-    // 如果調整每頁筆數, 修改limit參數
-    if (limit != null){
-      let urlParams = new URLSearchParams(queryString);
-      urlParams.set('limit',limit)
-      urlParams.set('page',1)
-      queryString = urlParams.toString()
-      history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // 如果調整orderby and sort
-    if (orderby != null){
-      let urlParams = new URLSearchParams(queryString);
-      urlParams.set('orderby',orderby)
-      urlParams.set('sort',sort)
-      urlParams.set('page',1)
-      queryString = urlParams.toString()
-      history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // selected_col
-    let selected_col = ''
-    $(`.occ-choice input:checked`).each(function(){
-      selected_col += '&selected_col=' + $(this).attr('id').replace('occ-','')
-      }
-    )
-
-    $.ajax({
-      url: "{% url 'get_conditional_records' %}",
-      data: queryString + '&csrfmiddlewaretoken={{ csrf_token }}' + selected_col,
-      type: 'POST',
-      dataType : 'json',
-    })
-    .done(function(response) {
-      // clear previous results
-      $('.sc_result').remove()
-      $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-
-      if (response.count == 0){
-        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
-      } else {
-        // 把之前的清掉
-        setTable(response, queryString)
-
-        // 欄位選項
-        $(`input[id^="occ-"]`).prop('checked',false)
-        // show selected columns
-        for (let i = 0; i < response.selected_col.length; i++) {
-          $(`.row-${response.selected_col[i]}`).show();
-          $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
-
-        // disable checkebox for common_name_c & scientificName
-        $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
-        $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
-
-        // append pagination
-        if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-          $('.result_table').after(
-            `<div style="display: flex; align-items: center; justify-content: center">
-              <div class="page_number">
-              <a href="javascript:;" class="pre">
-                <span></span>
-              </a>
-              <a href="javascript:;" class="next">
-                <span></span>
-              </a>
-              </div>
-              <span style="margin-left: 20px;"">
-                跳至<input data-query='${queryString}' name="jumpto" type="number" min="1" step="1" style="margin-right: 5px; margin-left: 5px; width: 60px; border:1px; border-bottom-style: solid;border-top-style: none;border-left-style:none;border-right-style:none;">頁
-                <a class="jumpto" style="cursor: pointer">GO</a>  
-              </span>
-            </div>`)}		
-
-            $('.jumpto').on('click', function(){
-              getRecordByURL($('input[name=jumpto]').data('query'),$('input[name=jumpto]').val(),null,null,null)
-            })
-
-        let html = ''
-        for (let i = 0; i < response.page_list.length; i++) {
-          
-          if (response.page_list[i] == response.current_page){
-            html += `<a href="javascript:;" onclick="getRecordByURL('${queryString}',${response.page_list[i]},null,null,null)" class="num now">${response.page_list[i]}</a>  `;
-          } else {
-            html += `<a href="javascript:;" onclick="getRecordByURL('${queryString}',${response.page_list[i]},null,null,null)" class="num">${response.page_list[i]}</a>  `
-          }
-        }
-        $('.pre').after(html)
-
-        // 如果有上一頁，改掉pre的onclick
-        if ((response.current_page - 1) > 0 ){
-          $('.pre').attr('onclick',`getRecordByURL('${queryString}',${response.current_page - 1},null,null,null)`);
-        }
-        // 如果有下一頁，改掉next的onclick
-        if (response.current_page < response.total_page){
-          $('.next').attr('onclick',`getRecordByURL('${queryString}',${response.current_page + 1},null,null,null)`);
-        }
-
-        // 如果有前面的page list, 加上...
-        if (response.current_page > 5){
-          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.current_page -5 },null,null,null)">...</a> `)
-        }
-        // 如果有後面的page list, 加上...
-        if (response.page_list[response.page_list.length - 1] < response.total_page){
-          if (response.current_page +5 > response.total_page){
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.total_page},null,null,null)">...</a>
-             `)
-          } else {
-            
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecordByURL('${queryString}',${response.current_page +5},null,null,null)">...</a>`)
-          }
-        }
-    }
-
-      $([document.documentElement, document.body]).animate({
-        scrollTop: $(".sc_result").offset().top
-      }, 200);
-
-    })
-
-    .fail(function( xhr, status, errorThrown ) {
-      if (xhr.status==504){
-        alert('要求連線逾時')
-      } else {
-        alert('發生未知錯誤！請聯絡管理員')
-      }
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-
-  }
-
-
-  // 從地圖框選
-  function mapGeo(e){
-    $('.addC, .addG').remove()
-    $('p.active').removeClass('active')
-    $(e).addClass('active');
-    $('.leaflet-control.leaflet-draw').css('display', '')
-    //$('.geojson_popup').css({display: ''})
-  }
-
-  // 從圓中心框選
-  function circleGeo(e){
-    $('.addC, .addG').remove()
-    drawnItems.clearLayers();
-    $('p.active').removeClass('active')
-    $(e).addClass('active');
-    $('.leaflet-control.leaflet-draw').css('display', 'none')
-    $(".circle_popup").show()
-  }
-
-
-  function popupGeo(e){
-    $('.addC').remove()
-    drawnItems.clearLayers();
-    $('p.active').removeClass('active')
-    $(e).addClass('active');
-    $('.leaflet-control.leaflet-draw').css('display', 'none')
-    $(".geojson_popup").show()
-  }
-
-  function clearGeo(){
-    $('p.active').removeClass('active')
-    $('.leaflet-control.leaflet-draw').css('display', 'none')
-    drawnItems.clearLayers();
-    $('.addG, .addC').remove()
-     $('input[name=center_lat]').val('')
-    $('input[name=center_lon]').val('')
-    $("#circle_radius").val("1").trigger("change");
-    $('#geojson_textarea').val('')
-    $('input[name=geojson_id]').val('')
-  }
-
-
-  $('.circle_send').click( function(){
-    // 先把舊的移除
-    $('.addC, [class^=resultG_]').remove()
-    if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
-      alert('框選失敗！請檢查經緯度格式是否正確')
-    } else {
-      try {
-        let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
-                    parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
-        drawnItems.addLayer(circle);
-        map.fitBounds(circle.getBounds());
-        $(".circle_popup").hide()
-      } catch (e) {
-        alert('框選失敗！請檢查經緯度格式是否正確')
-      }
-    }
-  })
-
-
-
-  $('.geojson_send').click( function(){
-    // 先把舊的移除
-    $('.addG, [class^=resultG_]').remove()
-    try {
-      let geoObj = JSON.parse($('#geojson_textarea').val());
-      //geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
-
-      //var ucbRegions = L.geoJson(data).addTo(map);
-      var regionsDissolved = turf.dissolve(geoObj);
-      
-
-      $.ajax({
-        url: "{% url 'save_geojson' %}",
-        data: { geojson_text: JSON.stringify(regionsDissolved ),csrfmiddlewaretoken:'{{ csrf_token }}'},
-        type: 'POST',
-        dataType : 'json',
-      })
-      .done(function(response) {
-        $('input[name=geojson_id]').val(response.geojson_id)
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-
-      geoJSON = L.geoJSON(regionsDissolved,{ className: 'addG'}).addTo(map);
-    
-      map.fitBounds(geoJSON.getBounds());
-      $(".geojson_popup").hide()
-    } catch (e) {
-      alert('上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限')
-    }
-  })
-
-
-  // submit search form
-function submitSearch (page, from){
-
-    let map_condition = '';
-    if ($('p.active').data('type')=='map'){
-      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()),'geo_type': 'map'})
-    } else if ($('p.active').data('type')=='polygon'){
-      map_condition = '&' + $.param({'geo_type': 'polygon'})
-    } else if ($('p.active').data('type')=='circle'){
-      map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val(),
-      'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val(), 'geo_type': 'circle'})
-    }
-
-    let selected_col = ''
-
-    // 如果是按搜尋，重新給query參數，若是從分頁則不用
-    if (from == 'search'){
-      //window.condition = $('#searchForm').serialize() + '&' + $.param({'geojson': $('#geojson_textarea').val()})
-      
-      var form = $(); //Initialize empty jQuery object
-
-      //Iterate through all inputs, textareas
-      $('#searchForm input,#searchForm select').each(function() {
-          //Add to jQuery object if not empty
-          if ($(this).val().length) {
-             form = form.add($(this)); 
-          }
-      })
-  
-      window.condition = form.serialize() + map_condition
-
-
-     } else {
-        // 如果是從分頁，要記錄selected columns
-        $(`.occ-choice input:checked`).each(function(){
-          selected_col += '&selected_col=' + $(this).attr('id').replace('occ-','')
-          }
-        )
-     }
-
-    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&' + $.param({'page': page})+ '&from=' + from);
-
-
-    $.ajax({
-      url: "{% url 'get_conditional_records' %}",
-      data: window.condition + '&' + $.param({'page': page})+ '&from=' + from + '&csrfmiddlewaretoken={{ csrf_token }}' + selected_col,
-      type: 'POST',
-      dataType : 'json',
-    })
-    .done(function(response) {
-      // clear previous results
-      $('.sc_result').remove()
-      $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-
-
-      if (response.count == 0){
-        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
-      } else {
-
-
-      setTable(response, window.condition)
-
-      // 判斷是從分頁或搜尋點選
-        if (from == 'search'){
-          // uncheck all first
-          $(`input[id^="occ-"]`).prop('checked',false)
-          // show selected columns
-          for (let i = 0; i < response.selected_col.length; i++) {
-            $(`.row-${response.selected_col[i]}`).show();
-            $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
-        } else {
-          sendSelected()
-        }
-
-        // disable checkebox for common_name_c & scientificName
-        $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
-        $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
-
-        // append pagination
-        if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $('.result_table').after(
-              `<div style="display: flex; align-items: center; justify-content: center">
-                <div class="page_number">
-                <a href="javascript:;" class="pre">
-                  <span></span>
-                </a>
-                <a href="javascript:;" class="next">
-                  <span></span>
-                </a>
-                </div>
-                <span style="margin-left: 20px;"">
-                  跳至<input name="jumpto" type="number" min="1" step="1" style="margin-right: 5px; margin-left: 5px; width: 60px; border:1px; border-bottom-style: solid;border-top-style: none;border-left-style:none;border-right-style:none;">頁
-                  <a class="jumpto" style="cursor: pointer">GO</a>  
-                </span>
-              </div>`)}		
-
-            $('.jumpto').on('click', function(){
-              submitSearch($('input[name=jumpto]').val(),'page')
-            })
-            
-            
-        let html = ''
-        for (let i = 0; i < response.page_list.length; i++) {
-          if (response.page_list[i] == response.current_page){
-            html += `<a href="javascript:;" onclick="submitSearch(${response.page_list[i]}, 'page')" class="num now">${response.page_list[i]}</a>  `;
-          } else {
-            html += `<a href="javascript:;" onclick="submitSearch(${response.page_list[i]}, 'page')" class="num">${response.page_list[i]}</a>  `
-          }
-        }
-        $('.pre').after(html)
-
-        // 如果有上一頁，改掉pre的onclick
-        if ((response.current_page - 1) > 0 ){
-          $('.pre').attr('onclick',`submitSearch(${response.current_page - 1}, 'page')`);
-        }
-        // 如果有下一頁，改掉next的onclick
-        if (response.current_page < response.total_page){
-          $('.next').attr('onclick',`submitSearch(${response.current_page + 1}, 'page')`);
-        }
-
-        // 如果有前面的page list, 加上...
-        if (response.current_page > 5){
-          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.current_page -5 }, 'page')">...</a> `)
-        }
-        // 如果有後面的page list, 加上...
-        if (response.page_list[response.page_list.length - 1] < response.total_page){
-          if (response.current_page +5 > response.total_page){
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.total_page}, 'page')">...</a> `)
-          } else {
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="submitSearch(${response.current_page +5}, 'page')">...</a>`)
-          }
-        }
-    }
-
-    $([document.documentElement, document.body]).animate({
-      scrollTop: $(".sc_result").offset().top
-    }, 200);
-
-    })
-
-    .fail(function( xhr, status, errorThrown ) {
-      if (xhr.status==504){
-        alert('要求連線逾時')
-      } else {
-        alert('發生未知錯誤！請聯絡管理員')
-      }
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-  }
-
-  function popupField(){
-    $(`.occ-choice`).css({display: ''})
-    window.not_selected = $(`.occ-choice input:not(:checked)`)
-    window.selected = $(`.occ-choice input:checked`)
-  }
-
-  function sendSelected(){
-    let selected_field = $(`.occ-choice input:checked`)
-    // 所有都先隱藏，除了common_name_c & scientificName
-    $('td[class^="row-"]').hide();
-    $('.row-common_name_c, .row-scientificName').show();
-    // 再顯示選擇的欄位
-    for (let i = 0; i < selected_field.length; i++) {
-      $(`td.row-${selected_field[i].id.split('-')[1]}`).show();
-    }
-    $(".popbg").hide();
-  }
-
-  function resetAll(){
-    $(`.occ-choice input:checkbox:not(:disabled)`).prop('checked', false);
-  }
-
-  function selectAll(){
-    $(`.occ-choice input:checkbox`).prop('checked', true);
-  }
-
-  $(".popbg .xx,.popbg .ovhy").click(function (e) {
-    if ($(event.target).hasClass("choice-xx") || $(event.target).hasClass("choice-ovhy")) {
-      window.not_selected.prop('checked', false);
-      window.selected.prop('checked', true);
-    }
-  });
-
-  // disable string input in 數量單位
-  $("input[name=organismQuantity]").on("keyup", function() {
-    this.value = this.value.replace(/\D/g,'');
-  });
-
-
-
-</script>
-{% endblock %}
+<script src="{% static 'js/search_occurrence.js' %}"></script>
+{% endblock script %}

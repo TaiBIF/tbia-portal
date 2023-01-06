@@ -44,12 +44,5 @@
 </div>
 {% endblock body %}
 {% block script %}
-<script>
-
-	$('.contact_partner').on('click',function(){
-	 $('.feedback-pop select[name="partner_id"]').val($(this).data('partner_id'));
-	 $('.feedback-pop').show()
-	})
-
-</script>
+<script src="{% static 'js/partner.js' %}"></script>
 {% endblock script %}

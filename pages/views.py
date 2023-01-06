@@ -51,10 +51,15 @@ def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 
 
+def error_view(request):
+    return render(request, '404.html', status=500)
+
+
 def news(request):
     if type := request.GET.get('type'):
         news = News.objects.filter(status='pass',type=type)
     else:
+        type = 'all'
         news = News.objects.filter(status='pass')
     news_list = news.order_by('-publish_date')[:10]
     current_page = 0 / 10 + 1
@@ -125,7 +130,6 @@ def get_news_list(request):
         response['page_list'] = page_list
         response['current_page'] = current_page
         response['total_page'] = total_page
-
 
         return JsonResponse(response, safe=False)
 
@@ -213,11 +217,12 @@ def get_resources(request):
 
     total_page = math.ceil(resource.count() / 12)
 
-    get_page = int(request.POST.get('get_page', 1))
+    current_page = int(request.POST.get('get_page', 1))
+    page_list = get_page_list(current_page,total_page,3)
 
     resource_rows = []
-    limit = get_page*12 if request.POST.get('from') == 'resource' else 8
-    offset = (get_page-1)*12 if request.POST.get('from') == 'resource' else 0
+    limit = current_page*12 if request.POST.get('from') == 'resource' else 8
+    offset = (current_page-1)*12 if request.POST.get('from') == 'resource' else 0
     for x in resource[offset:limit]:
         # modified = x.modified + timedelta(hours=8)
         resource_rows.append({
@@ -226,11 +231,12 @@ def get_resources(request):
             'extension': x.extension,
             'url': x.url,
             'date': x.modified.strftime("%Y.%m.%d")})
-    
+
     response = {
         'rows': resource_rows,
-        'current_page': get_page,
-        'total_page': total_page
+        'current_page': current_page,
+        'total_page': total_page,
+        'page_list' : page_list
     }
     return HttpResponse(json.dumps(response), content_type='application/json')
 

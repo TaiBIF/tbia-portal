@@ -3,6 +3,7 @@
 {% load static %}
 {% load humanize %}
 {% block title %}全站搜尋｜{% endblock %}
+
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
@@ -11,126 +12,17 @@
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
   crossorigin=""></script>
 {% endblock head %}
+
 {% block style %}
-<style>
-
-  .rightdow {
-    display: flex;
-    align-items: center
-}
-
-.dow_btn {
-    padding: 0px 10px;
-    font-size: 16px;
-    color: #3F5146;
-    height: 32px;
-    min-width: 110px;
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    border-radius: 20px;
-    margin-right: 5px;
-    border: 1px solid #3F5146;
-    background: none;
-    display: flex;
-    align-items: center
-}
-
-.dow_btn svg {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px
-}
-
-@media only screen and (max-width: 767px) {
-.dow_btn {
-        font-size: 14px;
-        padding: 0 10px;
-        height: 30px;
-        margin-bottom: 5px;
-        min-width: initial
-    }
-
-  .dow_btn svg {
-        margin-right: 0
-    }
-
-    .dow_btn p {
-        display: none
-    }
-}
-
-.dow_btn:hover {
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    background: #3F5146;
-    color: #FFF
-}
-
-.dow_btn:hover svg path {
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    stroke: #FFFFFF
-}
-
-
-
-
-.searchbar_top .left_search {
-  background: transparent;
-  padding: 10px 0;
-}
-
-.searchbar_top .left_search .input_item input {
-  background: #FFF;
-  width: 300px;
-}
-
-.searchbar_top .left_search .input_item {
-  margin-right: 0
-}
-
-@media only screen and (max-width: 767px) {
-.searchbar_top .left_search .input_item input {
-      width: 100%;
-      margin-bottom: 15px;
-      height: 45px;
-  }
-}
-
-.two_cont_area .rightbox_content .card_list_1 li .num {
-  right: 10px;
-  top: 6px
-}
-
-.two_cont_area .rightbox_content .card_list_1 li {
-  padding: 15px 15px 1px 15px;
-}
-
-@media only screen and (max-width: 767px) {
-  .searchbar_top .rightbox_select .icon_two .hvmask {
-    display: flex;
-    align-items: center;
-  }
-
-}
-
-.card_list_1 li {
-  word-wrap:break-word;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/search_full.css' %}" />
 {% endblock style %}
+
 {% block body %}
+{% csrf_token %}
+<input type="hidden" name="keyword" value="{{ keyword }}">
+
 		<!--分布圖彈出視窗-->
-		<div class="popbg pic_pop" style="display: none;" >
+		<div class="popbg pic_pop d-none">
 			<div class="ovhy">
 				<div class="wbox_center">
 					<div class="xx">
@@ -141,7 +33,6 @@
 							<!--800*500 or 1600*1000 用background-image替換連結-->
 							<div class="img"></div>
 						</div>
-
 					</div>
 				</div>
 			</div>
@@ -179,7 +70,7 @@
     <div class="rightbox_select">
       <p>想找到更精準的資料嗎？<br />試試條件搜尋</p>
       <div class="icon_two">
-        <div class="item" onclick='location.href="{% url "search_occurrence" %}"' style="cursor: pointer">
+        <div class="item pointer open-page" data-href="/search/occurrence">
           <a>
             <img src="{% static 'image/mapicon.svg' %}" alt="" />
             <span>物種出現紀錄查詢</span>
@@ -187,7 +78,7 @@
           <a class="hvmask">物種出現紀錄查詢</a>
           <div class="line"></div>
         </div>
-        <div class="item" onclick='location.href="{% url "search_collection" %}"' style="cursor: pointer">
+        <div class="item pointer" data-href="/search/collection">
           <a>
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>⾃然史典藏查詢</span>
@@ -208,7 +99,7 @@
       <div class="mb_scroll">
         <ul class="item_list">
           <li class="now li-all">
-            <a href="javascript:;" onclick="focusComponent('all', false)" class="big_link rd_click">
+            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
               <p>所有結果</p>
               <div class="arr"></div>
             </a>
@@ -224,9 +115,12 @@
               <div class="arrd"></div>
             </div>
             <div class="spe_menu second_menu">
-              <a id="facet_spe_all"href="javascript:;" onclick="focusComponent('item_spe', false)">全部({{ taxon.count|intcomma }})</a>
+              <a id="facet_spe_all" class="focusComponent" href="javascript:;" data-item_class="item_spe" data-go_back="false">全部({{ taxon.count|intcomma }})</a>
               {% for i in taxon.rows %} 
-              <a id="facet_taxon_{{ i.key }}" href="javascript:;" onclick="focusCards('taxon','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              <a id="facet_taxon_{{ i.key }}" class="focusCards" href="javascript:;" 
+              data-record_type="taxon"
+              data-key="{{ i.key }}"
+              data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -241,9 +135,12 @@
               <div class="arrd"></div>
             </div>
             <div class="occ_menu second_menu">
-              <a id="facet_occ_all"href="javascript:;" onclick="focusComponent('item_occ', false)">全部({{ occurrence.count|intcomma }})</a>
+              <a id="facet_occ_all" class="focusComponent" href="javascript:;" data-item_class="item_occ" data-go_back="false">全部({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
-              <a id="facet_occ_{{ i.key }}" href="javascript:;" onclick="focusCards('occ','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              <a id="facet_occ_{{ i.key }}" class="focusCards" href="javascript:;" 
+              data-record_type="occ"
+              data-key="{{ i.key }}"
+              data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -258,33 +155,36 @@
               <div class="arrd"></div>
             </div>
             <div class="col_menu second_menu">
-              <a id="facet_col_all" href="javascript:;" onclick="focusComponent('item_col', false)">全部({{ collection.count|intcomma }})</a>
+              <a id="facet_col_all" class="focusComponent" href="javascript:;" data-item_class="item_col" data-go_back="false">全部({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
-                <a id="facet_col_{{ i.key }}" href="javascript:;" onclick="focusCards('col','{{ i.key }}', false)">{{ i.title }}({{ i.total_count|intcomma }})</a>
+                <a id="facet_col_{{ i.key }}" class="focusCards" href="javascript:;"
+                data-record_type="col"
+                data-key="{{ i.key }}"
+                data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
 
           <li class="li-item_news">
-            <a href="javascript:;" onclick="focusComponent('item_news', false)" class="big_link rd_click">
+            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
               <p>新聞公告</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_event">
-            <a href="javascript:;" onclick="focusComponent('item_event', false)" class="big_link rd_click">
+            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
               <p>活動訊息</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_project">
-            <a href="javascript:;" onclick="focusComponent('item_project', false)" class="big_link rd_click">
+            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
               <p>計畫徵求</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_resource">
-            <a href="javascript:;" onclick="focusComponent('item_resource', false)" class="big_link rd_click">
+            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>開放資料相關資源</p>
               <div class="arr"></div>
             </a>
@@ -321,11 +221,11 @@
 									<div class="right_img">
 										<div class="imgbox">
                       {% if i.images %}
-											<div class="imgarea" style="background-image:url('{{ i.images.src }}');"></div>
+                        <img class="imgarea" src="{{ i.images.src }}">
                       {% else %}
-                      <div class="imgarea" style=""></div>
+                        <img class="imgarea">
                       {% endif %}
-										</div>
+                    </div>
 									</div>
 								</div>
 
@@ -334,11 +234,17 @@
                 {% if i.taieol_id %}
                 <div class="btn_area">
                   <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
-                  <button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
+                  <button class="getDist" 
+                  data-taxonID="{{ i.taxonID }}"
+                  data-common_name_c="{{ i.common_name_c }}"
+                  data-formatted_name="{{ i.formatted_name }}">分布圖</button>
                 </div>
                 {% else %}
-                <div class="btn_area" style="justify-content: flex-end">
-                  <button onclick="getDist('{{ i.taxonID }}','{{ i.common_name_c }}','{{ i.formatted_name }}')">分布圖</button>
+                <div class="btn_area jc-fe">
+                  <button class="getDist" 
+                  data-taxonID="{{ i.taxonID }}"
+                  data-common_name_c="{{ i.common_name_c }}"
+                  data-formatted_name="{{ i.formatted_name }}">分布圖</button>
                 </div>
                 {% endif %}
 							</li>
@@ -349,7 +255,11 @@
             {% endif %}
             <!--超過4個才有更多按鈕-->
             {% if taxon.more %}
-            <a href="javascript:;" onclick="getMoreCards('.taxon-card','#taxon_offset','.taxon_more','false')" class="more taxon_more"> 更多結果 </a>
+            <a href="javascript:;" class="more taxon_more getMoreCards" 
+              data-card_class=".taxon-card" 
+              data-offset_value="#taxon_offset"
+              data-more_type=".taxon_more" 
+              data-is_sub="false"> 更多結果 </a>
             <input type="hidden" id="taxon_offset" value="4">
             {% endif %}
 
@@ -367,9 +277,17 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-              <li onclick="getRecords('occ','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.name }}','{{ i.count }}','1','card', false)">
+              <li class="getRecords" 
+                  data-record_type="occ"
+                  data-key="{{ i.matched_col }}"
+                  data-value="{{ i.matched_value }}"
+                  data-scientific_name="{{ i.name }}"
+                  data-limit="{{ i.count }}"
+                  data-page="1"
+                  data-from="card"
+                  data-go_back="false">
                 <div class="num">{{ i.count }}</div>
-                <div style="height: 20px; margin-bottom: 6px"></div>
+                <div class="num_bottom"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
                 {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
@@ -384,7 +302,11 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
-        <a href="javascript:;" onclick="getMoreCards('.occ-card','#occ_offset','.occ_more','false')" class="more occ_more"> 更多結果 </a>
+        <a href="javascript:;" class="more occ_more getMoreCards" 
+          data-card_class=".occ-card" 
+          data-offset_value="#occ_offset"
+          data-more_type=".occ_more" 
+          data-is_sub="false"> 更多結果 </a>
         <input type="hidden" id="occ_offset" value="9">
         {% endif %}
       </div>
@@ -401,12 +323,20 @@
         {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
-            <li onclick="getRecords('col','{{ i.matched_col }}','{{ i.matched_value }}','{{ i.name }}','{{ i.count }}','1','card', false)">
+            <li class="getRecords" 
+                data-record_type="col"
+                data-key="{{ i.matched_col }}"
+                data-value="{{ i.matched_value }}"
+                data-scientific_name="{{ i.name }}"
+                data-limit="{{ i.count }}"
+                data-page="1"
+                data-from="card"
+                data-go_back="false">
               <div class="num">{{ i.count }}</div>
-              <div style="height: 20px; margin-bottom: 6px"></div>
+              <div class="num_bottom"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
-              {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
+              {% if i.matched_col != '中文名' and i.matched_col != '學名' %}
               <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
               {% endif %}
             </li>
@@ -418,7 +348,11 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
-        <a href="javascript:;" onclick="getMoreCards('.col-card','#col_offset','.col_more','false')" class="more col_more"> 更多結果 </a>
+        <a href="javascript:;" class="more col_more getMoreCards" 
+          data-card_class=".col-card" 
+          data-offset_value="#col_offset"
+          data-more_type=".col_more" 
+          data-is_sub="false"> 更多結果 </a>
         <input type="hidden" id="col_offset" value="9">
         {% endif %}
       </div>
@@ -447,7 +381,11 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if news.count > 6 %}
-        <a href="javascript:;" onclick="getMoreDocs('news', '#news_offset', '.more_news', '.news-card')" class="more more_news"> 更多結果 </a>
+        <a href="javascript:;" class="more more_news getMoreDocs" 
+          data-doc_type="news"
+          data-offset_value="#news_offset"
+          data-more_class=".more_news"
+          data-card_class=".news-card"> 更多結果 </a>
         <input type="hidden" id="news_offset" value="6">
         {% endif %}
       </div>
@@ -476,7 +414,11 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if event.count > 6 %}
-        <a href="javascript:;" onclick="getMoreDocs('event', '#event_offset', '.more_event', '.event-card')" class="more more_event"> 更多結果 </a>
+        <a href="javascript:;" class="more more_event getMoreDocs" 
+          data-doc_type="event"
+          data-offset_value="#event_offset"
+          data-more_class=".more_event"
+          data-card_class=".event-card"> 更多結果 </a>
         <input type="hidden" id="event_offset" value="6">
         {% endif %}
       </div>
@@ -505,7 +447,11 @@
         {% endif %} 
         {% if project.count > 6 %}
         <!--超過6個才有更多按鈕-->
-        <a href="javascript:;" onclick="getMoreDocs('project', '#project_offset', '.more_project', '.project-card')" class="more more_project"> 更多結果 </a>
+        <a href="javascript:;" class="more more_project getMoreDocs" 
+          data-doc_type="project"
+          data-offset_value="#project_offset"
+          data-more_class=".more_project"
+          data-card_class=".project-card">更多結果 </a>
         <input type="hidden" id="project_offset" value="6">
         {% endif %}
       </div>
@@ -522,7 +468,7 @@
         <ul class="edu_list three_set resource-card">
           {% if resource.count > 0 %} {% for i in resource.rows %}
           <li>
-            <div class="item items" style="height: 100%">
+            <div class="item items h-100p">
               <div class="cate_dbox">
                 <div class="cate pdf">{{ i.extension }}</div>
                 <div class="date">{{ i.date }}</div>
@@ -534,10 +480,14 @@
           {% endfor %}
         </ul>
         {% else %}
-        <div class="no_data" style="width: 100%">暫無資料</div>
+        <div class="no_data w-100p">暫無資料</div>
         {% endif %} 
         {% if resource.count > 6 %}
-        <a href="javascript:;" onclick="getMoreDocs('resource', '#resource_offset', '.more_resource', '.resource-card')" class="more more_resource"> 更多結果 </a>
+        <a href="javascript:;" class="more more_resource getMoreDocs" 
+          data-doc_type="resource"
+          data-offset_value="#resource_offset"
+          data-more_class=".more_resource"
+          data-card_class=".resource-card"> 更多結果 </a>
         <input type="hidden" id="resource_offset" value="6">
         {% endif %}
       </div>
@@ -548,15 +498,15 @@
 </div>
 
 <!-- 自然史典藏欄位選擇 -->
-<div class="popbg col-choice" style="display: none;">
+<div class="popbg col-choice d-none">
 	<div class="ovhy">
-		<div class="wbox_center"  style="max-height: 100%; overflow-y: auto">
+		<div class="wbox_center choice-flow">
 			<div class="xx">
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
-				<button class="selt" onclick="selectAll('.col-choice')">全選</button>
-				<button class="selt" onclick="resetAll('.col-choice')">重置</button>
+				<button class="selt selectAll" data-type=".col-choice">全選</button>
+				<button class="selt resetAll" data-type=".col-choice">重置</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -668,21 +618,21 @@
 					<p>授權狀況</p>
 				</li>
 			</ul>
-			<button class="send_bt" onclick="sendSelected('col')">確認</button>
+			<button class="send_bt sendSelected" data-type="col">確認</button>
 		</div>
 	</div>
 </div>
 
 <!-- 物種出現紀錄欄位選擇 -->
-<div class="popbg occ-choice" style="display: none;">
+<div class="popbg occ-choice d-none">
 	<div class="ovhy">
-		<div class="wbox_center"  style="max-height: 100%; overflow-y: auto">
+		<div class="wbox_center choice-flow">
 			<div class="xx">
 			</div>
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
-				<button class="selt" onclick="selectAll('.occ-choice')">全選</button>
-				<button class="selt" onclick="resetAll('.occ-choice')">重置</button>
+				<button class="selt selectAll" data-type=".occ-choice">全選</button>
+				<button class="selt resetAll" data-type=".occ-choice">重置</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -782,13 +732,13 @@
 					<p>授權狀況</p>
 				</li>
 			</ul>
-			<button class="send_bt" onclick="sendSelected('occ')">確認</button>
+			<button class="send_bt sendSelected" data-type="occ">確認</button>
 		</div>
 	</div>
 </div>
 
 
-<div class="popbg taxon-dist" style="display: none;">
+<div class="popbg taxon-dist d-none">
 	<div class="ovhy taxon-dist">
 		<div class="wbox_center">
 			<div class="xx taxon-dist">
@@ -798,874 +748,13 @@
 			</div>
       <div id="map-box">
         <p id="taxon_name"><p>
-        <div id="map" style="height: 500px; margin: 20px 0 0 0"></div>
+        <div id="map"></div>
       </div>
 		</div>
 	</div>
 </div>
-
-
-
 {% endblock body %} 
 
 {% block script %}
-<script>
-
-  $('.popbg.taxon-dist').on('hide', function(){
-    $("#map-box").html(""); 
-    $("#map-box").html('<div id="map" style="height: 500px; margin: 40px 0 10px 10px"></div>');
-  })
-
-  function getColor(d) {
-    return d > 1000 ? '#C50101' :
-            d > 500  ? '#D71414' :
-            d > 200  ? '#E72424' :
-            d > 100  ? '#F73535' :
-            d > 50   ? '#FB4C4C' :
-            d > 20   ? '#FB6262' :
-            d > 10   ? '#FC7E7E' :
-                      '#FD9696';
-  }
-  
-  function style(feature) {
-    return {
-        fillColor: getColor(feature.properties.counts),
-        weight: 1,
-        opacity: 0.5,
-        color: 'black',
-        //dashArray: '3',
-        fillOpacity: 1
-    };
-  }
-
-  function getDist(taxonID, common_name_c, formatted_name){
-    $('.popbg.taxon-dist').show()
-
-    $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
-
-    $.ajax({
-      url: "{% url 'get_taxon_dist' %}?taxonID=" + taxonID,
-      type: 'GET',
-    })
-    .done(function(response) {
-        // 把之前的清掉
-        let map = L.map('map').setView([23.5, 121.2],7);
-        L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        map.on('zoomend', function zoomendEvent(ev) {
-          var currentZoomLevel = ev.target.getZoom()
-        
-            if (currentZoomLevel < 5) {
-              $('[class^=resultG_]').css('display','none')
-              $('.resultG_100').css('display','')
-            } else if (currentZoomLevel < 8){
-              $('[class^=resultG_]').css('display','none')
-              $('.resultG_10').css('display','')
-            } else if (currentZoomLevel < 9){
-              $('[class^=resultG_]').css('display','none')
-              $('.resultG_5').css('display','')
-            } else {
-              $('[class^=resultG_]').css('display','none')
-              $('.resultG_1').css('display','')
-            }
-        });
-    
-
-        L.geoJSON(response.grid_1,{className: 'resultG_1',style: style}).addTo(map);
-        L.geoJSON(response.grid_5,{className: 'resultG_5',style: style}).addTo(map);
-        L.geoJSON(response.grid_10,{className: 'resultG_10',style: style}).addTo(map);
-        L.geoJSON(response.grid_100,{className: 'resultG_100',style: style}).addTo(map);
-
-        $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').css('display','none')
-        if (map.getZoom() < 5) {
-          $('.resultG_100').css('display','')
-        } else if (map.getZoom() < 8){
-          $('.resultG_10').css('display','')
-        } else if (map.getZoom() < 9){
-          $('.resultG_5').css('display','')
-        } else {
-          $('.resultG_1').css('display','')
-        }
-
-        map.setView([23.5, 121.2],7)
-
-    })
-    .fail(function( xhr, status, errorThrown ) {
-      if (xhr.status==504){
-        alert('要求連線逾時')
-      } else {
-        alert('發生未知錯誤！請聯絡管理員')
-      }
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-
-  }
-
-
-  
-
-  let params = ['item_class', 'record_type','key','value','scientific_name','limit','page','from',
-                'doc_type', 'offset_value', 'more_class', 'card_class', 'is_sub', 'focus_card', 'get_record']
-
-  function changeAction(){
-    let queryString = window.location.search;
-    let urlParams = new URLSearchParams(queryString);
-    // 如果只有keyword, show全部elements
-    if ((queryString.split('&').length==1)&&(queryString.startsWith('?keyword='))){
-      $('.rightbox_content .item').css({display: ''})
-      $('.rightbox_content .subitem').css({display: 'none'})
-    }
-    if (urlParams.get('item_class')){
-      focusComponent(urlParams.get('item_class'), true)
-    } else if (urlParams.get('focus_card')){
-      focusCards(urlParams.get('record_type'), urlParams.get('key'), true)
-    } else if (urlParams.get('get_record')){
-      getRecords(urlParams.get('record_type'),urlParams.get('key'),urlParams.get('value'),urlParams.get('scientific_name'),urlParams.get('limit'),urlParams.get('page'),urlParams.get('from'),true)
-    } 
-  }
-
-  function clickToAnchor(id){
-      let offset;
-      if ($(window).width() > 1599){
-        offset = 145
-      } else if ($(window).width() > 999){
-        offset = 120
-      } else {
-        offset = 100
-      }
-      var target = $(id).offset().top - offset;
-      $('html, body').animate({scrollTop:target}, 500);
-  }
-
-  $( document ).ready(function() {
-
-    $('.occ_menu, .col_menu, .spe_menu').slideToggle();
-
-    // 如果直接從帶有參數網址列進入
-    changeAction(); 
-
-    // 如果按上下一頁
-    window.onpopstate = function(event) {
-      changeAction();
-    };
-  })
-  
-
-  $(".mb_fixed_btn").on("click", function (event) {
-    $(".mbmove").toggleClass("open");
-    $(this).toggleClass("now");
-  });
-
-  $(".rd_click").on("click", function (event) {
-    $(".rd_click").closest("li").removeClass("now");
-    //$(".rd_click").closest("li").find(".second_menu").slideUp();
-    $(this).closest("li").toggleClass("now");
-    $(this).closest("li").find(".second_menu").slideToggle();
-  });
-
-
-  $(".second_menu a").on("click", function (event) {
-    $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
-    $(".second_menu a").removeClass("now");
-    $(this).addClass("now")
-    $(this).parent().parent('li').addClass('now')
-  });
-
-  function focusComponent(item_class, go_back){
-
-    // 先移除掉原本的
-    $('.item_list li').removeClass('now')
-    $('.second_menu a').removeClass('now')
-    // 加上現在的
-    $(`.li-${item_class}`).addClass('now')
-    if (item_class=='item_occ'){
-      $(`#facet_occ_all`).addClass('now')
-    } else if  (item_class=='item_col'){
-      $(`#facet_col_all`).addClass('now')
-    } else if (item_class=='item_spe'){
-      $(`#facet_spe_all`).addClass('now')
-    }
-
-    if ((!go_back)&& ('URLSearchParams' in window)) {
-      var searchParams = new URLSearchParams(window.location.search)
-      searchParams.set("item_class", item_class);
-
-      params.forEach(function(item, index, array) {
-        if (item != 'item_class'){
-          searchParams.delete(item)
-        }
-      });
-      
-      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
-      history.pushState(null, '', newRelativePathQuery);
-    }
-
-    // 不顯示最底層結果列表
-    $('.record_title').remove()
-    $('.result_inf_top').remove()
-    $('.result_table').remove()
-    $('.page_number').remove()
-
-    if (item_class == 'all'){
-      $('.rightbox_content .item').css({display: ''})
-      // 如果是再底下一個階層則不顯示
-      $('.rightbox_content .subitem').css({display: 'none'})
-    } else {
-      $(`.rightbox_content .${item_class}`).css({display: ''})
-      $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).css({display: 'none'})
-      clickToAnchor(`#${item_class}`)
-    }
-
-  }
-
-  function getRecords(record_type,key,value,scientific_name,limit,page,from, go_back){
-
-    if ((!go_back)&& ('URLSearchParams' in window)) {
-      var searchParams = new URLSearchParams(window.location.search)
-
-      params.forEach(function(item, index, array) {
-          searchParams.delete(item)
-      });
-      searchParams.set("record_type", record_type);
-      searchParams.set("key", key);
-      searchParams.set("value", value);
-      searchParams.set("scientific_name", scientific_name);
-      searchParams.set("limit", limit);
-      searchParams.set("page", page);
-      searchParams.set("from", from);
-      searchParams.set("get_record", true);
-      
-      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
-      history.pushState(null, '', newRelativePathQuery);
-    }
-
-    // hide all items
-    $('.rightbox_content .item').css({display: 'none'})
-
-    // 移除前一次的紀錄
-    $('.record_title').remove()
-    $('.result_inf_top').remove()
-    $('.result_table').remove()
-    $('.page_number').remove()
-
-    // append rows
-    $.ajax({
-        url: "{% url 'get_records' %}",
-        data: { record_type: record_type,
-                keyword: '{{ keyword }}',
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-                key: key,
-                value: value,
-                scientific_name: scientific_name,
-                limit: limit,
-                page: page},
-        type: 'POST',
-        dataType : 'json',
-      })
-      .done(function(response) {
-        $('.rightbox_content').append(`
-        <div class="titlebox_line record_title" id="records">
-          <div class="title">
-              <p>${response.title} > 結果列表</p>
-              <div class="line"></div>
-          </div>
-        </div>
-        <div class="result_inf_top">
-          <button class="cate_btn" onclick="popupField('${record_type}')">欄位選項 +</button>
-          <div style="display: flex">
-            <p class="datenum" style="margin-right: 10px">資料筆數：${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-            <div class="rightdow">
-              <button class="dow_btn"  onclick="downlaodData('${response.search_str}',${limit})">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <p>資料下載</p>
-              </button>
-              <a href="#" class="qmark"></a>
-            </div>
-          </div>
-
-        </div>
-        <div class="result_table" style="overflow-x: auto;">
-          <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
-          </table>						
-        </div>    
-        `)
-        var table_title = document.createElement("tr");
-        table_title.classList.add('table_title');
-        let map_dict = response.map_dict;
-
-        for (let i = 0; i < Object.keys(map_dict).length; i++) {
-            var this_td = document.createElement("td");
-            this_td.className = `row-${Object.keys(map_dict)[i]}`;
-            this_td.style.cssText = 'display:none';
-            var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
-            this_td.appendChild(text);
-            table_title.appendChild(this_td); 
-        }
-
-        // append 功能
-        var function_td = document.createElement("td");
-        var text = document.createTextNode('功能');
-        function_td.appendChild(text);
-        table_title.appendChild(function_td); 
-
-        $('.record_table').append(table_title);
-
-        
-        // append rows
-        for (let i = 0; i < response.rows.length; i++) {
-          let tmp = response.rows[i];
-          let tmp_td;
-          let tmp_value;
-          for (let j = 0; j < Object.keys(map_dict).length; j++){
-            tmp_value = tmp[Object.keys(map_dict)[j]];
-            // 日期
-            // 經緯度
-            // 數量
-            if (tmp_value == null){
-              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none"></td>`
-            } else {
-              tmp_td += `<td class="row-${Object.keys(map_dict)[j]}" style="display: none">${tmp_value}</td>`
-            }
-          }
-          if (record_type == 'occ'){
-            let url_mask = "{% url 'occurrence_detail' 12345 %}".replace(/12345/, tmp.id.toString());
-            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-          }else{
-            let url_mask = "{% url 'collection_detail' 12345 %}".replace(/12345/, tmp.id.toString());
-            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-          }
-          $('.record_table').append(
-            `<tr>${tmp_td}</tr>`)
-        }
-        
-        // 判斷是從分頁或卡片點選
-        if ((from == 'card') || ( $(`.${record_type}-choice input:checked`).length==0 )){ //如果都沒有選的話用預設值
-          // uncheck all first
-          $(`input[id^="${record_type}-"]`).prop('checked',false)
-          // show selected columns
-          for (let i = 0; i < response.selected_col.length; i++) {
-            $(`.row-${response.selected_col[i]}`).show();
-            $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);}
-            clickToAnchor('#records')
-        } else {
-          sendSelected(record_type)
-        }
-
-        // disable checkebox for key field
-        let selected_key = Object.keys(map_dict).find(a => map_dict[a] === key)
-        window.selected_key = selected_key
-        $(`#${record_type}-${selected_key}`).prop('disabled',true);
-        $(`#${record_type}-${selected_key}`).prop('checked',true);
-
-        // append pagination
-        if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-          $('.result_table').after(
-            `<div class="page_number">
-              <a href="javascript:;" class="pre">
-                <span></span>
-              </a>
-              <a href="javascript:;" class="next">
-                <span></span>
-              </a>
-            </div>`)}		
-        
-        let html = ''
-        for (let i = 0; i < response.page_list.length; i++) {
-          if (response.page_list[i] == response.current_page){
-            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page', false)" class="num now">${response.page_list[i]}</a>  `;
-          } else {
-            html += `<a href="javascript:;" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.page_list[i]}, 'page', false)" class="num">${response.page_list[i]}</a>  `
-          }
-        }
-        $('.pre').after(html)
-
-        // 如果有上一頁，改掉pre的onclick
-        if ((response.current_page - 1) > 0 ){
-          $('.pre').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page - 1}, 'page', false)`);
-        }
-        // 如果有下一頁，改掉next的onclick
-        if (response.current_page < response.total_page){
-          $('.next').attr('onclick',`getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page + 1}, 'page', false)`);
-        }
-
-        // 如果有前面的page list, 加上...
-        if (response.current_page > 5){
-          $('.pre').after(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page -5 }, 'page', false)">...</a> `)
-        }
-        // 如果有後面的page list, 加上...
-        if (response.page_list[response.page_list.length - 1] < response.total_page){
-          if (response.current_page +5 > response.total_page){
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.total_page}, 'page', false)">...</a> `)
-          } else {
-            $('.next').before(`<a href="javascript:;" style="border: 0" class="num" onclick="getRecords('${record_type}','${key}','${value}','${scientific_name}','${limit}',${response.current_page +5}, 'page', false)">...</a>`)
-          }
-        }
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-
-    }
-
-  function focusCards(record_type,key, go_back){
-    if ((!go_back)&& ('URLSearchParams' in window)) {
-      var searchParams = new URLSearchParams(window.location.search)
-
-      params.forEach(function(item, index, array) {
-          searchParams.delete(item)
-      });
-
-      searchParams.set("record_type", record_type);
-      searchParams.set("key", key);
-      searchParams.set("focus_card", true);
-
-      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
-      history.pushState(null, '', newRelativePathQuery);
-
-    }
-
-    //先移除掉原本的
-    $('.item_list li').removeClass('now')
-    $('.second_menu a').removeClass('now')
-    //加上現在的
-    $(`.li-item_${record_type}`).addClass('now')
-    $(`#facet_${record_type}_${key}`).addClass('now')
-
-
-    // 如果focus已存在則不呼叫ajax，但顯示出來
-    $('.record_title').remove()
-    $('.result_inf_top').remove()
-    $('.result_table').remove()
-    $('.page_number').remove()
-
-    if (! $(`.item_${record_type}_${key}`).length){
-      // taxon
-      if (record_type == 'taxon') {
-          $.ajax({
-            url: "{% url 'get_focus_cards_taxon' %}",
-            data: { record_type: record_type,
-                    keyword: '{{ keyword }}',
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    key: key },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-          // append item area
-          $('.rightbox_content').append(
-            `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
-              <div class="titlebox_line">
-                <div class="title">
-                  <p>${response.title} (${response.total_count})</p>
-                  <div class="line"></div>
-                </div>
-              </div>
-              <ul class="card_list_2 species_list ${response.card_class}">
-              </ul>
-            </div>`)
-          // append cards
-          for (let i = 0; i < response.data.length; i++) {
-            let x = response.data[i];
-            let html;
-            let matched = '';
-
-            if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
-              matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
-            }
-
-            let image = '<div class="imgarea" style=""></div>'
-
-            if (x.images){
-              image = `<div class="imgarea" style="background-image:url('${ x.images.src }');"></div>`
-            }
-
-            let taieol = '';
-
-            if (x.taieol_id){
-              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">生命大百科介紹</a>`
-            }
-
-
-            html = `	<li>							
-            <div class="flex_top">
-              <div class="lefttxt">
-                ${matched}
-                <p>中⽂名：${x.common_name_c}</p>
-                <p>學名：${x.formatted_name}</p>
-                <p>中文別名：${ x.alternative_name_c }</p>
-                <p>同物異名：${ x.formatted_synonyms }</p>
-                <p>出現記錄筆數：${ x.occ_count }</p>
-                <p>自然史典藏筆數：${ x.col_count }</p>
-              </div>
-              <div class="right_img">
-                <div class="imgbox">
-                  ${image}
-                </div>
-              </div>
-            </div>
-            <div class="btn_area">
-              ${taieol}
-              <button onclick="getDist('${x.taxonID}')">分布圖</button>
-            </div></li>`
-
-              $(`.${response.card_class}`).append(html)
-          }
-          // append 更多結果 button if more than 4 cards
-          if (response.has_more == true) {
-            $(`.${response.card_class}`).after(`
-              <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
-              <input type="hidden" id="${record_type}_${key}_offset" value="4">`)
-          }
-          $(`.rightbox_content .${response.item_class}`).css({display: ''})
-          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
-
-          clickToAnchor(`#${response.item_class}_cards`)
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          if (xhr.status==504){
-            alert('要求連線逾時')
-          } else {
-            alert('發生未知錯誤！請聯絡管理員')
-          }
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-      // occ 或 col
-      } else {
-        $.ajax({
-            url: "{% url 'get_focus_cards' %}",
-            data: { record_type: record_type,
-                    keyword: '{{ keyword }}',
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    key: key },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-          // append item area
-          $('.rightbox_content').append(
-            `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
-              <div class="titlebox_line">
-                <div class="title">
-                  <p>${response.title} (${response.total_count})</p>
-                  <div class="line"></div>
-                </div>
-              </div>
-              <ul class="card_list_1 ${response.card_class}">
-              </ul>
-            </div>`)
-          // append cards
-          for (let i = 0; i < response.data.length; i++) {
-            let x = response.data[i];
-            let html;
-            if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-              $(`.${response.card_class}`).append( `
-              <li onclick="getRecords('${record_type}','${x.matched_col}','${x.matched_value_ori}','${ x.name }','${ x.count }','1','card', false)">
-                <div class="num">${x.count}</div>
-                <div style="height: 20px; margin-bottom: 6px"></div>
-                <p>中文名：${x.common_name_c}</p>
-                <p>學名：${x.val}</p>
-                <p>${ x.matched_col }：${x.matched_value}</p>
-              </li>`)
-            } else {
-              $(`.${response.card_class}`).append( `
-              <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-                <div class="num">${x.count}</div>
-                <div style="height: 20px; margin-bottom: 6px"></div>
-                <p>中文名：${x.common_name_c}</p>
-                <p>學名：${x.val}</p>
-              </li>`)
-            }
-          }
-          // append 更多結果 button if more than 9 cards
-          if (response.has_more == true) {
-            $(`.${response.card_class}`).after(`
-              <a href="javascript:;" onclick="getMoreCards('.${response.card_class}','#${record_type}_${key}_offset','.${record_type}_${key}_more','true')" class="more ${record_type}_${key}_more"> 更多結果 </a>
-              <input type="hidden" id="${record_type}_${key}_offset" value="9">`)
-          }
-          $(`.rightbox_content .${response.item_class}`).css({display: ''})
-          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).css({display: 'none'})
-
-          clickToAnchor(`#${response.item_class}_cards`)
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          if (xhr.status==504){
-            alert('要求連線逾時')
-          } else {
-            alert('發生未知錯誤！請聯絡管理員')
-          }
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-      }
-    } else {
-      $(`.rightbox_content .item_${record_type}_${key}`).css({display: ''})
-      $('.rightbox_content .item').not($(`.item_${record_type}_${key}`)).not($('.items')).css({display: 'none'})
-      clickToAnchor(`#item_${record_type}_${key}_cards`)
-    }
-
-  }
-
-  function getMoreDocs(doc_type, offset_value, more_class, card_class){
-
-    //console.log(doc_type, offset_value)
-    let offset = $(offset_value).val()
-    $.ajax({
-        url: "{% url 'get_more_docs' %}",
-        data: {
-          doc_type: doc_type,
-          keyword: '{{ keyword }}',
-          csrfmiddlewaretoken: '{{ csrf_token }}',
-          offset: offset,
-        },
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 6 ) : $(more_class).css({display: 'none'})
-
-      if (card_class == '.resource-card'){
-        for (let i = 0; i < response.rows.length; i++) {
-          let x = response.rows[i]
-            $(card_class).append(`<li>
-              <div class="item" style="height: 100%">
-                <div class="cate_dbox">
-                  <div class="cate pdf">${ x.extension }</div>
-                  <div class="date">${ x.date }</div>
-                </div>
-                <a href="${ x.url }" class="title"> ${ x.title } </a>
-                <a href="${ x.url }" download class="dow_btn"> </a>
-              </div></li>`)
-        }
-      } else {
-        for (let i = 0; i < response.rows.length; i++) {
-          let x = response.rows[i]
-            $(card_class).append(`
-            <li>
-              <div class="nstitle">${ x.title }</div>
-              <p>${ x.content }</p>
-            </li>`)
-          }
-      }
-    })
-    .fail(function( xhr, status, errorThrown ) {
-      if (xhr.status==504){
-        alert('要求連線逾時')
-      } else {
-        alert('發生未知錯誤！請聯絡管理員')
-      }      
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-
-  }
-
-  function getMoreCards(card_class, offset_value, more_type, is_sub){
-    let record_type;
-    if (card_class.startsWith('.col')) {
-      record_type = 'col'
-    } else if (card_class.startsWith('.occ')){
-      record_type = 'occ'
-    } else {
-      record_type = 'taxon'
-    }
-
-    let offset = $(offset_value).val()
-    if (record_type == 'taxon') {
-        $.ajax({
-          url: "{% url 'get_more_cards_taxon' %}",
-          data: {
-            card_class: card_class,
-            keyword: '{{ keyword }}',
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            offset: offset,
-            is_sub: is_sub,
-          },
-          type: 'POST',
-          dataType : 'json',
-      })
-      .done(function(response) {
-
-        (response.has_more==true) ? $(offset_value).val(Number(offset)+ 4 ) : $(more_type).css({display: 'none'})
-        
-        for (let i = 0; i < response.data.length; i++) {
-          let x = response.data[i]
-
-          let html;
-          let matched = '';
-
-          if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
-            matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
-          }
-
-          let image = '<div class="imgarea" style=""></div>'
-
-          if (x.images){
-            image = `<div class="imgarea" style="background-image:url('${ x.images.src }');"></div>`
-          }
-
-          let taieol = '';
-
-          if (x.taieol_id){
-            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">生命大百科介紹</a>`
-          }
-
-
-          html = `	<li>							
-          <div class="flex_top">
-            <div class="lefttxt">
-              ${matched}
-              <p>中⽂名：${x.common_name_c}</p>
-              <p>學名：${x.formatted_name}</p>
-              <p>中文別名：${ x.alternative_name_c }</p>
-              <p>同物異名：${ x.formatted_synonyms }</p>
-              <p>出現記錄筆數：${ x.occ_count }</p>
-              <p>自然史典藏筆數：${ x.col_count }</p>
-            </div>
-            <div class="right_img">
-              <div class="imgbox">
-                ${image}
-              </div>
-            </div>
-          </div>
-          <div class="btn_area">
-            ${taieol}
-            <button onclick="getDist('${x.taxonID}')">分布圖</button>
-          </div></li>`
-
-            $(`${card_class}`).append(html)
-
-
-        }
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }      
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-
-
-    } else {
-      $.ajax({
-          url: "{% url 'get_more_cards' %}",
-          data: {
-            card_class: card_class,
-            keyword: '{{ keyword }}',
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            offset: offset,
-            is_sub: is_sub,
-          },
-          type: 'POST',
-          dataType : 'json',
-      })
-      .done(function(response) {
-        (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).css({display: 'none'})
-        for (let i = 0; i < response.data.length; i++) {
-          let x = response.data[i]
-          if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-            $(card_class).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-              <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 6px"></div>
-              <p>中文名：${x.common_name_c}</p>
-              <p>學名：${x.val}</p>
-              <p>${ x.matched_col }：${x.matched_value}</p>
-            </li>` )
-          } else {
-            $(card_class).append( `
-            <li onclick="getRecords('${record_type}','${x.matched_col }','${x.matched_value_ori }','${ x.name }','${ x.count }','1','card', false)">
-              <div class="num">${x.count}</div>
-              <div style="height: 20px; margin-bottom: 6px"></div>
-              <p>中文名：${x.common_name_c}</p>
-              <p>學名：${x.val}</p>
-            </li>` )
-          }
-        }
-      })
-      .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-          alert('要求連線逾時')
-        } else {
-          alert('發生未知錯誤！請聯絡管理員')
-        }      
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-      })
-    }
-  }
-
-
-  function resetAll(record_type){
-    $(`${record_type} input:checkbox:not(:disabled)`).prop('checked', false);
-  }
-
-  function selectAll(record_type){
-    $(`${record_type} input:checkbox`).prop('checked', true);
-  }
-
-  function popupField(record_type){
-    $(`.${record_type}-choice`).css({display: ''})
-    window.not_selected = $(`.${record_type}-choice input:not(:checked)`)
-    window.selected = $(`.${record_type}-choice input:checked`)
-  }
-
-  $(".popbg .xx,.popbg .ovhy").not('.taxon-dist').click(function (e) {
-    if ($(event.target).hasClass("xx") || $(event.target).hasClass("ovhy")) {
-      window.not_selected.prop('checked', false);
-      window.selected.prop('checked', true);
-    }
-  });
-
-  function sendSelected(record_type){
-    let selected_field = $(`.${record_type}-choice input:checked`)
-    // 所有都先隱藏，除了對到的欄位
-    $('td[class^="row-"]').hide();
-    $(`.row-${window.selected_key}`).show();
-    // 再顯示選擇的欄位
-    for (let i = 0; i < selected_field.length; i++) {
-      $(`td.row-${selected_field[i].id.split('-')[1]}`).show();
-      //console.log(selected_field[i].id.split('-')[1])
-    }
-    $(".popbg").hide();
-  }
-
-  function downlaodData(search_str, total_count){
-    if ('{{ user.is_authenticated }}'=='True'){
-        $.ajax({
-            url: "{% url 'send_download_request' %}",
-            data: {
-              search_str: search_str,
-              total_count: total_count,
-              csrfmiddlewaretoken: '{{ csrf_token }}',
-              from_full: 'yes',
-            },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-          alert('請求已送出，下載檔案處理完成後將以email通知')
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          if (xhr.status==504){
-            alert('要求連線逾時')
-          } else {
-            alert('發生未知錯誤！請聯絡管理員')
-          }      
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-    } else {
-      alert('請先登入')
-    }
-  }
-
-</script>
+<script src="{% static 'js/search_full.js' %}"></script>
 {% endblock script %}

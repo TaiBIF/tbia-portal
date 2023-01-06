@@ -3,20 +3,10 @@
 {% load tags %}
 
 {% block style %}
-
-<style>
-  .edu_list li .title {
-    -webkit-line-clamp: 1;
-  }
-
-  .infbox, .center_box {
-    width: 100%
-  }
-
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}" />
 {% endblock style %}
 {% block body %}
-
+{% csrf_token %}
 
 <!--
 
@@ -26,13 +16,11 @@
 -->
 
 <!--教學popbox-->
-<div class="popbg tech-pop" {% if request.session.not_show_tech %} style="display: none" {% endif %}>
+<div class="popbg tech-pop {% if request.session.not_show_tech %} d-none {% endif %}" >
 	<div class="ovhy">
 		<div class="wbox_center index_tech">
 			<div class="xx">
-
 			</div>
-
 			<div class="arl"></div>
 			<div class="arr"></div>
 			<div class="dot_area">
@@ -40,12 +28,11 @@
 				<div class="dot"></div>
 				<div class="dot now"></div>
 				<div class="dot"></div>
-
 			</div>
 
 			<div class="techbox">
-        <div style="display: flex; justify-content: flex-end;">
-          <a id="not_show_tech" style="cursor: pointer">不再顯示</a>
+        <div class="d-flex-jc-fe">
+          <a id="not_show_tech pointer">不再顯示</a>
         </div>
 				<div class="tech_pic">
 					<!--565*340或者兩倍大小1130*680-->
@@ -187,18 +174,17 @@
       <h2 class="title"><span></span>最新消息</h2>
       <ul class="news_tab">
         <!--點選時給class="now"-->
-        <li class="li-news-all now" onclick="updateNews('all',1)">所有消息<span></span></li>
-        <li class="li-news-news " onclick="updateNews('news',1)">新聞公告<span></span></li>
-        <li class="li-news-event " onclick="updateNews('event',1)">活動訊息<span></span></li>
-        <li class="li-news-project " onclick="updateNews('project',1)">計畫徵求<span></span></li>
+        <li class="li-news-all now updateNews" data-type="all">所有消息<span></span></li>
+        <li class="li-news-news updateNews" data-type="news">新聞公告<span></span></li>
+        <li class="li-news-event updateNews" data-type="event">活動訊息<span></span></li>
+        <li class="li-news-project updateNews" data-type="project">計畫徵求<span></span></li>
       </ul>
       <ul class="news_list">
         {% if news_list|length > 0 %}
           {% for n in news_list %}
           <li>
             <a href="{% url 'news_detail' n.id %}" target="_blank" class="imgbox">
-              <div class="img_area" style="background-image: url('{{ n.image }}')">
-              </div>
+              <img class="img_area" src="{{ n.image }}">
             </a>
             <div class="infbox">
               <div class="center_box">
@@ -328,7 +314,7 @@
         </li>
         {% endfor %}
       </ul>
-      <ul class="index_partner" style="margin-top: 20px">
+      <ul class="index_partner mt-20px">
         {% for p in index_partners|slice:"4:" %}
         <li>
           <a href="{% url 'partner' p.abbreviation %}">
@@ -343,161 +329,7 @@
   </div>
 </div>
 
-{% endblock body %} {% block script %}
-<script>
-  $(document).ready(function () {
-
-
-  $('#not_show_tech').on('click',function(){
-
-      $.ajax({
-        url: "{% url 'update_not_show' %}",
-        type: 'GET',
-      })
-      .done(function(response) {
-        $('.tech-pop').hide()
-      })
-
-  })
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    ScrollTrigger.create({
-      trigger: ".section_2",
-      start: "top-=45% top",
-      // markers: true,
-      onEnter: function () {
-        $(".section_2").addClass("vivi");
-      },
-    });
-    ScrollTrigger.create({
-      trigger: ".section_3",
-      start: "top-=80% top",
-      // markers: true,
-      onEnter: function () {
-        $(".section_3").addClass("vivi");
-      },
-    });
-    ScrollTrigger.create({
-      trigger: ".section_4",
-      start: "top-=80% top",
-      // markers: true,
-      onEnter: function () {
-        $(".section_4").addClass("vivi");
-      },
-    });
-  });
-</script>
-<script>
-
-
-    function updateNews(type, page){
-      $('.news_tab li').removeClass('now')
-      $(`.li-news-${type}`).addClass('now')
-        $.ajax({
-            url:'{% url "get_news_list" %}',
-            type: 'POST',
-            headers:{'X-CSRFToken':'{{ csrf_token }}'},
-            data: {'type': type, 'page': page, 'from_index': 'yes'},
-            success: function (response, status)
-            { 
-                if( response.data.length >0){
-                $('.news_list').html('')
-                for (let d of response.data) {
-                    $('.news_list').append(
-                        `
-                        <li>
-                          <a href="/news/detail/${d.id}" target="_blank" class="imgbox">
-                            <div class="img_area" style="background-image:url('${d.image}')">
-                            </div>
-                          </a>
-                          <div class="infbox">
-                            <div class="center_box">
-                              <div class="tag_date">
-                                <div class="tag ${d.color}">${d.type_c}</div>
-                                <p class="date">${d.publish_date}</p>
-                              </div>
-                              <a href="/news/detail/${d.id}" target="_blank" class="nstitle">
-                                ${d.title}
-                              </a>
-                            </div>
-                          </div>
-                        </li>
-                        `
-                    )
-                  }                        
-
-                
-                } else {
-                  
-                        $('.news_list').html('<li>暫無資料</li>')
-                }
-            $('.loadingbox').addClass('d-none');
-
-            },
-            error: function (xhr, desc, err)
-            {
-            $('.loadingbox').addClass('d-none');
-    
-            alert('未知錯誤，請聯繫管理員');
-            }
-        });
-
-    }
-
-
-
-
-
-$('.edu_tag li').click(function(){
-    let li_element = $(this)
-    $.ajax({
-        url: "{% url 'get_resources' %}",
-        data: {
-          type: this.id,
-          csrfmiddlewaretoken: '{{ csrf_token }}',
-        },
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-      // change active tab
-      $('.edu_tag li').removeClass('now');
-      li_element.addClass('now');
-      // remove all resources first
-      $('.edu_list li').remove()
-      // append rows
-      if (response.rows.length > 0){
-        for (let i = 0; i < response.rows.length; i++) {
-          $('.edu_list').append(`
-          <li>
-            <div class="item">
-              <div class="cate_dbox">
-                <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-                <div class="date">${response.rows[i].date}</div>
-              </div>
-              <a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
-              <a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
-            </div>
-          </li>`)
-        }
-      } else {
-      // if no row, show '更新中'
-        $('.edu_list').append(`<li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate other" style="color: #888">-----</div>
-              <div class="date">2000.5.22</div>
-            </div>
-            <a class="title">更新中</a>
-          </div>
-        </li>`)
-      }
-    })
-    .fail(function( xhr, status, errorThrown ) {
-      alert('發生未知錯誤！請聯絡管理員')
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-  })
-</script>
+{% endblock body %} 
+{% block script %}
+<script src="{% static 'js/index.js' %}"></script>
 {% endblock script %}

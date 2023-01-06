@@ -84,6 +84,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'conf.urls'
@@ -224,3 +225,68 @@ CKEDITOR_CONFIGS = {
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+
+
+
+CSRF_TRUSTED_ORIGINS = ['http://dev.tbiadata.tw','https://tbiadata.tw']
+
+
+
+# Content Security Policy 
+CSP_DEFAULT_SRC = ("'self'",) 
+CSP_FRAME_SRC = ("'self'","https://www.google.com/","https://www.youtube.com/") 
+CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/") 
+CSP_STYLE_SRC = ["'self'",
+    "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
+    "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
+    "https://fonts.googleapis.com/",
+    "https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+]
+
+CSP_IMG_SRC = ("'self'",
+    "https://code.jquery.com/ui/1.13.0/themes/base/images/",
+    "data: http://www.w3.org/2000/svg",
+    "https://a.tile.osm.org/",
+    "https://b.tile.osm.org/",
+    "https://c.tile.osm.org/",
+    "https://www.googletagmanager.com/",
+    "https://www.tbn.org.tw/sites/ozop/files/",
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
+    "https://data.taieol.tw/"
+) 
+
+CSP_MEDIA_SRC = ("'self'") 
+CSP_STATIC_SRC = ("'self'") 
+CSP_FORM_ACTION = ("'self'") 
+CSP_FRAME_ANCESTORS = ("'self'") 
+CSP_FONT_SRC = ("'self'",
+"https://fonts.googleapis.com/",
+"https://fonts.gstatic.com/"
+) 
+
+CSP_SCRIPT_SRC = ["'self'", 
+    "https://code.jquery.com/ui/1.13.0/jquery-ui.js",
+    'https://www.google.com/recaptcha/api.js',
+    "https://www.googletagmanager.com/",
+    "https://www.google-analytics.com/",
+    'https://platform.twitter.com/',
+    'https://www.line-website.com/',
+    "https://code.jquery.com/jquery-3.6.1.js",
+    "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.js",
+    "https://code.highcharts.com/highcharts.js",
+    "https://code.highcharts.com/modules/exporting.js",
+    "https://code.highcharts.com/modules/export-data.js",
+    "https://code.highcharts.com/modules/accessibility.js",
+    "https://code.highcharts.com/modules/treemap.js",
+    "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js", 
+    "data: http://www.w3.org/2000/svg", 
+    "https://www.gstatic.com/",
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js',
+    "https://unpkg.com/@turf/turf@6/turf.min.js"
+]
+
+
+

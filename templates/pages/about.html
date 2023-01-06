@@ -3,13 +3,7 @@
 {% load tags %}
 {% block title %}關於TBIA｜{% endblock %}
 {% block style %}
-<style>
-	.about_bn .bgcolor {
-		-moz-animation: w_100 0.5s 0s linear forwards;
-		-webkit-animation: w_100 0.5s 0s linear forwards;
-		animation: w_100 0.5s 0s linear forwards;
-	}
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/about.css' %}" />
 {% endblock style %}
 {% block body %}
 	<div class="path">
@@ -55,7 +49,6 @@
 			</div>
 		</div>
 	</div>
-
 	<div class="about_video">
 		<div class="bg"></div>
 		<div class="main_1240">

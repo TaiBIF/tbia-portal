@@ -42,4 +42,5 @@ urlpatterns = [
     path('submit_resource', views.submit_resource, name='submit_resource'),
     path('delete_resource', views.delete_resource, name='delete_resource'),
     path('edit_link', views.edit_link, name='edit_link'),
+    path('get_partner_stat', views.get_partner_stat, name='get_partner_stat'),
 ]

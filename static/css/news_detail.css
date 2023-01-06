@@ -1,0 +1,11 @@
+.news_de .editor img {
+    display: block; 
+    margin: auto;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-bottom: 20px
+    }
+
+.news_de .editor ul, .news_de .editor ol {
+    padding-left: 40px
+}

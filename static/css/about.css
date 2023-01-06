@@ -1,0 +1,5 @@
+.about_bn .bgcolor {
+    -moz-animation: w_100 0.5s 0s linear forwards;
+    -webkit-animation: w_100 0.5s 0s linear forwards;
+    animation: w_100 0.5s 0s linear forwards;
+}

@@ -6,11 +6,7 @@
 {% endblock head %}
 {% block title %}開放資料相關資源｜{% endblock %}
 {% block style %}
-<style>
-	.news_de .editor ul, .news_de .editor ol {
-		padding-left: 60px
-	}
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/resources_link.css' %}" />
 {% endblock style %}
 {% block body %}
 <div class="path"> 
@@ -30,7 +26,7 @@
 			<div class="nstitlebox">
 				<h3>國內外各大資料庫及推薦網站連結</h3>
 			</div>
-			<div class="partner_area" style="padding-bottom: 10px; border-bottom: 1px solid #DDD">
+			<div class="partner_area partner_area_custom">
 					<div class="itembox">
 						<div class="bg_w">
 							<div class="colorarea"></div>
@@ -38,7 +34,7 @@
 						<div class="main_1240">
 							<div class="leftbox">
 								<div class="logo_area">
-									<img src="/static/image/GBIF-2015.png" >
+									<img src="/static/image/GBIF-2015.png">
 								</div>
 								<h2></h2><h3><a href="https://www.gbif.org" class="linkto" target="_blank">全球生物多樣性資訊機構</a></h3>
 								<p>全球生物多樣性資訊機構，簡稱 GBIF，是一個由全球政府資助而成立的跨國合作網絡及研究基礎建設，成立宗旨在於提供大眾無論何時、何地均能公開且自由存取的、各種地球上的生物資料。
@@ -58,14 +54,10 @@
 					</div>
 			</div>
 			<div class="editor">
-				<p style="font-size: 24px; margin-top: 20px; margin-bottom: 20px">網站連結</p>
+				<p class="link-editor">網站連結</p>
 				{{ n.content|safe }}
 			</div>
 		</div> 
 	</div>
 </div>
 {% endblock body %}
-{% block script %}
-<script>
-</script>
-{% endblock script %}

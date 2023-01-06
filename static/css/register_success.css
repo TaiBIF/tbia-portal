@@ -1,0 +1,11 @@
+.minh_content {
+    min-height: calc(100% - 340px);
+}
+
+ul {
+    list-style: none;
+}
+
+.resgister-list li {
+    padding: 10px;
+}

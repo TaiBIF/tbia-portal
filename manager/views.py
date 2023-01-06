@@ -999,7 +999,6 @@ def register(request):
         if User.objects.filter(email=email,is_email_verified=True).exists():
             # messages.add_message(request, messages.ERROR, '此信箱已註冊過')
             response = {'status':'fail', 'message': '此信箱已註冊過，請直接登入'}
-            # return render(request,'account/register.html', context, status=409) # conflict
         else:
             if not User.objects.filter(email=email).exists():
                 user=User.objects.create_user(email=email, name=name, password=password, is_email_verified=False, is_active=False)
@@ -1225,10 +1224,8 @@ def partner_info(request):
             'status': sdr.get_status_display(),
             'due': due
         })
-
     s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
     s_page_list = get_page_list(1, s_total_page)
-
 
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
                                     'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive,
@@ -1250,14 +1247,14 @@ def get_request_detail(request):
 
 def manager_partner(request):
     # TODO 根據權限給使用者審核的部分
-    p_count = 0
-    total_count = 0
-    no_taxon = 0
-    has_taxon = 0
+    # p_count = 0
+    # total_count = 0
+    # no_taxon = 0
+    # has_taxon = 0
     partner_admin = ''
     download_url = ''
     info = []
-    data_total = []
+    # data_total = []
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
@@ -1273,41 +1270,90 @@ def manager_partner(request):
             # partner_db = [p[0] for p in partner_db]
             # f = []
             # f += [f'rightsHolder:"{pdb}"']
-            f = ['-taxonID:*',f'group:{current_user.partner.group}']
-            # TaiCOL對應狀況
-            query = {
-                "query": '*:*',
-                "filter": f,
-                "limit": 0,
-                "facet": {},
-                }
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-            no_taxon = response.json()['response']['numFound']
-            # 資料筆數
-            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
-            data = requests.get(url).json()
-            if data['responseHeader']['status'] == 0:
-                facets = data['facet_counts']['facet_fields']['rightsHolder']
-                for r in range(0,len(facets),2):
-                    p_count += facets[r+1]
+            # f = ['-taxonID:*',f'group:{current_user.partner.group}']
+            # # TaiCOL對應狀況
+            # query = {
+            #     "query": '*:*',
+            #     "filter": f,
+            #     "limit": 0,
+            #     "facet": {},
+            #     }
+            # response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            # no_taxon = response.json()['response']['numFound']
+            # # 資料筆數
+            # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
+            # data = requests.get(url).json()
+            # if data['responseHeader']['status'] == 0:
+            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
+            #     for r in range(0,len(facets),2):
+            #         p_count += facets[r+1]
 
-            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
-            data = requests.get(url).json()
-            if data['responseHeader']['status'] == 0:
-                facets = data['facet_counts']['facet_fields']['rightsHolder']
-                for r in range(0,len(facets),2):
-                    if facets[r+1] > 0 :
-                        data_total.append({'name': facets[r],'y': facets[r+1]})
-            solr = SolrQuery('tbia_records')
-            query_list = [('q', '*:*'),('rows', 0)]
-            req = solr.request(query_list)
-            total_count = req['solr_response']['response']['numFound']
-            total_count = total_count - p_count
-            data_total += [{'name':'其他單位','y':total_count}]
-            has_taxon = p_count-no_taxon
-    return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                            'total_count': total_count, 'p_count': p_count, 'download_url': download_url,
-                                                            'info': info, 'data_total': data_total})
+            # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
+            # data = requests.get(url).json()
+            # if data['responseHeader']['status'] == 0:
+            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
+            #     for r in range(0,len(facets),2):
+            #         if facets[r+1] > 0 :
+            #             data_total.append({'name': facets[r],'y': facets[r+1]})
+            # solr = SolrQuery('tbia_records')
+            # query_list = [('q', '*:*'),('rows', 0)]
+            # req = solr.request(query_list)
+            # total_count = req['solr_response']['response']['numFound']
+            # total_count = total_count - p_count
+            # data_total += [{'name':'其他單位','y':total_count}]
+            # has_taxon = p_count-no_taxon
+    return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin,
+                                                          'download_url': download_url,
+                                                            'info': info})
+
+
+def get_partner_stat(request):
+    p_count = 0
+    total_count = 0
+    no_taxon = 0
+    has_taxon = 0
+    data_total = []
+
+    print(request.GET.get('partner_group'))
+    if partner_group := request.GET.get('partner_group'):
+        f = ['-taxonID:*',f'group:{partner_group}']
+        # TaiCOL對應狀況
+        query = {
+            "query": '*:*',
+            "filter": f,
+            "limit": 0,
+            "facet": {},
+            }
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        no_taxon = response.json()['response']['numFound']
+        # 資料筆數
+        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{partner_group}&rows=0&start=0"
+        data = requests.get(url).json()
+        if data['responseHeader']['status'] == 0:
+            facets = data['facet_counts']['facet_fields']['rightsHolder']
+            for r in range(0,len(facets),2):
+                p_count += facets[r+1]
+
+        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{partner_group}&rows=0&start=0"
+        data = requests.get(url).json()
+        if data['responseHeader']['status'] == 0:
+            facets = data['facet_counts']['facet_fields']['rightsHolder']
+            for r in range(0,len(facets),2):
+                if facets[r+1] > 0 :
+                    data_total.append({'name': facets[r],'y': facets[r+1]})
+        solr = SolrQuery('tbia_records')
+        query_list = [('q', '*:*'),('rows', 0)]
+        req = solr.request(query_list)
+        total_count = req['solr_response']['response']['numFound']
+        total_count = total_count - p_count
+        data_total += [{'name':'其他單位','y':total_count}]
+        has_taxon = p_count-no_taxon
+    response = {
+        'data_total': data_total,
+        'has_taxon': has_taxon,
+        'no_taxon': no_taxon
+    }
+    return JsonResponse(response, safe=False)
 
 
 def manager_system(request):

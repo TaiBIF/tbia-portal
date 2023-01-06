@@ -1,0 +1,14 @@
+.news_de .editor ul, .news_de .editor ol {
+    padding-left: 60px
+}
+
+.partner_area_custom {
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #DDD !important;
+}
+
+.link-editor {
+    font-size: 24px; 
+    margin-top: 20px; 
+    margin-bottom: 20px
+}

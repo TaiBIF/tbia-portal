@@ -3,415 +3,143 @@
 {% block head %}
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
-
 {% endblock head %}
 {% block style %}
-<style>
-
-	.infbox, .center_box {
-		width: 100%
-	  }
-	
-
-	.date_select {
-		margin-bottom: 10px;
-	}
-	
-
-	.already_selected {
-		margin-top: 10px;
-		margin-bottom: 50px;
-
-	}
-	
-	.already_selected ul {
-		display: flex;
-		list-style: none;
-		flex-wrap: wrap
-	}
-	
-	.already_selected ul li {
-		padding: 7px 36px 7px 13px;
-		position: relative;
-		background: #3B8D70;
-		border-radius: 20px;
-		margin-right: 10px;
-		transition: all .3s;
-		-moz-transition: all .3s;
-		-o-transition: all .3s;
-		-ms-transition: all .3s;
-		-webkit-transition: all .3s
-	}
-	
-	@media only screen and (min-width: 1000px) {
-		.already_selected ul li:hover {
-			transition: all .3s;
-			-moz-transition: all .3s;
-			-o-transition: all .3s;
-			-ms-transition: all .3s;
-			-webkit-transition: all .3s;
-			background: #B2D956
-		}
-	}
-	
-	@media only screen and (max-width: 767px) {
-		.already_selected ul li {
-			padding: 5px 30px 5px 10px
-		}
-	}
-	
-	.already_selected ul li p {
-		font-size: 16px;
-		line-height: 20px;
-		margin-right: 0
-	}
-	
-	@media only screen and (max-width: 767px) {
-		.already_selected ul li p {
-			font-size: 14px
-		}
-	}
-	
-	.already_selected ul li .xx {
-		position: absolute;
-		right: 13px;
-		background: none;
-		top: 50%;
-		margin-top: -7.5px
-	}
-	
-	.already_selected ul li .xx img {
-		display: block
-	}
-	
-	@media only screen and (max-width: 767px) {
-		.already_selected ul li .xx img {
-			width: 12px
-		}
-	}
-	
-	.already_selected ul li p {
-		color: #FFF
-	}
-	
-	
-
-	.search_btn {
-        color: #FFF;
-        background: #76A578;
-        transition: all .3s;
-        -moz-transition: all .3s;
-        -o-transition: all .3s;
-        -ms-transition: all .3s;
-        -webkit-transition: all .3s;
-        /*width: 20px;*/
-		padding: 0 15px;
-		margin-left: 10px;
-        height: 35px;
-        border-radius: 3px;
-        font-size: 16px;
-    }
-    
-    @media only screen and (min-width: 1000px) {
-       .search_btn:hover {
-            transition: all .3s;
-            -moz-transition: all .3s;
-            -o-transition: all .3s;
-            -ms-transition: all .3s;
-            -webkit-transition: all .3s;
-            background: #E2A460
-        }
-    }
-	.ui-datepicker {
-		z-index:21 !important  
-	}
-	
-	
-	
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/news.css' %}" />
 {% endblock style %}
 {% block body %}
-		<div class="path"> 
-			<div class="main_1240"> 
-				<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>最新消息</p>
-			</div>
+{% csrf_token %}
+<input type="hidden" name="news_type" value="{{ type }}">
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>最新消息</p>
+	</div>
+</div>
+<div class="in_bn news_bn">
+	<div class="title">
+		<h2>最新消息</h2>
+		<h3>NEWS</h3>
+	</div>
+</div>
+<div class="container_area">
+	<div class="main_1240"> 
+		<div class="tab_scromb">
+			<!--目前位置給class>now-->
+			<ul class="news_tab_in">
+				<li class="li-news-all updateNews" data-type="all">
+					<p>所有消息</p>
+					<div class="arr"></div>
+				</li>
+				<li class="li-news-news updateNews" data-type="news">
+					<p>新聞公告</p>
+					<div class="arr"></div>
+				</li>
+				<li class="li-news-event updateNews" data-type="event">
+					<p>活動訊息</p>
+					<div class="arr"></div>
+				</li>
+				<li class="li-news-project updateNews" data-type="project">
+					<p>計畫徵求</p>
+					<div class="arr"></div>
+				</li>
+			</ul> 
 		</div>
-		<div class="in_bn news_bn">
-			<div class="title">
-				<h2>最新消息</h2>
-				<h3>NEWS</h3>
-			</div>
-		</div>
-		<div class="container_area">
-			<div class="main_1240"> 
-				<div class="tab_scromb">
-					<!--目前位置給class>now-->
-					<ul class="news_tab_in">
-						<li class="li-news-all" onclick="updateNews('all',1)" >
-							<p>所有消息</p>
-							<div class="arr"></div>
-						</li>
-						<li class="li-news-news" onclick="updateNews('news',1)">
-							<p>新聞公告</p>
-							<div class="arr"></div>
-						</li>
-						<li class="li-news-event" onclick="updateNews('event',1)">
-							<p>活動訊息</p>
-							<div class="arr"></div>
-						</li>
-						<li class="li-news-project" onclick="updateNews('project',1)">
-							<p>計畫徵求</p>
-							<div class="arr"></div>
-						</li>
-					</ul> 
-				</div>
 
-				<div class="date_select">
-					<p>篩選</p>
-					<div class="input_item"> 
-						<input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
-						<a onclick="$('#start_date').datepicker('show')" class="dateicon"></a>		
-					</div>
-					<span>~</span>
-					<div class="input_item">
-						<input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
-						<a onclick="$('#end_date').datepicker('show')" class="dateicon"></a>		
-					</div>				
-					<button class="search_btn">送出</button>
-				</div>
-				<div class="already_selected" data-filter="no">
-					<ul style="display: none">
-						<li>
-							<p class="date-range"></p>
-							<button class="xx">
-								<img src="/static/image/xx_w.svg" >
-							</button>
-						</li>
-					</ul>
-				</div>
-				<ul class="news_list">
-					{% if news_list|length > 0 %}
-					{% for n in news_list %}
-					<li onclick="window.open(`{% url 'news_detail' n.id %}`)">
-					  <a href="javascript:;" class="imgbox">
-						  {% if n.image %}
-							<div class="img_area" style="background-image: url('/media/news/{{ n.image }}')">
-						  {% else %}
-							<div class="img_area" style="background-image: url('/static/image/news_ub_img.jpg')">
-						  {% endif %}
-						</div>
-					  </a>
-					  <div class="infbox">
-						<div class="center_box">
-						  <div class="tag_date">
-							{% if n.type == 'news' %}
-							  <div class="tag green">
-							{% elif n.type == 'project' %}
-							  <div class="tag red">
-							{% else %}
-							  <div class="tag yellow">
-							{% endif %}
-							  {{ n.get_type_display }}</div>
-							<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
-						  </div>
-						  <a href="javascript:;" class="nstitle"> {{ n.title }} </a>
-						</div>
-					  </div>
-					</li>
-					{% endfor %}
+		<div class="date_select">
+			<p>篩選</p>
+			<div class="input_item"> 
+				<input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
+				<a class="dateicon show_start"></a>		
+			</div>
+			<span>~</span>
+			<div class="input_item">
+				<input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
+				<a class="dateicon show_end"></a>		
+			</div>				
+			<button class="search_btn">送出</button>
+		</div>
+		<div class="already_selected" data-filter="no">
+			<ul class="d-none">
+				<li>
+					<p class="date-range"></p>
+					<button class="xx">
+						<img src="/static/image/xx_w.svg" >
+					</button>
+				</li>
+			</ul>
+		</div>
+		<ul class="news_list">
+			{% if news_list|length > 0 %}
+			{% for n in news_list %}
+			<li>
+				<a href="{% url 'news_detail' n.id %}" class="imgbox">
+					{% if n.image %}
+					<img class="img_area" src="/media/news/{{ n.image }}">
 					{% else %}
-					<li>暫無資料</li>
+					<img class="img_area" src="/static/image/news_ub_img.jpg">
 					{% endif %}
-
-				</ul>
-
-				<!--目前位置給class>now-->
-				<div class="page_number">
-					{% if page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'all')" class="num">1</a>
-                    {% if current_page|add:'-1' in page_list %}
-                    <a href="javascript:;" class="pre" onclick="changePage({{ current_page|add:'-1' }}, 'all')">
-                        上一頁
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
-                        上一頁
-                    </a>
-                    {% endif %}
-                    <!--目前頁面給 now-->
-                    {% for p in page_list %}
-                        {% if p == current_page %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'all')" class="num now">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'all')" class="num">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if current_page|add:1 in page_list %}
-                    <a href="javascript:;" onclick="changePage({{ current_page|add:1 }}, 'all')" class="next">
-                        下一頁
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
-                        下一頁
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ total_page }}, 'all')" class="num">{{ total_page }}</a>
-                {% endif %}
+				</a>
+				<div class="infbox">
+				<div class="center_box">
+					<div class="tag_date">
+						{% if n.type == 'news' %}
+						<div class="tag green">
+						{% elif n.type == 'project' %}
+						<div class="tag red">
+						{% else %}
+						<div class="tag yellow">
+						{% endif %}
+						{{ n.get_type_display }}</div>
+					<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
+					</div>
+					<a href="javascript:;" class="nstitle"> {{ n.title }} </a>
 				</div>
-			</div>
-		</div>
+				</div>
+			</li>
+			{% endfor %}
+			{% else %}
+			<li>暫無資料</li>
+			{% endif %}
 
+		</ul>
+
+		<!--目前位置給class>now-->
+		<div class="page_number">
+			{% if page_list|length > 1 %}
+			<a href="javascript:;" class="num changePage" data-page="1" data-type="all">1</a>
+			{% if current_page|add:'-1' in page_list %}
+			<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="all">
+				上一頁
+			</a>
+			{% else %}
+			<a href="javascript:;" class="pre pt-none">
+				上一頁
+			</a>
+			{% endif %}
+			<!--目前頁面給 now-->
+			{% for p in page_list %}
+				{% if p == current_page %}
+					<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="all">{{ p }}</a>
+				{% else %}
+					<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="all">{{ p }}</a>
+				{% endif %}
+			{% endfor %}
+			{% if current_page|add:1 in page_list %}
+			<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="all">
+				下一頁
+			</a>
+			{% else %}
+			<a href="javascript:;" class="next pt-none">
+				下一頁
+			</a>
+			{% endif %}
+			<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="all">{{ total_page }}</a>
+		{% endif %}
+		</div>
+	</div>
+</div>
 {% endblock body %}	
 
 {% block script %}
-<script>
-	$( function() {
-		{% if type %}
-		$(`.news_tab_in .li-news-{{ type }}`).addClass('now')
-		{% else %}
-		$(`.news_tab_in .li-news-all`).addClass('now')
-		{% endif %}
-
-
-		$( "#start_date" ).datepicker({ dateFormat: 'yy-mm-dd' });
-		$( "#end_date" ).datepicker({ dateFormat: 'yy-mm-dd' });	
-		
-		$('.search_btn').on('click',function(){
-			$('.already_selected ul').css('display', '');
-			$('.already_selected').data('filter', 'yes');
-			$('.already_selected p').html(`${$( "#start_date" ).val()}~${$( "#end_date" ).val()}`);
-			$('.news_tab_in li.now').trigger('click')
-		})
-
-
-		$('button.xx').on('click', function(){
-			$('.already_selected ul').css('display', 'none');
-			$('.already_selected').data('filter', 'no');
-			//$('.already_selected p').html(`${$( "#start_date" ).val()}~${$( "#end_date" ).val()}`);
-			$('.news_tab_in li.now').trigger('click')
-		})
-
-	} );
-
-
-	
-	function changePage(page, type){
-        let current_page = parseInt($('a.num.now').html())
-        // 和當前頁碼不同才動作
-        if (current_page != page){
-            updateNews(type, page)
-        }
-    }
-
-
-    function updateNews(type, page){
-		$('.page_number').html('')
-		$('.news_tab_in li').removeClass('now')
-		$(`.li-news-${type}`).addClass('now')
-
-		let query ;
-		if ($('.already_selected').data('filter')=='no'){
-			 query = {'type': type, 'page': page}
-		} else {
-			 query = {'type': type, 'page': page, 'start_date':$( "#start_date" ).val(), 'end_date':$( "#end_date" ).val()}
-		}
-
-		  $.ajax({
-			  url:'{% url "get_news_list" %}',
-			  type: 'POST',
-			  headers:{'X-CSRFToken':'{{ csrf_token }}'},
-			  data: query,
-			  success: function (response, status)
-			  { 
-				  if( response.data.length >0){
-				  $('.news_list').html('')
-				  for (let d of response.data) {
-					  $('.news_list').append(
-						  `
-						  <li onclick="window.open('/news/detail/${d.id}')">
-							<a href="javascript:;" class="imgbox">
-							  <div class="img_area" style="background-image: url('${d.image}')">
-							  </div>
-							</a>
-							<div class="infbox">
-							  <div class="center_box">
-								<div class="tag_date">
-								  <div class="tag ${d.color}">${d.type_c}</div>
-								  <p class="date">${d.publish_date}</p>
-								</div>
-								<a href="javascript:;" class="nstitle">
-								  ${d.title}
-								</a>
-							  </div>
-							</div>
-						  </li>
-				
-						  `
-					  )
-					}
-					
-					
-					$('.news-list ul').after(`<div class="page_number"></div>`)
-
-					//$('.page_number').remove()
-
-					console.log(response)
-
-					// 修改頁碼
-					if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-						$(`.page_number`).append(
-						  `
-							<a href="javascript:;" onclick="changePage(1, '${type}')" class="num">1</a>
-							<a href="javascript:;" class="pre">上一頁</a>  
-							<a href="javascript:;" class="next">下一頁</a>
-							<a href="javascript:;" onclick="changePage(${response.total_page}, '${type}')" class="num">${response.total_page}</a>
-						 `)}		
-					  
-						  if (response.page_list.includes(response.current_page-1)){
-							$('.pre').attr('onclick',`changePage(${response.current_page-1}, '${type}')`);
-						  } else {
-							$('.pre').css('pointer-events','none')
-						  }
-	
-	
-					  let html = ''
-					  for (let i = 0; i < response.page_list.length; i++) {
-						if (response.page_list[i] == response.current_page){
-						  html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${type}')" class="num now">${response.page_list[i]}</a>  `;
-						} else {
-						  html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${type}')" class="num">${response.page_list[i]}</a>  `
-						}
-					  }
-	
-					  $('.pre').after(html)
-			  
-					  // 如果有下一頁，改掉next的onclick
-					  if (response.current_page < response.total_page){
-						$('.next').attr('onclick',`changePage(${response.current_page+1}, '${type}')`);
-					  } else {
-						$('.next').css('pointer-events','none')
-					  }  
-				
-				  
-				  } else {
-						  $('.news_list').html('<li>暫無資料</li>')
-				  }
-			  $('.loadingbox').addClass('d-none');
-  
-			  },
-			  error: function (xhr, desc, err)
-			  {
-			  $('.loadingbox').addClass('d-none');
-	  
-			  alert('未知錯誤，請聯繫管理員');
-			  }
-		  });
-  
-	  }
-  
-  
-  
-  
-
-</script>
+<script src="{% static 'js/news.js' %}"></script>
 {% endblock script %}

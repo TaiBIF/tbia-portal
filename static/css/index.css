@@ -1,0 +1,15 @@
+.edu_list li .title {
+    -webkit-line-clamp: 1;
+}
+
+.infbox, .center_box {
+    width: 100%
+}
+
+.mt-20px {
+    margin-top: 20px
+}
+
+.color-888 {
+    color: #888
+}

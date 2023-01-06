@@ -22,14 +22,23 @@ partner_source_map = {
 from datetime import datetime, tzinfo,timedelta
 import pandas as pd
 from os.path import exists
+import os
 
-today = datetime.today() + timedelta(hours=8)
+lst = os.listdir('/tbia-volumes/bucket/calendar/')
+lst.sort()
 
-this_year = today.year
-c_cal = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year}.csv')
-if exists(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv'):
-    c_cal_1 = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv')
-    c_cal = c_cal.append(c_cal_1, ignore_index=True)
+# today = datetime.today() + timedelta(hours=8)
+
+# this_year = today.year
+# c_cal = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year}.csv')
+# if exists(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv'):
+#     c_cal_1 = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv')
+#     c_cal = c_cal.append(c_cal_1, ignore_index=True)
+
+c_cal = pd.DataFrame()
+for l in lst:
+    c = pd.read_csv(f'/tbia-volumes/bucket/calendar/{l}')
+    c_cal = c_cal.append(c, ignore_index=True)
 
 
 def check_due(checked_date, review_days): # 日期, 審核期限

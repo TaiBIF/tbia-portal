@@ -1,0 +1,36 @@
+.error {
+    margin-top: 100px;
+}
+
+@media only screen and (max-width: 1599px) {
+    .error {
+        margin-top: 80px
+    }
+}
+
+@media only screen and (max-width: 999px) {
+    .error {
+        margin-top: 60px
+    }
+}
+
+body{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.footer{
+    margin-top: auto;
+}
+
+.content {
+    max-width: 1240px;
+    padding: 0px 20px;
+    margin: 20px auto
+}
+
+@media only screen and (max-width: 767px) {
+    .content {
+        padding: 0px 15px
+    }
+}

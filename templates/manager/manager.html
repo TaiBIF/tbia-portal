@@ -1,193 +1,16 @@
 {% extends 'base.html' %}
+{% load static %} 
+{% block title %}帳號後台｜{% endblock %}
+
 {% block style %}
-<style>
-
-
-    .download_table tr:not(:first-child) td:nth-child(2) {
-        word-wrap: break-word;
-        word-break: break-all;
-        white-space: normal;
-    }
-    
-    .download_table tr:not(:first-child) td:nth-child(4) {
-        text-align: left
-    }
-
-    .download_taxon_table tr:not(:first-child) td:nth-child(2) {
-        word-wrap: break-word;
-        word-break: break-all;
-        white-space: normal;
-    }
-    
-    .download_taxon_table tr:not(:first-child) td:nth-child(4) {
-        text-align: left
-    }
-
-
-    .sensitive_table tr:not(:first-child) td:nth-child(2) {
-        word-wrap: break-word;
-        word-break: break-all;
-        white-space: normal;
-    }
-    
-    .sensitive_table tr:not(:first-child) td:nth-child(4) {
-        text-align: left
-    }
-
-    .sensitive_table tr:not(:first-child) td:nth-child(5) {
-        text-align: left
-    }
-
-
-    .notification_table tr:not(:first-child) td:nth-child(2n){
-       display: flex
-    }
-
-
-    .read_btn {
-        color: #76A578;
-        background: none;
-        font-size: 16px;
-    }
-
-    .read_btn:hover {
-        color: #EAD065
-    }
-
-   td hr {
-        border-top: 1px dashed grey;
-      }
-      
-    .checka {
-        color: #C65454; 
-        cursor: pointer
-    }
-
-    .checka:hover {
-        color: #e36262
-    }
-
-    .two_cont_area {
-        margin-bottom: 50px
-    }
-
-   .search_btn {
-        color: #FFF;
-        background: #76A578;
-        transition: all .3s;
-        -moz-transition: all .3s;
-        -o-transition: all .3s;
-        -ms-transition: all .3s;
-        -webkit-transition: all .3s;
-        width: 15%;
-        height: 35px;
-        border-radius: 3px;
-        font-size: 16px;
-    }
-    
-    @media only screen and (min-width: 1000px) {
-       .search_btn:hover {
-            transition: all .3s;
-            -moz-transition: all .3s;
-            -o-transition: all .3s;
-            -ms-transition: all .3s;
-            -webkit-transition: all .3s;
-            background: #E2A460
-        }
-    }
-    
-    .edit-list {
-        margin-left: 10px; 
-        list-style: none;
-    }
-
-    .edit-list li {
-        margin: 10px
-    }
-
-    .nohover {
-        pointer-events: none;
-        text-align: center
-    }
-
-    .dottt{
-        
-        width: 10px;
-        height: 10px;
-        border-radius:50%;
-        background:#76A578;
-        margin: auto 10px auto 0;
-         
-    }
-
-    .noti-dottt{
-        width: 8px;
-        height: 8px;
-        border-radius:50%;
-        background:#C65454;
-        margin: 0 10px auto 0;
-    }
-
-    input {
-        padding: 0px 10px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        width: 50%;
-        font-size: 16px;
-        height: 35px
-        }
-
-        @media only screen and (max-width: 767px) {
-            input {
-                width: 70%;
-            }
-        }
-
-        select {
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: calc(50% - 10px);
-            height: 35px;
-            font-size: 16px
-        
-        }
-
-        .main_1240 {
-            min-height: calc(100% - 340px);
-        }
-        
-    
-        .noticbox {
-            display: flex;
-            align-items: center;
-            margin-top: 5px
-        }
-        
-        .noticbox .in1 {
-            background: #C65454;
-            color: #FFF;
-            padding: 5px;
-            font-size: 14px;
-            line-height: 16px;
-            border-radius: 5px;
-            margin-right: 5px
-        }
-        
-        .noticbox p {
-            font-size: 14px;
-            color: #C65454
-        }
-
-        @media only screen and (max-width: 999px) {
-            .mb_scroll {
-                margin-top: 60px
-            }
-        }
-        
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager.css' %}" />
 {% endblock style %}
-{% block body %}
 
+{% block body %}
+{% csrf_token %}
+<input type="hidden" name="menu" value="{{ menu }}">
+<input type="hidden" name="user_id" value="{{ user.id }}">
+<input type="hidden" name="user_email" value="{{ user.email }}">
 <div class="path"> 
     <div class="main_1240"> 
         <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 帳號後台</p>
@@ -246,9 +69,9 @@
             </div>
         </div>
 
-        <div class="rightbox_content info" style="display: none">
+        <div class="rightbox_content info d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>基本資料編輯</div>
+                <div class="box-title"><div class="dottt"></div>基本資料編輯</div>
                     <ul class="edit-list">
                         <form id="updateForm">
                             {% csrf_token %}
@@ -256,36 +79,36 @@
                             <li><input type="text" name="email" value="{{ user.email }}" disabled></li>
                             <li>姓名</li>
                             <li><input type="text" name="name" value="{{ user.name }}" >
-                                <div class="noticbox" style="display:none;">
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>必填欄位</p>
                                 </div>
                             </li>
                             <li>密碼變更</li>
                             <li><input type="password" name="now_password" placeholder="現在的密碼">
-                                <div class="noticbox" style="display:none;">
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>請輸入6~10位英文或數字</p>
                                 </div>
                             </li>
                             <li><input type="password" name="new_password" placeholder="新的密碼">
-                                <div class="noticbox" style="display:none;">
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>請輸入6~10位英文或數字</p>
                                 </div>              
                             </li>
                             <li><input type="password" name="re_password" placeholder="再次確認新的密碼">
-                                <div class="noticbox" style="display:none;">
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>兩次密碼輸入不同</p>
                                 </div>              
                             </li>
                         </form>
-                        <li ><button class="search_btn" onclick="updateInfo()">確認修改</button></li>
+                        <li ><button class="search_btn updateInfo">確認修改</button></li>
                     </ul>
             </div>
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>申請成為夥伴帳號</div>
+                <div class="box-title"><div class="dottt"></div>申請成為夥伴帳號</div>
                     <ul class="edit-list">
                         <li>選擇所屬夥伴單位</li>
                         <li>
@@ -312,39 +135,37 @@
                                 </select>
                             </form>
                         </li>
-                        <li style="color: #bd7b7b; font-size: 15px">
-                            <div class="agreebox" style="justify-content: start;">
-                            <input type="checkbox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}></input>
-                            我已閱讀並同意<a class="checka"target="_blank" href="{% url 'agreement' %}?from=manager">保密協議</a>
+                        <li class="ag-style">
+                            <div class="agreebox jc-start">
+                                <input type="checkbox" class="chebox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}></input>
+                                我已閱讀並同意<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager">保密協議</a>
                             </div>
                         </li>
                         <li>                                
                             {% if user.status == 'pending' %}
-                            單位帳號申請已送出審核中 <button class="search_btn" onclick="withdrawRequest({{ user.id }})">撤回申請</button>
+                            單位帳號申請已送出審核中 <button class="search_btn withdrawRequest" data-uid="{{ user.id }}">撤回申請</button>
                             {% elif user.status == 'pass' %}
                             單位帳號申請已通過
                             {% else %}
-                            <button class="search_btn" onclick="sendRequest()">送出</button>
+                            <button class="search_btn sendRequest">送出</button>
                             {% endif %}
                         </li>
                     </ul>
             </div>
         </div>
 
-
-
-        <div class="rightbox_content download" style="display: none">
+        <div class="rightbox_content download d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>資料下載</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title"><div class="dottt"></div>資料下載</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 download_table">
                         <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:20%;">查詢條件</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-20p">查詢條件</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
                         {% for r in record %}
                         <tr>
@@ -363,46 +184,45 @@
                 </div>
                 <div class="page_number">
 					{% if r_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'download')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="download">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in r_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'download')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="download">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'download')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="download">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in r_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'download')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="download">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ r_total_page }}, 'download')" class="num">{{ r_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ r_total_page }}" data-type="download">{{ r_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>
 
-
-        <div class="rightbox_content download_taxon" style="display: none">
+        <div class="rightbox_content download_taxon d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>名錄下載</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title"><div class="dottt"></div>名錄下載</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 download_taxon_table">
                         <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:20%;">查詢條件</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-20p">查詢條件</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
                         {% for r in taxon %}
                         <tr>
@@ -421,46 +241,46 @@
                 </div>
                 <div class="page_number">
 					{% if t_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'download_taxon')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="download_taxon">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in t_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'download_taxon')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="download_taxon">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'download_taxon')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="download_taxon">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in t_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'download_taxon')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="download_taxon">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ t_total_page }}, 'download_taxon')" class="num">{{ t_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ t_total_page }}" data-type="download_taxon">{{ t_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>
 
-        <div class="rightbox_content sensitive" style="display: none">
+        <div class="rightbox_content sensitive d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title"><div class="dottt"></div>單次使用去模糊化敏感資料</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_table">
                         <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:15%;">查詢條件</td>
-                            <td style="width:15%;">審查意見</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-15p">查詢條件</td>
+                            <td class="w-15p">審查意見</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
                         {% for r in sensitive %}
                         <tr>
@@ -480,40 +300,40 @@
                 </div>
                 <div class="page_number">
 					{% if s_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'sensitive')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in s_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in s_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'sensitive')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ s_total_page }}, 'sensitive')" class="num">{{ s_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive">{{ s_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>
 
-        <div class="rightbox_content notification" style="display: none">
+        <div class="rightbox_content notification d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>通知</div>
-                <div style="display: flex; justify-content: flex-end">
-                <button class="read_btn" onclick="updateIsRead()">全部已讀</button>
+                <div class="box-title"><div class="dottt"></div>通知</div>
+                <div class="d-flex-jc-fe">
+                <button class="read_btn updateIsRead">全部已讀</button>
                 </div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1  notification_table">
                         <tr>
                             <td>日期</td>
@@ -534,33 +354,30 @@
                         {% endfor %}
                     </table>					
                 </div>
-
-                <!--目前位置給class>now-->
-                
 				<div class="page_number">
 					{% if n_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'notification')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="notification">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in n_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'notification')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'notification')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="notification">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in n_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'notification')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="notification">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ n_total_page }}, 'notification')" class="num">{{ n_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="notification">{{ n_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
@@ -570,217 +387,10 @@
         {% endif %}
     </div>
 
-    </div>
-
 </div>
-  {% endblock %}
 
-  {% block script %}
-  <script>
+{% endblock %}
 
-    function changePage(page, menu){
-        $.ajax({
-            url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
-            type: 'GET',
-            success: function(response){
-                // 修改表格內容
-                $(`.${menu}_table`).html(`
-                ${response.header}
-                ${response.data}
-                `)
-
-                $(`.${menu}_table`).parent().next('.page_number').remove()
-
-                // 修改頁碼
-                if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                    $(`.${menu}_table`).parent().after(
-                      `<div class="page_number">
-                        <a href="javascript:;" onclick="changePage(1, '${menu}')" class="num">1</a>
-                        <a href="javascript:;" class="pre">上一頁</a>  
-                        <a href="javascript:;" class="next">下一頁</a>
-                        <a href="javascript:;" onclick="changePage(${response.total_page}, '${menu}')" class="num">${response.total_page}</a>
-                      </div>`)}		
-                  
-                      if (response.page_list.includes(response.current_page-1)){
-                        $('.pre').attr('onclick',`changePage(${response.current_page-1}, '${menu}')`);
-                      } else {
-                        $('.pre').css('pointer-events','none')
-                      }
-
-
-                  let html = ''
-                  for (let i = 0; i < response.page_list.length; i++) {
-                    if (response.page_list[i] == response.current_page){
-                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num now">${response.page_list[i]}</a>  `;
-                    } else {
-                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num">${response.page_list[i]}</a>  `
-                    }
-                  }
-
-                  $('.pre').after(html)
-          
-                  // 如果有下一頁，改掉next的onclick
-                  if (response.current_page < response.total_page){
-                    $('.next').attr('onclick',`changePage(${response.current_page+1}, '${menu}')`);
-                  } else {
-                    $('.next').css('pointer-events','none')
-                  }
-                  
-            }
-        });
-
-    }
-
-
-    function updateIsRead(){
-        $.ajax({
-          url: "{% url 'update_is_read' %}",
-          type: 'GET',
-          success: function(){
-            $('.message_list li .dottt, .num_message, .noti-dottt').hide()
-          }
-         });
-      }
-  
-    function withdrawRequest(user_id){
-
-        $.ajax({
-            url: "{% url 'withdraw_partner_request' %}",
-            data: {'user_id': user_id,csrfmiddlewaretoken: '{{ csrf_token }}'},
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            alert(response.message)
-            if (response.message=='申請已撤回'){
-                window.location = '{% url "manager" %}'
-            }
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-
-    }
-
-
-    
-    function sendRequest(){
-
-        if ($('input[name=checked-policy]').is(':checked')) {
-
-            $.ajax({
-                url: "{% url 'send_partner_request' %}",
-                data: $('#partnerForm').serialize() + '&user_id={{ user.id }}',
-                type: 'POST',
-                dataType : 'json',
-            })
-            .done(function(response) {
-                alert(response.message)
-                if (response.message=='申請已送出'){
-                    window.location = '{% url "manager" %}'
-                }
-            })
-            .fail(function( xhr, status, errorThrown ) {
-              alert('發生未知錯誤！請聯絡管理員')
-              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })  
-    
-
-        } else {
-            alert('送出前請閱讀並勾選同意保密協議')
-        }
-
-
-    }
-
-
-    function updateInfo(){
-        // remove all notice first
-        $('.noticbox').css('display','none')
-  
-        let checked = true;
-        let has_password = false;
-  
-        if (!$('input[name=name]').val()){ // check name
-          $('input[name=name]').next('.noticbox').css('display','')
-          checked = false
-        }  
-        // 如果有任何一個跟密碼相關的欄位不是空白才判斷是否正確
-        if (($('input[name=now_password]').val()!='')|($('input[name=new_password]').val()!='')|($('input[name=re_password]').val()!='')){
-            has_password = true
-            if (!checkPasswordStr($('input[name=now_password]').val())) { // check now password
-            $('input[name=now_password]').next('.noticbox').css('display','')
-            checked = false
-            } 
-
-            if (!checkPasswordStr($('input[name=new_password]').val())) { // check new password
-            $('input[name=new_password]').next('.noticbox').css('display','')
-            checked = false
-            } 
-            
-            if ($('input[name=new_password]').val() != $('input[name=re_password]').val()) { // check repassword
-            $('input[name=re_password]').next('.noticbox').css('display','')
-            checked = false
-            } 
-        }
-  
-        
-        if (checked)
-        {
-            $.ajax({
-                url: "{% url 'update_personal_info' %}",
-                data: $('#updateForm').serialize() + '&email={{ user.email }}&has_password=' + has_password,
-                type: 'POST',
-                dataType : 'json',
-            })
-            .done(function(response) {
-                alert(response.message)
-                if (response.message=='修改完成！請重新登入'){
-                    window.location = '{% url "index" %}'
-                }
-                
-            })
-            .fail(function( xhr, status, errorThrown ) {
-              alert('發生未知錯誤！請聯絡管理員')
-              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })  
-          }
-        }
-  
-
-        $(document).ready(function () {
-
-        $('.rd_click[data-type={{ menu }}]').parent().addClass('now')
-
-        //$('a.{{ menu }}').addClass('now')
-
-        $('.rightbox_content.{{ menu }}').show()
-
-        })
-
-    $(".mb_fixed_btn").on("click", function (event) {
-        $(".mbmove").toggleClass("open");
-        $(this).toggleClass("now");
-      });
-    
-      $(".rd_click").on("click", function (event) {
-        $(".rd_click").closest("li").removeClass("now");
-        $('.rightbox_content').css('display', 'none')
-        $(`.rightbox_content.${$(this).data('type')}`).css('display', '')
-        $(this).closest("li").toggleClass("now");
-        $(this).closest("li").find(".second_menu").slideToggle();
-      });
-    
-    
-      $(".second_menu a").on("click", function (event) {
-        $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
-        $(".second_menu a").removeClass("now");
-        $(this).addClass("now")
-        $(this).parent().parent('li').addClass('now')
-      });
-    
-  </script>
-  {% endblock script %}
-
-
+{% block script %}
+<script src="{% static 'js/manager.js' %}"></script>
+{% endblock script %}
