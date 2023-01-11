@@ -287,7 +287,6 @@ def submit_sensitive_response(request):
         task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),))
         task.start()
 
-
     return JsonResponse({"status": 'success'}, safe=False)
 
 
@@ -573,11 +572,15 @@ def generate_sensitive_csv(query_id):
 
 def save_geojson(request):
     if request.method == 'POST':
-        geojson = json.loads(request.POST.get('geojson_text'))
+        geojson = request.POST.get('geojson_text')
+        geojson = gpd.read_file(geojson, driver='GeoJSON')
+        geojson = geojson.dissolve()
+        geojson = geojson.to_json()
+
         oid = str(ObjectId())
         with open(f'/tbia-volumes/media/geojson/{oid}.json', 'w') as f:
-            json.dump(geojson, f)
-        return JsonResponse({"geojson_id": oid}, safe=False)
+            json.dump(json.loads(geojson), f)
+        return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
 def send_download_request(request):
@@ -1069,12 +1072,11 @@ def search_full(request):
         if len(col_result_df):
             col_card_len = len(col_result_df)
             col_result_df = col_result_df[:9]
-
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values())
             taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
-
             col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID')
             col_result_df['val'] = col_result_df['formatted_name']
+            col_result_df['key'] = col_result_df['matched_col']
             col_result_df['matched_col'] = col_result_df['matched_col'].apply(lambda x: map_collection[x])
             col_result_df = col_result_df.replace({np.nan: ''})
         else:
@@ -1139,6 +1141,7 @@ def search_full(request):
 
             occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID')
             occ_result_df['val'] = occ_result_df['formatted_name']
+            occ_result_df['key'] = occ_result_df['matched_col']
             occ_result_df['matched_col'] = occ_result_df['matched_col'].apply(lambda x: map_occurrence[x])
             occ_result_df = occ_result_df.replace({np.nan: ''})
         else:
@@ -1187,6 +1190,7 @@ def search_full(request):
 
             taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['key'] = taxon_result_df['matched_col']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
             taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
@@ -1292,6 +1296,7 @@ def search_full(request):
 
 def get_records(request):
     if request.method == 'POST':
+        # print(request.POST)
         keyword = request.POST.get('keyword', '')
         key = request.POST.get('key', '')
         value = request.POST.get('value', '')
@@ -1299,18 +1304,31 @@ def get_records(request):
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
+        if request.POST.get('orderby'):
+            orderby =  orderby = request.POST.get('orderby')
+        else:
+            orderby = 'scientificName'
+        if request.POST.get('sort'):
+            sort =  sort = request.POST.get('sort')
+        else:
+            sort = 'asc'
+        # orderby = request.POST.get('orderby','scientificName')
+        # sort = request.POST.get('sort', 'asc')
+
         # only facet selected field
         if record_type == 'col':
             map_dict = map_collection
             query_list = [('fq','recordType:col')]
             title = '自然史典藏'
+            obv_str = '採集'
         else:
             map_dict = map_occurrence
             # core = 'tbia_occurrence'
             query_list = []
             title = '物種出現紀錄'
+            obv_str = '紀錄'
 
-        key = get_key(key, map_dict)
+        # key = get_key(key, map_dict)
         search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}'
         if 'scientificName' not in search_str:
             search_str += f'&scientificName={scientific_name}'
@@ -1328,7 +1346,8 @@ def get_records(request):
 
         offset = (page-1)*10
         solr = SolrQuery('tbia_records')
-        query_list += [('q', q),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', 'scientificName asc')]
+        query_list += [('q', q),(key,value),('scientificName',scientific_name), ('rows', 10), ('offset', offset), ('sort', orderby + ' ' + sort)]
+        # print(query_list)
         req = solr.request(query_list)
         docs = pd.DataFrame(req['solr_response']['response']['docs'])
 
@@ -1348,7 +1367,7 @@ def get_records(request):
                 docs.loc[i , 'date'] = date[0].replace('T', ' ').replace('Z','')
             else:
                 if row.get('eventDate'):
-                    docs.loc[i , 'date'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                    docs.loc[i , 'date'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
             # 經緯度
             user_id = request.user.id if request.user.id else 0
             if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
@@ -1356,31 +1375,31 @@ def get_records(request):
                     docs.loc[i , 'lat'] = lat[0]
                 else:
                     if row.get('verbatimRawLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
                 if lon := row.get('standardRawLongitude'):
                     docs.loc[i , 'lon'] = lon[0]
                 else:
                     if row.get('verbatimRawLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
             else:
                 if lat := row.get('standardLatitude'):
                     docs.loc[i , 'lat'] = lat[0]
                 else:
                     if row.get('verbatimLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
 
                 if lon := row.get('standardLongitude'):
                     docs.loc[i , 'lon'] = lon[0]
                 else:
                     if row.get('verbatimLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
                 docs.loc[i , 'quantity'] = int(quantity[0])
             else:
                 if row.get('organismQuantity'):
-                    docs.loc[i , 'quantity'] = '---<br><small style="color: silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+                    docs.loc[i , 'quantity'] = '---<br><small class="color-silver">>[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
 
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -1392,13 +1411,18 @@ def get_records(request):
         total_page = math.ceil(limit / 10)
         page_list = get_page_list(current_page, total_page)
 
-        if key in ['common_name_c','scientificName', 'rightsHolder']:
-            selected_col = ['common_name_c','scientificName', 'rightsHolder']
+        if request.POST.getlist('selected_col'):
+            selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = [key,'common_name_c','scientificName','rightsHolder']
+            selected_col = ['common_name_c','scientificName', 'recordedBy', 'rightsHolder']
+
+        if orderby not in selected_col:
+            selected_col.append(orderby)
 
         response = {
             'title': title,
+            'orderby': orderby,
+            'sort': sort,
             'rows' : docs,
             'current_page' : current_page,
             'total_page' : total_page,
@@ -1531,6 +1555,7 @@ def get_focus_cards(request):
             result_df['matched_value_ori'] = result_df['matched_value']
             result_df = result_df.replace({np.nan: ''})
             # result_df['val_ori'] = result_df['name']
+            result_df['key'] = result_df['matched_col']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value'] = result_df['matched_value'].apply(lambda x: highlight(x,keyword))
             result_df['val'] = result_df['val'].apply(lambda x: highlight(x,keyword))
@@ -1635,6 +1660,7 @@ def get_focus_cards_taxon(request):
 
             taxon_result_df = pd.merge(taxon_result_df[:4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['key'] = taxon_result_df['matched_col']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
             taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
@@ -1784,6 +1810,7 @@ def get_more_cards_taxon(request):
 
             taxon_result_df = pd.merge(taxon_result_df[offset:offset+4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_df['key'] = taxon_result_df['matched_col']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
             taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
@@ -1918,6 +1945,7 @@ def get_more_cards(request):
 
             result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID')
             result_df['val'] = result_df['formatted_name']
+            result_df['key'] = result_df['matched_col']
             result_df['matched_col'] = result_df['matched_col'].apply(lambda x: map_dict[x])
             result_df['matched_value_ori'] = result_df['matched_value']
             result_df = result_df.replace({np.nan: ''}) 
@@ -2202,6 +2230,8 @@ def get_conditional_records(request):
         else:
             selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
 
+        if orderby not in selected_col:
+            selected_col.append(orderby)
         # use JSON API to avoid overlong query url
         query_list = []
 
@@ -2209,8 +2239,10 @@ def get_conditional_records(request):
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
             map_dict = map_collection
+            obv_str = '採集'
         else:
             map_dict = map_occurrence
+            obv_str = '紀錄'
 
         for i in ['locality', 'recordedBy', 'basisOfRecord', 'resourceContacts',
                   'taxonID', 'preservation']:
@@ -2350,7 +2382,7 @@ def get_conditional_records(request):
                     docs.loc[i , 'eventDate'] = date
                 else:
                     if row.get('eventDate'):
-                        docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                        docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">>[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
 
                 #     # date = date[0].replace('T', ' ').replace('Z','')
                 #     # 如果是國家公園，原本調查的時間是區段
@@ -2360,7 +2392,7 @@ def get_conditional_records(request):
                 #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
                 # else:
                     # if row.get('eventDate'):
-                    #     docs.loc[i , 'eventDate'] = '---<br><small style="color: silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                    #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">>[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
                 # 經緯度
                 # 如果是夥伴單位直接給原始
                 user_id = request.user.id if request.user.id else 0
@@ -2369,31 +2401,31 @@ def get_conditional_records(request):
                         docs.loc[i , 'verbatimRawLatitude'] = lat[0]
                     else:
                         if row.get('verbatimRawLatitude'):
-                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
                     if lon := row.get('standardRawLongitude'):
                         docs.loc[i , 'verbatimRawLongitude'] = lon[0]
                     else:
                         if row.get('verbatimRawLongitude'):
-                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
                 else:
                     if lat := row.get('standardLatitude'):
                         docs.loc[i , 'verbatimLatitude'] = lat[0]
                     else:
                         if row.get('verbatimLatitude'):
-                            docs.loc[i , 'verbatimLatitude'] = '---<br><small style="color: silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+                            docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
 
                     if lon := row.get('standardLongitude'):
                         docs.loc[i , 'verbatimLongitude'] = lon[0]
                     else:
                         if row.get('verbatimLongitude'):
-                            docs.loc[i , 'verbatimLongitude'] = '---<br><small style="color: silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                            docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
                 # 數量
                 if quantity := row.get('standardOrganismQuantity'):
                     docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
                 else:
                     if row.get('organismQuantity'):
-                        docs.loc[i , 'organismQuantity'] = '---<br><small style="color: silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+                        docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">>[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
 
             docs = docs.replace({np.nan: ''})
             docs = docs.replace({'nan': ''})

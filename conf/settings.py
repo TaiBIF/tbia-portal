@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     # google provider
     'allauth.socialaccount.providers.google',
+    # 'django_quill',
 ]
 
 SITE_ID = 1 # oauth
@@ -199,29 +200,29 @@ AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
-CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
+# CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
 
 # CKEDITOR_FILENAME_GENERATOR = 'utils.get_filename'
 
-CKEDITOR_CONFIGS = {
-   'default': {
-       'height': 'full', 
-       'width': 'full', 
-       'toolbar_Full': [
-            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
-            ['Link', 'Unlink', 'Anchor'],
-            ['Image', 'Flash', 'Table', 'HorizontalRule'],
-            ['TextColor', 'BGColor'],
-            ['Smiley', 'SpecialChar'], ['Source'],
-            ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-            ['NumberedList','BulletedList'],
-            ['Indent','Outdent'],
-            ['Maximize'],
-            # ['Save', 'NewPage', 'Preview', 'Print', '-', 'Templates'],
-        ],
-        'extraPlugins': 'justify,liststyle,indent',
-   },
-}
+# CKEDITOR_CONFIGS = {
+#    'default': {
+#        'height': 'full', 
+#        'width': 'full', 
+#        'toolbar_Full': [
+#             ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
+#             ['Link', 'Unlink', 'Anchor'],
+#             ['Image', 'Flash', 'Table', 'HorizontalRule'],
+#             ['TextColor', 'BGColor'],
+#             ['Smiley', 'SpecialChar'], ['Source'],
+#             ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+#             ['NumberedList','BulletedList'],
+#             ['Indent','Outdent'],
+#             ['Maximize'],
+#             # ['Save', 'NewPage', 'Preview', 'Print', '-', 'Templates'],
+#         ],
+#         'extraPlugins': 'justify,liststyle,indent',
+#    },
+# }
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
@@ -241,7 +242,8 @@ CSP_STYLE_SRC = ["'self'",
     "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
     "https://fonts.googleapis.com/",
     "https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
+    "https://cdn.quilljs.com/1.3.6/quill.snow.css"
 ]
 
 CSP_IMG_SRC = ("'self'",
@@ -255,7 +257,7 @@ CSP_IMG_SRC = ("'self'",
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
-    "https://data.taieol.tw/"
+    "https://data.taieol.tw/",
 ) 
 
 CSP_MEDIA_SRC = ("'self'") 
@@ -285,8 +287,11 @@ CSP_SCRIPT_SRC = ["'self'",
     "data: http://www.w3.org/2000/svg", 
     "https://www.gstatic.com/",
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js',
-    "https://unpkg.com/@turf/turf@6/turf.min.js"
+    "https://unpkg.com/@turf/turf@6/turf.min.js",
+    # "'unsafe-inline'",
+    "https://cdn.quilljs.com/1.3.6/quill.js"
 ]
 
+# <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 

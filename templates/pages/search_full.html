@@ -5,12 +5,19 @@
 {% block title %}全站搜尋｜{% endblock %}
 
 {% block head %}
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
   crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
   crossorigin=""></script>
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock head %}
 
 {% block style %}
@@ -19,7 +26,6 @@
 
 {% block body %}
 {% csrf_token %}
-<input type="hidden" name="keyword" value="{{ keyword }}">
 
 		<!--分布圖彈出視窗-->
 		<div class="popbg pic_pop d-none">
@@ -78,7 +84,7 @@
           <a class="hvmask">物種出現紀錄查詢</a>
           <div class="line"></div>
         </div>
-        <div class="item pointer" data-href="/search/collection">
+        <div class="item pointer open-page" data-href="/search/collection">
           <a>
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>⾃然史典藏查詢</span>
@@ -262,7 +268,6 @@
               data-is_sub="false"> 更多結果 </a>
             <input type="hidden" id="taxon_offset" value="4">
             {% endif %}
-
 					</div>
 
 
@@ -279,13 +284,15 @@
             {% for i in occurrence.card %}
               <li class="getRecords" 
                   data-record_type="occ"
-                  data-key="{{ i.matched_col }}"
+                  data-key="{{ i.key }}"
                   data-value="{{ i.matched_value }}"
                   data-scientific_name="{{ i.name }}"
                   data-limit="{{ i.count }}"
                   data-page="1"
                   data-from="card"
-                  data-go_back="false">
+                  data-go_back="false"
+                  data-orderby="scientificName"
+                  data-sort="asc">  
                 <div class="num">{{ i.count }}</div>
                 <div class="num_bottom"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -325,13 +332,15 @@
             {% for i in collection.card %}
             <li class="getRecords" 
                 data-record_type="col"
-                data-key="{{ i.matched_col }}"
+                data-key="{{ i.key }}"
                 data-value="{{ i.matched_value }}"
                 data-scientific_name="{{ i.name }}"
                 data-limit="{{ i.count }}"
                 data-page="1"
                 data-from="card"
-                data-go_back="false">
+                data-go_back="false"
+                data-orderby="scientificName"
+                data-sort="asc">
               <div class="num">{{ i.count }}</div>
               <div class="num_bottom"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
@@ -578,11 +587,11 @@
 					<p>數量單位</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-lon">
+					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-lat">
+					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
 					<p>緯度</p>
 				</li>
 				<li>
@@ -669,7 +678,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-date">
-					<p>觀察日期</p>
+					<p>紀錄日期</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
@@ -688,11 +697,11 @@
 					<p>記錄者</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-lon">
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="occ-lat">
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
 					<p>緯度</p>
 				</li>
 				<li>

@@ -2,11 +2,11 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $( function() {
     // default active page
-    if ($('input[name=resource_type]').val() != '') {
+    if (($('input[name=resource_type]').val() != 'all' ) & ($('input[name=resource_type]').val() != '' )) {
         $('.news_tab_in li').removeClass('now');
         $(`#${$('input[name=resource_type]').val()}`).addClass('now');
-        $('#db-intro').hide()
-    }
+        $('#db-intro').addClass('d-none')
+    } 
 
     $('.changePage').on('click', function(){
         changePage($(this).data('page'), $(this).data('type'))
@@ -32,7 +32,7 @@ $('.news_tab_in li').click(function(){
         data: {
           type: type,
           from: 'resource',
-		  get_page: 1,
+          get_page: 1,
           csrfmiddlewaretoken: $csrf_token,
         },
         type: 'POST',
@@ -43,10 +43,10 @@ $('.news_tab_in li').click(function(){
       $('.news_tab_in li').removeClass('now');
       li_element.addClass('now');
 	  if (type == 'all'){
-		$('#db-intro').show()
+		$('#db-intro').removeClass('d-none')
 		window.history.pushState('page', 'Title', '/resources')
 	  } else {
-		$('#db-intro').hide()
+		$('#db-intro').addClass('d-none')
 		window.history.pushState('page', 'Title', `/resources?type=${type}`)
 	}
 	  // remove all resources first
@@ -130,14 +130,14 @@ $('.news_tab_in li').click(function(){
   })
 
   $('.search_btn').click(function(){
-	$('#db-intro').hide()
+	$('#db-intro').addClass('d-none')
 	$.ajax({
         url: "/get_resources",
         data: {
           type: $('.news_tab_in li.now').prop('id'),
           from: 'resource',
-		  start_date: $("#start_date").val(),
-		  end_date: $("#end_date").val(),
+          start_date: $("#start_date").val(),
+          end_date: $("#end_date").val(),
           csrfmiddlewaretoken: $csrf_token,
         },
         type: 'POST',
@@ -224,75 +224,75 @@ $('.news_tab_in li').click(function(){
     })
   })
 
-  function changePage (page, by){
+function changePage (page, by){
 
-	// 如果是從search，要把日期篩選也算進去
-	let start_date, end_date
-	if (by == 'search'){
-		start_date = $("#start_date").val()
-		end_date = $("#end_date").val()
-  	} 
+  // 如果是從search，要把日期篩選也算進去
+  let start_date, end_date
+  if (by == 'search'){
+    start_date = $("#start_date").val()
+    end_date = $("#end_date").val()
+  } 
 
-	if ($('.news_tab_in li.now').prop('id') == 'all'){
-		if (page >1) {
-			$('#db-intro').hide()
-		} else  {
-			$('#db-intro').show()
-		}
-	}
+  if ($('.news_tab_in li.now').prop('id') == 'all'){
+    if (page >1) {
+      $('#db-intro').addClass('d-none')
+    } else  {
+      $('#db-intro').removeClass('d-none')
+    }
+  }
 
-	$.ajax({
+  $.ajax({
         url: "/get_resources",
         data: {
           type: $('.news_tab_in li.now').prop('id'),
           from: 'resource',
-		  start_date: start_date,
-		  end_date: end_date,
+          start_date: start_date,
+          end_date: end_date,
           csrfmiddlewaretoken: $csrf_token,
-		  get_page: page
+          get_page: page
         },
         type: 'POST',
         dataType : 'json',
     })
     .done(function(response) {
-	  // remove all resources first
+    // remove all resources first
       $('.edu_list li').remove()
       $('.page_number').remove()
       // append rows
       if (response.rows.length > 0){
         for (let i = 0; i < response.rows.length; i++) {
-			$('.edu_list').append(`
-			<li>
-			  <div class="item">
-				<div class="cate_dbox">
-				  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-				  <div class="date">${response.rows[i].date}</div>
-				</div>
-				<a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
-				<a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
-			  </div>
-			</li>`)  
+          $('.edu_list').append(`
+          <li>
+            <div class="item">
+            <div class="cate_dbox">
+              <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+              <div class="date">${response.rows[i].date}</div>
+            </div>
+            <a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+            <a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
+            </div>
+          </li>`)  
         }
       } else {
-      // if no row, show '更新中'
-	  $('.edu_list').append(`<li>
-		<div class="item no_data bd-0">
-		  <a class="title">查無資料</a>
-		</div>
-	  </li>`)
-	  }
+          // if no row, show '更新中'
+        $('.edu_list').append(`<li>
+        <div class="item no_data bd-0">
+          <a class="title">查無資料</a>
+        </div>
+        </li>`)
+      }
 
       $('.edu_list').after(`<div class="page_number"></div>`)
 
         // 修改頁碼
         if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $(`.page_number`).append(
-              `
-                <a href="javascript:;" class="num changePage" data-page="1" data-type="${by}">1</a>
-                <a href="javascript:;" class="pre">上一頁</a>  
-                <a href="javascript:;" class="next">下一頁</a>
-                <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${by}">${response.total_page}</a>
-            `)
+          $(`.page_number`).append(
+            `
+              <a href="javascript:;" class="num changePage" data-page="1" data-type="${by}">1</a>
+              <a href="javascript:;" class="pre">上一頁</a>  
+              <a href="javascript:;" class="next">下一頁</a>
+              <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${by}">${response.total_page}</a>
+          `)
         }		
           
         if (response.page_list.includes(response.current_page-1)){
@@ -333,5 +333,5 @@ $('.news_tab_in li').click(function(){
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
 
-  }
+}
 

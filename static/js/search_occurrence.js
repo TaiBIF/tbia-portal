@@ -132,7 +132,7 @@ $( function() {
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         drawnItems.clearLayers();
         $('.addG, .addC').remove()
-            $('input[name=center_lat]').val('')
+        $('input[name=center_lat]').val('')
         $('input[name=center_lon]').val('')
         $("#circle_radius").val("1").trigger("change");
         $('#geojson_textarea').val('')
@@ -147,7 +147,7 @@ $( function() {
     });
     
     // disable string input in 數量單位
-    $("input[name=organismQuantity]").on("keyup", function() {
+    $("#searchForm input[name=organismQuantity]").on("keyup", function() {
         this.value = this.value.replace(/\D/g,'');
     });
     
@@ -173,7 +173,7 @@ $( function() {
     $('.geojson_send').click( function(){
         // 先把舊的移除
         $('.addG, [class^=resultG_]').remove()
-        try {
+       try {
             let geoObj = JSON.parse($('#geojson_textarea').val());
             //geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
             //var ucbRegions = L.geoJson(data).addTo(map);
@@ -187,6 +187,9 @@ $( function() {
             })
             .done(function(response) {
                 $('input[name=geojson_id]').val(response.geojson_id)
+                geoJSON = L.geoJSON(JSON.parse(response.geojson),{ className: 'addG'}).addTo(map);
+                map.fitBounds(geoJSON.getBounds());
+                $(".geojson_popup").addClass('d-none')
             })
             .fail(function( xhr, status, errorThrown ) {
                 if (xhr.status==504){
@@ -197,9 +200,6 @@ $( function() {
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
     
-            geoJSON = L.geoJSON(regionsDissolved,{ className: 'addG'}).addTo(map);
-            map.fitBounds(geoJSON.getBounds());
-            $(".geojson_popup").addClass('d-none')
         } catch (e) {
             alert('上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限')
         }
@@ -277,14 +277,14 @@ function changeAction(){
 
                 if (key == 'geojson') {
                     if (urlParams.get('geo_type') == 'map') {
-                    geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
-                    drawnItems.addLayer(geoJSON);
-                    map.fitBounds(geoJSON.getBounds());
+                        geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
+                        drawnItems.addLayer(geoJSON);
+                        map.fitBounds(geoJSON.getBounds());
                     } else if (urlParams.get('geo_type') == 'circle') {
-                    let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
-                    parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
-                    drawnItems.addLayer(circle);
-                    map.fitBounds(circle.getBounds());
+                        let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
+                        parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
+                        drawnItems.addLayer(circle);
+                        map.fitBounds(circle.getBounds());
                     }
                 }
                 if ((key == 'geojson_id') && (value != '')){
@@ -613,11 +613,12 @@ function getRecordByURL(queryString,page,limit,orderby,sort) {
                     跳至<input class="page-jump" data-query='${queryString}' name="jumpto" type="number" min="1" step="1">頁
                     <a class="jumpto pointer">GO</a>  
                     </span>
-                </div>`)}		
+                </div>`)
+            }		
 
-                $('.jumpto').on('click', function(){
-                    getRecordByURL($('input[name=jumpto]').data('query'),$('input[name=jumpto]').val(),null,null,null)
-                })
+            $('.jumpto').on('click', function(){
+                getRecordByURL($('input[name=jumpto]').data('query'),$('input[name=jumpto]').val(),null,null,null)
+            })
 
             let html = ''
             for (let i = 0; i < response.page_list.length; i++) {
@@ -713,7 +714,6 @@ function submitSearch (page, from){
 
     history.pushState(null, '', window.location.pathname + '?' + window.condition + '&' + $.param({'page': page})+ '&from=' + from);
 
-
     $.ajax({
         url: "/get_conditional_records",
         data: window.condition + '&' + $.param({'page': page})+ '&from=' + from + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
@@ -759,10 +759,10 @@ function submitSearch (page, from){
                     </a>
                     </div>
                     <span class="ml-20px">
-                        跳至<input name="jumpto page-jump" type="number" min="1" step="1">頁
+                        跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
                         <a class="jumpto pointer">GO</a>  
                     </span>
-                    </div>`)
+                </div>`)
             }		
 
             $('.jumpto').on('click', function(){

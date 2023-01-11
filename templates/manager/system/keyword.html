@@ -3,133 +3,16 @@
 {% block title %}系統管理後台｜{% endblock %}
 
 {% block style %}
-<style>
-
-    .two_cont_area {
-        margin-bottom: 50px
-    }
-
-   .search_btn {
-        color: #FFF;
-        background: #76A578;
-        transition: all .3s;
-        -moz-transition: all .3s;
-        -o-transition: all .3s;
-        -ms-transition: all .3s;
-        -webkit-transition: all .3s;
-        width: 15%;
-        height: 35px;
-        border-radius: 3px;
-        font-size: 16px;
-    }
-    
-    @media only screen and (min-width: 1000px) {
-       .search_btn:hover {
-            transition: all .3s;
-            -moz-transition: all .3s;
-            -o-transition: all .3s;
-            -ms-transition: all .3s;
-            -webkit-transition: all .3s;
-            background: #E2A460
-        }
-    }
-    
-    .edit-list {
-        margin-left: 10px; 
-        list-style: none;
-    }
-
-    .edit-list li {
-        margin: 10px
-    }
-
-    .nohover {
-        /*pointer-events: none;*/
-        text-align: center
-    }
-
-    .dottt{
-        width: 10px;
-        height: 10px;
-        border-radius:50%;
-        background:#76A578;
-        margin: auto 10px auto 0;
-    }
-
-    input {
-        padding: 0px 10px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        width: 50%;
-        font-size: 16px;
-        height: 35px
-        }
-
-        @media only screen and (max-width: 767px) {
-            input {
-                width: 70%;
-            }
-        }
-
-        select {
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: calc(50% - 10px);
-            height: 35px;
-            font-size: 16px
-        
-        }
-
-        textarea {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: 100%;
-            height: 150px;
-            font-size: 16px;
-            resize: none
-        }
-
-        .main_1240 {
-            min-height: calc(100% - 340px);
-        }
-        
-    
-        .noticbox {
-            display: flex;
-            align-items: center;
-            margin-top: 5px
-        }
-        
-        .noticbox .in1 {
-            background: #C65454;
-            color: #FFF;
-            padding: 5px;
-            font-size: 14px;
-            line-height: 16px;
-            border-radius: 5px;
-            margin-right: 5px
-        }
-        
-        .noticbox p {
-            font-size: 14px;
-            color: #C65454
-        }
-
-        @media only screen and (max-width: 999px) {
-            .mb_scroll {
-                margin-top: 60px
-            }
-        }
-        
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'css/system_keyword.css' %}" />
 {% endblock style %}
+
 {% block head %}
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 {% endblock head %}
+
 {% block body %}
 
 <div class="path"> 
@@ -151,8 +34,8 @@
             </div>					
             <div class="mb_scroll">
                 <ul>
-                    <li class="nohover" onclick="window.location='/manager/system'">
-                        <a class="big_link rd_click ">
+                    <li class="nohover">
+                        <a class="big_link rd_click" href="/manager/system">
                             <p>系統管理</p> 
                         </a>
                     </li>
@@ -211,21 +94,21 @@
 
         <div class="rightbox_content">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>全站搜尋推薦關鍵字設定</div>
+                <div class="box-title"><div class="dottt"></div>全站搜尋推薦關鍵字設定</div>
                     <ul class="edit-list">
                         <form id="keywordForm">
                             {% csrf_token %}
                             {% for k in keywords %}
                             <li>關鍵字{{ forloop.counter }}</li>
                             <li><input type="text" name="keyword_{{ forloop.counter }}" value="{{ k }}">
-                                <div class="noticbox" style="display: none;">
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>必填欄位</p>
                                 </div>
                             </li>
                             {% endfor %}
                         </form>
-                        <li ><button class="search_btn" onclick="updateKeyword()">確認修改</button></li>
+                        <li ><button class="search_btn updateKeyword">確認修改</button></li>
                     </ul>
             </div>
         </div>
@@ -240,71 +123,5 @@
   {% endblock %}
 
   {% block script %}
-  <script>
-    $(document).ready(function () {
-    
-    })
-
-    
-function updateKeyword(){
-    $('.noticbox').css('display','none')
-  
-    let checked = true;
-
-    if (!$('input[name=keyword_1]').val()){
-      $('input[name=keyword_1]').next('.noticbox').css('display','')
-      checked = false
-    }  
-    if (!$('input[name=keyword_2]').val()){
-      $('input[name=keyword_2]').next('.noticbox').css('display','')
-      checked = false
-    }  
-    if (!$('input[name=keyword_3]').val()){ 
-      $('input[name=keyword_3]').next('.noticbox').css('display','')
-      checked = false
-    }  
-
-
-    if (checked)
-    {
-        $.ajax({
-            url: "{% url 'update_keywords' %}",
-            data: $('#keywordForm').serialize(),
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            if (response.status=='success'){
-                alert('修改成功')
-            }
-            
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-      }
-}
-
-
-    $(".mb_fixed_btn").on("click", function (event) {
-        $(".mbmove").toggleClass("open");
-        $(this).toggleClass("now");
-      });
-    
-      $(".rd_click").on("click", function (event) {
-        $(".rd_click").closest("li").removeClass("now");
-        $(this).closest("li").toggleClass("now");
-        $(this).closest("li").find(".second_menu").slideToggle();
-      });
-    
-    
-      $(".second_menu a").on("click", function (event) {
-        $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
-        $(".second_menu a").removeClass("now");
-        $(this).addClass("now")
-        $(this).parent().parent('li').addClass('now')
-      });
-    
-  </script>
+  <script src="{% static 'js/system_keyword.js' %}"></script>
   {% endblock script %}

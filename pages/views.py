@@ -36,15 +36,18 @@ def update_is_read(request):
     if request.method == 'GET':
         if user_id := request.user.id:
             Notification.objects.filter(user_id=user_id).update(is_read=True)
-    return JsonResponse({'data': 'success'}, safe=False) 
+            return JsonResponse({'data': 'success'}, safe=False) 
+        else:
+            return JsonResponse({'data': 'fail'}, safe=False) 
 
 
 def update_this_read(request):
     if request.method == 'GET':
         if n_id := request.GET.get('n_id'):
-            Notification.objects.filter(id=n_id).update(is_read=True)
-            count = Notification.objects.filter(user_id=request.user.id,is_read=False).count()
-    return JsonResponse({'count': count}, safe=False) 
+            if user_id := request.user.id:
+                Notification.objects.filter(id=n_id,user_id=user_id).update(is_read=True)
+                count = Notification.objects.filter(user_id=user_id,is_read=False).count()
+                return JsonResponse({'count': count}, safe=False) 
 
 
 def page_not_found_view(request, exception):

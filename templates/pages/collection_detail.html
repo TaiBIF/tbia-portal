@@ -110,11 +110,11 @@
             <li>
               <h3>採集日期：</h3>
               {% if row.date != None and row.eventDate != row.date %}
-              <p>{{ row.date }}<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>{{ row.date }}<br><small class="color-silver">[原始採集日期] {{ row.eventDate }}</small></p>
               {% elif row.date != None and row.eventDate == row.date %}
               <p>{{ row.date }}</p>
               {% elif row.date == None and row.eventDate != None %}
-              <p>---<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>---<br><small class="color-silver">[原始採集日期] {{ row.eventDate }}</small></p>
               {% else %}
               <p></p>
               {% endif %}

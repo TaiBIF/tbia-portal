@@ -6,7 +6,7 @@ function checkPasswordStr(inputText){
     } else {
         return false
     }
-    }
+}
 
 function resetPassword(){
     // remove all notice first
@@ -15,17 +15,16 @@ function resetPassword(){
     let checked = true
 
     if (!checkPasswordStr($('#resetForm input[name=password]').val())) { // check password
-    $('#resetForm input[name=password]').next('.noticbox').removeClass('d-none')
-    checked = false
+        $('#resetForm input[name=password]').next('.noticbox').removeClass('d-none')
+        checked = false
     } 
     
     if ($('#resetForm input[name=password]').val() != $('#resetForm input[name=repassword]').val()) { // check repassword
-    $('#resetForm input[name=repassword]').next('.noticbox').removeClass('d-none')
-    checked = false
+        $('#resetForm input[name=repassword]').next('.noticbox').removeClass('d-none')
+        checked = false
     } 
 
-    if (checked)
-    {
+    if (checked){
         $.ajax({
             url: "/reset_password_submit",
             data: $('#resetForm').serialize() ,
@@ -33,18 +32,16 @@ function resetPassword(){
             dataType : 'json',
         })
         .done(function(response) {
-        
-        if (response.status=='success'){
-            alert(response.message)
-            location.href="/"
-        } else {
-            alert(response.message)
-        }
-            
+            if (response.status=='success'){
+                alert(response.message)
+                location.href="/"
+            } else {
+                alert(response.message)
+            }
         })
         .fail(function( xhr, status, errorThrown ) {
-        alert('發生未知錯誤！請聯絡管理員')
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            alert('發生未知錯誤！請聯絡管理員')
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })  
     }
 }

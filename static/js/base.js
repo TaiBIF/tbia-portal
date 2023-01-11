@@ -9,8 +9,6 @@ function showLogin(){
 }
 
 
-
-
 $(function () {
 
     $('.back-to-index').on('click', function(){

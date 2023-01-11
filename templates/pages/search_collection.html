@@ -47,6 +47,7 @@
     <div class="search_condition_are">
       <form id="searchForm">
         <input type="hidden" name="record_type" value="col">
+        <input type="hidden" name="geojson_id" value="">
         <div class="secboxtop2">
           <div class="leftbox">
             <div class="two_input">
@@ -75,8 +76,8 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="sensitiveCategory" id="" required>
-                  <option value="" readonly="true" selected>敏感層級</option>
+                <select name="sensitiveCategory" id="sensitiveCategory" required>
+                  <option></option>
                   {% for i in sensitive_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
@@ -166,7 +167,7 @@
 </div>
 
 <!-- 自然史典藏欄位選擇 -->
-<div class="popbg col-choice d-none"
+<div class="popbg col-choice d-none">
 	<div class="ovhy choice-ovhy">
 		<div class="wbox_center choice-flow">
 			<div class="xx choice-xx">
@@ -306,10 +307,13 @@
 			</p>
 			<div class="from_area h-100p">
 				<div class="txt_area">
-					<textarea id="geojson_textarea h-300px"></textarea>
+					<textarea id="geojson_textarea" class="h-300px"></textarea>
 				</div>
         <p class="shortxt note-text">
           僅支援Polygon（上限2.5 MB）
+        </p>
+        <p class="shortxt note-text">
+          *Polygon會經過dissolve處理
         </p>
 				<button class="send geojson_send">確認送出</button>
 			</div>

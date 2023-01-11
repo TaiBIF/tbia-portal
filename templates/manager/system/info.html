@@ -2,219 +2,21 @@
 {% load static %} 
 {% block title %}系統管理後台｜{% endblock %}
 
-{% block style %}
-<style>
-
-    .sensitive_apply_table tr:not(:first-child) td:nth-child(3) {
-        text-align: left !important;
-    }
-
-
-    .feedback_table tr:not(:first-child) td:nth-child(6) {
-        white-space: pre-wrap;
-        text-align: left !important;
-    }
-
-
-    .track_table tr:not(:first-child) td:nth-child(2) {
-        word-wrap: break-word;
-        word-break: break-all;
-        white-space: normal;
-    }
-    
-    .track_table tr:not(:first-child) td:nth-child(4), .track_table tr:not(:first-child) td:nth-child(5) {
-        text-align: left
-    }
-
-    
-    td hr {
-        border-top: 1px dashed grey;
-      }
-
-    .send-submitted {
-        background: #eee;
-        width: 100%;
-        font-size: 18px;
-        color: #444;
-        height: 50px;
-        border-radius: 3px;
-        cursor: default;
-    }
-
-    .send-transferred {
-        background: #eee;
-        width: 100%;
-        font-size: 18px;
-        color: #444;
-        height: 50px;
-        border-radius: 3px;
-        cursor: default;
-    }
-
-    .form_top .path_inf .riginf {
-		display: block;
-	}
-
-    .accordion.active, .accordion:hover {
-        background-color: #76A578;
-        color: white
-      }
-      
-      .accordion {
-        background-color: white;
-        color: black;
-        cursor: pointer;
-        padding: 18px;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
-        transition: 0.4s;
-      }
-      
-
-
-      .accordion:after {
-        content: '\02795'; /* Unicode character for "plus" sign (+) */
-        font-size: 13px;
-        color: #777;
-        float: right;
-        margin-left: 5px;
-        
-      }
-      
-      .active:after {
-        content: "\2796"; /* Unicode character for "minus" sign (-) */
-      }
-
-    .two_cont_area {
-        margin-bottom: 50px
-    }
-
-   .search_btn {
-        color: #FFF;
-        background: #76A578;
-        transition: all .3s;
-        -moz-transition: all .3s;
-        -o-transition: all .3s;
-        -ms-transition: all .3s;
-        -webkit-transition: all .3s;
-        width: 15%;
-        height: 35px;
-        border-radius: 3px;
-        font-size: 16px;
-    }
-    
-    @media only screen and (min-width: 1000px) {
-       .search_btn:hover {
-            transition: all .3s;
-            -moz-transition: all .3s;
-            -o-transition: all .3s;
-            -ms-transition: all .3s;
-            -webkit-transition: all .3s;
-            background: #E2A460
-        }
-    }
-    
-    .edit-list {
-        margin-left: 10px; 
-        list-style: none;
-    }
-
-    .edit-list li {
-        margin: 10px
-    }
-
-    .nohover {
-        /*pointer-events: none;*/
-        text-align: center
-    }
-
-    .dottt{
-        width: 10px;
-        height: 10px;
-        border-radius:50%;
-        background:#76A578;
-        margin: auto 10px auto 0;
-    }
-
-    input {
-        padding: 0px 10px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        width: 50%;
-        font-size: 16px;
-        height: 35px
-        }
-
-        @media only screen and (max-width: 767px) {
-            input {
-                width: 70%;
-            }
-        }
-
-        select {
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: calc(50% - 10px);
-            height: 35px;
-            font-size: 16px
-        
-        }
-
-        textarea {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: 100%;
-            height: 150px;
-            font-size: 16px;
-            resize: none
-        }
-
-        .main_1240 {
-            min-height: calc(100% - 340px);
-        }
-        
-    
-        .noticbox {
-            display: flex;
-            align-items: center;
-            margin-top: 5px
-        }
-        
-        .noticbox .in1 {
-            background: #C65454;
-            color: #FFF;
-            padding: 5px;
-            font-size: 14px;
-            line-height: 16px;
-            border-radius: 5px;
-            margin-right: 5px
-        }
-        
-        .noticbox p {
-            font-size: 14px;
-            color: #C65454
-        }
-
-        @media only screen and (max-width: 999px) {
-            .mb_scroll {
-                margin-top: 60px
-            }
-        }
-        
-</style>
-{% endblock style %}
 {% block head %}
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 {% endblock head %}
-{% block body %}
 
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/system_info.css' %}" />
+{% endblock style %}
+
+
+{% block body %}
+{% csrf_token %}
+<input type="hidden" name="menu" value="{{ menu }}">
 <div class="path"> 
     <div class="main_1240"> 
         <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
@@ -234,7 +36,7 @@
             </div>					
             <div class="mb_scroll">
                 <ul>
-                    <li class="nohover" onclick="window.location='/manager/system'">
+                    <li class="nohover open-page" data-href="/manager/system">
                         <a class="big_link rd_click ">
                             <p>系統管理</p> 
                         </a>
@@ -248,11 +50,11 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="info" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.info').show(); changeURL('info')">修改TBIA資訊</a>
-                            <a class="account" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.account').show(); changeURL('account')">帳號管理</a>
-                            <a class="feedback" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.feedback').show(); changeURL('feedback')">意見回饋紀錄</a>
-                            <a class="sensitive" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive').show(); changeURL('sensitive')">單次使用去模糊化敏感資料申請</a>
-                            <a class="sensitive_track" href="javascript:;" onclick="$('.rightbox_content').hide(); $('.rightbox_content.sensitive_track').show(); changeURL('sensitive_track')">敏感資料申請審核追蹤</a>
+                            <a class="info changeMenu" href="javascript:;" data-menu="info">修改TBIA資訊</a>
+                            <a class="account changeMenu" href="javascript:;" data-menu="account">帳號管理</a>
+                            <a class="feedback changeMenu" href="javascript:;" data-menu="feedback">意見回饋紀錄</a>
+                            <a class="sensitive changeMenu" href="javascript:;" data-menu="sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a class="sensitive_track changeMenu" href="javascript:;" data-menu="sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
                     <li>
@@ -292,17 +94,17 @@
             </div>
         </div>
 
-        <div class="rightbox_content account" style="display: none">
+        <div class="rightbox_content account d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>帳號管理</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title "><div class="dottt"></div>帳號管理</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 account_table">
                         <tr>
-                            <td style="width: 8%">編號</td>
-                            <td style="width: 25%">姓名</td>
-                            <td style="width: 20%">單位</td>
-                            <td style="width: 20%">權限</td>
-                            <td style="width: 15%">狀態</td>
+                            <td class="w-8p">編號</td>
+                            <td class="w-25p">姓名</td>
+                            <td class="w-20p">單位</td>
+                            <td class="w-20p">權限</td>
+                            <td class="w-15p">狀態</td>
                             <td></td>
                         </tr> 
                         {% for pm in partner_members %}
@@ -311,7 +113,7 @@
                             <td>{{ pm.name }} ({{ pm.email }})</td>
                             <td>{{ pm.partner.breadtitle|default_if_none:'' }}</td>
                             <td>
-                                <select name="role" style="width: 100%" data-id="{{ pm.id }}">
+                                <select name="role" class="w-100p" data-id="{{ pm.id }}">
                                 {% if pm.is_partner_admin %}
                                     <option value="is_partner_admin" selected>單位管理員</option>
                                     <option value="is_partner_account">單位帳號</option>
@@ -322,7 +124,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select name="status" style="width: 100%" data-id="{{ pm.id }}">
+                                <select name="status" class="w-100p" data-id="{{ pm.id }}">
                                     {% for s in status_choice %}
                                         {% if s.0 == pm.status %}
                                         <option value="{{ s.0 }}" selected>{{ s.1 }}</option>
@@ -332,43 +134,43 @@
                                     {% endfor %}
                                 </select>
                             </td>
-                            <td><button class="search_btn save_btn" onclick="saveStatus({{ pm.id }})" style="width: 100%">儲存</button></td>
+                            <td><button class="search_btn save_btn w-100p saveStatus" data-pmid="{{ pm.id }}">儲存</button></td>
                         </tr>
                         {% endfor %}
                     </table>						
                 </div>
                 <div class="page_number">
 					{% if a_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'account')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="account">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in a_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'account')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'account')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in a_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'account')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="account">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ a_total_page }}, 'account')" class="num">{{ a_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ a_total_page }}" data-type="account">{{ a_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>
 
-        <div class="rightbox_content info" style="display: none">
+        <div class="rightbox_content info d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>TBIA資訊</div>
+                <div class="box-title "><div class="dottt"></div>TBIA資訊</div>
                     <ul class="edit-list">
                         <form id="updateForm">
                             {% csrf_token %}
@@ -376,22 +178,23 @@
                             <li><input type="text" name="name" value="{{ system_admin }}" disabled>
                             </li>
                             <li>TBIA簡介</li>
-                            <li><textarea name="content">{{ content }}</textarea>
-                                <div class="noticbox" style="display:none;">
+                            <li><textarea name="about_content">{{ content }}</textarea>
+                                <div class="noticbox d-none">
                                     <div class="in1">錯誤</div>
                                     <p>必填欄位</p>
                                 </div>
                             </li>
                         </form>
-                        <li ><button class="search_btn" onclick="updateInfo()">確認修改</button></li>
+                        <li ><button class="search_btn updateInfo">確認修改</button></li>
                     </ul>
+                </div>
             </div>
         </div>
 
-        <div class="rightbox_content feedback" style="display: none">
+        <div class="rightbox_content feedback d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>意見回饋紀錄</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title "><div class="dottt"></div>意見回饋紀錄</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 feedback_table">
                         <tr>
                             <td>編號</td>
@@ -419,15 +222,15 @@
                             <td>{{ f.get_type_display }}</td>
                             <td>{{ f.content }}</td>
                             <td>{% if f.partner %}{% if f.is_replied %}
-                                是
+                                    是
                                 {% else %}
-                                否
+                                    否
                                 {% endif %}
                                 {% else %}
                                 {% if f.is_replied %}
-                                是 <button class="search_btn" onclick="updateFeedback({{ f.id }})" style="width: 95%">修改為未回覆</button>
+                                    是 <button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
                                 {% else %}
-                                否<button class="search_btn" onclick="updateFeedback({{ f.id }})" style="width: 95%">修改為已回覆</button>
+                                    否<button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
                                 {% endif %}
                                 {% endif %}
                             </td>
@@ -437,37 +240,37 @@
                 </div>
                 <div class="page_number">
 					{% if f_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'feedback')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="feedback">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in f_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'feedback')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'feedback')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in f_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'feedback')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="feedback">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ f_total_page }}, 'feedback')" class="num">{{ f_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ f_total_page }}" data-type="feedback">{{ f_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>
 
-        <div class="rightbox_content sensitive" style="display: none">
+        <div class="rightbox_content sensitive d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title "><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
                         <tr>
                             <td>編號</td>
@@ -480,7 +283,7 @@
                         <tr>
                             <td>#{{ s.id }}</td>
                             <td>{{ s.created }}<br>審核期限：{{ s.due }} </td>
-                            <td style="text-align: left">{{ s.query|safe }}</td>
+                            <td class="a-left">{{ s.query|safe }}</td>
                             <td>
                                 {% if s.is_transferred %}
                                     已轉交單位審核
@@ -488,51 +291,55 @@
                                     {{ s.status }}
                                 {% endif %}
                             </td>
-                            <td><a style="cursor: pointer" onclick="showRequest('{{ s.query_id }}','{{ s.query }}', '{{ s.id }}', '{{ s.is_transferred }}')">查看</a></td>
+                            <td><a class="pointer showRequest" 
+                                data-query_id="{{ s.query_id }}"
+                                data-query="{{ s.query }}"
+                                data-sdr_id="{{ s.id }}"
+                                data-is_transferred="{{ s.is_transferred }}">查看</a></td>
                         </tr>
                         {% endfor %}
                     </table>
                 </div>
                 <div class="page_number">
 					{% if s_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'sensitive_apply')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive_apply">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in s_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive_apply')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'sensitive_apply')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in s_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'sensitive_apply')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive_apply">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ s_total_page }}, 'sensitive_apply')" class="num">{{ s_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive_apply">{{ s_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
         </div>        
-        <div class="rightbox_content sensitive_track" style="display: none">
+        <div class="rightbox_content sensitive_track d-none">
             <div class="item">
-                <div style="display: flex; color: black"><div class="dottt"></div>敏感資料申請審核追蹤</div>
-                <div class="result_table" style="overflow-x: auto; margin-top: 10px">
+                <div class="box-title "><div class="dottt"></div>敏感資料申請審核追蹤</div>
+                <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 track_table">
                         <tr>
-                            <td style="width:5%;">申請編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">申請日期</td>
-                            <td style="width:15%;">查詢條件</td>
-                            <td style="width:15%;">審查意見</td>
-                            <td style="width:5%;">狀態</td>
+                            <td class="w-5p">申請編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">申請日期</td>
+                            <td class="w-15p">查詢條件</td>
+                            <td class="w-15p">審查意見</td>
+                            <td class="w-5p">狀態</td>
                         </tr>
                         {% for r in sensitive_track %}
                         <tr>
@@ -548,28 +355,28 @@
                 </div>
                 <div class="page_number">
 					{% if sr_page_list|length > 1 %}
-                    <a href="javascript:;" onclick="changePage(1, 'track')" class="num">1</a>
-                    <a href="javascript:;" class="pre" style="pointer-events: none;">
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="track">1</a>
+                    <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in sr_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'track')" class="num now">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="track">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" onclick="changePage({{ p }}, 'track')" class="num">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="track">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in sr_page_list %}
-                    <a href="javascript:;" onclick="changePage(2, 'track')" class="next">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="track">
                         下一頁
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next" style="pointer-events: none;">
+                    <a href="javascript:;" class="next pt-none">
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" onclick="changePage({{ sr_total_page }}, 'track')" class="num">{{ sr_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ sr_total_page }}" data-type="track">{{ sr_total_page }}</a>
                     {% endif %}
 				</div>
             </div>
@@ -585,7 +392,7 @@
 
 
 <!--審查意見popbox-->
-<div class="popbg detail-pop" style="display:none;">
+<div class="popbg detail-pop d-none">
 	<div class="ovhy"> 
 		<div class="wbox_center">
 			<div class="xx">
@@ -601,8 +408,8 @@
                             申請日期：{{ today }}
                         </div>-->
                     </div>
-                    <button class="accordion">申請詳細資訊</button>
-                    <div class="form_box panel" style= "max-height: 300px; overflow-y: scroll;display: none">
+                    <button class="accordion fs-16px">申請詳細資訊</button>
+                    <div class="form_box panel d-none form-flow fs-14px">
                         <form id="detailForm">
                         <div class="path_inf">
                             <p>搜尋條件</p>
@@ -639,7 +446,7 @@
                                 <p class="project_type">個人研究計畫名稱</p>
                                 <input name="project_name" type="text" disabled>
                             </div>
-                            <div class="input_item p_affli" style="display: none">
+                            <div class="input_item p_affli d-none">
                                 <p>委託計畫單位</p>
                                 <input name="project_affiliation" type="text" disabled>
                             </div>
@@ -654,8 +461,8 @@
                             <p class="title">申請資料使用者</p>
                         </div>
                     </div>
-                    <button class="accordion">審查意見</button>
-                    <div class="form_box panel" style= "max-height: 300px; overflow-y: scroll; display: none">
+                    <button class="accordion fs-16px">審查意見</button>
+                    <div class="form_box panel d-none form-flow fs-14px">
                         <form id="reviewForm">
                         <div class="inpu_2">
                             <input type="hidden" name="query_id">
@@ -680,10 +487,10 @@
                         </div>
                         </form>
                     </div>                
-                    <button class="send send-check" style="margin-top: 15px">確認送出</button>
-                    <button class="send send-transfer" style="margin-top: 15px">轉交給單位審核</button>
-                    <button class="send-submitted" style="margin-top: 15px; display: none" disabled>審核已完成不得修改</button>
-                    <button class="send-transferred" style="margin-top: 15px; display: none" disabled>已轉交給單位審核</button>
+                    <button class="send send-check mt-15px">確認送出</button>
+                    <button class="send send-transfer mt-15px">轉交給單位審核</button>
+                    <button class="send-submitted d-none mt-15px" disabled>審核已完成不得修改</button>
+                    <button class="send-transferred d-none mt-15px" disabled>已轉交給單位審核</button>
                 </div>
 			</div>
 		</div>
@@ -691,387 +498,32 @@
 </div>
 
   <!--確認送出pop-->
-  <div class="messageboxfix submit-check" style="display: none;">
+  <div class="messageboxfix submit-check d-none">
 	<div class="message_box">
 		<div class="informationicon">!</div>
 		<p>送出後無法修改，確認送出？</p>
 		<div class="btn_area">
-			<button onclick="$('.submit-check').hide()">取消</button>
+			<button class="hide_submit-check">取消</button>
 			<button class="send_review">確認</button>
 		</div>
 	</div>
 </div>
 
 
-  <!--確認轉交pop-->
-  <div class="messageboxfix submit-transfer" style="display: none;">
+<!--確認轉交pop-->
+<div class="messageboxfix submit-transfer d-none">
 	<div class="message_box">
 		<div class="informationicon">!</div>
 		<p>送出後無法修改，確認送出？</p>
 		<div class="btn_area">
-			<button onclick="$('.submit-transfer').hide()">取消</button>
-			<button onclick="transferRequest()">確認</button>
+			<button class="hide_submit-transfer">取消</button>
+			<button class="transferRequest">確認</button>
 		</div>
 	</div>
 </div>
 
-  {% endblock %}
-
-  {% block script %}
-  <script>
-    function changeURL(menu){
-        history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
-    }
-
-    // 如果按上下一頁
-    window.onpopstate = function(e) {
-        e.preventDefault(); 
-
-        $('.rightbox_content').hide()
-        $('.col_menu.second_menu a').removeClass('now')
-        $('.col_menu.second_menu').hide()
-
-        let queryString = window.location.search;
-        let urlParams = new URLSearchParams(queryString);
-
-        let menu = urlParams.get('menu')
-        if (menu){
-
-            $(`a.${ menu }`).addClass('now')
-            $(`a.${ menu }`).parent(".second_menu").slideToggle();
-
-            $(`.rightbox_content.${ menu }`).show()
-        }
-      };
-  
-
-    function updateFeedback(current_id){
-        $.ajax({
-            url: "{% url 'update_feedback' %}",
-            data: {'current_id': current_id,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            alert('修改完成')
-            window.location.reload()
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-    }
-
-
-    function changePage(page, menu){
-        $.ajax({
-            url: `{% url 'change_manager_page' %}?page=${page}&menu=${menu}`,
-            type: 'GET',
-            success: function(response){
-                console.log(response)
-                // 修改表格內容
-
-                $(`.${menu}_table`).html(`
-                ${response.header}
-                ${response.data}
-                `)
-
-                $(`.${menu}_table`).parent().next('.page_number').remove()
-
-                // 修改頁碼
-                if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                    $(`.${menu}_table`).parent().after(
-                      `<div class="page_number">
-                        <a href="javascript:;" onclick="changePage(1, '${menu}')" class="num">1</a>
-                        <a href="javascript:;" class="pre">上一頁</a>  
-                        <a href="javascript:;" class="next">下一頁</a>
-                        <a href="javascript:;" onclick="changePage(${response.total_page}, '${menu}')" class="num">${response.total_page}</a>
-                      </div>`)}		
-                  
-                      if (response.page_list.includes(response.current_page-1)){
-                        $('.pre').attr('onclick',`changePage(${response.current_page-1}, '${menu}')`);
-                      } else {
-                        $('.pre').css('pointer-events','none')
-                      }
-
-
-                  let html = ''
-                  for (let i = 0; i < response.page_list.length; i++) {
-                    if (response.page_list[i] == response.current_page){
-                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num now">${response.page_list[i]}</a>  `;
-                    } else {
-                      html += ` <a href="javascript:;" onclick="changePage(${response.page_list[i]}, '${menu}')" class="num">${response.page_list[i]}</a>  `
-                    }
-                  }
-
-                  $('.pre').after(html)
-          
-                  // 如果有下一頁，改掉next的onclick
-                  if (response.current_page < response.total_page){
-                    $('.next').attr('onclick',`changePage(${response.current_page+1}, '${menu}')`);
-                  } else {
-                    $('.next').css('pointer-events','none')
-                  }
-                  
-            }
-        });
-
-    }
-
-
-
-    function showRequest(query_id,query,sdr_id,is_transferred){
-        $.ajax({
-            url: "{% url 'get_request_detail' %}?query_id=" + query_id + '&sdr_id=' + sdr_id,
-            type: 'GET',
-        })
-        .done(function(response) {
-
-           $('.detail-pop .send-check, .detail-pop .send-transfer').show()
-           $('.detail-pop .send-submitted, .detail-pop .send-transferred').hide()
-
-           // 要先全部清除
-           $("#detailForm").trigger("reset");
-           $("#reviewForm").trigger("reset");
-
-           $('#reviewForm input[name=query_id] ').val(query_id)
-           $('#reviewForm input[name=sdr_id] ').val(sdr_id)
-
-           $('.detail-pop').show()
-           $('.detail-pop .riginf').html(query)
-           $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
-           $('.detail-pop input[name=phone] ').val(response.detail.phone)
-           $('.detail-pop input[name=address] ').val(response.detail.address)
-           $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
-           $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
-           $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
-
-            
-           if (response.detail.type=='0'){
-            $('.detail-pop input[name=type] ').val('個人研究計畫')
-            $('.project_type').html('個人研究計畫名稱')
-            $('.p_affli').hide()
-
-           } else {
-            $('.detail-pop input[name=type] ').val('委辦工作計畫')
-            $('.project_type').html('委辦工作計畫名稱')
-            $('.p_affli').show()
-            $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
-
-
-           }
-
-           $('.apply_peo .item_set1').remove()
-           if (response.detail.users.length > 0) {
-                for (let i = 0; i < response.detail.users.length; i++) {
-                    $('.apply_peo').append(`
-                        <div class="item_set1">
-                            <span style="margin-left: 10px">姓名</span>
-                            <input type="text" value="${response.detail.users[i]['user_name']}" disabled>
-                            <span style="margin-left: 10px">單位</span>
-                            <input type="text" value="${response.detail.users[i]['user_affiliation']}" disabled>
-                            <span style="margin-left: 10px">職稱</span>
-                            <input type="text" name="user_job_title" value="${response.detail.users[i]['user_job_title']}" disabled>
-                        </div>`)
-                }
-            } else {
-                $('.apply_peo').append('<div class="item_set1" style="background: transparent">無</div>')
-            }
-
-            // 審查意見
-            if (is_transferred=='True'){
-                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').hide()
-                $('.send-transferred').show()
-            } else if (response.review.status != 'pending') {
-                $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
-                $('#reviewForm textarea[name=comment]').val(response.review.comment)
-                $('#reviewForm select[name=status]').val(response.review.status)
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
-                $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
-                $('#reviewForm select[name=status]').attr('disabled', 'disabled');
-
-                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').hide()
-                $('.detail-pop .send-submitted').show()
-            } else {
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
-                $('#reviewForm textarea[name=comment]').attr('disabled', false);
-                $('#reviewForm select[name=status]').attr('disabled', false);
-            }
-
-
-   
-        })
-        .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
-          console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-
-
-    }
-
-
-    function transferRequest(){
-        $.ajax({
-            url: "{% url 'transfer_sensitive_response' %}",
-            type: 'POST',
-            data: {'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: '{{ csrf_token }}'},
-            dataType: 'json'
-        })
-        .done(function(response) {
-            alert('轉交成功')
-            window.location.reload()
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-
-    }
-
-    $(document).ready(function () {
-
-
-        $('.send-transfer').on('click',function(){
-            $('.submit-transfer').show()
-
-        })
-
-        $('.send-check').on('click',function(){
-
-
-            let checked = true;
-
-            if ((!$(`input[name=reviewer_name]`).val())|(!$(`textarea[name=comment]`).val())){
-                checked = false;
-            }
-
-            if (checked) {
-                $('.submit-check').show()
-
-            } else {
-                alert('請完整填寫審查意見表格')
-            }
-
-        })
-
-        $('.send_review').on('click', function (){
-            $.ajax({
-                url: "{% url 'submit_sensitive_response' %}",
-                type: 'POST',
-                data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken={{ csrf_token }}',
-                dataType: 'json'
-            })
-            .done(function(response) {
-                alert('送出成功')
-                window.location.reload()
-            })
-            .fail(function( xhr, status, errorThrown ) {
-                alert('發生未知錯誤！請聯絡管理員')
-                console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })  
-
-        })
-
-
-        $('.accordion').on('click', function(){
-
-            if ($(this).hasClass('active')){
-
-                $(this).removeClass('active')
-                $(this).next('.panel').css('display','none')
-            } else {
-                // 
-                $('.accordion').not(this).removeClass('active')
-                $('.accordion').not(this).next('.panel').css('display','none')
-                $(this).addClass('active')
-                $(this).next('.panel').css('display','block')
-            }
-        })
-
-
-
-    
-        $('a.{{ menu }}').addClass('now')
-        $('a.{{ menu }}').parent(".second_menu").slideToggle();
-
-        $('.rightbox_content.{{ menu }}').show()
-
-    })
-
-    function saveStatus(current_id){
-        $.ajax({
-            url: "{% url 'update_user_status' %}",
-            data: {'user_id': current_id,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    'role': $(`select[name="role"][data-id=${current_id}]`).val(),
-                    'status': $(`select[name="status"][data-id=${current_id}]`).val(),
-                },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            alert('修改完成')                
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
-
-    }
-
-    function updateInfo(){
-        // remove all notice first
-        $('.noticbox').css('display','none')
-  
-        let checked = true;
-  
-        if (!$('textarea[name=content]').val()){ // check name
-          $('textarea[name=content]').next('.noticbox').css('display','')
-          checked = false
-        }  
-  
-        
-        if (checked)
-        {
-            $.ajax({
-                url: "{% url 'update_tbia_about' %}",
-                data: $('#updateForm').serialize(),
-                type: 'POST',
-                dataType : 'json',
-            })
-            .done(function(response) {
-                alert('修改完成')                
-            })
-            .fail(function( xhr, status, errorThrown ) {
-              alert('發生未知錯誤！請聯絡管理員')
-              console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })  
-          }
-        }
-  
-
-
-
-    $(".mb_fixed_btn").on("click", function (event) {
-        $(".mbmove").toggleClass("open");
-        $(this).toggleClass("now");
-      });
-    
-      $(".rd_click").on("click", function (event) {
-        $(".rd_click").closest("li").removeClass("now");
-        $(this).closest("li").toggleClass("now");
-        $(this).closest("li").find(".second_menu").slideToggle();
-      });
-    
-    
-      $(".second_menu a").on("click", function (event) {
-        $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
-        $(".second_menu a").removeClass("now");
-        $(this).addClass("now")
-        $(this).parent().parent('li').addClass('now')
-      });
-    
-  </script>
-  {% endblock script %}
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/system_info.js' %}"></script>
+{% endblock script %}

@@ -43,4 +43,8 @@ urlpatterns = [
     path('delete_resource', views.delete_resource, name='delete_resource'),
     path('edit_link', views.edit_link, name='edit_link'),
     path('get_partner_stat', views.get_partner_stat, name='get_partner_stat'),
+    path('get_system_stat', views.get_system_stat, name='get_system_stat'),
+    path('get_news_content', views.get_news_content, name='get_news_content'),
+    path('save_news_image', views.save_news_image, name='save_news_image'),
+    path('get_link_content', views.get_link_content, name='get_link_content'),
 ]

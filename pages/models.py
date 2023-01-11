@@ -31,7 +31,8 @@ class News(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=1000, blank=True, null=True)
-    content = RichTextUploadingField( blank=True, null=True)
+    # content = RichTextUploadingField( blank=True, null=True)
+    content = RichTextField( blank=True, null=True)
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
     # attachments = models.TextField( blank=True, null=True)

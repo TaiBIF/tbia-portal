@@ -50,10 +50,18 @@ from pathlib import Path
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
-
     class Meta:
-        model  = News
-        fields = ('content',)
+        model = News
+        fields = (
+            'content',
+        )
+
+# class NewsForm(forms.ModelForm):
+#     content = RichTextField()
+
+#     class Meta:
+#         model  = News
+#         fields = ('content',)
 
 
 class LinkForm(forms.ModelForm):
@@ -149,13 +157,13 @@ def change_manager_page(request):
 
     elif menu == 'download_taxon':
         response['header'] = """
-                                <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:20%;">查詢條件</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                        <tr>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-20p">查詢條件</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
                 """
         # taxon = []
@@ -185,14 +193,14 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
     elif menu == 'sensitive':
         response['header'] = """
-                                <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:15%;">查詢條件</td>
-                            <td style="width:15%;">審查意見</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                        <tr>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-15p">查詢條件</td>
+                            <td class="w-15p">審查意見</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
         """
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[offset:offset+10]:
@@ -232,13 +240,13 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
     elif menu == 'download':
         response['header'] = """
-                                <tr>
-                            <td style="width:5%;">下載編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">檔案產生日期</td>
-                            <td style="width:20%;">查詢條件</td>
-                            <td style="width:5%;">狀態</td>
-                            <td style="width:5%;">檔案連結</td>
+                        <tr>
+                            <td class="w-5p">下載編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">檔案產生日期</td>
+                            <td class="w-20p">查詢條件</td>
+                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案連結</td>
                         </tr>
         """
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record')[offset:offset+10]:
@@ -295,7 +303,7 @@ def change_manager_page(request):
                             <td>Email</td>
                             <td>類型</td>
                             <td>內容</td>
-                            <td style="width: 15%">已回覆</td>
+                            <td class="w-15p">已回覆</td>
                         </tr> 
             """
             for f in Feedback.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
@@ -306,10 +314,10 @@ def change_manager_page(request):
                     date = ''
 
                 if f.is_replied:
-                    a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
+                    a = f'是<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                 else:
-                    a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
-                
+                    a = f'否<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+
                 data.append({
                     'id': f"#{f.id}",
                     'created': date,
@@ -339,11 +347,6 @@ def change_manager_page(request):
                 else:
                     date = ''
 
-                if f.is_replied:
-                    a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
-                else:
-                    a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
-                
                 if f.partner:
                     if f.partner.title =='營建署城鄉發展分署':
                         partner_title = '內政部營建署城鄉發展分署'
@@ -359,9 +362,9 @@ def change_manager_page(request):
                         a = '否'
                 else:
                     if f.is_replied:
-                        a = f'是 <button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為未回覆</button>'
+                        a = f'是<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                     else:
-                        a = f'否<button class="search_btn feedback_btn" onclick="updateFeedback({ f.id })" style="width: 95%">修改為已回覆</button>'
+                        a = f'否<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -377,13 +380,13 @@ def change_manager_page(request):
 
     elif menu == 'track':
         response['header'] = '''
-                                <tr>
-                            <td style="width:5%;">申請編號</td>
-                            <td style="width:10%;">檔案編號</td>
-                            <td style="width:10%;">申請日期</td>
-                            <td style="width:15%;">查詢條件</td>
-                            <td style="width:15%;">審查意見</td>
-                            <td style="width:5%;">狀態</td>
+                        <tr>
+                            <td class="w-5p">申請編號</td>
+                            <td class="w-10p">檔案編號</td>
+                            <td class="w-10p">申請日期</td>
+                            <td class="w-15p">查詢條件</td>
+                            <td class="w-15p">審查意見</td>
+                            <td class="w-5p">狀態</td>
                         </tr>'''
         for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
@@ -440,7 +443,8 @@ def change_manager_page(request):
                                 
                 function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }'"
 
-                a = f'<a style="cursor: pointer" onclick="showRequest({function_par})">查看</a>'
+                a = f'<a class="pointer showRequest" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+
                 data.append({
                     'id': f'#{sdr.id}',
                     #'query_id': r.query_id,
@@ -473,9 +477,10 @@ def change_manager_page(request):
                 
                 date = created + '<br>審核期限：' + due
                 
-                function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
+                # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
-                a = f'<a style="cursor: pointer" onclick="showRequest({function_par})">查看</a>'
+                a = f'<a class="pointer showRequest" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+
                 data.append({
                     'id': f'#{sdr.id}',
                     #'query_id': r.query_id,
@@ -487,25 +492,24 @@ def change_manager_page(request):
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
     elif menu == 'account':
-        response['header'] = '''
-                                <tr>
-                            <td style="width: 8%">編號</td>
-                            <td style="width: 25%">姓名</td>
-                            <td style="width: 20%">單位</td>
-                            <td style="width: 20%">權限</td>
-                            <td style="width: 15%">狀態</td>
+        if request.GET.get('from') == 'partner':
+            response['header'] = '''
+                        <tr>
+                            <td class="w-8p">編號</td>
+                            <td class="w-25p">姓名</td>
+                            <td class="w-20p">權限</td>
+                            <td class="w-15p">狀態</td>
                             <td></td>
                         </tr> 
-        '''
-        if request.GET.get('from') == 'partner':
+            '''
             for a in User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
                 if a.is_partner_admin:
-                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
+                    select = f"""<select name="role" class="w-100p" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
                 else:
-                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
+                    select = f"""<select name="role" class="w-100p" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
 
-                status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
+                status = f'<select name="status" class="w-100p" data-id="{ a.id }">'
                 
                 for s in User._meta.get_field('status').choices[:-1]:
                     if s[0] == a.status:
@@ -519,11 +523,21 @@ def change_manager_page(request):
                     'name': f"{a.name} ({a.email})",
                     'select': select,
                     'status': status,
-                    'a': f'<button class="search_btn save_btn" data-id="{ a.id }" style="width: 100%">儲存</button>'
+                    'a': f'<button class="search_btn save_btn w-100p" data-id="{ a.id }">儲存</button>'
                 })
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
         else:
+            response['header'] = '''
+                        <tr>
+                            <td class="w-8p">編號</td>
+                            <td class="w-25p">姓名</td>
+                            <td class="w-20p">單位</td>
+                            <td class="w-20p">權限</td>
+                            <td class="w-15p">狀態</td>
+                            <td></td>
+                        </tr> 
+            '''
             for a in User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
                     if a.partner.title =='營建署城鄉發展分署':
@@ -534,11 +548,11 @@ def change_manager_page(request):
                     partner_title = ''
 
                 if a.is_partner_admin:
-                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
+                    select = f"""<select name="role" class="w-100p" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
                 else:
-                    select = f"""<select name="role" style="width: 100%" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
+                    select = f"""<select name="role" class="w-100p" data-id="{ a.id }"><option value="is_partner_admin">單位管理員</option><option value="is_partner_account" selected>單位帳號</option></select>"""
 
-                status = f'<select name="status" style="width: 100%" data-id="{ a.id }">'
+                status = f'<select name="status" class="w-100p" data-id="{ a.id }">'
                 
                 for s in User._meta.get_field('status').choices[:-1]:
                     if s[0] == a.status:
@@ -554,23 +568,23 @@ def change_manager_page(request):
                     'partner_title': partner_title,
                     'select': select,
                     'status': status,
-                    'a': f'<button class="search_btn save_btn" onclick="saveStatus({ a.id })" style="width: 100%">儲存</button>'
-                    
+                    'a': f'<button class="search_btn save_btn w-100p saveStatus" data-pmid="{ a.id })">儲存</button>'
                 })
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
     elif menu == 'news_apply':
         response['header'] = '''
-                                <tr>
-                            <td style="width: 8%">編號</td>
-                            <td style="width: 18%">標題</td>
-                            <td style="width: 8%">類別</td>
-                            <td style="width: 20%">單位</td>
-                            <td style="width: 15%">申請者</td>
-                            <td style="width: 15%">最近修改</td>
-                            <td style="width: 8%">狀態</td>
-                            <td style="width: 8%"></td>
+                        <tr>
+                            <td class="w-8p">編號</td>
+                            <td class="w-18p">標題</td>
+                            <td class="w-8p">類別</td>
+                            <td class="w-20p">單位</td>
+                            <td class="w-15p">申請者</td>
+                            <td class="w-15p">最近修改</td>
+                            <td class="w-8p">狀態</td>
+                            <td class="w-8p"></td>
                         </tr>'''
+                        
         for n in News.objects.all()[offset:offset+10]:
             if n.partner:
                 if n.partner.title =='營建署城鄉發展分署':
@@ -598,14 +612,14 @@ def change_manager_page(request):
         total_page = math.ceil(News.objects.all().count() / 10)
     elif menu == 'news':
         response['header'] = '''
-                                <tr>
-                            <td style="width: 5%"></td>
-                            <td style="width: 20%">標題</td>
-                            <td style="width: 12%">類別</td>
-                            <td style="width: 15%">申請者</td>
-                            <td style="width: 15%">最近修改</td>
-                            <td style="width: 12%">狀態</td>
-                            <td style="width: 12%"></td> 
+                        <tr>
+                            <td class="w-5p"></td>
+                            <td class="w-20p">標題</td>
+                            <td class="w-12p">類別</td>
+                            <td class="w-15p">申請者</td>
+                            <td class="w-15p">最近修改</td>
+                            <td class="w-12p">狀態</td>
+                            <td class="w-12p"></td> 
                         </tr>
         ''' 
         if request.user.is_partner_admin:
@@ -639,13 +653,13 @@ def change_manager_page(request):
             })
     elif menu == 'resource':
         response['header'] = """
-                                <tr>
-                            <td style="width: 18%">標題</td>
-                            <td style="width: 18%">類型</td>
-                            <td style="width: 20%">檔名</td>
-                            <td style="width: 15%">最近修改</td>
-                            <td style="width: 8%"></td> 
-                            <td style="width: 8%"></td> 
+                        <tr>
+                            <td class="w-18p">標題</td>
+                            <td class="w-18p">類型</td>
+                            <td class="w-20p">檔名</td>
+                            <td class="w-15p">最近修改</td>
+                            <td class="w-8p"></td> 
+                            <td class="w-8p"></td> 
                         </tr>
         """
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
@@ -1314,7 +1328,7 @@ def get_partner_stat(request):
     has_taxon = 0
     data_total = []
 
-    print(request.GET.get('partner_group'))
+    # print(request.GET.get('partner_group'))
     if partner_group := request.GET.get('partner_group'):
         f = ['-taxonID:*',f'group:{partner_group}']
         # TaiCOL對應狀況
@@ -1384,9 +1398,41 @@ def manager_system(request):
                                                             'data_total':data_total,'keywords': keywords})
 
 
+def get_system_stat(request):
+    no_taxon = 0
+    has_taxon = 0
+    # partner_admin = ''
+    data_total = []
+    # if not request.user.is_anonymous:
+        # 資料筆數 - 改成用單位?
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+    data = requests.get(url).json()
+    if data['responseHeader']['status'] == 0:
+        facets = data['facet_counts']['facet_fields']['rightsHolder']
+        for r in range(0,len(facets),2):
+            data_total.append({'name': facets[r],'y': facets[r+1]})
+    # TaiCOL對應狀況
+    solr = SolrQuery('tbia_records')
+    query_list = [('q', '*:*'),('rows', 0)]
+    req = solr.request(query_list)
+    total_count = req['solr_response']['response']['numFound']
+    solr = SolrQuery('tbia_records')
+    query_list = [('q', '-taxonID:*'),('rows', 0)]
+    req = solr.request(query_list)
+    no_taxon = req['solr_response']['response']['numFound']
+    has_taxon = total_count - no_taxon
+    response = {
+        'data_total': data_total,
+        'has_taxon': has_taxon,
+        'no_taxon': no_taxon
+    }
+    return JsonResponse(response, safe=False)
+
+
+
 def update_tbia_about(request):
     if request.method == 'POST':
-        content = request.POST.get('content')
+        content = request.POST.get('about_content')
         a = About.objects.all().first()
         a.content = content
         a.save()
@@ -1423,7 +1469,7 @@ def system_info(request):
     system_admin = ','.join(system_admin)
 
     content = About.objects.all().first().content
-    menu = request.GET.get('menu','list')
+    menu = request.GET.get('menu','info')
     partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[:10]
 
     a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
@@ -1464,9 +1510,10 @@ def system_info(request):
             'due': due,
         })
 
-    s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
+    s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count()/10)
     s_page_list = get_page_list(1, s_total_page)
 
+    print(len(sensitive),s_total_page,s_page_list)
 
     sensitive_track = []
     for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[:10]:
@@ -1539,13 +1586,15 @@ def system_resource(request):
             else:
                 current_r.filename =  current_r.url
 
-    form = LinkForm()
-    n = []
-    if n := Link.objects.all().first():
-        form.fields["content"].initial = n.content
+    # form = LinkForm()
+    # n = []
+    # if n := Link.objects.all().first():
+    #     form.fields["content"].initial = n.content
+    # if Link.objects.all().first():
+    #     n = Link.objects.all().first()
 
     return render(request, 'manager/system/resource.html', {'menu': menu, 'resource_list': resource_list,
-    'r_total_page': r_total_page, 'r_page_list': r_page_list, 'type_choice': type_choice, 'current_r': current_r, 'form': form, 'n': n})
+    'r_total_page': r_total_page, 'r_page_list': r_page_list, 'type_choice': type_choice, 'current_r': current_r})
 
 
 def system_keyword(request):
@@ -1560,6 +1609,14 @@ def submit_news(request):
         type = request.POST.get('type')
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
+        content = request.POST.get('content')
+
+        # tmp = {"delta":'{"ops":[]}',"html":""}
+        # tmp['html'] = content
+        # html = '<ul><li>GBIF</li><li>TaiBIF</li><li>TBN</li></ul><p><img src=\\"/media/news/ntm_logo_j9SJDgw.png\\"></p>"'   
+        # #  = Quill('{"delta":"{\\"ops\\":"","html":"' + content + '"}')
+        # tmp = {"delta":'{"ops":[]}',"html":html}
+        # content = Quill(tmp)
 
         if request.POST.get('from_system'):
             # status = 'pass'
@@ -1568,9 +1625,9 @@ def submit_news(request):
             # status = 'pending'
             partner_id = current_user.partner
 
-        form = NewsForm(request.POST)
-        if form.is_valid():
-            content = form.cleaned_data['content']
+        # form = NewsForm(request.POST)
+        # if form.is_valid():
+        #     content = form.cleaned_data['content']
 
         image_name = None
         if image := request.FILES.get('image'):
@@ -1673,11 +1730,18 @@ def submit_news(request):
 
 def withdraw_news(request):
     if news_id := request.GET.get('news_id'):
-        if News.objects.filter(id=news_id).exists():
-            n = News.objects.get(id=news_id)
-            n.status = 'withdraw'
-            n.save()
-    return redirect('partner_news')
+        # user_id = request.user.id
+        if user_id := request.user.id:
+            # 確認撤回的人是不是申請的人 或者單位管理者
+            if News.objects.filter(id=news_id).exists():
+                n = News.objects.get(id=news_id)
+                partner_id = n.partner_id
+                if n.user_id == user_id or User.objects.filter(is_partner_account=True,id=user_id,partner_id=partner_id).exists():
+                    n.status = 'withdraw'
+                    n.save()
+            return redirect('partner_news')
+        else:
+            return JsonResponse({'message': '權限不足'}, safe=False)
 
 
 def send_msg(msg):
@@ -1803,10 +1867,11 @@ def delete_resource(request):
 
 def edit_link(request):
     if request.method == 'POST':
-        content = ''
-        form = LinkForm(request.POST)
-        if form.is_valid():
-            content = form.cleaned_data['content']       
+        # content = ''
+        content = request.POST.get('content')
+        # form = LinkForm(request.POST)
+        # if form.is_valid():
+        #     content = form.cleaned_data['content']       
 
         if Link.objects.exists():
             n = Link.objects.all().first()
@@ -1819,3 +1884,31 @@ def edit_link(request):
             )
         return redirect('resources_link')
 
+
+def get_news_content(request):
+    response = {}
+    response['content'] = ''
+    news_id = request.GET.get('news_id')
+    if News.objects.filter(id=news_id).exists():
+        n = News.objects.get(id=news_id)
+        response['content'] = n.content
+    return JsonResponse(response, safe=False)
+
+
+def save_news_image(request):
+    # print(request.POST, request.FILES)
+    image_name = ''
+    if image := request.FILES.get('image'):
+        fs = FileSystemStorage()
+        image_name = fs.save(f'news/' + image.name, image)
+    return JsonResponse({'data':{'url': image_name}}, safe=False)
+
+
+def get_link_content(request):
+    response = {}
+    response['content'] = ''
+    # news_id = request.GET.get('news_id')
+    if l := Link.objects.all().first():
+        # l = News.objects.get(id=news_id)
+        response['content'] = l.content
+    return JsonResponse(response, safe=False)

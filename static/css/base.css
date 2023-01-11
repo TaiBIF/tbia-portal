@@ -172,8 +172,16 @@ input {
     width: 10% !important;
 }
 
+.w-12p {
+    width: 12% !important;
+}
+
 .w-15p {
     width: 15% !important;
+}
+
+.w-18p {
+    width: 18% !important;
 }
 
 .w-20p {
@@ -182,6 +190,10 @@ input {
 
 .w-25p {
     width: 25% !important;
+}
+
+.w-85p {
+    width: 85% !important;
 }
 
 .w-95p {
@@ -195,3 +207,4 @@ input {
 .h-100p {
     height: 100% !important;
 }
+

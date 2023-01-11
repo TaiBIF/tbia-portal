@@ -81,11 +81,11 @@ $( function() {
     })
 
     $('.selectAll').on('click', function(){
-        $(`.occ-choice input:checkbox`).prop('checked', true);
+        $(`.col-choice input:checkbox`).prop('checked', true);
     })
     
     $('.resetAll').on('click', function(){
-        $(`.occ-choice input:checkbox:not(:disabled)`).prop('checked', false);
+        $(`.col-choice input:checkbox:not(:disabled)`).prop('checked', false);
     })
 
     $('.submitSearch').on('click', function(){
@@ -149,7 +149,7 @@ $( function() {
     });
     
     // disable string input in 數量單位
-    $("input[name=organismQuantity]").on("keyup", function() {
+    $("#searchForm input[name=organismQuantity]").on("keyup", function() {
         this.value = this.value.replace(/\D/g,'');
     });
     
@@ -179,12 +179,16 @@ $( function() {
             //var regionsDissolved = turf.dissolve(geoObj);
             $.ajax({
                 url: "/save_geojson",
-                data: { geojson_text: JSON.stringify(geoObj),csrfmiddlewaretoken: $csrf_token},
+                data: { geojson_text: JSON.stringify(geoObj),
+                        csrfmiddlewaretoken: $csrf_token},
                 type: 'POST',
                 dataType : 'json',
             })
             .done(function(response) {
                 $('input[name=geojson_id]').val(response.geojson_id)
+                geoJSON = L.geoJSON(JSON.parse(response.geojson),{ className: 'addG'}).addTo(map);
+                map.fitBounds(geoJSON.getBounds());
+                $(".geojson_popup").addClass('d-none')
             })
             .fail(function( xhr, status, errorThrown ) {
                 if (xhr.status==504){
@@ -194,14 +198,10 @@ $( function() {
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
-            geoJSON = L.geoJSON(regionsDissolved,{ className: 'addG'}).addTo(map);
-            map.fitBounds(geoJSON.getBounds());
-            $(".geojson_popup").addClass('d-none')
         } catch (e) {
             alert('上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限')
         }
     })
-    
     
     // 如果直接從帶有參數網址列進入
     changeAction(); 
@@ -226,7 +226,10 @@ function changeAction(){
         translations: { "all": "全部", "items": " 個選項", "selectAll": '全選', "clearAll": '清除' } 
     });
 
-    $('.vsb-main button').css('border','').css('background','')
+    let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false,
+    });
+
+    //$('.vsb-main button').css('border','').css('background','')
     $('span.caret').addClass('d-none')
 
     $('.vsb-main button').on('click',function(){
@@ -251,6 +254,14 @@ function changeAction(){
             $('#btn-group-datasetName button span.title').addClass('black').removeClass('color-707070')
         } else {
             $('#btn-group-datasetName button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
+    $('#sensitiveCategory').on('change',function(){
+        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
+            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
         }
     })
 
@@ -526,9 +537,9 @@ function setTable(response, queryString){
     })
 
     $('.popupField').on('click', function(){
-        $(`.occ-choice`).removeClass('d-none')
-        window.not_selected = $(`.occ-choice input:not(:checked)`)
-        window.selected = $(`.occ-choice input:checked`)
+        $(`.col-choice`).removeClass('d-none')
+        window.not_selected = $(`.col-choice input:not(:checked)`)
+        window.selected = $(`.col-choice input:checked`)
     })
 }
 

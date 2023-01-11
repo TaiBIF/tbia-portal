@@ -12,7 +12,6 @@ $( function() {
           
           if (response.status=='success'){
             alert('已重新寄送')
-            
           } else {
             alert('發生未知錯誤！請聯絡管理員')
           }

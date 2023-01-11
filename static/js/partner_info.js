@@ -23,6 +23,86 @@ window.onpopstate = function(e) {
     }
 };
 
+function showRequest(query_id,query,sdr_id) {
+    $.ajax({
+        url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
+        type: 'GET',
+    })
+    .done(function(response) {
+
+        $('.detail-pop .send-check').removeClass('d-none')
+        $('.detail-pop .send-submitted').addClass('d-none')
+
+        // 要先全部清除
+        $("#detailForm").trigger("reset");
+        $("#reviewForm").trigger("reset");
+
+        $('#reviewForm input[name=query_id] ').val(query_id)
+        $('#reviewForm input[name=sdr_id] ').val(sdr_id)
+
+        $('.detail-pop').removeClass('d-none')
+        $('.detail-pop .riginf').html(query)
+        $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
+        $('.detail-pop input[name=phone] ').val(response.detail.phone)
+        $('.detail-pop input[name=address] ').val(response.detail.address)
+        $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
+        $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
+        $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+
+        if (response.detail.type=='0'){
+            $('.detail-pop input[name=type] ').val('個人研究計畫')
+            $('.project_type').html('個人研究計畫名稱')
+            $('.p_affli').addClass('d-none')
+        } else {
+            $('.detail-pop input[name=type] ').val('委辦工作計畫')
+            $('.project_type').html('委辦工作計畫名稱')
+            $('.p_affli').removeClass('d-none')
+            $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
+        }
+
+        $('.apply_peo .item_set1').remove()
+        if (response.detail.users.length > 0) {
+            for (let i = 0; i < response.detail.users.length; i++) {
+                $('.apply_peo').append(`
+                    <div class="item_set1">
+                        <span class="ml-10px">姓名</span>
+                        <input type="text" value="${response.detail.users[i]['user_name']}" disabled>
+                        <span class="ml-10px">單位</span>
+                        <input type="text" value="${response.detail.users[i]['user_affiliation']}" disabled>
+                        <span class="ml-10px">職稱</span>
+                        <input type="text" name="user_job_title" value="${response.detail.users[i]['user_job_title']}" disabled>
+                    </div>`)
+            }
+        } else {
+            $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
+        }
+
+        // 審查意見
+        
+        if (response.review.status != 'pending') {
+            $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
+            $('#reviewForm textarea[name=comment]').val(response.review.comment)
+            $('#reviewForm select[name=status]').val(response.review.status)
+            $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
+            $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
+            $('#reviewForm select[name=status]').attr('disabled', 'disabled');
+
+            $('.detail-pop .send-check').addClass('d-none')
+            $('.detail-pop .send-submitted').removeClass('d-none')
+        } else {
+            $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
+            $('#reviewForm textarea[name=comment]').attr('disabled', false);
+            $('#reviewForm select[name=status]').attr('disabled', false);
+        }
+
+    })
+    .fail(function( xhr, status, errorThrown ) {
+        alert('發生未知錯誤！請聯絡管理員')
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })  
+
+}
+
 function changePage(page, menu){
     $.ajax({
         url: `/change_manager_page?page=${page}&menu=${menu}&from=partner`,
@@ -32,9 +112,37 @@ function changePage(page, menu){
             $(`.${menu}_table`).html(`
                 ${response.header}
                 ${response.data}`)
-            $(`.${menu}_table`).parent().next('.page_number').remove()
+
+            $('.showRequest').on('click',function(){
+                let query_id = $(this).data('query_id');
+                let query = $(this).data('query');
+                let sdr_id = $(this).data('sdr_id');
+                showRequest(query_id,query,sdr_id)
+            })
+        
+            $('.updateFeedback').on('click', function(){
+                let current_id = $(this).data('fid');
+                $.ajax({
+                    url: "/update_feedback",
+                    data: {
+                        'current_id': current_id,
+                        'csrfmiddlewaretoken': $csrf_token,
+                    },
+                    type: 'POST',
+                    dataType : 'json',
+                })
+                .done(function(response) {
+                    alert('修改完成')
+                    window.location.reload()
+                })
+                .fail(function( xhr, status, errorThrown ) {
+                    alert('發生未知錯誤！請聯絡管理員')
+                    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })  
+            })
 
             // 修改頁碼
+            $(`.${menu}_table`).parent().next('.page_number').remove()
             if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
@@ -42,7 +150,7 @@ function changePage(page, menu){
                     <a href="javascript:;" class="pre">上一頁</a>  
                     <a href="javascript:;" class="next">下一頁</a>
                     <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                    </div>`)
+                </div>`)
             }		
                 
             if (response.page_list.includes(response.current_page-1)){
@@ -115,87 +223,13 @@ $(document).ready(function () {
         })  
     })
 
+
+    
     $('.showRequest').on('click',function(){
         let query_id = $(this).data('query_id');
         let query = $(this).data('query');
         let sdr_id = $(this).data('sdr_id');
-
-        $.ajax({
-            url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
-            type: 'GET',
-        })
-        .done(function(response) {
-    
-            $('.detail-pop .send-check').removeClass('d-none')
-            $('.detail-pop .send-submitted').addClass('d-none')
-    
-            // 要先全部清除
-            $("#detailForm").trigger("reset");
-            $("#reviewForm").trigger("reset");
-    
-            $('#reviewForm input[name=query_id] ').val(query_id)
-            $('#reviewForm input[name=sdr_id] ').val(sdr_id)
-    
-            $('.detail-pop').removeClass('d-none')
-            $('.detail-pop .riginf').html(query)
-            $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
-            $('.detail-pop input[name=phone] ').val(response.detail.phone)
-            $('.detail-pop input[name=address] ').val(response.detail.address)
-            $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
-            $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
-            $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
-    
-            if (response.detail.type=='0'){
-                $('.detail-pop input[name=type] ').val('個人研究計畫')
-                $('.project_type').html('個人研究計畫名稱')
-                $('.p_affli').addClass('d-none')
-            } else {
-                $('.detail-pop input[name=type] ').val('委辦工作計畫')
-                $('.project_type').html('委辦工作計畫名稱')
-                $('.p_affli').removeClass('d-none')
-                $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
-            }
-    
-            $('.apply_peo .item_set1').remove()
-            if (response.detail.users.length > 0) {
-                for (let i = 0; i < response.detail.users.length; i++) {
-                    $('.apply_peo').append(`
-                        <div class="item_set1">
-                            <span class="ml-10px">姓名</span>
-                            <input type="text" value="${response.detail.users[i]['user_name']}" disabled>
-                            <span class="ml-10px">單位</span>
-                            <input type="text" value="${response.detail.users[i]['user_affiliation']}" disabled>
-                            <span class="ml-10px">職稱</span>
-                            <input type="text" name="user_job_title" value="${response.detail.users[i]['user_job_title']}" disabled>
-                        </div>`)
-                }
-            } else {
-                $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
-            }
-    
-            // 審查意見
-            
-            if (response.review.status != 'pending') {
-                $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
-                $('#reviewForm textarea[name=comment]').val(response.review.comment)
-                $('#reviewForm select[name=status]').val(response.review.status)
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
-                $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
-                $('#reviewForm select[name=status]').attr('disabled', 'disabled');
-    
-                $('.detail-pop .send-check').addClass('d-none')
-                $('.detail-pop .send-submitted').removeClass('d-none')
-            } else {
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
-                $('#reviewForm textarea[name=comment]').attr('disabled', false);
-                $('#reviewForm select[name=status]').attr('disabled', false);
-            }
-    
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+        showRequest(query_id,query,sdr_id)
     })
 
     $('.updateInfo').on('click', function(){
@@ -256,7 +290,7 @@ $(document).ready(function () {
     $('.send-check').on('click',function(){
         let checked = true;
 
-        if ((!$(`input[name=reviewer_name]`).val())|(!$(`textarea[name=comment]`).val())){
+        if ((!$(`#reviewForm input[name=reviewer_name]`).val())|(!$(`#reviewForm textarea[name=comment]`).val())){
             checked = false;
         }
 

@@ -142,3 +142,21 @@
 .flow-x-auto {
     overflow-x: auto;
 }
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img .imgbox .imgarea {
+    max-height: 200px;
+    border-radius: 10px;
+}
+
+.sort-icon {
+    color: white;
+    height: 14px;
+    margin-left: 5px;
+    opacity: 0.5
+}
+
+.sort-icon-active {
+    color: white;
+    height: 14px;
+    margin-left: 5px;
+}

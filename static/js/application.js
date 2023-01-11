@@ -7,8 +7,8 @@ $( function() {
         sendRequest()
     })
 
-    $('.inpu_2 .input_item select[name=type]').on('change', function(){
-        if ($('.inpu_2 .input_item select[name=type]').val()=='1'){
+    $('#appilcationForm .inpu_2 .input_item select[name=type]').on('change', function(){
+        if ($('#appilcationForm .inpu_2 .input_item select[name=type]').val()=='1'){
             $('.p_affli').removeClass('d-none')
             $('.project_type').html('<span class="color_red">*</span>委辦工作計畫名稱')
         } else {
@@ -60,15 +60,14 @@ function sendRequest(){
 
         let cols = ['applicant','phone','address','affiliation','project_name']
         cols.forEach(function(c){
-            if (!$(`input[name=${c}]`).val()){
+            if (!$(`#appilcationForm input[name=${c}]`).val()){
                 checked = false;
             }
         })
 
-        if (!$('textarea[name=abstract]').val()){
+        if (!$('#appilcationForm textarea[name=abstract]').val()){
             checked = false;
         }
-
 
         if (checked){
             $.ajax({

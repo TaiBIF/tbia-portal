@@ -8,8 +8,7 @@ function changePage(page, menu){
             // 修改表格內容
             $(`.${menu}_table`).html(`
                 ${response.header}
-                ${response.data}
-            `)
+                ${response.data}`)
 
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
@@ -134,8 +133,7 @@ $(document).ready(function () {
                 alert('發生未知錯誤！請聯絡管理員')
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })  
-    
-    
+            
         } else {
             alert('送出前請閱讀並勾選同意保密協議')
         }    
@@ -148,23 +146,23 @@ $(document).ready(function () {
         let checked = true;
         let has_password = false;
     
-        if (!$('input[name=name]').val()){ // check name
-            $('input[name=name]').next('.noticbox').removeClass('d-none')
+        if (!$('#updateForm input[name=name]').val()){ // check name
+            $('#updateForm input[name=name]').next('.noticbox').removeClass('d-none')
             checked = false
         }  
         // 如果有任何一個跟密碼相關的欄位不是空白才判斷是否正確
-        if (($('input[name=now_password]').val()!='')|($('input[name=new_password]').val()!='')|($('input[name=re_password]').val()!='')){
+        if (($('#updateForm input[name=now_password]').val()!='')|($('#updateForm input[name=new_password]').val()!='')|($('#updateForm input[name=re_password]').val()!='')){
             has_password = true
-            if (!checkPasswordStr($('input[name=now_password]').val())) { // check now password
-                $('input[name=now_password]').next('.noticbox').removeClass('d-none')
+            if (!checkPasswordStr($('#updateForm input[name=now_password]').val())) { // check now password
+                $('#updateForm input[name=now_password]').next('.noticbox').removeClass('d-none')
                 checked = false
             } 
-            if (!checkPasswordStr($('input[name=new_password]').val())) { // check new password
-                $('input[name=new_password]').next('.noticbox').removeClass('d-none')
+            if (!checkPasswordStr($('#updateForm input[name=new_password]').val())) { // check new password
+                $('#updateForm input[name=new_password]').next('.noticbox').removeClass('d-none')
                 checked = false
             } 
-            if ($('input[name=new_password]').val() != $('input[name=re_password]').val()) { // check repassword
-                $('input[name=re_password]').next('.noticbox').removeClass('d-none')
+            if ($('#updateForm input[name=new_password]').val() != $('#updateForm input[name=re_password]').val()) { // check repassword
+                $('#updateForm input[name=re_password]').next('.noticbox').removeClass('d-none')
                 checked = false
             } 
         }
@@ -172,7 +170,7 @@ $(document).ready(function () {
         if (checked){
             $.ajax({
                 url: "/update_personal_info",
-                data: $('#updateForm').serialize() + '&email=' + $('input[name=user_email]').val() + '&has_password=' + has_password,
+                data: $('#updateForm').serialize() + '&email=' + $('#updateForm input[name=user_email]').val() + '&has_password=' + has_password,
                 type: 'POST',
                 dataType : 'json',
             })

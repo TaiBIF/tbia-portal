@@ -3,6 +3,9 @@
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/news_detail.css' %}" />
 {% endblock style %}
+
+{% block title %}{{ n.title }}｜{% endblock %}
+
 {% block body %}
 		<div class="path"> 
 			<div class="main_1240"> 
