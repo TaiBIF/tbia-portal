@@ -35,7 +35,7 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
-from data.models import Namecode, Taxon
+from data.models import Namecode, Taxon, DatasetKey
 
 basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
@@ -50,6 +50,7 @@ def get_geojson(request,id):
         response = HttpResponse(map_json, content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename="geojson.json"'
         return response
+
 
 def get_taxon_dist(request):
     taxon_id = request.GET.get('taxonID')
@@ -146,27 +147,38 @@ def submit_sensitive_request(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                        'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                             keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
             
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
-            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+            # 下拉選單單選
+            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
                     else:
                         query_list += [f'{i}:{val}']
+
+            # 下拉選單多選
+            d_list = []
+            if val := req_dict.getlist('datasetName'):
+                for v in val:
+                    if DatasetKey.objects.filter(id=v).exists():
+                        d_list.append(DatasetKey.objects.get(id=v).name)
+            
+            if d_list:
+                d_list_str = '" OR "'.join(d_list)
+                query_list += [f'datasetName:("{d_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -181,29 +193,43 @@ def submit_sensitive_request(request):
             geojson = {}
             geojson['features'] = ''
 
-            if g_str := req_dict.get('geojson'):
-                geojson = json.loads(g_str)
-            elif g_id := req_dict.get('geojson_id'):
+            if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
                 except:
                     pass
 
+            if circle_radius := req_dict.get('circle_radius'):
+                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+            if g_list := req_dict.getlist('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                except:
+                    pass
+
             if geojson['features']:
-                if circle_radius := req_dict.get('circle_radius'):
-                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-                else:
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        if str(i).startswith('POLYGON'):
-                            g_list += [i]
-                    try:
-                        mp = MultiPolygon(map(wkt.loads, g_list))
-                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                    except:
-                        pass
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
+            # if geojson['features']:
+            #     if circle_radius := req_dict.get('circle_radius'):
+            #         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+            #     else:
+            #         geo_df = gpd.GeoDataFrame.from_features(geojson)
+            #         g_list = []
+            #         for i in geo_df.to_wkt()['geometry']:
+            #             if str(i).startswith('POLYGON'):
+            #                 g_list += [i]
+            #         try:
+            #             mp = MultiPolygon(map(wkt.loads, g_list))
+            #             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+            #         except:
+            #             pass
             
             if val := req_dict.get('name'):
                 val = val.strip()
@@ -253,6 +279,7 @@ def submit_sensitive_request(request):
                         content = nn.get_type_display().replace('0000', str(nn.content))
                         send_notification([u.id],content,'單次使用敏感資料申請通知')
 
+            # TODO 這邊要寫else嗎
         else:
             # 委辦工作計畫
             sdr = SensitiveDataResponse.objects.create(
@@ -308,27 +335,38 @@ def transfer_sensitive_response(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                        'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                             keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
             
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
-            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+            # 下拉選單單選
+            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
                     else:
                         query_list += [f'{i}:{val}']
+            
+            # 下拉選單多選
+            d_list = []
+            if val := req_dict.getlist('datasetName'):
+                for v in val:
+                    if DatasetKey.objects.filter(id=v).exists():
+                        d_list.append(DatasetKey.objects.get(id=v).name)
+            
+            if d_list:
+                d_list_str = '" OR "'.join(d_list)
+                query_list += [f'datasetName:("{d_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -343,30 +381,29 @@ def transfer_sensitive_response(request):
             geojson = {}
             geojson['features'] = ''
 
-            if g_str := req_dict.get('geojson'):
-                geojson = json.loads(g_str)
-            elif g_id := req_dict.get('geojson_id'):
+            if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
                 except:
                     pass
 
+            if circle_radius := req_dict.get('circle_radius'):
+                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+            if g_list := req_dict.getlist('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                except:
+                    pass
+
             if geojson['features']:
-                if circle_radius := req_dict.get('circle_radius'):
-                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-                else:
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        if str(i).startswith('POLYGON'):
-                            g_list += [i]
-                    try:
-                        mp = MultiPolygon(map(wkt.loads, g_list))
-                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                    except:
-                        pass
-            
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+                
             if val := req_dict.get('name'):
                 val = val.strip()
                 keyword_reg = ''
@@ -413,7 +450,7 @@ def transfer_sensitive_response(request):
                         )
                         content = nn.get_type_display().replace('0000', str(nn.content))
                         send_notification([u.id],content,'單次使用敏感資料申請通知')
-
+        # TODO 要不要寫else
     return JsonResponse({"status": 'success'}, safe=False)
 
 
@@ -450,27 +487,38 @@ def generate_sensitive_csv(query_id):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                        'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                             keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
             
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
-            for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+            # 下拉選單單選
+            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
                     else:
                         query_list += [f'{i}:{val}']
+
+            # 下拉選單多選
+            d_list = []
+            if val := req_dict.getlist('datasetName'):
+                for v in val:
+                    if DatasetKey.objects.filter(id=v).exists():
+                        d_list.append(DatasetKey.objects.get(id=v).name)
+            
+            if d_list:
+                d_list_str = '" OR "'.join(d_list)
+                query_list += [f'datasetName:("{d_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -485,30 +533,29 @@ def generate_sensitive_csv(query_id):
             geojson = {}
             geojson['features'] = ''
 
-            if g_str := req_dict.get('geojson'):
-                geojson = json.loads(g_str)
-            elif g_id := req_dict.get('geojson_id'):
+            if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
                 except:
                     pass
 
+            if circle_radius := req_dict.get('circle_radius'):
+                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+            if g_list := req_dict.getlist('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+                except:
+                    pass
+
             if geojson['features']:
-                if circle_radius := req_dict.get('circle_radius'):
-                    query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-                else:
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        if str(i).startswith('POLYGON'):
-                            g_list += [i]
-                    try:
-                        mp = MultiPolygon(map(wkt.loads, g_list))
-                        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                    except:
-                        pass
-            
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
             if val := req_dict.get('name'):
                 val = val.strip()
                 keyword_reg = ''
@@ -550,6 +597,7 @@ def generate_sensitive_csv(query_id):
                 sq.status = 'pass'
                 sq.modified = timezone.now()
                 sq.save()
+            # TODO 這邊要寫else嗎
 
         else:
             # 沒有帳號通過
@@ -583,9 +631,22 @@ def save_geojson(request):
         return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
+def return_geojson_query(request):
+    if request.method == 'POST':
+        geojson = request.POST.get('geojson_text')
+        geojson = gpd.read_file(geojson, driver='GeoJSON')
+        geojson = geojson.dissolve()
+
+    # geo_df = gpd.GeoDataFrame.from_features(geojson)
+        g_list = []
+        for i in geojson.to_wkt()['geometry']:
+            if str(i).startswith('POLYGON'):
+                g_list += [i]
+        # print(g_list)
+        return JsonResponse({"polygon": g_list}, safe=False)
+
 def send_download_request(request):
     if request.method == 'POST':
-        # print(request.POST.get('taxon'))
         if request.POST.get('from_full'):
             task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id))
             task.start()
@@ -614,27 +675,38 @@ def generate_download_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                'taxonID', 'preservation']:
+    for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                     keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
     
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
-    for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+    # 下拉選單單選
+    for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
             else:
                 query_list += [f'{i}:{val}']
+
+    # 下拉選單多選
+    d_list = []
+    if val := req_dict.getlist('datasetName'):
+        for v in val:
+            if DatasetKey.objects.filter(id=v).exists():
+                d_list.append(DatasetKey.objects.get(id=v).name)
+
+    if d_list:
+        d_list_str = '" OR "'.join(d_list)
+        query_list += [f'datasetName:("{d_list_str}")']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -649,29 +721,43 @@ def generate_download_csv(req_dict,user_id):
     geojson = {}
     geojson['features'] = ''
 
-    if g_str := req_dict.get('geojson'):
-        geojson = json.loads(g_str)
-    elif g_id := req_dict.get('geojson_id'):
+    if g_id := req_dict.get('geojson_id'):
         try:
             with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                 geojson = json.loads(j.read())
         except:
             pass
 
+    if circle_radius := req_dict.get('circle_radius'):
+        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            mp = MultiPolygon(map(wkt.loads, g_list))
+            query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+        except:
+            pass
+
     if geojson['features']:
-        if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-        else:
-            geo_df = gpd.GeoDataFrame.from_features(geojson)
-            g_list = []
-            for i in geo_df.to_wkt()['geometry']:
-                if str(i).startswith('POLYGON'):
-                    g_list += [i]
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            except:
-                pass
+        geo_df = gpd.GeoDataFrame.from_features(geojson)
+        g_list = []
+        for i in geo_df.to_wkt()['geometry']:
+            query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
+    # if geojson['features']:
+    #     if circle_radius := req_dict.get('circle_radius'):
+    #         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
+    #     else:
+    #         geo_df = gpd.GeoDataFrame.from_features(geojson)
+    #         g_list = []
+    #         for i in geo_df.to_wkt()['geometry']:
+    #             if str(i).startswith('POLYGON'):
+    #                 g_list += [i]
+    #         try:
+    #             mp = MultiPolygon(map(wkt.loads, g_list))
+    #             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+    #         except:
+    #             pass
     
     if val := req_dict.get('name'):
         val = val.strip()
@@ -734,6 +820,7 @@ def generate_download_csv(req_dict,user_id):
         )
         content = nn.get_type_display().replace('0000', str(nn.content))
         send_notification([user_id],content,'下載資料已完成通知')
+    # TODO 這邊要做else嗎？
 # facet.pivot=taxonID,scientificName
 
 
@@ -747,27 +834,38 @@ def generate_species_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    for i in ['rightsHolder', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'resourceContacts',
-                'taxonID', 'preservation']:
+    for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                if i in ['rightsHolder', 'locality', 'recordedBy', 'datasetName', 'resourceContacts', 'preservation']:
+                if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                     keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
     
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
-    for i in ['sensitiveCategory', 'taxonRank', 'typeStatus']: # 下拉選單
+    # 下拉選單單選
+    for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
             else:
                 query_list += [f'{i}:{val}']
+
+    # 下拉選單多選
+    d_list = []
+    if val := req_dict.getlist('datasetName'):
+        for v in val:
+            if DatasetKey.objects.filter(id=v).exists():
+                d_list.append(DatasetKey.objects.get(id=v).name)
+    
+    if d_list:
+        d_list_str = '" OR "'.join(d_list)
+        query_list += [f'datasetName:("{d_list_str}")']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -782,30 +880,29 @@ def generate_species_csv(req_dict,user_id):
     geojson = {}
     geojson['features'] = ''
 
-    if g_str := req_dict.get('geojson'):
-        geojson = json.loads(g_str)
-    elif g_id := req_dict.get('geojson_id'):
+    if g_id := req_dict.get('geojson_id'):
         try:
             with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                 geojson = json.loads(j.read())
         except:
             pass
 
+    if circle_radius := req_dict.get('circle_radius'):
+        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            mp = MultiPolygon(map(wkt.loads, g_list))
+            query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+        except:
+            pass
+
     if geojson['features']:
-        if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-        else:
-            geo_df = gpd.GeoDataFrame.from_features(geojson)
-            g_list = []
-            for i in geo_df.to_wkt()['geometry']:
-                if str(i).startswith('POLYGON'):
-                    g_list += [i]
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            except:
-                pass
-    
+        geo_df = gpd.GeoDataFrame.from_features(geojson)
+        g_list = []
+        for i in geo_df.to_wkt()['geometry']:
+            query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
     if val := req_dict.get('name'):
         val = val.strip()
         keyword_reg = ''
@@ -888,7 +985,7 @@ def generate_species_csv(req_dict,user_id):
         )
         content = nn.get_type_display().replace('0000', str(nn.content))
         send_notification([user_id],content,'下載名錄已完成通知')
-
+    # TODO 這邊要不要寫else
 
     # return csv file
 
@@ -1844,8 +1941,6 @@ def get_more_cards_taxon(request):
                         tr['taieol_id'] = data.get('tid')
             taxon_result_dict.append(tr)
         
-
-
         response = {
             'data': taxon_result_dict,
             'has_more': True if taxon_card_len > 4 else False
@@ -1970,8 +2065,9 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+    # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    dataset_list = DatasetKey.objects.filter(record_type='col')
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
@@ -1986,8 +2082,9 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+    # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    dataset_list = DatasetKey.objects.filter(record_type='occ')
     # holder_list = ['TBN','TaiBIF','林試所','林務局','海保署']
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無'] # TODO 物種不開放僅開放有權限的人查詢
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
@@ -2095,8 +2192,6 @@ def occurrence_detail(request, id):
             # for i in info['info']:
             #     if i.get('subtitle') == row.get('rightsHolder'):
             logo = logo[0]['logo']
-
-
 
     return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
@@ -2213,7 +2308,6 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
-        # query_string = request.POST.urlencode()
         limit = int(request.POST.get('limit', 10))
         orderby = request.POST.get('orderby','scientificName')
         sort = request.POST.get('sort', 'asc')
@@ -2244,8 +2338,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        for i in ['locality', 'recordedBy', 'basisOfRecord', 'resourceContacts',
-                  'taxonID', 'preservation']:
+        for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
                     val = val.strip()
@@ -2259,12 +2352,24 @@ def get_conditional_records(request):
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
 
-        for i in ['sensitiveCategory', 'taxonRank', 'typeStatus','rightsHolder','datasetName']: # 下拉選單
+        # 下拉選單單選
+        for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
                 else:
                     query_list += [f'{i}:{val}']
+
+        # 下拉選單多選
+        d_list = []
+        if val := request.POST.getlist('datasetName'):
+            for v in val:
+                if DatasetKey.objects.filter(id=v).exists():
+                    d_list.append(DatasetKey.objects.get(id=v).name)
+        
+        if d_list:
+            d_list_str = '" OR "'.join(d_list)
+            query_list += [f'datasetName:("{d_list_str}")']
 
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
@@ -2279,30 +2384,29 @@ def get_conditional_records(request):
         geojson = {}
         geojson['features'] = ''
 
-        if g_str := request.POST.get('geojson'):
-            geojson = json.loads(g_str)
-        elif g_id := request.POST.get('geojson_id'):
+        if g_id := request.POST.get('geojson_id'):
             try:
                 with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                     geojson = json.loads(j.read())
             except:
                 pass
 
+        if circle_radius := request.POST.get('circle_radius'):
+            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
+
+        if g_list := request.POST.getlist('polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+            except:
+                pass
+
         if geojson['features']:
-            if circle_radius := request.POST.get('circle_radius'):
-                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-            else:
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    if str(i).startswith('POLYGON'):
-                        g_list += [i]
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                except:
-                    pass
-        
+            geo_df = gpd.GeoDataFrame.from_features(geojson)
+            g_list = []
+            for i in geo_df.to_wkt()['geometry']:
+                query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
         if val := request.POST.get('name'):
             val = val.strip()
             keyword_reg = ''
@@ -2312,6 +2416,7 @@ def get_conditional_records(request):
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
+
         # 如果有其他條件才進行搜尋，否則回傳空值
         if query_list and query_list != ['recordType:col']:
 

@@ -87,9 +87,9 @@ function vanillaSelectBox(domSelector, options) {
     this.searchZone = null;
     this.inputBox = null;
     this.disabledItems = [];
-    this.ulminWidth = 140;
-    this.ulmaxWidth = 280;
-    this.ulminHeight = 25;
+    //this.ulminWidth = 140;
+    //this.ulmaxWidth = 280;
+    //this.ulminHeight = 25;
     this.maxOptionWidth = Infinity;
     this.maxSelect = Infinity;
     this.isInitRemote = false;
@@ -100,9 +100,9 @@ function vanillaSelectBox(domSelector, options) {
     this.forbidenAttributes = ["class", "selected", "disabled", "data-text", "data-value", "style"];
     this.forbidenClasses = ["active", "disabled"];
     this.userOptions = {
-        maxWidth: 500,
+        //maxWidth: 500,
         minWidth: -1,
-        maxHeight: 400,
+        maxHeight: 300,
         translations: { "all": "All", "item": "item","items": "items", "selectAll": "Select All", "clearAll": "Clear All" },
         search: false,
         placeHolder: "",
@@ -1254,11 +1254,13 @@ vanillaSelectBox.prototype.setValue = function (values) {
             }
             self.checkUncheckAll();
         } else {
+            console.log('dddd',values)
             let found = false;
             let text = "";
-            let classNames = ""
+            let className = ""
             Array.prototype.slice.call(listElements).forEach(function (x) {
-                let liVal = x.getAttribute("data-value") == values;
+                console.log(x.getAttribute("data-text"))
+                let liVal = x.getAttribute("data-value");
                 if(liVal !== "all"){
                     if (liVal == values) {
                         x.classList.add("active");

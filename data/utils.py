@@ -3,23 +3,18 @@ import numpy as np
 import math
 from dateutil import parser
 from datetime import datetime, timedelta
-
-
-
 import numpy as np
 import bisect
 import os
 from os.path import exists
+from data.models import DatasetKey
 
 # x: longtitude, y: latitude
-
 
 def convert_grid_to_coor(grid_x, grid_y, list_x, list_y):
   center_x = (list_x[grid_x] + list_x[grid_x+1])/2
   center_y = (list_y[grid_y] + list_y[grid_y+1])/2
   return center_x, center_y
-
-
 
 def convert_coor_to_grid(x, y, grid):
     list_x = np.arange(-180, 180, grid)
@@ -38,13 +33,11 @@ def convert_grid_to_square(grid_x, grid_y, grid):
     # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 
-
 rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
           'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
             'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 
             'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
               'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'special-form', 'race', 'stirp', 'morph', 'aberration', 'hybrid-formula']
-
 
 var_df = pd.DataFrame([
 ('鈎','[鈎鉤]'),
@@ -199,7 +192,6 @@ def is_alpha(word):
 dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
             'alternative_name_c', 'synonyms']
-
 
 def get_key(val, my_dict):
     for key, value in my_dict.items():
@@ -570,10 +562,15 @@ def create_query_display(search_dict,sq_id):
         map_dict = map_collection
         query += '<b>類別</b>：自然史典藏'
 
+    d_list = []
     for k in search_dict.keys():
         if k in map_dict.keys():
             if k == 'taxonRank':
                 query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+            elif k == 'datasetName':
+                for d in eval(search_dict[k]):
+                    if DatasetKey.objects.filter(id=d).exists():
+                        d_list.append(DatasetKey.objects.get(id=d).name)
             else:
                 query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
         # 地圖搜尋
@@ -586,7 +583,7 @@ def create_query_display(search_dict,sq_id):
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
                     query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
             elif search_dict[k] == 'map':
-                query += f"<br><b>地圖框選</b>：<a target='_blank' href='/get_geojson/{sq_id}'>點此下載geojson</a>" 
+                query += f"<br><b>地圖框選</b>：{search_dict.get('polygon')}" 
         # 日期
         elif k == 'start_date':
             query += f"<br><b>起始日期</b>：{search_dict.get('start_date')}" 
@@ -595,6 +592,8 @@ def create_query_display(search_dict,sq_id):
         elif k == 'name':
             query += f"<br><b>中文名/學名/中文別名</b>：{search_dict.get('name')}" 
 
+    if d_list:
+        query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
     return query
 
 # taxon-related columns

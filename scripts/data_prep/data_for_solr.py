@@ -127,7 +127,7 @@ merged_cols = [
 'organismQuantity',
 'organismQuantityType',
 'recordedBy',
-'scientificNameID',
+'taxonID',
 'basisOfRecord',
 'datasetName',
 'resourceContacts',

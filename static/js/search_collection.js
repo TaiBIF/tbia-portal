@@ -89,7 +89,7 @@ $( function() {
     })
 
     $('.submitSearch').on('click', function(){
-        submitSearch($(this).data('page'),$(this).data('from'))
+        submitSearch($(this).data('page'),$(this).data('from'),$(this).data('new_click'))
     })
 
     $('.show_start').on('click', function(){
@@ -134,7 +134,7 @@ $( function() {
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         drawnItems.clearLayers();
         $('.addG, .addC').remove()
-            $('input[name=center_lat]').val('')
+        $('input[name=center_lat]').val('')
         $('input[name=center_lon]').val('')
         $("#circle_radius").val("1").trigger("change");
         $('#geojson_textarea').val('')
@@ -155,7 +155,7 @@ $( function() {
     
     $('.circle_send').click( function(){
         // 先把舊的移除
-        $('.addC, [class^=resultG_]').remove()
+        $('.addC, [class^=resultG_], .addM, .addG').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
           alert('框選失敗！請檢查經緯度格式是否正確')
         } else {
@@ -173,7 +173,7 @@ $( function() {
     
     $('.geojson_send').click( function(){
         // 先把舊的移除
-        $('.addG, [class^=resultG_]').remove()
+        $('.addG, [class^=resultG_], .addC, .addM').remove()
         try {
             let geoObj = JSON.parse($('#geojson_textarea').val());
             //var regionsDissolved = turf.dissolve(geoObj);
@@ -209,7 +209,7 @@ $( function() {
     // 如果按上下一頁
     window.onpopstate = function(event) {
         drawnItems.clearLayers();
-        $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+        $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
         changeAction();
     };
 
@@ -218,18 +218,24 @@ $( function() {
 
 function changeAction(){
     
-    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": '全選', "clearAll": '清除' } 
+    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: true,
+        translations: { "all": "全部", "items": " 個選項"} 
     });
 
-    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": '全選', "clearAll": '清除' } 
+    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true, disableSelectAll: true,
+        translations: { "all": "全部", "items": " 個選項"} 
     });
 
-    let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false,
+    let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
     });
 
-    //$('.vsb-main button').css('border','').css('background','')
+    let selectBox4 = new vanillaSelectBox("#typeStatus",{"placeHolder":"標本類型",search:false, disableSelectAll: true,
+    });
+
+    let selectBox5 = new vanillaSelectBox("#taxonRank",{"placeHolder":"鑑定層級",search:false, disableSelectAll: true,
+    });
+
+
     $('span.caret').addClass('d-none')
 
     $('.vsb-main button').on('click',function(){
@@ -265,38 +271,70 @@ function changeAction(){
         }
     })
 
+    $('#typeStatus').on('change',function(){
+        if ($('#btn-group-typeStatus .vsb-menu ul li.active').length>0){
+            $('#btn-group-typeStatus button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-typeStatus button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+    
+    $('#taxonRank').on('change',function(){
+        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
+            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
     let queryString = window.location.search;
+    let urlParams = new URLSearchParams(queryString);
+
     if (queryString.split('&').length>1){
         // 把條件填入表格
-        let urlParams = new URLSearchParams(queryString);
         let entries = urlParams.entries(); 
 
         let d_list = Array();
         let r_list = Array();
 
         for(const [key, value] of entries) { 
-            if ((key != 'datasetName') & (key != 'rightsHolder')){
+            if (key=='datasetName') {
+                d_list.push(value)
+            } else if (key == 'rightsHolder') {
+                r_list.push(value)
+            } else if (key == 'sensitiveCategory') {
+                selectBox3.setValue(value)
+            } else if (key == 'typeStatus') {
+                console.log('hello')
+                selectBox4.setValue(value)
+            } else if (key == 'taxonRank'){
+                selectBox5.setValue(value)
+            } else {
 
                 $(`[name=${key}]`).val(value)
                 // map按鈕
                 if (key == 'geo_type'){
                     $(`p[data-type=${value}]`).addClass("active")
-                }
 
-                if (key == 'geojson') {
-                    if (urlParams.get('geo_type') == 'map') {
-                        geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
-                        drawnItems.addLayer(geoJSON);
-                        map.fitBounds(geoJSON.getBounds());
-                    } else if (urlParams.get('geo_type') == 'circle') {
+                    // 把地圖畫上去
+                    if (urlParams.get('geo_type') == 'circle') {
                         let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
                         parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
                         drawnItems.addLayer(circle);
                         map.fitBounds(circle.getBounds());
-                    }
+                    } else if (urlParams.get('geo_type') == 'map') {
+                        var wkt = new Wkt.Wkt();
+                        if (urlParams.getAll('polygon')){
+                            for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
+                                wkt.read(urlParams.getAll('polygon')[i])
+                                obj = wkt.toObject({className: 'addM'}); 
+                                obj.addTo(map);
+                            }
+                        }
+                    } 
                 }
-
-                if ((key == 'geojson_id') && (value != '')){
+                if ((key == 'geojson_id') && (value != '')){ 
+                    
                     fetch(`/media/geojson/${value}.json`).then((res) => {
                         if (res.ok) {
                             $('#geojson_textarea').val(JSON.stringify(res.json()))
@@ -309,13 +347,7 @@ function changeAction(){
                         }
                     });
                 }
-            } else {
-                if (key=='datasetName') {
-                    d_list.push(value)
-                } else if (key == 'rightsHolder') {
-                    r_list.push(value)
-                }
-            }
+            } 
         }
 
         selectBox.setValue(r_list);
@@ -333,33 +365,58 @@ function changeAction(){
             $('#btn-group-rightsHolder button span.title').addClass('color-707070').removeClass('black')
         }
 
-        getRecordByURL(queryString,null,null,null,null)
+        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
+            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if ($('#btn-group-typeStatus .vsb-menu ul li.active').length>0){
+            $('#btn-group-typeStatus button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-typeStatus button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
+            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if (urlParams.get('page')){
+            page = urlParams.get('page')
+        } else {
+            page = 1
+        }
+        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'),urlParams.get('sort'))//{
+
     }
 }
 
-function setTable(response, queryString){
+function setTable(response, queryString, from, orderby, sort){
     // 把之前的清掉
-    drawnItems.clearLayers();
-    $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+    if (from=='search'){
+        drawnItems.clearLayers();
+        $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-    L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
-    //map.fitBounds(geoResult.getBounds());
+        L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10',style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100',style: style}).addTo(map);
+        //map.fitBounds(geoResult.getBounds());
 
-    $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
+        $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
 
-    if (map.getZoom() < 5) {
-        $('.resultG_100').removeClass('d-none')
-    } else if (map.getZoom() < 8){
-        $('.resultG_10').removeClass('d-none')
-    } else if (map.getZoom() < 9){
-        $('.resultG_5').removeClass('d-none')
-    } else {
-        $('.resultG_1').removeClass('d-none')
+        if (map.getZoom() < 5) {
+            $('.resultG_100').removeClass('d-none')
+        } else if (map.getZoom() < 8){
+            $('.resultG_10').removeClass('d-none')
+        } else if (map.getZoom() < 9){
+            $('.resultG_5').removeClass('d-none')
+        } else {
+            $('.resultG_1').removeClass('d-none')
+        }
     }
-
     // 如果有資料回傳則顯示table
     $('.search_condition_are').after(`
     <div class="sc_result">
@@ -389,7 +446,7 @@ function setTable(response, queryString){
     </div>`)
 
     $('select[name=shownumber]').on('change',function(){
-        getRecordByURL($(this).data('query'), 1,$(this).val(),null,null)
+        submitSearch(1,'page',false,$(this).val(),orderby, sort)
     })
     
     // 如果querystring裡面有limit的，修改shownumber
@@ -472,7 +529,9 @@ function setTable(response, queryString){
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
             $(this).data('sort','asc');
         }
-        getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
+
+        submitSearch(1,'page',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
+        //getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
     })
 
     $('.downloadData').on('click', function(){
@@ -543,285 +602,221 @@ function setTable(response, queryString){
     })
 }
 
-function getRecordByURL(queryString,page,limit,orderby,sort) {
+// submit search form   
+function submitSearch (page, from, new_click,limit,orderby,sort){
 
-    // 如果從頁碼點選, 修改page參數
-    if (page != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('page',page)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
+    let map_condition = ''
 
-    // 如果調整每頁筆數, 修改limit參數
-    if (limit != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('limit',limit)
-        urlParams.set('page',1)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // 如果調整orderby and sort
-    if (orderby != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('orderby',orderby)
-        urlParams.set('sort',sort)
-        urlParams.set('page',1)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // selected_col
-    let selected_col = ''
-    $(`.col-choice input:checked`).each(function(){
-        selected_col += '&selected_col=' + $(this).attr('id').replace('col-','')
-    })
-
-    $.ajax({
-        url: "/get_conditional_records",
-        data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
-        type: 'POST',
-        dataType : 'json'
-    })
-    .done(function(response) {
-        // clear previous results
-        $('.sc_result').remove()
-        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-        if (response.count == 0){
-            $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
-        } else {
-            // 把之前的清掉
-            setTable(response, queryString)
-
-            // 欄位選項
-            $(`input[id^="col-"]`).prop('checked',false)
-            // show selected columns
-            for (let i = 0; i < response.selected_col.length; i++) {
-                $(`.row-${response.selected_col[i]}`).removeClass('d-none');
-                $(`#col-${response.selected_col[i]}`).prop('checked',true);
-            }
-
-            // disable checkebox for common_name_c & scientificName
-            $('#col-common_name_c, #col-scientificName').prop('disabled',true);
-            $('#col-common_name_c, #col-scientificName').prop('checked',true);
-
-            // append pagination
-            if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                $('.result_table').after(
-                `<div class="d-flex-ai-c-jc-c">
-                    <div class="page_number">
-                    <a href="javascript:;" class="pre">
-                    <span></span>
-                    </a>
-                    <a href="javascript:;" class="next">
-                    <span></span>
-                    </a>
-                    </div>
-                    <span class="ml-20px">
-                    跳至<input data-query='${queryString}' name="jumpto" type="number" min="1" step="1" class="page-jump">頁
-                    <a class="jumpto pointer">GO</a>  
-                    </span>
-                </div>`)
-            }		
-            
-            $('.jumpto').on('click', function(){
-                getRecordByURL($('input[name=jumpto]').data('query'),$('input[name=jumpto]').val(),null,null,null)
-            })
-
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
-                    html += `<a href="javascript:;" class="num now getRecordByURL" data-query="${queryString}" data-page="${response.page_list[i]}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += `<a href="javascript:;" class="num getRecordByURL" data-query="${queryString}" data-page="${response.page_list[i]}">${response.page_list[i]}</a>  `
-                }
-            }
-            $('.pre').after(html)
-
-            // 如果有上一頁，改掉pre的onclick
-            if ((response.current_page - 1) > 0 ){
-                $('.pre').addClass('getRecordByURL')
-                $('.pre').data('query', queryString)
-                $('.pre').data('page', response.current_page-1)
-            }
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page){
-                $('.next').addClass('getRecordByURL')
-                $('.next').data('query', queryString)
-                $('.next').data('page', response.current_page+1)
-            }
-
-            // 如果有前面的page list, 加上...
-            if (response.current_page > 5){
-                $('.pre').after(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.current_page-5}">...</a> `)
-            }
-            // 如果有後面的page list, 加上...
-            if (response.page_list[response.page_list.length - 1] < response.total_page){
-                if (response.current_page +5 > response.total_page){
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.total_page}">...</a> `)
-                } else {
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.current_page+5}">...</a>`)
-                }
-            }
-
-            $('.getRecordByURL').on('click', function(){
-                getRecordByURL($(this).data('query'),$(this).data('page'),$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
-            })
-        }
-
-        $([document.documentElement, document.body]).animate({
-            scrollTop: $(".sc_result").offset().top}, 200);
-
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-            alert('要求連線逾時')
-        } else {
-            alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-}
-
-
-// submit search form
-function submitSearch (page, from){
-    let map_condition = '';
-    if ($('p.active').data('type')=='map'){
-        map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()),'geo_type': 'map'})
-    } else if ($('p.active').data('type')=='polygon'){
-        map_condition = '&' + $.param({'geo_type': 'polygon'})
-    } else if ($('p.active').data('type')=='circle'){
-        map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val(),
-        'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val(), 'geo_type': 'circle'})
-    }
-
-    let selected_col = ''
-
-    // 如果是按搜尋，重新給query參數，若是從分頁則不用
-    if (from == 'search'){   
-        var form = $(); 
-        $('#searchForm input,#searchForm select').each(function() {
-            if ($(this).val().length) {
-                form = form.add($(this));
-            }
+    if (new_click & ($('.btnupload p.active').data('type')=='map')){
+        $.ajax({
+            url: "/return_geojson_query",
+            data: { geojson_text: JSON.stringify(drawnItems.toGeoJSON()),
+                    csrfmiddlewaretoken: $csrf_token},
+            type: 'POST',
+            dataType : 'json',
         })
-        window.condition = form.serialize() + map_condition
-    } else {
-        // 如果是從分頁，要記錄selected columns
-        $(`.col-choice input:checked`).each(function(){
-            selected_col += '&selected_col=' + $(this).attr('id').replace('col-','')
+        .done(function(response) {
+            window.g_list = response.polygon
+            submitSearch (page, from)
         })
-    }
-
-    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&' + $.param({'page': page})+ '&from=' + from);
-
-    $.ajax({
-        url: "/get_conditional_records",
-        data: window.condition + '&' + $.param({'page': page})+ '&from=' + from + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-    // clear previous results
-        $('.sc_result').remove()
-        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-        if (response.count == 0){
-            $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
-        } else {
-            setTable(response, window.condition)
-            // 判斷是從分頁或搜尋點選
-            if (from == 'search'){
-                // uncheck all first
-                $(`input[id^="col-"]`).prop('checked',false)
-                // show selected columns
-                for (let i = 0; i < response.selected_col.length; i++) {
-                    $(`.row-${response.selected_col[i]}`).removeClass('d-none');
-                    $(`#col-${response.selected_col[i]}`).prop('checked',true);
-                }
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
             } else {
-                sendSelected()
+                alert('發生未知錯誤！請聯絡管理員')
             }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 
-            // disable checkebox for common_name_c & scientificName
-            $('#col-common_name_c, #col-scientificName').prop('disabled',true);
-            $('#col-common_name_c, #col-scientificName').prop('checked',true);
-            // append pagination
-            if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                $('.result_table').after(
-                    `<div class="d-flex-ai-c-jc-c">
-                    <div class="page_number">
-                    <a href="javascript:;" class="pre">
-                        <span></span>
-                    </a>
-                    <a href="javascript:;" class="next">
-                        <span></span>
-                    </a>
-                    </div>
-                    <span class="ml-20px">
-                        跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
-                        <a class="jumpto pointer">GO</a>  
-                    </span>
-                    </div>`)
-            }
-            
-            $('.jumpto').on('click', function(){
-                submitSearch($('input[name=jumpto]').val(),'page')
-            })
-                
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
-                    html += `<a href="javascript:;" class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
-                } else {
-                    html += `<a href="javascript:;" class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
-                }
-            }
-            $('.pre').after(html)
-
-            // 如果有上一頁，改掉pre的onclick
-            if ((response.current_page - 1) > 0 ){
-                $('.pre').addClass('submitSearch')
-                $('.pre').data('page', response.current_page-1)
-                $('.pre').data('from', 'page')
-            }
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page){
-                $('.next').addClass('submitSearch')
-                $('.next').data('page', response.current_page+1)
-                $('.next').data('from', 'page')
-            }
-
-            // 如果有前面的page list, 加上...
-            if (response.current_page > 5){
-                $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}," data-from="page">...</a> `)
-            }
-            // 如果有後面的page list, 加上...
-            if (response.page_list[response.page_list.length - 1] < response.total_page){
-                if (response.current_page +5 > response.total_page){
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
-                } else {
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page+5}" data-from="page">...</a>`)
-                }
-            }
-
-            $('.submitSearch').on('click', function(){
-                submitSearch($(this).data('page'),$(this).data('from'))
-            })
+    } else {
+        // 要把
+        if (new_click) {
 
         }
-        $([document.documentElement, document.body]).animate({
-            scrollTop: $(".sc_result").offset().top}, 200);
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-            alert('要求連線逾時')
+
+        if ($('.btnupload p.active').data('type')){
+
+            map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+
+            if ($('.btnupload p.active').data('type')=='circle'){
+                map_condition += '&' + $.param({'circle_radius': $('select[name=circle_radius]').val(),
+                'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val()})
+            } else if ($('.btnupload p.active').data('type')=='map') {
+                if (window['g_list']){
+                    for (let i = 0; i < window['g_list'].length; i++) {
+                        map_condition += '&' + $.param({'polygon': window['g_list'][i]})
+                    }
+                } else {
+                    //let queryString = window.location.search;
+                    let urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.getAll('polygon')){
+                        for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
+                            map_condition += '&' + $.param({'polygon':  urlParams.getAll('polygon')[i]})
+                        }
+                    }
+                }
+            }
+        }
+
+        let selected_col = ''
+
+        // 如果是按搜尋，重新給query參數，若是從分頁則不用
+        if (from == 'search'){   
+            var form = $(); 
+            $('#searchForm input, #searchForm select').each(function() {
+                if ($(this).val().length) {
+                    form = form.add($(this));
+                }
+            })
+            window.condition = form.serialize() + map_condition
         } else {
-            alert('發生未知錯誤！請聯絡管理員')
-        } 
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
+            // 如果是從分頁，要記錄selected columns
+            $(`.col-choice input:checked`).each(function(){
+                selected_col += '&selected_col=' + $(this).attr('id').replace('col-','')
+            })
+        }
+
+        if (limit == null) {
+            limit = 10
+        }
+
+        history.pushState(null, '', window.location.pathname + '?' + window.condition + '&page=' +  page + '&from=' + from + '&limit=' + limit);
+
+        // 如果調整orderby and sort
+        let orderby_str = ''
+        if (orderby != null){
+            let urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('orderby',orderby)
+            urlParams.set('sort',sort)
+            urlParams.set('page',1)
+            page = 1
+            orderby_str = '&orderby=' + orderby + '&sort=' + sort
+            queryString = urlParams.toString()
+            history.pushState(null, '', window.location.pathname + '?'  + queryString);
+        }
+
+
+        $.ajax({
+            url: "/get_conditional_records",
+            data: window.condition + '&page=' + page + '&from=' + from + '&limit=' + limit + '&csrfmiddlewaretoken=' + $csrf_token + selected_col + orderby_str,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+
+            // clear previous results
+            $('.sc_result').remove()
+            //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+            if (response.count == 0){
+                // TODO 這邊如果有map的圖案要加回來
+                $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+                $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
+            } else {
+                setTable(response, window.condition, from, orderby, sort)
+                // 判斷是從分頁或搜尋點選
+                if (from == 'search'){
+                    // uncheck all first
+                    $(`input[id^="col-"]`).prop('checked',false)
+                    // show selected columns
+                    for (let i = 0; i < response.selected_col.length; i++) {
+                        $(`.row-${response.selected_col[i]}`).removeClass('d-none');
+                        $(`#col-${response.selected_col[i]}`).prop('checked',true);
+                    }
+                } else {
+                    sendSelected()
+                }
+
+                // disable checkebox for common_name_c & scientificName
+                $('#col-common_name_c, #col-scientificName').prop('disabled',true);
+                $('#col-common_name_c, #col-scientificName').prop('checked',true);
+                // append pagination
+                if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                    $('.result_table').after(
+                        `<div class="d-flex-ai-c-jc-c">
+                        <div class="page_number">
+                        <a href="javascript:;" class="pre">
+                            <span></span>
+                        </a>
+                        <a href="javascript:;" class="next">
+                            <span></span>
+                        </a>
+                        </div>
+                        <span class="ml-20px">
+                            跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
+                            <a class="jumpto pointer">GO</a>  
+                        </span>
+                        </div>`)
+                }
+                
+                $('.jumpto').on('click', function(){
+                    submitSearch($('input[name=jumpto]').val(),'page',false,limit,orderby,sort)
+                })
+                    
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page){
+                        html += `<a href="javascript:;" class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += `<a href="javascript:;" class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                    }
+                }
+                $('.pre').after(html)
+
+                // 如果有上一頁，改掉pre的onclick
+                if ((response.current_page - 1) > 0 ){
+                    $('.pre').addClass('submitSearch')
+                    $('.pre').data('page', response.current_page-1)
+                    $('.pre').data('from', 'page')
+                }
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page){
+                    $('.next').addClass('submitSearch')
+                    $('.next').data('page', response.current_page+1)
+                    $('.next').data('from', 'page')
+                }
+
+                // 如果有前面的page list, 加上...
+                if (response.current_page > 5){
+                    $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}," data-from="page">...</a> `)
+                }
+                // 如果有後面的page list, 加上...
+                if (response.page_list[response.page_list.length - 1] < response.total_page){
+                    if (response.current_page +5 > response.total_page){
+                        $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
+                    } else {
+                        $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page+5}" data-from="page">...</a>`)
+                    }
+                }
+
+                if (limit) {
+                    $('.page_number a.submitSearch').data('limit', limit)
+                }
+
+                if (orderby) {
+                    $('.page_number a.submitSearch').data('orderby', orderby)
+                }
+
+                if (sort) {
+                    $('.page_number a.submitSearch').data('sort', sort)
+                }
+
+                $('.page_number a.submitSearch').on('click', function(){
+                    submitSearch($(this).data('page'),$(this).data('from'),false,$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
+                })
+
+            }
+            $([document.documentElement, document.body]).animate({
+                scrollTop: $(".sc_result").offset().top}, 200);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            } 
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+    }
 }
   
 function sendSelected(){

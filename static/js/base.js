@@ -11,6 +11,40 @@ function showLogin(){
 
 $(function () {
 
+  let selectBoxFP = new vanillaSelectBox("#feedback_partner",{"placeHolder":"請選擇回饋對象",search:false, disableSelectAll: true,
+  });
+
+  let selectBoxFT = new vanillaSelectBox("#feedback_type",{"placeHolder":"請選擇問題類型",search:false, disableSelectAll: true,
+  });
+
+  $('span.caret').addClass('d-none')
+
+  $('.vsb-main button').on('click',function(){
+      if ($(this).next('.vsb-menu').css('visibility')=='visible'){
+          $(this).next('.vsb-menu').addClass('visible')
+      } else {
+          $(this).next('.vsb-menu').css('visibility', '')
+          $(this).next('.vsb-menu').removeClass('visible')
+      }
+  })
+
+  $('#feedback_partner').on('change',function(){
+    if ($('#btn-group-feedback_partner .vsb-menu ul li.active').length>0){
+        $('#btn-group-feedback_partner button span.title').addClass('black').removeClass('color-707070')
+    } else {
+        $('#btn-group-feedback_partner button span.title').addClass('color-707070').removeClass('black')
+    }
+  })
+
+  $('#feedback_type').on('change',function(){
+      if ($('#btn-group-feedback_type .vsb-menu ul li.active').length>0){
+          $('#btn-group-feedback_type button span.title').addClass('black').removeClass('color-707070')
+      } else {
+          $('#btn-group-feedback_type button span.title').addClass('color-707070').removeClass('black')
+      }
+  })
+
+
     $('.back-to-index').on('click', function(){
       window.location.href = '/'
     })

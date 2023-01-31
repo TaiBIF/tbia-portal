@@ -289,9 +289,10 @@ CSP_SCRIPT_SRC = ["'self'",
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js',
     "https://unpkg.com/@turf/turf@6/turf.min.js",
     # "'unsafe-inline'",
-    "https://cdn.quilljs.com/1.3.6/quill.js"
+    "https://cdn.quilljs.com/1.3.6/quill.js",
+    "https://unpkg.com/terraformer@1.0.7/terraformer.js",
+    "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js"
 ]
 
 # <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
 

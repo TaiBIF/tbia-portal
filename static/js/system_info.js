@@ -42,20 +42,26 @@ function changePage(page, menu){
             // 修改頁碼
             if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
                 $(`.${menu}_table`).parent().after(
-                  `<div class="page_number">
+                    `<div class="page_number">
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
                     <a href="javascript:;" class="pre">上一頁</a>  
                     <a href="javascript:;" class="next">下一頁</a>
                     <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                </div>`)
+                    </div>`)
             }		
-              
-            if (response.page_list.includes(response.current_page-1)){
-                $('.pre').addClass('changePage')
-                $('.pre').data('page',response.current_page-1)
-                $('.pre').data('type',menu)
+
+            if (menu=='sensitive_apply'){
+                s_menu = 'sensitiveㄋ'
             } else {
-                $('.pre').addClass('pt-none')
+                s_menu = menu
+            }
+                
+            if (response.page_list.includes(response.current_page-1)){
+                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
+                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page-1);
+                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);    
+            } else {
+                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
             }
 
             let html = ''
@@ -67,21 +73,22 @@ function changePage(page, menu){
                 }
             }
 
-            $('.pre').after(html)
-      
-              // 如果有下一頁，改掉next的onclick
+            $(`.${s_menu} .item .page_number a.pre`).after(html)
+    
+            // 如果有下一頁，改掉next的onclick
             if (response.current_page < response.total_page){
-                $('.next').addClass('changePage')
-                $('.next').data('page',response.current_page+1)
-                $('.next').data('type',menu)
+                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
+                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page+1);
+                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
             } else {
-                $('.next').addClass('pt-none')
+                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
             }
 
+            $('.changePage').off('click')
             $('.changePage').on('click', function(){
                 changePage($(this).data('page'),$(this).data('type'))
-            })
-
+            })        
+                
             $('.saveStatus').on('click', function(){
                 let current_id = $(this).data('pmid')
                 saveStatus(current_id)

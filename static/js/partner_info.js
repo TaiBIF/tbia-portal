@@ -154,11 +154,11 @@ function changePage(page, menu){
             }		
                 
             if (response.page_list.includes(response.current_page-1)){
-                $('.pre').addClass('changePage')
-                $('.pre').data('page', response.current_page-1)
-                $('.pre').data('type', menu)
+                $(`.${menu} .item .page_number a.pre`).addClass('changePage');
+                $(`.${menu} .item .page_number a.pre`).data('page', response.current_page-1);
+                $(`.${menu} .item .page_number a.pre`).data('type', menu);    
             } else {
-                $('.pre').addClass('pt-none')
+                $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
             }
 
             let html = ''
@@ -170,20 +170,22 @@ function changePage(page, menu){
                 }
             }
 
-            $('.pre').after(html)
+            $(`.${menu} .item .page_number a.pre`).after(html)
     
             // 如果有下一頁，改掉next的onclick
             if (response.current_page < response.total_page){
-                $('.next').addClass('changePage')
-                $('.next').data('page', response.current_page+1)
-                $('.next').data('type', menu)
+                $(`.${menu} .item .page_number a.next`).addClass('changePage');
+                $(`.${menu} .item .page_number a.next`).data('page', response.current_page+1);
+                $(`.${menu} .item .page_number a.next`).data('type', menu);
             } else {
-                $('.next').addClass('pt-none')
-            } 
+                $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+            }
 
+            $('.changePage').off('click')
             $('.changePage').on('click', function(){
                 changePage($(this).data('page'),$(this).data('type'))
             })        
+    
         }
     });
 

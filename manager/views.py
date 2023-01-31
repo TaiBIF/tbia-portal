@@ -167,7 +167,7 @@ def change_manager_page(request):
                         </tr>
                 """
         # taxon = []
-        for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon')[offset:offset+10]:
+        for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[offset:offset+10]:
             if t.modified:
                 date = t.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -203,7 +203,7 @@ def change_manager_page(request):
                             <td class="w-5p">檔案連結</td>
                         </tr>
         """
-        for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[offset:offset+10]:
+        for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
             if s.modified:
                 date = s.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -249,7 +249,7 @@ def change_manager_page(request):
                             <td class="w-5p">檔案連結</td>
                         </tr>
         """
-        for r in SearchQuery.objects.filter(user_id=request.user.id,type='record')[offset:offset+10]:
+        for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
             if r.modified:
                 date = r.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -283,7 +283,6 @@ def change_manager_page(request):
             if r.status == 'pass':
                 link = f'<a target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.csv">下載</a>'
 
-
             data.append({
                 'id': f'#{r.id}',
                 'query_id': r.query_id,
@@ -306,7 +305,7 @@ def change_manager_page(request):
                             <td class="w-15p">已回覆</td>
                         </tr> 
             """
-            for f in Feedback.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
+            for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
                     date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -340,7 +339,7 @@ def change_manager_page(request):
                             <td>已回覆</td>
                         </tr> 
             """
-            for f in Feedback.objects.all()[offset:offset+10]:
+            for f in Feedback.objects.all().order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
                     date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -378,7 +377,7 @@ def change_manager_page(request):
 
             total_page = math.ceil(Feedback.objects.all().count() / 10)
 
-    elif menu == 'track':
+    elif menu == 'sensitive_track':
         response['header'] = '''
                         <tr>
                             <td class="w-5p">申請編號</td>
@@ -388,7 +387,7 @@ def change_manager_page(request):
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                         </tr>'''
-        for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[offset:offset+10]:
+        for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.strftime('%Y-%m-%d'),14) # 已經是轉交單位審核的，期限為14天
@@ -430,7 +429,7 @@ def change_manager_page(request):
                             <td></td>
                         </tr> """
         if request.GET.get('from') == 'partner':
-            for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id)[offset:offset+10]:
+            for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.strftime('%Y-%m-%d'), 14)
                 created = created.strftime('%Y-%m-%d %H:%M:%S')
@@ -457,7 +456,7 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
 
         else:
-            for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[offset:offset+10]:
+            for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
 
                 # 整理查詢條件
@@ -502,7 +501,7 @@ def change_manager_page(request):
                             <td></td>
                         </tr> 
             '''
-            for a in User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
+            for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
                 if a.is_partner_admin:
                     select = f"""<select name="role" class="w-100p" data-id="{ a.id }"><option value="is_partner_admin" selected>單位管理員</option><option value="is_partner_account">單位帳號</option></select>"""
@@ -538,7 +537,7 @@ def change_manager_page(request):
                             <td></td>
                         </tr> 
             '''
-            for a in User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[offset:offset+10]:
+            for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
                     if a.partner.title =='營建署城鄉發展分署':
                         partner_title = '內政部營建署城鄉發展分署'
@@ -585,7 +584,7 @@ def change_manager_page(request):
                             <td class="w-8p"></td>
                         </tr>'''
                         
-        for n in News.objects.all()[offset:offset+10]:
+        for n in News.objects.all().order_by('-id')[offset:offset+10]:
             if n.partner:
                 if n.partner.title =='營建署城鄉發展分署':
                     partner_title = '內政部營建署城鄉發展分署'
@@ -624,10 +623,10 @@ def change_manager_page(request):
         ''' 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
-            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-modified')
+            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-id')
         else:
             # 如果是單位帳號 -> 只回傳自己申請的
-            news_list = News.objects.filter(user_id=request.user).order_by('-modified')
+            news_list = News.objects.filter(user_id=request.user).order_by('-id')
         total_page = math.ceil(news_list.count()/10)
 
         for n in news_list[offset:offset+10]:
@@ -662,7 +661,7 @@ def change_manager_page(request):
                             <td class="w-8p"></td> 
                         </tr>
         """
-        for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
+        for r in Resource.objects.all().order_by('-id')[offset:offset+10]:
             url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
                 'title': r.title,
@@ -709,7 +708,7 @@ def manager(request):
 
     # TODO 未來要考慮檔案是否過期
     record = []
-    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record')[:10]:
+    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[:10]:
         if r.modified:
             date = r.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -746,7 +745,7 @@ def manager(request):
 
     # print(r_total_page, r_page_list)
     taxon = []
-    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon')[:10]:
+    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[:10]:
         query = ''
         if t.modified:
             date = t.modified + timedelta(hours=8)
@@ -770,7 +769,7 @@ def manager(request):
 
     sensitive = []
 
-    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive')[:10]:
+    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[:10]:
         query = ''
 
         if s.modified:
@@ -1167,10 +1166,10 @@ def partner_news(request):
         current_user = request.user
         if current_user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
-            news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-modified')
+            news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-id')
         else:
             # 如果是單位帳號 -> 只回傳自己申請的
-            news_list = News.objects.filter(user_id=current_user).order_by('-modified')
+            news_list = News.objects.filter(user_id=current_user).order_by('-id')
         n_total_page = math.ceil(news_list.count()/10)
         n_page_list = get_page_list(1, n_total_page)
 
@@ -1204,13 +1203,13 @@ def partner_info(request):
             # 單位帳號管理，統一由partner request判斷，但還要加partner_admin進去
             # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
 
-            partner_members = User.objects.filter(partner_id=current_user.partner.id).exclude(status='withdraw').exclude(id=current_user.id)
+            partner_members = User.objects.filter(partner_id=current_user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=current_user.id)
             
             a_total_page = math.ceil(partner_members.count() / 10)
             a_page_list = get_page_list(1, a_total_page)
 
             status_choice = User._meta.get_field('status').choices[:-1]
-            feedback = Feedback.objects.filter(partner_id=current_user.partner.id)[:10].annotate(
+            feedback = Feedback.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10].annotate(
                 created_8=ExpressionWrapper(
                     F('created') + timedelta(hours=8),
                     output_field=DateTimeField()
@@ -1219,7 +1218,7 @@ def partner_info(request):
             f_page_list = get_page_list(1, f_total_page)
 
     sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id)[:10]:
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10]:
         created = sdr.created + timedelta(hours=8)
         due = check_due(created.strftime('%Y-%m-%d'),14)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
@@ -1444,7 +1443,7 @@ def system_news(request):
     form = NewsForm()
     # if current_a:
     #     form.fields["content"].initial = current_a.content
-    news_list = News.objects.all().order_by('-modified')[:10].annotate(
+    news_list = News.objects.all().order_by('-id')[:10].annotate(
                 modified_8=ExpressionWrapper(
                     F('modified') + timedelta(hours=8),
                     output_field=DateTimeField()
@@ -1470,14 +1469,14 @@ def system_info(request):
 
     content = About.objects.all().first().content
     menu = request.GET.get('menu','info')
-    partner_members = User.objects.filter(partner_id__isnull=False).exclude(status='withdraw')[:10]
+    partner_members = User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[:10]
 
     a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
     a_page_list = get_page_list(1, a_total_page)
 
 
     status_choice = User._meta.get_field('status').choices[:-1]
-    feedback = Feedback.objects.all()[:10].annotate(
+    feedback = Feedback.objects.all().order_by('-id')[:10].annotate(
         created_8=ExpressionWrapper(
             F('created') + timedelta(hours=8),
             output_field=DateTimeField()
@@ -1486,7 +1485,7 @@ def system_info(request):
     f_page_list = get_page_list(1, f_total_page)
 
     sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=None)[:10]:
+    for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[:10]:
         created = sdr.created + timedelta(hours=8)
         if sdr.is_transferred:
             due = check_due(created.strftime('%Y-%m-%d'),14)
@@ -1513,10 +1512,10 @@ def system_info(request):
     s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count()/10)
     s_page_list = get_page_list(1, s_total_page)
 
-    print(len(sensitive),s_total_page,s_page_list)
+    # print(len(sensitive),s_total_page,s_page_list)
 
     sensitive_track = []
-    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True))[:10]:
+    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
         if s.created:
             date = s.created + timedelta(hours=8)
             due = check_due(date.strftime('%Y-%m-%d'), 14)
@@ -1571,7 +1570,7 @@ def system_resource(request):
     menu = request.GET.get('menu','list')
 
     resource_list = []
-    for r in Resource.objects.all().order_by('-modified')[:10]:
+    for r in Resource.objects.all().order_by('-id')[:10]:
         resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
     r_total_page = math.ceil(Resource.objects.all().count()/10)
     r_page_list = get_page_list(1, r_total_page)
@@ -1807,7 +1806,6 @@ def update_user_status(request):
                 )
                 content = nn.get_type_display().replace('0000', str(nn.content))
                 send_notification([u.id],content,'單位帳號申請結果通知')
-
 
         return JsonResponse({"status": 'success'}, safe=False)
 

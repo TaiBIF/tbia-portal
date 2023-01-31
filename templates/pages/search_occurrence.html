@@ -79,16 +79,16 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="sensitiveCategory" id="" required>
-                  <option value="" readonly="true" selected>敏感層級</option>
+                <select name="sensitiveCategory" id="sensitiveCategory" required>
+                  <option></option>
                   {% for i in sensitive_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="input_item">
-                <select name="taxonRank" id="" required>
-                  <option value="" readonly="true" selected>鑑定層級</option>
+                <select name="taxonRank" id="taxonRank" required>
+                  <option value=""></option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
@@ -119,8 +119,8 @@
                 <input name="recordedBy" type="text" placeholder="記錄者" />
               </div>
               <div class="input_item">
-                <select name="basisOfRecord" required>
-                  <option value="" readonly="true" selected>紀錄類型</option>
+                <select name="basisOfRecord" id="basisOfRecord" required>
+                  <option value=""></option>
                   {% for i in basis_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
@@ -131,7 +131,7 @@
               <div class="input_item">
                 <select name="datasetName" id="datasetName" required multiple size="1">
                   {% for i in dataset_list %}
-                  <option value="{{ i }}">{{ i }}</option>
+                  <option value="{{ i.id }}">{{ i.name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -167,7 +167,7 @@
           </div>
         </div>
         </form>
-        <button class="search_btn submitSearch" data-page="1" data-from="search">搜尋</button>
+        <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
     </div>
   </div>
 </div>
@@ -353,7 +353,8 @@
 </div>
 {% endblock body %}
 
-
 {% block script %}
+<script src="{% static 'js/wicket.js' %}"></script>
+<script src="{% static 'js/wicket-leaflet.js' %}"></script>
 <script src="{% static 'js/search_occurrence.js' %}"></script>
 {% endblock script %}

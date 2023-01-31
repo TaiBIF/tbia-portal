@@ -87,7 +87,7 @@ $( function() {
     })
 
     $('.submitSearch').on('click', function(){
-        submitSearch($(this).data('page'),$(this).data('from'))
+        submitSearch($(this).data('page'),$(this).data('from'),$(this).data('new_click'))
     })
 
     $('.show_start').on('click', function(){
@@ -159,20 +159,20 @@ $( function() {
             alert('框選失敗！請檢查經緯度格式是否正確')
         } else {
             try {
-            let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
-                        parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
-            drawnItems.addLayer(circle);
-            map.fitBounds(circle.getBounds());
-            $(".circle_popup").addClass('d-none')
+                let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
+                            parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
+                drawnItems.addLayer(circle);
+                map.fitBounds(circle.getBounds());
+                $(".circle_popup").addClass('d-none')
             } catch (e) {
-            alert('框選失敗！請檢查經緯度格式是否正確')
+                alert('框選失敗！請檢查經緯度格式是否正確')
             }
         }
     })
     
     $('.geojson_send').click( function(){
         // 先把舊的移除
-        $('.addG, [class^=resultG_]').remove()
+        $('.addG, [class^=resultG_], .addC, .addM').remove()
        try {
             let geoObj = JSON.parse($('#geojson_textarea').val());
             //geoJSON = L.geoJSON(geoObj,{ className: 'addG'}).addTo(map);
@@ -211,7 +211,7 @@ $( function() {
     // 如果按上下一頁
     window.onpopstate = function(event) {
         drawnItems.clearLayers();
-        $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+        $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
         changeAction();
     };
 
@@ -221,12 +221,21 @@ $( function() {
 
 function changeAction(){
     
-    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": '全選', "clearAll": '清除' } 
+    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: true,
+        translations: { "all": "全部", "items": " 個選項"} 
     });
 
-    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": '全選', "clearAll": '清除' } 
+    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: true,
+        translations: { "all": "全部", "items": " 個選項"} 
+    });
+
+    let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
+    });
+
+    let selectBox4 = new vanillaSelectBox("#basisOfRecord",{"placeHolder":"紀錄類型",search:false, disableSelectAll: true,
+    });
+
+    let selectBox5 = new vanillaSelectBox("#taxonRank",{"placeHolder":"鑑定層級",search:false, disableSelectAll: true,
     });
 
     $('.vsb-main button').css('border','').css('background','')
@@ -257,37 +266,77 @@ function changeAction(){
         }
     })
 
+    $('#sensitiveCategory').on('change',function(){
+        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
+            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
+    $('#basisOfRecord').on('change',function(){
+        if ($('#btn-group-basisOfRecord .vsb-menu ul li.active').length>0){
+            $('#btn-group-basisOfRecord button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-basisOfRecord button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
+    $('#taxonRank').on('change',function(){
+        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
+            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
     let queryString = window.location.search;
-    if (queryString.split('&').length > 1){
+    let urlParams = new URLSearchParams(queryString);
+
+    if (queryString.split('&').length>1){
         // 把條件填入表格
-        let urlParams = new URLSearchParams(queryString);
         let entries = urlParams.entries(); 
-        
+
         let d_list = Array();
         let r_list = Array();
 
         for(const [key, value] of entries) { 
-            // 如果是下拉式多選要另外處理
-            if ((key != 'datasetName') & (key != 'rightsHolder')){
+            if (key=='datasetName') {
+                d_list.push(value)
+            } else if (key == 'rightsHolder') {
+                r_list.push(value)
+            } else if (key == 'sensitiveCategory') {
+                selectBox3.setValue(value)
+            } else if (key == 'basisOfRecord') {
+                selectBox4.setValue(value)
+            } else if (key == 'taxonRank'){
+                selectBox5.setValue(value)
+            } else {
+
                 $(`[name=${key}]`).val(value)
                 // map按鈕
                 if (key == 'geo_type'){
                     $(`p[data-type=${value}]`).addClass("active")
-                }
 
-                if (key == 'geojson') {
-                    if (urlParams.get('geo_type') == 'map') {
-                        geoJSON = L.geoJSON(JSON.parse(value)).addTo(map);
-                        drawnItems.addLayer(geoJSON);
-                        map.fitBounds(geoJSON.getBounds());
-                    } else if (urlParams.get('geo_type') == 'circle') {
+                    // 把地圖畫上去
+                    if (urlParams.get('geo_type') == 'circle') {
                         let circle = L.circle([urlParams.get('center_lat'),urlParams.get('center_lon')],
                         parseInt(urlParams.get('circle_radius'),10)*1000, { className: 'addC'}).addTo(map);
                         drawnItems.addLayer(circle);
                         map.fitBounds(circle.getBounds());
-                    }
+                    } else if (urlParams.get('geo_type') == 'map') {
+                        var wkt = new Wkt.Wkt();
+                        if (urlParams.getAll('polygon')){
+                            for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
+                                wkt.read(urlParams.getAll('polygon')[i])
+                                obj = wkt.toObject({className: 'addM'}); 
+                                obj.addTo(map);
+                            }
+                        }
+                    } 
                 }
-                if ((key == 'geojson_id') && (value != '')){
+                if ((key == 'geojson_id') && (value != '')){ 
+                    
                     fetch(`/media/geojson/${value}.json`).then((res) => {
                         if (res.ok) {
                             $('#geojson_textarea').val(JSON.stringify(res.json()))
@@ -300,13 +349,7 @@ function changeAction(){
                         }
                     });
                 }
-            } else {
-                if (key=='datasetName') {
-                    d_list.push(value)
-                } else if (key == 'rightsHolder') {
-                    r_list.push(value)
-                }
-            }  
+            } 
         }
 
         selectBox.setValue(r_list);
@@ -324,32 +367,57 @@ function changeAction(){
             $('#btn-group-rightsHolder button span.title').addClass('color-707070').removeClass('black')
         }
 
-        getRecordByURL(queryString,null,null,null,null)
+        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
+            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if ($('#btn-group-basisOfRecord .vsb-menu ul li.active').length>0){
+            $('#btn-group-basisOfRecord button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-basisOfRecord button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
+            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        }
+        
+        if (urlParams.get('page')){
+            page = urlParams.get('page')
+        } else {
+            page = 1
+        }
+        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'),urlParams.get('sort'))//{
     }
 }
 
-function setTable(response, queryString){
-    drawnItems.clearLayers();
-    $('.addG, .addC, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+function setTable(response, queryString, from, orderby, sort){
+    if (from=='search'){
+        drawnItems.clearLayers();
+        $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-    L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1', style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5', style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10', style: style}).addTo(map);
-    L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100', style: style}).addTo(map);
-    //map.fitBounds(geoResult.getBounds());
+        L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1', style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5', style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10', style: style}).addTo(map);
+        L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100', style: style}).addTo(map);
+        //map.fitBounds(geoResult.getBounds());
 
-    $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
+        $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
 
-    if (map.getZoom() < 5) {
-        $('.resultG_100').removeClass('d-none')
-    } else if (map.getZoom() < 8){
-        $('.resultG_10').removeClass('d-none')
-    } else if (map.getZoom() < 9){
-        $('.resultG_5').removeClass('d-none')
-    } else {
-        $('.resultG_1').removeClass('d-none')
+        if (map.getZoom() < 5) {
+            $('.resultG_100').removeClass('d-none')
+        } else if (map.getZoom() < 8){
+            $('.resultG_10').removeClass('d-none')
+        } else if (map.getZoom() < 9){
+            $('.resultG_5').removeClass('d-none')
+        } else {
+            $('.resultG_1').removeClass('d-none')
+        }
     }
-    
+
     // 如果有資料回傳則顯示table
     $('.search_condition_are').after(`
     <div class="sc_result">
@@ -379,7 +447,7 @@ function setTable(response, queryString){
     </div>`)
 
     $('select[name=shownumber]').on('change',function(){
-        getRecordByURL($(this).data('query'), 1,$(this).val(),null,null)
+        submitSearch(1,'page',false,$(this).val(),orderby, sort)
     })
 
     // 如果querystring裡面有limit的，修改shownumber
@@ -462,7 +530,8 @@ function setTable(response, queryString){
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
             $(this).data('sort','asc');
         }
-        getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
+        submitSearch(1,'page',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
+        //getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
     })
 
     $('.downloadData').on('click', function(){
@@ -532,6 +601,8 @@ function setTable(response, queryString){
         window.selected = $(`.occ-choice input:checked`)
     })
 }
+
+/*
 
 function getRecordByURL(queryString,page,limit,orderby,sort) {
     // 如果從頁碼點選, 修改page參數
@@ -677,21 +748,61 @@ function getRecordByURL(queryString,page,limit,orderby,sort) {
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
 }
+*/
 
 // submit search form
-function submitSearch (page, from){
+function submitSearch (page, from, new_click,limit,orderby,sort){
 
     let map_condition = '';
-    if ($('p.active').data('type')=='map'){
-        map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()),'geo_type': 'map'})
-    } else if ($('p.active').data('type')=='polygon'){
-        map_condition = '&' + $.param({'geo_type': 'polygon'})
-    } else if ($('p.active').data('type')=='circle'){
-        map_condition = '&' + $.param({'geojson': JSON.stringify(drawnItems.toGeoJSON()), 'circle_radius': $('select[name=circle_radius]').val(),
-        'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val(), 'geo_type': 'circle'})
-    }
 
-    let selected_col = ''
+    if (new_click & ($('.btnupload p.active').data('type')=='map')){
+        $.ajax({
+            url: "/return_geojson_query",
+            data: { geojson_text: JSON.stringify(drawnItems.toGeoJSON()),
+                    csrfmiddlewaretoken: $csrf_token},
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            window.g_list = response.polygon
+            submitSearch (page, from)
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+    } else {
+        
+        if ($('.btnupload p.active').data('type')){
+
+            map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+
+            if ($('.btnupload p.active').data('type')=='circle'){
+                map_condition += '&' + $.param({'circle_radius': $('select[name=circle_radius]').val(),
+                'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val()})
+            } else if ($('.btnupload p.active').data('type')=='map') {
+                if (window['g_list']){
+                    for (let i = 0; i < window['g_list'].length; i++) {
+                        map_condition += '&' + $.param({'polygon': window['g_list'][i]})
+                    }
+                } else {
+                    //let queryString = window.location.search;
+                    let urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.getAll('polygon')){
+                        for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
+                            map_condition += '&' + $.param({'polygon':  urlParams.getAll('polygon')[i]})
+                        }
+                    }
+                }
+            }
+        }
+
+        let selected_col = ''
 
     // 如果是按搜尋，重新給query參數，若是從分頁則不用
     if (from == 'search'){
@@ -712,23 +823,42 @@ function submitSearch (page, from){
         })
     }
 
-    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&' + $.param({'page': page})+ '&from=' + from);
+    if (limit == null) {
+        limit = 10
+    }
 
+    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&page=' +  page + '&from=' + from + '&limit=' + limit);
+
+    // 如果調整orderby and sort
+    let orderby_str = ''
+    if (orderby != null){
+        let urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('orderby',orderby)
+        urlParams.set('sort',sort)
+        urlParams.set('page',1)
+        page = 1
+        orderby_str = '&orderby=' + orderby + '&sort=' + sort
+        queryString = urlParams.toString()
+        history.pushState(null, '', window.location.pathname + '?'  + queryString);
+    }
+    
     $.ajax({
         url: "/get_conditional_records",
-        data: window.condition + '&' + $.param({'page': page})+ '&from=' + from + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
+        data: window.condition + '&page=' + page + '&from=' + from + '&limit=' + limit + '&csrfmiddlewaretoken=' + $csrf_token + selected_col + orderby_str,
         type: 'POST',
         dataType : 'json',
     })
     .done(function(response) {
         // clear previous results
         $('.sc_result').remove()
-        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+        //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
         if (response.count == 0){
+            // TODO 這邊如果有map的圖案要加回來
+            $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
             $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
         } else {
-            setTable(response, window.condition)
+            setTable(response, window.condition, from, orderby, sort)
 
             // 判斷是從分頁或搜尋點選
             if (from == 'search'){
@@ -766,7 +896,7 @@ function submitSearch (page, from){
             }		
 
             $('.jumpto').on('click', function(){
-                submitSearch($('input[name=jumpto]').val(),'page')
+                submitSearch($('input[name=jumpto]').val(),'page',false,limit,orderby,sort)
             })
   
             let html = ''
@@ -805,8 +935,20 @@ function submitSearch (page, from){
                 }
             }
 
-            $('.submitSearch').on('click', function(){
-                submitSearch($(this).data('page'),$(this).data('from'))
+            if (limit) {
+                $('.page_number a.submitSearch').data('limit', limit)
+            }
+
+            if (orderby) {
+                $('.page_number a.submitSearch').data('orderby', orderby)
+            }
+
+            if (sort) {
+                $('.page_number a.submitSearch').data('sort', sort)
+            }
+
+            $('.page_number a.submitSearch').on('click', function(){
+                submitSearch($(this).data('page'),$(this).data('from'),false,$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
             })
         }
         $([document.documentElement, document.body]).animate({
@@ -820,6 +962,7 @@ function submitSearch (page, from){
         }
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
+    }
 }
 
 function sendSelected(){

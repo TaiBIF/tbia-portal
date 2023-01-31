@@ -1,6 +1,14 @@
 from django.db import models
 from django.utils import timezone
 
+
+class DatasetKey(models.Model):
+    name = models.CharField(max_length=1000, blank=False, null=False)
+    record_type = models.CharField(max_length=20, blank=False, null=False)
+    group = models.CharField(max_length=100, blank=True, null=True) # 來源資料庫
+    deprecated = models.BooleanField(default=False) # 資料庫內是否還有此資料及名稱
+
+
 # 新舊TaiCOL namecode對應
 class Namecode(models.Model): 
     taxon_name_id = models.CharField(max_length=100, blank=False, null=False)

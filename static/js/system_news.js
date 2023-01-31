@@ -41,45 +41,53 @@ function changePage(page, menu){
 
             // 修改頁碼
             if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                $(`.${menu}_table`).parent().after(
+              $(`.${menu}_table`).parent().after(
                   `<div class="page_number">
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-                    <a href="javascript:;" class="pre">上一頁</a>  
-                    <a href="javascript:;" class="next">下一頁</a>
-                    <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                  </div>`)}		
+                  <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
+                  <a href="javascript:;" class="pre">上一頁</a>  
+                  <a href="javascript:;" class="next">下一頁</a>
+                  <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
+                  </div>`)
+          }		
               
-                  if (response.page_list.includes(response.current_page-1)){
-                    $('.pre').addClass('changePage')
-                    $('.pre').data('page',response.current_page-1)
-                    $('.pre').data('type',menu)
-                  } else {
-                    $('.pre').addClass('pt-none')
-                  }
+          if (menu=='news_apply'){
+            n_menu = 'list'
+          }
 
-              let html = ''
-              for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
+          if (response.page_list.includes(response.current_page-1)){
+              $(`.${n_menu} .item .page_number a.pre`).addClass('changePage');
+              $(`.${n_menu} .item .page_number a.pre`).data('page', response.current_page-1);
+              $(`.${n_menu} .item .page_number a.pre`).data('type', menu);    
+          } else {
+              $(`.${n_menu} .item .page_number a.pre`).addClass('pt-none')
+          }
+
+          let html = ''
+          for (let i = 0; i < response.page_list.length; i++) {
+              if (response.page_list[i] == response.current_page){
                   html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
-                } else {
-                  html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
-                }
-              }
-
-              $('.pre').after(html)
-      
-              // 如果有下一頁，改掉next的onclick
-              if (response.current_page < response.total_page){
-                $('.next').addClass('changePage')
-                $('.next').data('page',response.current_page+1)
-                $('.next').data('type',menu)
               } else {
-                $('.next').addClass('pt-none')
+                  html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
               }
+          }
+
+          $(`.${n_menu} .item .page_number a.pre`).after(html)
+  
+          // 如果有下一頁，改掉next的onclick
+          if (response.current_page < response.total_page){
+              $(`.${n_menu} .item .page_number a.next`).addClass('changePage');
+              $(`.${n_menu} .item .page_number a.next`).data('page', response.current_page+1);
+              $(`.${n_menu} .item .page_number a.next`).data('type', menu);
+          } else {
+              $(`.${n_menu} .item .page_number a.next`).addClass('pt-none')
+          }
+
+          $('.changePage').off('click')
+          $('.changePage').on('click', function(){
+              changePage($(this).data('page'),$(this).data('type'))
+          })        
               
-              $('.changePage').on('click', function(){
-                changePage($(this).data('page'), $(this).data('type'))
-            })
+
         }
     });
 
@@ -135,17 +143,17 @@ function changePage(page, menu){
         
       });
 
-      $.ajax({
-        url: `/get_news_content?news_id=${$('##newsForm input[name=news_id]').val()}`,
-        type: 'GET',
-        success: function(response){
-            //console.log(response)
-            quill.pasteHTML(response.content);
-        }
-    });
+      if ($('#newsForm input[name=news_id]').val()){
+        $.ajax({
+          url: `/get_news_content?news_id=${$('#newsForm input[name=news_id]').val()}`,
+          type: 'GET',
+          success: function(response){
+              //console.log(response)
+              quill.pasteHTML(response.content);
+          }
+        });
+      }
 
-
-      
 })();
 
 

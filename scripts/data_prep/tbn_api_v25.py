@@ -1,6 +1,5 @@
 # script for TBN API version 2.5
 
-
 # test for TBN API
 
 import re
@@ -15,12 +14,12 @@ import time
 import os
 from conf.settings import env
 
-taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220905.csv')
-taicol = taicol.rename(columns={'id': 'taxonID'})
-taicol = taicol.drop(columns=['scientificNameID'])
+# taicol = pd.read_csv('/tbia-volumes/solr/csvs/source_taicol_for_tbia_20220905.csv')
+# taicol = taicol.rename(columns={'id': 'taxonID'})
+# taicol = taicol.drop(columns=['scientificNameID'])
 
-# TaiCOL新舊namecode對應
-namecodes = pd.read_csv('/tbia-volumes/bucket/namecode_to_taxon_name_id.csv')
+# # TaiCOL新舊namecode對應
+# namecodes = pd.read_csv('/tbia-volumes/bucket/namecode_to_taxon_name_id.csv')
 
 
 def convert_date(date):
@@ -35,53 +34,53 @@ def convert_date(date):
     return formatted_date
 
 
-# request_url = "https://www.tbn.org.tw/api/v25/dataset?modified=1000-01-01"
-# response = requests.get(request_url)
-# data = response.json()
-# len_of_data = data['meta']['total'] # 1452
-# j = 0
-# total_data = data["data"]
-# while data['links']['next'] != "":
-#     request_url = data['links']['next']
-#     response = requests.get(request_url)
-#     data = response.json()
-#     total_data += data["data"]
-#     j += 1
-# df = pd.DataFrame(total_data)
+request_url = "https://www.tbn.org.tw/api/v25/dataset?modified=1000-01-01"
+response = requests.get(request_url)
+data = response.json()
+len_of_data = data['meta']['total'] # 1452
+j = 0
+total_data = data["data"]
+while data['links']['next'] != "":
+    request_url = data['links']['next']
+    response = requests.get(request_url)
+    data = response.json()
+    total_data += data["data"]
+    j += 1
+df = pd.DataFrame(total_data)
 
-# for i in df.index:
-#     print(i)
-#     request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
-#     response = requests.get(request_url)
-#     data = response.json()
-#     d = data["data"]
-#     if d:
-#         df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
+for i in df.index:
+    print(i)
+    request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
+    response = requests.get(request_url)
+    data = response.json()
+    d = data["data"]
+    if d:
+        df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
 
-# # # 只取自產資料
-# datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
+# # 只取自產資料
+datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
 
-# # # 536dbfa2-6972-495c-a051-77312f04072b
-# # # 6f689983-76a3-4d82-a393-ab731c5655da
-# # # 97c21d3f-774b-45e7-9149-4c0697fadbde
+# # 536dbfa2-6972-495c-a051-77312f04072b
+# # 6f689983-76a3-4d82-a393-ab731c5655da
+# # 97c21d3f-774b-45e7-9149-4c0697fadbde
 
-# for d in datasets:
-#     print('get:'+d)
-#     request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
-#     response = requests.get(request_url)
-#     data = response.json()
-#     len_of_data = data['meta']['total'] # 43242
-#     j = 0
-#     total_data = data["data"]
-#     while data['links']['next'] != "":
-#         print('get:'+d)
-#         request_url = data['links']['next']
-#         response = requests.get(request_url)
-#         data = response.json()
-#         total_data += data["data"]
-#         j += 1
-#     df = pd.DataFrame(total_data)
-#     df.to_csv(f"/tbia-volumes/bucket/tbn_v25/{d}.csv")
+for d in datasets:
+    print('get:'+d)
+    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+    response = requests.get(request_url)
+    data = response.json()
+    len_of_data = data['meta']['total'] # 43242
+    j = 0
+    total_data = data["data"]
+    while data['links']['next'] != "":
+        print('get:'+d)
+        request_url = data['links']['next']
+        response = requests.get(request_url)
+        data = response.json()
+        total_data += data["data"]
+        j += 1
+    df = pd.DataFrame(total_data)
+    df.to_csv(f"/tbia-volumes/bucket/tbn_v25/{d}.csv")
 
 
 # 學名比對
@@ -111,13 +110,15 @@ for f in files:
     for s in unique_sci:
         count +=1
         print(count)
+        # TODO 改成本地端的NomenMatch -> docker compose 要改寫成expose?
         request_url = f"http://18.183.59.124/v1/nameMatch?name={s}"    
         response = requests.get(request_url)
         if response.status_code == 200:
             data = response.json()
             if data['info']['total'] == 1: # 只對到一個taxon
                 df.loc[df.simplifiedScientificName==s,'taxon_id'] = data['data'][0]['taxon_id']
-        # TODO 沒對到的另外處理, 有可能是同名異物
+        # TODO 
+        # 把沒對到的另外存出來
     
     
     # 如果沒對到taxon 看原資料庫有沒有提供namecode 有的話直接對應taxon id
@@ -135,6 +136,7 @@ for f in files:
     row_list = []
 
     df = df.replace({nan: None})
+    df = df.replace({'': None})
 
     for i in df.index:
         if i % 1000 == 0:
@@ -160,9 +162,10 @@ for f in files:
             'recordType' : 'occ' if '標本' not in str(row.basisOfRecord) else 'col',
             'id' : bson.objectid.ObjectId(),
             'sourceModified' : convert_date(row.modified),
-            'sourceCreated' : None, # TBN沒這個欄位
+            'sourceCreated' : None, # TBN沒這個欄位 # 
             'modified' : datetime.now(),
             'created' : datetime.now(),
+            # TODO 這邊要修改成完整名稱
             'rightsHolder' : 'TBN',
             'occurrenceID' : row.occurrenceID,
             'originalScientificName' : row.originalVernacularName, 

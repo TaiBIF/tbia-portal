@@ -25,6 +25,7 @@ urlpatterns = [
     path('submit_sensitive_request', views.submit_sensitive_request, name='submit_sensitive_request'),
     # path('generate_download_csv_full', views.generate_download_csv_full, name='generate_download_csv_full'),
     path('save_geojson', views.save_geojson, name='save_geojson'),
+    path('return_geojson_query', views.return_geojson_query, name='return_geojson_query'),
     path('sensitive_agreement', views.sensitive_agreement, name='sensitive_agreement'),
     path('submit_sensitive_response', views.submit_sensitive_response, name='submit_sensitive_response'),
     # path('generate_sensitive_csv', views.generate_sensitive_csv, name='generate_sensitive_csv'),

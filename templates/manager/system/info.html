@@ -171,23 +171,22 @@
         <div class="rightbox_content info d-none">
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>TBIA資訊</div>
-                    <ul class="edit-list">
-                        <form id="updateForm">
-                            {% csrf_token %}
-                            <li>系統管理員名稱</li>
-                            <li><input type="text" name="name" value="{{ system_admin }}" disabled>
-                            </li>
-                            <li>TBIA簡介</li>
-                            <li><textarea name="about_content">{{ content }}</textarea>
-                                <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
-                                    <p>必填欄位</p>
-                                </div>
-                            </li>
-                        </form>
-                        <li ><button class="search_btn updateInfo">確認修改</button></li>
-                    </ul>
-                </div>
+                <ul class="edit-list">
+                    <form id="updateForm">
+                        {% csrf_token %}
+                        <li>系統管理員名稱</li>
+                        <li><input type="text" name="name" value="{{ system_admin }}" disabled>
+                        </li>
+                        <li>TBIA簡介</li>
+                        <li><textarea name="about_content">{{ content }}</textarea>
+                            <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                    </form>
+                    <li ><button class="search_btn updateInfo">確認修改</button></li>
+                </ul>
             </div>
         </div>
 
@@ -332,7 +331,7 @@
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>敏感資料申請審核追蹤</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 track_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_track_table">
                         <tr>
                             <td class="w-5p">申請編號</td>
                             <td class="w-10p">檔案編號</td>
@@ -355,20 +354,20 @@
                 </div>
                 <div class="page_number">
 					{% if sr_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="track">1</a>
+                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive_track">1</a>
                     <a href="javascript:;" class="pre pt-none">
                         上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in sr_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="track">{{ p }}</a>
+                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="track">{{ p }}</a>
+                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in sr_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="track">
+                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive_track">
                         下一頁
                     </a>
                     {% else %}
@@ -376,7 +375,7 @@
                         下一頁
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ sr_total_page }}" data-type="track">{{ sr_total_page }}</a>
+                    <a href="javascript:;" class="num changePage" data-page="{{ sr_total_page }}" data-type="sensitive_track">{{ sr_total_page }}</a>
                     {% endif %}
 				</div>
             </div>

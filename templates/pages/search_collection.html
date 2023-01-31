@@ -11,14 +11,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% comment %} <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script> {% endcomment %}
-<link href="/static/vanillaselectbox/vanillaSelectBox.css" rel="stylesheet" />
-<script src="/static/vanillaselectbox/vanillaSelectBox.js"></script>
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
 <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+<!--
+<script type="text/javascript" src="https://unpkg.com/terraformer@1.0.7/terraformer.js"></script>
+<script type="text/javascript" src="https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js"></script>
+-->
 {% endblock head %}
 
 {% block style %}
@@ -55,8 +57,8 @@
                 <input type="text" name="name" placeholder="中文名/學名/中文別名" value=""/>
               </div>
               <div class="input_item">
-                <select name="typeStatus" required>
-                  <option value="" readonly="true" selected>標本類型</option>
+                <select name="typeStatus" id="typeStatus" required>
+                  <option value=""></option>
                   <option value="一般">一般</option>
                   <option value="模式">模式</option>
                 </select>
@@ -84,8 +86,8 @@
                 </select>
               </div>
               <div class="input_item">
-                <select name="taxonRank" id="" required>
-                  <option value="" readonly="true" selected>鑑定層級</option>
+                <select name="taxonRank" id="taxonRank" required>
+                  <option value=""></option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
@@ -123,7 +125,7 @@
               <div class="input_item">
                 <select name="datasetName" id="datasetName" required multiple size="1">
                   {% for i in dataset_list %}
-                  <option value="{{ i }}">{{ i }}</option>
+                  <option value="{{ i.id }}">{{ i.name }}</option>
                   {% endfor %}
                 </select>              
               </div>
@@ -159,7 +161,7 @@
           </div>
         </div>
         </form>
-        <button class="search_btn submitSearch" data-page="1" data-from="search">搜尋</button>
+        <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
     </div>
 
 
@@ -360,5 +362,7 @@
 {% endblock body %}
 
 {% block script %}
+<script src="{% static 'js/wicket.js' %}"></script>
+<script src="{% static 'js/wicket-leaflet.js' %}"></script>
 <script src="{% static 'js/search_collection.js' %}"></script>
 {% endblock %}

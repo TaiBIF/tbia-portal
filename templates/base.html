@@ -15,6 +15,8 @@
     <script src="https://code.jquery.com/jquery-3.6.1.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
+    <link href="/static/vanillaselectbox/vanillaSelectBox.css" rel="stylesheet" />
+    <script src="/static/vanillaselectbox/vanillaSelectBox.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
@@ -60,8 +62,8 @@
         <div class="from_area">
           <form id="feedback_form">
           <div class="select_twobox"> 
-            <select name="partner_id" id="" required>
-              <option value="">請選擇回饋對象</option>
+            <select name="partner_id" id="feedback_partner" required>
+              <option value=""></option>
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
@@ -77,8 +79,8 @@
                 </option>
               {% endfor %}
             </select>
-            <select name="type" id="" required>
-              <option value="">請選擇問題類型</option>
+            <select name="type" id="feedback_type" required>
+              <option value=""></option>
               <option value="1">網頁操作</option>
               <option value="2">網頁內容</option>
               <option value="3">聯盟相關</option>
