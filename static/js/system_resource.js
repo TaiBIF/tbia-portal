@@ -65,7 +65,6 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
                         )
                           .then(response => response.json())
                           .then(result => {
-                            //console.log(result);
                             resolve( '/media/'+ result.data.url);
                           })
                           .catch(error => {
@@ -84,7 +83,6 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
             url: `/get_link_content`,
             type: 'GET',
             success: function(response){
-                //console.log(response)
                 quill.pasteHTML(response.content);
             }
         });
@@ -235,7 +233,6 @@ function changePage(page, menu){
                 </div>`)
         }		
     
-        //console.log(menu)
         let s_menu = ''
         if (menu=='resource') {
           s_menu = 'list'

@@ -270,7 +270,6 @@ function focusComponent(item_class, go_back){
 }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort){
-    //console.log(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort)
 
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
@@ -409,8 +408,7 @@ function focusComponent(item_class, go_back){
             `<tr>${tmp_td}</tr>`)
         }
 
-        //console.log(response.orderby, response.sort)
-          // 如果queryString裡面沒有指定orderby，使用scientificName
+        // 如果queryString裡面沒有指定orderby，使用scientificName
         $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
         if (response.sort == 'asc'){
             $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
@@ -443,7 +441,6 @@ function focusComponent(item_class, go_back){
           $(`input[id^="${record_type}-"]`).prop('checked',false)
           // show selected columns
           for (let i = 0; i < response.selected_col.length; i++) {
-            console.log(response.selected_col[i])
             $(`.row-${response.selected_col[i]}`).removeClass('d-none');
             $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);
           }
@@ -859,7 +856,6 @@ function focusComponent(item_class, go_back){
 
 function getMoreDocs(doc_type, offset_value, more_class, card_class){
 
-  //console.log(doc_type, offset_value)
   let offset = $(offset_value).val()
   $.ajax({
       url: "/get_more_docs",
@@ -1097,7 +1093,6 @@ function sendSelected(record_type){
   // 再顯示選擇的欄位
   for (let i = 0; i < selected_field.length; i++) {
     $(`td.row-${selected_field[i].id.split('-')[1]}`).removeClass('d-none');
-    //console.log(selected_field[i].id.split('-')[1])
   }
   $(".popbg").addClass('d-none');
 }

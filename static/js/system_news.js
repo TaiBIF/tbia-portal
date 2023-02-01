@@ -129,7 +129,6 @@ function changePage(page, menu){
                     )
                       .then(response => response.json())
                       .then(result => {
-                        //console.log(result);
                         resolve( '/media/'+ result.data.url);
                       })
                       .catch(error => {
@@ -148,7 +147,6 @@ function changePage(page, menu){
           url: `/get_news_content?news_id=${$('#newsForm input[name=news_id]').val()}`,
           type: 'GET',
           success: function(response){
-              //console.log(response)
               quill.pasteHTML(response.content);
           }
         });

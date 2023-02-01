@@ -305,7 +305,6 @@ function changeAction(){
             } else if (key == 'sensitiveCategory') {
                 selectBox3.setValue(value)
             } else if (key == 'typeStatus') {
-                console.log('hello')
                 selectBox4.setValue(value)
             } else if (key == 'taxonRank'){
                 selectBox5.setValue(value)

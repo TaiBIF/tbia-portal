@@ -233,6 +233,10 @@ def submit_sensitive_request(request):
             
             if val := req_dict.get('name'):
                 val = val.strip()
+                # 去除重複空格
+                val = re.sub(' +', ' ', val)
+                # 去除特殊字元
+                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -406,6 +410,10 @@ def transfer_sensitive_response(request):
                 
             if val := req_dict.get('name'):
                 val = val.strip()
+                # 去除重複空格
+                val = re.sub(' +', ' ', val)
+                # 去除特殊字元
+                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -558,6 +566,10 @@ def generate_sensitive_csv(query_id):
 
             if val := req_dict.get('name'):
                 val = val.strip()
+                # 去除重複空格
+                val = re.sub(' +', ' ', val)
+                # 去除特殊字元
+                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -761,6 +773,10 @@ def generate_download_csv(req_dict,user_id):
     
     if val := req_dict.get('name'):
         val = val.strip()
+        # 去除重複空格
+        val = re.sub(' +', ' ', val)
+        # 去除特殊字元
+        val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -905,6 +921,10 @@ def generate_species_csv(req_dict,user_id):
 
     if val := req_dict.get('name'):
         val = val.strip()
+        # 去除重複空格
+        val = re.sub(' +', ' ', val)
+        # 去除特殊字元
+        val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -1094,6 +1114,12 @@ def search_full(request):
 
     if keyword:
         keyword = keyword.strip()
+
+        # 去除重複空格
+        keyword = re.sub(' +', ' ', keyword)
+        # 去除特殊字元
+        keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
+
         if re.match(r'^([\s\d]+)$', keyword):
             # 純數字
             enable_query_date = False
@@ -2409,6 +2435,10 @@ def get_conditional_records(request):
 
         if val := request.POST.get('name'):
             val = val.strip()
+            # 去除重複空格
+            val = re.sub(' +', ' ', val)
+            # 去除特殊字元
+            val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
             keyword_reg = ''
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)

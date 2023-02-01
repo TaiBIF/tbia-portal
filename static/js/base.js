@@ -321,7 +321,6 @@ function login(){
         dataType : 'json',
     })
     .done(function(response) {
-      console.log(response)
       alert(response.message)
       if (response.status=='success'){
         location.reload() }
