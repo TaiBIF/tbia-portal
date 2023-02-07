@@ -48,25 +48,26 @@ while data['links']['next'] != "":
     j += 1
 df = pd.DataFrame(total_data)
 
-for i in df.index:
-    print(i)
-    request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
-    response = requests.get(request_url)
-    data = response.json()
-    d = data["data"]
-    if d:
-        df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
+# for i in df.index:
+#     print(i)
+#     request_url = f'https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={df.datasetUUID[i]}&limit=1'
+#     response = requests.get(request_url)
+#     data = response.json()
+#     d = data["data"]
+#     if d:
+#         df.loc[i, 'selfProduced'] = d[0].get('selfProduced')
 
-# # 只取自產資料
-datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
+# # # 只取自產資料
+# datasets = df[df.selfProduced==True].datasetUUID.to_list() # 46
 
 # # 536dbfa2-6972-495c-a051-77312f04072b
 # # 6f689983-76a3-4d82-a393-ab731c5655da
 # # 97c21d3f-774b-45e7-9149-4c0697fadbde
 
-for d in datasets:
+for d in df.datasetUUID.to_list():
     print('get:'+d)
-    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+    # 只取自產資料
+    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000&selfProduced=y"
     response = requests.get(request_url)
     data = response.json()
     len_of_data = data['meta']['total'] # 43242
