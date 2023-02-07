@@ -76,3 +76,19 @@
 .ml-5px {
     margin-left: 5px;
 }
+
+.yellow-btn {
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 18px;
+    line-height: 20px;
+    color: #FFF;
+    display: flex;
+    background: #EAD065;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    align-items: center;
+}
