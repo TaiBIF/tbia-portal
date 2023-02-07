@@ -6,7 +6,7 @@ services:
     container_name: tbia-web-dev-container
     image: tbia-web-dev-image
     ports:
-      - 8000:8000
+      - 8006:8006
     depends_on:
       - postgres
     # links:
@@ -42,7 +42,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=tbia
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - PGDATA=/var/lib/postgresql/data/pgdata:Z
   # redis:
   #   image: redis:5-alpine
   #   restart: always
@@ -56,9 +56,6 @@ services:
     volumes:
       - ../tbia-volumes/solr:/var/solr
       - ./solr-workspace/:/workspace
-      # - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
-      # - ./file/:/file
-      # command:
-      #   - solr-precreate
-      #   - gettingstarted
-      #   - bash
+    command:
+      - solr-precreate
+      - tbia_records
