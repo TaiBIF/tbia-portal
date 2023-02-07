@@ -2198,8 +2198,12 @@ def occurrence_detail(request, id):
     path_str = ''
     path = []
     if row.get('taxonID'):
-        if Taxon.objects.filter(taxonID=row.get('taxonID')).exists():
-            t_rank = Taxon.objects.filter(taxonID=row.get('taxonID')).values()[0]
+        path_taxon_id = row.get('taxonID')
+    elif row.get('parentTaxonID'):
+        path_taxon_id = row.get('parentTaxonID')
+    if path_taxon_id:
+        if Taxon.objects.filter(taxonID=path_taxon_id).exists():
+            t_rank = Taxon.objects.filter(taxonID=path_taxon_id).values()[0]
             for r in rank_list:
                 if t_rank.get(r):
                     if t_rank.get(f"formatted_{r}"):
@@ -2209,6 +2213,7 @@ def occurrence_detail(request, id):
                     if t_rank.get(f"{r}_c"):
                         current_str += ' ' + t_rank.get(f"{r}_c")
                     path.append(current_str)
+
     path_str = ' > '.join(path)
 
     # logo
@@ -2302,9 +2307,14 @@ def collection_detail(request, id):
 
         # taxon
         path = []
+        
         if row.get('taxonID'):
-            if Taxon.objects.filter(taxonID=row.get('taxonID')).exists():
-                t_rank = Taxon.objects.filter(taxonID=row.get('taxonID')).values()[0]
+            path_taxon_id = row.get('taxonID')
+        elif row.get('parentTaxonID'):
+            path_taxon_id = row.get('parentTaxonID')
+        if path_taxon_id:
+            if Taxon.objects.filter(taxonID=path_taxon_id).exists():
+                t_rank = Taxon.objects.filter(taxonID=path_taxon_id).values()[0]
                 for r in rank_list:
                     if t_rank.get(r):
                         if t_rank.get(f"formatted_{r}"):
@@ -2314,6 +2324,7 @@ def collection_detail(request, id):
                         if t_rank.get(f"{r}_c"):
                             current_str += ' ' + t_rank.get(f"{r}_c")
                         path.append(current_str)
+                        
         path_str = ' > '.join(path)
 
         # logo

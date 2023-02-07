@@ -54,6 +54,9 @@
             <div class="short">
               <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
               <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
+              {% if not row.sourceScientificName and not row.sourceVernacularName %}
+              <p><small class="color-silver">[原始紀錄學名] {{ row.originalVernacularName }}</small></p>
+              {% endif %}
             </div>
             {% if row.taxonID %}
             <a class="code" target="_blank" href="http://web-staging.taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
