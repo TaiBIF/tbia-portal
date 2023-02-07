@@ -18,16 +18,16 @@
   <div class="main_1240">
     <div class="qa_top_item">
       <ul class="tabb">
-        <li>操作相關</li>
-        <li class="now">分類TAB</li>
-        <li>分類TAB</li>
-        <li>分類TAB</li>
-        <li>分類TAB</li>
+        <li class="now">網頁操作</li>
+        <li>網頁相關</li>
+        <li>聯盟相關</li>
       </ul>
       <button class="rep showFeedback">意見回饋</button>
       <div class="mobile_tab">
-        <select name="" id="" required>
-          <option value="">操作相關</option>
+        <select name="qa_type" id="" required>
+          <option value="">網頁操作</option>
+          <option value="">網頁相關</option>
+          <option value="">聯盟相關</option>
         </select>
       </div>
     </div>
@@ -162,3 +162,7 @@
 </div>
 
 {% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/qa.js' %}"></script>
+{% endblock script %}
