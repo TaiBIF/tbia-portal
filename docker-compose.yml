@@ -30,6 +30,8 @@ services:
       - POSTGRES_PORT=5432
       - POSTGRES_DB=tbia
     command: /srv/start
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   postgres:
     # build: ./postgres
     container_name: tbia-db-container
