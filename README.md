@@ -3,10 +3,9 @@ This is repository for TBIA portal.
 
 ## Solr setup
 Download and run solr via docker:
-# 需先建立/tbia-volumes/solr/data & /tbia-volumes/solr/csvs
+# 需先建立/tbia-volumes/solr/csvs
 ```
-$ docker pull solr
-$ docker run -d -p 8983:8983 -t solr
+$ docker-compose up -d
 $ docker-compose exec -u 0 solr bash
 $ cp /workspace/conf-tbia/tbia_records/managed-schema /var/solr/data/tbia_records/conf/
 $ cp /workspace/conf-tbia/tbia_records/solrconfig.xml /var/solr/data/tbia_records/conf/
