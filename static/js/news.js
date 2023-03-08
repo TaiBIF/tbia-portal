@@ -140,6 +140,7 @@ function updateNews(type, page){
                 $('.next').addClass('pt-none')
               }  
 
+              $('.changePage').off('click')
               $('.changePage').on('click', function(){
                 changePage($(this).data('page'), $(this).data('type'))
               })

@@ -32,7 +32,7 @@ from utils.solr_query import SolrQuery
 import subprocess
 import os
 import time
-from pages.models import Keyword
+from pages.models import Keyword, Qa
 from ckeditor.fields import RichTextField
 from django import forms
 from django.core.files.storage import FileSystemStorage
@@ -603,7 +603,7 @@ def change_manager_page(request):
                 'a': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
                 'partner_title': partner_title,
-                'user': n.user.name,
+                'user': n.user.name if n.user else '',
                 'modified': modified,
                 'status': n.get_status_display(),
                 'edit': f'<a href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
@@ -645,7 +645,7 @@ def change_manager_page(request):
                 'id': f"#{n.id}",
                 'title': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
-                'user': n.user.name,
+                'user': n.user.name if n.user else '',
                 'modified': modified,
                 'status': n.get_status_display(),
                 'a': a
@@ -673,6 +673,24 @@ def change_manager_page(request):
             })
 
         total_page = math.ceil(Resource.objects.all().count() / 10)
+    elif menu == 'qa':
+        response['header'] = """
+                        <tr>
+                            <td class="w-20p">類別</td>
+                            <td class="w-60p">問題</td>
+                            <td class="w-10p"></td> 
+                            <td class="w-10p"></td> 
+                        </tr>
+        """
+        for q in Qa.objects.all().order_by('-id')[offset:offset+10]:
+            data.append({
+                'type': q.get_type_display(),
+                'question': q.question,
+                'edit': f'<a href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
+                'delete': f'<a href="javascript:;" class="delete_qa" data-qa_id="{q.id}">刪除</a>', 
+            })
+
+        total_page = math.ceil(Qa.objects.all().count() / 10)
 
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
@@ -1910,3 +1928,50 @@ def get_link_content(request):
         # l = News.objects.get(id=news_id)
         response['content'] = l.content
     return JsonResponse(response, safe=False)
+
+
+def system_qa(request):
+    menu = request.GET.get('menu', 'list')
+    qa_list = Qa.objects.all().order_by('-id')[:10]
+    q_total_page = math.ceil(Qa.objects.all().count()/10)
+    q_page_list = get_page_list(1, q_total_page)
+    type_choice = Qa._meta.get_field('type').choices
+    current_q = []
+    if request.GET.get('qa_id'):
+        if Qa.objects.filter(id=request.GET.get('qa_id')).exists():
+            current_q = Qa.objects.get(id=request.GET.get('qa_id'))
+
+    return render(request, 'manager/system/qa.html', {'qa_list': qa_list, 'type_choice': type_choice,
+    'q_total_page': q_total_page, 'q_page_list': q_page_list, 'menu': menu, 'current_q': current_q})
+
+
+def submit_qa(request):
+    if request.method == 'POST':
+        if request.POST.get('qa_id'):
+            qa_id = int(request.POST.get('qa_id'))
+        else:
+            qa_id = 0
+
+        if Qa.objects.filter(id=qa_id).exists():
+            Qa.objects.filter(id=qa_id).update(
+                type = request.POST.get('type'),
+                question = request.POST.get('question'),
+                answer = request.POST.get('answer'),
+            )
+        else: 
+            Qa.objects.create(
+                type = request.POST.get('type'),
+                question = request.POST.get('question'),
+                answer = request.POST.get('answer'),
+            )
+        return redirect('system_qa')
+
+
+def delete_qa(request):
+    if request.method == 'POST':
+        if qa_id := request.POST.get('qa_id'):
+            if Qa.objects.filter(id=qa_id).exists():
+                q = Qa.objects.get(id=qa_id)
+                q.delete()
+                return JsonResponse({}, safe=False)
+

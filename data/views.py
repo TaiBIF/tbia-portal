@@ -1141,6 +1141,7 @@ def search_full(request):
             "sort":  "scientificName asc"
             }
 
+
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -1148,6 +1149,9 @@ def search_full(request):
 
         # collection
         facet_list = col_facets
+        if not enable_query_date:
+            if 'eventDate' in facet_list['facet'].keys():
+                facet_list['facet'].pop('eventDate')
         q = ''
         for i in facet_list['facet']:
             q += f'{i}:/.*{keyword_reg}.*/ OR ' 
@@ -1170,30 +1174,34 @@ def search_full(request):
         collection_rows = []
         result = []
         taxon_result = []
+        col_card_len = 0
         for i in facets:
             x = facets[i]
             if (i != 'eventDate') or (enable_query_date and i == 'eventDate'): 
-                if x['buckets']:
+                if x['allBuckets']['count']:
                     collection_rows.append({
                         'title': map_collection[i],
-                        'total_count': sum(item['count'] for item in x['buckets']),
+                        'total_count': x['allBuckets']['count'],
                         'key': i
                     })
                 for k in x['buckets']:
+                    col_card_len += k['taxonID']['numBuckets']
                     bucket = k['taxonID']['buckets']
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-                    if i in taxon_cols:
-                        taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                    for item in bucket:
+                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i})) 
+                        if i in taxon_cols and dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in taxon_result:
+                            taxon_result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i})) 
             else:
-                if x['buckets']:
-                    c_collection -= sum(item['count'] for item in x['buckets'])
+                # if x['buckets']:
+                c_collection -= x['allBuckets']['count']
         col_result_df = pd.DataFrame(result)
-        col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
-        if len(col_result_df_duplicated):
-            col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
-            col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
-        if len(col_result_df):
-            col_card_len = len(col_result_df)
+        # col_result_df_duplicated = col_result_df[col_result_df.duplicated(['val','count'])]
+        # if len(col_result_df_duplicated):
+        #     col_remove_index = col_result_df_duplicated[col_result_df_duplicated.matched_col.isin(dup_col)].index
+        #     col_result_df = col_result_df.loc[~col_result_df.index.isin(col_remove_index)]
+        if col_card_len:
+            # col_card_len = len(col_result_df)
             col_result_df = col_result_df[:9]
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values())
             taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
@@ -1206,13 +1214,11 @@ def search_full(request):
             col_card_len = 0
         # 物種整理
         taxon_result_df = pd.DataFrame(taxon_result)
-        # taxon_result_df_duplicated = taxon_result_df[taxon_result_df.duplicated(['val','count'])]
-        # if len(taxon_result_df_duplicated):
-        #     taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
-        #     taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
-
         # occurrence
         facet_list = occ_facets
+        if not enable_query_date:
+            if 'eventDate' in facet_list['facet'].keys():
+                facet_list['facet'].pop('eventDate')
         q = ''
         for i in facet_list['facet']:
             q += f'{i}:/.*{keyword_reg}.*/ OR ' 
@@ -1222,9 +1228,7 @@ def search_full(request):
         q = q[:-4]
         query.update({'query': q})
 
-        # s = time.time()
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        # print('get occurrence', time.time() - s)
         facets = response.json()['facets']
         facets.pop('count', None)
         
@@ -1232,36 +1236,50 @@ def search_full(request):
         occurrence_rows = []
         result = []
         taxon_result = []
+
+        occ_card_len = 0
         for i in facets:
             x = facets[i]
             if (i!='eventDate') or (enable_query_date and i == 'eventDate'): 
-                if x['buckets']:
-                    total_count =  sum(item['count'] for item in x['buckets'])
+                if x['allBuckets']['count']:
+                    # print(x)
                     occurrence_rows.append({
                         'title': map_occurrence[i],
-                        'total_count': total_count,
+                        'total_count': x['allBuckets']['count'],
                         'key': i
                     })
                 for k in x['buckets']:
+                    occ_card_len += k['taxonID']['numBuckets']
                     bucket = k['taxonID']['buckets']
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
-                    if i in taxon_cols:
-                        taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                    for item in bucket:
+                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                    # result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                            if i in taxon_cols and dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in taxon_result:
+                                taxon_result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                        # for item in bucket:
+                        #     if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in taxon_result:
+                        #         taxon_result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                            # taxon_result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             else:
                 if x['buckets']:
-                    c_occurrence -= sum(item['count'] for item in x['buckets'])
+                    c_occurrence -= x['allBuckets']['count']
 
         occ_result_df = pd.DataFrame(result)
-        occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
-        if len(occ_result_df_duplicated):
-            occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
-            occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]        
-        if len(occ_result_df):
-            occ_card_len = len(occ_result_df)
+        # occ_result_df_duplicated = occ_result_df[occ_result_df.duplicated(['val','count'])]
+        # print(len(occ_result_df))
+        c = 0
+        for i in x['buckets']:
+            c+=i['taxonID']['numBuckets']
+        print(occ_card_len)
+        # if len(occ_result_df_duplicated):
+        #     occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
+        #     occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]        
+        if occ_card_len:
+            # occ_card_len = len(occ_result_df)
             occ_result_df = occ_result_df[:9]
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=occ_result_df.val.unique()).values())
             taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
-
             occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID')
             occ_result_df['val'] = occ_result_df['formatted_name']
             occ_result_df['key'] = occ_result_df['matched_col']
@@ -1346,7 +1364,6 @@ def search_full(request):
             taxon_result_dict.append(tr)
                 # taxon_result_df.loc[i,'images'] = json.dumps(images)
             
-
         # news
         news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_news = news.count()
@@ -1829,6 +1846,7 @@ def get_focus_cards_taxon(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
+# TODO
 def get_more_cards_taxon(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
@@ -1925,13 +1943,18 @@ def get_more_cards_taxon(request):
                 taxon_remove_index = taxon_result_df_duplicated[taxon_result_df_duplicated.matched_col.isin(dup_col)].index
                 taxon_result_df = taxon_result_df.loc[~taxon_result_df.index.isin(taxon_remove_index)]
 
-
         taxon_card_len = len(taxon_result_df[offset:])
         if taxon_card_len:
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[offset:offset+4].val.unique()).values())
+            if offset >= 28:
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[offset:offset+2].val.unique()).values())
+            else:
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df[offset:offset+4].val.unique()).values())
             taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
 
-            taxon_result_df = pd.merge(taxon_result_df[offset:offset+4],taicol,left_on='val',right_on='taxonID')
+            if offset >= 28:
+                taxon_result_df = pd.merge(taxon_result_df[offset:offset+2],taicol,left_on='val',right_on='taxonID')
+            else:
+                taxon_result_df = pd.merge(taxon_result_df[offset:offset+4],taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
             taxon_result_df['key'] = taxon_result_df['matched_col']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
@@ -1969,13 +1992,14 @@ def get_more_cards_taxon(request):
         
         response = {
             'data': taxon_result_dict,
-            'has_more': True if taxon_card_len > 4 else False
+            'has_more': True if taxon_card_len > 4 else False,
+            'reach_end': True if offset >= 28 else False
         }
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-
+# TODO
 def get_more_cards(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
@@ -2033,19 +2057,28 @@ def get_more_cards(request):
                     bucket = k['taxonID']['buckets']
                     if card_class.startswith('.taxon'):
                         if i in taxon_cols:
-                            result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                            for item in bucket:
+                                if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                                    result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                            # result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
                     else:
                         if i == 'eventDate':
                             if f_date := convert_date(k['val']):
                                 f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                                result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
+                                for item in bucket:
+                                    if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
+                                        result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                                # result += [dict(item, **{'matched_value':f_date, 'matched_col': i}) for item in bucket]
                         else:
-                            result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
+                            for item in bucket:
+                                if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                                    result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                            # result += [dict(item, **{'matched_value':k['val'], 'matched_col': i}) for item in bucket]
             result_df = pd.DataFrame(result)
-            result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
-            if len(result_df_duplicated):
-                remove_index = result_df_duplicated[result_df_duplicated.matched_col.isin(dup_col)].index
-                result_df = result_df.loc[~result_df.index.isin(remove_index)]
+            # result_df_duplicated = result_df[result_df.duplicated(['val','count'])]
+            # if len(result_df_duplicated):
+            #     remove_index = result_df_duplicated[result_df_duplicated.matched_col.isin(dup_col)].index
+            #     result_df = result_df.loc[~result_df.index.isin(remove_index)]
         else:
             x = facets[key]
             for k in x['buckets']:
@@ -2053,14 +2086,23 @@ def get_more_cards(request):
                 if i == 'eventDate':
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                        result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
+                        for item in bucket:
+                            if dict(item, **{'matched_value':f_date, 'matched_col': key}) not in result:
+                                result.append(dict(item, **{'matched_value':f_date, 'matched_col': key}))
+                        # result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
                 else:
-                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+                    for item in bucket:
+                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': key}))
+                    # result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
             result_df = pd.DataFrame(result)
 
         if len(result_df):
             card_len = len(result_df[offset:])
-            result_df = result_df[offset:offset+9]
+            if offset >= 27:
+                result_df = result_df[offset:offset+3]
+            else:
+                result_df = result_df[offset:offset+9]
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values())
             taicol = taicol.rename(columns={'scientificName': 'name', 'scientificNameID': 'taxon_name_id'})
 
@@ -2079,7 +2121,8 @@ def get_more_cards(request):
 
         response = {
             'data': result_df.to_dict('records'),
-            'has_more': True if card_len > 9 else False
+            'has_more': True if card_len > 9 else False,
+            'reach_end': True if offset >= 27 else False
         }
 
         return HttpResponse(json.dumps(response), content_type='application/json')

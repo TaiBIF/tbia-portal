@@ -105,7 +105,7 @@
 
 		<!--目前位置給class>now-->
 		<div class="page_number">
-			{% if page_list|length > 1 %}
+		{% if page_list|length > 1 %}
 			<a href="javascript:;" class="num changePage" data-page="1" data-type="all">1</a>
 			{% if current_page|add:'-1' in page_list %}
 			<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="all">

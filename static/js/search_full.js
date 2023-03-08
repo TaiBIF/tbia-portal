@@ -572,15 +572,16 @@ function focusComponent(item_class, go_back){
           }
         }
 
+        $('.getRecords').off('click')
         $('.getRecords').on('click', function(){
             getRecords($(this).data('record_type'),$(this).data('key'),$(this).data('value'),$(this).data('scientific_name'),
             $(this).data('limit'),$(this).data('page'),$(this).data('from'),$(this).data('go_back'),$(this).data('orderby'),$(this).data('sort'))
         })
-
+        $('.popupField').off('click')
         $('.popupField').on('click', function(){
             popupField($(this).data('record_type'))
         })
-
+        $('.downloadData').off('click')
         $('.downloadData').on('click', function(){
             downloadData($(this).data('query'),$(this).data('count'))
         })
@@ -706,10 +707,12 @@ function focusComponent(item_class, go_back){
 
             }
 
+            $('.getDist').off('click')
             $('.getDist').on('click', function(){
                 getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
             })          
 
+            $('.getRecords').off('click')
             $('.getRecords').on('click', function(){
               getRecords($(this).data('record_type'),$(this).data('key'),$(this).data('value'),$(this).data('scientific_name'),
               $(this).data('limit'),$(this).data('page'),$(this).data('from'),$(this).data('go_back'),$(this).data('orderby'),$(this).data('sort'))
@@ -723,13 +726,18 @@ function focusComponent(item_class, go_back){
                 data-offset_value="#${record_type}_${key}_offset"
                 data-more_type=".${record_type}_${key}_more" 
                 data-is_sub="true"> 更多結果 </a>
-                <input type="hidden" id="${record_type}_${key}_offset" value="4">`)
+                <input type="hidden" id="${record_type}_${key}_offset" value="4">
+                <div class="no_data ${record_type}_${key}_more_end d-none"> 
+                符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+                </div>      
+                `)
             }
             $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
             $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
 
             clickToAnchor(`#${response.item_class}_cards`)
 
+            $('.getMoreCards').off('click')
             $('.getMoreCards').on('click', function(){
               getMoreCards($(this).data('card_class'),$(this).data('offset_value'),$(this).data('more_type'),$(this).data('is_sub'))
             })
@@ -812,6 +820,7 @@ function focusComponent(item_class, go_back){
             }
           }
 
+          $('.getRecords').off('click')
           $('.getRecords').on('click', function(){
             getRecords($(this).data('record_type'),$(this).data('key'),$(this).data('value'),$(this).data('scientific_name'),
             $(this).data('limit'),$(this).data('page'),$(this).data('from'),$(this).data('go_back'),$(this).data('orderby'),$(this).data('sort'))
@@ -825,11 +834,16 @@ function focusComponent(item_class, go_back){
               data-offset_value="#${record_type}_${key}_offset"
               data-more_type=".${record_type}_${key}_more" 
               data-is_sub="true">           更多結果 </a>
-              <input type="hidden" id="${record_type}_${key}_offset" value="9">`)
+              <input type="hidden" id="${record_type}_${key}_offset" value="9">
+              <div class="no_data ${record_type}_${key}_more_end d-none"> 
+              符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+              </div>      
+              `)
           }
           $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
           $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
 
+          $('.getMoreCards').off('click')
           $('.getMoreCards').on('click', function(){
             getMoreCards($(this).data('card_class'),$(this).data('offset_value'),$(this).data('more_type'),$(this).data('is_sub'))
           })
@@ -932,7 +946,15 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
     })
     .done(function(response) {
 
-      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 4 ) : $(more_type).addClass('d-none')
+
+      if (response.has_more==true & response.reach_end==false){
+        $(offset_value).val(Number(offset)+ 4 )
+      } else {
+        $(more_type).addClass('d-none')
+        if (response.reach_end) {
+          $(`${more_type}_end`).removeClass('d-none')
+        }
+      }
       
       for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
@@ -982,6 +1004,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
 
           $(`${card_class}`).append(html)
 
+          $('.getDist').off('click')
           $('.getDist').on('click', function(){
               getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
           })
@@ -1010,7 +1033,14 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         dataType : 'json',
     })
     .done(function(response) {
-      (response.has_more==true) ? $(offset_value).val(Number(offset)+ 9 ) : $(more_type).addClass('d-none')
+      if (response.has_more==true & response.reach_end==false){
+        $(offset_value).val(Number(offset)+ 9 )
+      } else {
+        $(more_type).addClass('d-none')
+        if (response.reach_end) {
+          $(`${more_type}_end`).removeClass('d-none')
+        }
+      }
       for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
         if ( x.matched_col != '中文名' && x.matched_col != '學名'){
@@ -1053,6 +1083,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         }
       }
 
+      $('.getRecords').off('click')
       $('.getRecords').on('click', function(){
           getRecords($(this).data('record_type'),$(this).data('key'),$(this).data('value'),$(this).data('scientific_name'),
           $(this).data('limit'),$(this).data('page'),$(this).data('from'),$(this).data('go_back'),$(this).data('orderby'),$(this).data('sort'))

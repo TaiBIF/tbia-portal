@@ -119,6 +119,7 @@ $('.news_tab_in li').click(function(){
             $('.next').addClass('pt-none')
         }  
 
+        $('.changePage').off('click')
         $('.changePage').on('click', function(){
             changePage($(this).data('page'), $(this).data('type'))
         })
@@ -323,6 +324,7 @@ function changePage (page, by){
           $('.next').addClass('pt-none')
         }  
 
+        $('.changePage').off('click')
         $('.changePage').on('click', function(){
           changePage($(this).data('page'), $(this).data('type'))
         })

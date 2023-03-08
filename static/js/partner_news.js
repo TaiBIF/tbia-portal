@@ -160,6 +160,18 @@ $(document).ready(function () {
 
     $('.changeMenu').on('click', function(){
         let menu = $(this).data('menu');
+      // 如果是edit的話要先把Edit的內容拿掉
+      if (menu == 'edit') {
+        $('#newsForm input[name=news_id]').val('')
+        $('#newsForm input[name=status]').val('pending')
+        $('#newsForm input[name=title]').val('')
+        $('#newsForm li img.img-style').remove()
+        $('#newsForm input[name=image]').val('')
+
+        var element = document.getElementsByClassName("ql-editor");
+        element[0].innerHTML = "";
+      }
+
         $('.rightbox_content').addClass('d-none'); 
         $(`.rightbox_content.${menu}`).removeClass('d-none'); 
         changeURL(menu)
@@ -167,6 +179,7 @@ $(document).ready(function () {
 
     // $('label[for="id_content"]').html('')
 
+    /*
     var $radios = $('#newsForm input:radio[name=type]');
     if (($('input[name=n_type]').val()!='')&&($('input[name=n_type]').val()!='None')){
       $radios.prop('checked', false);
@@ -174,7 +187,7 @@ $(document).ready(function () {
       if($radios.is(':checked') === false) {
           $radios.filter(`[value=${$('input[name=n_type]').val()}]`).prop('checked', true);
       }
-    }
+    }*/
 
     $(`a.${ $('input[name=menu]').val() }`).addClass('now')
     $(`a.${ $('input[name=menu]').val() }`).parent(".second_menu").slideToggle();

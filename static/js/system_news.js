@@ -164,6 +164,17 @@ $(document).ready(function () {
 
     $('.changeMenu').on('click', function(){
         let menu = $(this).data('menu');
+        if (menu == 'edit') {
+          $('#newsForm input[name=news_id]').val('')
+          $('#newsForm input[name=status]').val('pending')
+          $('#newsForm input[name=title]').val('')
+          $('#newsForm li img.img-style').remove()
+          $('#newsForm input[name=image]').val('')
+  
+          var element = document.getElementsByClassName("ql-editor");
+          element[0].innerHTML = "";
+        }
+  
         $('.rightbox_content').addClass('d-none'); 
         $(`.rightbox_content.${menu}`).removeClass('d-none'); 
         changeURL(menu)

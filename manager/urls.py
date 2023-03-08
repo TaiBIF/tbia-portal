@@ -26,6 +26,7 @@ urlpatterns = [
     path('manager/system/info', views.system_info, name='system_info'),
     path('manager/system/keyword', views.system_keyword, name='system_keyword'),
     path('manager/system/resource', views.system_resource, name='system_resource'),
+    path('manager/system/qa', views.system_qa, name='system_qa'),
     path('generate_no_taxon_csv', views.generate_no_taxon_csv, name='generate_no_taxon_csv'),
     path('update_partner_info', views.update_partner_info, name='update_partner_info'),
     path('send_partner_request', views.send_partner_request, name='send_partner_request'),
@@ -47,4 +48,6 @@ urlpatterns = [
     path('get_news_content', views.get_news_content, name='get_news_content'),
     path('save_news_image', views.save_news_image, name='save_news_image'),
     path('get_link_content', views.get_link_content, name='get_link_content'),
+    path('submit_qa', views.submit_qa, name='submit_qa'),
+    path('delete_qa', views.delete_qa, name='delete_qa'),
 ]

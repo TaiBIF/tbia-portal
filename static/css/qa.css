@@ -1,0 +1,9 @@
+.no_qa {
+    display: flex;
+    position: relative;
+    padding: 10px 20px;
+    background: #FFF;
+    border-radius: 5px;
+    margin-bottom: 2px;
+    cursor: default;
+}

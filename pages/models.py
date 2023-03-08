@@ -119,3 +119,16 @@ class Download(models.Model):
     expired = models.DateTimeField()
     class Meta:
         db_table = 'download'
+
+
+class Qa(models.Model):
+
+    type_choice = [
+        (1,'網頁操作'),
+        (2,'網頁內容'),
+        (3,'聯盟相關'),]
+    type = models.IntegerField(choices=type_choice,blank=True, null=True)
+    question = TextField(null=True, blank=True)
+    answer = TextField(null=True, blank=True)
+    class Meta:
+        db_table = 'qa'

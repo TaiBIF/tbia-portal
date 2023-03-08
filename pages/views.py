@@ -17,7 +17,7 @@ news_type_map = {
 }
 
 news_type_c_map = {
-        'news':'消息公告',
+    'news':'消息公告',
     'event': '活動訊息',
     'project': '計畫徵求',
 
@@ -149,8 +149,66 @@ def get_resource_cate(extension):
 
 
 def qa(request):
-    # 加上now class 如果有request get指定是哪個問題
-    return render(request, 'pages/qa.html')
+    type = request.GET.get('type')
+    limit = 10
+    if type:
+        qa_list = Qa.objects.filter(type=type)
+    else:
+        qa_list = Qa.objects.filter(type=2)
+
+    current_page = 0 / limit + 1
+    total_page = math.ceil(qa_list.count()/limit)
+    page_list = get_page_list(1, total_page)
+    qa_list = qa_list[:limit]
+
+    return render(request, 'pages/qa.html', {'qa_list': qa_list, 'type': type, 'total_page': total_page,
+                                             'page_list': page_list, 'current_page': current_page})
+
+
+def get_qa_list(request):
+    if request.method == 'POST':
+        response = {}
+        type = request.POST.get('type')
+        try:
+            current_page = int(request.POST.get('page',1))
+        except:
+            current_page = 1
+        
+        limit = 10
+        offset = limit * (current_page-1)
+        qa = Qa.objects.filter(type=type)
+
+        total_page = math.ceil(qa.count() / limit)
+        page_list = get_page_list(current_page,total_page,3)
+
+        qa_list = []
+        for q in qa[offset:offset+limit]:
+            qa_list.append({'question': q.question, 'answer': q.answer})
+        response['data'] = qa_list
+        response['page_list'] = page_list
+        response['current_page'] = current_page
+        response['total_page'] = total_page
+
+        return JsonResponse(response, safe=False)
+
+
+def news_detail(request, news_id):
+    if News.objects.filter(id=news_id).exists():
+        n = News.objects.get(id=news_id)
+        color = news_type_map[n.type]
+        # 系統管理員, 單位帳號, 單位管理者
+        is_authorized = False
+        if not request.user.is_anonymous:  
+            u = request.user
+            if u.is_system_admin:
+                is_authorized = True
+            elif u.id == n.user_id:
+                is_authorized = True
+            elif u.partner_id == n.partner_id:
+                is_authorized = True
+                
+        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized})
+
 
 def index(request):
     # recommended keyword

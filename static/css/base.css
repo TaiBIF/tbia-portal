@@ -1,3 +1,7 @@
+.box-radius-10px {
+    border-bottom-right-radius: 10px
+}
+
 .visible {
     visibility: visible
 }
@@ -23,8 +27,14 @@
     background: none;
 }
 
-.header .right_btn2 .member_login .member_slimenu ul li {
-    border-bottom-left-radius: 15px;
+.header .right_btn2 .member_login .member_slimenu ul li:not(:last-child) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.header .right_btn2 .member_login .member_slimenu ul li:last-child {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .checka {
@@ -55,7 +65,6 @@
 .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
     height: auto;
     max-height: 36px;
-
 }
 
 

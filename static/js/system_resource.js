@@ -91,11 +91,32 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
           
     })();
     
+
+    function deleteResource(resource_id){
+        $.ajax({
+            type: 'POST',
+            url: "/delete_resource",
+            data: {'resource_id': resource_id},
+            headers: {'X-CSRFToken': $csrf_token},
+            success: function (response) {
+                alert('刪除成功')
+                window.location = '/manager/system/resource?menu=list';
+            }
+        })
+    }
     
   $(document).ready(function () {
 
       $('.changeMenu').on('click', function(){
           let menu = $(this).data('menu');
+          if (menu == 'edit') {
+            $('#saveForm input[name=resource_id]').val('')
+            $('#saveForm select[name=resource_type]').val('')
+            $('#saveForm input[name=file]').val('')
+            $('#saveForm input[name=url]').val('')
+            $('#preview').parent('li').html(`<span id="preview" class="d-none"></span>`)
+          }
+  
           $('.rightbox_content').addClass('d-none'); 
           $(`.rightbox_content.${menu}`).removeClass('d-none'); 
           changeURL(menu)
@@ -113,16 +134,7 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
       })
 
       $('.delete_resource').on('click', function(){
-          $.ajax({
-              type: 'POST',
-              url: "/delete_resource",
-              data: {'resource_id': $(this).data('resource_id')},
-              headers: {'X-CSRFToken': $csrf_token},
-              success: function (response) {
-                  alert('刪除成功')
-                  window.location = '/manager/system/resource?menu=list';
-              }
-          })
+        deleteResource($(this).data('resource_id'))
       })
 
       $('#save_resource_file').on('click',function(){
@@ -163,8 +175,6 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
               $('#file_error').removeClass('d-none')
               checked = false
           } 
-          
-          
           
           if (checked) {
               
@@ -271,6 +281,10 @@ function changePage(page, menu){
             changePage($(this).data('page'),$(this).data('type'))
         })        
             
+        $('.delete_resource').off('click')
+        $('.delete_resource').on('click', function(){
+            deleteResource($(this).data('resource_id'))
+          })            
   }
   });
 

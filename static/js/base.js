@@ -8,8 +8,16 @@ function showLogin(){
   }
 }
 
+function isOverflown(element) {
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
 
 $(function () {
+
+  if (!isOverflown($('.message_list')[0])){
+    $('.message_list li:last-child').addClass('box-radius-10px')
+  }
+
 
   let selectBoxFP = new vanillaSelectBox("#feedback_partner",{"placeHolder":"請選擇回饋對象",search:false, disableSelectAll: true,
   });
@@ -130,7 +138,7 @@ $(function () {
         .fail(function( xhr, status, errorThrown ) {
           alert('發生未知錯誤！請聯絡管理員')
           console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-                $('.login_pop').addClass('d-none')
+          $('.login_pop').addClass('d-none')
 
         }) 
     }

@@ -113,13 +113,17 @@ function changePage(page, menu){
                 ${response.header}
                 ${response.data}`)
 
+
+            $('.showRequest').off('click')
             $('.showRequest').on('click',function(){
                 let query_id = $(this).data('query_id');
                 let query = $(this).data('query');
                 let sdr_id = $(this).data('sdr_id');
                 showRequest(query_id,query,sdr_id)
             })
-        
+
+
+            $('.updateFeedback').off('click')
             $('.updateFeedback').on('click', function(){
                 let current_id = $(this).data('fid');
                 $.ajax({
@@ -185,6 +189,11 @@ function changePage(page, menu){
             $('.changePage').on('click', function(){
                 changePage($(this).data('page'),$(this).data('type'))
             })        
+
+            $('.save_btn').off('click')
+            $('.save_btn').on('click',function(){
+                update_user_status($(this).data('id'))
+            })
     
         }
     });
@@ -334,27 +343,30 @@ $(document).ready(function () {
     })
 
     $('.save_btn').on('click',function(){
-        let current_id = $(this).data('id')
-        $.ajax({
-            url: "/update_user_status",
-            data: {'user_id': current_id,
-                    'csrfmiddlewaretoken': $csrf_token,
-                    'role': $('select[name=role]').find(':selected').val(),
-                    'status': $(`select[name="status"][data-id=${current_id}]`).val(),
-                },
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            alert('修改完成')                
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+        update_user_status($(this).data('id'))
     })
 
     $(`a.${ $('input[name=menu]').val() }`).addClass('now')
     $(`a.${ $('input[name=menu]').val() }`).parent(".second_menu").slideToggle();
     $(`.rightbox_content.${ $('input[name=menu]').val() }`).removeClass('d-none')
 })
+
+function update_user_status(current_id){
+    $.ajax({
+        url: "/update_user_status",
+        data: {'user_id': current_id,
+                'csrfmiddlewaretoken': $csrf_token,
+                'role': $('select[name=role]').find(':selected').val(),
+                'status': $(`select[name="status"][data-id=${current_id}]`).val(),
+            },
+        type: 'POST',
+        dataType : 'json',
+    })
+    .done(function(response) {
+        alert('修改完成')                
+    })
+    .fail(function( xhr, status, errorThrown ) {
+        alert('發生未知錯誤！請聯絡管理員')
+        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })  
+}

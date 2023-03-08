@@ -1160,7 +1160,8 @@ body {
 }
 
 .header .right_btn2 .ringbox .messagebox .wbox .message_list li:last-child {
-    border: 0px
+    border: 0px;
+    border-bottom-left-radius: 10px
 }
 
 @media only screen and (min-width: 1000px) {
@@ -1170,7 +1171,7 @@ body {
         -o-transition: all .3s;
         -ms-transition: all .3s;
         -webkit-transition: all .3s;
-        background: #EEF4EF
+        background: #EEF4EF;
     }
 }
 
@@ -1308,7 +1309,7 @@ body {
     opacity: 0;
     -moz-opacity: 0;
     filter: alpha(opacity=100);
-    visibility: hidden
+    visibility: hidden;
 }
 
 @media only screen and (max-width: 1279px) {

@@ -84,12 +84,24 @@
                           </div>                    
                     </li>
                     <li>
+                        <div class="big_link">
+                            <div class="maskfor_click rd_click"></div>
+                            <p>
+                              常見Q&A設定
+                            </p>
+                            <div class="arrd"></div>
+                          </div>
+                          <div class="col_menu second_menu">
+                            <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
+                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                          </div>                    
+                    </li> 
+                    <li>
                         <a href="{% url 'system_keyword' %}" class="big_link rd_click">
                             <p>全站搜尋推薦關鍵字設定</p>
                             <div class="arr"></div>
                         </a>
                     </li>
-
                 </ul>
             </div>
         </div>

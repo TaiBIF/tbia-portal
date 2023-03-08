@@ -89,11 +89,13 @@ function changePage(page, menu){
                 changePage($(this).data('page'),$(this).data('type'))
             })        
                 
+            $('.saveStatus').off('click')
             $('.saveStatus').on('click', function(){
                 let current_id = $(this).data('pmid')
                 saveStatus(current_id)
             })
             
+            $('.showRequest').off('click')
             $('.showRequest').on('click', function(){
                 let query_id = $(this).data('query_id')
                 let query = $(this).data('query')
@@ -102,6 +104,7 @@ function changePage(page, menu){
                 showRequest(query_id,query,sdr_id,is_transferred)
             })
 
+            $('.updateFeedback').off('click')
             $('.updateFeedback').on('click', function(){
                 let current_id = $(this).data('fid')
                 updateFeedback(current_id)

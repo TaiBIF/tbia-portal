@@ -267,6 +267,9 @@
               data-more_type=".taxon_more" 
               data-is_sub="false"> 更多結果 </a>
             <input type="hidden" id="taxon_offset" value="4">
+            <div class="no_data taxon_more_end d-none"> 
+              符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+            </div>    
             {% endif %}
 					</div>
 
@@ -315,6 +318,9 @@
           data-more_type=".occ_more" 
           data-is_sub="false"> 更多結果 </a>
         <input type="hidden" id="occ_offset" value="9">
+        <div class="no_data occ_more_end d-none"> 
+          符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+        </div>
         {% endif %}
       </div>
 
@@ -363,6 +369,9 @@
           data-more_type=".col_more" 
           data-is_sub="false"> 更多結果 </a>
         <input type="hidden" id="col_offset" value="9">
+        <div class="no_data col_more_end d-none"> 
+          符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+        </div>
         {% endif %}
       </div>
 
