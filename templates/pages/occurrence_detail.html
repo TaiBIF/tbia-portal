@@ -82,7 +82,12 @@
             </div>
           {% endif %}
           {% for am in row.associatedMedia %}
-            <img class="imgarea mySlides fade" src="{{ am }}">
+          <div class="picbox mySlides fade">
+            <div class="img-container">
+              <img class="imgarea" src="{{ am.img }}">
+              <p class="bottom-right">影像授權：{{ am.license }}</p>
+            </div>
+          </div>
           {% endfor %}
         </div>
       </div>

@@ -72,22 +72,27 @@
         </div>
       </div>
       {% if row.associatedMedia|length > 0 %}
+      <input type="hidden" name="has_media" value="t">
       <div class="right_area">
-        {% if row.associatedMedia|length > 1 %}
-        <div class="arr-left">
+        <div class="imgbox">        
+          {% if row.associatedMedia|length > 1 %}
+            <div class="arr-left">
+            </div>
+            <div class="arr-right">
+            </div>
+          {% endif %}
+          {% for am in row.associatedMedia %}
+          <div class="picbox mySlides fade">
+            <div class="img-container">
+              <img class="imgarea" src="{{ am.img }}">
+              <p class="bottom-right">影像授權：{{ am.license }}</p>
+            </div>
+          </div>
+          {% endfor %}
         </div>
-        <div class="arr-right">
-        </div>
-        {% endif %}
-        {% for am in row.associatedMedia %}
-        <div class="imgbox">
-          <img class="imgarea mySlides fade" src="{{ am }}">
-        </div>
-        {% endfor %}
       </div>
       {% endif %}
     </div>
-
     <div class="sc_de_main">
       <div class="left_area">
         <div class="whcont">

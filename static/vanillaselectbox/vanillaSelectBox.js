@@ -463,7 +463,7 @@ function vanillaSelectBox(domSelector, options) {
 
         let optionsLength = self.options.length - Number(!self.userOptions.disableSelectAll);
 
-        if (optionsLength == nrActives) { // Bastoune idea to preserve the placeholder
+        if (optionsLength == nrActives && optionsLength!=0) { // Bastoune idea to preserve the placeholder
             let wordForAll = self.userOptions.translations.all;
             selectedTexts = wordForAll;
         } else if (self.multipleSize != -1) {
@@ -542,6 +542,7 @@ function vanillaSelectBox(domSelector, options) {
             }); 
         }
 
+        
         if (self.userOptions.stayOpen) {
             self.drop.style.visibility = "visible";
             self.drop.style.boxShadow = "none";

@@ -160,3 +160,39 @@
     height: 14px;
     margin-left: 5px;
 }
+
+
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 {
+    width: 0
+}
+
+@media only screen and (max-width: 767px) {
+    .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 {
+        width: 100%;
+        /*margin-bottom: 10px*/
+    }
+}
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 .imgbox {
+    width: 100%;
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden
+}
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 .imgbox .imgarea {
+    width: 100%;
+    object-fit: cover;
+    height: 100%;
+}
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .lefttxt2 {
+    width: calc(100% - 10px)
+}
+
+@media only screen and (max-width: 767px) {
+    .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .lefttxt2 {
+        width: 100%
+    }
+}

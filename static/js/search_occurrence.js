@@ -1,3 +1,5 @@
+
+
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 function getColor(d) {
@@ -296,7 +298,6 @@ function changeAction(){
     if (queryString.split('&').length>1){
         // 把條件填入表格
         let entries = urlParams.entries(); 
-
         let d_list = Array();
         let r_list = Array();
 
@@ -530,7 +531,7 @@ function setTable(response, queryString, from, orderby, sort){
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
             $(this).data('sort','asc');
         }
-        submitSearch(1,'page',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
+        submitSearch(1,'orderby',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
         //getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
     })
 
@@ -601,154 +602,6 @@ function setTable(response, queryString, from, orderby, sort){
         window.selected = $(`.occ-choice input:checked`)
     })
 }
-
-/*
-
-function getRecordByURL(queryString,page,limit,orderby,sort) {
-    // 如果從頁碼點選, 修改page參數
-    if (page != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('page',page)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-    // 如果page等於null的話要把page的參數拿掉嗎？
-
-    // 如果調整每頁筆數, 修改limit參數
-    if (limit != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('limit',limit)
-        urlParams.set('page',1)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // 如果調整orderby and sort
-    if (orderby != null){
-        let urlParams = new URLSearchParams(queryString);
-        urlParams.set('orderby',orderby)
-        urlParams.set('sort',sort)
-        urlParams.set('page',1)
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
-
-    // selected_col
-    let selected_col = ''
-    $(`.occ-choice input:checked`).each(function(){
-        selected_col += '&selected_col=' + $(this).attr('id').replace('occ-','')
-        }
-    )
-
-    $.ajax({
-        url: "/get_conditional_records",
-        data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-        // clear previous results
-        $('.sc_result').remove()
-        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-
-        if (response.count == 0){
-        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
-        } else {
-            // 把之前的清掉
-            setTable(response, queryString)
-
-            // 欄位選項
-            $(`input[id^="occ-"]`).prop('checked',false)
-            // show selected columns
-            for (let i = 0; i < response.selected_col.length; i++) {
-                $(`.row-${response.selected_col[i]}`).removeClass('d-none');
-                $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
-
-            // disable checkebox for common_name_c & scientificName
-            $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
-            $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
-
-            // append pagination
-            if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                $('.result_table').after(
-                `<div class="d-flex-ai-c-jc-c">
-                    <div class="page_number">
-                    <a href="javascript:;" class="pre">
-                    <span></span>
-                    </a>
-                    <a href="javascript:;" class="next">
-                    <span></span>
-                    </a>
-                    </div>
-                    <span class="ml-20px">
-                    跳至<input class="page-jump" data-query='${queryString}' name="jumpto" type="number" min="1" step="1">頁
-                    <a class="jumpto pointer">GO</a>  
-                    </span>
-                </div>`)
-            }		
-
-            $('.jumpto').on('click', function(){
-                getRecordByURL($('input[name=jumpto]').data('query'),$('input[name=jumpto]').val(),null,null,null)
-            })
-
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
-                    html += `<a href="javascript:;" class="num now getRecordByURL" data-query="${queryString}" data-page="${response.page_list[i]}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += `<a href="javascript:;" class="num getRecordByURL" data-query="${queryString}" data-page="${response.page_list[i]}">${response.page_list[i]}</a>  `
-                }
-            }
-            $('.pre').after(html)
-
-            // 如果有上一頁，改掉pre的onclick
-            if ((response.current_page - 1) > 0 ){
-                $('.pre').addClass('getRecordByURL')
-                $('.pre').data('query', queryString)
-                $('.pre').data('page', response.current_page-1)
-                //$('.pre').attr('onclick',`getRecordByURL('${queryString}',${response.current_page - 1},null,null,null)`);
-            }
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page){
-                $('.next').addClass('getRecordByURL')
-                $('.next').data('query', queryString)
-                $('.next').data('page', response.current_page+1)
-                //$('.next').attr('onclick',`getRecordByURL('${queryString}',${response.current_page + 1},null,null,null)`);
-            }
-
-            // 如果有前面的page list, 加上...
-            if (response.current_page > 5){
-                $('.pre').after(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.current_page-5}">...</a> `)
-            }
-            // 如果有後面的page list, 加上...
-            if (response.page_list[response.page_list.length - 1] < response.total_page){
-                if (response.current_page +5 > response.total_page){
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.total_page}">...</a>`)
-                } else {
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 getRecordByURL" data-query="${queryString}" data-page="${response.current_page+5}">...</a>`)
-                }
-            }
-
-            $('.getRecordByURL').on('click', function(){
-                getRecordByURL($(this).data('query'),$(this).data('page'),$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
-            })
-
-        }
-
-        $([document.documentElement, document.body]).animate({
-            scrollTop: $(".sc_result").offset().top}, 200);
-
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-            alert('要求連線逾時')
-        } else {
-            alert('發生未知錯誤！請聯絡管理員')
-        }
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
-}
-*/
 
 // submit search form
 function submitSearch (page, from, new_click,limit,orderby,sort){
@@ -835,8 +688,10 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         let urlParams = new URLSearchParams(window.location.search);
         urlParams.set('orderby',orderby)
         urlParams.set('sort',sort)
-        urlParams.set('page',1)
-        page = 1
+        if (from == 'orderby'){
+            urlParams.set('page',1)
+            page = 1
+        }
         orderby_str = '&orderby=' + orderby + '&sort=' + sort
         queryString = urlParams.toString()
         history.pushState(null, '', window.location.pathname + '?'  + queryString);
@@ -976,3 +831,12 @@ function sendSelected(){
     }
     $(".popbg").addClass('d-none');
 }
+
+
+window.addEventListener('keydown',function(event){
+    if(event.code == 'Enter') {
+        event.preventDefault();
+        return false;
+    }
+});
+  

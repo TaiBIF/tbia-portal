@@ -213,7 +213,11 @@
               {% for i in taxon.card %}
 							<li>
 								<div class="flex_top">
+                  {% if i.images %}
 									<div class="lefttxt">
+                  {% else %}
+                  <div class="lefttxt2">
+                  {% endif %}
                     {% if i.matched_col != '中文名' and i.matched_col != '學名' and i.matched_col != '中文別名' and  i.matched_col != '同物異名' %}
                     <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
                     {% endif %}    
@@ -224,15 +228,19 @@
 										<p>出現記錄筆數：{{ i.occ_count|intcomma }}</p>
 										<p>自然史典藏筆數：{{ i.col_count|intcomma }}</p>
 									</div>
+                  {% if i.images %}
 									<div class="right_img">
 										<div class="imgbox">
-                      {% if i.images %}
                         <img class="imgarea" src="{{ i.images.src }}">
-                      {% else %}
-                        <img class="imgarea">
-                      {% endif %}
                     </div>
 									</div>
+                  {% else %}
+                  <div class="right_img2">
+										<div class="imgbox">
+                        <img class="imgarea">
+                    </div>
+									</div>
+                  {% endif %}
 								</div>
 
                 {% comment %} justify-content: center {% endcomment %}

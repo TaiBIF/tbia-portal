@@ -15,6 +15,9 @@ $(document).ready(function () {
             Highcharts.setOptions({
                 lang: {
                     thousandsSep: ","
+                },
+                credits: {
+                    enabled: false
                 }
             })
             Highcharts.chart('container', {
@@ -43,8 +46,9 @@ $(document).ready(function () {
                 plotOptions: {
                     pie: {
                         size:'100%',
+                        /*
                         colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
-                        '#555','#3B86C0','#304237','#C65454','#ccc' ],
+                        '#555','#3B86C0','#304237','#C65454','#ccc' ],*/
                         allowPointSelect: true,
                         cursor: 'pointer',
                         dataLabels: {

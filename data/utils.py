@@ -33,6 +33,16 @@ def convert_grid_to_square(grid_x, grid_y, grid):
     # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 
+def format_grid(grid_x, grid_y, grid, count):
+    dic = {
+            "type": "Feature",
+            "geometry":{"type":"Polygon","coordinates":[convert_grid_to_square(grid_x, grid_y, grid/100)]},
+            "properties": {
+                "counts": count
+            }
+        }
+    return dic
+
 rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
           'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
             'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 

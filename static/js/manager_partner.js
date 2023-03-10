@@ -23,13 +23,16 @@ $(document).ready(function () {
     if ($('input[name=is_partner]').val()=='True'){
 
         $.ajax({
-            url: "/get_partner_stat?partner_group=" + $('input[name=partner_group]').val(),
+            url: "/get_partner_stat?partner_id=" + $('input[name=partner_id]').val(),
             type: 'GET',
         })
         .done(function(response) {
             Highcharts.setOptions({
                 lang: {
                     thousandsSep: ","
+                },
+                credits: {
+                    enabled: false
                 }
             })
             Highcharts.chart('container', {
@@ -58,8 +61,9 @@ $(document).ready(function () {
                 plotOptions: {
                     pie: {
                         size:'100%',
+                        /*
                         colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
-                        '#555','#3B86C0','#304237','#C65454','#ccc' ],
+                        '#555','#3B86C0','#304237','#C65454','#ccc' ],*/
                         allowPointSelect: true,
                         cursor: 'pointer',
                         dataLabels: {
@@ -136,7 +140,7 @@ $(document).ready(function () {
 function getNoTaxonCSV(){
     $.ajax({
         url: "/generate_no_taxon_csv",
-        data: {'group': $('input[name=partner_group]').val(), csrfmiddlewaretoken: $csrf_token},
+        data: {'group': $('input[name=partner_id]').val(), csrfmiddlewaretoken: $csrf_token},
         type: 'POST',
         dataType : 'json',
     })

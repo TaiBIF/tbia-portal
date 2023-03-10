@@ -270,6 +270,7 @@ function focusComponent(item_class, go_back){
 }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort){
+    console.log(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort)
 
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
@@ -295,7 +296,10 @@ function focusComponent(item_class, go_back){
       var urlParams = new URLSearchParams(window.location.search)
       urlParams.set('orderby',orderby)
       urlParams.set('sort',sort)
-      urlParams.set('page',1)
+      if (from == 'orderby'){
+        urlParams.set('page',1)
+        page = 1
+      }
       queryString = urlParams.toString()
       history.pushState(null, '', window.location.pathname + '?'  + queryString);
     }
@@ -432,7 +436,7 @@ function focusComponent(item_class, go_back){
                 $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
                 $(this).data('sort','asc');
             }
-            getRecords(record_type,key,value,scientific_name,limit,page,'orde',go_back,$(this).data('orderby'),$(this).data('sort'))
+            getRecords(record_type,key,value,scientific_name,limit,page,'orderby',go_back,$(this).data('orderby'),$(this).data('sort'))
         })
 
         // 判斷是從分頁或卡片點選

@@ -529,7 +529,7 @@ function setTable(response, queryString, from, orderby, sort){
             $(this).data('sort','asc');
         }
 
-        submitSearch(1,'page',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
+        submitSearch(1,'orderby',false,response.limit,$(this).data('orderby'),$(this).data('sort'))
         //getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
     })
 
@@ -687,8 +687,10 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
             let urlParams = new URLSearchParams(window.location.search);
             urlParams.set('orderby',orderby)
             urlParams.set('sort',sort)
-            urlParams.set('page',1)
-            page = 1
+            if (from == 'orderby'){
+                urlParams.set('page',1)
+                page = 1
+            }
             orderby_str = '&orderby=' + orderby + '&sort=' + sort
             queryString = urlParams.toString()
             history.pushState(null, '', window.location.pathname + '?'  + queryString);
@@ -829,3 +831,12 @@ function sendSelected(){
     }
     $(".popbg").addClass('d-none');
 }
+
+
+window.addEventListener('keydown',function(event){
+    if(event.code == 'Enter') {
+        event.preventDefault();
+        return false;
+    }
+});
+  

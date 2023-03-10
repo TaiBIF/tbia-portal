@@ -9,10 +9,11 @@ class DatasetKey(models.Model):
     deprecated = models.BooleanField(default=False) # 資料庫內是否還有此資料及名稱
 
 
-# 新舊TaiCOL namecode對應
+# 新舊TaiCOL namecode對應 & TaiEOL對應
 class Namecode(models.Model): 
     taxon_name_id = models.CharField(max_length=100, blank=False, null=False)
     namecode = models.CharField(max_length=100, blank=False, null=False)
+    taieol_id = models.CharField(max_length=100, blank=True, null=True)
 
 
 class Taxon(models.Model):

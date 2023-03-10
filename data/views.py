@@ -1341,28 +1341,28 @@ def search_full(request):
 
         # 照片
         # taxon_result_df['images'] = ''
+        s = time.time()
         taxon_result_df = taxon_result_df.to_dict('records')
         taxon_result_dict = []
         for tr in taxon_result_df:
             if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
                 namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
                 url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
                 r = requests.get(url)
                 img = r.json()
-                images = []
-                for ii in img:
-                    foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
-                    images.append(foto)
-                if images:
-                    tr['images'] = images[0]
-                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
-                r = requests.get(url)
-                data = r.json()
-                if data:
-                    if data.get('tid'):
-                        tr['taieol_id'] = data.get('tid')
+                if img:
+                    ii = img[0]
+                    tr['images'] = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                if n_obj.taieol_id:
+                    tr['taieol_id'] = n_obj.taieol_id
+                # url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
+                # r = requests.get(url)
+                # data = r.json()                
+                # if data:
+                #     if data.get('tid'):
+                #         tr['taieol_id'] = data.get('tid')
             taxon_result_dict.append(tr)
-                # taxon_result_df.loc[i,'images'] = json.dumps(images)
             
         # news
         news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
@@ -2155,7 +2155,7 @@ def search_occurrence(request):
     # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     dataset_list = DatasetKey.objects.filter(record_type='occ')
     # holder_list = ['TBN','TaiBIF','林試所','林務局','海保署']
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無'] # TODO 物種不開放僅開放有權限的人查詢
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
     basis_list = basis_dict.values()
         
@@ -2164,11 +2164,14 @@ def search_occurrence(request):
 
 
 def occurrence_detail(request, id):
-    solr = SolrQuery('tbia_records')
     logo = ''
-    query_list = [('id', id), ('row',1)]
-    req = solr.request(query_list)
-    row = pd.DataFrame(req['solr_response']['response']['docs'])
+    query = {
+            'query': "*:*",
+            'limit': 1,
+            'filter': f"id:{id}",
+            }
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+    row = pd.DataFrame(response.json()['response']['docs'])
     row = row.replace({np.nan: ''})
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
@@ -2177,10 +2180,19 @@ def occurrence_detail(request, id):
     if row.get('taxonRank', ''):
         row.update({'taxonRank': map_occurrence[row['taxonRank']]})
 
-    if am := row.get('associatedMedia'):
-        row.update({'associatedMedia': am.split(';')})
+    am = []
+    if ams := row.get('associatedMedia'):
+        ams = ams.split(';')
+        mls = row.get('mediaLicense').split(';')
+        if len(mls) == 1:
+            for a in ams:
+                am.append({'img': a, 'license': row.get('mediaLicense')})
+        else:
+            img_len = len(ams)
+            for i in range(img_len):
+                am.append({'img': ams[i], 'license': mls[i]})
+    row.update({'associatedMedia': am})
 
-    # print(row.get('dataGeneralizations'))
     if str(row.get('dataGeneralizations')):
         if row['dataGeneralizations'] in ['True', True]:
             row.update({'dataGeneralizations': '是'})
@@ -2273,18 +2285,36 @@ def occurrence_detail(request, id):
 def collection_detail(request, id):
     path_str = ''
     logo = ''
-    solr = SolrQuery('tbia_records')
-    query_list = [('id', id), ('row',1)]
-    req = solr.request(query_list)
-    row = pd.DataFrame(req['solr_response']['response']['docs'])
+    # solr = SolrQuery('tbia_records')
+    # query_list = [('id', id), ('row',1)]
+    # req = solr.request(query_list)
+    query = {
+        'query': "*:*",
+        'limit': 1,
+        'filter': f"id:{id}",
+        }
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+
+    row = pd.DataFrame(response.json()['response']['docs'])
     row = row.replace({np.nan: ''})
     row = row.replace({'nan': ''})
     row = row.to_dict('records')
     row = row[0]
     if row.get('recordType') == ['col']:
 
-        if am := row.get('associatedMedia'):
-            row.update({'associatedMedia': am.split(';')})
+        am = []
+        if ams := row.get('associatedMedia'):
+            # print(am)
+            ams = ams.split(';')
+            mls = row.get('mediaLicense').split(';')
+            if len(mls) == 1:
+                for a in ams:
+                    am.append({'img': a, 'license': row.get('mediaLicense')})
+            else:
+                img_len = len(ams)
+                for i in range(img_len):
+                    am.append({'img': ams[i], 'license': mls[i]})
+        row.update({'associatedMedia': am})
 
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
@@ -2523,22 +2553,18 @@ def get_conditional_records(request):
             if request.POST.get('from') == 'page':
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
             else:
+                response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
+                # map
+                data_c = {}
                 for grid in [1,5,10,100]:
-                    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_{grid},grid_y_{grid}', data=json.dumps(query), headers={'content-type': "application/json" })
-                    # map
-                    data_c = {}
                     data_c = response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
-
                     for i in data_c:
                         current_grid_x = i['value']
                         for j in i['pivot']:
                             current_grid_y = j['value']
                             current_count = j['count']
-                            # current_center_x, current_center_y = convert_grid_to_coor(current_grid_x, current_grid_y)
-                            # print(current_grid_x, current_grid_y)
                             if current_grid_x != -1 and current_grid_y != -1:
                                 borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
-                                # print(borders)
                                 tmp = [{
                                     "type": "Feature",
                                     "geometry":{"type":"Polygon","coordinates":[borders]},
@@ -2547,15 +2573,12 @@ def get_conditional_records(request):
                                     }
                                 }]
                                 map_geojson[f'grid_{grid}']['features'] += tmp
-
-
             count = response.json()['response']['numFound']
             response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
             if response2.json()['response']['numFound'] > 0:
                 has_sensitive = True
             else:
                 has_sensitive = False
-
 
             docs = pd.DataFrame(response.json()['response']['docs'])
             docs = docs.replace({np.nan: ''})
@@ -2572,7 +2595,6 @@ def get_conditional_records(request):
                 else:
                     if row.get('eventDate'):
                         docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">>[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
-
                 #     # date = date[0].replace('T', ' ').replace('Z','')
                 #     # 如果是國家公園，原本調查的時間是區段
                 #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
@@ -2615,7 +2637,6 @@ def get_conditional_records(request):
                 else:
                     if row.get('organismQuantity'):
                         docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">>[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
-
             docs = docs.replace({np.nan: ''})
             docs = docs.replace({'nan': ''})
             

@@ -14,7 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
-from manager.utils import generate_token, partner_source_map, check_due
+from manager.utils import generate_token, partner_map, check_due
 from django.conf import settings
 import threading
 from django.http import (
@@ -498,7 +498,7 @@ def change_manager_page(request):
                             <td class="w-25p">姓名</td>
                             <td class="w-20p">權限</td>
                             <td class="w-15p">狀態</td>
-                            <td></td>
+                            <td class="w-15p"></td>
                         </tr> 
             '''
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
@@ -534,7 +534,7 @@ def change_manager_page(request):
                             <td class="w-20p">單位</td>
                             <td class="w-20p">權限</td>
                             <td class="w-15p">狀態</td>
-                            <td></td>
+                            <td class="w-15p"></td>
                         </tr> 
             '''
             for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
@@ -1277,64 +1277,19 @@ def get_request_detail(request):
 
 
 def manager_partner(request):
-    # TODO 根據權限給使用者審核的部分
-    # p_count = 0
-    # total_count = 0
-    # no_taxon = 0
-    # has_taxon = 0
     partner_admin = ''
     download_url = ''
     info = []
-    # data_total = []
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
             download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'])
-            # TODO 這邊會有問題
             partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
             partner_admin = [p[0] for p in partner_admin]
             partner_admin = ','.join(partner_admin)
             # info
             info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
-            # TODO subtitle 和 rightsHolder寫法可能不同
-            # partner_db = Partner.objects.filter(group=current_user.partner.group).values_list('subtitle')
-            # partner_db = [p[0] for p in partner_db]
-            # f = []
-            # f += [f'rightsHolder:"{pdb}"']
-            # f = ['-taxonID:*',f'group:{current_user.partner.group}']
-            # # TaiCOL對應狀況
-            # query = {
-            #     "query": '*:*',
-            #     "filter": f,
-            #     "limit": 0,
-            #     "facet": {},
-            #     }
-            # response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-            # no_taxon = response.json()['response']['numFound']
-            # # 資料筆數
-            # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
-            # data = requests.get(url).json()
-            # if data['responseHeader']['status'] == 0:
-            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
-            #     for r in range(0,len(facets),2):
-            #         p_count += facets[r+1]
-
-            # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{current_user.partner.group}&rows=0&start=0"
-            # data = requests.get(url).json()
-            # if data['responseHeader']['status'] == 0:
-            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
-            #     for r in range(0,len(facets),2):
-            #         if facets[r+1] > 0 :
-            #             data_total.append({'name': facets[r],'y': facets[r+1]})
-            # solr = SolrQuery('tbia_records')
-            # query_list = [('q', '*:*'),('rows', 0)]
-            # req = solr.request(query_list)
-            # total_count = req['solr_response']['response']['numFound']
-            # total_count = total_count - p_count
-            # data_total += [{'name':'其他單位','y':total_count}]
-            # has_taxon = p_count-no_taxon
-    return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin,
-                                                          'download_url': download_url,
+    return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin, 'download_url': download_url,
                                                             'info': info})
 
 
@@ -1345,40 +1300,40 @@ def get_partner_stat(request):
     has_taxon = 0
     data_total = []
 
-    # print(request.GET.get('partner_group'))
-    if partner_group := request.GET.get('partner_group'):
-        f = ['-taxonID:*',f'group:{partner_group}']
-        # TaiCOL對應狀況
-        query = {
-            "query": '*:*',
-            "filter": f,
-            "limit": 0,
-            "facet": {},
-            }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        no_taxon = response.json()['response']['numFound']
-        # 資料筆數
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{partner_group}&rows=0&start=0"
-        data = requests.get(url).json()
-        if data['responseHeader']['status'] == 0:
-            facets = data['facet_counts']['facet_fields']['rightsHolder']
-            for r in range(0,len(facets),2):
-                p_count += facets[r+1]
+    if partner_id := request.GET.get('partner_id'):
 
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{partner_group}&rows=0&start=0"
-        data = requests.get(url).json()
-        if data['responseHeader']['status'] == 0:
-            facets = data['facet_counts']['facet_fields']['rightsHolder']
-            for r in range(0,len(facets),2):
-                if facets[r+1] > 0 :
-                    data_total.append({'name': facets[r],'y': facets[r+1]})
-        solr = SolrQuery('tbia_records')
-        query_list = [('q', '*:*'),('rows', 0)]
-        req = solr.request(query_list)
-        total_count = req['solr_response']['response']['numFound']
-        total_count = total_count - p_count
-        data_total += [{'name':'其他單位','y':total_count}]
-        has_taxon = p_count-no_taxon
+        if Partner.objects.filter(id=partner_id).exists():
+            group = Partner.objects.get(id=partner_id).group
+            f = ['-taxonID:*',f'group:{group}']
+            # TaiCOL對應狀況
+            query = {
+                "query": '*:*',
+                "filter": f,
+                "limit": 0,
+                "facet": {},
+                }
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            no_taxon = response.json()['response']['numFound']
+            # 資料筆數
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{group}&rows=0&start=0"
+            data = requests.get(url).json()
+            if data['responseHeader']['status'] == 0:
+                facets = data['facet_counts']['facet_fields']['rightsHolder']
+                for r in range(0,len(facets),2):
+                    p_count += facets[r+1]
+                    if facets[r+1] > 0 :
+                        for pg in partner_map[group]:
+                            if pg['dbname'] == facets[r]:
+                                p_color = pg['color']
+                                break
+                        data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+            solr = SolrQuery('tbia_records')
+            query_list = [('q', '*:*'),('rows', 0)]
+            req = solr.request(query_list)
+            total_count = req['solr_response']['response']['numFound']
+            total_count = total_count - p_count
+            data_total += [{'name': '其他單位','y': total_count}]
+            has_taxon = p_count - no_taxon
     response = {
         'data_total': data_total,
         'has_taxon': has_taxon,
@@ -1422,12 +1377,33 @@ def get_system_stat(request):
     data_total = []
     # if not request.user.is_anonymous:
         # 資料筆數 - 改成用單位?
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url).json()
     if data['responseHeader']['status'] == 0:
-        facets = data['facet_counts']['facet_fields']['rightsHolder']
-        for r in range(0,len(facets),2):
-            data_total.append({'name': facets[r],'y': facets[r+1]})
+        facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
+        for f in facets:
+            p_group = f.get('value')
+            for fp in f.get('pivot'):
+                p_dbname = fp.get('value')
+                p_count = fp.get('count')
+                for pg in partner_map[p_group]:
+                    if pg['dbname'] == p_dbname:
+                        p_color = pg['color']
+                        break
+                data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+
+            # if data['responseHeader']['status'] == 0:
+            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
+            #     for r in range(0,len(facets),2):
+            #         p_count += facets[r+1]
+            #         if facets[r+1] > 0 :
+            #             for pg in partner_map[group]:
+            #                 if pg['dbname'] == facets[r]:
+            #                     p_color = pg['color']
+            #                     break
+            #             data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+
+
     # TaiCOL對應狀況
     solr = SolrQuery('tbia_records')
     query_list = [('q', '*:*'),('rows', 0)]
