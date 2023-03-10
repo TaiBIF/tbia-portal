@@ -256,18 +256,91 @@ input {
     color: #707070 !important;
 }
 
-.vsb-menu ul {
+/*
+.vsb-main {
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  height: 50px;
+  width: 100%;
+  font-size: 16px;
+  padding: 0px 10px;
+  color: #555
+}*/
+.vsb-main {
+    width: 100%;
+
+}
+
+.vsb-menu {
+    width: 100%;
+    border: 1px solid #ddd !important;
+
+}
+
+
+.vsb-main button {
+    width: 100% !important;
+    border-radius: 5px !important;
+    border: 1px solid #ddd !important;
+    height: 50px !important;
+    font-size: 16px !important;
+    padding: 0px 10px !important;
+    color: #707070 !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: url("/static/image/ardownselect.svg") right 15px top 20px no-repeat !important;
+}
+
+
+.vsb-menu .multi li:not(.grouped-option)::before {
+    border: 1px solid #ddd !important;
+    margin-top: 3% !important;
+}
+
+.vsb-menu .multi li:not(.grouped-option).active::before {
+    background: url("/static/image/checkmark.svg") no-repeat center;
+    background-color: #76A578;
+    content: "";
+    display: inline-block;
+    font-size: inherit;
+    float: left;
+    font-weight: bold;
+    margin-left: -22px;
+    margin-right: 2px;
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 7px;
+    margin-top: 0px;
+    color: black;
+    background-size: 70%;
+}
+
+/*
+  background: url("/static/image/checkmark.svg") no-repeat center;
+  background-color: #76A578;
+  color: #FFF
+}*/
+
+.black {
+    color: black !important;
+}
+
+.color-707070 {
+    color: #707070 !important;
+}
+
+.vsb-menu .multi {
     max-width: 100% !important
 }
 
-.vsb-menu ul li {
+.vsb-menu .multi li {
     white-space: normal
 }
 
 .vsb-main button span.title {
     white-space: nowrap;
     text-overflow: ellipsis;
-    width: 95%;
+    width: 90%;
     display: block;
     overflow: hidden
 }

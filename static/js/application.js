@@ -35,6 +35,33 @@ $( function() {
     })
 
     // 申請資料使用者在送出的時候就先整理好成dict list
+
+    let selectBox = new vanillaSelectBox("#apply_type",{"placeHolder":"計畫類型",search:false, disableSelectAll: true,
+    });
+
+    $('#appilcationForm .vsb-main button').css('border','').css('background','')
+    $('#appilcationForm span.caret').addClass('d-none')
+
+    $('#appilcationForm .vsb-main button').on('click',function(){
+        if ($(this).next('#appilcationForm .vsb-menu').css('visibility')=='visible'){
+            $(this).next('#appilcationForm .vsb-menu').addClass('visible')
+        } else {
+            $(this).next('#appilcationForm .vsb-menu').css('visibility', '')
+            $(this).next('#appilcationForm .vsb-menu').removeClass('visible')
+        }
+    })
+
+    selectBox.setValue('0')
+    $('#btn-group-apply_type button span.title').addClass('black')
+
+    $('#apply_type').on('change',function(){
+        if ($('#btn-group-apply_type .vsb-menu ul li.active').length>0){
+            $('#btn-group-apply_type button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-apply_type button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
     
 })
 

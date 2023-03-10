@@ -19,6 +19,27 @@ $( function() {
         updateQa(1, $(this).val())
     })
 
+    let selectBox = new vanillaSelectBox("#qa_type",{"placeHolder":"問題類型",search:false, disableSelectAll: true,
+    });
+
+    $('.mobile_tab .vsb-main button').css('border','').css('background','')
+    $('.mobile_tab span.caret').addClass('d-none')
+
+    $('.mobile_tab .vsb-main button').on('click',function(){
+        if ($(this).next('.mobile_tab .vsb-menu').css('visibility')=='visible'){
+            $(this).next('.mobile_tab .vsb-menu').addClass('visible')
+        } else {
+            $(this).next('.mobile_tab .vsb-menu').css('visibility', '')
+            $(this).next('.mobile_tab .vsb-menu').removeClass('visible')
+        }
+    })
+
+    selectBox.setValue('2')
+    $('#btn-group-qa_type button span.title').addClass('color-white')
+
+    $('#qa_type').on('change',function(){
+          $('#btn-group-qa_type button span.title').addClass('color-white')
+    })
 })
 
 

@@ -46,6 +46,10 @@ p.active {
     color: #707070
 }
 
+.circle-select .vsb-main {
+    width: 90%;
+}
+
 .circle-select {
     display: flex;
     margin-bottom: 10px

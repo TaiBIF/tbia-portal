@@ -137,10 +137,11 @@ $(document).ready(function () {
 
 })
 
+/* deprecated 
 function getNoTaxonCSV(){
     $.ajax({
         url: "/generate_no_taxon_csv",
-        data: {'group': $('input[name=partner_id]').val(), csrfmiddlewaretoken: $csrf_token},
+        data: {'partner_id': $('input[name=partner_id]').val(), csrfmiddlewaretoken: $csrf_token},
         type: 'POST',
         dataType : 'json',
     })
@@ -152,7 +153,7 @@ function getNoTaxonCSV(){
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })  
 }
-
+*/
 
 function updateInfo(){
     // remove all notice first

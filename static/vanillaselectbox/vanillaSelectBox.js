@@ -1255,12 +1255,10 @@ vanillaSelectBox.prototype.setValue = function (values) {
             }
             self.checkUncheckAll();
         } else {
-            console.log('dddd',values)
             let found = false;
             let text = "";
             let className = ""
             Array.prototype.slice.call(listElements).forEach(function (x) {
-                console.log(x.getAttribute("data-text"))
                 let liVal = x.getAttribute("data-value");
                 if(liVal !== "all"){
                     if (liVal == values) {

@@ -240,6 +240,12 @@ function changeAction(){
     let selectBox5 = new vanillaSelectBox("#taxonRank",{"placeHolder":"鑑定層級",search:false, disableSelectAll: true,
     });
 
+    let selectBox6 = new vanillaSelectBox("#circle_radius",{"placeHolder":"半徑",search:false, disableSelectAll: true,
+    });
+
+    selectBox6.setValue('1')
+    $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
+
     $('.vsb-main button').css('border','').css('background','')
     $('span.caret').addClass('d-none')
 
@@ -289,6 +295,15 @@ function changeAction(){
             $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
         } else {
             $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        }
+    })
+
+
+    $('#circle_radius').on('change',function(){
+        if ($('#btn-group-circle_radius .vsb-menu ul li.active').length>0){
+            $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
+        } else {
+            $('#btn-group-circle_radius button span.title').addClass('color-707070').removeClass('black')
         }
     })
 

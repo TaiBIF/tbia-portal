@@ -7,3 +7,37 @@
     margin-bottom: 2px;
     cursor: default;
 }
+
+@media only screen and (max-width: 767px) {
+
+    .qa_top_item .mobile_tab .vsb-main {
+        width: 100%;
+        background: #3F5146;
+        color: #FFF;
+        border-radius: 5px;
+        height: 50px;
+        font-size: 18px
+    }
+}
+
+
+.color-white {
+    color: #fff
+}
+
+.mobile_tab .vsb-main button {
+    width: 100% !important;
+    border-radius: 5px !important;
+    border: 0 !important;
+    height: 50px !important;
+    font-size: 16px !important;
+    padding: 0px 10px !important;
+    color: #fff !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: url("/static/image/ardownselect-white.svg") right 15px top 20px no-repeat !important;
+}
+
+.mobile_tab .vsb-main button span.title {
+    padding: 0px 5px !important;
+}
