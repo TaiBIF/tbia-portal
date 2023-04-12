@@ -1379,8 +1379,12 @@ def manager_system(request):
         req = solr.request(query_list)
         no_taxon = req['solr_response']['response']['numFound']
         has_taxon = total_count - no_taxon
+        match_logs = []
+        for g in Partner.objects.all():
+            if os.path.exists(f'/tbia-volumes/media/match_log/{g.group}_match_log.csv'):
+                match_logs.append({'url': f'/media/match_log/{g.group}_match_log.csv','name':g.title})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                            'data_total':data_total,'keywords': keywords})
+                                                            'data_total':data_total,'keywords': keywords, 'match_logs': match_logs})
 
 
 def get_system_stat(request):

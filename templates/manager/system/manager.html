@@ -118,9 +118,23 @@
             </div>
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況</div>
-                <figure class="highcharts-figure h-300px">
-                    <div id="container2" class="h-100p"></div>
-                </figure>
+                <div class="d-flex-jc-sb">
+                    <div class="w-50p">
+                        <figure class="highcharts-figure h-300px">
+                            <div id="container2" class="h-100p"></div>
+                        </figure>
+                    </div>                    
+                    <div class="w-50p mt-15px ml-20px">
+                        <p>下載各單位學名比對結果清單</p>
+                        <ul class="mt-5px ml-20px fs-16px">
+                            {% for i in match_logs %}
+                            <li>
+                                <a class="download_taxon_a" target="_blank" href="{{ i.url }}">{{ i.name }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
         {% else %}
