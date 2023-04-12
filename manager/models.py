@@ -4,9 +4,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import django
 
-# Create your models here.
-
-
 
 class UserManager(BaseUserManager):
     def create_user(self, email, **kwargs):
@@ -153,3 +150,19 @@ class About(models.Model):
     content = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
+
+class MatchLog(models.Model):
+    occurrenceID = models.CharField(max_length=1000, blank=True)
+    tbiaID = models.CharField(max_length=50, blank=True)
+    sourceScientificName = models.CharField(max_length=1000, blank=True, null=True)
+    is_matched = models.BooleanField()
+    taxonID = models.CharField(max_length=20, blank=True, null=True)
+    parentTaxonID = models.CharField(max_length=20, blank=True, null=True)
+    match_stage = models.CharField(max_length=5, blank=True, null=True)
+    stage_1 = models.CharField(max_length=20, blank=True, null=True)
+    stage_2 = models.CharField(max_length=20, blank=True, null=True)
+    stage_3 = models.CharField(max_length=20, blank=True, null=True)
+    stage_4 = models.CharField(max_length=20, blank=True, null=True)
+    stage_5 = models.CharField(max_length=20, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(null=True, blank=True)

@@ -21,6 +21,7 @@ django-allauth = "^0.51.0"
 django-ckeditor = "^6.5.1"
 django-csp = "^3.7"
 django-quill-editor = "^0.1.40"
+sqlalchemy = "^2.0.9"
 
 [tool.poetry.dev-dependencies]
 
