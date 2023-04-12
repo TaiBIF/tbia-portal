@@ -611,12 +611,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -626,12 +628,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -641,12 +645,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -656,12 +662,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -671,12 +679,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -686,12 +696,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -701,12 +713,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -716,12 +730,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -732,12 +748,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -747,12 +765,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -762,12 +782,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -777,12 +799,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -792,12 +816,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -807,12 +833,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -822,12 +850,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -837,12 +867,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -852,12 +884,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -867,12 +901,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -882,12 +918,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -897,12 +935,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
@@ -912,12 +952,14 @@ col_facets =    { 'facet': {
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
+            'numBuckets': True,
             'facet':{
                     'taxonID':{
                         'type': 'terms',
                         'field': 'taxonID',
                         'limit': 30,
                         'allBuckets': True,
+                        'numBuckets': True,
                     },
                 }
         },
