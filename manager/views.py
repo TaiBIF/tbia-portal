@@ -1,4 +1,5 @@
 from django.contrib.auth.backends import ModelBackend
+from django.db import connection
 from django.http import request
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -1119,18 +1120,30 @@ def update_partner_info(request):
         return JsonResponse(response, safe=False)
 
 
-def generate_no_taxon_csv(p_name,scheme,host,update=False):
-    CSV_MEDIA_FOLDER = 'no_taxon'
+# TODO 這邊改成再比對的時候就先產生好
+def generate_no_taxon_csv(p_name,scheme,host,update):
+    CSV_MEDIA_FOLDER = 'match_log'
     csv_folder = os.path.join(settings.MEDIA_ROOT, CSV_MEDIA_FOLDER)
-    filename = f'{p_name}_no_taxon.csv'
+    filename = f'{p_name}_match_log.csv'
     csv_file_path = os.path.join(csv_folder, filename)
-    
-    solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
-
+    # solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
+    # occurrenceID	id	sourceScientificName	taxonID	parentTaxonID	taxonRank	scientificName	match_stage	stage_1	stage_2	stage_3	stage_4	stage_5	is_matched
     downloadURL = scheme+"://"+host+settings.MEDIA_URL+os.path.join(CSV_MEDIA_FOLDER, filename)
     if update or not os.path.exists(csv_file_path): # 指定要更新或沒有檔案才執行
-        commands = f'curl "{solr_url}"  > {csv_file_path} '
-        process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sql = """
+        copy (
+            SELECT mm."tbiaID", mm."occurrenceID", mm."sourceScientificName", mm."taxonID",
+            mm."parentTaxonID", mm.is_matched, dt."scientificName", dt."taxonRank",
+            mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
+            FROM manager_matchlog mm
+            LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
+        ) to stdout with delimiter ',' csv header;
+        """
+        with connection.cursor() as cursor:
+            with open(f'/tbia-volumes/media/match_log/{p_name}_match_log.csv', 'w+') as fp:
+                cursor.copy_expert(sql, fp)
+        # commands = f'curl "{solr_url}"  > {csv_file_path} '
+        # process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return downloadURL
     # curl "http://localhost:8888/solr/collection1/select?q=*%3A*&wt=cvs&indent=true&start=0&rows=2000000000&fl=id,title" > full-output-of-my-solr-index.csv
 
@@ -1283,7 +1296,7 @@ def manager_partner(request):
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'])
+            download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
             partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
             partner_admin = [p[0] for p in partner_admin]
             partner_admin = ','.join(partner_admin)

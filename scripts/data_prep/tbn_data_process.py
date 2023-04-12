@@ -1,6 +1,7 @@
 # 2023-02-10
 # RUN in web container
 # script for TBN API version 2.5
+from django.db import connection
 
 import numpy as np
 import bisect
@@ -594,6 +595,21 @@ for f in files:
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+
+
+
+sql = """
+copy (
+    SELECT mm."tbiaID", mm."occurrenceID", mm."sourceScientificName", mm."taxonID",
+    mm."parentTaxonID", mm.is_matched, dt."scientificName", dt."taxonRank",
+    mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
+    FROM manager_matchlog mm
+    LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
+) to stdout with delimiter ',' csv header;
+"""
+with connection.cursor() as cursor:
+    with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
+        cursor.copy_expert(sql, fp)
 
 
 print('done!')
