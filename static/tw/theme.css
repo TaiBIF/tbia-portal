@@ -1897,7 +1897,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_2 {
-        margin-bottom: 150px
+        margin-bottom: 150px;
     }
 }
 
@@ -1932,7 +1932,7 @@ body {
 
 .section_2 .bg_area {
     position: absolute;
-    bottom: 0;
+    bottom: -160px;
     left: 0;
     background: #EAD065;
     height: 490px;
@@ -1985,11 +1985,12 @@ body {
     }
 }
 
+/*
 @media only screen and (max-width: 767px) {
     .section_2 {
         padding-top: 150px
     }
-}
+}*/
 
 .section_2 .title {
     font-size: 35px;
