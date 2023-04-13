@@ -162,6 +162,7 @@ def match_namecode(matching_namecode,sci_name,original_name,original_taxonuuid,m
         filtered_rs = []
         # 可能對到不只一個taxon
         if Taxon.objects.filter(taxonID__in=taxon_data).exists():
+            has_parent = False
             # namecode有對應到有效Taxon
             # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_namecode_result'] = True
             matched_taxon = Taxon.objects.filter(taxonID__in=taxon_data).values()
