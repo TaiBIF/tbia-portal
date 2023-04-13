@@ -2193,10 +2193,10 @@ def occurrence_detail(request, id):
                 am.append({'img': ams[i], 'license': mls[i]})
     row.update({'associatedMedia': am})
 
-    if str(row.get('dataGeneralizations')):
-        if row['dataGeneralizations'] in ['True', True]:
+    if row.get('dataGeneralizations'):
+        if str(row['dataGeneralizations']) in ['True', True]:
             row.update({'dataGeneralizations': '是'})
-        elif row['dataGeneralizations'] in ['False', False]:
+        elif str(row['dataGeneralizations']) in ['False', False]:
             row.update({'dataGeneralizations': '否'})
         else:
             pass
@@ -2252,6 +2252,7 @@ def occurrence_detail(request, id):
     # taxon
     path_str = ''
     path = []
+    path_taxon_id = None
     if row.get('taxonID'):
         path_taxon_id = row.get('taxonID')
     elif row.get('parentTaxonID'):
@@ -2319,10 +2320,10 @@ def collection_detail(request, id):
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
 
-        if str(row.get('dataGeneralizations')):
-            if row['dataGeneralizations'] in ['True', True]:
+        if row.get('dataGeneralizations'):
+            if str(row['dataGeneralizations']) in ['True', True]:
                 row.update({'dataGeneralizations': '是'})
-            elif row['dataGeneralizations'] in ['False', False]:
+            elif str(row['dataGeneralizations']) in ['False', False]:
                 row.update({'dataGeneralizations': '否'})
             else:
                 pass
@@ -2379,8 +2380,9 @@ def collection_detail(request, id):
         row.update({'quantity': quantity})
 
         # taxon
+        path_str = ''
         path = []
-        
+        path_taxon_id = None
         if row.get('taxonID'):
             path_taxon_id = row.get('taxonID')
         elif row.get('parentTaxonID'):
@@ -2543,6 +2545,14 @@ def get_conditional_records(request):
                     "filter": query_list,
                     "sort":  orderby + ' ' + sort,
                     }
+                
+            map_query_list = query_list+ ['-standardOrganismQuantity:0']
+            map_query = { "query": "*:*",
+                    "offset": offset,
+                    "limit": limit,
+                    "filter": map_query_list,
+                    "sort":  orderby + ' ' + sort,
+                    }
 
             query2 = { "query": "raw_location_rpt:[* TO *]",
                     "offset": 0,
@@ -2554,10 +2564,12 @@ def get_conditional_records(request):
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
             else:
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
-                # map
+                # map的排除數量為0的資料
+                map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+                print(map_query)
                 data_c = {}
                 for grid in [1,5,10,100]:
-                    data_c = response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
+                    data_c = map_response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
                     for i in data_c:
                         current_grid_x = i['value']
                         for j in i['pivot']:
