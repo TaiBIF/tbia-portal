@@ -2,7 +2,7 @@
 # RUN in web container
 # script for TBN API version 2.5
 from django.db import connection
-
+import urllib.parse
 import numpy as np
 import bisect
 import re
