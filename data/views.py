@@ -1351,9 +1351,11 @@ def search_full(request):
                 url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
                 r = requests.get(url)
                 img = r.json()
+                tr['images'] = []
                 if img:
-                    ii = img[0]
-                    tr['images'] = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                    # ii = img[0]
+                    for ii in img:
+                        tr['images'] += [{'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}]
                 if n_obj.taieol_id:
                     tr['taieol_id'] = n_obj.taieol_id
                 # url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
@@ -1815,23 +1817,21 @@ def get_focus_cards_taxon(request):
         taxon_result_df = taxon_result_df.to_dict('records')
         taxon_result_dict = []
         for tr in taxon_result_df:
+            images = []
             if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
                 namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
                 url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
                 r = requests.get(url)
                 img = r.json()
-                images = []
+                
                 for ii in img:
                     foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
                     images.append(foto)
-                if images:
-                    tr['images'] = images[0]
-                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
-                r = requests.get(url)
-                data = r.json()
-                if data:
-                    if data.get('tid'):
-                        tr['taieol_id'] = data.get('tid')
+                
+                if n_obj.taieol_id:
+                    tr['taieol_id'] = n_obj.taieol_id
+            tr['images'] = images
             taxon_result_dict.append(tr)
         
         response = {
@@ -1971,23 +1971,22 @@ def get_more_cards_taxon(request):
         taxon_result_df = taxon_result_df.to_dict('records')
         taxon_result_dict = []
         for tr in taxon_result_df:
+            images = []
             if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
                 namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+                n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
                 url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
                 r = requests.get(url)
                 img = r.json()
-                images = []
+                
                 for ii in img:
                     foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
                     images.append(foto)
-                if images:
-                    tr['images'] = images[0]
-                url = 'https://data.taieol.tw/eol/endpoint/taxondesc/species/{}'.format(namecode)
-                r = requests.get(url)
-                data = r.json()
-                if data:
-                    if data.get('tid'):
-                        tr['taieol_id'] = data.get('tid')
+                
+                if n_obj.taieol_id:
+                    tr['taieol_id'] = n_obj.taieol_id
+            tr['images'] = images
+
             taxon_result_dict.append(tr)
         
         response = {
@@ -2183,14 +2182,18 @@ def occurrence_detail(request, id):
     am = []
     if ams := row.get('associatedMedia'):
         ams = ams.split(';')
-        mls = row.get('mediaLicense').split(';')
-        if len(mls) == 1:
-            for a in ams:
-                am.append({'img': a, 'license': row.get('mediaLicense')})
+        if row.get('mediaLicense'):
+            mls = row.get('mediaLicense').split(';')
+            if len(mls) == 1:
+                for a in ams:
+                    am.append({'img': a, 'license': row.get('mediaLicense')})
+            else:
+                img_len = len(ams)
+                for i in range(img_len):
+                    am.append({'img': ams[i], 'license': mls[i]})
         else:
-            img_len = len(ams)
-            for i in range(img_len):
-                am.append({'img': ams[i], 'license': mls[i]})
+            for a in ams:
+                am.append({'img': a, 'license': ''})
     row.update({'associatedMedia': am})
 
     if row.get('dataGeneralizations'):
@@ -2307,14 +2310,19 @@ def collection_detail(request, id):
         if ams := row.get('associatedMedia'):
             # print(am)
             ams = ams.split(';')
-            mls = row.get('mediaLicense').split(';')
-            if len(mls) == 1:
-                for a in ams:
-                    am.append({'img': a, 'license': row.get('mediaLicense')})
+            if row.get('mediaLicense'):
+                mls = row.get('mediaLicense').split(';')
+                if len(mls) == 1:
+                    for a in ams:
+                        am.append({'img': a, 'license': row.get('mediaLicense')})
+                else:
+                    img_len = len(ams)
+                    for i in range(img_len):
+                        am.append({'img': ams[i], 'license': mls[i]})
             else:
-                img_len = len(ams)
-                for i in range(img_len):
-                    am.append({'img': ams[i], 'license': mls[i]})
+                for a in ams:
+                    am.append({'img': a, 'license': ''})
+
         row.update({'associatedMedia': am})
 
         if row.get('taxonRank', ''):

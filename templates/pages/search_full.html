@@ -27,6 +27,20 @@
 {% block body %}
 {% csrf_token %}
 
+
+
+<div class="popbg taxon-pop d-none">
+	<div class="ovhy">
+		<div class="wbox_center">
+			<div class="xx">
+			</div>
+			<div class="taxon-pic">
+			</div>
+		</div>
+	</div>
+</div>
+
+
 		<!--分布圖彈出視窗-->
 		<div class="popbg pic_pop d-none">
 			<div class="ovhy">
@@ -231,7 +245,19 @@
                   {% if i.images %}
 									<div class="right_img">
 										<div class="imgbox">
-                        <img class="imgarea" src="{{ i.images.src }}">
+                      {% if i.images|length > 1 %}
+                      <div class="arr-left plusSlides" data-index="-1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card">
+                      </div>
+                      <div class="arr-right plusSlides" data-index="+1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card">
+                      </div>
+                      {% endif %}
+                      {% for ii in i.images %}
+                      <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
+                        <div class="img-container">
+                          <img class="imgarea" src="{{ ii.src }}">
+                        </div>
+                      </div>  
+                      {% endfor %}
                     </div>
 									</div>
                   {% else %}

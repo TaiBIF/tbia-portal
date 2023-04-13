@@ -138,12 +138,84 @@ function clickToAnchor(id){
     $('html, body').animate({scrollTop:target}, 500);
 }
 
+function addClass(element, className){
+  element.className += ' ' + className;   
+}
+
+function removeClass(element, className) {
+  element.className = element.className.replace(
+  new RegExp('( |^)' + className + '( |$)', 'g'), ' ').trim();
+}
+
+function plusSlides(n, taxonID, cardclass) {
+  slideIndex = parseInt($(`.right_img .mySlides.${taxonID}.d-block[data-cardclass="${cardclass}"]`).data('index'))
+  showSlides(slideIndex += n, taxonID, cardclass);
+}
+
+function showSlides(n, taxonID, cardclass) {
+  let i;
+  let slides = document.querySelectorAll(`.right_img .mySlides.${taxonID}[data-cardclass="${cardclass}"]`)
+  if (n > slides.length) {slideIndex = 1}    
+  if (n < 1) {slideIndex = slides.length}
+  for (i = 0; i < slides.length; i++) {
+      removeClass(slides[i], 'd-none')
+      removeClass(slides[i], 'd-block')
+      addClass(slides[i], 'd-none')
+  }
+  removeClass(slides[slideIndex-1], 'd-none')
+  addClass(slides[slideIndex-1], 'd-block')
+
+  let slides2 = document.querySelectorAll(`.taxon-pop .mySlides.${taxonID}`)
+  if (slides2.length > 0){
+    if (n > slides2.length) {slideIndex = 1}    
+    if (n < 1) {slideIndex = slides2.length}
+    for (i = 0; i < slides2.length; i++) {
+        removeClass(slides2[i], 'd-none')
+        removeClass(slides2[i], 'd-block')
+        addClass(slides2[i], 'd-none')
+    }
+    removeClass(slides2[slideIndex-1], 'd-none')
+    addClass(slides2[slideIndex-1], 'd-block')
+  }
+}
+
+
+
+
 $( document ).ready(function() {
+
+  $('.imgarea').on('click', function(){
+    $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
+    $('.taxon-pop').removeClass('d-none')
+
+    $('.arr-left').off('click')
+    $('.arr-left').on('click', function(){
+      plusSlides(-1, $(this).data('taxonid'), $(this).data('cardclass'))
+    })
+    $('.arr-right').off('click')
+    $('.arr-right').on('click', function(){
+        plusSlides(+1, $(this).data('taxonid'), $(this).data('cardclass'))
+    })
+  })
+
+
+  $('.arr-left').on('click', function(){
+    plusSlides(-1, $(this).data('taxonid'), $(this).data('cardclass'))
+  })
+
+  $('.arr-right').on('click', function(){
+      plusSlides(+1, $(this).data('taxonid'), $(this).data('cardclass'))
+  })
+
 
     $(".popbg .xx,.popbg .ovhy").not('.taxon-dist').click(function (e) {
       if ($(e.target).hasClass("xx") || $(e.target).hasClass("ovhy")) {
-        window.not_selected.prop('checked', false);
-        window.selected.prop('checked', true);
+        if( window.not_selected != undefined){
+          window.not_selected.prop('checked', false);
+        }
+        if( window.selected != undefined){
+          window.selected.prop('checked', false);
+        }
       }
     });
 
@@ -270,7 +342,6 @@ function focusComponent(item_class, go_back){
 }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort){
-    console.log(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort)
 
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
@@ -366,7 +437,6 @@ function focusComponent(item_class, go_back){
         for (let i = 0; i < Object.keys(map_dict).length; i++) {
             var this_td = document.createElement("td");
             this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
-            //this_td.style.cssText = 'display:none';
             var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
             let a = document.createElement("a");
             a.className = 'orderby';
@@ -669,10 +739,35 @@ function focusComponent(item_class, go_back){
                 matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
               }
 
-              let image = '<img class="imgarea">'
+              let image_str = '';
+              
+              if (x.images.length > 1){
+                image_str += `
+                <div class="arr-left plusSlides" data-index="-1" data-taxonid="${x.taxonID}" data-cardclass="${response.card_class}">
+                </div>
+                <div class="arr-right plusSlides" data-index="+1" data-taxonid="${x.taxonID}" data-cardclass="${response.card_class}">
+                </div>
+                `
+              }
 
-              if (x.images){
-                image = `<img class="imgarea" src="${ x.images.src }">`
+              for (let ii = 0; ii < x.images.length; ii++) {
+                if (ii==0){
+                  image_str += `
+                  <div class="picbox mySlides fade ${x.taxonID} d-block" data-index="1" data-cardclass="${response.card_class}">
+                  <div class="img-container">
+                    <img class="imgarea" src="${x.images[ii].src}">
+                  </div>
+                </div>  
+                  `
+                } else {
+                  image_str += `
+                  <div class="picbox mySlides fade ${x.taxonID} d-none" data-index="${ii+1}" data-cardclass="${response.card_class}">
+                  <div class="img-container">
+                    <img class="imgarea" src="${x.images[ii].src}">
+                  </div>
+                </div>  
+                  `
+                }
               }
 
               let taieol = '';
@@ -698,7 +793,7 @@ function focusComponent(item_class, go_back){
                 </div>
                 <div class="right_img">
                   <div class="imgbox">
-                    ${image}
+                    ${image_str}
                   </div>
                 </div>
               </div>
@@ -711,6 +806,33 @@ function focusComponent(item_class, go_back){
 
             }
 
+
+          
+            $('.arr-left').off('click')
+            $('.arr-left').on('click', function(){
+              plusSlides(-1, $(this).data('taxonid'),$(this).data('cardclass'))
+            })
+            $('.arr-right').off('click')
+            $('.arr-right').on('click', function(){
+                plusSlides(+1, $(this).data('taxonid'),$(this).data('cardclass'))
+            })
+
+
+            $('.imgarea').off('click')
+            $('.imgarea').on('click', function(){
+              $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
+              $('.taxon-pop').removeClass('d-none')
+          
+              $('.arr-left').off('click')
+              $('.arr-left').on('click', function(){
+                plusSlides(-1, $(this).data('taxonid'),$(this).data('cardclass'))
+              })
+              $('.arr-right').off('click')
+              $('.arr-right').on('click', function(){
+                  plusSlides(+1, $(this).data('taxonid'),$(this).data('cardclass'))
+              })
+            })
+          
             $('.getDist').off('click')
             $('.getDist').on('click', function(){
                 getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
@@ -935,6 +1057,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
   }
 
   let offset = $(offset_value).val()
+  console.log(card_class)
   if (record_type == 'taxon') {
       $.ajax({
         url: "/get_more_cards_taxon",
@@ -969,10 +1092,36 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
         }
 
-        let image = '<img class="imgarea">'
 
-        if (x.images){
-          image = `<img class="imgarea" src="${ x.images.src }">`
+        let image_str = '';
+
+        if (x.images.length > 1){
+          image_str += `
+          <div class="arr-left plusSlides" data-index="-1" data-taxonid="${x.taxonID}" data-cardclass="${card_class.substring(1)}">
+          </div>
+          <div class="arr-right plusSlides" data-index="+1" data-taxonid="${x.taxonID}" data-cardclass="${card_class.substring(1)}">
+          </div>
+          `
+        }
+
+        for (let ii = 0; ii < x.images.length; ii++) {
+          if (ii==0){
+            image_str += `
+            <div class="picbox mySlides fade ${x.taxonID} d-block " data-index="1" data-cardclass="${card_class.substring(1)}">
+            <div class="img-container">
+              <img class="imgarea" src="${x.images[ii].src}">
+            </div>
+          </div>  
+            `
+          } else {
+            image_str += `
+            <div class="picbox mySlides fade ${x.taxonID} d-none " data-index="${ii+1}" data-cardclass="${card_class.substring(1)}">
+            <div class="img-container">
+              <img class="imgarea" src="${x.images[ii].src}">
+            </div>
+          </div>  
+            `
+          }
         }
 
         let taieol = '';
@@ -997,7 +1146,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           </div>
           <div class="right_img">
             <div class="imgbox">
-              ${image}
+              ${image_str}
             </div>
           </div>
           </div>
@@ -1007,6 +1156,31 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           </div></li>`
 
           $(`${card_class}`).append(html)
+
+          $('.arr-left').off('click')
+          $('.arr-left').on('click', function(){
+            plusSlides(-1, $(this).data('taxonid'),$(this).data('cardclass'))
+          })
+          $('.arr-right').off('click')
+          $('.arr-right').on('click', function(){
+              plusSlides(+1, $(this).data('taxonid'),$(this).data('cardclass'))
+          })
+
+
+          $('.imgarea').off('click')
+          $('.imgarea').on('click', function(){
+            $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
+            $('.taxon-pop').removeClass('d-none')
+        
+            $('.arr-left').off('click')
+            $('.arr-left').on('click', function(){
+              plusSlides(-1, $(this).data('taxonid'),$(this).data('cardclass'))
+            })
+            $('.arr-right').off('click')
+            $('.arr-right').on('click', function(){
+                plusSlides(+1, $(this).data('taxonid'),$(this).data('cardclass'))
+            })
+          })
 
           $('.getDist').off('click')
           $('.getDist').on('click', function(){
