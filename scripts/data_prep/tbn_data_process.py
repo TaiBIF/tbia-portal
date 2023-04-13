@@ -37,7 +37,7 @@ rank_map = {
     'Nothosubspecies', 37: 'Variety', 38: 'Subvariety', 39: 'Nothovariety', 40: 'Form', 41: 'Subform', 42: 'Special Form', 43: 'Race', 44: 'Stirp', 45: 'Morph', 46: 'Aberration', 47: 'Hybrid Formula'}
 
 def match_name(matching_name,sci_name,original_name,original_taxonuuid,is_parent,match_stage):
-    request_url = f"http://host.docker.internal:8080/api.php?names={matching_name.replace(' ','+')}&format=json&source=taicol"
+    request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name.replace(' ','+'))}&format=json&source=taicol"
     response = requests.get(request_url)
     if response.status_code == 200:
         result = response.json()
@@ -467,6 +467,7 @@ for f in files:
     # 確認有無限制型資料
     if len(final[final.dataGeneralizations==True]) > 1:
         request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000&apikey={env('TBN_KEY')}"
+        # request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID=7a1d54c7-8f2e-4672-bb5b-bc29249aff9f&limit=1000&apikey=9c98309a-880c-4eb3-b1fa-c2ecafb744db"
         response = requests.get(request_url)
         if response.status_code==200:
             data = response.json()
