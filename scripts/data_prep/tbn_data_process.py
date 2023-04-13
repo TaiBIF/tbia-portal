@@ -37,77 +37,93 @@ rank_map = {
     'Nothosubspecies', 37: 'Variety', 38: 'Subvariety', 39: 'Nothovariety', 40: 'Form', 41: 'Subform', 42: 'Special Form', 43: 'Race', 44: 'Stirp', 45: 'Morph', 46: 'Aberration', 47: 'Hybrid Formula'}
 
 def match_name(matching_name,sci_name,original_name,original_taxonuuid,is_parent,match_stage):
-    request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name.replace(' ','+'))}&format=json&source=taicol"
-    response = requests.get(request_url)
-    if response.status_code == 200:
-        result = response.json()
-        if result['data'][0][0]: # 因為一次只比對到一個，所以只要取第一個search term
-            # 排除地位為誤用的taxon，因為代表該名字不該指涉到此taxon
-            match_score = result['data'][0][0].get('score')
-            if match_score == 'N/A': #有對到但無法計算分數
-                match_score = 0 
-            filtered_rs = [rs for rs in result['data'][0][0]['results'] if rs['name_status'] != 'misapplied']
-            filtered_rss = []
-            if len(filtered_rs):
-                # 排除掉同個taxonID但有不同name的情況
-                filtered_rs = pd.DataFrame(filtered_rs)[['accepted_namecode','family','class']].drop_duplicates().to_dict(orient='records')
-                # NomenMatch 有比對到有效taxon
-                # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_result'] = True
-                # 是否有上階層資訊
-                has_parent = False
-                if original_taxonuuid:
-                    tbn_url = "https://www.tbn.org.tw/api/v25/taxon?uuid=" + original_taxonuuid
-                    tbn_response = requests.get(tbn_url)
-                    if tbn_response.status_code == 200:
-                        if tbn_data := tbn_response.json().get('data'):
-                            t_family = tbn_data[0].get('family') # 科
-                            t_class = tbn_data[0].get('class') # 綱
-                            t_rank = tbn_data[0].get('taxonRank')
-                            t_patent_uuid = tbn_data[0].get('parentUUID')
-                            has_parent = True
-                            # if t_family or t_class:
-                            #     sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_tbn_parent'] = True
-                # 若有上階層資訊，加上比對上階層                    
-                if has_parent:
-                    has_nm_parent = False
-                    for frs in filtered_rs:
-                        if t_rank in ['種','種下階層']: # 直接比對family
-                            if frs.get('family'):
-                                # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
-                                if frs.get('family') == t_family:
-                                    filtered_rss.append(frs)
-                                    has_nm_parent = True
+    if matching_name:
+        request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name.replace(' ','+'))}&format=json&source=taicol"
+        response = requests.get(request_url)
+        if response.status_code == 200:
+            result = response.json()
+            if result['data'][0][0]: # 因為一次只比對到一個，所以只要取第一個search term
+                # 排除地位為誤用的taxon，因為代表該名字不該指涉到此taxon
+                match_score = result['data'][0][0].get('score')
+                if match_score == 'N/A': #有對到但無法計算分數
+                    match_score = 0 
+                filtered_rs = [rs for rs in result['data'][0][0]['results'] if rs['name_status'] != 'misapplied']
+                filtered_rss = []
+                if len(filtered_rs):
+                    # 排除掉同個taxonID但有不同name的情況
+                    filtered_rs = pd.DataFrame(filtered_rs)[['accepted_namecode','family','class']].drop_duplicates().to_dict(orient='records')
+                    # NomenMatch 有比對到有效taxon
+                    # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_result'] = True
+                    # 是否有上階層資訊
+                    has_parent = False
+                    if original_taxonuuid:
+                        tbn_url = "https://www.tbn.org.tw/api/v25/taxon?uuid=" + original_taxonuuid
+                        tbn_response = requests.get(tbn_url)
+                        if tbn_response.status_code == 200:
+                            if tbn_data := tbn_response.json().get('data'):
+                                t_family = tbn_data[0].get('family') # 科
+                                t_class = tbn_data[0].get('class') # 綱
+                                t_rank = tbn_data[0].get('taxonRank')
+                                t_patent_uuid = tbn_data[0].get('parentUUID')
+                                has_parent = True
+                                # if t_family or t_class:
+                                #     sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_tbn_parent'] = True
+                    # 若有上階層資訊，加上比對上階層                    
+                    if has_parent:
+                        has_nm_parent = False
+                        for frs in filtered_rs:
+                            if t_rank in ['種','種下階層']: # 直接比對family
+                                if frs.get('family'):
                                     # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
-                                    # 本來就沒有上階層的話就不管
-                        elif t_rank in ['亞綱','總目','目','亞目','總科','科','亞科','屬','亞屬']: # 
-                            if frs.get('family') or frs.get('class'):
-                                # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
-                                if frs.get('family') == t_family or frs.get('class') == t_class:
-                                    filtered_rss.append(frs)
-                                    has_nm_parent = True
+                                    if frs.get('family') == t_family:
+                                        filtered_rss.append(frs)
+                                        has_nm_parent = True
+                                        # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
+                                        # 本來就沒有上階層的話就不管
+                            elif t_rank in ['亞綱','總目','目','亞目','總科','科','亞科','屬','亞屬']: # 
+                                if frs.get('family') or frs.get('class'):
                                     # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
-                        else:
-                            has_nm_parent = False # TODO 這邊先當成沒有nm上階層，直接比對學名
-                        # elif t_rank in ['綱','總綱','亞門']: # 還要再往上抓到門
-                        # elif t_rank in ['亞界','總門','門']: #  還要再往上抓到界
-                    # 如果有任何有nm上階層 且filtered_rss > 0 就代表有上階層比對成功的結果
-                    if has_nm_parent:
-                        if len(filtered_rss) == 1:
-                            if is_parent:
-                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 1
-                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'parentTaxonID'] = filtered_rss[0]['accepted_namecode']
+                                    if frs.get('family') == t_family or frs.get('class') == t_class:
+                                        filtered_rss.append(frs)
+                                        has_nm_parent = True
+                                        # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'has_nm_parent'] = True
                             else:
-                                # 根據NomenMatch給的score確認名字是不是完全一樣
-                                if match_score < 1:
-                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 3
+                                has_nm_parent = False # TODO 這邊先當成沒有nm上階層，直接比對學名
+                            # elif t_rank in ['綱','總綱','亞門']: # 還要再往上抓到門
+                            # elif t_rank in ['亞界','總門','門']: #  還要再往上抓到界
+                        # 如果有任何有nm上階層 且filtered_rss > 0 就代表有上階層比對成功的結果
+                        if has_nm_parent:
+                            if len(filtered_rss) == 1:
+                                if is_parent:
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 1
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'parentTaxonID'] = filtered_rss[0]['accepted_namecode']
                                 else:
-                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = None
-                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'taxonID'] = filtered_rss[0]['accepted_namecode']
+                                    # 根據NomenMatch給的score確認名字是不是完全一樣
+                                    if match_score < 1:
+                                        sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 3
+                                    else:
+                                        sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = None
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'taxonID'] = filtered_rss[0]['accepted_namecode']
+                            else:
+                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 4
+                                # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'more_than_one'] = True
                         else:
-                            sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 4
-                            # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'more_than_one'] = True
+                            # 如果沒有任何nm上階層的結果，則直接用filtered_rs
+                            if len(filtered_rs) == 1:
+                                if is_parent:
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 1
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'parentTaxonID'] = filtered_rs[0]['accepted_namecode']
+                                else:
+                                    if match_score < 1:
+                                        sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 3
+                                    else:
+                                        sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = None
+                                    sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'taxonID'] = filtered_rs[0]['accepted_namecode']
+                            else:
+                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 4
+                                # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'more_than_one'] = True
+                    # 若沒有上階層資訊，就直接取比對結果
                     else:
-                        # 如果沒有任何nm上階層的結果，則直接用filtered_rs
                         if len(filtered_rs) == 1:
                             if is_parent:
                                 sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 1
@@ -121,23 +137,8 @@ def match_name(matching_name,sci_name,original_name,original_taxonuuid,is_parent
                         else:
                             sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 4
                             # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'more_than_one'] = True
-                # 若沒有上階層資訊，就直接取比對結果
-                else:
-                    if len(filtered_rs) == 1:
-                        if is_parent:
-                            sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 1
-                            sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'parentTaxonID'] = filtered_rs[0]['accepted_namecode']
-                        else:
-                            if match_score < 1:
-                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 3
-                            else:
-                                sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = None
-                            sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'taxonID'] = filtered_rs[0]['accepted_namecode']
-                    else:
-                        sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 4
-                        # sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),'more_than_one'] = True
-            # else:
-            #     sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 2 # none
+                # else:
+                #     sci_names.loc[((sci_names.scientificName==sci_name)&(sci_names.originalVernacularName==original_name)),f'stage_{match_stage}'] = 2 # none
 
 
 def match_namecode(matching_namecode,sci_name,original_name,original_taxonuuid,match_stage):
