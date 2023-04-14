@@ -253,6 +253,7 @@ for p in range(0,total_page,30):
     match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
     match_log.loc[match_log.taxonID=='','is_matched'] = False
     match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
+    match_log = match_log.replace({np.nan: None})
     match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
     match_log['stage_1'] = match_log['stage_1'].apply(lambda x: issue_map[x] if x else x)
     match_log['stage_2'] = match_log['stage_2'].apply(lambda x: issue_map[x] if x else x)
