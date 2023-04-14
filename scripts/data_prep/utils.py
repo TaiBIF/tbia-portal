@@ -30,8 +30,17 @@ def convert_date(date):
     if date != '' and date is not None:
         try:
             formatted_date = parser.parse(date) 
-        except parser._parser.ParserError:
+            return formatted_date
+        except:
+            formatted_date = None
+        try:
+            formatted_date = datetime.strptime(date, '%Y/%m/%d %p %H:%M:%S')
+            return formatted_date
+        except:
+            formatted_date = None
+        try:
             formatted_date = datetime.fromtimestamp(int(date))
+            return formatted_date
         except:
             formatted_date = None
     return formatted_date
