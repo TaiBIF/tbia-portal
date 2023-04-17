@@ -6771,13 +6771,17 @@ body {
 }
 
 .two_cont_area .rightbox_content .card_list_2.species_list li {
-    cursor: initial
+    cursor: initial;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;  
 }
 
 .two_cont_area .rightbox_content .card_list_2.species_list .flex_top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    /*align-items: center;*/
+    height: 100%;
     margin-bottom: 10px
 }
 
@@ -6799,7 +6803,8 @@ body {
 }
 
 .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img {
-    width: 50%
+    width: 50%;
+    margin: 0 auto;
 }
 
 @media only screen and (max-width: 767px) {

@@ -154,6 +154,7 @@ class About(models.Model):
 class MatchLog(models.Model):
     occurrenceID = models.CharField(max_length=1000, blank=True)
     tbiaID = models.CharField(max_length=50, blank=True)
+    group = models.CharField(max_length=50, blank=True)
     sourceScientificName = models.CharField(max_length=1000, blank=True, null=True)
     is_matched = models.BooleanField()
     taxonID = models.CharField(max_length=20, blank=True, null=True)

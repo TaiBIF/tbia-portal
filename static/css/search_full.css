@@ -369,3 +369,7 @@ max-width: 100%;
 .techbox.taxon-pic {
     height: 100% 
 }
+
+.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .lefttxt {
+    word-break: break-all;
+}

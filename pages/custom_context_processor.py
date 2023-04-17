@@ -11,9 +11,9 @@ def get_partners(request):
 
 def get_index_partners(request):
     # 回傳首頁上顯示的夥伴單位
-    # 排除城鄉分署&中研院博物館
+    # 排除城鄉分署&中研院博物館&昆標館
     return {
-       'index_partners': Partner.objects.exclude(group__in=['brmas','tcd']).order_by('id'),
+       'index_partners': Partner.objects.values('abbreviation','breadtitle','logo','id').order_by('abbreviation','id').distinct("abbreviation"),
     }
 
 
