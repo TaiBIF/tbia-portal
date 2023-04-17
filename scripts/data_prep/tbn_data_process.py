@@ -266,7 +266,7 @@ def matching_flow(sci_names):
                     # 英文
                     match_name(sl, sci_names.loc[nti,'scientificName'],sci_names.loc[nti,'originalVernacularName'],sci_names.loc[nti,'taxonUUID'],False,3)
                     # 如果對到就break
-                    if sci_names.loc[nti,'taxonUUID']:
+                    if sci_names.loc[nti,'taxonID']:
                         break
                 else:
                     # 中文
@@ -312,6 +312,9 @@ folder = '/tbia-volumes/bucket/tbn_v25/'
 extension = 'csv'
 os.chdir(folder)
 files = glob.glob('*.{}'.format(extension))
+
+# TODO 這邊要先排除掉GBIF
+
 
 count = 0
 for f in files:
@@ -608,6 +611,7 @@ copy (
     mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
     FROM manager_matchlog mm
     LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
+    WHERE mm."group" = 'tesri'
 ) to stdout with delimiter ',' csv header;
 """
 with connection.cursor() as cursor:

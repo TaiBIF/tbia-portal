@@ -260,6 +260,7 @@ for p in range(0,total_page,30):
     match_log['stage_3'] = match_log['stage_3'].apply(lambda x: issue_map[x] if x else x)
     match_log['stage_4'] = match_log['stage_4'].apply(lambda x: issue_map[x] if x else x)
     match_log['stage_5'] = match_log['stage_5'].apply(lambda x: issue_map[x] if x else x)
+    match_log['group'] = group
     match_log = match_log.rename(columns={'id': 'tbiaID'})
     match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
@@ -275,6 +276,7 @@ copy (
     mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
     FROM manager_matchlog mm
     LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
+    WHERE mm."group" = 'cpami'
 ) to stdout with delimiter ',' csv header;
 """
 with connection.cursor() as cursor:
