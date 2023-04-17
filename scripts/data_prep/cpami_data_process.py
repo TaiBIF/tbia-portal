@@ -147,13 +147,14 @@ if response.status_code == 200:
     data += result.get('Data')
 
 
-for p in range(0,total_page,30):
+for p in range(0,total_page,10):
     print(p)
     data = []
     c = p
-    while c < p + 30 and c < total_page:
+    while c < p + 10 and c < total_page:
         c+=1
         print('page:',c)
+        time.sleep(30)
         url = f"https://npgis.cpami.gov.tw//TBiAOpenApi/api/Data/Get?Token={env('CPAMI_KEY')}&Page={c}"
         response = requests.get(url)
         if response.status_code == 200:
