@@ -18,6 +18,10 @@ $(function () {
         window.open($(this).data('ref'))
     })
 
+    $('.right_area .img-container').on('click', function(){
+        $('.taxon-pop').removeClass('d-none')
+    })
+
 })
 
 function addClass(element, className){
@@ -49,6 +53,9 @@ function showSlides(n) {
     }
     removeClass(slides[slideIndex-1], 'd-none')
     addClass(slides[slideIndex-1], 'd-block')
+
+    // 修改pop裡面的內容
+    $('.taxon-pop .picbox').html($('.right_area .picbox.d-block').html())
 }
 
 

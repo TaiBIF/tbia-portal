@@ -25,6 +25,25 @@
 <input type="hidden" name="lat" value="{{ row.lat }}">
 <input type="hidden" name="lon" value="{{ row.lon }}">
 
+<div class="popbg taxon-pop d-none" >
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+      <div class="techbox taxon-pic">
+        {% if row.associatedMedia|length > 1 %}
+        <div class="arr-left plusSlides">
+        </div>
+        <div class="arr-right plusSlides">
+        </div>
+        {% endif %}
+        <div class="picbox">
+        </div>  
+      </div>
+		</div>
+	</div>
+</div>
+
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -85,7 +104,7 @@
           <div class="picbox mySlides fade">
             <div class="img-container">
               <img class="imgarea" src="{{ am.img }}">
-              <p class="bottom-right">影像授權：{{ am.license }}</p>
+              <p class="bottom-right">影像授權：{% if am.license %}{{ am.license }}{% else %}無{% endif %}</p>
             </div>
           </div>
           {% endfor %}

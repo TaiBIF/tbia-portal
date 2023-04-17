@@ -112,3 +112,27 @@
     right: 16px;
     text-shadow: 0.1em 0.1em 0.2em black
 }
+
+
+
+.popbg.taxon-pop .wbox_center.index_tech {
+    min-height: 535px;
+    height: 100%;
+    max-height: 650px;
+}
+
+.popbg.taxon-pop .techbox {
+max-width: 100%;
+
+}
+
+.popbg.taxon-pop .techbox .imgarea {
+    width: auto;
+    max-width: 100%;
+    height: 100% ;
+    border-radius: 10px;
+}
+
+.techbox.taxon-pic {
+    height: 100% 
+}
