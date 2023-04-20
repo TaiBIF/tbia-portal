@@ -194,7 +194,7 @@ for p in range(0,total_page,10):
         associatedMedia = ';'.join([am['url'] for am in row.associatedMedia])
         mediaLicense = ';'.join([am['licence'] for am in row.associatedMedia])
         df.loc[i, 'associatedMedia'] = associatedMedia
-        df.loc[i, 'associatedMedia'] = mediaLicense
+        df.loc[i, 'mediaLicense'] = mediaLicense
         standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
         if standardLon and standardLat:
             df.loc[i,'standardLongitude'] = standardLon
