@@ -161,8 +161,14 @@ def submit_sensitive_request(request):
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
+            if val := req_dict.get('typeStatus'):
+                if val == '模式':
+                    query_list += [f'typeStatus:[* TO *]']
+                elif val == '一般':
+                    query_list += [f'-typeStatus:*']
+            
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -353,8 +359,14 @@ def transfer_sensitive_response(request):
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
+            if val := req_dict.get('typeStatus'):
+                if val == '模式':
+                    query_list += [f'typeStatus:[* TO *]']
+                elif val == '一般':
+                    query_list += [f'-typeStatus:*']
+
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -509,8 +521,14 @@ def generate_sensitive_csv(query_id):
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
+            if val := req_dict.get('typeStatus'):
+                if val == '模式':
+                    query_list += [f'typeStatus:[* TO *]']
+                elif val == '一般':
+                    query_list += [f'-typeStatus:*']
+
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -701,8 +719,14 @@ def generate_download_csv(req_dict,user_id):
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
+    if val := req_dict.get('typeStatus'):
+        if val == '模式':
+            query_list += [f'typeStatus:[* TO *]']
+        elif val == '一般':
+            query_list += [f'-typeStatus:*']
+
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -864,8 +888,14 @@ def generate_species_csv(req_dict,user_id):
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
+    if val := req_dict.get('typeStatus'):
+        if val == '模式':
+            query_list += [f'typeStatus:[* TO *]']
+        elif val == '一般':
+            query_list += [f'-typeStatus:*']
+
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -2472,8 +2502,14 @@ def get_conditional_records(request):
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
 
+        if val := request.POST.get('typeStatus'):
+            if val == '模式':
+                query_list += [f'typeStatus:[* TO *]']
+            elif val == '一般':
+                query_list += [f'-typeStatus:*']
+
         # 下拉選單單選
-        for i in ['sensitiveCategory', 'taxonRank','typeStatus','rightsHolder','basisOfRecord']: 
+        for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
