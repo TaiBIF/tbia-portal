@@ -1301,7 +1301,6 @@ def search_full(request):
         c = 0
         for i in x['buckets']:
             c+=i['taxonID']['numBuckets']
-        print(occ_card_len)
         # if len(occ_result_df_duplicated):
         #     occ_remove_index = occ_result_df_duplicated[occ_result_df_duplicated.matched_col.isin(dup_col)].index
         #     occ_result_df = occ_result_df.loc[~occ_result_df.index.isin(occ_remove_index)]        
@@ -1547,31 +1546,31 @@ def get_records(request):
                     docs.loc[i , 'lat'] = lat[0]
                 else:
                     if row.get('verbatimRawLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
                 if lon := row.get('standardRawLongitude'):
                     docs.loc[i , 'lon'] = lon[0]
                 else:
                     if row.get('verbatimRawLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
             else:
                 if lat := row.get('standardLatitude'):
                     docs.loc[i , 'lat'] = lat[0]
                 else:
                     if row.get('verbatimLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
 
                 if lon := row.get('standardLongitude'):
                     docs.loc[i , 'lon'] = lon[0]
                 else:
                     if row.get('verbatimLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
                 docs.loc[i , 'quantity'] = int(quantity[0])
             else:
                 if row.get('organismQuantity'):
-                    docs.loc[i , 'quantity'] = '---<br><small class="color-silver">>[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+                    docs.loc[i , 'quantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
 
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -2650,7 +2649,7 @@ def get_conditional_records(request):
                     docs.loc[i , 'eventDate'] = date
                 else:
                     if row.get('eventDate'):
-                        docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">>[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                        docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
                 #     # date = date[0].replace('T', ' ').replace('Z','')
                 #     # 如果是國家公園，原本調查的時間是區段
                 #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
@@ -2659,7 +2658,7 @@ def get_conditional_records(request):
                 #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
                 # else:
                     # if row.get('eventDate'):
-                    #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">>[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                    #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
                 # 經緯度
                 # 如果是夥伴單位直接給原始
                 user_id = request.user.id if request.user.id else 0
@@ -2668,31 +2667,31 @@ def get_conditional_records(request):
                         docs.loc[i , 'verbatimRawLatitude'] = lat[0]
                     else:
                         if row.get('verbatimRawLatitude'):
-                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
                     if lon := row.get('standardRawLongitude'):
                         docs.loc[i , 'verbatimRawLongitude'] = lon[0]
                     else:
                         if row.get('verbatimRawLongitude'):
-                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
                 else:
                     if lat := row.get('standardLatitude'):
                         docs.loc[i , 'verbatimLatitude'] = lat[0]
                     else:
                         if row.get('verbatimLatitude'):
-                            docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">>[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+                            docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
 
                     if lon := row.get('standardLongitude'):
                         docs.loc[i , 'verbatimLongitude'] = lon[0]
                     else:
                         if row.get('verbatimLongitude'):
-                            docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">>[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+                            docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
                 # 數量
                 if quantity := row.get('standardOrganismQuantity'):
                     docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
                 else:
                     if row.get('organismQuantity'):
-                        docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">>[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+                        docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
             docs = docs.replace({np.nan: ''})
             docs = docs.replace({'nan': ''})
             
