@@ -464,7 +464,7 @@ for f in files:
             'preservation' : None,
             # 'taxonID' : row.get('taxonID'),
             'location_rpt' : location_rpt,
-            'originalVernacularName': row.originalVernacularName, 
+            # 'originalVernacularName': row.originalVernacularName, 
             'taxonUUID': row.taxonUUID, 
             'taiCOLNameCode': row.taiCOLNameCode
             }
