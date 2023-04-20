@@ -31,22 +31,6 @@ issue_map = {
     4: 'multiple'
 }
 
-locality_map = {
-    'YMS': '陽明山國家公園',
-    'TRK': '太魯閣國家公園',
-    'SP': '雪霸國家公園',
-    'ES': '玉山國家公園',
-    'KT': '墾丁國家公園',
-    'KM': '金門國家公園',
-    'DS': '東沙環礁國家公園',
-    'TJ': '台江國家公園',
-    'SNNP': '壽山國家自然公園',
-    'SSNP': '壽山國家自然公園',
-    'SPM': '澎湖南方四島國家公園',
-    'TCMP': '台中都會公園',
-    'KCMP': '高雄都會公園',
-}
-
 rank_map = {
     1: 'Domain', 2: 'Superkingdom', 3: 'Kingdom', 4: 'Subkingdom', 5: 'Infrakingdom', 6: 'Superdivision', 7: 'Division', 8: 'Subdivision', 9: 'Infradivision', 10: 'Parvdivision', 11: 'Superphylum', 12:
     'Phylum', 13: 'Subphylum', 14: 'Infraphylum', 15: 'Microphylum', 16: 'Parvphylum', 17: 'Superclass', 18: 'Class', 19: 'Subclass', 20: 'Infraclass', 21: 'Superorder', 22: 'Order', 23: 'Suborder',
@@ -165,19 +149,8 @@ for spe_name in spe_list.SCIENTIFICNAME.unique(): # 3698
                 has_next = False
                 break
 
-
 df = pd.DataFrame(data)
 
-url = f"https://npgis.cpami.gov.tw//TBiAOpenApi/api/Data/Get?Token={env('CPAMI_KEY')}"
-response = requests.get(url)
-data = []
-c = 0
-if response.status_code == 200:
-    result = response.json()
-    total_page = result['Meta']['TotalPages']
-    data += result.get('Data')
-
-df = pd.DataFrame(data)
 df = df.rename(columns={'LONGITUDE': 'verbatimLongitude',
                         'LATITUDE': 'verbatimLatitude',
                         'EVENTDATE': 'eventDate',
@@ -256,7 +229,7 @@ for i in df.index:
         df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
     except:
         pass
-group = 'tcd'
+
 df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
 ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
 for r in ds_name:
