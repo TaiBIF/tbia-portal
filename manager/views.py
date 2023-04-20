@@ -1383,7 +1383,7 @@ def manager_system(request):
         match_logs = []
         for g in Partner.objects.all():
             if os.path.exists(f'/tbia-volumes/media/match_log/{g.group}_match_log.csv'):
-                match_logs.append({'url': f'/media/match_log/{g.group}_match_log.csv','name':f"{g.title} - {g.info[0]['subtitle']}"})
+                match_logs.append({'url': f'/media/match_log/{g.group}_match_log.csv','name':f"{g.breadtitle} - {g.info[0]['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
                                                             'data_total':data_total,'keywords': keywords, 'match_logs': match_logs})
 

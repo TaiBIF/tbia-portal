@@ -272,6 +272,7 @@ conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
 db = create_engine(conn_string)
 match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
 
+df = df.rename({'taxon_name_id': 'scientificNameID'})
 df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5'],errors='ignore')
 df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}.csv', index=False)
 
