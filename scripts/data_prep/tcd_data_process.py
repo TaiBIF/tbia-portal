@@ -1,6 +1,6 @@
 # 2023-04-14
 # RUN in web container
-# script for CPAMI API version 2.5
+# script for 營建署城鄉分署 濕地環境 API 
 from django.db import connection
 import urllib.parse
 import numpy as np
@@ -21,6 +21,8 @@ from sqlalchemy import create_engine
 import psycopg2
 
 from scripts.data_prep.utils import *
+
+group = 'tcd'
 
 issue_map = {
     1: 'higherrank',
@@ -136,6 +138,35 @@ def matching_flow(sci_names):
     return sci_names
 
 
+spe_list = pd.read_csv('/tbia-volumes/bucket/tcd_wetland_species_list.csv',index_col=None)
+spe_list = spe_list.replace({np.nan: None})
+
+c = 0
+data = []
+for spe_name in spe_list.SCIENTIFICNAME.unique(): # 3698
+    c += 1
+    print(c)
+    offset = 0
+    has_next = True
+    while has_next:
+        print(spe_name, offset)
+        url = f"https://wetland-db.tcd.gov.tw/wlfea/RESTful/OpenAPI/GetBioData?name={spe_name}&limit=1000&offset={offset}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                data += result
+                if len(data) < 1000:
+                    has_next = False
+                else:
+                    has_next = True
+                    offset += 1000
+            except:
+                has_next = False
+                break
+
+
+df = pd.DataFrame(data)
 
 url = f"https://npgis.cpami.gov.tw//TBiAOpenApi/api/Data/Get?Token={env('CPAMI_KEY')}"
 response = requests.get(url)
@@ -146,132 +177,117 @@ if response.status_code == 200:
     total_page = result['Meta']['TotalPages']
     data += result.get('Data')
 
+df = pd.DataFrame(data)
+df = df.rename(columns={'LONGITUDE': 'verbatimLongitude',
+                        'LATITUDE': 'verbatimLatitude',
+                        'EVENTDATE': 'eventDate',
+                        'VERNACULARNAME': 'isPreferredName',
+                        'RECORDEDBY': 'recordedBy',
+                        'ORGANISMQUANTITY': 'organismQuantity',
+                        'ORGANISMQUANTITYTYPE': 'organismQuantityType',
+                        'NAME': 'sourceScientificName',
+                        'BLURRED': 'dataGeneralizations'})
 
-page0 = pd.DataFrame(data)
-page1 = pd.DataFrame(data)
+df = df.reset_index(drop=True)
+df = df.replace({np.nan: '', 'NA': '', '-99999': ''})
+df = df.drop(columns=['CHK_NAME','TAXONRANK','SAMPLINGPROTOOL'])
 
-for p in range(0,total_page,10):
-    print(p)
-    data = []
-    c = p
-    while c < p + 10 and c < total_page:
-        c+=1
-        print('page:',c)
-        time.sleep(30)
-        url = f"https://npgis.cpami.gov.tw//TBiAOpenApi/api/Data/Get?Token={env('CPAMI_KEY')}&Page={c}"
-        response = requests.get(url)
-        if response.status_code == 200:
-            result = response.json()
-            # total_page = result['Meta']['TotalPages']
-            data += result.get('Data')
-    df = pd.DataFrame(data)
-    df = df[~(df.isPreferredName.isin([nan,'',None])&df.scientificName.isin([nan,'',None]))]
-    df = df.reset_index(drop=True)
-    df = df.replace({np.nan: '', 'NA': ''})
-    df = df.drop(columns=['taxonRank'])
-    df = df.rename(columns={'basicOfRecord': 'basisOfRecord', 'created': 'sourceCreated', 'modified': 'sourceModified', 'scientificName': 'sourceScientificName'})
-    # 排除學名為空值
-    sci_names = df[['sourceScientificName','isPreferredName',]].drop_duplicates().reset_index(drop=True)
-    sci_names['taxonID'] = ''
-    sci_names['parentTaxonID'] = ''
-    sci_names['match_stage'] = 1
-    # 各階段的issue default是沒有對到
-    # 國家公園只有1,3,4
-    sci_names['stage_1'] = 2
-    sci_names['stage_2'] = None
-    sci_names['stage_3'] = 2
-    sci_names['stage_4'] = 2
-    sci_names['stage_5'] = None
-    sci_names = matching_flow(sci_names)
-    taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
-    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
-    final_taxon = pd.DataFrame(final_taxon)
-    if len(final_taxon):
-        final_taxon = final_taxon.drop(columns=['id'])
-        final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
-        # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
-        match_taxon_id = sci_names.merge(final_taxon,how='left')
-        # 若沒有taxonID的 改以parentTaxonID串
-        match_parent_taxon_id = sci_names.drop(columns=['taxonID']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
-        match_parent_taxon_id['taxonID'] = ''
-        match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
-        match_taxon_id[['sourceScientificName','isPreferredName']] = match_taxon_id[['sourceScientificName','isPreferredName']].replace({'': '-999999'})
-    if len(match_taxon_id):
-        df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'': '-999999',None:'-999999'})
-        df = df.merge(match_taxon_id, on=['sourceScientificName','isPreferredName'], how='left')
-        df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
-    df['locality'] = df['locality'].apply(lambda x: locality_map[x] if x in locality_map.keys() else x)
-    df['sourceCreated'] = df['sourceCreated'].str.replace('上午', 'AM').str.replace('下午','PM')
-    df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
-    df['sourceModified'] = df['sourceModified'].str.replace('上午', 'AM').str.replace('下午','PM')
-    df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
-    df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
-    df['group'] = 'cpami'
-    df['created'] = datetime.now()
-    df['modified'] = datetime.now()
-    for i in df.index:
-        df.loc[i,'id'] = bson.objectid.ObjectId()
-        row = df.iloc[i]
-        if '標本' in row.basisOfRecord:
-            df.loc[i,'recordType'] = 'col'
-        else:
-            df.loc[i,'recordType'] = 'occ'
-        standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
-        if standardLon and standardLat:
-            df.loc[i,'standardLongitude'] = standardLon
-            df.loc[i,'standardLatitude'] = standardLat
-            df.loc[i,'location_rpt'] = location_rpt
-            df.loc[i,'verbatimSRS'] = 'WGS84'
-            grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
-            df.loc[i, 'grid_x_1'] = grid_x
-            df.loc[i, 'grid_y_1'] = grid_y
-            grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
-            df.loc[i, 'grid_x_5'] = grid_x
-            df.loc[i, 'grid_y_5'] = grid_y
-            grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
-            df.loc[i, 'grid_x_10'] = grid_x
-            df.loc[i, 'grid_y_10'] = grid_y
-            grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
-            df.loc[i, 'grid_x_100'] = grid_x
-            df.loc[i, 'grid_y_100'] = grid_y
-        try:
-            standardOrganismQuantity = int(row.organismQuantity)
-            df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
-        except:
-            pass
-    group = 'cpami'
-    df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
-    ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
-    for r in ds_name:
-        if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
-            # 更新
-            dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
-            dk.deprecated = False
-            dk.save()
-        else:
-            # 新建
-            DatasetKey.objects.create(
-                name = r['datasetName'],
-                record_type = r['recordType'],
-                group = group,
-            )
-    match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
-    match_log.loc[match_log.taxonID=='','is_matched'] = False
-    match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
-    match_log = match_log.replace({np.nan: None})
-    match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
-    match_log['stage_1'] = match_log['stage_1'].apply(lambda x: issue_map[x] if x else x)
-    match_log['stage_2'] = match_log['stage_2'].apply(lambda x: issue_map[x] if x else x)
-    match_log['stage_3'] = match_log['stage_3'].apply(lambda x: issue_map[x] if x else x)
-    match_log['stage_4'] = match_log['stage_4'].apply(lambda x: issue_map[x] if x else x)
-    match_log['stage_5'] = match_log['stage_5'].apply(lambda x: issue_map[x] if x else x)
-    match_log['group'] = group
-    match_log = match_log.rename(columns={'id': 'tbiaID'})
-    match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
-    conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
-    db = create_engine(conn_string)
-    match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+# 排除學名為空值
+sci_names = df[['sourceScientificName','isPreferredName',]].drop_duplicates().reset_index(drop=True)
+sci_names['taxonID'] = ''
+sci_names['parentTaxonID'] = ''
+sci_names['match_stage'] = 1
+# 各階段的issue default是沒有對到
+# 國家公園只有1,3,4
+sci_names['stage_1'] = 2
+sci_names['stage_2'] = None
+sci_names['stage_3'] = 2
+sci_names['stage_4'] = 2
+sci_names['stage_5'] = None
+sci_names = matching_flow(sci_names)
+taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
+final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
+final_taxon = pd.DataFrame(final_taxon)
+if len(final_taxon):
+    final_taxon = final_taxon.drop(columns=['id'])
+    final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
+    # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
+    match_taxon_id = sci_names.merge(final_taxon,how='left')
+    # 若沒有taxonID的 改以parentTaxonID串
+    match_parent_taxon_id = sci_names.drop(columns=['taxonID']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
+    match_parent_taxon_id['taxonID'] = ''
+    match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+    match_taxon_id[['sourceScientificName','isPreferredName']] = match_taxon_id[['sourceScientificName','isPreferredName']].replace({'': '-999999'})
+if len(match_taxon_id):
+    df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'': '-999999',None:'-999999'})
+    df = df.merge(match_taxon_id, on=['sourceScientificName','isPreferredName'], how='left')
+    df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
 
+df['group'] = group
+df['created'] = datetime.now()
+df['modified'] = datetime.now()
+df['recordType'] = 'occ'
+df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
+
+for i in df.index:
+    df.loc[i,'id'] = bson.objectid.ObjectId()
+    row = df.iloc[i]
+    standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
+    if standardLon and standardLat:
+        df.loc[i,'standardLongitude'] = standardLon
+        df.loc[i,'standardLatitude'] = standardLat
+        df.loc[i,'location_rpt'] = location_rpt
+        df.loc[i,'verbatimSRS'] = 'WGS84'
+        df.loc[i,'verbatimCoordinateSystem'] = 'DecimalDegrees'
+        grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
+        df.loc[i, 'grid_x_1'] = grid_x
+        df.loc[i, 'grid_y_1'] = grid_y
+        grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
+        df.loc[i, 'grid_x_5'] = grid_x
+        df.loc[i, 'grid_y_5'] = grid_y
+        grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
+        df.loc[i, 'grid_x_10'] = grid_x
+        df.loc[i, 'grid_y_10'] = grid_y
+        grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
+        df.loc[i, 'grid_x_100'] = grid_x
+        df.loc[i, 'grid_y_100'] = grid_y
+    try:
+        standardOrganismQuantity = int(row.organismQuantity)
+        df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
+    except:
+        pass
+group = 'tcd'
+df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
+ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
+for r in ds_name:
+    if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
+        # 更新
+        dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
+        dk.deprecated = False
+        dk.save()
+    else:
+        # 新建
+        DatasetKey.objects.create(
+            name = r['datasetName'],
+            record_type = r['recordType'],
+            group = group,
+        )
+match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
+match_log.loc[match_log.taxonID=='','is_matched'] = False
+match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
+match_log = match_log.replace({np.nan: None})
+match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
+match_log['stage_1'] = match_log['stage_1'].apply(lambda x: issue_map[x] if x else x)
+match_log['stage_2'] = match_log['stage_2'].apply(lambda x: issue_map[x] if x else x)
+match_log['stage_3'] = match_log['stage_3'].apply(lambda x: issue_map[x] if x else x)
+match_log['stage_4'] = match_log['stage_4'].apply(lambda x: issue_map[x] if x else x)
+match_log['stage_5'] = match_log['stage_5'].apply(lambda x: issue_map[x] if x else x)
+match_log['group'] = group
+match_log = match_log.rename(columns={'id': 'tbiaID'})
+match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
+conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
+db = create_engine(conn_string)
+match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
 
 
 sql = """

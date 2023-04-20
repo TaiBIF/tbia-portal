@@ -66,7 +66,7 @@ def standardize_coor(lon,lat):
 
 def match_name(matching_name,sci_name,original_name,match_stage):
     if matching_name:
-        request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name.replace(' ','+'))}&format=json&source=taicol"
+        request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name)}&format=json&source=taicol"
         response = requests.get(request_url)
         if response.status_code == 200:
             result = response.json()
@@ -187,11 +187,9 @@ for p in range(0,total_page,10):
         df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'': '-999999',None:'-999999'})
         df = df.merge(match_taxon_id, on=['sourceScientificName','isPreferredName'], how='left')
         df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
-    # df['locality'] = df['locality'].apply(lambda x: locality_map[x] if x in locality_map.keys() else x)
-    # df['sourceCreated'] = df['sourceCreated'].str.replace('上午', 'AM').str.replace('下午','PM')
     df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
-    # df['sourceModified'] = df['sourceModified'].str.replace('上午', 'AM').str.replace('下午','PM')
     df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
+    df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
     df['dataGeneralizations'] = df['dataGeneralizations'].replace({'N': False, 'Y': True})
     df['group'] = group
     df['created'] = datetime.now()
@@ -267,10 +265,11 @@ copy (
     mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
     FROM manager_matchlog mm
     LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
-    WHERE mm."group" = 'forest'
+    WHERE mm."group" = '{}'
 ) to stdout with delimiter ',' csv header;
-"""
+""".format(group)
 with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)
 
+print('done!')

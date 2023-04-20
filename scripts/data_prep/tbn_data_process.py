@@ -38,7 +38,7 @@ rank_map = {
 
 def match_name(matching_name,sci_name,original_name,original_taxonuuid,is_parent,match_stage):
     if matching_name:
-        request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name.replace(' ','+'))}&format=json&source=taicol"
+        request_url = f"http://host.docker.internal:8080/api.php?names={urllib.parse.quote(matching_name)}&format=json&source=taicol"
         response = requests.get(request_url)
         if response.status_code == 200:
             result = response.json()
@@ -611,9 +611,9 @@ copy (
     mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
     FROM manager_matchlog mm
     LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
-    WHERE mm."group" = 'tesri'
+    WHERE mm."group" = '{}'
 ) to stdout with delimiter ',' csv header;
-"""
+""".format(group)
 with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)

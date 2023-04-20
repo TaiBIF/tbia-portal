@@ -49,7 +49,7 @@ def convert_date(date):
 # 如果不是TBN的學名比對
 
 def match_name(matching_name,sci_name,original_name,original_taxonuuid,is_parent):
-    request_url = f"http://host.docker.internal:8080/api.php?names={matching_name.replace(' ','+')}&format=json&source=taicol"
+    request_url = f"http://host.docker.internal:8080/api.php?names={matching_name}&format=json&source=taicol"
     response = requests.get(request_url)
     if response.status_code == 200:
         result = response.json()

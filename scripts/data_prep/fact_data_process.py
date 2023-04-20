@@ -162,7 +162,6 @@ for p in range(0,total_page,10):
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])
         final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
-        # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
         match_taxon_id = sci_names.merge(final_taxon,how='left')
         # 若沒有taxonID的 改以parentTaxonID串
         match_parent_taxon_id = sci_names.drop(columns=['taxonID']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
@@ -175,6 +174,7 @@ for p in range(0,total_page,10):
         df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
     df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
     df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
+    df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
     df['group'] = group
     df['created'] = datetime.now()
     df['modified'] = datetime.now()
@@ -249,10 +249,11 @@ copy (
     mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
     FROM manager_matchlog mm
     LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
-    WHERE mm."group" = 'fact'
+    WHERE mm."group" = '{}'
 ) to stdout with delimiter ',' csv header;
-"""
+""".format(group)
 with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)
 
+print('done!')
