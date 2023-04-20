@@ -11,14 +11,29 @@ generate_token = TokenGenerator()
 
 # key: group, value: rightsHolder
 partner_map = {}
+holders = {
+'brcas': '臺灣生物多樣性資訊機構 TaiBIF',
+'brmas': '中央研究院生物多樣性中心植物標本資料庫',
+'tesri': '台灣生物多樣性網絡 TBN',
+'forest': '生態調查資料庫系統',
+'cpami': '臺灣國家公園生物多樣性資料庫',
+'tcd': '濕地環境資料庫',
+'oca': '海洋保育資料倉儲系統',
+'taif': '林業試驗所植物標本資料庫',
+'fact':  '林業試驗所昆蟲標本館',
+'ntm': '國立臺灣博物館典藏',
+'wra': '河川環境資料庫',
+'gbif': 'GBIF'}
+
 p_colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065', '#555','#3B86C0','#304237','#C65454','#ccc' ]
+
 c = 0
-for p in Partner.objects.all():
+for h in holders.keys():
     tmp_list = []
-    for pp in p.info:
-        tmp_list.append({'dbname': pp.get('subtitle'), 'color': p_colors[c]})
-        c += 1
-    partner_map[p.group] = tmp_list
+    # for pp in p.info:
+    tmp_list.append({'dbname': holders[h], 'color': p_colors[c]})
+    c += 1
+    partner_map[h] = tmp_list
 
 
 from datetime import datetime, tzinfo,timedelta
