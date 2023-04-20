@@ -315,6 +315,7 @@ files = glob.glob('*.{}'.format(extension))
 
 # TODO 這邊要先排除掉GBIF
 
+group = 'tesri'
 
 count = 0
 for f in files:
@@ -559,9 +560,8 @@ for f in files:
         final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'-999999': ''})
     final = final.replace({nan: None})
     final = final.drop(columns=['originalVernacularName','taxonUUID','taiCOLNameCode'])
-    final.to_csv(f'/tbia-volumes/solr/csvs/processed/{f}', index=False)
+    # final.to_csv(f'/tbia-volumes/solr/csvs/processed/{f}', index=False)
     # update datasetName key
-    group = 'tesri'
     # recordType可能同時有兩個
     recs = final.recordType.unique()
     ds_name = df.datasetName.to_list()[0]
@@ -587,7 +587,7 @@ for f in files:
     # * taxonID的taxonRank
     # * taxonID的學名
     # * 比對狀態的log（標示對應到哪個步驟；NomenMatch比對狀態）
-    match_log = final[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
+    match_log = final[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
     match_log.loc[match_log.taxonID=='','is_matched'] = False
     match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
     match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
@@ -601,6 +601,8 @@ for f in files:
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+    final = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5'],errors='ignore')
+    final.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{f}', index=False)
 
 
 

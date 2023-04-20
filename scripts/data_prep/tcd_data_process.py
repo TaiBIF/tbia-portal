@@ -128,6 +128,7 @@ spe_list = spe_list.replace({np.nan: None})
 c = 0
 data = []
 for spe_name in spe_list.SCIENTIFICNAME.unique(): # 3698
+    time.sleep(60)
     c += 1
     print(c)
     offset = 0
@@ -197,10 +198,19 @@ if len(match_taxon_id):
     df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
 
 df['group'] = group
+df['rightsHolder'] = '濕地環境資料庫'
 df['created'] = datetime.now()
 df['modified'] = datetime.now()
 df['recordType'] = 'occ'
 df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
+df['grid_x_1'] = -1
+df['grid_y_1'] = -1
+df['grid_x_5'] = -1
+df['grid_y_5'] = -1
+df['grid_x_10'] = -1
+df['grid_y_10'] = -1
+df['grid_x_100'] = -1
+df['grid_y_100'] = -1
 
 for i in df.index:
     df.loc[i,'id'] = bson.objectid.ObjectId()
@@ -230,7 +240,7 @@ for i in df.index:
     except:
         pass
 
-df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
+# df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
 ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
 for r in ds_name:
     if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
@@ -245,7 +255,7 @@ for r in ds_name:
             record_type = r['recordType'],
             group = group,
         )
-match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
+match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
 match_log.loc[match_log.taxonID=='','is_matched'] = False
 match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
 match_log = match_log.replace({np.nan: None})
@@ -261,6 +271,9 @@ match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
 conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
 db = create_engine(conn_string)
 match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+
+df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5'],errors='ignore')
+df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}.csv', index=False)
 
 
 sql = """

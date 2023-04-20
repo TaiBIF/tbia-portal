@@ -176,6 +176,7 @@ for p in range(0,total_page,10):
     df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
     df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
     df['group'] = group
+    df['rightsHolder'] = '林業試驗所昆蟲標本館'
     df['created'] = datetime.now()
     df['modified'] = datetime.now()
     df['recordType'] = 'col'

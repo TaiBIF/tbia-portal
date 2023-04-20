@@ -147,8 +147,7 @@ if response.status_code == 200:
     data += result.get('Data')
 
 
-page0 = pd.DataFrame(data)
-page1 = pd.DataFrame(data)
+group = 'cpami'
 
 for p in range(0,total_page,10):
     print(p)
@@ -207,8 +206,17 @@ for p in range(0,total_page,10):
     df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
     df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
     df['group'] = 'cpami'
+    df['rightsHolder'] = '臺灣國家公園生物多樣性資料庫'
     df['created'] = datetime.now()
     df['modified'] = datetime.now()
+    df['grid_x_1'] = -1
+    df['grid_y_1'] = -1
+    df['grid_x_5'] = -1
+    df['grid_y_5'] = -1
+    df['grid_x_10'] = -1
+    df['grid_y_10'] = -1
+    df['grid_x_100'] = -1
+    df['grid_y_100'] = -1
     for i in df.index:
         df.loc[i,'id'] = bson.objectid.ObjectId()
         row = df.iloc[i]
@@ -239,8 +247,7 @@ for p in range(0,total_page,10):
             df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
         except:
             pass
-    group = 'cpami'
-    df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
+    # df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
     ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
     for r in ds_name:
         if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
@@ -255,7 +262,7 @@ for p in range(0,total_page,10):
                 record_type = r['recordType'],
                 group = group,
             )
-    match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','created','modified']]
+    match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
     match_log.loc[match_log.taxonID=='','is_matched'] = False
     match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
     match_log = match_log.replace({np.nan: None})
@@ -271,6 +278,8 @@ for p in range(0,total_page,10):
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+    df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5'],errors='ignore')
+    df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
 
 
 
