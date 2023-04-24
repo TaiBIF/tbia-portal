@@ -464,7 +464,7 @@ for f in files:
             'preservation' : None,
             # 'taxonID' : row.get('taxonID'),
             'location_rpt' : location_rpt,
-            # 'originalVernacularName': row.originalVernacularName, 
+            'originalVernacularName': row.originalVernacularName, 
             'taxonUUID': row.taxonUUID, 
             'taiCOLNameCode': row.taiCOLNameCode
             }
@@ -552,14 +552,14 @@ for f in files:
             grid_x, grid_y = convert_coor_to_grid(final.iloc[i].standardLongitude, final.iloc[i].standardLatitude, 1)
             final.iloc[i, final.columns.get_loc('grid_x_100')] = grid_x
             final.iloc[i, final.columns.get_loc('grid_y_100')] = grid_y
-    # 串回taxon資訊 
+    # 串回taxon資訊  
     final = final.replace({nan: None})
     if len(match_taxon_id):
         final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999',None:'-999999'})
         final = final.merge(match_taxon_id, on=['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode'], how='left')
         final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'-999999': ''})
     final = final.replace({nan: None})
-    final = final.drop(columns=['originalVernacularName','taxonUUID','taiCOLNameCode'])
+    final = final.drop(columns=['taxonUUID','taiCOLNameCode'],errors='ignore')
     # final.to_csv(f'/tbia-volumes/solr/csvs/processed/{f}', index=False)
     # update datasetName key
     # recordType可能同時有兩個
