@@ -564,7 +564,7 @@ for f in files:
     # update datasetName key
     # recordType可能同時有兩個
     recs = final.recordType.unique()
-    ds_name = df.datasetName.to_list()[0]
+    ds_name = final.datasetName.to_list()[0]
     for rec in recs:
         if DatasetKey.objects.filter(group=group,name=ds_name,record_type=rec).exists():
             # 更新
@@ -602,7 +602,7 @@ for f in files:
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
     final = final.rename(columns={'taxon_name_id': 'scientificNameID'})
-    final = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID'],errors='ignore')
+    final = final.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID'],errors='ignore')
     final.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{f}', index=False)
 
 
