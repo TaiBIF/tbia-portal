@@ -601,8 +601,8 @@ for f in files:
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
-    final = final.rename(columns={'taxon_name_id': 'scientificNameID'})
-    final = final.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID'],errors='ignore')
+    # final = final.rename(columns={'taxon_name_id': 'scientificNameID'})
+    final = final.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID','taxon_name_id'],errors='ignore')
     final.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{f}', index=False)
 
 
