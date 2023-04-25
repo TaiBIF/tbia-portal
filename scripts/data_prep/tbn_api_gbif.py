@@ -63,7 +63,7 @@ df = df.reset_index(drop=True)
 c = 0
 for d in df.datasetUUID.to_list():
     c += 1
-    print(c+' get:'+d)
+    print(f"{c} get: {d}")
     request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
     response = requests.get(request_url)
     data = response.json()
@@ -71,7 +71,7 @@ for d in df.datasetUUID.to_list():
     j = 0
     total_data = data["data"]
     while data['links']['next'] != "":
-        print(c+' get:'+d+' ' +j)
+        print(f"{c} get: {d} {j}")
         request_url = data['links']['next']
         response = requests.get(request_url)
         data = response.json()
