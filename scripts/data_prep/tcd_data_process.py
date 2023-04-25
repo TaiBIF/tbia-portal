@@ -200,6 +200,7 @@ for p in range(0,len(spe_list),10):
         df = df.merge(match_taxon_id, on=['sourceScientificName','isPreferredName'], how='left')
         df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
     df['group'] = group
+    df['occurrenceID'] = ''
     df['rightsHolder'] = '濕地環境資料庫'
     df['created'] = datetime.now()
     df['modified'] = datetime.now()
