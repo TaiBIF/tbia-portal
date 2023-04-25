@@ -240,21 +240,22 @@ for p in range(0,len(spe_list),10):
             df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
         except:
             pass
+    # 目前沒有datasetName欄位
     # df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
-    ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
-    for r in ds_name:
-        if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
-            # 更新
-            dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
-            dk.deprecated = False
-            dk.save()
-        else:
-            # 新建
-            DatasetKey.objects.create(
-                name = r['datasetName'],
-                record_type = r['recordType'],
-                group = group,
-            )
+    # ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
+    # for r in ds_name:
+    #     if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
+    #         # 更新
+    #         dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
+    #         dk.deprecated = False
+    #         dk.save()
+    #     else:
+    #         # 新建
+    #         DatasetKey.objects.create(
+    #             name = r['datasetName'],
+    #             record_type = r['recordType'],
+    #             group = group,
+    #         )
     match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
     match_log.loc[match_log.taxonID=='','is_matched'] = False
     match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
