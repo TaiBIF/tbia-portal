@@ -23,17 +23,17 @@ df = pd.DataFrame(total_data)
 # subset GBIF 資料集
 df = df[df.datasetDataFrom=='GBIF']
 
-df.to_csv('tbn_gbif.csv')
+# df.to_csv('tbn_gbif.csv')
 
 # 確認publisher
-df.datasetPublisher.unique()
+# df.datasetPublisher.unique()
 
 # 夥伴單位 publisher 不排除特生
-'National Taiwan Museum'
-'Taiwan Biodiversity Information Facility (TaiBIF)'
-'Taiwan Endemic Species Research Institute'
-'Taiwan Forestry Bureau'
-'Taiwan Forestry Research Institute'
+# 'National Taiwan Museum'
+# 'Taiwan Biodiversity Information Facility (TaiBIF)'
+# 'Taiwan Endemic Species Research Institute'
+# 'Taiwan Forestry Bureau'
+# 'Taiwan Forestry Research Institute'
 df = df[~df.datasetPublisher.isin(['National Taiwan Museum',
 'Taiwan Biodiversity Information Facility (TaiBIF)',
 'Taiwan Forestry Bureau',
