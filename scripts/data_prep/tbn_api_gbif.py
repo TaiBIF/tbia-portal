@@ -41,23 +41,48 @@ df = df[~df.datasetPublisher.isin(['National Taiwan Museum',
 
 df = df.reset_index(drop=True)
 
+# for d in df.datasetUUID.to_list():
+#     print('get:' + d)
+#     # 只取自產資料
+#     request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+#     response = requests.get(request_url)
+#     data = response.json()
+#     if len_of_data := data['meta'].get('total'):
+#         j = 0
+#         total_data = data["data"]
+#         while data['links']['next'] != "":
+#             print('get:'+d)
+#             request_url = data['links']['next']
+#             response = requests.get(request_url)
+#             data = response.json()
+#             total_data += data["data"]
+#             j += 1
+#         df = pd.DataFrame(total_data)
+#         df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}.csv")
+
+c = 0
 for d in df.datasetUUID.to_list():
-    print('get:' + d)
-    # 只取自產資料
+    c += 1
+    print(c+' get:'+d)
     request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
     response = requests.get(request_url)
     data = response.json()
-    if len_of_data := data['meta'].get('total'):
-        j = 0
-        total_data = data["data"]
-        while data['links']['next'] != "":
-            print('get:'+d)
-            request_url = data['links']['next']
-            response = requests.get(request_url)
-            data = response.json()
-            total_data += data["data"]
-            j += 1
-        df = pd.DataFrame(total_data)
-        df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}.csv")
+    len_of_data = data['meta']['total'] # 43242
+    j = 0
+    total_data = data["data"]
+    while data['links']['next'] != "":
+        print(c+' get:'+d+' ' +j)
+        request_url = data['links']['next']
+        response = requests.get(request_url)
+        data = response.json()
+        total_data += data["data"]
+        j += 1
+        if j != 0 and j % 100 == 0:
+            df = pd.DataFrame(total_data)
+            df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}_{j/100}.csv")
+            total_data = []
+    df = pd.DataFrame(total_data)
+    df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}_{j}.csv")
 
-# print('done!')
+
+print('done!')
