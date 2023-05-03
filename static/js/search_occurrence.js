@@ -438,9 +438,9 @@ function setTable(response, queryString, from, orderby, sort){
     $('.search_condition_are').after(`
     <div class="sc_result">
     <div class="result_inf_top">
-        <div class="d-flex-ai-c">
+        <div class="d-flex-ai-c res_flex">
         <button class="cate_btn mr-20px popupField">欄位選項 +</button>
-        <div class="w-200px">每頁顯示
+        <div class="w-200px per_page">每頁顯示
             <select name="shownumber" data-query='${queryString}'>
             <option value="10">10</option>
             <option value="20">20</option>
