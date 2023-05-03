@@ -449,7 +449,7 @@ for f in files:
             'organismQuantity' : row.organismQuantity if row.individualCount in [None,'',nan] else row.individualCount,
             'standardOrganismQuantity' : quantity,
             'organismQuantityType' : row.organismQuantityType,
-            'recordedBy' : row.recordedBy.strip(), 
+            'recordedBy' : row.recordedBy.strip() if row.recordedBy else None, 
             'datasetName': row.datasetName,
             'resourceContacts' : row.resourceContacts,
             'references' : f"https://www.tbn.org.tw/occurrence/{row.occurrenceID}" if row.occurrenceID else None, 
