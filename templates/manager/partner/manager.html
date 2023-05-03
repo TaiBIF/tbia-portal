@@ -42,10 +42,10 @@
                 <ul>
                     <li class="nohover now">
                         <a class="big_link rd_click ">
-                            {% if user.partner.breadtitle|length > 13 %}
-                                <p class="fs-16px">{{ user.partner.breadtitle }}</p> 
+                            {% if user.partner.select_title|length > 13 %}
+                                <p class="fs-16px">{{ user.partner.select_title }}</p> 
                             {% else %}
-                                <p>{{ user.partner.breadtitle }}</p> 
+                                <p>{{ user.partner.select_title }}</p> 
                             {% endif %}
                         </a>
                     </li>

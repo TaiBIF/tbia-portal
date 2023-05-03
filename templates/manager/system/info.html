@@ -220,29 +220,28 @@
                         <tr>
                             <td>#{{ f.id }}</td>
                             <td>
-                            {% if f.partner.title == '營建署城鄉發展分署' %}
-                            內政部營建署城鄉發展分署
-                            {% elif f.partner %}
-                            {{ f.partner.breadtitle }}
+                            {% if f.partner %}
+                                {{ f.partner.select_title }}
                             {% else %}
-                            TBIA聯盟
+                                TBIA聯盟
                             {% endif %}
-                            </td>
+                            </td> 
                             <td>{{ f.created_8|date:'Y-m-d H:i:s' }}</td>
                             <td>{{ f.email }}</td>
                             <td>{{ f.get_type_display }}</td>
                             <td>{{ f.content }}</td>
-                            <td>{% if f.partner %}{% if f.is_replied %}
-                                    是
+                            <td>{% if f.partner %}
+                                    {% if f.is_replied %}
+                                        是
+                                    {% else %}
+                                        否
+                                    {% endif %}
                                 {% else %}
-                                    否
-                                {% endif %}
-                                {% else %}
-                                {% if f.is_replied %}
-                                    是 <button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
-                                {% else %}
-                                    否<button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
-                                {% endif %}
+                                    {% if f.is_replied %}
+                                        是 <button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
+                                    {% else %}
+                                        否<button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         </tr>

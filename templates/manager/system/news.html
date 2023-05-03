@@ -188,7 +188,7 @@
                             <td>#{{ n.id }}</td>
                             <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
                             <td>{{ n.get_type_display }}</td>
-                            <td>{{ n.partner.breadtitle|default_if_none:'' }}</td>
+                            <td>{{ n.partner.select_title|default_if_none:'' }}</td>
                             <td>{{ n.user.name }}</td>
                             <td>{{ n.modified_8|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
                             <td>

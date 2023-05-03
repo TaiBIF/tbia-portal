@@ -284,11 +284,17 @@
 
 .bottom-right {
     position: absolute;
-    bottom: 8px;
+    top: 8px;
     right: 16px;
     text-shadow: 0.1em 0.1em 0.2em black
 }
 
+.taxon-pop .bottom-right {
+    bottom: 8px;
+    top: auto;
+    text-shadow: none;
+    color: black
+}
 
 
 .taxon-pop .arr-left {

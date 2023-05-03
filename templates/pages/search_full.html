@@ -233,13 +233,16 @@
                   {% else %}
                   <div class="lefttxt2">
                   {% endif %}
-                    {% if i.matched_col != '中文名' and i.matched_col != '學名' and i.matched_col != '中文別名' and  i.matched_col != '同物異名' %}
-                    <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
-                    {% endif %}    
 										<p>中⽂名：{{ i.common_name_c|highlight:keyword }}</p>
 										<p>學名：{{ i.formatted_name|highlight:keyword }}</p>
 										<p>中文別名：{{ i.alternative_name_c|highlight:keyword }}</p>
 										<p>同物異名：{{ i.formatted_synonyms|highlight:keyword }}</p>
+                    <!-- 這邊matched_col可能有多個 -->
+                    {% for ii in i.matched %}
+                      {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
+                      <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                      {% endif %}    
+                    {%  endfor %}
 										<p>出現記錄筆數：{{ i.occ_count|intcomma }}</p>
 										<p>自然史典藏筆數：{{ i.col_count|intcomma }}</p>
 									</div>
@@ -256,6 +259,7 @@
                       <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
                         <div class="img-container">
                           <img class="imgarea" src="{{ ii.src }}">
+                          <p class="bottom-right">{{ ii.author }}</p>
                         </div>
                       </div>  
                       {% endfor %}
@@ -276,14 +280,14 @@
                 <div class="btn_area">
                   <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
                   <button class="getDist" 
-                  data-taxonID="{{ i.taxonID }}"
+                  data-taxonid="{{ i.taxonID }}"
                   data-common_name_c="{{ i.common_name_c }}"
                   data-formatted_name="{{ i.formatted_name }}">分布圖</button>
                 </div>
                 {% else %}
                 <div class="btn_area jc-fe">
                   <button class="getDist" 
-                  data-taxonID="{{ i.taxonID }}"
+                  data-taxonid="{{ i.taxonID }}"
                   data-common_name_c="{{ i.common_name_c }}"
                   data-formatted_name="{{ i.formatted_name }}">分布圖</button>
                 </div>
@@ -320,10 +324,16 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
+            
               <li class="getRecords" 
                   data-record_type="occ"
-                  data-key="{{ i.key }}"
-                  data-value="{{ i.matched_value }}"
+                  {% if i.match_type == 'taxon-related' and i.val != '' %}
+                  data-key="taxonID"
+                  data-value="{{ i.taxonID }}"
+                  {% else %}
+                  data-key="{{ i.matched.0.key }}"
+                  data-value="{{ i.matched.0.matched_value }}"
+                  {% endif %}
                   data-scientific_name="{{ i.name }}"
                   data-limit="{{ i.count }}"
                   data-page="1"
@@ -335,9 +345,11 @@
                 <div class="num_bottom"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
-                {% if i.matched_col != '中文名' and i.matched_col != '學名'  %}
-                <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
-                {% endif %}
+                {% for ii in i.matched %}
+                  {% if ii.matched_col != '中文名' and ii.matched_col != '學名' %}
+                    <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                  {% endif %}    
+                {%  endfor %}
               </li>
             {% endfor %}
           </ul>
@@ -373,8 +385,13 @@
             {% for i in collection.card %}
             <li class="getRecords" 
                 data-record_type="col"
-                data-key="{{ i.key }}"
-                data-value="{{ i.matched_value }}"
+                {% if i.match_type == 'taxon-related' and i.val != '' %}
+                data-key="taxonID"
+                data-value="{{ i.taxonID }}"
+                {% else %}
+                data-key="{{ i.matched.0.key }}"
+                data-value="{{ i.matched.0.matched_value }}"
+                {% endif %}
                 data-scientific_name="{{ i.name }}"
                 data-limit="{{ i.count }}"
                 data-page="1"
@@ -386,9 +403,11 @@
               <div class="num_bottom"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
-              {% if i.matched_col != '中文名' and i.matched_col != '學名' %}
-              <p>{{ i.matched_col }}：{{ i.matched_value|highlight:keyword }}</p>
-              {% endif %}
+              {% for ii in i.matched %}
+                {% if ii.matched_col != '中文名' and ii.matched_col != '學名' %}
+                  <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                {% endif %}    
+              {%  endfor %}
             </li>
             {% endfor %}
           </ul>
@@ -578,6 +597,18 @@
 					<input type="checkbox" class="chebox" id="col-synonyms">
 					<p>同物異名</p>
 				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="col-misapplied">
+					<p>誤用名</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="col-sourceScientificName">
+					<p>來源資料庫使用學名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-sourceVernacularName">
+					<p>來源資料庫使用中文名</p>
+				</li>	
 				<li>
 					<input type="checkbox" class="chebox" id="col-rightsHolder">
 					<p>來源資料庫</p>
@@ -704,6 +735,18 @@
 					<input type="checkbox" class="chebox" id="occ-synonyms">
 					<p>同物異名</p>
 				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="occ-misapplied">
+					<p>誤用名</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
+					<p>來源資料庫使用學名</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
+					<p>來源資料庫使用中文名</p>
+				</li>				
 				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonRank">
 					<p>鑑定層級</p>

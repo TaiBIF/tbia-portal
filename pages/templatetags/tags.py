@@ -13,7 +13,7 @@ register = template.Library()
 def highlight(text, keyword, autoescape=True):
     keyword = get_variants(re.escape(keyword))
     # text_after = re.sub(regex_search_term, regex_replacement, text_before)
-    new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text)
+    new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)
     return mark_safe(new_value)
 
 

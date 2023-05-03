@@ -220,7 +220,7 @@ def change_manager_page(request):
 
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
                 if sdr.partner:
-                    partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                    partner_name = sdr.partner.select_title 
                 else:
                     partner_name = 'TBIA聯盟'
                 comment.append(f"""<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else "" }<br><b>審查結果：</b>{sdr.get_status_display()}""")
@@ -348,10 +348,7 @@ def change_manager_page(request):
                     date = ''
 
                 if f.partner:
-                    if f.partner.title =='營建署城鄉發展分署':
-                        partner_title = '內政部營建署城鄉發展分署'
-                    else:
-                        partner_title = f.partner.breadtitle
+                    partner_title = f.partner.select_title
                 else:
                     partner_title = 'TBIA聯盟'
 
@@ -388,7 +385,9 @@ def change_manager_page(request):
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                         </tr>'''
-        for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
+
+        for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[offset:offset+10]:
+        # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.strftime('%Y-%m-%d'),14) # 已經是轉交單位審核的，期限為14天
@@ -397,7 +396,8 @@ def change_manager_page(request):
                 date = ''
 
             # 條件搜尋
-            search_dict = dict(parse.parse_qsl(s.query))
+            # search_dict = dict(parse.parse_qsl(s.query))
+            search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
             query = create_query_display(search_dict,s.id)
 
             # 審查意見
@@ -405,7 +405,7 @@ def change_manager_page(request):
 
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
                 if sdr.partner:
-                    partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                    partner_name = sdr.partner.select_title 
                 else:
                     partner_name = 'TBIA聯盟'
                 comment.append(f"<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審查結果：</b>{sdr.get_status_display()}")
@@ -540,10 +540,7 @@ def change_manager_page(request):
             '''
             for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
-                    if a.partner.title =='營建署城鄉發展分署':
-                        partner_title = '內政部營建署城鄉發展分署'
-                    else:
-                        partner_title = a.partner.breadtitle
+                    partner_title = a.partner.select_title 
                 else:
                     partner_title = ''
 
@@ -587,10 +584,7 @@ def change_manager_page(request):
                         
         for n in News.objects.all().order_by('-id')[offset:offset+10]:
             if n.partner:
-                if n.partner.title =='營建署城鄉發展分署':
-                    partner_title = '內政部營建署城鄉發展分署'
-                else:
-                    partner_title = n.partner.breadtitle
+                partner_title = n.partner.select_title
             else:
                 partner_title = ''
             if n.modified:
@@ -706,7 +700,7 @@ def change_manager_page(request):
 
 def manager(request):
     menu = request.GET.get('menu','info')
-    partners = Partner.objects.all()
+    partners = Partner.objects.all().order_by('abbreviation','id')
     # pr = []
     # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
@@ -746,7 +740,7 @@ def manager(request):
                 map_dict = map_collection
             key = map_dict.get(search_dict['key'])
             query += f"<br><b>{key}</b>：{search_dict['value']}"
-            query += f"<br><b>學名</b>：{search_dict['scientificName']}"
+            query += f"<br><b>學名</b>：{search_dict.get('scientificName','')}"
         else:
         # 條件搜尋
             search_dict = dict(parse.parse_qsl(r.query))
@@ -808,7 +802,7 @@ def manager(request):
 
         for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
             if sdr.partner:
-                partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                partner_name = sdr.partner.select_title 
             else:
                 partner_name = 'TBIA聯盟'
             comment.append(f"""
@@ -1504,13 +1498,11 @@ def system_info(request):
         else:
             due = check_due(created.strftime('%Y-%m-%d'),7)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
-
         # 整理查詢條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
             query = create_query_display(search_dict,r.id)
-
         sensitive.append({
             'id': sdr.id,
             'query_id': r.query_id,
@@ -1527,7 +1519,8 @@ def system_info(request):
     # print(len(sensitive),s_total_page,s_page_list)
 
     sensitive_track = []
-    for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
+    for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[:10]:
+    # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
         if s.created:
             date = s.created + timedelta(hours=8)
             due = check_due(date.strftime('%Y-%m-%d'), 14)
@@ -1537,7 +1530,8 @@ def system_info(request):
             due = ''
 
         # 條件搜尋
-        search_dict = dict(parse.parse_qsl(s.query))
+        
+        search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
         query = create_query_display(search_dict,s.id)
 
         # 審查意見
@@ -1545,7 +1539,7 @@ def system_info(request):
 
         for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
             if sdr.partner:
-                partner_name = '內政部營建署城鄉發展分署' if sdr.partner.id == 4 else sdr.partner.breadtitle 
+                partner_name = sdr.partner.select_title 
             else:
                 partner_name = 'TBIA聯盟'
             comment.append(f"""

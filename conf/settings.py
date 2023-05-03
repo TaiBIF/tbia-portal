@@ -258,6 +258,7 @@ CSP_IMG_SRC = ("'self'",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
     "https://data.taieol.tw/",
+    "https://fact.tfri.gov.tw/"
 ) 
 
 CSP_MEDIA_SRC = ("'self'") 

@@ -23,7 +23,7 @@ class SolrQuery(object):
     def generate_solr_url(self, req_lists=[]):
         for key, values in req_lists:
             if key == 'q' and values:
-                self.solr_q = values
+                self.solr_tuples.append(('q', values))
             elif key == 'offset':
                 self.solr_tuples.append(('start', values))
             elif key == 'sort':
@@ -56,7 +56,7 @@ class SolrQuery(object):
                 self.solr_tuples.append(('fq', values))
             else:
                 self.solr_tuples.append((key, values))
-        self.solr_tuples.append(('q', self.solr_q))
+        # self.solr_tuples.append(self.solr_q)
         # if len(self.facet_values):
         #     self.solr_tuples.append(('facet', 'true'))
         #     s = ''
@@ -87,22 +87,6 @@ class SolrQuery(object):
 
 
 occ_facets = {  'facet': {
-        'eventDate': {
-            'type': 'terms',
-            'field': 'eventDate',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                'taxonID':{
-                    'type': 'terms',
-                    'field': 'taxonID',
-                    'limit': 30,
-                    'numBuckets': True,
-                },
-            }        
-        },
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',
@@ -167,9 +151,9 @@ occ_facets = {  'facet': {
                     },
                 }
         },
-        'rightsHolder': {
+        'misapplied': {
             'type': 'terms',
-            'field': 'rightsHolder',
+            'field': 'misapplied',
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
@@ -180,12 +164,12 @@ occ_facets = {  'facet': {
                         'field': 'taxonID',
                         'limit': 30,
                         'numBuckets': True,
-                    }
+                    },
                 }
         },
-        'sensitiveCategory': {
+        'sourceScientificName': {
             'type': 'terms',
-            'field': 'sensitiveCategory',
+            'field': 'sourceScientificName',
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
@@ -196,7 +180,23 @@ occ_facets = {  'facet': {
                         'field': 'taxonID',
                         'limit': 30,
                         'numBuckets': True,
-                    }
+                    },
+                }
+        },
+        'sourceVernacularName': {
+            'type': 'terms',
+            'field': 'sourceVernacularName',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    },
                 }
         },
         'taxonRank': {
@@ -215,87 +215,6 @@ occ_facets = {  'facet': {
                     }
                 }
         },
-        'locality': {
-            'type': 'terms',
-            'field': 'locality',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                    'taxonID':{
-                        'type': 'terms',
-                        'field': 'taxonID',
-                        'limit': 30,
-                        'numBuckets': True,
-                    }
-                }
-        },
-        'recordedBy': {
-            'type': 'terms',
-            'field': 'recordedBy',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                    'taxonID':{
-                        'type': 'terms',
-                        'field': 'taxonID',
-                        'limit': 30,
-                        'numBuckets': True,
-                    }
-                }
-        },
-        'basisOfRecord': {
-            'type': 'terms',
-            'field': 'basisOfRecord',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                    'taxonID':{
-                        'type': 'terms',
-                        'field': 'taxonID',
-                        'limit': 30,
-                        'numBuckets': True,
-                    }
-                }
-        },
-        'datasetName': {
-            'type': 'terms',
-            'field': 'datasetName',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                    'taxonID':{
-                        'type': 'terms',
-                        'field': 'taxonID',
-                        'limit': 30,
-                        'numBuckets': True,
-                    }
-                }
-        },
-        'license': {
-            'type': 'terms',
-            'field': 'license',
-            'mincount': 1,
-            'limit': 30,
-            'allBuckets': True,
-            'numBuckets': True,
-            'facet':{
-                    'taxonID':{
-                        'type': 'terms',
-                        'field': 'taxonID',
-                        'limit': 30,
-                        'numBuckets': True,
-                    }
-                }
-        },
-
         'kingdom': {
             'type': 'terms',
             'field': 'kingdom',
@@ -504,11 +423,118 @@ occ_facets = {  'facet': {
                     },
                 }
         },
-    },
-}
-
-
-col_facets =    { 'facet': {
+        'rightsHolder': {
+            'type': 'terms',
+            'field': 'rightsHolder',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'sensitiveCategory': {
+            'type': 'terms',
+            'field': 'sensitiveCategory',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'locality': {
+            'type': 'terms',
+            'field': 'locality',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'recordedBy': {
+            'type': 'terms',
+            'field': 'recordedBy',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'basisOfRecord': {
+            'type': 'terms',
+            'field': 'basisOfRecord',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'datasetName': {
+            'type': 'terms',
+            'field': 'datasetName',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
+        'license': {
+            'type': 'terms',
+            'field': 'license',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    }
+                }
+        },
         'eventDate': {
             'type': 'terms',
             'field': 'eventDate',
@@ -525,6 +551,11 @@ col_facets =    { 'facet': {
                 },
             }        
         },
+    },
+}
+
+
+col_facets = { 'facet': {
         'scientificName': {
             'type': 'terms',
             'field': 'scientificName',
@@ -576,6 +607,54 @@ col_facets =    { 'facet': {
         'synonyms': {
             'type': 'terms',
             'field': 'synonyms',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    },
+                }
+        },
+        'misapplied': {
+            'type': 'terms',
+            'field': 'misapplied',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    },
+                }
+        },
+        'sourceScientificName': {
+            'type': 'terms',
+            'field': 'sourceScientificName',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'limit': 30,
+                        'numBuckets': True,
+                    },
+                }
+        },
+        'sourceVernacularName': {
+            'type': 'terms',
+            'field': 'sourceVernacularName',
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
@@ -962,6 +1041,22 @@ col_facets =    { 'facet': {
                         'numBuckets': True,
                     },
                 }
+        },
+        'eventDate': {
+            'type': 'terms',
+            'field': 'eventDate',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                'taxonID':{
+                    'type': 'terms',
+                    'field': 'taxonID',
+                    'limit': 30,
+                    'numBuckets': True,
+                },
+            }        
         },
     }}
 

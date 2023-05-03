@@ -624,6 +624,7 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
     let map_condition = '';
 
     if (new_click & ($('.btnupload p.active').data('type')=='map')){
+        console.log('hello')
         $.ajax({
             url: "/return_geojson_query",
             data: { geojson_text: JSON.stringify(drawnItems.toGeoJSON()),
@@ -633,6 +634,8 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         })
         .done(function(response) {
             window.g_list = response.polygon
+            console.log(window.g_list)
+            console.log(response)
             submitSearch (page, from)
         })
         .fail(function( xhr, status, errorThrown ) {

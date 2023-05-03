@@ -125,11 +125,7 @@
                                     {% else %}
                                     <option value='{{ p.id }}'>
                                     {% endif %}
-                                        {% if p.title == '營建署城鄉發展分署' %}
-                                        內政部營建署城鄉發展分署
-                                        {% else %}
-                                        {{ p.breadtitle }}
-                                        {% endif %}
+                                    {{ p.select_title }}
                                     </option>
                                 {% endfor %}
                                 </select>

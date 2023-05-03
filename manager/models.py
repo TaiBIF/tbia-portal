@@ -41,8 +41,9 @@ class UserManager(BaseUserManager):
 
 class Partner(models.Model):
     breadtitle = models.CharField(max_length=100, null=True, blank=True)
-    abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上呈現在一起
+    abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁
     group = models.CharField(max_length=100, null=True, blank=True) # 後台group
+    select_title = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁(同個MOU簽署單位) 但後台是分開的 在前台顯示需區分
     title = models.CharField(max_length=100, null=True, blank=True)
     logo = models.TextField(null=True, blank=True)
     info = models.JSONField(null=True, blank=True)

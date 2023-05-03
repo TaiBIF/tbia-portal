@@ -201,7 +201,7 @@ def is_alpha(word):
 
 dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
-            'alternative_name_c', 'synonyms']
+            'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName']
 
 def get_key(val, my_dict):
     for key, value in my_dict.items():
@@ -210,17 +210,17 @@ def get_key(val, my_dict):
  
     return "key doesn't exist"
 
-facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
-                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license',
-                    'kingdom','phylum','class','order','family','genus','species',
-                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
+# facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
+#                     'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
+#                     'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license',
+#                     'kingdom','phylum','class','order','family','genus','species',
+#                     'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
 
-facet_occurrence = ['scientificName', 'common_name_c', 'alternative_name_c', 
-                    'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-                    'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license',
-                    'kingdom','phylum','class','order','family','genus','species',
-                    'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
+# facet_occurrence = ['scientificName', 'common_name_c', 'alternative_name_c', 
+#                     'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
+#                     'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license',
+#                     'kingdom','phylum','class','order','family','genus','species',
+#                     'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
 
 map_occurrence = {
     'domain'	:'域',
@@ -321,6 +321,9 @@ map_occurrence = {
     'scientificName': '學名',
     'alternative_name_c': '中文別名', 
     'synonyms': '同物異名',
+    'misapplied': '誤用名',
+    'sourceScientificName': '來源資料庫使用學名',
+    'sourceVernacularName': '來源資料庫使用中文名',
     'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
@@ -345,8 +348,6 @@ map_occurrence = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'sourceScientificName': '來源資料庫使用學名',
-    'sourceVernacularName': '來源資料庫使用中文名',
 }
 
 map_collection = {
@@ -448,6 +449,9 @@ map_collection = {
     'scientificName': '學名', 
     'alternative_name_c': '中文別名', 
     'synonyms': '同物異名',
+    'misapplied': '誤用名',
+    'sourceScientificName': '來源資料庫使用學名',
+    'sourceVernacularName': '來源資料庫使用中文名',
     'rightsHolder': '來源資料庫', 
     'taxonID': 'TaiCOL物種編號', 
     'collectionID': '館藏號', 
@@ -475,8 +479,6 @@ map_collection = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'sourceScientificName': '來源資料庫使用學名',
-    'sourceVernacularName': '來源資料庫使用中文名',
 }
 
 
@@ -573,14 +575,24 @@ def create_query_display(search_dict,sq_id):
         query += '<b>類別</b>：自然史典藏'
 
     d_list = []
+    # print(search_dict)
     for k in search_dict.keys():
         if k in map_dict.keys():
             if k == 'taxonRank':
                 query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
             elif k == 'datasetName':
-                for d in eval(search_dict[k]):
-                    if DatasetKey.objects.filter(id=d).exists():
-                        d_list.append(DatasetKey.objects.get(id=d).name)
+                if isinstance(search_dict[k], str):
+                    if search_dict[k].startswith('['):
+                        for d in eval(search_dict[k]):
+                            if DatasetKey.objects.filter(id=d).exists():
+                                d_list.append(DatasetKey.objects.get(id=d).name)
+                    else:
+                        if DatasetKey.objects.filter(id=search_dict[k]).exists():
+                            d_list.append(DatasetKey.objects.get(id=search_dict[k]).name)
+                else:
+                    for d in list(search_dict[k]):
+                        if DatasetKey.objects.filter(id=d).exists():
+                            d_list.append(DatasetKey.objects.get(id=d).name)
             else:
                 query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
         # 地圖搜尋
@@ -706,4 +718,5 @@ taxon_cols = [
     'scientificName', 
     'alternative_name_c', 
     'synonyms',
+    'misapplied'
 ]

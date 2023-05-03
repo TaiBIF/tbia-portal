@@ -230,7 +230,7 @@ $( document ).ready(function() {
     })
 
     $('.getDist').on('click', function(){
-        getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+        getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
     })
 
     $('.getMoreCards').on('click', function(){
@@ -342,7 +342,6 @@ function focusComponent(item_class, go_back){
 }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort){
-
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
 
@@ -352,28 +351,32 @@ function focusComponent(item_class, go_back){
       searchParams.set("record_type", record_type);
       searchParams.set("key", key);
       searchParams.set("value", value);
-      searchParams.set("scientific_name", scientific_name);
+      searchParams.set("scientific_name", scientific_name)
       searchParams.set("limit", limit);
       searchParams.set("page", page);
       searchParams.set("from", from);
       searchParams.set("get_record", true);
       // searchParams.set("orderby", orderby);
       // searchParams.set("sort", sort);
-      var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
-      history.pushState(null, '', newRelativePathQuery);
+      //queryString = searchParams.toString()
+      //var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
+      //history.pushState(null, '', newRelativePathQuery);
+      if (orderby != null){
+       // var urlParams = new URLSearchParams(window.location.search)
+        searchParams.set('orderby',orderby)
+        searchParams.set('sort',sort)
+        if (from == 'orderby'){
+          searchParams.set('page',1)
+          page = 1
+        }
+        
+        //history.pushState(null, '', window.location.pathname + '?'  + queryString);
+      }
+      queryString = searchParams.toString()
+      history.pushState(null, '', window.location.pathname + '?'  + queryString);
+    console.log(queryString)
     }
 
-    if (orderby != null){
-      var urlParams = new URLSearchParams(window.location.search)
-      urlParams.set('orderby',orderby)
-      urlParams.set('sort',sort)
-      if (from == 'orderby'){
-        urlParams.set('page',1)
-        page = 1
-      }
-      queryString = urlParams.toString()
-      history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
 
     // hide all items
     $('.rightbox_content .item').addClass('d-none')
@@ -630,7 +633,8 @@ function focusComponent(item_class, go_back){
             data-from="page"
             data-go_back="false"
             data-orderby="${response.orderby}"
-            data-sort="${response.sort}">...</a> `)
+            data-sort="${response.sort}"
+            >...</a> `)
           } else {
             $('.next').before(`<a href="javascript:;" class="num getRecords bd-0" 
             data-record_type="${record_type}"
@@ -642,7 +646,8 @@ function focusComponent(item_class, go_back){
             data-from="page"
             data-go_back="false"
             data-orderby="${response.orderby}"
-            data-sort="${response.sort}">...</a>`)
+            data-sort="${response.sort}"
+            >...</a>`)
           }
         }
 
@@ -733,10 +738,12 @@ function focusComponent(item_class, go_back){
             for (let i = 0; i < response.data.length; i++) {
               let x = response.data[i];
               let html;
-              let matched = '';
 
-              if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
-                matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
+              let matched = '';
+              for (let ii = 0; ii < x.matched.length; ii++) {
+                if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched[ii]['matched_col']))) {
+                  matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
+                }
               }
 
               let image_str = '';
@@ -756,6 +763,7 @@ function focusComponent(item_class, go_back){
                   <div class="picbox mySlides fade ${x.taxonID} d-block" data-index="1" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
+                    <p class="bottom-right">${x.images[ii].author}</p>
                   </div>
                 </div>  
                   `
@@ -764,6 +772,7 @@ function focusComponent(item_class, go_back){
                   <div class="picbox mySlides fade ${x.taxonID} d-none" data-index="${ii+1}" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
+                    <p class="bottom-right">${x.images[ii].author}</p>
                   </div>
                 </div>  
                   `
@@ -783,11 +792,11 @@ function focusComponent(item_class, go_back){
               html = `	<li>							
               <div class="flex_top">
                 <div class="lefttxt">
-                  ${matched}
                   <p>中⽂名：${x.common_name_c}</p>
                   <p>學名：${x.formatted_name}</p>
                   <p>中文別名：${ x.alternative_name_c }</p>
                   <p>同物異名：${ x.formatted_synonyms }</p>
+                  ${matched}
                   <p>出現記錄筆數：${ x.occ_count }</p>
                   <p>自然史典藏筆數：${ x.col_count }</p>
                 </div>
@@ -799,15 +808,13 @@ function focusComponent(item_class, go_back){
               </div>
               <div class="btn_area ${display}">
                 ${taieol}
-                <button class="getDist" data-taxonID="${x.taxonID}">分布圖</button>
+                <button class="getDist" data-taxonid="${x.taxonID}">分布圖</button>
               </div></li>`
 
               $(`.${response.card_class}`).append(html)
 
             }
 
-
-          
             $('.arr-left').off('click')
             $('.arr-left').on('click', function(){
               plusSlides(-1, $(this).data('taxonid'),$(this).data('cardclass'))
@@ -816,7 +823,6 @@ function focusComponent(item_class, go_back){
             $('.arr-right').on('click', function(){
                 plusSlides(+1, $(this).data('taxonid'),$(this).data('cardclass'))
             })
-
 
             $('.imgarea').off('click')
             $('.imgarea').on('click', function(){
@@ -835,7 +841,7 @@ function focusComponent(item_class, go_back){
           
             $('.getDist').off('click')
             $('.getDist').on('click', function(){
-                getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+                getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
             })          
 
             $('.getRecords').off('click')
@@ -855,8 +861,7 @@ function focusComponent(item_class, go_back){
                 <input type="hidden" id="${record_type}_${key}_offset" value="4">
                 <div class="no_data ${record_type}_${key}_more_end d-none"> 
                 符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
-                </div>      
-                `)
+                </div> `)
             }
             $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
             $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
@@ -906,12 +911,31 @@ function focusComponent(item_class, go_back){
           for (let i = 0; i < response.data.length; i++) {
             let x = response.data[i];
             let html;
-            if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-              $(`.${response.card_class}`).append( `
+
+            let matched = '';
+
+            for (let ii = 0; ii < x.matched.length; ii++) {
+              if (!(['中文名','學名'].includes(x.matched[ii]['matched_col']))) {
+                matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
+              }
+            }
+    
+            let data_key;
+            let data_value;
+    
+            if ((x.match_type == 'taxon-related') & (x.val != '')){
+              data_key = "taxonID"
+              data_value = x.taxonID
+            } else {
+              data_key = x.matched[0]['key']
+              data_value = x.matched[0]['matched_value_ori']
+            }
+    
+            $(`.${response.card_class}`).append( `
               <li class="getRecords" 
                 data-record_type="${record_type}"
-                data-key="${key}"
-                data-value="${x.matched_value_ori}"
+                data-key="${data_key}"
+                data-value="${data_value}"
                 data-scientific_name="${x.name}"
                 data-limit="${x.count}"
                 data-page="1"
@@ -923,28 +947,9 @@ function focusComponent(item_class, go_back){
                 <div class="num_bottom"></div>
                 <p>中文名：${x.common_name_c}</p>
                 <p>學名：${x.val}</p>
-                <p>${ x.matched_col }：${x.matched_value}</p>
+                ${matched}
               </li>`)
-            } else {
-              $(`.${response.card_class}`).append( `
-              <li class="getRecords" 
-                    data-record_type="${record_type}"
-                    data-key="${key}"
-                    data-value="${x.matched_value_ori}"
-                    data-scientific_name="${x.name}"
-                    data-limit="${x.count}"
-                    data-page="1"
-                    data-from="card"
-                    data-go_back="false"
-                    data-orderby="scientificName"
-                    data-sort="asc">                
-                <div class="num">${x.count}</div>
-                <div class="num_bottom"></div>
-                <p>中文名：${x.common_name_c}</p>
-                <p>學名：${x.val}</p>
-              </li>`)
-            }
-          }
+            } 
 
           $('.getRecords').off('click')
           $('.getRecords').on('click', function(){
@@ -1076,22 +1081,25 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
 
       if (response.has_more==true & response.reach_end==false){
         $(offset_value).val(Number(offset)+ 4 )
-      } else {
+      } else if (response.has_more==true) {
         $(more_type).addClass('d-none')
         if (response.reach_end) {
           $(`${more_type}_end`).removeClass('d-none')
         }
+      } else {
+        $(more_type).addClass('d-none')
       }
       
       for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
         let html;
+
         let matched = '';
-
-        if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched_col))) {
-          matched = `<p>${x.matched_col}：${ x.matched_value }</p>`
+        for (let ii = 0; ii < x.matched.length; ii++) {
+          if (!(['中文名','學名','中文別名','同物異名'].includes(x.matched[ii]['matched_col']))) {
+            matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
+          }
         }
-
 
         let image_str = '';
 
@@ -1110,6 +1118,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
             <div class="picbox mySlides fade ${x.taxonID} d-block " data-index="1" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
+              <p class="bottom-right">${x.images[ii].author}</p>
             </div>
           </div>  
             `
@@ -1118,6 +1127,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
             <div class="picbox mySlides fade ${x.taxonID} d-none " data-index="${ii+1}" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
+              <p class="bottom-right">${x.images[ii].author}</p>
             </div>
           </div>  
             `
@@ -1136,11 +1146,11 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         html = `<li>							
           <div class="flex_top">
           <div class="lefttxt">
-            ${matched}
             <p>中⽂名：${x.common_name_c}</p>
             <p>學名：${x.formatted_name}</p>
             <p>中文別名：${ x.alternative_name_c }</p>
             <p>同物異名：${ x.formatted_synonyms }</p>
+            ${matched}
             <p>出現記錄筆數：${ x.occ_count }</p>
             <p>自然史典藏筆數：${ x.col_count }</p>
           </div>
@@ -1152,7 +1162,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           </div>
           <div class="btn_area ${display}">
             ${taieol}
-            <button class="getDist" data-taxonID="${x.taxonID}">分布圖</button>
+            <button class="getDist" data-taxonid="${x.taxonID}">分布圖</button>
           </div></li>`
 
           $(`${card_class}`).append(html)
@@ -1184,7 +1194,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
 
           $('.getDist').off('click')
           $('.getDist').on('click', function(){
-              getDist($(this).data('taxonID'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+              getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
           })
       }
     })
@@ -1211,54 +1221,60 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         dataType : 'json',
     })
     .done(function(response) {
+
       if (response.has_more==true & response.reach_end==false){
         $(offset_value).val(Number(offset)+ 9 )
-      } else {
+      } else if (response.has_more==true) {
         $(more_type).addClass('d-none')
         if (response.reach_end) {
           $(`${more_type}_end`).removeClass('d-none')
         }
+      } else {
+        $(more_type).addClass('d-none')
       }
+      
+
+
       for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
-        if ( x.matched_col != '中文名' && x.matched_col != '學名'){
-          $(card_class).append( `
-          <li class="getRecords" 
-              data-record_type="${record_type}"
-              data-key="${x.key}"
-              data-value="${x.matched_value_ori}"
-              data-scientific_name="${x.name}"
-              data-limit="${x.count}"
-              data-page="1"
-              data-from="card"
-              data-go_back="false"
-              data-orderby="scientificName"
-              data-sort="asc">
-            <div class="num">${x.count}</div>
-            <div class="num_bottom"></div>
-            <p>中文名：${x.common_name_c}</p>
-            <p>學名：${x.val}</p>
-            <p>${ x.matched_col }：${x.matched_value}</p>
-          </li>` )
-        } else {
-          $(card_class).append( `
-          <li class="getRecords" 
-              data-record_type="${record_type}"
-              data-key="${x.key}"
-              data-value="${x.matched_value_ori}"
-              data-scientific_name="${x.name}"
-              data-limit="${x.count}"
-              data-page="1"
-              data-from="card"
-              data-go_back="false"
-              data-orderby="scientificName"
-              data-sort="asc">
-            <div class="num">${x.count}</div>
-            <div class="num_bottom"></div>
-            <p>中文名：${x.common_name_c}</p>
-            <p>學名：${x.val}</p>
-          </li>` )
+
+        let matched = '';
+
+        for (let ii = 0; ii < x.matched.length; ii++) {
+          if (!(['中文名','學名'].includes(x.matched[ii]['matched_col']))) {
+            matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
+          }
         }
+
+        let data_key;
+        let data_value;
+
+        if ((x.match_type == 'taxon-related') & (x.val != '')){
+          data_key = "taxonID"
+          data_value = x.taxonID
+        } else {
+          data_key = x.matched[0]['key']
+          data_value = x.matched[0]['matched_value_ori']
+        }
+
+        $(card_class).append( `
+        <li class="getRecords" 
+            data-record_type="${record_type}"
+            data-key="${data_key}"
+            data-value="${data_value}"
+            data-scientific_name="${x.name}"
+            data-limit="${x.count}"
+            data-page="1"
+            data-from="card"
+            data-go_back="false"
+            data-orderby="scientificName"
+            data-sort="asc">
+          <div class="num">${x.count}</div>
+          <div class="num_bottom"></div>
+          <p>中文名：${x.common_name_c}</p>
+          <p>學名：${x.val}</p>
+          ${matched}
+        </li>` )
       }
 
       $('.getRecords').off('click')
