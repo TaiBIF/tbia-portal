@@ -1226,7 +1226,7 @@ def search_full(request):
         ct_c = 0
         col_result_dict_all = []
         if len(col_result_df):
-            col_result_df = col_result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
+            # col_result_df = col_result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
             for ct in col_result_df.val.unique():
                 # 若是taxon-related的算在同一張
                 rows = []
@@ -1269,6 +1269,7 @@ def search_full(request):
 
         # 還是有可能超過
         col_result_df = pd.DataFrame(col_result_dict_all[:9])
+
         if len(col_result_df):
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
             taicol = taicol.rename(columns={'scientificName': 'name'})
@@ -1284,7 +1285,6 @@ def search_full(request):
             col_result_df = col_result_df.drop(columns=['formatted_name'],errors='ignore')
 
         taxon_result_df = pd.DataFrame(taxon_result)
-
 
         ## occurrence
         facet_list = occ_facets
@@ -1339,7 +1339,7 @@ def search_full(request):
         ot_c = 0
         occ_result_dict_all = []
         if len(occ_result_df):
-            occ_result_df = occ_result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
+            # occ_result_df = occ_result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
             for ot in occ_result_df.val.unique():
                 # 若是taxon-related的算在同一張
                 rows = []
@@ -1383,6 +1383,7 @@ def search_full(request):
 
         # 還是有可能超過
         occ_result_df = pd.DataFrame(occ_result_dict_all[:9])
+
         if len(occ_result_df):
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=occ_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
             taicol = taicol.rename(columns={'scientificName': 'name'})
@@ -1397,12 +1398,12 @@ def search_full(request):
             occ_result_df = occ_result_df.replace({np.nan:'', None:''})
             occ_result_df = occ_result_df.drop(columns=['formatted_name'],errors='ignore')
 
-
         ## Taxon
         taxon_occ_result_df = pd.DataFrame(taxon_result)
         # 這邊要把兩種類型的資料加在一起
         taxon_occ_result_df = taxon_occ_result_df.rename(columns={'count': 'occ_count'})
         taxon_result_df = taxon_result_df.rename(columns={'count': 'col_count'})
+
         if len(taxon_occ_result_df) and len(taxon_result_df):
             taxon_result_df = taxon_occ_result_df.merge(taxon_result_df,how='left')
         elif len(taxon_occ_result_df) and not len(taxon_result_df):
@@ -1414,6 +1415,8 @@ def search_full(request):
         taxon_result_dict_all = []
         taxon_rows = []
         taxon_card_len = 0
+
+
         if len(taxon_result_df):
             # 整理側邊欄
             taxon_groupby = taxon_result_df.groupby('matched_col')['val'].nunique()
@@ -1430,8 +1433,14 @@ def search_full(request):
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]
+
+            taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
+            taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
             taxon_result_df = pd.merge(taxon_result_df,taicol,left_on='val',right_on='taxonID')
             taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_count = taxon_result_df.groupby(['taxonID'], as_index=False).max(['col_count','occ_count']).reset_index(drop=True)
+            taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
+
             # taxon_result_df['key'] = taxon_result_df['matched_col'] 
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
@@ -1793,7 +1802,7 @@ def get_focus_cards(request):
         offset = 0
 
         if len(result_df):
-            result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
+            # result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
             for t in result_df.val.unique():
                 # 若是taxon-related的算在同一張
                 rows = []
@@ -1909,7 +1918,7 @@ def get_focus_cards_taxon(request):
 
         facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
         query.update(facet_list)
         query.update({'query': q})
 
@@ -1928,7 +1937,10 @@ def get_focus_cards_taxon(request):
         taxon_result_df = pd.DataFrame(taxon_result)
 
         # occurrence
+        for i in facet_list['facet']:
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.pop('filter', None)
+        query.update(facet_list)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
@@ -1963,20 +1975,22 @@ def get_focus_cards_taxon(request):
         # taxon_card_len = len(taxon_result_df)
         if len(taxon_result_df):
             taxon_card_len = len(taxon_result_df.val.unique())
-
             # 整理卡片
             # 相同taxonID的要放在一起
             taxon_card_len = len(taxon_result_df.val.unique())
             taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
-            taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]
-            taxon_result_df = pd.merge(taxon_result_df,taicol,left_on='val',right_on='taxonID')
-            taxon_result_df['val'] = taxon_result_df['formatted_name']
-            
-            # taxon_result_df['key'] = taxon_result_df['matched_col'] 
-            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+            taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]            
+
             taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
             taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
+            taxon_result_df = pd.merge(taxon_result_df,taicol,left_on='val',right_on='taxonID')
+            taxon_result_df['val'] = taxon_result_df['formatted_name']
+            taxon_result_count = taxon_result_df.groupby(['taxonID'], as_index=False).max(['col_count','col_count']).reset_index(drop=True)
+            taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
+
+            # taxon_result_df['key'] = taxon_result_df['matched_col'] 
+            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
             taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
@@ -2054,7 +2068,7 @@ def get_more_cards_taxon(request):
 
         for i in facet_list['facet']:
             q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
 
         query.update(facet_list)
         query.update({'query': q[:-4]})
@@ -2062,6 +2076,7 @@ def get_more_cards_taxon(request):
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
         facets.pop('count', None)      
+
 
         taxon_result = []
         if is_sub == 'false':
@@ -2079,7 +2094,10 @@ def get_more_cards_taxon(request):
         taxon_result_df = pd.DataFrame(taxon_result)
 
         # occurrence
+        for i in facet_list['facet']:
+            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.pop('filter', None)
+        query.update(facet_list)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
@@ -2126,7 +2144,12 @@ def get_more_cards_taxon(request):
                 taxon_result_df = pd.merge(taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[offset:offset+2])],taicol,left_on='val',right_on='taxonID')
             else:
                 taxon_result_df = pd.merge(taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[offset:offset+4])],taicol,left_on='val',right_on='taxonID')
-            taxon_result_df['val'] = taxon_result_df['formatted_name']
+
+
+            taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
+            taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
+            taxon_result_count = taxon_result_df.groupby(['taxonID'], as_index=False).max(['col_count','occ_count']).reset_index(drop=True)
+            taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
             taxon_result_df['key'] = taxon_result_df['matched_col']
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
@@ -2264,7 +2287,7 @@ def get_more_cards(request):
         result_dict_all = []
         
         if len(result_df):
-            result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
+            # result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
             for t in result_df.val.unique():
                 # 若是taxon-related的算在同一張
                 rows = []
