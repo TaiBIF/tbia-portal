@@ -49,7 +49,7 @@
           </div>
           <div class="ans">
             <div class="mark_title">A</div>
-            <p>{{ q.answer }}</p>
+            <p>{{ q.answer|safe }}</p>
           </div>
         </li>
         {% endfor %}
