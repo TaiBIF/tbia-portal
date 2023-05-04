@@ -2655,6 +2655,7 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
+        print(request.POST)
         limit = int(request.POST.get('limit', 10))
         orderby = request.POST.get('orderby','scientificName')
         sort = request.POST.get('sort', 'asc')
@@ -2779,36 +2780,20 @@ def get_conditional_records(request):
 
             page = int(request.POST.get('page', 1))
             offset = (page-1)*limit
-            if orderby == 'recordedBy':
-                query = { "query": "*:*",
-                        "offset": offset,
-                        "limit": limit,
-                        "filter": query_list,
-                        "sort":  orderby + '_sort ' + sort,
-                        }
-            else:
-                query = { "query": "*:*",
-                        "offset": offset,
-                        "limit": limit,
-                        "filter": query_list,
-                        "sort":  orderby + ' ' + sort,
-                        }
+            query = { "query": "*:*",
+                    "offset": offset,
+                    "limit": limit,
+                    "filter": query_list,
+                    "sort":  orderby + ' ' + sort,
+                    }
                 
             map_query_list = query_list+ ['-standardOrganismQuantity:0']
-            if orderby == 'recordedBy':
-                map_query = { "query": "*:*",
-                        "offset": offset,
-                        "limit": limit,
-                        "filter": map_query_list,
-                        "sort":  orderby + '_sort ' + sort,
-                        }
-            else:
-                map_query = { "query": "*:*",
-                        "offset": offset,
-                        "limit": limit,
-                        "filter": map_query_list,
-                        "sort":  orderby + ' ' + sort,
-                        }
+            map_query = { "query": "*:*",
+                    "offset": offset,
+                    "limit": limit,
+                    "filter": map_query_list,
+                    "sort":  orderby + ' ' + sort,
+                    }
 
             query2 = { "query": "raw_location_rpt:[* TO *]",
                     "offset": 0,
@@ -2816,7 +2801,7 @@ def get_conditional_records(request):
                     "filter": query_list,
                     }
             # print()
-            if request.POST.get('from') == 'page':
+            if request.POST.get('from') in ['page','orderby']:
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
             else:
                 response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
