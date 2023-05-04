@@ -99,8 +99,7 @@ def sensitive_agreement(request):
 def send_sensitive_request(request):
     if request.method == 'GET':
         # 整理查詢條件
-        search_dict = request.GET.lists()
-        query = create_query_display(dict(search_dict),None)
+        query = create_query_display(dict(request.GET),None)
         return render(request, 'pages/application.html', {'query': query})
 
 
