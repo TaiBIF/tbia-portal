@@ -2402,7 +2402,7 @@ def search_occurrence(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    dataset_list = DatasetKey.objects.filter(record_type='occ',deprecated=False,name__in=dataset_list)
+    dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list)
     # holder_list = ['TBN','TaiBIF','林試所','林務局','海保署']
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
