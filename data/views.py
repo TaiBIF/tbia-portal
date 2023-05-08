@@ -170,7 +170,7 @@ def submit_sensitive_request(request):
                     query_list += [f'-typeStatus:*']
             
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -187,6 +187,15 @@ def submit_sensitive_request(request):
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
                 query_list += [f'datasetName:("{d_list_str}")']
+
+            r_list = []
+            if val := req_dict.getlist('rightsHolder'):
+                for v in val:
+                    r_list.append(v)
+            
+            if r_list:
+                r_list_str = '" OR "'.join(r_list)
+                query_list += [f'rightsHolder:("{r_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -252,10 +261,10 @@ def submit_sensitive_request(request):
                 col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
-            # 如果有其他條件才進行搜尋，否則回傳空值
-            if query_list and query_list != ['recordType:col']:
+            # 
+            # if query_list and query_list != ['recordType:col']:
 
-                query = { "query": "raw_location_rpt:[* TO *]",
+            query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
                         "limit": 0,
                         "filter": query_list,
@@ -265,33 +274,35 @@ def submit_sensitive_request(request):
                                 "field": "group",
                                 "limit": -1,
                                 }
-                        }
-                        }
-                response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-                groups = []
-                if  response.json()['facets'].get('group'):
-                    group = response.json()['facets']['group']['buckets']
-                    for g in group:
-                        groups.append(g['val'])
-            
-                for p in Partner.objects.filter(group__in=groups):
-                    sdr = SensitiveDataResponse.objects.create(
-                        partner = p,
-                        status = 'pending',
-                        query_id = query_id
-                    )       
-                    # 寄送通知給系統管理員 & 單位管理員
-                    usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
-                    for u in usrs:
-                        nn = Notification.objects.create(
-                            type = 3,
-                            content = sdr.id,
-                            user = u
-                        )
-                        content = nn.get_type_display().replace('0000', str(nn.content))
-                        send_notification([u.id],content,'單次使用敏感資料申請通知')
+                            }
+                    }
+            if not query_list:
+                query.pop('filter')
 
-            # TODO 這邊要寫else嗎
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            groups = []
+            if  response.json()['facets'].get('group'):
+                group = response.json()['facets']['group']['buckets']
+                for g in group:
+                    groups.append(g['val'])
+        
+            for p in Partner.objects.filter(group__in=groups):
+                sdr = SensitiveDataResponse.objects.create(
+                    partner = p,
+                    status = 'pending',
+                    query_id = query_id
+                )       
+                # 寄送通知給系統管理員 & 單位管理員
+                usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
+                for u in usrs:
+                    nn = Notification.objects.create(
+                        type = 3,
+                        content = sdr.id,
+                        user = u
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([u.id],content,'單次使用敏感資料申請通知')
+
         else:
             # 委辦工作計畫
             sdr = SensitiveDataResponse.objects.create(
@@ -368,7 +379,7 @@ def transfer_sensitive_response(request):
                     query_list += [f'-typeStatus:*']
 
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -385,6 +396,15 @@ def transfer_sensitive_response(request):
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
                 query_list += [f'datasetName:("{d_list_str}")']
+
+            r_list = []
+            if val := req_dict.getlist('rightsHolder'):
+                for v in val:
+                    r_list.append(v)
+            
+            if r_list:
+                r_list_str = '" OR "'.join(r_list)
+                query_list += [f'rightsHolder:("{r_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -435,44 +455,48 @@ def transfer_sensitive_response(request):
                 col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
-            # 如果有其他條件才進行搜尋，否則回傳空值
-            if query_list and query_list != ['recordType:col']:
+            # 
+            # if query_list and query_list != ['recordType:col']:
 
-                query = { "query": "*:*",
-                        "offset": 0,
-                        "limit": 0,
-                        "filter": query_list,
-                        "facet": {
-                            "group": {
-                                "type": "terms",
-                                "field": "group",
-                                "limit": -1,
-                                }
+            query = { "query": "*:*",
+                    "offset": 0,
+                    "limit": 0,
+                    "filter": query_list,
+                    "facet": {
+                        "group": {
+                            "type": "terms",
+                            "field": "group",
+                            "limit": -1,
                             }
                         }
-                response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-                group = response.json()['facets']['group']['buckets']
-                groups = []
-                for g in group:
-                    groups.append(g['val'])
-            
-                for p in Partner.objects.filter(group__in=groups):
-                    new_sdr = SensitiveDataResponse.objects.create(
-                        partner = p,
-                        status = 'pending',
-                        query_id = query_id
-                    )       
-                    # 寄送通知給系統管理員 & 單位管理員
-                    usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
-                    for u in usrs:
-                        nn = Notification.objects.create(
-                            type = 3,
-                            content = new_sdr.id,
-                            user = u
-                        )
-                        content = nn.get_type_display().replace('0000', str(nn.content))
-                        send_notification([u.id],content,'單次使用敏感資料申請通知')
-        # TODO 要不要寫else
+                    }
+
+            if not query_list:
+                query.pop('filter')
+
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+            group = response.json()['facets']['group']['buckets']
+            groups = []
+            for g in group:
+                groups.append(g['val'])
+        
+            for p in Partner.objects.filter(group__in=groups):
+                new_sdr = SensitiveDataResponse.objects.create(
+                    partner = p,
+                    status = 'pending',
+                    query_id = query_id
+                )       
+                # 寄送通知給系統管理員 & 單位管理員
+                usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
+                for u in usrs:
+                    nn = Notification.objects.create(
+                        type = 3,
+                        content = new_sdr.id,
+                        user = u
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([u.id],content,'單次使用敏感資料申請通知')
+
     return JsonResponse({"status": 'success'}, safe=False)
 
 
@@ -530,7 +554,7 @@ def generate_sensitive_csv(query_id):
                     query_list += [f'-typeStatus:*']
 
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -547,6 +571,15 @@ def generate_sensitive_csv(query_id):
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
                 query_list += [f'datasetName:("{d_list_str}")']
+
+            r_list = []
+            if val := req_dict.getlist('rightsHolder'):
+                for v in val:
+                    r_list.append(v)
+            
+            if r_list:
+                r_list_str = '" OR "'.join(r_list)
+                query_list += [f'rightsHolder:("{r_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -601,35 +634,36 @@ def generate_sensitive_csv(query_id):
             group = [ f'group:{g}' for g in group ]
             group_str = ' OR '.join( group )
             query_list += [ '(' + group_str + ')' ]
-            # 如果有其他條件才進行搜尋，否則回傳空值
-            if query_list and query_list != ['recordType:col']:
+            # 
 
-                query = { "query": "*:*",
-                        "offset": 0,
-                        "limit": req_dict.get('total_count'),
-                        "filter": query_list,
-                        "sort":  "scientificName asc",
-                        "fields": fl_cols
-                        }
+            query = { "query": "*:*",
+                    "offset": 0,
+                    "limit": req_dict.get('total_count'),
+                    "filter": query_list,
+                    "sort":  "scientificName asc",
+                    "fields": fl_cols
+                    }
 
-                csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
-                csv_folder = os.path.join(csv_folder, 'sensitive')
-                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
-                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-                commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
-                process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if not query_list:
+                query.pop('filter')
 
-                # 儲存到下載統計
-                # 要排除掉轉交的情況
-                tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
-                # if len(tmp) == len(tmp.filter(status='pass')):
-                #     sq.status = 'pass'
-                # else:
-                #     sq.status = 'partial'
-                sq.status = 'pass'
-                sq.modified = timezone.now()
-                sq.save()
-            # TODO 這邊要寫else嗎
+            csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+            csv_folder = os.path.join(csv_folder, 'sensitive')
+            csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+            solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            # 儲存到下載統計
+            # 要排除掉轉交的情況
+            tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+            # if len(tmp) == len(tmp.filter(status='pass')):
+            #     sq.status = 'pass'
+            # else:
+            #     sq.status = 'partial'
+            sq.status = 'pass'
+            sq.modified = timezone.now()
+            sq.save()
 
         else:
             # 沒有帳號通過
@@ -730,7 +764,7 @@ def generate_download_csv(req_dict,user_id):
             query_list += [f'-typeStatus:*']
 
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -747,6 +781,15 @@ def generate_download_csv(req_dict,user_id):
     if d_list:
         d_list_str = '" OR "'.join(d_list)
         query_list += [f'datasetName:("{d_list_str}")']
+
+    r_list = []
+    if val := req_dict.getlist('rightsHolder'):
+        for v in val:
+            r_list.append(v)
+    
+    if r_list:
+        r_list_str = '" OR "'.join(r_list)
+        query_list += [f'rightsHolder:("{r_list_str}")']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -832,39 +875,41 @@ def generate_download_csv(req_dict,user_id):
         query_id = download_id.split('_')[-1]
     )
 
+    # 
 
-    # 如果有其他條件才進行搜尋，否則回傳空值
-    if query_list and query_list != ['recordType:col']:
+    query = { "query": "*:*",
+            "offset": 0,
+            "limit": req_dict.get('total_count'),
+            "filter": query_list,
+            "sort":  "scientificName asc",
+            "fields": fl_cols
+            }
 
-        query = { "query": "*:*",
-                "offset": 0,
-                "limit": req_dict.get('total_count'),
-                "filter": query_list,
-                "sort":  "scientificName asc",
-                "fields": fl_cols
-                }
+    if not query_list:
+        query.pop('filter')
 
-        csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
-        csv_folder = os.path.join(csv_folder, 'record')
-        csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
-        solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-        commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
-        process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(query)
 
-        # 儲存到下載統計
-        sq.status = 'pass'
-        sq.modified = timezone.now()
-        sq.save()
+    csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+    csv_folder = os.path.join(csv_folder, 'record')
+    csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+    solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # 寄送通知
-        nn = Notification.objects.create(
-            type = 1,
-            content = sq.id,
-            user_id = user_id
-        )
-        content = nn.get_type_display().replace('0000', str(nn.content))
-        send_notification([user_id],content,'下載資料已完成通知')
-    # TODO 這邊要做else嗎？
+    # 儲存到下載統計
+    sq.status = 'pass'
+    sq.modified = timezone.now()
+    sq.save()
+
+    # 寄送通知
+    nn = Notification.objects.create(
+        type = 1,
+        content = sq.id,
+        user_id = user_id
+    )
+    content = nn.get_type_display().replace('0000', str(nn.content))
+    send_notification([user_id],content,'下載資料已完成通知')
 # facet.pivot=taxonID,scientificName
 
 
@@ -899,7 +944,7 @@ def generate_species_csv(req_dict,user_id):
             query_list += [f'-typeStatus:*']
 
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -916,6 +961,15 @@ def generate_species_csv(req_dict,user_id):
     if d_list:
         d_list_str = '" OR "'.join(d_list)
         query_list += [f'datasetName:("{d_list_str}")']
+
+    r_list = []
+    if val := req_dict.getlist('rightsHolder'):
+        for v in val:
+            r_list.append(v)
+    
+    if r_list:
+        r_list_str = '" OR "'.join(r_list)
+        query_list += [f'rightsHolder:("{r_list_str}")']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -985,61 +1039,62 @@ def generate_species_csv(req_dict,user_id):
         query_id = download_id.split('_')[-1]
     )
 
-    # 如果有其他條件才進行搜尋，否則回傳空值
-    if query_list and query_list != ['recordType:col']:
+    # 
 
-        query = { "query": "*:*",
-                "offset": 0,
-                "limit": 0,
-                "filter": query_list,
-                "sort":  "scientificName asc",
-                "facet": {
-                    "scientificName": {
+    query = { "query": "*:*",
+            "offset": 0,
+            "limit": 0,
+            "filter": query_list,
+            "sort":  "scientificName asc",
+            "facet": {
+                "scientificName": {
+                    "type": "terms",
+                    "field": "scientificName",
+                    "limit": -1,
+                    "facet": {
+                        "taxonID": {
                         "type": "terms",
-                        "field": "scientificName",
-                        "limit": -1,
-                        "facet": {
-                            "taxonID": {
-                            "type": "terms",
-                            "field": "taxonID",
-                            "limit": -1
-                            }
-                        }
-
+                        "field": "taxonID",
+                        "limit": -1
                         }
                     }
+
+                    }
                 }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-        data = response.json()['facets']['scientificName']['buckets']
-        df = pd.DataFrame(columns=['taxonID','scientificName'])
-        for d in data:
-            # print(d)
-            df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
-        if len(df):
-            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID'))
-            df = df.merge(subset_taxon, how='left')
+            }
+    if not query_list:
+        query.pop('filter')
 
-        csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
-        csv_folder = os.path.join(csv_folder, 'taxon')
-        csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
-        # print(csv_file_path)
-        df.to_csv(csv_file_path, index=None)
-        # return df
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    data = response.json()['facets']['scientificName']['buckets']
+    df = pd.DataFrame(columns=['taxonID','scientificName'])
+    for d in data:
+        # print(d)
+        df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
+    if len(df):
+        subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID'))
+        df = df.merge(subset_taxon, how='left')
 
-        # 儲存到下載統計
-        sq.status = 'pass'
-        sq.modified = timezone.now()
-        sq.save()
+    csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+    csv_folder = os.path.join(csv_folder, 'taxon')
+    csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+    # print(csv_file_path)
+    df.to_csv(csv_file_path, index=None)
+    # return df
 
-        # 寄送通知
-        nn = Notification.objects.create(
-            type = 0,
-            content = sq.id,
-            user_id = user_id
-        )
-        content = nn.get_type_display().replace('0000', str(nn.content))
-        send_notification([user_id],content,'下載名錄已完成通知')
-    # TODO 這邊要不要寫else
+    # 儲存到下載統計
+    sq.status = 'pass'
+    sq.modified = timezone.now()
+    sq.save()
+
+    # 寄送通知
+    nn = Notification.objects.create(
+        type = 0,
+        content = sq.id,
+        user_id = user_id
+    )
+    content = nn.get_type_display().replace('0000', str(nn.content))
+    send_notification([user_id],content,'下載名錄已完成通知')
 
     # return csv file
 
@@ -1430,7 +1485,7 @@ def search_full(request):
             # 整理卡片
             # 相同taxonID的要放在一起
             taxon_card_len = len(taxon_result_df.val.unique())
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('taxonRank','common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]
 
@@ -1442,13 +1497,14 @@ def search_full(request):
             taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
 
             # taxon_result_df['key'] = taxon_result_df['matched_col'] 
+            taxon_result_df['taxonRank'] = taxon_result_df['taxonRank'].apply(lambda x: map_collection[x])
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
             taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
             taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
             taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id']].drop_duplicates().to_dict(orient='records')
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
 
         # 照片
         taxon_result_dict = []
@@ -1978,7 +2034,7 @@ def get_focus_cards_taxon(request):
             # 整理卡片
             # 相同taxonID的要放在一起
             taxon_card_len = len(taxon_result_df.val.unique())
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]            
 
@@ -1990,7 +2046,8 @@ def get_focus_cards_taxon(request):
             taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
 
             # taxon_result_df['key'] = taxon_result_df['matched_col'] 
-            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
+            taxon_result_df['taxonRank'] = taxon_result_df['taxonRank'].apply(lambda x: map_dict[x])
+            taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_dict[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
             taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
@@ -2000,7 +2057,7 @@ def get_focus_cards_taxon(request):
             taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
             taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
 
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id']].drop_duplicates().to_dict(orient='records')
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
 
         # 照片
         taxon_result_dict = []
@@ -2038,6 +2095,7 @@ def get_focus_cards_taxon(request):
 # TODO
 def get_more_cards_taxon(request):
     if request.method == 'POST':
+        taxon_result_dict = []
         keyword = request.POST.get('keyword', '')
         card_class = request.POST.get('card_class', '')
         is_sub = request.POST.get('is_sub', '')
@@ -2136,9 +2194,9 @@ def get_more_cards_taxon(request):
 
         if taxon_card_len:
             if offset >= 28:
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+2]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+2]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             else:
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             if offset >= 28:
                 taxon_result_df = pd.merge(taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[offset:offset+2])],taicol,left_on='val',right_on='taxonID')
@@ -2151,6 +2209,7 @@ def get_more_cards_taxon(request):
             taxon_result_count = taxon_result_df.groupby(['taxonID'], as_index=False).max(['col_count','occ_count']).reset_index(drop=True)
             taxon_result_df = taxon_result_df.drop(columns=['col_count','occ_count']).merge(taxon_result_count)
             taxon_result_df['key'] = taxon_result_df['matched_col']
+            taxon_result_df['taxonRank'] = taxon_result_df['taxonRank'].apply(lambda x: map_collection[x])
             taxon_result_df['matched_col'] = taxon_result_df['matched_col'].apply(lambda x: map_collection[x])
             taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
             taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
@@ -2162,8 +2221,8 @@ def get_more_cards_taxon(request):
             taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
 
             # 照片
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id']].drop_duplicates().to_dict(orient='records')
-            taxon_result_dict = []
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
+            
             for tr in taxon_result_dict_all:
                 images = []
                 if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
@@ -2678,7 +2737,6 @@ def collection_detail(request, id):
 
 def get_conditional_records(request):
     if request.method == 'POST':
-        print(request.POST)
         limit = int(request.POST.get('limit', 10))
         orderby = request.POST.get('orderby','scientificName')
         sort = request.POST.get('sort', 'asc')
@@ -2693,7 +2751,7 @@ def get_conditional_records(request):
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate', 'rightsHolder']
+            selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -2730,7 +2788,7 @@ def get_conditional_records(request):
                 query_list += [f'-typeStatus:*']
 
         # 下拉選單單選
-        for i in ['sensitiveCategory', 'taxonRank','rightsHolder','basisOfRecord']: 
+        for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
@@ -2748,6 +2806,15 @@ def get_conditional_records(request):
             d_list_str = '" OR "'.join(d_list)
             query_list += [f'datasetName:("{d_list_str}")']
 
+        r_list = []
+        if val := request.POST.getlist('rightsHolder'):
+            for v in val:
+                r_list.append(v)
+        
+        if r_list:
+            r_list_str = '" OR "'.join(r_list)
+            query_list += [f'rightsHolder:("{r_list_str}")']
+        
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
                 start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -2798,160 +2865,151 @@ def get_conditional_records(request):
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
 
-        # 如果有其他條件才進行搜尋，否則回傳空值
-        if query_list and query_list != ['recordType:col']:
+        # 
 
-            page = int(request.POST.get('page', 1))
-            offset = (page-1)*limit
-            query = { "query": "*:*",
-                    "offset": offset,
-                    "limit": limit,
-                    "filter": query_list,
-                    "sort":  orderby + ' ' + sort,
-                    }
-                
-            map_query_list = query_list+ ['-standardOrganismQuantity:0']
-            map_query = { "query": "*:*",
-                    "offset": offset,
-                    "limit": limit,
-                    "filter": map_query_list,
-                    "sort":  orderby + ' ' + sort,
-                    }
-
-            query2 = { "query": "raw_location_rpt:[* TO *]",
-                    "offset": 0,
-                    "limit": 0,
-                    "filter": query_list,
-                    }
-            # print()
-            if request.POST.get('from') in ['page','orderby']:
-                response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
-            else:
-                response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
-                # map的排除數量為0的資料
-                map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
-                # print(map_query)
-                data_c = {}
-                for grid in [1,5,10,100]:
-                    data_c = map_response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
-                    for i in data_c:
-                        current_grid_x = i['value']
-                        for j in i['pivot']:
-                            current_grid_y = j['value']
-                            current_count = j['count']
-                            if current_grid_x != -1 and current_grid_y != -1:
-                                borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
-                                tmp = [{
-                                    "type": "Feature",
-                                    "geometry":{"type":"Polygon","coordinates":[borders]},
-                                    "properties": {
-                                        "counts": current_count
-                                    }
-                                }]
-                                map_geojson[f'grid_{grid}']['features'] += tmp
-            count = response.json()['response']['numFound']
-            response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
-            if response2.json()['response']['numFound'] > 0:
-                has_sensitive = True
-            else:
-                has_sensitive = False
-
-            docs = pd.DataFrame(response.json()['response']['docs'])
-            docs = docs.replace({np.nan: ''})
-            docs = docs.replace({'nan': ''})
-
-            # print(docs.keys())
-
-            for i in docs.index:
-                row = docs.iloc[i]
-                if row.get('scientificName') and row.get('formatted_name'):
-                    docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
-                # TODO 加上formatted synonyms & misapplied
-                # date
-                if date := row.get('standardDate'):
-                    date = date[0].split('T')[0]
-                    docs.loc[i , 'eventDate'] = date
-                else:
-                    if row.get('eventDate'):
-                        docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
-                #     # date = date[0].replace('T', ' ').replace('Z','')
-                #     # 如果是國家公園，原本調查的時間是區段
-                #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
-                #         docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
-                #     else:
-                #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
-                # else:
-                    # if row.get('eventDate'):
-                    #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
-                # 經緯度
-                # 如果是夥伴單位直接給原始
-                user_id = request.user.id if request.user.id else 0
-                if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-                    if lat := row.get('standardRawLatitude'):
-                        docs.loc[i , 'verbatimRawLatitude'] = lat[0]
-                    else:
-                        if row.get('verbatimRawLatitude'):
-                            docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
-
-                    if lon := row.get('standardRawLongitude'):
-                        docs.loc[i , 'verbatimRawLongitude'] = lon[0]
-                    else:
-                        if row.get('verbatimRawLongitude'):
-                            docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
-                else:
-                    if lat := row.get('standardLatitude'):
-                        docs.loc[i , 'verbatimLatitude'] = lat[0]
-                    else:
-                        if row.get('verbatimLatitude'):
-                            docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
-
-                    if lon := row.get('standardLongitude'):
-                        docs.loc[i , 'verbatimLongitude'] = lon[0]
-                    else:
-                        if row.get('verbatimLongitude'):
-                            docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
-                # 數量
-                if quantity := row.get('standardOrganismQuantity'):
-                    docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
-                else:
-                    if row.get('organismQuantity'):
-                        docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
-            docs = docs.replace({np.nan: ''})
-            docs = docs.replace({'nan': ''})
+        page = int(request.POST.get('page', 1))
+        offset = (page-1)*limit
+        query = { "query": "*:*",
+                "offset": offset,
+                "limit": limit,
+                "filter": query_list,
+                "sort":  orderby + ' ' + sort,
+                }
             
-            docs = docs.to_dict('records')
+        map_query_list = query_list + ['-standardOrganismQuantity:0']
+        map_query = { "query": "*:*",
+                "offset": offset,
+                "limit": limit,
+                "filter": map_query_list,
+                "sort":  orderby + ' ' + sort,
+                }
 
-            current_page = offset / limit + 1
-            total_page = math.ceil(count / limit)
-            page_list = get_page_list(current_page, total_page)
+        query2 = { "query": "raw_location_rpt:[* TO *]",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                }
 
-            response = {
-                'rows' : docs,
-                'count': count,
-                'page_list': page_list,
-                'current_page' : current_page,
-                'total_page' : total_page,
-                'selected_col': selected_col,
-                'map_dict': map_dict,
-                'map_geojson': map_geojson,
-                'has_sensitive': has_sensitive,
-                'limit': limit,
-                'orderby': orderby,
-                'sort': sort,
-            }
-        
+        if not query_list:
+            query.pop('filter')
+            query2.pop('filter')
+
+
+        # print()
+        if request.POST.get('from') in ['page','orderby']:
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
         else:
-            response = {
-                'rows' : {},
-                'count': 0,
-                'current_page' : 0,
-                'total_page' : 0,
-                'selected_col': selected_col,
-                'map_dict': map_dict,
-                'map_geojson': map_geojson,
-                'limit': 10,
-                'orderby': orderby,
-                'sort': sort,
-            }
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
+            # map的排除數量為0的資料
+            map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+            # print(map_query)
+            data_c = {}
+            for grid in [1,5,10,100]:
+                data_c = map_response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
+                for i in data_c:
+                    current_grid_x = i['value']
+                    for j in i['pivot']:
+                        current_grid_y = j['value']
+                        current_count = j['count']
+                        if current_grid_x != -1 and current_grid_y != -1:
+                            borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                            tmp = [{
+                                "type": "Feature",
+                                "geometry":{"type":"Polygon","coordinates":[borders]},
+                                "properties": {
+                                    "counts": current_count
+                                }
+                            }]
+                            map_geojson[f'grid_{grid}']['features'] += tmp
+        count = response.json()['response']['numFound']
+        response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
+        if response2.json()['response']['numFound'] > 0:
+            has_sensitive = True
+        else:
+            has_sensitive = False
 
+        docs = pd.DataFrame(response.json()['response']['docs'])
+        docs = docs.replace({np.nan: ''})
+        docs = docs.replace({'nan': ''})
+
+        # print(docs.keys())
+
+        for i in docs.index:
+            row = docs.iloc[i]
+            if row.get('scientificName') and row.get('formatted_name'):
+                docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
+            # TODO 加上formatted synonyms & misapplied
+            # date
+            if date := row.get('standardDate'):
+                date = date[0].split('T')[0]
+                docs.loc[i , 'eventDate'] = date
+            else:
+                if row.get('eventDate'):
+                    docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
+            #     # date = date[0].replace('T', ' ').replace('Z','')
+            #     # 如果是國家公園，原本調查的時間是區段
+            #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
+            #         docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
+            #     else:
+            #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+            # else:
+                # if row.get('eventDate'):
+                #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
+            # 經緯度
+            # 如果是夥伴單位直接給原始
+            user_id = request.user.id if request.user.id else 0
+            if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+                if lat := row.get('standardRawLatitude'):
+                    docs.loc[i , 'verbatimRawLatitude'] = lat[0]
+                else:
+                    if row.get('verbatimRawLatitude'):
+                        docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+
+                if lon := row.get('standardRawLongitude'):
+                    docs.loc[i , 'verbatimRawLongitude'] = lon[0]
+                else:
+                    if row.get('verbatimRawLongitude'):
+                        docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+            else:
+                if lat := row.get('standardLatitude'):
+                    docs.loc[i , 'verbatimLatitude'] = lat[0]
+                else:
+                    if row.get('verbatimLatitude'):
+                        docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+                if lon := row.get('standardLongitude'):
+                    docs.loc[i , 'verbatimLongitude'] = lon[0]
+                else:
+                    if row.get('verbatimLongitude'):
+                        docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+            # 數量
+            if quantity := row.get('standardOrganismQuantity'):
+                docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
+            else:
+                if row.get('organismQuantity'):
+                    docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+        docs = docs.replace({np.nan: ''})
+        docs = docs.replace({'nan': ''})
+        
+        docs = docs.to_dict('records')
+
+        current_page = offset / limit + 1
+        total_page = math.ceil(count / limit)
+        page_list = get_page_list(current_page, total_page)
+
+        response = {
+            'rows' : docs,
+            'count': count,
+            'page_list': page_list,
+            'current_page' : current_page,
+            'total_page' : total_page,
+            'selected_col': selected_col,
+            'map_dict': map_dict,
+            'map_geojson': map_geojson,
+            'has_sensitive': has_sensitive,
+            'limit': limit,
+            'orderby': orderby,
+            'sort': sort,
+        }
+        
         return HttpResponse(json.dumps(response, default=str), content_type='application/json')

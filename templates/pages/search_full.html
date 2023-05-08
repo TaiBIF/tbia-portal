@@ -74,12 +74,13 @@
   <div class="searchbar_top">
     <div class="left_search">
       <div class="input_item">
-        <form action="{% url 'search_full' %}" method="GET">
-          <input type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}"/>
-          <button>
-            <img src="{% static 'image/search_icon.svg' %}" alt="" />
-          </button>
+        <form id="fullForm" action="{% url 'search_full' %}">
+          <p class="d-none keyword-p">{{ keyword }}</p>
+          <input id="keyword_input" type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}"/>
         </form>
+        <button id="fullSubmit">
+          <img src="{% static 'image/search_icon.svg' %}" alt="" />
+        </button>
       </div>
       <!-- 
       <div style="display: flex">
@@ -236,7 +237,8 @@
 										<p>中⽂名：{{ i.common_name_c|highlight:keyword }}</p>
 										<p>學名：{{ i.formatted_name|highlight:keyword }}</p>
 										<p>中文別名：{{ i.alternative_name_c|highlight:keyword }}</p>
-										<p>同物異名：{{ i.formatted_synonyms|highlight:keyword }}</p>
+										<p>同物異名：{{ i.formated_synonyms|highlight:keyword }}</p>
+										<p>分類階層：{{ i.taxonRank }}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}

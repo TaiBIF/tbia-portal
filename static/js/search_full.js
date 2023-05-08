@@ -101,6 +101,7 @@ let params = ['item_class', 'record_type','key','value','scientific_name','limit
 function changeAction(){
   let queryString = window.location.search;
   let urlParams = new URLSearchParams(queryString);
+
   // 如果只有keyword, show全部elements
   if ((queryString.split('&').length==1)&&(queryString.startsWith('?keyword='))){
     $('.rightbox_content .item').removeClass('d-none')
@@ -118,11 +119,11 @@ function changeAction(){
     //加上現在的
     $(`.li-item_${urlParams.get('record_type')}`).addClass('now')
     $(`#facet_${urlParams.get('record_type')}_${urlParams.get('key')}`).addClass('now')
-
     getRecords(urlParams.get('record_type'),urlParams.get('key'),urlParams.get('value'),urlParams.get('scientific_name'),
     urlParams.get('limit'),urlParams.get('page'),urlParams.get('from'),true,
     urlParams.get('orderby'),urlParams.get('sort'))
   } 
+
 }
 
 function clickToAnchor(id){
@@ -342,6 +343,7 @@ function focusComponent(item_class, go_back){
 }
 
   function getRecords(record_type,key,value,scientific_name,limit,page,from,go_back,orderby,sort){
+    $('input[name=keyword]').val($('.keyword-p').html())
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
 
@@ -374,7 +376,6 @@ function focusComponent(item_class, go_back){
       }
       queryString = searchParams.toString()
       history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    console.log(queryString)
     }
 
 
@@ -678,6 +679,7 @@ function focusComponent(item_class, go_back){
     }
 
   function focusCards(record_type,key,go_back){
+    $('input[name=keyword]').val($('.keyword-p').html())
 
     if ((!go_back)&& ('URLSearchParams' in window)) {
       var searchParams = new URLSearchParams(window.location.search)
@@ -796,6 +798,7 @@ function focusComponent(item_class, go_back){
                   <p>學名：${x.formatted_name}</p>
                   <p>中文別名：${ x.alternative_name_c }</p>
                   <p>同物異名：${ x.formatted_synonyms }</p>
+                  <p>分類階層：${ x.taxonRank }</p>
                   ${matched}
                   <p>出現記錄筆數：${ x.occ_count }</p>
                   <p>自然史典藏筆數：${ x.col_count }</p>
@@ -1000,6 +1003,7 @@ function focusComponent(item_class, go_back){
   }
 
 function getMoreDocs(doc_type, offset_value, more_class, card_class){
+  $('input[name=keyword]').val($('.keyword-p').html())
 
   let offset = $(offset_value).val()
   $.ajax({
@@ -1052,6 +1056,8 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class){
 }
 
 function getMoreCards(card_class, offset_value, more_type, is_sub){
+  $('input[name=keyword]').val($('.keyword-p').html())
+  
   let record_type;
   if (card_class.startsWith('.col')) {
     record_type = 'col'
@@ -1062,7 +1068,6 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
   }
 
   let offset = $(offset_value).val()
-  console.log(card_class)
   if (record_type == 'taxon') {
       $.ajax({
         url: "/get_more_cards_taxon",
@@ -1150,6 +1155,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
             <p>學名：${x.formatted_name}</p>
             <p>中文別名：${ x.alternative_name_c }</p>
             <p>同物異名：${ x.formatted_synonyms }</p>
+            <p>分類階層：${ x.taxonRank }</p>
             ${matched}
             <p>出現記錄筆數：${ x.occ_count }</p>
             <p>自然史典藏筆數：${ x.col_count }</p>

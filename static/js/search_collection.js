@@ -641,10 +641,6 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         })
 
     } else {
-        // 要把
-        if (new_click) {
-
-        }
 
         if ($('.btnupload p.active').data('type')){
 
