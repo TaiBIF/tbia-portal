@@ -347,8 +347,9 @@
                 <div class="num_bottom"></div>
                 <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
                 <p>學名：{{ i.val|highlight:keyword }}</p>
+                <p>鑑定層級：{{ i.taxonRank }}</p>
                 {% for ii in i.matched %}
-                  {% if ii.matched_col != '中文名' and ii.matched_col != '學名' %}
+                  {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
                     <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
                   {% endif %}    
                 {%  endfor %}
@@ -405,8 +406,9 @@
               <div class="num_bottom"></div>
               <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
               <p>學名：{{ i.val|highlight:keyword }}</p>
+              <p>鑑定層級：{{ i.taxonRank }}</p>
               {% for ii in i.matched %}
-                {% if ii.matched_col != '中文名' and ii.matched_col != '學名' %}
+                {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
                   <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
                 {% endif %}    
               {%  endfor %}

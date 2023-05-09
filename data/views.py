@@ -1338,15 +1338,17 @@ def search_full(request):
         col_result_df = pd.DataFrame(col_result_dict_all[:9])
 
         if len(col_result_df):
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
             taicol = taicol.rename(columns={'scientificName': 'name'})
             if len(taicol):
                 col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID', how='left')
+                col_result_df['taxonRank'] = col_result_df['taxonRank'].apply(lambda x: map_collection[x])
             else:
                 col_result_df['common_name_c'] = ''
                 col_result_df['formatted_name'] = ''
                 col_result_df['taxonID'] = ''
                 col_result_df['name'] = ''
+                col_result_df['taxonRank'] = ''
             col_result_df['val'] = col_result_df['formatted_name']
             col_result_df = col_result_df.replace({np.nan:'', None:''})
             col_result_df = col_result_df.drop(columns=['formatted_name'],errors='ignore')
@@ -1452,15 +1454,17 @@ def search_full(request):
         occ_result_df = pd.DataFrame(occ_result_dict_all[:9])
 
         if len(occ_result_df):
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=occ_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=occ_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
             taicol = taicol.rename(columns={'scientificName': 'name'})
             if len(taicol):
                 occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID', how='left')
+                occ_result_df['taxonRank'] = occ_result_df['taxonRank'].apply(lambda x: map_occurrence[x])
             else:
                 occ_result_df['common_name_c'] = ''
                 occ_result_df['formatted_name'] = ''
                 occ_result_df['taxonID'] = ''
                 occ_result_df['name'] = ''
+                occ_result_df['taxonRank'] = ''
             occ_result_df['val'] = occ_result_df['formatted_name']
             occ_result_df = occ_result_df.replace({np.nan:'', None:''})
             occ_result_df = occ_result_df.drop(columns=['formatted_name'],errors='ignore')
@@ -1935,15 +1939,17 @@ def get_focus_cards(request):
 
 
             if len(result_df):
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                 taicol = taicol.rename(columns={'scientificName': 'name'})
                 if len(taicol):
                     result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
+                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x])
                 else:
                     result_df['common_name_c'] = ''
                     result_df['formatted_name'] = ''
                     result_df['taxonID'] = ''
                     result_df['name'] = ''
+                    result_df['taxonRank'] = ''
                 result_df['val'] = result_df['formatted_name']
                 result_df = result_df.replace({np.nan:'', None:''})
                 result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword))
@@ -2439,15 +2445,17 @@ def get_more_cards(request):
                 result_df = pd.DataFrame(result_dict_all[:9])
 
             if len(result_df):
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                 taicol = taicol.rename(columns={'scientificName': 'name'})
                 if len(taicol):
                     result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
+                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x])
                 else:
                     result_df['common_name_c'] = ''
                     result_df['formatted_name'] = ''
                     result_df['taxonID'] = ''
                     result_df['name'] = ''
+                    result_df['taxonRank'] = ''
                 result_df['val'] = result_df['formatted_name']
                 result_df = result_df.replace({np.nan:'', None:''})
                 result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword))

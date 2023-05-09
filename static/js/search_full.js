@@ -918,7 +918,7 @@ function focusComponent(item_class, go_back){
             let matched = '';
 
             for (let ii = 0; ii < x.matched.length; ii++) {
-              if (!(['中文名','學名'].includes(x.matched[ii]['matched_col']))) {
+              if (!(['中文名','學名','鑑定層級'].includes(x.matched[ii]['matched_col']))) {
                 matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
               }
             }
@@ -950,6 +950,7 @@ function focusComponent(item_class, go_back){
                 <div class="num_bottom"></div>
                 <p>中文名：${x.common_name_c}</p>
                 <p>學名：${x.val}</p>
+                <p>鑑定層級：${x.taxonRank}</p>
                 ${matched}
               </li>`)
             } 
@@ -1247,7 +1248,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         let matched = '';
 
         for (let ii = 0; ii < x.matched.length; ii++) {
-          if (!(['中文名','學名'].includes(x.matched[ii]['matched_col']))) {
+          if (!(['中文名','學名','鑑定層級'].includes(x.matched[ii]['matched_col']))) {
             matched += `<p>${x.matched[ii]['matched_col']}：${ x.matched[ii]['matched_value'] }</p>`
           }
         }
@@ -1279,6 +1280,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           <div class="num_bottom"></div>
           <p>中文名：${x.common_name_c}</p>
           <p>學名：${x.val}</p>
+          <p>鑑定層級：${x.taxonRank}</p>
           ${matched}
         </li>` )
       }
