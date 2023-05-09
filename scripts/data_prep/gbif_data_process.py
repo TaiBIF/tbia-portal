@@ -345,7 +345,6 @@ for f in files:
     taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
     final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
     final_taxon = pd.DataFrame(final_taxon)
-    match_taxon_id = []
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])
         final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
@@ -355,6 +354,9 @@ for f in files:
         match_parent_taxon_id = sci_names.drop(columns=['taxonID','scientificName']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
         match_parent_taxon_id['taxonID'] = ''
         match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+        match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999'})
+    else:
+        match_taxon_id = sci_names.drop(columns=['scientificName'])
         match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999'})
     row_list = []
     df = df.replace({nan: None, '': None, "": None, "\'\'": None, '\"\"': None})
