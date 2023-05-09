@@ -77,10 +77,10 @@
         <form id="fullForm" action="{% url 'search_full' %}">
           <p class="d-none keyword-p">{{ keyword }}</p>
           <input id="keyword_input" type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}"/>
+          <button id="fullSubmit">
+            <img src="{% static 'image/search_icon.svg' %}" alt="" />
+          </button>
         </form>
-        <button id="fullSubmit">
-          <img src="{% static 'image/search_icon.svg' %}" alt="" />
-        </button>
       </div>
       <!-- 
       <div style="display: flex">

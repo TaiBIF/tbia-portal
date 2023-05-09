@@ -252,8 +252,10 @@ def submit_sensitive_request(request):
                 val = val.strip()
                 # 去除重複空格
                 val = re.sub(' +', ' ', val)
+                # 去除頭尾空格
+                val = val.strip()
                 # 去除特殊字元
-                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -446,8 +448,10 @@ def transfer_sensitive_response(request):
                 val = val.strip()
                 # 去除重複空格
                 val = re.sub(' +', ' ', val)
+                # 去除頭尾空格
+                val = val.strip()
                 # 去除特殊字元
-                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -621,8 +625,10 @@ def generate_sensitive_csv(query_id):
                 val = val.strip()
                 # 去除重複空格
                 val = re.sub(' +', ' ', val)
+                # 去除頭尾空格
+                val = val.strip()
                 # 去除特殊字元
-                val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -846,8 +852,10 @@ def generate_download_csv(req_dict,user_id):
         val = val.strip()
         # 去除重複空格
         val = re.sub(' +', ' ', val)
+        # 去除頭尾空格
+        val = val.strip()
         # 去除特殊字元
-        val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+        # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -1011,8 +1019,10 @@ def generate_species_csv(req_dict,user_id):
         val = val.strip()
         # 去除重複空格
         val = re.sub(' +', ' ', val)
+        # 去除頭尾空格
+        val = val.strip()
         # 去除特殊字元
-        val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+        # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
@@ -1199,8 +1209,10 @@ def search_full(request):
 
         # 去除重複空格
         keyword = re.sub(' +', ' ', keyword)
+        # 去除頭尾空格
+        keyword = keyword.strip()
         # 去除特殊字元
-        keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
+        # keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
 
         if re.match(r'^([\s\d]+)$', keyword):
             # 純數字
@@ -1843,19 +1855,24 @@ def get_focus_cards(request):
         total_count =  sum(item['count'] for item in x['buckets'])
         result = []
         for k in x['buckets']:
-            bucket = k['taxonID']['buckets']
-            if key == 'eventDate':
-                if f_date := convert_date(k['val']):
-                    f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                    result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
-            else:
-                result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
-        
+            if bucket := k['taxonID']['buckets']:
+                if key == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        result += [dict(item, **{'matched_value':f_date, 'matched_col': key}) for item in bucket]
+                else:
+                    result += [dict(item, **{'matched_value':k['val'], 'matched_col': key}) for item in bucket]
+            elif not k['taxonID']['numBuckets'] and k['count']:
+                if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                    result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+                
         result_df = pd.DataFrame(result)
 
         res_c = 0
         result_dict_all = []
         offset = 0
+
+        print(result_df.to_dict(orient='records'))
 
         if len(result_df):
             # result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
@@ -2314,32 +2331,42 @@ def get_more_cards(request):
                                 if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
                                     result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
                     else:
-                        if i == 'eventDate':
-                            if f_date := convert_date(k['val']):
-                                f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        if bucket:
+                            if i == 'eventDate':
+                                if f_date := convert_date(k['val']):
+                                    f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                                    for item in bucket:
+                                        if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
+                                            result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                            else:
                                 for item in bucket:
-                                    if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
-                                        result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
-                        else:
-                            for item in bucket:
-                                if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
-                                    result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                                    if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                                        result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                        elif not bucket and k['count']:
+                            if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                                result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+ 
             result_df = pd.DataFrame(result)
         else:
             # TODO 這邊待確認
             x = facets[key]
             for k in x['buckets']:
                 bucket = k['taxonID']['buckets']
-                if i == 'eventDate':
-                    if f_date := convert_date(k['val']):
-                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                if bucket:
+                    if i == 'eventDate':
+                        if f_date := convert_date(k['val']):
+                            f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                            for item in bucket:
+                                if dict(item, **{'matched_value':f_date, 'matched_col': key}) not in result:
+                                    result.append(dict(item, **{'matched_value':f_date, 'matched_col': key}))
+                    else:
                         for item in bucket:
-                            if dict(item, **{'matched_value':f_date, 'matched_col': key}) not in result:
-                                result.append(dict(item, **{'matched_value':f_date, 'matched_col': key}))
-                else:
-                    for item in bucket:
-                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
-                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': key}))
+                            if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                                result.append(dict(item, **{'matched_value':k['val'], 'matched_col': key}))
+                elif not bucket and k['count']:
+                    if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                        result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+
             result_df = pd.DataFrame(result)
 
         res_c = 0
@@ -2855,8 +2882,10 @@ def get_conditional_records(request):
             val = val.strip()
             # 去除重複空格
             val = re.sub(' +', ' ', val)
+            # 去除頭尾空格
+            val = val.strip()
             # 去除特殊字元
-            val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+            # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
             keyword_reg = ''
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
