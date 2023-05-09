@@ -324,11 +324,11 @@ for f in files:
     d = f.split('.csv')[0]
     print(count, ': ', d)
     df = pd.read_csv(f, index_col=0)
-    # 排除originalVernacularName&scientificNam皆為空值的資料
-    df = df[~(df.originalVernacularName.isin([nan,'',None])&df.scientificName.isin([nan,'',None]))]
+    # 排除originalVernacularName&scientificName皆為空值的資料
+    df = df.replace({nan: '', None: ''})
+    df = df[~((df.originalVernacularName=='')&(df.scientificName==''))]
     df['scientificName'] = df.scientificName.str.replace('<i>','').str.replace('</i>','')
     df = df.reset_index(drop=True)
-    df = df.replace({nan: '', None: ''})
     sci_names = df[['scientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].drop_duplicates().reset_index(drop=True)
     sci_names['sourceScientificName'] = sci_names['scientificName']
     sci_names['taxonID'] = ''
