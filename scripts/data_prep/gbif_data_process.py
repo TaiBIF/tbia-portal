@@ -345,6 +345,7 @@ for f in files:
     taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
     final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
     final_taxon = pd.DataFrame(final_taxon)
+    match_taxon_id = []
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])
         final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
