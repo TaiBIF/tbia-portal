@@ -613,14 +613,15 @@ def create_query_display(search_dict,sq_id):
             query += f"<br><b>結束日期</b>：{search_dict.get('end_date')}" 
         elif k == 'name':
             query += f"<br><b>中文名/學名/中文別名</b>：{search_dict.get('name')}" 
-
+        elif k == 'has_image':
+            query += f"<br><b>有無影像</b>：{'有' if search_dict.get('has_image') == 'y' else '無'}" 
     if d_list:
         query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
     return query
 
 # taxon-related columns
 taxon_cols = [
-        'domain',
+    'domain',
     'superkingdom',
     'kingdom',
     'subkingdom',

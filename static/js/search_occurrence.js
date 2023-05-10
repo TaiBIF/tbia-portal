@@ -223,12 +223,12 @@ $( function() {
 
 function changeAction(){
     
-    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: true,
-        translations: { "all": "全部", "items": " 個選項"} 
+    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: false,
+        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
     });
 
-    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: true,
-        translations: { "all": "全部", "items": " 個選項"} 
+    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
+        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
     });
 
     let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
@@ -241,6 +241,9 @@ function changeAction(){
     });
 
     let selectBox6 = new vanillaSelectBox("#circle_radius",{"placeHolder":"半徑",search:false, disableSelectAll: true,
+    });
+
+    let selectBox7 = new vanillaSelectBox("#has_image",{"placeHolder":"有無影像",search:false, disableSelectAll: true,
     });
 
     selectBox6.setValue('1')
@@ -258,54 +261,19 @@ function changeAction(){
         }
     })
 
-    $('#rightsHolder').on('change',function(){
-        if ($('#btn-group-rightsHolder ul.multi li.active').length>0){
-            $('#btn-group-rightsHolder button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-rightsHolder button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
+    let select_length = $(".search_condition_are select").length;
+    for (let i = 0; i < select_length; i++) {
+        let tmp_id = $(".search_condition_are select")[i].id;
 
-    $('#datasetName').on('change',function(){
-        if ($('#btn-group-datasetName .vsb-menu ul.multi li.active').length>0){
-            $('#btn-group-datasetName button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-datasetName button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
+        $(`#${tmp_id}`).on('change',function(){
+            if ($(`#btn-group-${tmp_id} ul li.active`).length>0){
+                $(`#btn-group-${tmp_id} button span.title`).addClass('black').removeClass('color-707070')
+            } else {
+                $(`#btn-group-${tmp_id} button span.title`).addClass('color-707070').removeClass('black')
+            }
+        })
+    }
 
-    $('#sensitiveCategory').on('change',function(){
-        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
-            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
-
-    $('#basisOfRecord').on('change',function(){
-        if ($('#btn-group-basisOfRecord .vsb-menu ul li.active').length>0){
-            $('#btn-group-basisOfRecord button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-basisOfRecord button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
-
-    $('#taxonRank').on('change',function(){
-        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
-            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
-
-
-    $('#circle_radius').on('change',function(){
-        if ($('#btn-group-circle_radius .vsb-menu ul li.active').length>0){
-            $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-circle_radius button span.title').addClass('color-707070').removeClass('black')
-        }
-    })
 
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
@@ -327,6 +295,8 @@ function changeAction(){
                 selectBox4.setValue(value)
             } else if (key == 'taxonRank'){
                 selectBox5.setValue(value)
+            } else if (key == 'has_image'){
+                selectBox7.setValue(value)
             } else {
 
                 $(`[name=${key}]`).val(value)
@@ -371,34 +341,15 @@ function changeAction(){
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
 
-        if ($('#btn-group-datasetName .vsb-menu ul.multi li.active').length>0){
-            $('#btn-group-datasetName button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-datasetName button span.title').addClass('color-707070').removeClass('black')
-        }
-
-        if ($('#btn-group-rightsHolder ul.multi li.active').length>0){
-            $('#btn-group-rightsHolder button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-rightsHolder button span.title').addClass('color-707070').removeClass('black')
-        }
-
-        if ($('#btn-group-sensitiveCategory .vsb-menu ul li.active').length>0){
-            $('#btn-group-sensitiveCategory button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-sensitiveCategory button span.title').addClass('color-707070').removeClass('black')
-        }
-        
-        if ($('#btn-group-basisOfRecord .vsb-menu ul li.active').length>0){
-            $('#btn-group-basisOfRecord button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-basisOfRecord button span.title').addClass('color-707070').removeClass('black')
-        }
-        
-        if ($('#btn-group-taxonRank .vsb-menu ul li.active').length>0){
-            $('#btn-group-taxonRank button span.title').addClass('black').removeClass('color-707070')
-        } else {
-            $('#btn-group-taxonRank button span.title').addClass('color-707070').removeClass('black')
+        // 如果有選項的 顏色改為黑色
+        let select_length = $(".search_condition_are [id^=btn-group-]").length;
+        for (let i = 0; i < select_length; i++) {
+            let tmp_id = $(".search_condition_are [id^=btn-group-]")[i].id;
+            if ($(`#${tmp_id} .vsb-menu ul li.active`).length>0){
+                $(`#${tmp_id} button span.title`).addClass('black').removeClass('color-707070')
+            } else {
+                $(`#${tmp_id} button span.title`).addClass('color-707070').removeClass('black')
+            }
         }
         
         if (urlParams.get('page')){

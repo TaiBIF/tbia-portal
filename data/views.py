@@ -99,7 +99,15 @@ def sensitive_agreement(request):
 def send_sensitive_request(request):
     if request.method == 'GET':
         # 整理查詢條件
-        query = create_query_display(dict(request.GET),None)
+        search_dict = {}
+        for k in request.GET.keys():
+            if tmp_list := request.GET.getlist(k):
+                if len(tmp_list) > 1:
+                    search_dict[k] = tmp_list
+                else:
+                    search_dict[k] = request.GET.get(k)
+
+        query = create_query_display(search_dict,None)
         return render(request, 'pages/application.html', {'query': query})
 
 
@@ -145,6 +153,13 @@ def submit_sensitive_request(request):
         if request.POST.get('type') == '0':
             query_list = []
 
+            # 有無影像
+            if has_image := req_dict.get('has_image'):
+                if has_image == 'y':
+                    query_list += ['associatedMedia:*']
+                elif has_image == 'n':
+                    query_list += ['-associatedMedia:*']
+
             record_type = req_dict.get('record_type')
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
@@ -189,7 +204,7 @@ def submit_sensitive_request(request):
                 query_list += [f'datasetName:("{d_list_str}")']
 
             r_list = []
-            if val := req_dict.getlist('rightsHolder'):
+            if val := req_dict.get('rightsHolder'):
                 for v in val:
                     r_list.append(v)
             
@@ -356,6 +371,13 @@ def transfer_sensitive_response(request):
             req_dict = dict(parse.parse_qsl(sq.query))
             query_list = []
 
+            # 有無影像
+            if has_image := req_dict.get('has_image'):
+                if has_image == 'y':
+                    query_list += ['associatedMedia:*']
+                elif has_image == 'n':
+                    query_list += ['-associatedMedia:*']
+
             record_type = req_dict.get('record_type')
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
@@ -400,7 +422,7 @@ def transfer_sensitive_response(request):
                 query_list += [f'datasetName:("{d_list_str}")']
 
             r_list = []
-            if val := req_dict.getlist('rightsHolder'):
+            if val := req_dict.get('rightsHolder'):
                 for v in val:
                     r_list.append(v)
             
@@ -512,26 +534,34 @@ def generate_sensitive_csv(query_id):
 
         download_id = f"{sq.user_id}_{query_id}"
 
-        # 只給有同意單位的資料
-        # 如果是機關委託計畫的話 則全部都給
-        if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass',is_transferred=False, partner_id=None).exists():
-            group = ['*']
-        elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
-            group = []
-        else:
-            ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
+        group = []
+        process = None
+        file_done = False
+
+        if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exists():
+        #     group = ['*']
+        # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
+        #     group = []
+        # else:
+            # 不給沒通過的
+            # 如果是機關委託計畫的話 則全部都給
+            ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
             if ps:
                 ps = [p for p in ps[0]]
                 group = list(Partner.objects.filter(id__in=ps).values_list('group'))
                 group = [g for g in group[0]]
-            else:
-                group = []
-
-        if group:
+        # if group:
 
             fl_cols = download_cols + sensitive_cols
             # 先取得筆數，export to csv
             query_list = []
+
+            # 有無影像
+            if has_image := req_dict.get('has_image'):
+                if has_image == 'y':
+                    query_list += ['associatedMedia:*']
+                elif has_image == 'n':
+                    query_list += ['-associatedMedia:*']
 
             record_type = req_dict.get('record_type')
             if record_type == 'col': # occurrence include occurrence + collection
@@ -577,7 +607,7 @@ def generate_sensitive_csv(query_id):
                 query_list += [f'datasetName:("{d_list_str}")']
 
             r_list = []
-            if val := req_dict.getlist('rightsHolder'):
+            if val := req_dict.get('rightsHolder'):
                 for v in val:
                     r_list.append(v)
             
@@ -637,9 +667,11 @@ def generate_sensitive_csv(query_id):
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
 
-            group = [ f'group:{g}' for g in group ]
-            group_str = ' OR '.join( group )
-            query_list += [ '(' + group_str + ')' ]
+            # 排除掉不同意的單位
+            if group:
+                group = [ f'group:{g}' for g in group ]
+                group_str = ' OR '.join( group )
+                query_list += [ '-(' + group_str + ')' ]
             # 
 
             query = { "query": "*:*",
@@ -659,6 +691,9 @@ def generate_sensitive_csv(query_id):
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
             commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # 等待檔案完成
+            process.communicate()
+            file_done = True
 
             # 儲存到下載統計
             # 要排除掉轉交的情況
@@ -673,20 +708,21 @@ def generate_sensitive_csv(query_id):
 
         else:
             # 沒有帳號通過
-            
             sq.status = 'fail'
             sq.modified = timezone.now()
             sq.save()
+            file_done = True
 
 
-        #  這邊要給審查意見
-        nn = Notification.objects.create(
-            type = 4,
-            content = sq.id,
-            user_id = sq.user_id
-        )
-        content = nn.get_type_display().replace('0000', str(nn.content))
-        send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知')
+        if file_done:
+            #  這邊要給審查意見
+            nn = Notification.objects.create(
+                type = 4,
+                content = sq.id,
+                user_id = sq.user_id
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知')
 
 
 
@@ -745,6 +781,13 @@ def generate_download_csv(req_dict,user_id):
     # 先取得筆數，export to csv
     query_list = []
 
+    # 有無影像
+    if has_image := req_dict.get('has_image'):
+        if has_image == 'y':
+            query_list += ['associatedMedia:*']
+        elif has_image == 'n':
+            query_list += ['-associatedMedia:*']
+
     record_type = req_dict.get('record_type')
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
@@ -789,7 +832,7 @@ def generate_download_csv(req_dict,user_id):
         query_list += [f'datasetName:("{d_list_str}")']
 
     r_list = []
-    if val := req_dict.getlist('rightsHolder'):
+    if val := req_dict.get('rightsHolder'):
         for v in val:
             r_list.append(v)
     
@@ -896,7 +939,6 @@ def generate_download_csv(req_dict,user_id):
     if not query_list:
         query.pop('filter')
 
-    print(query)
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
@@ -904,6 +946,8 @@ def generate_download_csv(req_dict,user_id):
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
     commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # 等待檔案完成
+    process.communicate()
 
     # 儲存到下載統計
     sq.status = 'pass'
@@ -926,6 +970,13 @@ def generate_species_csv(req_dict,user_id):
 
     # 先取得筆數，export to csv
     query_list = []
+
+    # 有無影像
+    if has_image := req_dict.get('has_image'):
+        if has_image == 'y':
+            query_list += ['associatedMedia:*']
+        elif has_image == 'n':
+            query_list += ['-associatedMedia:*']
 
     record_type = req_dict.get('record_type')
     if record_type == 'col': # occurrence include occurrence + collection
@@ -971,7 +1022,7 @@ def generate_species_csv(req_dict,user_id):
         query_list += [f'datasetName:("{d_list_str}")']
 
     r_list = []
-    if val := req_dict.getlist('rightsHolder'):
+    if val := req_dict.get('rightsHolder'):
         for v in val:
             r_list.append(v)
     
@@ -1184,6 +1235,9 @@ def generate_download_csv_full(req_dict,user_id):
     commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
 
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # 等待檔案完成
+    process.communicate()
 
     # 儲存到下載統計
     sq.status = 'pass'
@@ -1610,9 +1664,8 @@ def search_full(request):
     return render(request, 'pages/search_full.html', response)
 
 
-def get_records(request):
+def get_records(request): # 全站搜尋
     if request.method == 'POST':
-        # print(request.POST)
         keyword = request.POST.get('keyword', '')
         key = request.POST.get('key', '')
         value = request.POST.get('value', '')
@@ -2782,6 +2835,7 @@ def get_conditional_records(request):
         map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
 
+
         # selected columns
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
@@ -2792,6 +2846,13 @@ def get_conditional_records(request):
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
         query_list = []
+
+        # 有無影像
+        if has_image := request.POST.get('has_image'):
+            if has_image == 'y':
+                query_list += ['associatedMedia:*']
+            elif has_image == 'n':
+                query_list += ['-associatedMedia:*']
 
         record_type = request.POST.get('record_type')
         if record_type == 'col': # occurrence include occurrence + collection

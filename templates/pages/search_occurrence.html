@@ -62,18 +62,9 @@
               <div class="input_item">
                 <input type="text" name="name" placeholder="中文名/學名/中文別名" />
               </div>
-            </div>
-            <div class="two_input">
-              <div class="input_item">
-                <select name="rightsHolder" id="rightsHolder" required multiple size="1">
-                  {% for i in holder_list %}
-                  <option value="{{ i }}">{{ i }}</option>
-                  {% endfor %}
-                </select>
-              </div>
               <div class="input_item">
                 <input name="taxonID" type="text" placeholder="TaiCOL物種編號" />
-              </div>            
+              </div>                        
             </div>
             <div class="two_input">
               <div class="input_item">
@@ -90,6 +81,22 @@
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select name="rightsHolder" id="rightsHolder" required multiple size="1">
+                  {% for i in holder_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input_item">
+                <select name="has_image" id="has_image" required>
+                  <option value=""></option>
+                  <option value="y">有</option>
+                  <option value="n">無</option>
                 </select>
               </div>
             </div>
