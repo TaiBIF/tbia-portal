@@ -51,7 +51,7 @@ function changePage(page, menu){
             }		
 
             if (menu=='sensitive_apply'){
-                s_menu = 'sensitiveㄋ'
+                s_menu = 'sensitive'
             } else {
                 s_menu = menu
             }

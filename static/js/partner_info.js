@@ -156,13 +156,19 @@ function changePage(page, menu){
                     <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                 </div>`)
             }		
+
+            if (menu=='sensitive_apply'){
+                s_menu = 'sensitive'
+            } else {
+                s_menu = menu
+            }
                 
             if (response.page_list.includes(response.current_page-1)){
-                $(`.${menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${menu} .item .page_number a.pre`).data('page', response.current_page-1);
-                $(`.${menu} .item .page_number a.pre`).data('type', menu);    
+                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
+                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page-1);
+                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);    
             } else {
-                $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
+                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
             }
 
             let html = ''
@@ -174,15 +180,15 @@ function changePage(page, menu){
                 }
             }
 
-            $(`.${menu} .item .page_number a.pre`).after(html)
+            $(`.${s_menu} .item .page_number a.pre`).after(html)
     
             // 如果有下一頁，改掉next的onclick
             if (response.current_page < response.total_page){
-                $(`.${menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${menu} .item .page_number a.next`).data('page', response.current_page+1);
-                $(`.${menu} .item .page_number a.next`).data('type', menu);
+                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
+                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page+1);
+                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
             } else {
-                $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
             }
 
             $('.changePage').off('click')
