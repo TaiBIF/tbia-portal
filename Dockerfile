@@ -8,6 +8,7 @@ RUN apt-get update \
     && apt-get install -y build-essential \
     # tools
     && apt-get install -y curl \
+    && apt-get install -y zip \
     # psycopg2 dependencies
     # && apt-get install -y libpq-dev \
     # Translations dependencies

@@ -180,7 +180,7 @@ def change_manager_page(request):
             query = create_query_display(search_dict,t.id)
             link = ''
             if t.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.csv">下載</a>'
+                link = f'<a target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f"#{t.id}",
@@ -227,7 +227,7 @@ def change_manager_page(request):
 
             link = ''
             if s.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.csv">下載</a>'
+                link = f'<a target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f'#{s.id}',
@@ -273,7 +273,8 @@ def change_manager_page(request):
                     map_dict = map_collection
                 key = map_dict.get(search_dict['key'])
                 query += f"<br><b>{key}</b>：{search_dict['value']}"
-                query += f"<br><b>學名</b>：{search_dict['scientificName']}"
+                if search_dict.get('scientificName'):
+                    query += f"<br><b>學名</b>：{search_dict['scientificName']}"
             else:
             # 條件搜尋
                 search_dict = dict(parse.parse_qsl(r.query))
@@ -282,7 +283,7 @@ def change_manager_page(request):
 
             link = ''
             if r.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.csv">下載</a>'
+                link = f'<a target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f'#{r.id}',

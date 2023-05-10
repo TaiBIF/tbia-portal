@@ -174,7 +174,7 @@
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a target="_blank" href="/media/download/record/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
+                                <a target="_blank" href="/media/download/record/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -231,7 +231,7 @@
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a target="_blank" href="/media/download/taxon/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
+                                <a target="_blank" href="/media/download/taxon/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -293,7 +293,7 @@
                             <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a target="_blank" href="/media/download/sensitive/{{ request.user.id }}_{{ r.query_id }}.csv">下載</a>
+                                <a target="_blank" href="/media/download/sensitive/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>

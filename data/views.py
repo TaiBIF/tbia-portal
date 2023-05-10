@@ -688,8 +688,9 @@ def generate_sensitive_csv(query_id):
             csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
             csv_folder = os.path.join(csv_folder, 'sensitive')
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+            zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # 等待檔案完成
             process.communicate()
@@ -943,8 +944,9 @@ def generate_download_csv(req_dict,user_id):
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+    zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # 等待檔案完成
     process.communicate()
@@ -1126,12 +1128,13 @@ def generate_species_csv(req_dict,user_id):
     if not query_list:
         query.pop('filter')
 
+
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
     data = response.json()['facets']['scientificName']['buckets']
     df = pd.DataFrame(columns=['taxonID','scientificName'])
     for d in data:
-        # print(d)
-        df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
+        if d['taxonID']['buckets']:
+            df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
     if len(df):
         subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID'))
         df = df.merge(subset_taxon, how='left')
@@ -1139,8 +1142,15 @@ def generate_species_csv(req_dict,user_id):
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+    zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     # print(csv_file_path)
     df.to_csv(csv_file_path, index=None)
+    # df.to_csv(csv_file_path, index=False, compression="zip")
+    commands = f"zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # 等待檔案完成
+    process.communicate()
+
     # return df
 
     # 儲存到下載統計
@@ -1231,8 +1241,9 @@ def generate_download_csv_full(req_dict,user_id):
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+    zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path} "
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
 
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

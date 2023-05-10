@@ -7,6 +7,8 @@ from os.path import exists
 from manager.views import send_notification
 from data.views import generate_sensitive_csv
 import threading
+import glob
+import os
 # 從notification裡面去撈每個user最新的request時間
 
 # 系統管理員 如果7天後狀態是pending的話就直接通過
@@ -15,12 +17,18 @@ import threading
 
 today = datetime.today() + timedelta(hours=8)
 
-this_year = today.year
-c_cal = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year}.csv')
-if exists(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv'):
-    c_cal_1 = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv')
-    c_cal = c_cal.append(c_cal_1, ignore_index=True)
+folder = '/tbia-volumes/bucket/calendar'
+extension = 'csv'
+os.chdir(folder)
+files = glob.glob('calendar_*.{}'.format(extension))
 
+c_cal = pd.DataFrame(columns=['西元日期','星期','是否放假','備註'])
+for f in files:
+    tmp_f = pd.read_csv(f'/tbia-volumes/bucket/calendar/{f}')
+    c_cal = c_cal.append(tmp_f, ignore_index=True)
+
+
+c_cal = c_cal.sort_values('西元日期').reset_index(drop=True)
 
 # 系統管理員負責的
 query = """
