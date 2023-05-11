@@ -1029,7 +1029,8 @@ def register(request):
             response = {'status':'fail', 'message': '此信箱已註冊過，請直接登入'}
         else:
             if not User.objects.filter(email=email).exists():
-                user=User.objects.create_user(email=email, name=name, password=password, is_email_verified=False, is_active=False)
+                user = User.objects.create_user(email=email, name=name, password=password, is_email_verified=False, is_active=False)
+                user.username = email
                 user.save()
             else:
                 user = User.objects.get(email=email)
@@ -1964,4 +1965,3 @@ def delete_qa(request):
                 q = Qa.objects.get(id=qa_id)
                 q.delete()
                 return JsonResponse({}, safe=False)
-
