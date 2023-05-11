@@ -132,7 +132,6 @@ for p in range(0,total_page,100):
     data = []
     c = p
     while c < p + 100 and c < total_page:
-        c+=1
         offset = 300 * c
         print('page:',c , ' , offset:', offset)
         time.sleep(1)
@@ -141,6 +140,7 @@ for p in range(0,total_page,100):
         if response.status_code == 200:
             result = response.json()
             data += result.get('data')
+        c+=1
     df = pd.DataFrame(data)
     df = df.replace({nan: '', None: ''})
     df = df[~((df.isPreferredName=='')&(df.scientificName==''))]
