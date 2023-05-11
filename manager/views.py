@@ -892,13 +892,13 @@ def get_auth_callback(request):
 
 
 def send_verification_email(user, request):
-    current_site = get_current_site(request)  # the domain user is on
+    # current_site = get_current_site(request)  # the domain user is on
 
     email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
     email_body = render_to_string('manager/verification.html',{
         'scheme': request.scheme,
         'user': user,
-        'domain': current_site,
+        'domain': request.get_host(),
         'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
         'token': generate_token.make_token(user)
     })
@@ -913,13 +913,13 @@ def resend_verification_email(request):
     if request.method == 'POST':
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
-            current_site = get_current_site(request)  # the domain user is on
+            # current_site = get_current_site(request)  # the domain user is on
 
             email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
             email_body = render_to_string('manager/verification.html',{
                 'scheme': request.scheme,
                 'user': user,
-                'domain': current_site,
+                'domain': request.get_host(),
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
                 'token': generate_token.make_token(user)
             })
@@ -959,13 +959,13 @@ def send_reset_password(request):
     if request.method == 'POST':
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
-            current_site = get_current_site(request)  # the domain user is on
+            # current_site = get_current_site(request)  # the domain user is on
 
             email_subject = '[生物多樣性資料庫共通查詢系統] 重設您的密碼'
             email_body = render_to_string('manager/verification_reset_password.html',{
                 'scheme': request.scheme,
                 'user': user,
-                'domain': current_site,
+                'domain': request.get_host(),
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
                 'token': generate_token.make_token(user)
             })
