@@ -127,14 +127,13 @@ if response.status_code == 200:
 
 group = 'brmas'
 
-# for p in range(0,total_page,100):
-for p in range(0,10,10):
+for p in range(0,total_page,100):
     print(p)
     data = []
     c = p
-    while c < p + 10 and c < total_page:
+    while c < p + 100 and c < total_page:
         c+=1
-        offset = 300*c
+        offset = 300 * c
         print('page:',c , ' , offset:', offset)
         time.sleep(1)
         url = f"https://hast.biodiv.tw/api/v1/occurrence?offset={offset}"
