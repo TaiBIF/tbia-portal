@@ -1,6 +1,6 @@
-# 2023-04-18
+# 2023-05-09
 # RUN in web container
-# script for FACT API 
+# script for TAIF API 
 from django.db import connection
 import urllib.parse
 import numpy as np
@@ -114,7 +114,7 @@ def matching_flow(sci_names):
     return sci_names
 
 
-url = f"https://fact.tfri.gov.tw/api/1/occurrence/?token={env('FACT_KEY')}&page=1&per_page=1000"
+url = f"https://taifdb.tfri.gov.tw/apis/data.php?limit=300"
 response = requests.get(url, verify=False)
 # data = []
 c = 0
@@ -124,7 +124,7 @@ if response.status_code == 200:
     total_page = math.ceil(total / 1000)
 
 
-group = 'fact'
+group = 'taif'
 
 for p in range(0,total_page,10):
     print(p)

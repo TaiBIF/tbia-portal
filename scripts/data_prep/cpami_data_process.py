@@ -298,4 +298,13 @@ with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)
 
+import subprocess
+zip_file_path = f'/tbia-volumes/media/match_log/{group}_match_log.zip'
+csv_file_path = f'/tbia-volumes/media/match_log/{group}_match_log.csv'
+commands = f"zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+# 等待檔案完成
+process.communicate()
+
+
 print('done!')

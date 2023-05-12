@@ -466,7 +466,7 @@ for f in files:
             'location_rpt' : location_rpt,
             'originalVernacularName': row.originalVernacularName, 
             'taxonUUID': row.taxonUUID, 
-            'taiCOLNameCode': row.taiCOLNameCode
+            # 'taiCOLNameCode': row.taiCOLNameCode
             }
         row_list.append(tmp)
     final = pd.DataFrame(row_list)
@@ -555,9 +555,9 @@ for f in files:
     # 串回taxon資訊  
     final = final.replace({nan: None})
     if len(match_taxon_id):
-        final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999',None:'-999999'})
-        final = final.merge(match_taxon_id, on=['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode'], how='left')
-        final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = final[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'-999999': ''})
+        final[['sourceScientificName','originalVernacularName','taxonUUID']] = final[['sourceScientificName','originalVernacularName','taxonUUID']].replace({'': '-999999',None:'-999999'})
+        final = final.merge(match_taxon_id, on=['sourceScientificName','originalVernacularName','taxonUUID'], how='left')
+        final[['sourceScientificName','originalVernacularName','taxonUUID']] = final[['sourceScientificName','originalVernacularName','taxonUUID']].replace({'-999999': ''})
     final = final.replace({nan: None})
     final = final.drop(columns=['taxonUUID','taiCOLNameCode'],errors='ignore')
     # final.to_csv(f'/tbia-volumes/solr/csvs/processed/{f}', index=False)
@@ -620,6 +620,15 @@ copy (
 with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)
+        
+import subprocess
+zip_file_path = f'/tbia-volumes/media/match_log/{group}_match_log.zip'
+csv_file_path = f'/tbia-volumes/media/match_log/{group}_match_log.csv'
+commands = f"zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+# 等待檔案完成
+process.communicate()
+
 
 
 print('done!')
