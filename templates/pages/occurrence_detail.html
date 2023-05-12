@@ -173,7 +173,7 @@
               <p>{{ row.resourceContacts }}</p>
             </li>          
           </ul>
-          {% if row.references != '' %}
+          {% if row.references != '' and  row.references != None %}
           <a href="{{ row.references }}" target="_blank" class="from_data pointer">來源資料庫：{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
           {% else %}
           <a class="from_data">來源資料庫：{{ row.rightsHolder }}</a>
