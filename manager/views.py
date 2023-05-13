@@ -1295,7 +1295,7 @@ def manager_partner(request):
         current_user = request.user
         if current_user.partner:
             if exists(os.path.join('/tbia-volumes/media/match_log', f'{current_user.partner.group}_match_log.zip')):
-                download_url = os.path.join('/tbia-volumes/media/match_log', f'{current_user.partner.group}_match_log.zip')
+                download_url = os.path.join('/media/match_log', f'{current_user.partner.group}_match_log.zip')
             # download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
             partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
             partner_admin = [p[0] for p in partner_admin]
