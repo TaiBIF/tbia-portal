@@ -94,7 +94,9 @@
             </div>
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況 
+                {% if download_url %}
                     <a class="download_taxon_a" target="_blank" href="{{ download_url }}">(下載學名比對結果清單)</a>
+                {% endif %}
                 </div>
                 <figure class="highcharts-figure h-300px">
                     <div id="container2" class="h-100p"></div>
