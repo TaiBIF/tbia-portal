@@ -9,3 +9,12 @@
 .news_de .editor ul, .news_de .editor ol {
     padding-left: 40px
 }
+
+.nstitlebox p {
+    text-align:right;
+}
+
+.icon-size {
+    height: 14px;
+    width: 14px;
+}

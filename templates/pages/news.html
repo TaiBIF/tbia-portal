@@ -92,7 +92,7 @@
 						{{ n.get_type_display }}</div>
 					<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
 					</div>
-					<a href="javascript:;" class="nstitle"> {{ n.title }} </a>
+					<a href="{% url 'news_detail' n.id %}" class="nstitle"> {{ n.title }} </a>
 				</div>
 				</div>
 			</li>

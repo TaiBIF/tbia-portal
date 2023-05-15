@@ -90,8 +90,8 @@ function vanillaSelectBox(domSelector, options) {
     this.searchZone = null;
     this.inputBox = null;
     this.disabledItems = [];
-    this.ulminWidth = 140;
-    this.ulmaxWidth = 280;
+    /*this.ulminWidth = 140;*/
+    this.ulmaxWidth = "100%";
     this.ulminHeight = 25;
     this.maxOptionWidth = Infinity;
     this.maxSelect = Infinity;
@@ -105,7 +105,7 @@ function vanillaSelectBox(domSelector, options) {
     this.userOptions = {
         maxWidth: "100%",
         minWidth: -1,
-        maxHeight: 400,
+        maxHeight: 300,
         translations: { "all": "All", "item": "item","items": "items", "selectAll": "Select All", "clearAll": "Clear All" },
         search: false,
         placeHolder: "",

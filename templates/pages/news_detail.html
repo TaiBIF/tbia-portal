@@ -2,6 +2,12 @@
 {% load static %} 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/news_detail.css' %}" />
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock style %}
 
 {% block title %}{{ n.title }}｜{% endblock %}
@@ -30,6 +36,14 @@
 							<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
 						</div>
 						<h3>{{ n.title }}</h3>
+
+						<p><i class="icon-size fa-solid fa-pen"></i>
+							{% if n.partner %}
+							{{ n.partner.select_title }}
+							{% else %}
+							TBIA聯盟
+							{% endif %}
+						</p>
 					</div>
 					<div class="editor">
 						<!-- 這邊放代表圖片 -->
