@@ -31,4 +31,5 @@ urlpatterns = [
     # path('generate_sensitive_csv', views.generate_sensitive_csv, name='generate_sensitive_csv'),
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
     path('get_geojson/<str:id>/', views.get_geojson, name='get_geojson'),
+    path('change_dataset', views.change_dataset, name='change_dataset'),
 ]

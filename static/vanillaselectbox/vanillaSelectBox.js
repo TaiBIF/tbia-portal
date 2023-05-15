@@ -518,14 +518,14 @@ function vanillaSelectBox(domSelector, options) {
                 if (self.isSearchRemote) {
                     if (searchValueLength == 0) {
                         self.remoteSearchIntegrate(null);
-                    } else if (searchValueLength >= 3) {
+                    } else if (searchValueLength >= 1) {
                         self.onSearch(searchValue)
                             .then(function (data) {
                                 self.remoteSearchIntegrate(data);
                             });
                     }
                 } else {
-                    if (searchValueLength < 3) {
+                    if (searchValueLength < 1) {
                         Array.prototype.slice.call(self.listElements).forEach(function (x) {
                             if (x.getAttribute('data-value') === 'all') {
                                 selectAll = x;

@@ -4,6 +4,7 @@ from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
 from data.utils import *
+from manager.utils import holders
 # from data.taicol import taicol
 import pandas as pd
 import numpy as np
@@ -2691,6 +2692,11 @@ def occurrence_detail(request, id):
             #     if i.get('subtitle') == row.get('rightsHolder'):
             logo = logo[0]['logo']
 
+    # references
+    if not row.get('references'):
+        if Partner.objects.filter(group=group).values('info').exists():
+            row['references'] = Partner.objects.get(group=group).info[0]['link']
+
     return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
@@ -3122,3 +3128,31 @@ def get_conditional_records(request):
         }
         
         return HttpResponse(json.dumps(response, default=str), content_type='application/json')
+
+
+def change_dataset(request):
+    ds = []
+    if holder := request.GET.getlist('holder'):    
+        for h in holder:
+            for k in holders.keys():
+                if holders[k] == h:
+                    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=group:{k}')
+                    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+                    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+                    if request.GET.get('record_type') == 'col':
+                        obj = DatasetKey.objects.filter(record_type='col',group=k,deprecated=False,name__in=dataset_list)
+                    else:
+                        obj = DatasetKey.objects.filter(group=k,deprecated=False,name__in=dataset_list)
+                    for d in obj:
+                        ds += [{'value': d.id, 'text': d.name}]
+    else:
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+        d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+        dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+        if request.GET.get('record_type') == 'col':
+            obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
+        else:
+            obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list)
+        for d in obj:
+            ds += [{'value': d.id, 'text': d.name}]
+    return HttpResponse(json.dumps(ds), content_type='application/json')

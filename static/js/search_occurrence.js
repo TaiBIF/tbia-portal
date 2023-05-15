@@ -76,6 +76,7 @@ map.on('zoomend', function zoomendEvent(ev) {
 
 $( function() {
 
+
     $('.sendSelected').on('click', function(){
         sendSelected()
     })
@@ -226,6 +227,26 @@ function changeAction(){
     let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: false,
         translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
     });
+
+    $('#rightsHolder').on('change', function(){
+        let res = selectBox.getResult()
+        let h_str = ''
+        for(r of res) { 
+            h_str += 'holder=' + r + '&'
+        }
+        $.ajax({
+            url: "/change_dataset?" + h_str,
+            dataType : 'json',
+        })
+        .done(function(response) {
+            if (response.length > 0){
+                selectBox2.enable()
+                selectBox2.changeTree(response)
+            } else {
+                selectBox2.disable()
+            }
+        })
+    })
 
     let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
         translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
