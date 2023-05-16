@@ -89,7 +89,9 @@ $(document).ready(function () {
               data: {'type': $('#saveForm select[name=qa_type]').find(":selected").val(), 
                      'qa_id': $('#saveForm input[name=qa_id]').val(), 
                      'answer': $('#saveForm textarea[name=answer]').val(),
-                     'question': $('#saveForm textarea[name=question]').val()},
+                     'question': $('#saveForm textarea[name=question]').val(),
+                     'order': $('#saveForm input[name=order]').val()
+                    },
               headers: {'X-CSRFToken': $csrf_token},
               success: function (response) {
                   window.location = '/manager/system/qa?menu=list';

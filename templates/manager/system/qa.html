@@ -120,6 +120,8 @@
                                 {% endfor %}
                             </select>
                         </li>                       
+                        <li>排序</li>
+                        <li><input type="number" name="order" value="{{ current_q.order }}" min="1"></li>
                         <li>問題</li>
                         <li>
                             <textarea name="question" placeholder="">{{ current_q.question }}</textarea>
@@ -152,13 +154,15 @@
                     <table cellspacing="0" cellspacing="0" class="table_style1 qa_table">
                         <tr>
                             <td class="w-20p">類別</td>
-                            <td class="w-60p">問題</td>
+                            <td class="w-10p">排序</td>
+                            <td class="w-50p">問題</td>
                             <td class="w-10p"></td> 
                             <td class="w-10p"></td> 
                         </tr>
                         {% for q in qa_list %}
                         <tr>
                             <td>{{ q.get_type_display }}</td>
+                            <td>{{ q.order }}</a></td>
                             <td>{{ q.question }}</a></td>
                             <td><a href="{% url 'system_qa' %}?menu=edit&qa_id={{ q.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                             <td><a href="javascript:;" class="delete_qa" data-qa_id='{{ q.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->

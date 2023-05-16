@@ -678,7 +678,7 @@ def change_manager_page(request):
                             <td class="w-10p"></td> 
                         </tr>
         """
-        for q in Qa.objects.all().order_by('-id')[offset:offset+10]:
+        for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
                 'type': q.get_type_display(),
                 'question': q.question,
@@ -1925,7 +1925,7 @@ def get_link_content(request):
 
 def system_qa(request):
     menu = request.GET.get('menu', 'list')
-    qa_list = Qa.objects.all().order_by('-id')[:10]
+    qa_list = Qa.objects.all().order_by('order')[:10]
     q_total_page = math.ceil(Qa.objects.all().count()/10)
     q_page_list = get_page_list(1, q_total_page)
     type_choice = Qa._meta.get_field('type').choices
@@ -1945,17 +1945,41 @@ def submit_qa(request):
         else:
             qa_id = 0
 
+        if request.POST.get('order'):
+            order = int(request.POST.get('order'))
+        else:
+            if not len(Qa.objects.all()):
+                order = 0
+            else:
+                order = Qa.objects.latest('order').order + 1
+
         if Qa.objects.filter(id=qa_id).exists():
-            Qa.objects.filter(id=qa_id).update(
-                type = request.POST.get('type'),
-                question = request.POST.get('question'),
-                answer = request.POST.get('answer'),
-            )
+            old_order = Qa.objects.get(id=qa_id).order
+            if old_order != order:
+                # 如果修改後排序前進
+                if old_order > order:
+                    # 原本在此order之前的要加1
+                    for q in Qa.objects.filter(order__lte=old_order,order__gte=order).exclude(id=qa_id):
+                        q.order += 1
+                        q.save()
+                # 如果修改後排序後退
+                else:
+                    for q in Qa.objects.filter(order__lte=order,order__gte=old_order).exclude(id=qa_id):
+                        q.order -= 1
+                        q.save()
+                Qa.objects.filter(id=qa_id).update(
+                    type = request.POST.get('type'),
+                    question = request.POST.get('question'),
+                    answer = request.POST.get('answer'),
+                    order = order
+                )
+
         else: 
             Qa.objects.create(
                 type = request.POST.get('type'),
                 question = request.POST.get('question'),
                 answer = request.POST.get('answer'),
+                order = order
             )
         return redirect('system_qa')
 

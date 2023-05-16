@@ -1408,7 +1408,8 @@ def search_full(request):
             taicol = taicol.rename(columns={'scientificName': 'name'})
             if len(taicol):
                 col_result_df = pd.merge(col_result_df,taicol,left_on='val',right_on='taxonID', how='left')
-                col_result_df['taxonRank'] = col_result_df['taxonRank'].apply(lambda x: map_collection[x])
+                col_result_df = col_result_df.replace({np.nan:'', None:''})
+                col_result_df['taxonRank'] = col_result_df['taxonRank'].apply(lambda x: map_collection[x] if x else x)
             else:
                 col_result_df['common_name_c'] = ''
                 col_result_df['formatted_name'] = ''
@@ -1524,7 +1525,8 @@ def search_full(request):
             taicol = taicol.rename(columns={'scientificName': 'name'})
             if len(taicol):
                 occ_result_df = pd.merge(occ_result_df,taicol,left_on='val',right_on='taxonID', how='left')
-                occ_result_df['taxonRank'] = occ_result_df['taxonRank'].apply(lambda x: map_occurrence[x])
+                occ_result_df = occ_result_df.replace({np.nan:'', None:''})
+                occ_result_df['taxonRank'] = occ_result_df['taxonRank'].apply(lambda x: map_occurrence[x] if x else x)
             else:
                 occ_result_df['common_name_c'] = ''
                 occ_result_df['formatted_name'] = ''
@@ -1742,8 +1744,6 @@ def get_records(request): # 全站搜尋
             }
         if not fq_list:
             query.pop('filter')
-
-        print(query)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         response = response.json()
@@ -2008,7 +2008,8 @@ def get_focus_cards(request):
                 taicol = taicol.rename(columns={'scientificName': 'name'})
                 if len(taicol):
                     result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
-                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x])
+                    result_df = result_df.replace({np.nan:'', None:''})
+                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x] if x else x)
                 else:
                     result_df['common_name_c'] = ''
                     result_df['formatted_name'] = ''
@@ -2514,7 +2515,8 @@ def get_more_cards(request):
                 taicol = taicol.rename(columns={'scientificName': 'name'})
                 if len(taicol):
                     result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
-                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x])
+                    result_df = result_df.replace({np.nan:'', None:''})
+                    result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x] if x else x)
                 else:
                     result_df['common_name_c'] = ''
                     result_df['formatted_name'] = ''
@@ -2839,6 +2841,165 @@ def collection_detail(request, id):
 
 
 
+def get_map_grid(request):
+    print(request.POST)
+    if request.method == 'POST':
+        grid = int(request.POST.get('grid'))
+        map_geojson = {"type":"FeatureCollection","features":[]}
+
+        # use JSON API to avoid overlong query url
+        query_list = []
+
+        mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
+        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+
+        # 有無影像
+        if has_image := request.POST.get('has_image'):
+            if has_image == 'y':
+                query_list += ['associatedMedia:*']
+            elif has_image == 'n':
+                query_list += ['-associatedMedia:*']
+
+        record_type = request.POST.get('record_type')
+        if record_type == 'col': # occurrence include occurrence + collection
+            query_list += ['recordType:col']
+
+        for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+            if val := request.POST.get(i):
+                if val != 'undefined':
+                    val = val.strip()
+                    keyword_reg = ''
+                    for j in val:
+                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+                        keyword_reg = get_variants(keyword_reg)
+                    query_list += [f'{i}:/.*{keyword_reg}.*/']
+        
+        if quantity := request.POST.get('organismQuantity'):
+            query_list += [f'standardOrganismQuantity: {quantity}']
+
+        if val := request.POST.get('typeStatus'):
+            if val == '模式':
+                query_list += [f'typeStatus:[* TO *]']
+            elif val == '一般':
+                query_list += [f'-typeStatus:*']
+
+        # 下拉選單單選
+        for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+            if val := request.POST.get(i):
+                if i == 'sensitiveCategory' and val == '無':
+                    query_list += [f'-(-{i}:{val} {i}:*)']
+                else:
+                    query_list += [f'{i}:{val}']
+
+        # 下拉選單多選
+        d_list = []
+        if val := request.POST.getlist('datasetName'):
+            for v in val:
+                if DatasetKey.objects.filter(id=v).exists():
+                    d_list.append(DatasetKey.objects.get(id=v).name)
+        
+        if d_list:
+            d_list_str = '" OR "'.join(d_list)
+            query_list += [f'datasetName:("{d_list_str}")']
+
+        r_list = []
+        if val := request.POST.getlist('rightsHolder'):
+            for v in val:
+                r_list.append(v)
+        
+        if r_list:
+            r_list_str = '" OR "'.join(r_list)
+            query_list += [f'rightsHolder:("{r_list_str}")']
+        
+        if request.POST.get('start_date') and request.POST.get('end_date'):
+            try: 
+                start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d')
+                end_date = end_date.isoformat() + 'Z'
+                end_date = end_date.replace('00:00:00','23:59:59')
+                query_list += [f'standardDate:[{start_date} TO {end_date}]']
+            except:
+                pass
+
+        geojson = {}
+        geojson['features'] = ''
+
+        if g_id := request.POST.get('geojson_id'):
+            try:
+                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                    geojson = json.loads(j.read())
+            except:
+                pass
+
+        if circle_radius := request.POST.get('circle_radius'):
+            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
+
+        if g_list := request.POST.getlist('polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+            except:
+                pass
+
+        if geojson['features']:
+            geo_df = gpd.GeoDataFrame.from_features(geojson)
+            g_list = []
+            for i in geo_df.to_wkt()['geometry']:
+                query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
+
+        if val := request.POST.get('name'):
+            val = val.strip()
+            # 去除重複空格
+            val = re.sub(' +', ' ', val)
+            # 去除頭尾空格
+            val = val.strip()
+            # 去除特殊字元
+            # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
+            keyword_reg = ''
+            for j in val:
+                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg = get_variants(keyword_reg)
+            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+            query_str = ' OR '.join( col_list )
+            query_list += [ '(' + query_str + ')' ]
+
+        # 
+
+        map_query_list = query_list + ['-standardOrganismQuantity:0']
+        map_query = { "query": "*:*",
+                "limit": 0,
+                "filter": map_query_list,
+                }
+
+        # print()
+        # map的排除數量為0的資料
+        map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1&facet.field=grid_{grid}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+        # print(map_query)
+        data_c = {}
+        # for grid in [1,5,10,100]:
+        data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+        for i in range(0, len(data_c), 2):
+            current_grid_x = int(data_c[i].split('_')[0])
+            current_grid_y = int(data_c[i].split('_')[1])
+            current_count = data_c[i+1]
+            if current_grid_x != -1 and current_grid_y != -1:
+                borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                tmp = [{
+                    "type": "Feature",
+                    "geometry":{"type":"Polygon","coordinates":[borders]},
+                    "properties": {
+                        "counts": current_count
+                    }
+                }]
+                map_geojson['features'] += tmp
+
+        # response = {
+        #     'map_geojson': map_geojson,
+        # }
+        
+        return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
 
 def get_conditional_records(request):
     if request.method == 'POST':
@@ -2847,11 +3008,10 @@ def get_conditional_records(request):
         sort = request.POST.get('sort', 'asc')
         
         map_geojson = {}
-        map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
-        map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
+        # map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
+        # map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
-
 
         # selected columns
         if request.POST.getlist('selected_col'):
@@ -2872,6 +3032,7 @@ def get_conditional_records(request):
                 query_list += ['-associatedMedia:*']
 
         record_type = request.POST.get('record_type')
+        print(request.POST.get('record_type'))
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
             map_dict = map_collection
@@ -2998,7 +3159,7 @@ def get_conditional_records(request):
                 "filter": map_query_list,
                 "sort":  orderby + ' ' + sort,
                 }
-
+        
         query2 = { "query": "raw_location_rpt:[* TO *]",
                 "offset": 0,
                 "limit": 0,
@@ -3010,23 +3171,21 @@ def get_conditional_records(request):
             query2.pop('filter')
 
 
-        # print()
-        if request.POST.get('from') in ['page','orderby']:
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
-        else:
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+
+        # 新搜尋的才重新query地圖資訊
+        if request.POST.get('from') not in ['page','orderby']:
             # map的排除數量為0的資料
-            map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.pivot=grid_x_1,grid_y_1&facet.pivot=grid_x_5,grid_y_5&facet.pivot=grid_x_10,grid_y_10&facet.pivot=grid_x_100,grid_y_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
-            # print(map_query)
+            map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1&facet.field=grid_1&facet.field=grid_5&facet.field=grid_10&facet.field=grid_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
             data_c = {}
-            for grid in [1,5,10,100]:
-                data_c = map_response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
-                for i in data_c:
-                    current_grid_x = i['value']
-                    for j in i['pivot']:
-                        current_grid_y = j['value']
-                        current_count = j['count']
-                        if current_grid_x != -1 and current_grid_y != -1:
+            for grid in [10, 100]:
+                data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+                for i in range(0, len(data_c), 2):
+                    if len(data_c[i].split('_')) > 1:
+                        current_grid_x = int(data_c[i].split('_')[0])
+                        current_grid_y = int(data_c[i].split('_')[1])
+                        current_count = data_c[i+1]
+                        if current_grid_x > 0 and current_grid_y > 0:
                             borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
                             tmp = [{
                                 "type": "Feature",
@@ -3042,12 +3201,9 @@ def get_conditional_records(request):
             has_sensitive = True
         else:
             has_sensitive = False
-
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
-
-        # print(docs.keys())
 
         for i in docs.index:
             row = docs.iloc[i]

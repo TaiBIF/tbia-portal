@@ -2,6 +2,22 @@
 
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+function getWKTMap(grid) {
+    let div = grid/100;
+    var neLat = map.getBounds().getNorthEast()['lat'] + div*5;
+    var neLng = map.getBounds().getNorthEast()['lng'] + div*5;
+    var swLat = map.getBounds().getSouthWest()['lat'] - div*5;
+    var swLng = map.getBounds().getSouthWest()['lng'] - div*5;
+
+    return "POLYGON((" +
+            swLng + " " + swLat + "," +
+            swLng + " " + neLat + "," +
+            neLng + " " + neLat + "," +
+            neLng + " " + swLat + "," +
+            swLng + " " + swLat +
+            "))";
+}
+
 function getColor(d) {
     return d > 1000 ? '#C50101' :
             d > 500  ? '#D71414' :
@@ -20,7 +36,7 @@ function style(feature) {
         opacity: 0.5,
         color: 'black',
         //dashArray: '3',
-        fillOpacity: 1
+        fillOpacity: 0.7
     };
 }
 
@@ -57,20 +73,123 @@ $('.leaflet-control.leaflet-draw').addClass('d-none')
 
 map.on('zoomend', function zoomendEvent(ev) {
     var currentZoomLevel = ev.target.getZoom()
+    $('.loading_area').removeClass('d-none')
     if (currentZoomLevel < 5) {
         $('[class^=resultG_]').addClass('d-none')
+        if ($('path.resultG_100').length < 1){
+            if (window.grid_100){
+                L.geoJSON(window.grid_100,{className: 'resultG_100', style: style}).addTo(map);
+            }
+        }
         $('.resultG_100').removeClass('d-none')
     } else if (currentZoomLevel < 8){
         $('[class^=resultG_]').addClass('d-none')
         $('.resultG_10').removeClass('d-none')
-    } else if (currentZoomLevel < 9){
+    } else if (currentZoomLevel < 12){
         $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_5').remove()
+        $.ajax({
+            url: "/get_map_grid",
+            data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token ,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
         $('.resultG_5').removeClass('d-none')
     } else {
         $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_1').remove()
+
+        $.ajax({
+            url: "/get_map_grid",
+            data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token ,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
         $('.resultG_1').removeClass('d-none')
     }
+    $('.loading_area').addClass('d-none')
 });
+
+
+map.on('dragend', function zoomendEvent(ev) {
+    var currentZoomLevel = ev.target.getZoom()
+    if (currentZoomLevel >= 8){
+        $('.loading_area').removeClass('d-none')
+        if (currentZoomLevel < 12){
+            $('[class^=resultG_]').addClass('d-none')
+            $('.resultG_5').remove()
+            $.ajax({
+                url: "/get_map_grid",
+                data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token ,
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
+            })
+            .fail(function( xhr, status, errorThrown ) {
+                if (xhr.status==504){
+                    alert('要求連線逾時')
+                } else {
+                    alert('發生未知錯誤！請聯絡管理員')
+                }
+                console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+            $('.resultG_5').removeClass('d-none')
+        } else {
+            $('[class^=resultG_]').addClass('d-none')
+            $('.resultG_1').remove()
+
+            $.ajax({
+                url: "/get_map_grid",
+                data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token ,
+                type: 'POST',
+                dataType : 'json',
+            })
+            .done(function(response) {
+                L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
+            })
+            .fail(function( xhr, status, errorThrown ) {
+                if (xhr.status==504){
+                    alert('要求連線逾時')
+                } else {
+                    alert('發生未知錯誤！請聯絡管理員')
+                }
+                console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+            $('.resultG_1').removeClass('d-none')
+        }    
+        $('.loading_area').addClass('d-none')
+
+    }
+});
+
 
 
 
@@ -387,12 +506,20 @@ function setTable(response, queryString, from, orderby, sort){
         drawnItems.clearLayers();
         $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-        L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1', style: style}).addTo(map);
-        L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5', style: style}).addTo(map);
+        //L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1', style: style}).addTo(map);
+        
+        //L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5', style: style}).addTo(map);
         L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10', style: style}).addTo(map);
-        L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100', style: style}).addTo(map);
+        window.grid_100 = response.map_geojson.grid_100
+        //L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100', style: style}).addTo(map);
         //map.fitBounds(geoResult.getBounds());
 
+        /*
+        window.grid_1 = response.map_geojson.grid_1;
+        window.grid_5 = response.map_geojson.grid_5;
+        window.grid_100 = response.map_geojson.grid_100;
+
+        
         $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
 
         if (map.getZoom() < 5) {
@@ -403,7 +530,7 @@ function setTable(response, queryString, from, orderby, sort){
             $('.resultG_5').removeClass('d-none')
         } else {
             $('.resultG_1').removeClass('d-none')
-        }
+        }*/
     }
 
     // 如果有資料回傳則顯示table

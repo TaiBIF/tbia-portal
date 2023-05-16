@@ -10,7 +10,8 @@ import requests
 
 # x: longtitude, y: latitude
 # grid = [0.01, 0.05, 0.1, 1]
-
+# 1km, 5km, 10km, 100km
+ 
 def convert_grid_to_coor(grid_x, grid_y, grid):
     list_x = np.arange(-180, 180, grid)
     list_y = np.arange(-90, 90, grid)

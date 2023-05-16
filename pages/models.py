@@ -39,6 +39,7 @@ class News(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
     publish_date = models.DateTimeField( null=True, blank=True) # 已轉換成UTF+8
+    order = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = 'news'
 
@@ -130,5 +131,15 @@ class Qa(models.Model):
     type = models.IntegerField(choices=type_choice,blank=True, null=True)
     question = TextField(null=True, blank=True)
     answer = TextField(null=True, blank=True)
+    order = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = 'qa'
+
+
+# qas = Qa.objects.all()
+
+# c = 1
+# for q in Qa.objects.all():
+#     q.order = c
+#     q.save()
+#     c+=1

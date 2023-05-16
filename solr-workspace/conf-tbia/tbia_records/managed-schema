@@ -617,6 +617,11 @@
     <field name="variety" type="string"/>
     <!-- taxa fields end -->
     <!-- map -->
+
+    <field name="grid_1" type="string"/>
+    <field name="grid_5" type="string"/>
+    <field name="grid_10" type="string"/>
+    <field name="grid_100" type="string"/>
     <field name="grid_x_1" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
     <field name="grid_y_1" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
     <field name="grid_x_5" type="pint" uninvertible="false" docValues="true" indexed="true" stored="true"/>
