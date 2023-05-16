@@ -142,3 +142,9 @@ class Taxon(models.Model):
     tribe_c = models.CharField(blank=True, null=True, max_length=10000)
     variety = models.CharField(blank=True, null=True, max_length=10000)
     variety_c = models.CharField(blank=True, null=True, max_length=10000)
+    cites = models.CharField(blank=True, null=True, max_length=100)
+    iucn = models.CharField(blank=True, null=True, max_length=100)
+    redlist = models.CharField(blank=True, null=True, max_length=100)
+    protected = models.CharField(blank=True, null=True, max_length=100)
+    sensitive = models.CharField(blank=True, null=True, max_length=100)
+

@@ -1137,7 +1137,7 @@ def generate_species_csv(req_dict,user_id):
         if d['taxonID']['buckets']:
             df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
     if len(df):
-        subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID'))
+        subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID','cites','iucn','redlist','protected','sensitive'))
         df = df.merge(subset_taxon, how='left')
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
