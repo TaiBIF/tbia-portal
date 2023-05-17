@@ -683,7 +683,6 @@ function vanillaSelectBox(domSelector, options) {
                 return;
             }
 
-            let multiple_click = false;
             if (!self.isMultiple) {
                 self.root.value = choiceValue;
                 self.title.textContent = choiceText;
@@ -703,7 +702,8 @@ function vanillaSelectBox(domSelector, options) {
                     docListener();
                 }
             } else {
-                // 如果是多選的情況
+                // 如果有任何的更動 把preselect拿掉
+                window.has_par = false
 
                 let wasActive = false;
                 if (className) {

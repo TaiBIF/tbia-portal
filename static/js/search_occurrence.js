@@ -346,6 +346,31 @@ function changeAction(){
         translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
     });
 
+
+    // set value 之後再加event 不然會被洗掉
+    $('#rightsHolder').on('change', function(){
+        let res = selectBox.getResult()
+        let h_str = ''
+        for(r of res) { 
+            h_str += 'holder=' + r + '&'
+        }
+        $.ajax({
+            url: "/change_dataset?" + h_str,
+            dataType : 'json',
+        })
+        .done(function(response) {
+            if (response.length > 0){
+                selectBox2.enable()
+                selectBox2.changeTree(response)
+                if (window.has_par){
+                    selectBox2.setValue(window.d_list)
+                }
+           } else {
+                selectBox2.disable()
+            }
+        })
+    })
+
     let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
         translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
     });
@@ -456,32 +481,14 @@ function changeAction(){
             } 
         }
 
+        if (d_list.length > 0){
+            window.d_list = d_list;
+            window.has_par = true;
+        }
         // 這步會把selectBox2洗掉
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
 
-        // set value 之後再加event 不然會被洗掉
-        $('#rightsHolder').on('change', function(){
-            console.log('changed')
-            console.log(selectBox2.getResult())
-            let res = selectBox.getResult()
-            let h_str = ''
-            for(r of res) { 
-                h_str += 'holder=' + r + '&'
-            }
-            $.ajax({
-                url: "/change_dataset?" + h_str,
-                dataType : 'json',
-            })
-            .done(function(response) {
-                if (response.length > 0){
-                    selectBox2.enable()
-                    selectBox2.changeTree(response)
-                } else {
-                    selectBox2.disable()
-                }
-            })
-        })
 
         // 如果有選項的 顏色改為黑色
         let select_length = $(".search_condition_are [id^=btn-group-]").length;
