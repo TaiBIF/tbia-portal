@@ -552,7 +552,9 @@ function setTable(response, queryString, from, orderby, sort){
         <p class="datenum">資料筆數 ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
         <button class="dw downloadData" data-query="${queryString}" data-count="${response.count}">資料下載</button>
         <button class="dw downloadTaxon" data-query="${queryString}">名錄下載</button>
-        <a id="before_sensitive" href="#" class="qmark"></a>
+        <a href="#" class="qmark"></a>
+        <button class="dw downloadSensitive" data-query="${queryString}" data-count="${response.count}">申請單次使用去模糊化敏感資料</button>
+        <a href="#" class="qmark"></a>
         </div>
     </div>
     <div class="result_table flow-x-auto">
@@ -569,14 +571,14 @@ function setTable(response, queryString, from, orderby, sort){
     $("select[name=shownumber]").val(response.limit);
 
     // 如果有敏感資料才有申請按鈕
-    if (response.has_sensitive){
-        $('#before_sensitive').after(`
-        <button class="dw downloadSensitive" data-query="${queryString}" data-count="${response.count}">申請單次使用去模糊化敏感資料</button>
-        <a href="#" class="qmark"></a>`)
-    } else {
-        $('#before_sensitive').after(`
-        <button class="dwd" disabled>申請單次使用去模糊化敏感資料</button>
-        <a href="#" class="qmark"></a>`)
+
+    if (!response.has_sensitive){
+        $('button.downloadSensitive').prop('disabled', true);
+        $('button.downloadSensitive').removeClass('downloadSensitive dw').addClass('dwd')
+    }
+    if (!response.has_species){
+        $('button.downloadTaxon').prop('disabled', true);
+        $('button.downloadTaxon').removeClass('downloadTaxon dw').addClass('dwd')
     }
 
     // table title
@@ -723,7 +725,6 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
     let map_condition = '';
 
     if (new_click & ($('.btnupload p.active').data('type')=='map')){
-        console.log('hello')
         $.ajax({
             url: "/return_geojson_query",
             data: { geojson_text: JSON.stringify(drawnItems.toGeoJSON()),
@@ -733,8 +734,6 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         })
         .done(function(response) {
             window.g_list = response.polygon
-            console.log(window.g_list)
-            console.log(response)
             submitSearch (page, from)
         })
         .fail(function( xhr, status, errorThrown ) {

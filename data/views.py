@@ -1105,6 +1105,8 @@ def generate_species_csv(req_dict,user_id):
 
     # 
 
+    query_list += ['taxonID:*']
+
     query = { "query": "*:*",
             "offset": 0,
             "limit": 0,
@@ -1126,19 +1128,20 @@ def generate_species_csv(req_dict,user_id):
                     }
                 }
             }
-    if not query_list:
-        query.pop('filter')
+    # if not query_list:
+    #     query.pop('filter')
 
+    df = pd.DataFrame(columns=['taxonID','scientificName'])
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-    data = response.json()['facets']['scientificName']['buckets']
-    df = pd.DataFrame(columns=['taxonID','scientificName'])
-    for d in data:
-        if d['taxonID']['buckets']:
-            df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
-    if len(df):
-        subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID','cites','iucn','redlist','protected','sensitive'))
-        df = df.merge(subset_taxon, how='left')
+    if response.json()['facets']['count']:
+        data = response.json()['facets']['scientificName']['buckets']
+        for d in data:
+            if d['taxonID']['buckets']:
+                df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
+        if len(df):
+            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','taxonID','cites','iucn','redlist','protected','sensitive'))
+            df = df.merge(subset_taxon, how='left')
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
@@ -1932,8 +1935,6 @@ def get_focus_cards(request):
         res_c = 0
         result_dict_all = []
         offset = 0
-
-        print(result_df.to_dict(orient='records'))
 
         if len(result_df):
             # result_df = result_df.groupby(['val','matched_value','matched_col'], as_index=False).sum('count').reset_index(drop=True)
@@ -2834,7 +2835,6 @@ def collection_detail(request, id):
 
 
 def get_map_grid(request):
-    print(request.POST)
     if request.method == 'POST':
         grid = int(request.POST.get('grid'))
         map_geojson = {"type":"FeatureCollection","features":[]}
@@ -3024,7 +3024,7 @@ def get_conditional_records(request):
                 query_list += ['-associatedMedia:*']
 
         record_type = request.POST.get('record_type')
-        print(request.POST.get('record_type'))
+
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
             map_dict = map_collection
@@ -3157,10 +3157,17 @@ def get_conditional_records(request):
                 "limit": 0,
                 "filter": query_list,
                 }
-
+        
+        query3 = { "query": "taxonID:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                }
+        
         if not query_list:
             query.pop('filter')
             query2.pop('filter')
+            query3.pop('filter')
 
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
@@ -3188,11 +3195,19 @@ def get_conditional_records(request):
                             }]
                             map_geojson[f'grid_{grid}']['features'] += tmp
         count = response.json()['response']['numFound']
+
         response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
         if response2.json()['response']['numFound'] > 0:
             has_sensitive = True
         else:
             has_sensitive = False
+
+        response3 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query3), headers={'content-type': "application/json" })
+        if response3.json()['response']['numFound'] > 0:
+            has_species = True
+        else:
+            has_species = False
+
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -3270,6 +3285,7 @@ def get_conditional_records(request):
             'map_dict': map_dict,
             'map_geojson': map_geojson,
             'has_sensitive': has_sensitive,
+            'has_species': has_species,
             'limit': limit,
             'orderby': orderby,
             'sort': sort,
