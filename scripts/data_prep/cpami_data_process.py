@@ -97,12 +97,12 @@ def match_name(matching_name,sci_name,original_name,match_stage):
                     # 沒有上階層資訊，就直接取比對結果
                     if len(filtered_rs) == 1:
                         if match_score < 1:
-                            sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.isPreferredName==original_name)),f'stage_{match_stage}'] = 3
+                            sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.sourceVernacularName==original_name)),f'stage_{match_stage}'] = 3
                         else:
-                            sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.isPreferredName==original_name)),f'stage_{match_stage}'] = None
-                        sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.isPreferredName==original_name)),'taxonID'] = filtered_rs[0]['accepted_namecode']
+                            sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.sourceVernacularName==original_name)),f'stage_{match_stage}'] = None
+                        sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.sourceVernacularName==original_name)),'taxonID'] = filtered_rs[0]['accepted_namecode']
                     else:
-                        sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.isPreferredName==original_name)),f'stage_{match_stage}'] = 4
+                        sci_names.loc[((sci_names.sourceScientificName==sci_name)&(sci_names.sourceVernacularName==original_name)),f'stage_{match_stage}'] = 4
 
 
 # 國家公園只有1,3,4階段
@@ -112,13 +112,13 @@ def matching_flow(sci_names):
     for s in sci_names.index:
         s_row = sci_names.iloc[s]
         if s_row.sourceScientificName:
-            match_name(s_row.sourceScientificName,s_row.sourceScientificName,s_row.isPreferredName,1)
+            match_name(s_row.sourceScientificName,s_row.sourceScientificName,s_row.sourceVernacularName,1)
     # ## 第二階段比對 沒有taxonID的 試抓TaiCOL namecode
-    ## 第三階段比對 - isPreferredName 中文比對
+    ## 第三階段比對 - sourceVernacularName 中文比對
     sci_names.loc[sci_names.taxonID=='','match_stage'] = 3
-    no_taxon = sci_names[(sci_names.taxonID=='')&(sci_names.isPreferredName!='')]
+    no_taxon = sci_names[(sci_names.taxonID=='')&(sci_names.sourceVernacularName!='')]
     for nti in no_taxon.index:
-        match_name(sci_names.loc[nti,'isPreferredName'], sci_names.loc[nti,'sourceScientificName'],sci_names.loc[nti,'isPreferredName'],3)
+        match_name(sci_names.loc[nti,'sourceVernacularName'], sci_names.loc[nti,'sourceScientificName'],sci_names.loc[nti,'sourceVernacularName'],3)
     ## 第四階段比對 - scientificName第一個英文單詞 (為了至少可以補階層)
     ## 這個情況要給的是parentTaxonID
     sci_names.loc[sci_names.taxonID=='','match_stage'] = 4
@@ -126,7 +126,7 @@ def matching_flow(sci_names):
     for nti in no_taxon.index:
         if nt_str := sci_names.loc[nti,'sourceScientificName']:
             if len(nt_str.split(' ')) > 1: # 等於0的話代表上面已經對過了
-                match_name(nt_str.split(' ')[0], sci_names.loc[nti,'sourceScientificName'],sci_names.loc[nti,'isPreferredName'],4)
+                match_name(nt_str.split(' ')[0], sci_names.loc[nti,'sourceScientificName'],sci_names.loc[nti,'sourceVernacularName'],4)
     # 確定match_stage
     stage_list = [1,2,3,4,5]
     for i in stage_list[:4]:
@@ -168,9 +168,10 @@ for p in range(0,total_page,10):
     df = df.reset_index(drop=True)
     df = df.replace({np.nan: '', 'NA': ''})
     df = df.drop(columns=['taxonRank'])
-    df = df.rename(columns={'basicOfRecord': 'basisOfRecord', 'created': 'sourceCreated', 'modified': 'sourceModified', 'scientificName': 'sourceScientificName'})
+    df = df.rename(columns={'basicOfRecord': 'basisOfRecord', 'created': 'sourceCreated', 'modified': 'sourceModified', 'scientificName': 'sourceScientificName',
+                            'isPreferredName': 'sourceVernacularName'})
     # 排除學名為空值
-    sci_names = df[['sourceScientificName','isPreferredName',]].drop_duplicates().reset_index(drop=True)
+    sci_names = df[['sourceScientificName','sourceVernacularName']].drop_duplicates().reset_index(drop=True)
     sci_names['taxonID'] = ''
     sci_names['parentTaxonID'] = ''
     sci_names['match_stage'] = 1
@@ -194,11 +195,11 @@ for p in range(0,total_page,10):
         match_parent_taxon_id = sci_names.drop(columns=['taxonID']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
         match_parent_taxon_id['taxonID'] = ''
         match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
-        match_taxon_id[['sourceScientificName','isPreferredName']] = match_taxon_id[['sourceScientificName','isPreferredName']].replace({'': '-999999'})
+        match_taxon_id[['sourceScientificName','sourceVernacularName']] = match_taxon_id[['sourceScientificName','sourceVernacularName']].replace({'': '-999999'})
     if len(match_taxon_id):
-        df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'': '-999999',None:'-999999'})
-        df = df.merge(match_taxon_id, on=['sourceScientificName','isPreferredName'], how='left')
-        df[['sourceScientificName','isPreferredName']] = df[['sourceScientificName','isPreferredName']].replace({'-999999': ''})
+        df[['sourceScientificName','sourceVernacularName']] = df[['sourceScientificName','sourceVernacularName']].replace({'': '-999999',None:'-999999'})
+        df = df.merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName'], how='left')
+        df[['sourceScientificName','sourceVernacularName']] = df[['sourceScientificName','sourceVernacularName']].replace({'-999999': ''})
     df['locality'] = df['locality'].apply(lambda x: locality_map[x] if x in locality_map.keys() else x)
     df['sourceCreated'] = df['sourceCreated'].str.replace('上午', 'AM').str.replace('下午','PM')
     df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
