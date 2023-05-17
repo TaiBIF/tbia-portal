@@ -1180,7 +1180,7 @@ def send_partner_request(request):
 
 def withdraw_partner_request(request):
     user_id = request.POST.get('user_id')
-    User.objects.filter(id=user_id).update(status='withdraw')
+    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False)
     response = {'message': '申請已撤回'}
     return JsonResponse(response, safe=False)
 
