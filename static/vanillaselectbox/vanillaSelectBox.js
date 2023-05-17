@@ -580,10 +580,48 @@ function vanillaSelectBox(domSelector, options) {
             self.drop.style.top = "0px";
             self.button.style.border = "none";
         } else {
-            this.main.addEventListener("click", function (e) {
+
+            
+            this.button.addEventListener("click", function (e) {
                 if (self.isDisabled) return;
-                self.drop.style.visibility = "visible";
-                document.addEventListener("click", docListener);
+                if (self.drop.style.visibility == "visible") {
+                    self.drop.style.visibility = 'hidden'
+                } else {
+                    self.drop.style.visibility = "visible";
+
+                    // 只處理資料集                    
+                    if (self.domSelector=='#datasetName'){
+                        let selected_value = self.getResult()
+                        if (selected_value.length > 0){ 
+                            self.ul.appendChild(self.listElements[0])
+                            for (let i = 0; i < self.listElements.length; i++) {
+                                if(self.listElements[i].className=='active' & self.listElements[i].innerText!='全選'){
+                                    self.ul.appendChild(self.listElements[i])
+                                }
+                            }
+                            for (let i = 0; i < self.listElements.length; i++) {
+                                if(self.listElements[i].className!='active'& self.listElements[i].innerText!='全選'){
+                                    self.ul.appendChild(self.listElements[i])
+                                }
+                            }
+                        }
+                    }
+
+                }
+                document.addEventListener("click", function(e){
+                    document.removeEventListener("click", docListener);
+                    if (self.search) {
+                        self.inputBox.value = "";
+                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                            x.classList.remove("hidden-search");
+                        });
+                    } 
+                    
+                    // 如果按其他地方則關閉dropdown 除了按search zone & 全選
+                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.dataset.text!='全選'){
+                        self.drop.style.visibility = "hidden";
+                    }
+                });
                 e.preventDefault();
                 e.stopPropagation();
                 if (!self.userOptions.stayOpen) {
@@ -666,7 +704,6 @@ function vanillaSelectBox(domSelector, options) {
                 }
             } else {
                 // 如果是多選的情況
-                console.log('hey')
 
                 let wasActive = false;
                 if (className) {
@@ -716,25 +753,16 @@ function vanillaSelectBox(domSelector, options) {
             if (self.userOptions.placeHolder != "" && self.title.textContent == "") {
                 self.title.textContent = self.userOptions.placeHolder;
             }
-            console.log(multiple_click)
-            // 如果不是全選或清除 從這一步去reorder選項順序
-            if( (choiceValue!='all') & multiple_click ){
-                //console.log(self.options)
-                for (let i = 0; i < self.options.length; i++) {
-                    console.log(self.options[i], self.options[i].selected)
-                }
-            }
-
         });
         function docListener() {
             document.removeEventListener("click", docListener);
-            self.drop.style.visibility = "hidden";
             if (self.search) {
                 self.inputBox.value = "";
                 Array.prototype.slice.call(self.listElements).forEach(function (x) {
                     x.classList.remove("hidden-search");
                 });
-            }
+            } 
+            self.drop.style.visibility = "hidden";
         }
     }
     this.init();
