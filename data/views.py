@@ -1142,17 +1142,9 @@ def generate_species_csv(req_dict,user_id):
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
-    csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-    # print(csv_file_path)
-    df.to_csv(csv_file_path, index=None)
-    # df.to_csv(csv_file_path, index=False, compression="zip")
-    commands = f"zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # 等待檔案完成
-    process.communicate()
-
-    # return df
+    compression_options = dict(method='zip', archive_name=f'{download_id}.csv')
+    df.to_csv(zip_file_path, compression=compression_options, index=False)
 
     # 儲存到下載統計
     sq.status = 'pass'

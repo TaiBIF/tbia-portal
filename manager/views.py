@@ -673,7 +673,8 @@ def change_manager_page(request):
         response['header'] = """
                         <tr>
                             <td class="w-20p">類別</td>
-                            <td class="w-60p">問題</td>
+                            <td class="w-10p">排序</td>
+                            <td class="w-50p">問題</td>
                             <td class="w-10p"></td> 
                             <td class="w-10p"></td> 
                         </tr>
@@ -681,6 +682,7 @@ def change_manager_page(request):
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
                 'type': q.get_type_display(),
+                'order': q.order,
                 'question': q.question,
                 'edit': f'<a href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
                 'delete': f'<a href="javascript:;" class="delete_qa" data-qa_id="{q.id}">刪除</a>', 

@@ -152,9 +152,9 @@ def qa(request):
     type = request.GET.get('type')
     limit = 10
     if type:
-        qa_list = Qa.objects.filter(type=type)
+        qa_list = Qa.objects.filter(type=type).order_by('order')
     else:
-        qa_list = Qa.objects.filter(type=2)
+        qa_list = Qa.objects.filter(type=2).order_by('order')
 
     current_page = 0 / limit + 1
     total_page = math.ceil(qa_list.count()/limit)
@@ -176,7 +176,7 @@ def get_qa_list(request):
         
         limit = 10
         offset = limit * (current_page-1)
-        qa = Qa.objects.filter(type=type)
+        qa = Qa.objects.filter(type=type).order_by('order')
 
         total_page = math.ceil(qa.count() / limit)
         page_list = get_page_list(current_page,total_page,3)
