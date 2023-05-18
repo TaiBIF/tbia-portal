@@ -343,3 +343,20 @@ input {
     display: block;
     overflow: hidden
 }
+
+
+#not_show_tech {
+    color: #FFF;
+    min-width: 90px;
+    height: 30px;
+    text-align: center;
+    padding: 0px 10px;
+    border-radius: 15px;
+    margin-right: 10px;
+    font-size: 16px;
+    background-color: #C65454;
+}
+
+#not_show_tech:hover {
+    opacity: 0.7;
+}

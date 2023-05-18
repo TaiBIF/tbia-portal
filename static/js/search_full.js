@@ -438,6 +438,8 @@ function focusComponent(item_class, go_back){
         table_title.classList.add('table_title');
         let map_dict = response.map_dict;
 
+        console.log(response)
+
         for (let i = 0; i < Object.keys(map_dict).length; i++) {
             var this_td = document.createElement("td");
             this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;

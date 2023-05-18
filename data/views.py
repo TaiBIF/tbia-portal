@@ -1739,6 +1739,7 @@ def get_records(request): # 全站搜尋
             "offset": offset,
             "sort":  orderby + ' ' + sort
             }
+
         if not fq_list:
             query.pop('filter')
 
@@ -1754,12 +1755,19 @@ def get_records(request): # 全站搜尋
             if f_name := row.get('formatted_name'):
                 docs.loc[i , 'scientificName'] = f_name
             # date
+            # if date := row.get('standardDate'):
+            #     # date = date[0].replace('T', ' ').replace('Z','')
+            #     docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
+            # else:
+            #     if row.get('eventDate'):
+            #         docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
             if date := row.get('standardDate'):
-                # date = date[0].replace('T', ' ').replace('Z','')
-                docs.loc[i , 'date'] = date[0].replace('T', ' ').replace('Z','')
+                date = date[0].split('T')[0]
+                docs.loc[i , 'eventDate'] = date
             else:
                 if row.get('eventDate'):
-                    docs.loc[i , 'date'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
+                    docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
+
             # 經緯度
             user_id = request.user.id if request.user.id else 0
             if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
@@ -1788,10 +1796,10 @@ def get_records(request): # 全站搜尋
                         docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
-                docs.loc[i , 'quantity'] = int(quantity[0])
+                docs.loc[i , 'organismQuantity'] = int(quantity[0])
             else:
                 if row.get('organismQuantity'):
-                    docs.loc[i , 'quantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+                    docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
 
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -3264,7 +3272,7 @@ def get_conditional_records(request):
                         docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
-                docs.loc[i , 'standardOrganismQuantity'] = int(quantity[0])
+                docs.loc[i , 'organismQuantity'] = int(quantity[0])
             else:
                 if row.get('organismQuantity'):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
