@@ -283,6 +283,8 @@ $( function() {
         $('.addC, [class^=resultG_]').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
             alert('框選失敗！請檢查經緯度格式是否正確')
+        } else if ($('input[name=center_lat]').val() > 90 | $('input[name=center_lat]').val() < -90 | $('input[name=center_lon]').val() > 180 | $('input[name=center_lon]').val() < -180 ) {
+            alert('框選失敗！請檢查經緯度數值是否正確')
         } else {
             try {
                 let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
