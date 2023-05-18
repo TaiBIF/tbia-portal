@@ -691,10 +691,13 @@ def generate_sensitive_csv(query_id):
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+            # 等待檔案完成
+
             commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # 等待檔案完成
             process.communicate()
+
             file_done = True
 
             # 儲存到下載統計
@@ -824,7 +827,7 @@ def generate_download_csv(req_dict,user_id):
 
     # 下拉選單多選
     d_list = []
-    if val := req_dict.get('datasetName'):
+    if val := req_dict.getlist('datasetName'):
         for v in val:
             if DatasetKey.objects.filter(id=v).exists():
                 d_list.append(DatasetKey.objects.get(id=v).name)
@@ -834,7 +837,7 @@ def generate_download_csv(req_dict,user_id):
         query_list += [f'datasetName:("{d_list_str}")']
 
     r_list = []
-    if val := req_dict.get('rightsHolder'):
+    if val := req_dict.getlist('rightsHolder'):
         for v in val:
             r_list.append(v)
     
@@ -865,7 +868,7 @@ def generate_download_csv(req_dict,user_id):
     if circle_radius := req_dict.get('circle_radius'):
         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
-    if g_list := req_dict.get('polygon'):
+    if g_list := req_dict.getlist('polygon'):
         try:
             mp = MultiPolygon(map(wkt.loads, g_list))
             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
@@ -909,7 +912,6 @@ def generate_download_csv(req_dict,user_id):
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
-
     req_dict = dict(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
@@ -940,16 +942,16 @@ def generate_download_csv(req_dict,user_id):
 
     if not query_list:
         query.pop('filter')
-
-
+    
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+    
+    # 等待檔案完成
     commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # 等待檔案完成
     process.communicate()
 
     # 儲存到下載統計
@@ -1015,7 +1017,7 @@ def generate_species_csv(req_dict,user_id):
 
     # 下拉選單多選
     d_list = []
-    if val := req_dict.get('datasetName'):
+    if val := req_dict.getlist('datasetName'):
         for v in val:
             if DatasetKey.objects.filter(id=v).exists():
                 d_list.append(DatasetKey.objects.get(id=v).name)
@@ -1025,7 +1027,7 @@ def generate_species_csv(req_dict,user_id):
         query_list += [f'datasetName:("{d_list_str}")']
 
     r_list = []
-    if val := req_dict.get('rightsHolder'):
+    if val := req_dict.getlist('rightsHolder'):
         for v in val:
             r_list.append(v)
     
@@ -1056,7 +1058,7 @@ def generate_species_csv(req_dict,user_id):
     if circle_radius := req_dict.get('circle_radius'):
         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
-    if g_list := req_dict.get('polygon'):
+    if g_list := req_dict.getlist('polygon'):
         try:
             mp = MultiPolygon(map(wkt.loads, g_list))
             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
@@ -1239,11 +1241,11 @@ def generate_download_csv_full(req_dict,user_id):
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-
-    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # 等待檔案完成
+
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
 
     # 儲存到下載統計

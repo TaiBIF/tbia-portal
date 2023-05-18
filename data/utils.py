@@ -575,6 +575,7 @@ def create_query_display(search_dict,sq_id):
         query += '<b>類別</b>：自然史典藏'
 
     d_list = []
+    r_list = []
     # print(search_dict)
     for k in search_dict.keys():
         if k in map_dict.keys():
@@ -593,6 +594,15 @@ def create_query_display(search_dict,sq_id):
                     for d in list(search_dict[k]):
                         if DatasetKey.objects.filter(id=d).exists():
                             d_list.append(DatasetKey.objects.get(id=d).name)
+            elif k == 'rightsHolder':
+                
+                if isinstance(search_dict[k], str):
+                    if search_dict[k].startswith('['):
+                        r_list = eval(search_dict[k])
+                    else:
+                        r_list.append(search_dict[k])
+                else:
+                    r_list = list(search_dict[k])
             else:
                 query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
         # 地圖搜尋
@@ -615,6 +625,8 @@ def create_query_display(search_dict,sq_id):
             query += f"<br><b>中文名/學名/中文別名</b>：{search_dict.get('name')}" 
         elif k == 'has_image':
             query += f"<br><b>有無影像</b>：{'有' if search_dict.get('has_image') == 'y' else '無'}" 
+    if r_list:
+        query += f"<br><b>來源資料庫</b>：{'、'.join(r_list)}" 
     if d_list:
         query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
     return query

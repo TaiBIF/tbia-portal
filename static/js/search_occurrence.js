@@ -72,6 +72,7 @@ $('.leaflet-control.leaflet-draw').addClass('d-none')
 });
 
 map.on('zoomend', function zoomendEvent(ev) {
+    if (window.grid_100){
     var currentZoomLevel = ev.target.getZoom()
     $('.loading_area').removeClass('d-none')
     if (currentZoomLevel < 5) {
@@ -132,10 +133,12 @@ map.on('zoomend', function zoomendEvent(ev) {
         $('.resultG_1').removeClass('d-none')
     }
     $('.loading_area').addClass('d-none')
+}
 });
 
 
 map.on('dragend', function zoomendEvent(ev) {
+    if (window.grid_100){
     var currentZoomLevel = ev.target.getZoom()
     if (currentZoomLevel >= 8){
         $('.loading_area').removeClass('d-none')
@@ -188,6 +191,7 @@ map.on('dragend', function zoomendEvent(ev) {
         $('.loading_area').addClass('d-none')
 
     }
+}
 });
 
 

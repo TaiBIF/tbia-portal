@@ -72,74 +72,22 @@ $('.leaflet-control.leaflet-draw').addClass('d-none')
 );
 
 map.on('zoomend', function zoomendEvent(ev) {
-    var currentZoomLevel = ev.target.getZoom()
-    $('.loading_area').removeClass('d-none')
-    if (currentZoomLevel < 5) {
-        $('[class^=resultG_]').addClass('d-none')
-        if ($('path.resultG_100').length < 1){
-            if (window.grid_100){
-                L.geoJSON(window.grid_100,{className: 'resultG_100', style: style}).addTo(map);
-            }
-        }
-        $('.resultG_100').removeClass('d-none')
-    } else if (currentZoomLevel < 8){
-        $('[class^=resultG_]').addClass('d-none')
-        $('.resultG_10').removeClass('d-none')
-    } else if (currentZoomLevel < 12){
-        $('[class^=resultG_]').addClass('d-none')
-        $('.resultG_5').remove()
-        $.ajax({
-            url: "/get_map_grid",
-            data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token ,
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            if (xhr.status==504){
-                alert('要求連線逾時')
-            } else {
-                alert('發生未知錯誤！請聯絡管理員')
-            }
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
+    if (window.grid_100){
 
-        $('.resultG_5').removeClass('d-none')
-    } else {
-        $('[class^=resultG_]').addClass('d-none')
-        $('.resultG_1').remove()
-
-        $.ajax({
-            url: "/get_map_grid",
-            data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token ,
-            type: 'POST',
-            dataType : 'json',
-        })
-        .done(function(response) {
-            L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            if (xhr.status==504){
-                alert('要求連線逾時')
-            } else {
-                alert('發生未知錯誤！請聯絡管理員')
-            }
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-        $('.resultG_1').removeClass('d-none')
-    }
-    $('.loading_area').addClass('d-none')
-});
-
-
-map.on('dragend', function zoomendEvent(ev) {
-    var currentZoomLevel = ev.target.getZoom()
-    if (currentZoomLevel >= 8){
+        var currentZoomLevel = ev.target.getZoom()
         $('.loading_area').removeClass('d-none')
-        if (currentZoomLevel < 12){
+        if (currentZoomLevel < 5) {
+            $('[class^=resultG_]').addClass('d-none')
+            if ($('path.resultG_100').length < 1){
+                if (window.grid_100){
+                    L.geoJSON(window.grid_100,{className: 'resultG_100', style: style}).addTo(map);
+                }
+            }
+            $('.resultG_100').removeClass('d-none')
+        } else if (currentZoomLevel < 8){
+            $('[class^=resultG_]').addClass('d-none')
+            $('.resultG_10').removeClass('d-none')
+        } else if (currentZoomLevel < 12){
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_5').remove()
             $.ajax({
@@ -184,9 +132,66 @@ map.on('dragend', function zoomendEvent(ev) {
             })
 
             $('.resultG_1').removeClass('d-none')
-        }    
+        }
         $('.loading_area').addClass('d-none')
+    }
+});
 
+
+map.on('dragend', function zoomendEvent(ev) {
+    if (window.grid_100){
+        var currentZoomLevel = ev.target.getZoom()
+        if (currentZoomLevel >= 8){
+            $('.loading_area').removeClass('d-none')
+            if (currentZoomLevel < 12){
+                $('[class^=resultG_]').addClass('d-none')
+                $('.resultG_5').remove()
+                $.ajax({
+                    url: "/get_map_grid",
+                    data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token ,
+                    type: 'POST',
+                    dataType : 'json',
+                })
+                .done(function(response) {
+                    L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
+                })
+                .fail(function( xhr, status, errorThrown ) {
+                    if (xhr.status==504){
+                        alert('要求連線逾時')
+                    } else {
+                        alert('發生未知錯誤！請聯絡管理員')
+                    }
+                    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+
+                $('.resultG_5').removeClass('d-none')
+            } else {
+                $('[class^=resultG_]').addClass('d-none')
+                $('.resultG_1').remove()
+
+                $.ajax({
+                    url: "/get_map_grid",
+                    data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token ,
+                    type: 'POST',
+                    dataType : 'json',
+                })
+                .done(function(response) {
+                    L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
+                })
+                .fail(function( xhr, status, errorThrown ) {
+                    if (xhr.status==504){
+                        alert('要求連線逾時')
+                    } else {
+                        alert('發生未知錯誤！請聯絡管理員')
+                    }
+                    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+
+                $('.resultG_1').removeClass('d-none')
+            }    
+            $('.loading_area').addClass('d-none')
+
+        }
     }
 });
 
