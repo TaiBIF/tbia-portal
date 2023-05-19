@@ -11,21 +11,23 @@ from data.models import DatasetKey
 
 # x: longtitude, y: latitude
 
+
+
 def convert_grid_to_coor(grid_x, grid_y, list_x, list_y):
   center_x = (list_x[grid_x] + list_x[grid_x+1])/2
   center_y = (list_y[grid_y] + list_y[grid_y+1])/2
   return center_x, center_y
 
 def convert_coor_to_grid(x, y, grid):
-    list_x = np.arange(-180, 180, grid)
-    list_y = np.arange(-90, 90, grid)
+    list_x = np.arange(-180, 180+grid, grid)
+    list_y = np.arange(-90, 90+grid, grid)
     grid_x = bisect.bisect(list_x, x)-1
     grid_y = bisect.bisect(list_y, y)-1
     return grid_x, grid_y
 
 def convert_grid_to_square(grid_x, grid_y, grid):
-    list_x = np.arange(-180, 180, grid)
-    list_y = np.arange(-90, 90, grid)
+    list_x = np.arange(-180, 180+grid, grid)
+    list_y = np.arange(-90, 90+grid, grid)
     x1 = list_x[grid_x]
     x2 = list_x[grid_x+1]
     y1 = list_y[grid_y]
