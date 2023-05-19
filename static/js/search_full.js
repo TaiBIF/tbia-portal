@@ -106,7 +106,15 @@ function changeAction(){
   if ((queryString.split('&').length==1)&&(queryString.startsWith('?keyword='))){
     $('.rightbox_content .item').removeClass('d-none')
     $('.rightbox_content .subitem').addClass('d-none')
+
+    // 結果列表移除
+    $('.record_title').remove()
+    $('.result_inf_top').remove()
+    $('.result_table').remove()
+    $('.page_number').remove()
+
   }
+  
   if (urlParams.get('item_class')){
     focusComponent(urlParams.get('item_class'), true)
   } 
@@ -437,8 +445,6 @@ function focusComponent(item_class, go_back){
         var table_title = document.createElement("tr");
         table_title.classList.add('table_title');
         let map_dict = response.map_dict;
-
-        console.log(response)
 
         for (let i = 0; i < Object.keys(map_dict).length; i++) {
             var this_td = document.createElement("td");
