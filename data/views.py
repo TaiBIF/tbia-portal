@@ -1814,7 +1814,7 @@ def get_records(request): # 全站搜尋
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['common_name_c','scientificName', 'recordedBy', 'rightsHolder']
+            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -3019,7 +3019,7 @@ def get_conditional_records(request):
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['common_name_c','scientificName', 'recordedBy', 'eventDate']
+            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate']
 
         if orderby not in selected_col:
             selected_col.append(orderby)

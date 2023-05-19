@@ -32,9 +32,9 @@ function getColor(d) {
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.counts),
-        weight: 1,
-        opacity: 0.5,
-        color: 'black',
+        weight: 0,
+        //opacity: 0.5,
+        //color: 'black',
         //dashArray: '3',
         fillOpacity: 0.7
     };
@@ -257,7 +257,7 @@ $( function() {
         $('p.active').removeClass('active')
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         drawnItems.clearLayers();
-        $('.addG, .addC').remove()
+        $('.addG, .addC, .addM').remove()
         $('input[name=center_lat]').val('')
         $('input[name=center_lon]').val('')
         $("#circle_radius").val("1").trigger("change");
@@ -265,7 +265,7 @@ $( function() {
         $('input[name=geojson_id]').val('')
     })
 
-    $(".popbg .xx,.popbg .ovhy").click(function (e) {
+    $(".popbg .xx, .popbg .ovhy").click(function (e) {
         if ($(e.target).hasClass("choice-xx") || $(e.target).hasClass("choice-ovhy")) {
             window.not_selected.prop('checked', false);
             window.selected.prop('checked', true);
@@ -292,6 +292,7 @@ $( function() {
                 drawnItems.addLayer(circle);
                 map.fitBounds(circle.getBounds());
                 $(".circle_popup").addClass('d-none')
+
             } catch (e) {
                 alert('框選失敗！請檢查經緯度格式是否正確')
             }
@@ -601,6 +602,11 @@ function setTable(response, queryString, from, orderby, sort){
     table_title.classList.add('table_title');
     let map_dict = response.map_dict;
 
+    var function_td = document.createElement("td");
+    var text = document.createTextNode('功能');
+    function_td.appendChild(text);
+    table_title.appendChild(function_td); 
+
     for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
@@ -614,10 +620,6 @@ function setTable(response, queryString, from, orderby, sort){
         this_td.appendChild(a);
         table_title.appendChild(this_td); 
     }
-    var function_td = document.createElement("td");
-    var text = document.createTextNode('功能');
-    function_td.appendChild(text);
-    table_title.appendChild(function_td); 
 
     $('.record_table').append(table_title);
         
@@ -626,6 +628,8 @@ function setTable(response, queryString, from, orderby, sort){
         let tmp = response.rows[i];
         let tmp_td;
         let tmp_value;
+        let url_mask = "/occurrence/" + tmp.id.toString();
+        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
         for (let j = 0; j < Object.keys(map_dict).length; j++){
             tmp_value = tmp[Object.keys(map_dict)[j]];
             if (tmp_value == null){
@@ -634,8 +638,6 @@ function setTable(response, queryString, from, orderby, sort){
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
             }
         }
-        let url_mask = "/occurrence/" + tmp.id.toString();
-        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
         $('.record_table').append(`<tr>${tmp_td}</tr>`)
     }
 
@@ -764,24 +766,45 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         
         if ($('.btnupload p.active').data('type')){
 
-            map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
 
             if ($('.btnupload p.active').data('type')=='circle'){
-                map_condition += '&' + $.param({'circle_radius': $('select[name=circle_radius]').val(),
-                'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val()})
+                if ($('.addC').length > 0) {
+                    map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+                    map_condition += '&' + $.param({'circle_radius': $('select[name=circle_radius]').val(),
+                        'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val()})
+                } else {
+                    $('.btnupload p.active').removeClass('active')
+                }
+
             } else if ($('.btnupload p.active').data('type')=='map') {
                 if (window['g_list']){
-                    for (let i = 0; i < window['g_list'].length; i++) {
-                        map_condition += '&' + $.param({'polygon': window['g_list'][i]})
+                    if (window['g_list'].length>0){
+                        map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+                        for (let i = 0; i < window['g_list'].length; i++) {
+                            map_condition += '&' + $.param({'polygon': window['g_list'][i]})
+                        }
                     }
                 } else {
                     //let queryString = window.location.search;
                     let urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.getAll('polygon')){
-                        for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
-                            map_condition += '&' + $.param({'polygon':  urlParams.getAll('polygon')[i]})
+                        if (urlParams.getAll('polygon').length > 0){
+                            map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+                            for (let i = 0; i < urlParams.getAll('polygon').length; i++) {
+                                map_condition += '&' + $.param({'polygon':  urlParams.getAll('polygon')[i]})
+                            }
+                        } else {
+                            $('.btnupload p.active').removeClass('active')
                         }
+                    }  else {
+                        $('.btnupload p.active').removeClass('active')
                     }
+                }
+            } else if ($('.btnupload p.active').data('type')=='polygon'){
+                if ($('.addG').length > 0) {
+                    map_condition = '&' + $.param({'geo_type': $('.btnupload p.active').data('type')})
+                } else {
+                    $('.btnupload p.active').removeClass('active')
                 }
             }
         }

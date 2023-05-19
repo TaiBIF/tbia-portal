@@ -20,11 +20,11 @@ function getColor(d) {
 function style(feature) {
   return {
       fillColor: getColor(feature.properties.counts),
-      weight: 1,
-      opacity: 0.5,
-      color: 'black',
+      weight: 0,
+      //opacity: 0.5,
+      //color: 'black',
       //dashArray: '3',
-      fillOpacity: 1
+      fillOpacity: 0.7
   };
 }
 
@@ -446,6 +446,12 @@ function focusComponent(item_class, go_back){
         table_title.classList.add('table_title');
         let map_dict = response.map_dict;
 
+        // append 功能
+        var function_td = document.createElement("td");
+        var text = document.createTextNode('功能');
+        function_td.appendChild(text);
+        table_title.appendChild(function_td); 
+
         for (let i = 0; i < Object.keys(map_dict).length; i++) {
             var this_td = document.createElement("td");
             this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
@@ -459,11 +465,6 @@ function focusComponent(item_class, go_back){
             table_title.appendChild(this_td); 
         }
 
-        // append 功能
-        var function_td = document.createElement("td");
-        var text = document.createTextNode('功能');
-        function_td.appendChild(text);
-        table_title.appendChild(function_td); 
 
         $('.record_table').append(table_title);
 
@@ -472,6 +473,13 @@ function focusComponent(item_class, go_back){
           let tmp = response.rows[i];
           let tmp_td;
           let tmp_value;
+          if (record_type == 'occ'){
+            let url_mask = "/occurrence/" + tmp.id.toString();
+            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+          }else{
+            let url_mask = "/collection/" + tmp.id.toString();
+            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
+          }          
           for (let j = 0; j < Object.keys(map_dict).length; j++){
             tmp_value = tmp[Object.keys(map_dict)[j]];
             // 日期
@@ -483,13 +491,7 @@ function focusComponent(item_class, go_back){
               tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
             }
           }
-          if (record_type == 'occ'){
-            let url_mask = "/occurrence/" + tmp.id.toString();
-            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-          }else{
-            let url_mask = "/collection/" + tmp.id.toString();
-            tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
-          }
+
           $('.record_table').append(
             `<tr>${tmp_td}</tr>`)
         }

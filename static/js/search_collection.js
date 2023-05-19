@@ -615,6 +615,11 @@ function setTable(response, queryString, from, orderby, sort){
     table_title.classList.add('table_title');
     let map_dict = response.map_dict;
 
+    var function_td = document.createElement("td");
+    var text = document.createTextNode('功能');
+    function_td.appendChild(text);
+    table_title.appendChild(function_td); 
+
     for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
@@ -628,10 +633,6 @@ function setTable(response, queryString, from, orderby, sort){
         this_td.appendChild(a);
         table_title.appendChild(this_td); 
     }
-    var function_td = document.createElement("td");
-    var text = document.createTextNode('功能');
-    function_td.appendChild(text);
-    table_title.appendChild(function_td); 
 
     $('.record_table').append(table_title);
     
@@ -640,6 +641,8 @@ function setTable(response, queryString, from, orderby, sort){
         let tmp = response.rows[i];
         let tmp_td;
         let tmp_value;
+        let url_mask = "/collection/" + tmp.id.toString();
+        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
         for (let j = 0; j < Object.keys(map_dict).length; j++){
             tmp_value = tmp[Object.keys(map_dict)[j]];
             if (tmp_value == null){
@@ -648,8 +651,6 @@ function setTable(response, queryString, from, orderby, sort){
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
             }
         }
-        let url_mask = "/collection/" + tmp.id.toString();
-        tmp_td += `<td><a href=${url_mask} class="more" target="_blank">查看</a></td>`
         $('.record_table').append(`<tr>${tmp_td}</tr>`)
     }
 
