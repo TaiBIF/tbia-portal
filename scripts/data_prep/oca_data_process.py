@@ -576,7 +576,7 @@ df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_from_tbn.csv', index=False
 #     print(i)
 #     row = ocas.iloc[i]
 #     url = f"https://iocean.oca.gov.tw/oca_datahub/WebService/GetData.ashx?id={row.file_id}"
-#     payload = {'API-KEY': 'e6864c05-4647-45a4-a2aa-6520e41e49ae'}
+#     payload = {'API-KEY': ''}
 #     headers = {'content-type': 'application/json'}
 #     data = []
 #     r = requests.post(url, data=json.dumps(payload), headers=headers)
