@@ -60,6 +60,8 @@ df = df.reset_index(drop=True)
 #         df = pd.DataFrame(total_data)
 #         df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}.csv")
 
+import math
+
 c = 0
 for d in df.datasetUUID.to_list():
     c += 1
@@ -68,7 +70,8 @@ for d in df.datasetUUID.to_list():
     response = requests.get(request_url)
     data = response.json()
     len_of_data = data['meta']['total'] # 43242
-    j = 0
+    total_page = math.ceil(len_of_data/1000)
+    j = 1
     total_data = data["data"]
     while data['links']['next'] != "":
         print(f"{c} get: {d} {j}")
@@ -77,12 +80,16 @@ for d in df.datasetUUID.to_list():
         data = response.json()
         total_data += data["data"]
         j += 1
-        if j != 0 and j % 100 == 0:
+        if j % 100 == 0:
             df = pd.DataFrame(total_data)
-            df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}_{j/100}.csv")
+            df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}_{j}.csv")
             total_data = []
     df = pd.DataFrame(total_data)
     df.to_csv(f"/tbia-volumes/bucket/gbif_v25/{d}_{j}.csv")
-
+    if j != total_page:
+        break
 
 print('done!')
+
+
+
