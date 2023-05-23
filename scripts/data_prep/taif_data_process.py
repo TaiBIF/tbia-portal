@@ -123,6 +123,13 @@ def matching_flow(sci_names):
     sci_names.loc[(sci_names.match_stage==4)&(sci_names.taxonID==''),'match_stage'] = None
     return sci_names
 
+fields = [f.name for f in Taxon._meta.get_fields()]
+fields.remove('cites')
+fields.remove('iucn')
+fields.remove('redlist')
+fields.remove('protected')
+fields.remove('sensitive')
+
 
 group = 'taif'
 url = f"https://taifdb.tfri.gov.tw/apis/data.php?limit=1"
@@ -181,7 +188,7 @@ for p in range(0,total_page,10):
     sci_names['stage_5'] = None
     sci_names = matching_flow(sci_names)
     taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
-    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
+    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values(*fields)
     final_taxon = pd.DataFrame(final_taxon)
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])
@@ -295,6 +302,7 @@ copy (
 with connection.cursor() as cursor:
     with open(f'/tbia-volumes/media/match_log/{group}_match_log.csv', 'w+') as fp:
         cursor.copy_expert(sql, fp)
+
 
 import subprocess
 zip_file_path = f'/tbia-volumes/media/match_log/{group}_match_log.zip'
