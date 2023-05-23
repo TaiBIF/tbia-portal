@@ -2,6 +2,7 @@
 
 import requests
 import pandas as pd
+from conf.settings import env
 
 request_url = "https://www.tbn.org.tw/api/v25/dataset?modified=1000-01-01"
 response = requests.get(request_url)
@@ -62,11 +63,13 @@ df = df.reset_index(drop=True)
 
 import math
 
+# 直接取限制型資料
+
 c = 0
 for d in df.datasetUUID.to_list():
     c += 1
     print(f"{c} get: {d}")
-    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000&apikey={env('TBN_KEY')}"
     response = requests.get(request_url)
     data = response.json()
     len_of_data = data['meta']['total'] # 43242
