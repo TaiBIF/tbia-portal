@@ -246,21 +246,7 @@ CSP_STYLE_SRC = ["'self'",
     "https://cdn.quilljs.com/1.3.6/quill.snow.css"
 ]
 
-CSP_IMG_SRC = ("'self'",
-    "https://code.jquery.com/ui/1.13.0/themes/base/images/",
-    "data: http://www.w3.org/2000/svg",
-    "https://a.tile.osm.org/",
-    "https://b.tile.osm.org/",
-    "https://c.tile.osm.org/",
-    "https://www.googletagmanager.com/",
-    "https://www.tbn.org.tw/sites/ozop/files/",
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
-    "https://data.taieol.tw/",
-    "https://fact.tfri.gov.tw/",
-    "https://hast.biodiv.tw/"
-) 
+CSP_IMG_SRC = ("*") 
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
