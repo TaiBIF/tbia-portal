@@ -484,36 +484,36 @@ for f in files:
             }
         row_list.append(tmp)
     final = pd.DataFrame(row_list)
-    # GBIF無限制型資料
+    final['dataGeneralizations'] = False
     final = final.replace({nan: None})
     final.scientificNameID = final.scientificNameID.apply(lambda x: str(x).replace('None', '').replace('.0', ''))
     final['group'] = group
-    final['grid_x_1'] = -1
-    final['grid_y_1'] = -1
-    final['grid_x_5'] = -1
-    final['grid_y_5'] = -1
-    final['grid_x_10'] = -1
-    final['grid_y_10'] = -1
-    final['grid_x_100'] = -1
-    final['grid_y_100'] = -1
-    # for i in range(len(df)):
+    final['grid_1'] = '-1_-1'
+    final['grid_5'] = '-1_-1'
+    final['grid_10'] = '-1_-1'
+    final['grid_100'] = '-1_-1'
+    final.reset_index(drop=True)
     for i in range(len(final)):
         # print(i)
         if i % 1000 == 0:
             print(i)
         if not pd.isna(final.iloc[i].standardLatitude) and not pd.isna(final.iloc[i].standardLongitude):
             grid_x, grid_y = convert_coor_to_grid(final.iloc[i].standardLongitude, final.iloc[i].standardLatitude, 0.01)
-            final.iloc[i, final.columns.get_loc('grid_x_1')] = grid_x
-            final.iloc[i, final.columns.get_loc('grid_y_1')] = grid_y
+            # final.loc[i, 'grid_1'] = str(int(grid_x)) + '_' + str(int(grid_y))
+            final.iloc[i, final.columns.get_loc('grid_1')] = str(int(grid_x)) + '_' + str(int(grid_y))
+            # final.iloc[i, final.columns.get_loc('grid_y_1')] = grid_y
             grid_x, grid_y = convert_coor_to_grid(final.iloc[i].standardLongitude, final.iloc[i].standardLatitude, 0.05)
-            final.iloc[i, final.columns.get_loc('grid_x_5')] = grid_x
-            final.iloc[i, final.columns.get_loc('grid_y_5')] = grid_y
+            final.iloc[i, final.columns.get_loc('grid_5')] = str(int(grid_x)) + '_' + str(int(grid_y))
+            # final.iloc[i, final.columns.get_loc('grid_x_5')] = grid_x
+            # final.iloc[i, final.columns.get_loc('grid_y_5')] = grid_y
             grid_x, grid_y = convert_coor_to_grid(final.iloc[i].standardLongitude, final.iloc[i].standardLatitude, 0.1)
-            final.iloc[i, final.columns.get_loc('grid_x_10')] = grid_x
-            final.iloc[i, final.columns.get_loc('grid_y_10')] = grid_y
+            final.iloc[i, final.columns.get_loc('grid_10')] = str(int(grid_x)) + '_' + str(int(grid_y))
+            # final.iloc[i, final.columns.get_loc('grid_x_10')] = grid_x
+            # final.iloc[i, final.columns.get_loc('grid_y_10')] = grid_y
             grid_x, grid_y = convert_coor_to_grid(final.iloc[i].standardLongitude, final.iloc[i].standardLatitude, 1)
-            final.iloc[i, final.columns.get_loc('grid_x_100')] = grid_x
-            final.iloc[i, final.columns.get_loc('grid_y_100')] = grid_y
+            final.iloc[i, final.columns.get_loc('grid_100')] = str(int(grid_x)) + '_' + str(int(grid_y))
+            # final.iloc[i, final.columns.get_loc('grid_x_100')] = grid_x
+            # final.iloc[i, final.columns.get_loc('grid_y_100')] = grid_y
     # 串回taxon資訊  
     final = final.replace({nan: None})
     if len(match_taxon_id):
