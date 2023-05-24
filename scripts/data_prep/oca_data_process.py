@@ -483,14 +483,15 @@ df = df.drop(columns=['taxonUUID','taiCOLNameCode'],errors='ignore')
 
 df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
 df['recordType'] = 'occ'
-df['created'] = datetime.now()
-df['modified'] = datetime.now()
 df['recordedBy'] = df['recordedBy'].apply(lambda x: x.strip() if x else None)
 
 df = df.rename(columns={'geodeticDatum': 'verbatimSRS', 'decimalLongitude': 'verbatimLongitude', 'decimalLatitude': 'verbatimLatitude',
                          'eventPlaceAdminarea': 'locality', 'modified': 'sourceModified',
                          'originalVernacularName': 'originalScientificName', 'scientificName': 'sourceScientificName',
                          'vernacularName': 'sourceVernacularName'})
+
+df['created'] = datetime.now()
+df['modified'] = datetime.now()
 
 df = df.drop(columns=
 ['datasetPublisher','datasetAuthor','identifiedBy','identificationVerificationStatus','eventTime','year','month','day',
