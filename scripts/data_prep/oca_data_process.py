@@ -468,7 +468,7 @@ for i in df.index:
         scientificNameID = int(row.scientificNameID)
     except:
         scientificNameID = row.scientificNameID
-    df.loc[i, 'location_rpt'] = scientificNameID
+    df.loc[i, 'scientificNameID'] = scientificNameID
     df.loc[i, 'id'] = bson.objectid.ObjectId()
 
 # 串回taxon資訊  
