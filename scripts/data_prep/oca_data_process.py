@@ -344,8 +344,8 @@ total_data = []
 for d in dataset.datasetUUID:
     print('get:' + d)
     # 直接取限制型資料
-    # request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000&apikey={env('TBN_KEY')}"
-    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
+    request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000&apikey={env('TBN_KEY')}"
+    # request_url = f"https://www.tbn.org.tw/api/v25/occurrence?datasetUUID={d}&limit=1000"
     response = requests.get(request_url)
     data = response.json()
     if len_of_data := data['meta'].get('total'):
@@ -409,6 +409,7 @@ if len(final_taxon):
     match_parent_taxon_id['taxonID'] = ''
     match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
     match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999'})
+
 df = df.replace({nan: None, '': None, "": None, "\'\'": None, '\"\"': None})
 df['grid_1'] = '-1_-1'
 df['grid_5'] = '-1_-1'
@@ -487,7 +488,7 @@ df['recordedBy'] = df['recordedBy'].apply(lambda x: x.strip() if x else None)
 
 df = df.rename(columns={'geodeticDatum': 'verbatimSRS', 'decimalLongitude': 'verbatimLongitude', 'decimalLatitude': 'verbatimLatitude',
                          'eventPlaceAdminarea': 'locality', 'modified': 'sourceModified',
-                         'originalVernacularName': 'originalScientificName', 'scientificName': 'sourceScientificName',
+                         'originalVernacularName': 'originalScientificName',
                          'vernacularName': 'sourceVernacularName'})
 
 df['created'] = datetime.now()
