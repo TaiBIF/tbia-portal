@@ -19,6 +19,7 @@ import glob
 from data.models import Namecode, Taxon, DatasetKey
 from sqlalchemy import create_engine
 import psycopg2
+import math
 
 from scripts.data_prep.utils import *
 
@@ -132,7 +133,10 @@ c = 0
 if response.status_code == 200:
     result = response.json()
     total_page = result['Meta']['TotalPages']
-    data += result.get('Data')
+    # data += result.get('Data')
+
+
+
 
 for p in range(0,total_page,10):
     print(p)
@@ -193,14 +197,12 @@ for p in range(0,total_page,10):
     df['rightsHolder'] = '生態調查資料庫系統'
     df['created'] = datetime.now()
     df['modified'] = datetime.now()
-    df['grid_x_1'] = -1
-    df['grid_y_1'] = -1
-    df['grid_x_5'] = -1
-    df['grid_y_5'] = -1
-    df['grid_x_10'] = -1
-    df['grid_y_10'] = -1
-    df['grid_x_100'] = -1
-    df['grid_y_100'] = -1
+    df['standardLongitude'] = None
+    df['standardLatitude'] = None
+    df['grid_1'] = '-1_-1'
+    df['grid_5'] = '-1_-1'
+    df['grid_10'] = '-1_-1'
+    df['grid_100'] = '-1_-1'
     for i in df.index:
         df.loc[i,'id'] = bson.objectid.ObjectId()
         row = df.iloc[i]
@@ -208,30 +210,58 @@ for p in range(0,total_page,10):
             df.loc[i,'recordType'] = 'col'
         else:
             df.loc[i,'recordType'] = 'occ'
-        standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
-        if standardLon and standardLat:
-            df.loc[i,'standardLongitude'] = standardLon
-            df.loc[i,'standardLatitude'] = standardLat
-            df.loc[i,'location_rpt'] = location_rpt
+        # 2023-05-24 改成直接回傳未模糊化座標
+        try:
+            coordinatePrecision = float(row.coordinatePrecision)
+        except:
+            coordinatePrecision = None
+        if row.dataGeneralizations and coordinatePrecision:
+            standardRawLon, standardRawLat, location_raw_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
+            if standardRawLon and standardRawLat:
+                # 座標模糊化
+                ten_times = math.pow(10, len(str(coordinatePrecision).split('.')[-1]))
+                fuzzy_lon = math.floor(float(row.verbatimLongitude)*ten_times)/ten_times
+                fuzzy_lat = math.floor(float(row.verbatimLatitude)*ten_times)/ten_times
+                df.loc[i, 'coordinatePrecision'] = coordinatePrecision
+                # 原始資料改存Raw
+                df.loc[i, 'verbatimRawLatitude'] = float(row.verbatimLatitude)
+                df.loc[i, 'verbatimRawLongitude'] = float(row.verbatimLongitude)
+                df.loc[i, 'location_raw_rpt'] = location_raw_rpt
+                df.loc[i, 'standardRawLongitude'] = standardRawLon
+                df.loc[i, 'standardRawLatitude'] = standardRawLat
+                standardLon, standardLat, location_rpt = standardize_coor(fuzzy_lon, fuzzy_lat)
+                df.loc[i, 'verbatimLongitude'] = fuzzy_lon
+                df.loc[i, 'verbatimLatitude'] = fuzzy_lat                
+                df.loc[i, 'location_rpt'] = location_rpt
+                df.loc[i, 'standardLongitude'] = standardLon
+                df.loc[i, 'standardLatitude'] = standardLat
+        else:
+            standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
+            if standardLon and standardLat:
+                df.loc[i, 'location_rpt'] = location_rpt
+                df.loc[i, 'standardLongitude'] = standardLon
+                df.loc[i, 'standardLatitude'] = standardLat
+        if df.loc[i].get('standardLongitude') and df.loc[i].get('standardLatitude'):
+        # if standardLon and standardLat:
+        #     df.loc[i,'standardLongitude'] = standardLon
+        #     df.loc[i,'standardLatitude'] = standardLat
+        #     df.loc[i,'location_rpt'] = location_rpt
             df.loc[i,'verbatimSRS'] = 'WGS84'
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
-            df.loc[i, 'grid_x_1'] = grid_x
-            df.loc[i, 'grid_y_1'] = grid_y
+            df.loc[i, 'grid_1'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
-            df.loc[i, 'grid_x_5'] = grid_x
-            df.loc[i, 'grid_y_5'] = grid_y
+            df.loc[i, 'grid_5'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
-            df.loc[i, 'grid_x_10'] = grid_x
-            df.loc[i, 'grid_y_10'] = grid_y
+            df.loc[i, 'grid_10'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
-            df.loc[i, 'grid_x_100'] = grid_x
-            df.loc[i, 'grid_y_100'] = grid_y
+            df.loc[i, 'grid_100'] = str(int(grid_x)) + '_' + str(int(grid_y))
         try:
             standardOrganismQuantity = int(row.organismQuantity)
             df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
         except:
             pass
     # df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
+    df = df.replace({np.nan: '', 'NA': ''})
     ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
     for r in ds_name:
         if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
