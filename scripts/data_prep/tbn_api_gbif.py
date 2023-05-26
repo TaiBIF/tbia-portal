@@ -64,6 +64,7 @@ df = df.reset_index(drop=True)
 import math
 
 # 直接取限制型資料
+from urllib.parse import urlparse, parse_qs
 
 c = 0
 for d in df.datasetUUID.to_list():
@@ -75,10 +76,13 @@ for d in df.datasetUUID.to_list():
     len_of_data = data['meta']['total'] # 43242
     total_page = math.ceil(len_of_data/1000)
     j = 1
+    minID = ''
     total_data = data["data"]
     while data['links']['next'] != "":
-        print(f"{c} get: {d} {j}")
+        print(f"{c} get: {d} {j} {minID}")
         request_url = data['links']['next']
+        p_url = urlparse(request_url)
+        minID = parse_qs(p_url.query).get('minID')
         response = requests.get(request_url)
         data = response.json()
         total_data += data["data"]
