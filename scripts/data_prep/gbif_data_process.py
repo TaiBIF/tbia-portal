@@ -466,10 +466,6 @@ for f in files:
             'standardLongitude' : standardLon,
             'standardLatitude' : standardLat,
             'coordinateUncertaintyInMeters' : coordinateUncertaintyInMeters,
-            'dataGeneralizations' : row.dataGeneralizations,
-
-            # TODO coordinatePrecision應該也要拿掉
-            'coordinatePrecision' : row.coordinatePrecision,
             'sensitiveCategory' : row.sensitiveCategory,
             'locality' : row.eventPlaceAdminarea,
             'organismQuantity' : row.organismQuantity if row.individualCount in [None,'',nan] else row.individualCount,
@@ -496,6 +492,7 @@ for f in files:
             }
         row_list.append(tmp)
     final = pd.DataFrame(row_list)
+    # GBIF沒有模糊化的資料
     final['dataGeneralizations'] = False
     final = final.replace({nan: None})
     final.scientificNameID = final.scientificNameID.apply(lambda x: str(x).replace('None', '').replace('.0', ''))
@@ -575,8 +572,7 @@ for f in files:
     conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
-    # final = final.rename(columns={'taxon_name_id': 'scientificNameID'})
-    final = final.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID','taxon_name_id'],errors='ignore')
+    final = final.drop(columns=['originalVernacularName','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID','taxon_name_id'],errors='ignore')
     final.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{f}', index=False)
 
 
