@@ -23,6 +23,16 @@ import math
 
 from scripts.data_prep.utils import *
 
+
+# 拿掉保育資訊
+fields = [f.name for f in Taxon._meta.get_fields()]
+fields.remove('cites')
+fields.remove('iucn')
+fields.remove('redlist')
+fields.remove('protected')
+fields.remove('sensitive')
+
+
 issue_map = {
     1: 'higherrank',
     2: 'none',
@@ -122,14 +132,6 @@ def matching_flow(sci_names):
             sci_names.loc[sci_names.match_stage==i,f'stage_{stg}'] = None
     sci_names.loc[(sci_names.match_stage==4)&(sci_names.taxonID==''),'match_stage'] = None
     return sci_names
-
-fields = [f.name for f in Taxon._meta.get_fields()]
-fields.remove('cites')
-fields.remove('iucn')
-fields.remove('redlist')
-fields.remove('protected')
-fields.remove('sensitive')
-
 
 group = 'taif'
 url = f"https://taifdb.tfri.gov.tw/apis/data.php?limit=1"

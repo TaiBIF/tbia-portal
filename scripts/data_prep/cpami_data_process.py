@@ -22,6 +22,16 @@ import psycopg2
 
 from scripts.data_prep.utils import *
 
+
+# 拿掉保育資訊
+fields = [f.name for f in Taxon._meta.get_fields()]
+fields.remove('cites')
+fields.remove('iucn')
+fields.remove('redlist')
+fields.remove('protected')
+fields.remove('sensitive')
+
+
 issue_map = {
     1: 'higherrank',
     2: 'none',
@@ -184,7 +194,7 @@ for p in range(0,total_page,10):
     sci_names['stage_5'] = None
     sci_names = matching_flow(sci_names)
     taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
-    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
+    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values(*fields)
     final_taxon = pd.DataFrame(final_taxon)
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])

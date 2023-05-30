@@ -22,6 +22,16 @@ import psycopg2
 
 from scripts.data_prep.utils import *
 
+
+# 拿掉保育資訊
+fields = [f.name for f in Taxon._meta.get_fields()]
+fields.remove('cites')
+fields.remove('iucn')
+fields.remove('redlist')
+fields.remove('protected')
+fields.remove('sensitive')
+
+
 issue_map = {
     1: 'higherrank',
     2: 'none',
@@ -343,7 +353,7 @@ for f in files:
     sci_names = matching_flow(sci_names)
     # 比對流程結束後 統一串階層
     taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
-    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values()
+    final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values(*fields)
     final_taxon = pd.DataFrame(final_taxon)
     if len(final_taxon):
         final_taxon = final_taxon.drop(columns=['id'])
@@ -457,6 +467,8 @@ for f in files:
             'standardLatitude' : standardLat,
             'coordinateUncertaintyInMeters' : coordinateUncertaintyInMeters,
             'dataGeneralizations' : row.dataGeneralizations,
+
+            # TODO coordinatePrecision應該也要拿掉
             'coordinatePrecision' : row.coordinatePrecision,
             'sensitiveCategory' : row.sensitiveCategory,
             'locality' : row.eventPlaceAdminarea,
