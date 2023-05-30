@@ -218,7 +218,7 @@ def change_manager_page(request):
             # 審查意見
             comment = []
 
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
                 if sdr.partner:
                     partner_name = sdr.partner.select_title 
                 else:
@@ -387,7 +387,7 @@ def change_manager_page(request):
                             <td class="w-5p">狀態</td>
                         </tr>'''
 
-        for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[offset:offset+10]:
+        for s in SensitiveDataResponse.objects.exclude(is_transferred=True, partner_id__isnull=True).order_by('-id')[offset:offset+10]:
         # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
                 date = s.created + timedelta(hours=8)
@@ -404,7 +404,7 @@ def change_manager_page(request):
             # 審查意見
             comment = []
 
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
                 if sdr.partner:
                     partner_name = sdr.partner.select_title 
                 else:
@@ -442,7 +442,6 @@ def change_manager_page(request):
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict,r.id)
                                 
-                function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }'"
 
                 a = f'<a class="pointer showRequest" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
 
@@ -803,7 +802,7 @@ def manager(request):
         # 審查意見
         comment = []
 
-        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
             if sdr.partner:
                 partner_name = sdr.partner.select_title 
             else:
@@ -1284,8 +1283,8 @@ def get_request_detail(request):
         if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
     if sdr_id := request.GET.get('sdr_id'):
-        if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
-            review = SensitiveDataResponse.objects.filter(id=sdr_id).values()[0]
+        if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
+            review = SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).values()[0]
     return JsonResponse({'detail': detail, 'review': review}, safe=False)
 
 
@@ -1544,7 +1543,7 @@ def system_info(request):
         # 審查意見
         comment = []
 
-        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id):
+        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
             if sdr.partner:
                 partner_name = sdr.partner.select_title 
             else:

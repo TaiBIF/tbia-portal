@@ -7,7 +7,7 @@ import numpy as np
 import bisect
 import os
 from os.path import exists
-from data.models import DatasetKey
+from data.models import DatasetKey, Taxon
 
 # x: longtitude, y: latitude
 
@@ -322,6 +322,7 @@ map_occurrence = {
     'morph_c'	:'形態型中文名',
     'aberration_c'	:'異常個體中文名',
     'hybrid-formula_c'	:'雜交組合中文名',
+    'taxonGroup'	:'較高分類群',
     'scientificName': '學名',
     'common_name_c': '中文名', 
     'alternative_name_c': '中文別名', 
@@ -450,6 +451,7 @@ map_collection = {
     'morph_c'	:'形態型中文名',
     'aberration_c'	:'異常個體中文名',
     'hybrid-formula_c'	:'雜交組合中文名',
+    'taxonGroup'	:'較高分類群',
     'scientificName': '學名', 
     'common_name_c': '中文名', 
     'alternative_name_c': '中文別名', 
@@ -600,7 +602,6 @@ def create_query_display(search_dict,sq_id):
                         if DatasetKey.objects.filter(id=d).exists():
                             d_list.append(DatasetKey.objects.get(id=d).name)
             elif k == 'rightsHolder':
-                
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
                         r_list = eval(search_dict[k])
@@ -608,6 +609,10 @@ def create_query_display(search_dict,sq_id):
                         r_list.append(search_dict[k])
                 else:
                     r_list = list(search_dict[k])
+            elif k == 'taxonGroup':
+                if Taxon.objects.filter(taxonID=search_dict[k]).exists():
+                    taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
+                    query += f"<br><b>{map_dict[k]}</b>：{taxon_obj.scientificName} {taxon_obj.common_name_c if taxon_obj.common_name_c  else ''}"
             else:
                 query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
         # 地圖搜尋

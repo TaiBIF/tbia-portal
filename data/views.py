@@ -117,7 +117,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        # print('submit_sensitive_request', req_dict)
+        print('submit_sensitive_request', req_dict)
         not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
         for nq in not_query:
             if nq in req_dict.keys():
@@ -187,7 +187,7 @@ def submit_sensitive_request(request):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+                    query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
 
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
@@ -209,18 +209,38 @@ def submit_sensitive_request(request):
             # 下拉選單多選
             d_list = []
             if val := req_dict.get('datasetName'):
-                for v in val:
-                    if DatasetKey.objects.filter(id=v).exists():
-                        d_list.append(DatasetKey.objects.get(id=v).name)
-            
+                # for d in val:
+                #         if DatasetKey.objects.filter(id=d).exists():
+                #             d_list.append(DatasetKey.objects.get(id=d).name)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        for d in eval(val):
+                            if DatasetKey.objects.filter(id=d).exists():
+                                d_list.append(DatasetKey.objects.get(id=d).name)
+                    else:
+                        if DatasetKey.objects.filter(id=val).exists():
+                            d_list.append(DatasetKey.objects.get(id=val).name)
+                else:
+                    for d in list(val):
+                        if DatasetKey.objects.filter(id=d).exists():
+                            d_list.append(DatasetKey.objects.get(id=d).name)
+
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
                 query_list += [f'datasetName:("{d_list_str}")']
 
             r_list = []
+
             if val := req_dict.get('rightsHolder'):
-                for v in val:
-                    r_list.append(v)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        r_list = eval(val)
+                    else:
+                        r_list.append(val)
+                else:
+                    r_list = list(val)
+                # for v in val:
+                #     r_list.append(v)
             
             if r_list:
                 r_list_str = '" OR "'.join(r_list)
@@ -294,6 +314,8 @@ def submit_sensitive_request(request):
                 query_list += [ '(' + query_str + ')' ]
             # 
             # if query_list and query_list != ['recordType:col']:
+
+            print(query_list)
 
             query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
@@ -416,7 +438,7 @@ def transfer_sensitive_response(request):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+                    query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
             
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
@@ -438,9 +460,21 @@ def transfer_sensitive_response(request):
             # 下拉選單多選
             d_list = []
             if val := req_dict.get('datasetName'):
-                for v in val:
-                    if DatasetKey.objects.filter(id=v).exists():
-                        d_list.append(DatasetKey.objects.get(id=v).name)
+                # for d in val:
+                #         if DatasetKey.objects.filter(id=d).exists():
+                #             d_list.append(DatasetKey.objects.get(id=d).name)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        for d in eval(val):
+                            if DatasetKey.objects.filter(id=d).exists():
+                                d_list.append(DatasetKey.objects.get(id=d).name)
+                    else:
+                        if DatasetKey.objects.filter(id=val).exists():
+                            d_list.append(DatasetKey.objects.get(id=val).name)
+                else:
+                    for d in list(val):
+                        if DatasetKey.objects.filter(id=d).exists():
+                            d_list.append(DatasetKey.objects.get(id=d).name)
             
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
@@ -448,8 +482,13 @@ def transfer_sensitive_response(request):
 
             r_list = []
             if val := req_dict.get('rightsHolder'):
-                for v in val:
-                    r_list.append(v)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        r_list = eval(val)
+                    else:
+                        r_list.append(val)
+                else:
+                    r_list = list(val)
             
             if r_list:
                 r_list_str = '" OR "'.join(r_list)
@@ -509,6 +548,8 @@ def transfer_sensitive_response(request):
             # 
             # if query_list and query_list != ['recordType:col']:
 
+            print(query_list)
+
             query = { "query": "*:*",
                     "offset": 0,
                     "limit": 0,
@@ -563,7 +604,7 @@ def generate_sensitive_csv(query_id):
         process = None
         file_done = False
 
-        if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exists():
+        if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
         #     group = ['*']
         # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
         #     group = []
@@ -612,7 +653,7 @@ def generate_sensitive_csv(query_id):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+                    query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
 
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
@@ -634,9 +675,21 @@ def generate_sensitive_csv(query_id):
             # 下拉選單多選
             d_list = []
             if val := req_dict.get('datasetName'):
-                for v in val:
-                    if DatasetKey.objects.filter(id=v).exists():
-                        d_list.append(DatasetKey.objects.get(id=v).name)
+                # for d in val:
+                #         if DatasetKey.objects.filter(id=d).exists():
+                #             d_list.append(DatasetKey.objects.get(id=d).name)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        for d in eval(val):
+                            if DatasetKey.objects.filter(id=d).exists():
+                                d_list.append(DatasetKey.objects.get(id=d).name)
+                    else:
+                        if DatasetKey.objects.filter(id=val).exists():
+                            d_list.append(DatasetKey.objects.get(id=val).name)
+                else:
+                    for d in list(val):
+                        if DatasetKey.objects.filter(id=d).exists():
+                            d_list.append(DatasetKey.objects.get(id=d).name)
             
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
@@ -644,8 +697,13 @@ def generate_sensitive_csv(query_id):
 
             r_list = []
             if val := req_dict.get('rightsHolder'):
-                for v in val:
-                    r_list.append(v)
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        r_list = eval(val)
+                    else:
+                        r_list.append(val)
+                else:
+                    r_list = list(val)
             
             if r_list:
                 r_list_str = '" OR "'.join(r_list)
@@ -852,7 +910,7 @@ def generate_download_csv(req_dict,user_id):
         if Taxon.objects.filter(taxonID=val).exists():
             higher_rank = Taxon.objects.get(taxonID=val).taxonRank
             higher_name = Taxon.objects.get(taxonID=val).scientificName
-            query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+            query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
 
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
@@ -1053,7 +1111,7 @@ def generate_species_csv(req_dict,user_id):
         if Taxon.objects.filter(taxonID=val).exists():
             higher_rank = Taxon.objects.get(taxonID=val).taxonRank
             higher_name = Taxon.objects.get(taxonID=val).scientificName
-            query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+            query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
 
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
@@ -2943,7 +3001,7 @@ def get_map_grid(request):
             if Taxon.objects.filter(taxonID=val).exists():
                 higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                 higher_name = Taxon.objects.get(taxonID=val).scientificName
-                query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
 
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
@@ -3131,7 +3189,7 @@ def get_conditional_records(request):
             if Taxon.objects.filter(taxonID=val).exists():
                 higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                 higher_name = Taxon.objects.get(taxonID=val).scientificName
-                query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
         
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
