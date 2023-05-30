@@ -16,6 +16,18 @@ class Namecode(models.Model):
     taieol_id = models.CharField(max_length=100, blank=True, null=True)
 
 
+# for taxonGroup autocomplete
+class Name(models.Model):
+    # 自己的name? 接受的name?
+    name = models.CharField(blank=True, null=True, max_length=10000)
+    accepted_name = models.CharField(blank=True, null=True, max_length=10000)
+    # name_author = models.CharField(blank=True, null=True, max_length=10000)
+    accepted_common_name_c = models.CharField(blank=True, null=True, max_length=10000)
+    accepted_alternative_name_c = models.CharField(blank=True, null=True, max_length=10000)
+    name_status = models.CharField(blank=True, null=True, max_length=20)
+    taxonID = models.CharField(blank=True, null=True, max_length=20)
+
+
 class Taxon(models.Model):
     taxonID = models.CharField(max_length=20, blank=True, null=True)
     name_status = models.CharField(max_length=20, blank=True, null=True)

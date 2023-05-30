@@ -15,7 +15,7 @@
     display: none !important;
 }
 
-p.active {
+.btnupload p.active {
     background: #3F5146;
     color: #FFF !important;
 }
@@ -217,4 +217,8 @@ input[type='number']::-webkit-outer-spin-button {
     .per_page {
         margin-top: 10px;
     }
+}
+
+.input-100 {
+    width: 100% !important;
 }

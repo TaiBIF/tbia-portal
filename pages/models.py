@@ -134,12 +134,3 @@ class Qa(models.Model):
     order = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = 'qa'
-
-
-# qas = Qa.objects.all()
-
-# c = 1
-# for q in Qa.objects.all():
-#     q.order = c
-#     q.save()
-#     c+=1

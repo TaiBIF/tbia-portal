@@ -201,9 +201,12 @@ def is_alpha(word):
         return False
 
 
-dup_col = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
-            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'scientificName', 'common_name_c', 
-            'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName']
+dup_col = ['scientificName', 'common_name_c', 
+            'alternative_name_c', 'synonyms', 'misapplied','kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
+            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',  'sourceScientificName', 'sourceVernacularName']
+
+# 條件搜尋查詢name欄位
+name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName']
 
 def get_key(val, my_dict):
     for key, value in my_dict.items():

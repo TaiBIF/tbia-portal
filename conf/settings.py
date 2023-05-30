@@ -246,7 +246,7 @@ CSP_STYLE_SRC = ["'self'",
     "https://cdn.quilljs.com/1.3.6/quill.snow.css"
 ]
 
-CSP_IMG_SRC = ("*") 
+CSP_IMG_SRC = ("'self'","*","data: *") 
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 

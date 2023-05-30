@@ -3,6 +3,8 @@ from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q
+from django.db import connection
+
 from data.utils import *
 from manager.utils import holders
 # from data.taicol import taicol
@@ -165,17 +167,28 @@ def submit_sensitive_request(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                            keyword_reg = get_variants(keyword_reg)
+                        keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
-            
+
+            if val := req_dict.get('taxonID'):
+                query_list += [f'taxonID:"{val}"']
+
+            # 較高分類群
+            # 找到該分類群的階層 & 名稱
+            # 要包含自己的階層
+            if val := req_dict.get('taxonGroup'):
+                if Taxon.objects.filter(taxonID=val).exists():
+                    higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+                    higher_name = Taxon.objects.get(taxonID=val).scientificName
+                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
@@ -276,7 +289,7 @@ def submit_sensitive_request(request):
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
                 keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
             # 
@@ -383,16 +396,27 @@ def transfer_sensitive_response(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                            keyword_reg = get_variants(keyword_reg)
+                        keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
+
+            if val := req_dict.get('taxonID'):
+                query_list += [f'taxonID:"{val}"']
+
+            # 較高分類群
+            # 找到該分類群的階層 & 名稱
+            # 要包含自己的階層
+            if val := req_dict.get('taxonGroup'):
+                if Taxon.objects.filter(taxonID=val).exists():
+                    higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+                    higher_name = Taxon.objects.get(taxonID=val).scientificName
+                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
             
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
@@ -479,7 +503,7 @@ def transfer_sensitive_response(request):
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
                 keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
             # 
@@ -568,17 +592,28 @@ def generate_sensitive_csv(query_id):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
                         for j in val:
                             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                        if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                            keyword_reg = get_variants(keyword_reg)
+                        keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
-            
+
+            if val := req_dict.get('taxonID'):
+                query_list += [f'taxonID:"{val}"']
+
+            # 較高分類群
+            # 找到該分類群的階層 & 名稱
+            # 要包含自己的階層
+            if val := req_dict.get('taxonGroup'):
+                if Taxon.objects.filter(taxonID=val).exists():
+                    higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+                    higher_name = Taxon.objects.get(taxonID=val).scientificName
+                    query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+
             if quantity := req_dict.get('organismQuantity'):
                 query_list += [f'standardOrganismQuantity: {quantity}']
 
@@ -664,7 +699,7 @@ def generate_sensitive_csv(query_id):
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
                 keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
                 query_list += [ '(' + query_str + ')' ]
 
@@ -797,17 +832,28 @@ def generate_download_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+    for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                    keyword_reg = get_variants(keyword_reg)
+                keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
-    
+
+    if val := req_dict.get('taxonID'):
+        query_list += [f'taxonID:"{val}"']
+
+    # 較高分類群
+    # 找到該分類群的階層 & 名稱
+    # 要包含自己的階層
+    if val := req_dict.get('taxonGroup'):
+        if Taxon.objects.filter(taxonID=val).exists():
+            higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+            higher_name = Taxon.objects.get(taxonID=val).scientificName
+            query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
@@ -908,7 +954,7 @@ def generate_download_csv(req_dict,user_id):
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
-        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
@@ -987,17 +1033,28 @@ def generate_species_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+    for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                    keyword_reg = get_variants(keyword_reg)
+                keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
     
+    if val := req_dict.get('taxonID'):
+        query_list += [f'taxonID:"{val}"']
+
+    # 較高分類群
+    # 找到該分類群的階層 & 名稱
+    # 要包含自己的階層
+    if val := req_dict.get('taxonGroup'):
+        if Taxon.objects.filter(taxonID=val).exists():
+            higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+            higher_name = Taxon.objects.get(taxonID=val).scientificName
+            query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+
     if quantity := req_dict.get('organismQuantity'):
         query_list += [f'standardOrganismQuantity: {quantity}']
 
@@ -1083,7 +1140,7 @@ def generate_species_csv(req_dict,user_id):
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
-        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
@@ -2866,17 +2923,28 @@ def get_map_grid(request):
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
 
-        for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+        for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
                     val = val.strip()
                     keyword_reg = ''
                     for j in val:
                         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                    if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                        keyword_reg = get_variants(keyword_reg)
+                    keyword_reg = get_variants(keyword_reg)
                     query_list += [f'{i}:/.*{keyword_reg}.*/']
-        
+
+        if val := request.POST.get('taxonID'):
+            query_list += [f'taxonID:"{val}"']
+
+        # 較高分類群
+        # 找到該分類群的階層 & 名稱
+        # 要包含自己的階層
+        if val := request.POST.get('taxonGroup'):
+            if Taxon.objects.filter(taxonID=val).exists():
+                higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+                higher_name = Taxon.objects.get(taxonID=val).scientificName
+                query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
+
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
 
@@ -2962,7 +3030,7 @@ def get_map_grid(request):
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
             keyword_reg = get_variants(keyword_reg)
-            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
 
@@ -3043,16 +3111,27 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        for i in ['locality', 'recordedBy', 'resourceContacts', 'taxonID', 'preservation']:
+        for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
                     val = val.strip()
                     keyword_reg = ''
                     for j in val:
                         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                    if i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-                        keyword_reg = get_variants(keyword_reg)
+                    keyword_reg = get_variants(keyword_reg)
                     query_list += [f'{i}:/.*{keyword_reg}.*/']
+        
+        if val := request.POST.get('taxonID'):
+            query_list += [f'taxonID:"{val}"']
+
+        # 較高分類群
+        # 找到該分類群的階層 & 名稱
+        # 要包含自己的階層
+        if val := request.POST.get('taxonGroup'):
+            if Taxon.objects.filter(taxonID=val).exists():
+                higher_rank = Taxon.objects.get(taxonID=val).taxonRank
+                higher_name = Taxon.objects.get(taxonID=val).scientificName
+                query_list += [f'{higher_rank}:"{higher_name}" OR taxonID:"{val}"']
         
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
@@ -3139,7 +3218,7 @@ def get_conditional_records(request):
             for j in val:
                 keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
             keyword_reg = get_variants(keyword_reg)
-            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in dup_col ]
+            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
 
@@ -3330,3 +3409,48 @@ def change_dataset(request):
         for d in obj:
             ds += [{'value': d.id, 'text': d.name}]
     return HttpResponse(json.dumps(ds), content_type='application/json')
+
+
+name_status_map = {
+    # 'accepted': 'Accepted',
+    'not-accepted': '的無效名',
+    'misapplied': '的誤用名',
+
+}
+
+def get_taxon_group(request):
+    ds = '[]'
+    print(request.GET)
+    if keyword_str := request.GET.get('keyword','').strip():
+        keyword_str = get_variants(keyword_str)
+        with connection.cursor() as cursor:
+            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '%{keyword_str}%' LIMIT 10 """
+            cursor.execute(query)
+            # print(query)
+            results = cursor.fetchall()
+            ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
+            if len(ds):
+                ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+                # ds = ds[['text','value']].to_json(orient='records')
+            ds = ds[['text','value']].to_json(orient='records')
+            # else:
+            #     ds = '[]'
+    elif taxon_id := request.GET.get('taxon_id',''):
+        with connection.cursor() as cursor:
+            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE "taxonID" = '{taxon_id}' AND name_status = 'accepted'; """
+            cursor.execute(query)
+            # print(query)
+            results = cursor.fetchall()
+            ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
+            ds = ds[['text','value']].to_json(orient='records')
+            # if len(ds):
+            #     # ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+            #     ds = ds[['text','value']].to_json(orient='records')
+            # else:
+            #     ds = '[]'
+
+    return HttpResponse(ds, content_type='application/json')
+
+

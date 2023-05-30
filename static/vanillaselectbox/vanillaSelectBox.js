@@ -239,6 +239,10 @@ function vanillaSelectBox(domSelector, options) {
                 .then(function (data) {
                     self.buildSelect(data);
                     self.createTree();
+                    if (data.length>1){
+                        self.setValue(data[1]['value'])
+                    }
+                    changeAction()
                 });
         } else {
             self.createTree();
@@ -523,6 +527,7 @@ function vanillaSelectBox(domSelector, options) {
                             .then(function (data) {
                                 self.remoteSearchIntegrate(data);
                             });
+                        e.stopPropagation()
                     }
                 } else {
                     if (searchValueLength < 1) {
@@ -618,7 +623,7 @@ function vanillaSelectBox(domSelector, options) {
                     } 
                     
                     // 如果按其他地方則關閉dropdown 除了按search zone & 全選
-                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.dataset.text!='全選'){
+                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_taxonGroup' & e.target.dataset.text!='全選'){
                         self.drop.style.visibility = "hidden";
                     }
                 });
@@ -686,15 +691,18 @@ function vanillaSelectBox(domSelector, options) {
             if (!self.isMultiple) {
                 self.root.value = choiceValue;
                 self.title.textContent = choiceText;
+                self.listElements = self.drop.querySelectorAll("li:not(.grouped-option)");
+                self.title.setAttribute("class", "title");
+                /*
                 if (className) {
                     self.title.setAttribute("class", className + " title");
                 } else {
                     self.title.setAttribute("class", "title");
-                }
+                }*/
                 Array.prototype.slice.call(self.listElements).forEach(function (x) {
                     x.classList.remove("active");
                 });
-                if (choiceText != "") {
+                if (choiceValue != "") {
                     e.target.classList.add("active");
                 }
                 self.privateSendChange();
@@ -750,7 +758,7 @@ function vanillaSelectBox(domSelector, options) {
             }
             e.preventDefault();
             e.stopPropagation();
-            if (self.userOptions.placeHolder != "" && self.title.textContent == "") {
+            if (self.userOptions.placeHolder != "" && (self.title.textContent == "--不限--"|self.title.textContent == "")) {
                 self.title.textContent = self.userOptions.placeHolder;
             }
         });

@@ -60,7 +60,7 @@
             <div class="two_input">
               <div class="input_item">
                 <select name="typeStatus" id="typeStatus" required>
-                  <option value=""></option>
+                  <option value="">--不限--</option>
                   <option value="一般">一般</option>
                   <option value="模式">模式</option>
                 </select>
@@ -69,10 +69,16 @@
                 <input name="taxonID" type="text" placeholder="TaiCOL物種編號" value="" />
               </div>
             </div>
+			<div class="two_input">
+				<div class="input_item input-100">
+				  <select id="taxonGroup" name="taxonGroup">
+				  </select>  
+				</div>  
+			</div>  
             <div class="two_input">
               <div class="input_item">
                 <select name="sensitiveCategory" id="sensitiveCategory" required>
-                  <option></option>
+                  <option value="">--不限--</option>
                   {% for i in sensitive_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
@@ -80,7 +86,7 @@
               </div>
               <div class="input_item">
                 <select name="taxonRank" id="taxonRank" required>
-                  <option value=""></option>
+                  <option value="">--不限--</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
@@ -97,7 +103,7 @@
               </div>
 			  <div class="input_item">
                 <select name="has_image" id="has_image">
-					<option value=""></option>
+					<option value="">--不限--</option>
 					<option value="y">有</option>
 					<option value="n">無</option>
 				  </select>              

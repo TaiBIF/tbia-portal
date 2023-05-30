@@ -2,6 +2,73 @@
 
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+
+
+let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: false,
+translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
+});
+
+
+// set value 之後再加event 不然會被洗掉
+$('#rightsHolder').on('change', function(){
+let res = selectBox.getResult()
+let h_str = ''
+for(r of res) { 
+    h_str += 'holder=' + r + '&'
+}
+$.ajax({
+    url: "/change_dataset?" + h_str,
+    dataType : 'json',
+})
+.done(function(response) {
+    if (response.length > 0){
+        selectBox2.enable()
+        selectBox2.changeTree(response)
+        if (window.has_par){
+            selectBox2.setValue(window.d_list)
+        }
+   } else {
+        selectBox2.disable()
+    }
+})
+})
+
+let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
+translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
+});
+
+let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
+});
+
+let selectBox4 = new vanillaSelectBox("#basisOfRecord",{"placeHolder":"紀錄類型",search:false, disableSelectAll: true,
+});
+
+let selectBox5 = new vanillaSelectBox("#taxonRank",{"placeHolder":"鑑定層級",search:false, disableSelectAll: true,
+});
+
+let selectBox6 = new vanillaSelectBox("#circle_radius",{"placeHolder":"半徑",search:false, disableSelectAll: true,
+});
+
+let selectBox7 = new vanillaSelectBox("#has_image",{"placeHolder":"有無影像",search:false, disableSelectAll: true,
+});
+
+selectBox6.setValue('1')
+
+let selectBox8 = new vanillaSelectBox("#taxonGroup",
+{
+    "search": true,
+    "placeHolder" : "較高分類群",
+    "disableSelectAll": true,
+    "remote": {
+        "onSearch": doSearch, // used for search and init
+        "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
+        "onInit": initTaxonGroup,
+    }
+}
+);
+
+
+
 function getWKTMap(grid) {
     let div = grid/100;
     var neLat = map.getBounds().getNorthEast()['lat'] + div*5;
@@ -335,7 +402,7 @@ $( function() {
     })
 
     // 如果直接從帶有參數網址列進入
-    changeAction(); 
+    //changeAction(); 
 
     // 如果按上下一頁
     window.onpopstate = function(event) {
@@ -347,57 +414,113 @@ $( function() {
 } );
 
 
+
+    function initTaxonGroup(what, datasize){
+        let valueProperty = "value";
+        let textProperty = "text";
+        let urlParams = new URLSearchParams(window.location.search);
+        let taxon_id = urlParams.get('taxonGroup')
+
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.overrideMimeType("application/json");
+            xhr.open('GET','/get_taxon_group?taxon_id=' + taxon_id, true);
+            xhr.onload = function () {
+                if (this.status >= 200 && this.status < 300) {
+                    console.log(xhr.response)
+                    var data = JSON.parse(xhr.response);
+
+                    if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                        data = data.slice(0, datasize);
+                        data = data.map(function (x) {
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                        });
+                    } else {
+                        data = data.filter(function (x) {
+                            let name = x[textProperty].toLowerCase();
+                            if (name.indexOf(what.toLowerCase()) != -1)
+                                return {
+                                    value: x[valueProperty],
+                                    text: x[textProperty]
+                                }
+                        });
+                    }
+                    data = [{'value': '', 'text': '--不限--'}].concat(data)
+                    resolve(data);
+                } else {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                }
+            };
+            xhr.onerror = function () {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            };
+            xhr.send();
+        });
+    }
+
+    function doSearch(what, datasize) {
+        let valueProperty = "value";
+        let textProperty = "text";
+        
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.overrideMimeType("application/json");
+            xhr.open('GET','/get_taxon_group?keyword=' + what, true);
+            xhr.onload = function () {
+                if (this.status >= 200 && this.status < 300) {
+                    console.log(xhr.response)
+                    var data = JSON.parse(xhr.response);
+
+                    if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                        data = data.slice(0, datasize);
+                        data = data.map(function (x) {
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                        });
+                    } else {
+                        data = data.filter(function (x) {
+                            let name = x[textProperty].toLowerCase();
+                            if (name.indexOf(what.toLowerCase()) != -1)
+                                return {
+                                    value: x[valueProperty],
+                                    text: x[textProperty]
+                                }
+                        });
+                    }
+                    data = [{'value': '', 'text': '--不限--'}].concat(data)
+                    resolve(data);
+                } else {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                }
+            };
+            xhr.onerror = function () {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            };
+            xhr.send();
+        });
+    }
+
+
+    
 function changeAction(){
     
-    let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: false,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
-    });
-
-
-    // set value 之後再加event 不然會被洗掉
-    $('#rightsHolder').on('change', function(){
-        let res = selectBox.getResult()
-        let h_str = ''
-        for(r of res) { 
-            h_str += 'holder=' + r + '&'
-        }
-        $.ajax({
-            url: "/change_dataset?" + h_str,
-            dataType : 'json',
-        })
-        .done(function(response) {
-            if (response.length > 0){
-                selectBox2.enable()
-                selectBox2.changeTree(response)
-                if (window.has_par){
-                    selectBox2.setValue(window.d_list)
-                }
-           } else {
-                selectBox2.disable()
-            }
-        })
-    })
-
-    let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
-    });
-
-    let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
-    });
-
-    let selectBox4 = new vanillaSelectBox("#basisOfRecord",{"placeHolder":"紀錄類型",search:false, disableSelectAll: true,
-    });
-
-    let selectBox5 = new vanillaSelectBox("#taxonRank",{"placeHolder":"鑑定層級",search:false, disableSelectAll: true,
-    });
-
-    let selectBox6 = new vanillaSelectBox("#circle_radius",{"placeHolder":"半徑",search:false, disableSelectAll: true,
-    });
-
-    let selectBox7 = new vanillaSelectBox("#has_image",{"placeHolder":"有無影像",search:false, disableSelectAll: true,
-    });
-
-    selectBox6.setValue('1')
     $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
 
     $('.vsb-main button').css('border','').css('background','')
@@ -447,6 +570,9 @@ function changeAction(){
                 selectBox5.setValue(value)
             } else if (key == 'has_image'){
                 selectBox7.setValue(value)
+            } else if (key == 'taxonGroup'){
+                console.log(value)
+                //selectBox8.setValue(value)
             } else {
 
                 $(`[name=${key}]`).val(value)
@@ -818,7 +944,7 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         //Iterate through all inputs, textareas
         $('#searchForm input,#searchForm select').each(function(){
             //Add to jQuery object if not empty
-            if ($(this).val().length) {
+            if ($(this).val()!='') {
                 form = form.add($(this)); 
             }
         })

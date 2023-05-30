@@ -63,7 +63,6 @@
           <form id="feedback_form">
           <div class="select_twobox"> 
             <select name="partner_id" id="feedback_partner" required>
-              <option value=""></option>
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
@@ -72,7 +71,6 @@
               {% endfor %}
             </select>
             <select name="type" id="feedback_type" required>
-              <option value=""></option>
               <option value="1">網頁操作</option>
               <option value="2">網頁內容</option>
               <option value="3">聯盟相關</option>
