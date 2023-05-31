@@ -200,6 +200,10 @@ input {
     width: 25% !important;
 }
 
+.w-50p {
+    width: 50% !important;
+}
+
 .w-85p {
     width: 85% !important;
 }
@@ -359,4 +363,8 @@ input {
 
 #not_show_tech:hover {
     opacity: 0.7;
+}
+
+.mt-10px {
+    margin-top: 10px;
 }

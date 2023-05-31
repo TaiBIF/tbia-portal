@@ -258,6 +258,19 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $( function() {
 
+    $('.resetSearch').on('click', function(){
+        $('.clearGeo').trigger('click')
+        $('.search_condition_are #searchForm').trigger("reset");
+        selectBox.empty()
+        selectBox2.empty()
+        selectBox3.empty()
+        selectBox4.empty()
+        selectBox5.empty()
+        selectBox6.empty()
+        selectBox7.empty()
+        selectBox8.empty()
+    })
+
     $('.sendSelected').on('click', function(){
         sendSelected()
     })

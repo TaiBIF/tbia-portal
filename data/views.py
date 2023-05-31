@@ -867,7 +867,7 @@ def send_download_request(request):
         return JsonResponse({"status": 'success'}, safe=False)
 
 
-# 這邊是for條件搜尋 全站搜尋要先另外寫
+# 這邊是for進階搜尋 全站搜尋要先另外寫
 def generate_download_csv(req_dict,user_id):
     download_id = f"{user_id}_{str(ObjectId())}"
 

@@ -34,7 +34,7 @@
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
-    <p>條件搜尋</p>
+    <p>進階搜尋</p>
     <span>></span>
     <p>自然史典藏查詢</p>
   </div>
@@ -177,10 +177,13 @@
           </div>
         </div>
         </form>
-        <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
-    </div>
-
-
+        <div class="d-flex-ai-c-jc-c ">
+			<div class="w-50p d-flex">
+			  <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
+			  <button class="search_btn resetSearch">清除</button>
+			</div>
+		</div>    
+	</div>
   </div>
 </div>
 

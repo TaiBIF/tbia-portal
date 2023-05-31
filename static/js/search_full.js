@@ -873,7 +873,7 @@ function focusComponent(item_class, go_back){
                 data-is_sub="true"> 更多結果 </a>
                 <input type="hidden" id="${record_type}_${key}_offset" value="4">
                 <div class="no_data ${record_type}_${key}_more_end d-none"> 
-                符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+                符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字
                 </div> `)
             }
             $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
@@ -981,7 +981,7 @@ function focusComponent(item_class, go_back){
               data-is_sub="true">           更多結果 </a>
               <input type="hidden" id="${record_type}_${key}_offset" value="9">
               <div class="no_data ${record_type}_${key}_more_end d-none"> 
-              符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用條件搜尋功能指定更多或更符合的關鍵字
+              符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字
               </div>      
               `)
           }

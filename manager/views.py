@@ -175,7 +175,7 @@ def change_manager_page(request):
             else:
                 date = ''
 
-            # 條件搜尋
+            # 進階搜尋
             search_dict = dict(parse.parse_qsl(t.query))
             query = create_query_display(search_dict,t.id)
             link = ''
@@ -211,7 +211,7 @@ def change_manager_page(request):
             else:
                 date = ''
 
-            # 條件搜尋
+            # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
             query = create_query_display(search_dict,s.id)
 
@@ -276,7 +276,7 @@ def change_manager_page(request):
                 if search_dict.get('scientificName'):
                     query += f"<br><b>學名</b>：{search_dict['scientificName']}"
             else:
-            # 條件搜尋
+            # 進階搜尋
                 search_dict = dict(parse.parse_qsl(r.query))
                 query = create_query_display(search_dict,r.id)
 
@@ -396,7 +396,7 @@ def change_manager_page(request):
             else:
                 date = ''
 
-            # 條件搜尋
+            # 進階搜尋
             # search_dict = dict(parse.parse_qsl(s.query))
             search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
             query = create_query_display(search_dict,s.id)
@@ -744,7 +744,7 @@ def manager(request):
             query += f"<br><b>{key}</b>：{search_dict['value']}"
             query += f"<br><b>學名</b>：{search_dict.get('scientificName','')}"
         else:
-        # 條件搜尋
+        # 進階搜尋
             search_dict = dict(parse.parse_qsl(r.query))
             query = create_query_display(search_dict,r.id)
 
@@ -767,7 +767,7 @@ def manager(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date = ''
-        # 條件搜尋
+        # 進階搜尋
         search_dict = dict(parse.parse_qsl(t.query))
         query = create_query_display(search_dict,t.id)
 
@@ -793,7 +793,7 @@ def manager(request):
         else:
             date = ''
 
-        # 條件搜尋
+        # 進階搜尋
         search_dict = dict(parse.parse_qsl(s.query))
         query = create_query_display(search_dict,s.id)
 
@@ -1535,7 +1535,7 @@ def system_info(request):
             date = ''
             due = ''
 
-        # 條件搜尋
+        # 進階搜尋
         
         search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
         query = create_query_display(search_dict,s.id)
