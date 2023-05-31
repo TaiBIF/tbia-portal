@@ -1968,14 +1968,18 @@ def submit_qa(request):
                     for q in Qa.objects.filter(order__lte=order,order__gte=old_order).exclude(id=qa_id):
                         q.order -= 1
                         q.save()
-                Qa.objects.filter(id=qa_id).update(
-                    type = request.POST.get('type'),
-                    question = request.POST.get('question'),
-                    answer = request.POST.get('answer'),
-                    order = order
-                )
+            Qa.objects.filter(id=qa_id).update(
+                type = request.POST.get('type'),
+                question = request.POST.get('question'),
+                answer = request.POST.get('answer'),
+                order = order
+            )
 
         else: 
+            # 在新增的問答 order之後的要加+1
+            for q in Qa.objects.filter(order__gte=order):
+                q.order += 1
+                q.save()
             Qa.objects.create(
                 type = request.POST.get('type'),
                 question = request.POST.get('question'),
