@@ -403,11 +403,15 @@ if len(final_taxon):
     final_taxon = final_taxon.drop(columns=['id'])
     final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
     # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
-    match_taxon_id = sci_names.drop(columns=['scientificName']).merge(final_taxon,how='left')
+    sci_names['copy_index'] = sci_names.index
+    match_taxon_id = sci_names.drop(columns=['scientificName']).merge(final_taxon)
     # 若沒有taxonID的 改以parentTaxonID串
     match_parent_taxon_id = sci_names.drop(columns=['taxonID','scientificName']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
     match_parent_taxon_id['taxonID'] = ''
     match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+    # 如果都沒有對到 要再加回來
+    match_taxon_id = match_taxon_id.append(sci_names[~sci_names.copy_index.isin(match_taxon_id.copy_index.to_list())],ignore_index=True)
+    match_taxon_id = match_taxon_id.replace({np.nan: ''})
     match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']] = match_taxon_id[['sourceScientificName','originalVernacularName','taxonUUID','taiCOLNameCode']].replace({'': '-999999'})
 
 df = df.replace({nan: None, '': None, "": None, "\'\'": None, '\"\"': None})
@@ -534,7 +538,7 @@ conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
 db = create_engine(conn_string)
 match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
 # final = final.rename(columns={'taxon_name_id': 'scientificNameID'})
-df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID','taxon_name_id'],errors='ignore')
+df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taiCOLNameCode','taxonUUID','taxon_name_id','copy_index'],errors='ignore')
 df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_from_tbn.csv', index=False)
 
 

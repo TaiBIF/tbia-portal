@@ -199,11 +199,15 @@ for p in range(0,len(spe_list),10):
         final_taxon = final_taxon.drop(columns=['id'])
         final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
         # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
-        match_taxon_id = sci_names.merge(final_taxon,how='left')
+        sci_names['copy_index'] = sci_names.index
+        match_taxon_id = sci_names.merge(final_taxon)
         # 若沒有taxonID的 改以parentTaxonID串
         match_parent_taxon_id = sci_names.drop(columns=['taxonID']).merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
         match_parent_taxon_id['taxonID'] = ''
         match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+        # 如果都沒有對到 要再加回來
+        match_taxon_id = match_taxon_id.append(sci_names[~sci_names.copy_index.isin(match_taxon_id.copy_index.to_list())],ignore_index=True)
+        match_taxon_id = match_taxon_id.replace({np.nan: ''})
         match_taxon_id[['sourceScientificName','sourceVernacularName']] = match_taxon_id[['sourceScientificName','sourceVernacularName']].replace({'': '-999999'})
     if len(match_taxon_id):
         df[['sourceScientificName','sourceVernacularName']] = df[['sourceScientificName','sourceVernacularName']].replace({'': '-999999',None:'-999999'})
@@ -216,14 +220,10 @@ for p in range(0,len(spe_list),10):
     df['modified'] = datetime.now()
     df['recordType'] = 'occ'
     df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
-    df['grid_x_1'] = -1
-    df['grid_y_1'] = -1
-    df['grid_x_5'] = -1
-    df['grid_y_5'] = -1
-    df['grid_x_10'] = -1
-    df['grid_y_10'] = -1
-    df['grid_x_100'] = -1
-    df['grid_y_100'] = -1
+    df['grid_1'] = '-1_-1'
+    df['grid_5'] = '-1_-1'
+    df['grid_10'] = '-1_-1'
+    df['grid_100'] = '-1_-1'
     for i in df.index:
         df.loc[i,'id'] = bson.objectid.ObjectId()
         row = df.iloc[i]
@@ -235,17 +235,13 @@ for p in range(0,len(spe_list),10):
             df.loc[i,'verbatimSRS'] = 'WGS84'
             df.loc[i,'verbatimCoordinateSystem'] = 'DecimalDegrees'
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
-            df.loc[i, 'grid_x_1'] = grid_x
-            df.loc[i, 'grid_y_1'] = grid_y
+            df.loc[i, 'grid_1'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
-            df.loc[i, 'grid_x_5'] = grid_x
-            df.loc[i, 'grid_y_5'] = grid_y
+            df.loc[i, 'grid_5'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
-            df.loc[i, 'grid_x_10'] = grid_x
-            df.loc[i, 'grid_y_10'] = grid_y
+            df.loc[i, 'grid_10'] = str(int(grid_x)) + '_' + str(int(grid_y))
             grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
-            df.loc[i, 'grid_x_100'] = grid_x
-            df.loc[i, 'grid_y_100'] = grid_y
+            df.loc[i, 'grid_100'] = str(int(grid_x)) + '_' + str(int(grid_y))
         try:
             standardOrganismQuantity = int(row.organismQuantity)
             df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
@@ -284,7 +280,7 @@ for p in range(0,len(spe_list),10):
     db = create_engine(conn_string)
     match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
     # df = df.rename(columns={'taxon_name_id': 'scientificNameID'})
-    df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id'],errors='ignore')
+    df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id','copy_index'],errors='ignore')
     df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{p}.csv', index=False)
 
 

@@ -371,7 +371,7 @@ for d in dataset.taibifDatasetID.unique():
             conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
             db = create_engine(conn_string)
             match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
-            df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id','gbifAcceptedID'],errors='ignore')
+            df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id','gbifAcceptedID','copy_index'],errors='ignore')
             # df = df.rename(columns={'taxon_name_id': 'scientificNameID'})
             df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{d}.csv', index=False)
 
