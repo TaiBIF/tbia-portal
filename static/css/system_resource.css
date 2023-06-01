@@ -252,3 +252,9 @@ textarea {
     overflow-x: auto; 
     margin-top: 10px
 }
+
+
+.upload-warning {
+    font-size: 14px;
+    color: #C65454
+}

@@ -117,6 +117,7 @@
                     <form id="saveForm" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
+                        <li class="upload-warning"><p>*若上傳檔案超過1MB，將無法上傳檔案，請通知管理員協助</p></li>
                         <li>標題</li>
                         <li>
                             <input type="text" name="title" value="{{ current_r.title }}">

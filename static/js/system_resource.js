@@ -159,8 +159,12 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
                       $('#saveForm input[name=url]').val('')
                   }
               }
-          })
-      })
+              .fail(function( xhr, status, errorThrown ) {
+                alert('發生未知錯誤！請聯絡管理員')
+                console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+            })
+        })
 
       // TODO 還要確認有沒有上傳檔案 filename統一改成帶有resources/的檔名
       $('#publish').on('click',function(){
