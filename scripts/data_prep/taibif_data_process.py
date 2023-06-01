@@ -282,11 +282,14 @@ for d in dataset.taibifDatasetID.unique():
                 final_taxon = final_taxon.drop(columns=['id'])
                 final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
                 # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
+                sci_names['copy_index'] = sci_names.index
                 match_taxon_id = sci_names.drop(['class','family','order'],errors='ignore').merge(final_taxon)
                 # 若沒有taxonID的 改以parentTaxonID串
                 match_parent_taxon_id = sci_names.drop(columns=['taxonID','class','family','order'],errors='ignore').merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
                 match_parent_taxon_id['taxonID'] = ''
                 match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+                # 如果都沒有對到 要再加回來
+                match_taxon_id = match_taxon_id.append(sci_names[~sci_names.copy_index.isin(match_taxon_id.copy_index.to_list())],ignore_index=True)
                 match_taxon_id = match_taxon_id.replace({np.nan: ''})
                 match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999'})
             if len(match_taxon_id):
