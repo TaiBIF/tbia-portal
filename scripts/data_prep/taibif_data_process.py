@@ -220,11 +220,13 @@ dataset = dataset[dataset.core.isin(['OCCURRENCE','SAMPLINGEVENT'])]
 
 dataset = dataset[dataset.publisherID.isin(pub[~pub.publisherName.isin(partners)].publisherID.to_list())]
 
+# dataset.numRecord.sum() # 597475
 
 group = 'brcas'
-
+d_count = 0
 for d in dataset.taibifDatasetID.unique():
-    print(d)
+    d_count += 1
+    print(d, ': ', d_count)
     data = []
     url = f"https://portal.taibif.tw/api/v2/occurrence/basic_occ?taibifDatasetID={d}&rows=1000"
     response = requests.get(url)
