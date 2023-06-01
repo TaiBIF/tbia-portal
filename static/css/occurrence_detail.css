@@ -100,7 +100,7 @@
 }
 
 .img-container {
-    position: relative;
+    /*position: relative;*/
     text-align: center;
     color: white;
     height: 100%;
@@ -108,11 +108,11 @@
 
 .bottom-right {
     position: absolute;
-    bottom: 8px;
-    right: 16px;
-    text-shadow: 0.1em 0.1em 0.2em black
+    bottom: 5%;
+    width: 100%;
+    font-size: 16px;
+    text-shadow: 0.1em 0.1em 0.2em black;
 }
-
 
 
 .popbg.taxon-pop .wbox_center.index_tech {
@@ -135,4 +135,24 @@ max-width: 100%;
 
 .techbox.taxon-pic {
     height: 100% 
+}
+
+
+
+.sc_de_top .right_area .no-imgbox  {
+    display : flex;
+    align-items : center;
+    justify-content: center;
+    height: 100%
+}
+
+
+@media only screen and (max-width: 767px) {
+    .sc_de_top .right_area {
+        width: 100%;
+        max-width: 100%;
+    }
+    .sc_de_top .right_area .no-imgbox {
+        height: auto;
+    }
 }
