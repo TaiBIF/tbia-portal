@@ -48,10 +48,11 @@ $(document).ready(function () {
 
     $('.edu_tag li').click(function(){
       let li_element = $(this)
+      let type = this.id
       $.ajax({
           url: "/get_resources",
           data: {
-            type: this.id,
+            type: type,
             csrfmiddlewaretoken: $csrf_token,
           },
           type: 'POST',
@@ -64,7 +65,18 @@ $(document).ready(function () {
         // remove all resources first
         $('.edu_list li').remove()
         // append rows
-        if (response.rows.length > 0){
+          if (type=='all'){
+            $('.edu_list').append(`
+            <li>
+            <div class="item">
+              <div class="cate_dbox">
+                <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
+              </div>
+              <a href="/resources/link" class="title" target="_blank">國內外各大資料庫及推薦網站連結</a>
+            </div>
+            </li> `)}        
+            
+          if (response.rows.length > 0){
           for (let i = 0; i < response.rows.length; i++) {
             $('.edu_list').append(`
             <li>

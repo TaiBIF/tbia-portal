@@ -4,6 +4,13 @@
 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}" />
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+
 {% endblock style %}
 {% block body %}
 {% csrf_token %}
@@ -258,6 +265,14 @@
       </ul>
       <!--手機版只顯示4個-->
       <ul class="edu_list">
+        <li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
+            </div>
+            <a href="/resources/link" class="title" target="_blank">國內外各大資料庫及推薦網站連結</a>
+          </div>
+        </li>        
         {% for i in resource %}
         <li>
           <div class="item">

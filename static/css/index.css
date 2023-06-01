@@ -13,3 +13,16 @@
 .color-888 {
     color: #888
 }
+
+.transform315 {
+    transform: rotate(315deg); 
+    color: grey;
+    height: 16px
+}
+
+
+.edu_list li .cate_dbox .catepin {
+    height: 25px;
+    margin-right: 10px;
+    color: #FFF;
+}
