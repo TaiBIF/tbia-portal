@@ -85,8 +85,8 @@ $(document).ready(function () {
                   <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
                   <div class="date">${response.rows[i].date}</div>
                 </div>
-                <a href="/static/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
-                <a href="/static/${response.rows[i].url}" download class="dow_btn"> </a>
+                <a href="/media/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+                <a href="/media/${response.rows[i].url}" download class="dow_btn"> </a>
               </div>
             </li>`)
           }

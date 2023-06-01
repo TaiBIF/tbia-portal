@@ -280,8 +280,8 @@
               <div class="cate {{ i.cate }}">{{ i.extension }}</div>
               <div class="date">{{ i.date }}</div>
             </div>
-            <a href="{% static i.url %}" class="title" target="_blank">{{ i.title }}</a>
-            <a href="{% static i.url %}" download class="dow_btn"> </a>
+            <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
+            <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
           </div>
         </li>
         {% endfor %}
