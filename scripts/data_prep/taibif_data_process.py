@@ -282,18 +282,21 @@ for d in dataset.taibifDatasetID.unique():
                 final_taxon = final_taxon.drop(columns=['id'])
                 final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
                 # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
-                match_taxon_id = sci_names.drop(['class','family','order'],errors='ignore').merge(final_taxon,how='left')
+                match_taxon_id = sci_names.drop(['class','family','order'],errors='ignore').merge(final_taxon)
                 # 若沒有taxonID的 改以parentTaxonID串
                 match_parent_taxon_id = sci_names.drop(columns=['taxonID','class','family','order'],errors='ignore').merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
                 match_parent_taxon_id['taxonID'] = ''
                 match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+                match_taxon_id = match_taxon_id.replace({np.nan: ''})
                 match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999'})
             if len(match_taxon_id):
                 # 要拆成原本有taxonID / 沒有taxonID的兩個部分
                 df_w = df[df.taxonID!='']
+                df_w = df_w.reset_index(drop=True)
                 if len(df_w):
-                    df_w = df_w.merge(match_taxon_id.drop(columns=['sourceScientificName', 'sourceVernacularName','gbifAcceptedID'],errors='ignore'),on='taxonID')
+                    df_w = df_w.merge(match_taxon_id.drop(columns=['gbifAcceptedID'],errors='ignore'),on=['sourceScientificName','sourceVernacularName','taxonID'],how='left')
                 df_wo = df[df.taxonID=='']
+                df_wo = df_wo.reset_index(drop=True)
                 if len(df_wo):
                     df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999',None:'-999999'})
                     df_wo = df_wo.drop(columns=['taxonID']).merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName','gbifAcceptedID'], how='left')
