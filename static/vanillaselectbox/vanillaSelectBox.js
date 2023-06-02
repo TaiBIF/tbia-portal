@@ -623,7 +623,7 @@ function vanillaSelectBox(domSelector, options) {
                     } 
                     
                     // 如果按其他地方則關閉dropdown 除了按search zone & 全選
-                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_taxonGroup' & e.target.dataset.text!='全選'){
+                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
                         self.drop.style.visibility = "hidden";
                     }
                 });

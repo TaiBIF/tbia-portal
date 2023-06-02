@@ -16,7 +16,7 @@ class Namecode(models.Model):
     taieol_id = models.CharField(max_length=100, blank=True, null=True)
 
 
-# for taxonGroup autocomplete
+# for higherTaxa autocomplete
 class Name(models.Model):
     # 自己的name? 接受的name?
     name = models.CharField(blank=True, null=True, max_length=10000)

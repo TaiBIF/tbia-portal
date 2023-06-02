@@ -68,7 +68,7 @@ li[data-parent].open:not(.hidden-search) {
 	margin-bottom: 4px;
 	padding-left: 10px;
 	padding-right: 10px;
-	padding-bottom: 3px;
+	/* padding-bottom: 3px; */
 	color: #333;
 	cursor: pointer;
 	overflow-y: auto;

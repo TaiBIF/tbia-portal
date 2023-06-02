@@ -32,6 +32,6 @@ urlpatterns = [
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
     path('get_geojson/<str:id>/', views.get_geojson, name='get_geojson'),
     path('change_dataset', views.change_dataset, name='change_dataset'),
-    path('get_taxon_group', views.get_taxon_group, name='get_taxon_group'),
+    path('get_higher_taxa', views.get_higher_taxa, name='get_higher_taxa'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),
 ]

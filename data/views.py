@@ -109,7 +109,6 @@ def send_sensitive_request(request):
                     search_dict[k] = tmp_list
                 else:
                     search_dict[k] = request.GET.get(k)
-
         query = create_query_display(search_dict,None)
         return render(request, 'pages/application.html', {'query': query})
 
@@ -117,7 +116,6 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        print('submit_sensitive_request', req_dict)
         not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
         for nq in not_query:
             if nq in req_dict.keys():
@@ -167,6 +165,12 @@ def submit_sensitive_request(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
+            # 物種類群    
+            if val := req_dict.get('taxonGroup'):
+                if val in taxon_group_map.keys():
+                    for vv in taxon_group_map[val]:
+                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
             for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
@@ -180,10 +184,10 @@ def submit_sensitive_request(request):
             if val := req_dict.get('taxonID'):
                 query_list += [f'taxonID:"{val}"']
 
-            # 較高分類群
+            # higherTaxa
             # 找到該分類群的階層 & 名稱
             # 要包含自己的階層
-            if val := req_dict.get('taxonGroup'):
+            if val := req_dict.get('higherTaxa'):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -315,7 +319,6 @@ def submit_sensitive_request(request):
             # 
             # if query_list and query_list != ['recordType:col']:
 
-            print(query_list)
 
             query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
@@ -418,6 +421,12 @@ def transfer_sensitive_response(request):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
+            # 物種類群    
+            if val := req_dict.get('taxonGroup'):
+                if val in taxon_group_map.keys():
+                    for vv in taxon_group_map[val]:
+                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
             for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
@@ -431,10 +440,10 @@ def transfer_sensitive_response(request):
             if val := req_dict.get('taxonID'):
                 query_list += [f'taxonID:"{val}"']
 
-            # 較高分類群
+            # higherTaxa
             # 找到該分類群的階層 & 名稱
-            # 要包含自己的階層
-            if val := req_dict.get('taxonGroup'):
+            # 要包含自己的階層ｄｃ
+            if val := req_dict.get('higherTaxa'):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -548,8 +557,6 @@ def transfer_sensitive_response(request):
             # 
             # if query_list and query_list != ['recordType:col']:
 
-            print(query_list)
-
             query = { "query": "*:*",
                     "offset": 0,
                     "limit": 0,
@@ -633,6 +640,12 @@ def generate_sensitive_csv(query_id):
             if record_type == 'col': # occurrence include occurrence + collection
                 query_list += ['recordType:col']
 
+            # 物種類群    
+            if val := req_dict.get('taxonGroup'):
+                if val in taxon_group_map.keys():
+                    for vv in taxon_group_map[val]:
+                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
             for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
@@ -646,10 +659,11 @@ def generate_sensitive_csv(query_id):
             if val := req_dict.get('taxonID'):
                 query_list += [f'taxonID:"{val}"']
 
+
             # 較高分類群
             # 找到該分類群的階層 & 名稱
             # 要包含自己的階層
-            if val := req_dict.get('taxonGroup'):
+            if val := req_dict.get('higherTaxa'):
                 if Taxon.objects.filter(taxonID=val).exists():
                     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                     higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -890,6 +904,12 @@ def generate_download_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
+    # 物種類群    
+    if val := req_dict.get('taxonGroup'):
+        if val in taxon_group_map.keys():
+            for vv in taxon_group_map[val]:
+                query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
     for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
@@ -906,7 +926,7 @@ def generate_download_csv(req_dict,user_id):
     # 較高分類群
     # 找到該分類群的階層 & 名稱
     # 要包含自己的階層
-    if val := req_dict.get('taxonGroup'):
+    if val := req_dict.get('higherTaxa'):
         if Taxon.objects.filter(taxonID=val).exists():
             higher_rank = Taxon.objects.get(taxonID=val).taxonRank
             higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -1091,6 +1111,12 @@ def generate_species_csv(req_dict,user_id):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
+    # 物種類群    
+    if val := req_dict.get('taxonGroup'):
+        if val in taxon_group_map.keys():
+            for vv in taxon_group_map[val]:
+                query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
     for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
@@ -1107,7 +1133,7 @@ def generate_species_csv(req_dict,user_id):
     # 較高分類群
     # 找到該分類群的階層 & 名稱
     # 要包含自己的階層
-    if val := req_dict.get('taxonGroup'):
+    if val := req_dict.get('higherTaxa'):
         if Taxon.objects.filter(taxonID=val).exists():
             higher_rank = Taxon.objects.get(taxonID=val).taxonRank
             higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -2981,6 +3007,12 @@ def get_map_grid(request):
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
 
+        # 物種類群    
+        if val := request.POST.get('taxonGroup'):
+            if val in taxon_group_map.keys():
+                for vv in taxon_group_map[val]:
+                    query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
         for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
@@ -2997,7 +3029,7 @@ def get_map_grid(request):
         # 較高分類群
         # 找到該分類群的階層 & 名稱
         # 要包含自己的階層
-        if val := request.POST.get('taxonGroup'):
+        if val := request.POST.get('higherTaxa'):
             if Taxon.objects.filter(taxonID=val).exists():
                 higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                 higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -3169,6 +3201,12 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
+        # 物種類群    
+        if val := request.POST.get('taxonGroup'):
+            if val in taxon_group_map.keys():
+                for vv in taxon_group_map[val]:
+                    query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
         for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
@@ -3182,10 +3220,11 @@ def get_conditional_records(request):
         if val := request.POST.get('taxonID'):
             query_list += [f'taxonID:"{val}"']
 
+
         # 較高分類群
         # 找到該分類群的階層 & 名稱
         # 要包含自己的階層
-        if val := request.POST.get('taxonGroup'):
+        if val := request.POST.get('higherTaxa'):
             if Taxon.objects.filter(taxonID=val).exists():
                 higher_rank = Taxon.objects.get(taxonID=val).taxonRank
                 higher_name = Taxon.objects.get(taxonID=val).scientificName
@@ -3476,9 +3515,8 @@ name_status_map = {
 
 }
 
-def get_taxon_group(request):
+def get_higher_taxa(request):
     ds = '[]'
-    print(request.GET)
     if keyword_str := request.GET.get('keyword','').strip():
         keyword_str = get_variants(keyword_str)
         with connection.cursor() as cursor:

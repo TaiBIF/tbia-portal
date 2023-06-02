@@ -37,8 +37,9 @@ let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集�
 translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
 });
 
+/*
 let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{"placeHolder":"敏感層級",search:false, disableSelectAll: true,
-});
+});*/
 
 let selectBox4 = new vanillaSelectBox("#basisOfRecord",{"placeHolder":"紀錄類型",search:false, disableSelectAll: true,
 });
@@ -54,7 +55,7 @@ let selectBox7 = new vanillaSelectBox("#has_image",{"placeHolder":"有無影像"
 
 selectBox6.setValue('1')
 
-let selectBox8 = new vanillaSelectBox("#taxonGroup",
+let selectBox8 = new vanillaSelectBox("#higherTaxa",
 {
     "search": true,
     "placeHolder" : "較高分類群",
@@ -62,11 +63,13 @@ let selectBox8 = new vanillaSelectBox("#taxonGroup",
     "remote": {
         "onSearch": doSearch, // used for search and init
         "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
-        "onInit": initTaxonGroup,
+        "onInit": inithigherTaxa,
     }
 }
 );
 
+let selectBox9 = new vanillaSelectBox("#taxonGroup",{"placeHolder":"物種類群",search:false, disableSelectAll: true,
+});
 
 
 function getWKTMap(grid) {
@@ -271,12 +274,13 @@ $( function() {
         $('.search_condition_are #searchForm').trigger("reset");
         selectBox.empty()
         selectBox2.empty()
-        selectBox3.empty()
+        //selectBox3.empty()
         selectBox4.empty()
         selectBox5.empty()
         selectBox6.empty()
         selectBox7.empty()
         selectBox8.empty()
+        selectBox9.empty()
     })
 
 
@@ -428,16 +432,16 @@ $( function() {
 
 
 
-    function initTaxonGroup(what, datasize){
+    function inithigherTaxa(what, datasize){
         let valueProperty = "value";
         let textProperty = "text";
         let urlParams = new URLSearchParams(window.location.search);
-        let taxon_id = urlParams.get('taxonGroup')
+        let taxon_id = urlParams.get('higherTaxa')
 
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.overrideMimeType("application/json");
-            xhr.open('GET','/get_taxon_group?taxon_id=' + taxon_id, true);
+            xhr.open('GET','/get_higher_taxa?taxon_id=' + taxon_id, true);
             xhr.onload = function () {
                 if (this.status >= 200 && this.status < 300) {
                     console.log(xhr.response)
@@ -487,7 +491,7 @@ $( function() {
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.overrideMimeType("application/json");
-            xhr.open('GET','/get_taxon_group?keyword=' + what, true);
+            xhr.open('GET','/get_higher_taxa?keyword=' + what, true);
             xhr.onload = function () {
                 if (this.status >= 200 && this.status < 300) {
                     console.log(xhr.response)
@@ -575,17 +579,18 @@ function changeAction(){
                 d_list.push(value)
             } else if (key == 'rightsHolder') {
                 r_list.push(value)
-            } else if (key == 'sensitiveCategory') {
-                selectBox3.setValue(value)
+            /*} else if (key == 'sensitiveCategory') {
+                selectBox3.setValue(value)*/
             } else if (key == 'basisOfRecord') {
                 selectBox4.setValue(value)
             } else if (key == 'taxonRank'){
                 selectBox5.setValue(value)
             } else if (key == 'has_image'){
                 selectBox7.setValue(value)
-            } else if (key == 'taxonGroup'){
+            } else if (key == 'higherTaxa'){
                 console.log(value)
-                //selectBox8.setValue(value)
+            } else if (key == 'taxonGroup'){
+                selectBox9.setValue(value)
             } else {
 
                 $(`[name=${key}]`).val(value)

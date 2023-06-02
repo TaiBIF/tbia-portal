@@ -11,6 +11,26 @@ from data.models import DatasetKey, Taxon
 
 # x: longtitude, y: latitude
 
+taxon_group_map = {
+    'Insects' : [{'key': 'class', 'value': 'Insecta'}],
+    'Fishes' : [{'key': 'class', 'value': 'Actinopterygii'},{'key': 'class', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
+    'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
+    'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
+    'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
+    'Birds' : [{'key': 'subclass', 'value': 'Aves'}],
+    'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
+}
+
+taxon_group_map_c = {
+    'Insects' : '昆蟲',
+    'Fishes' : '魚類',
+    'Reptiles' : '爬蟲類',
+    'Fungi' : '真菌(含地衣)',
+    'Plants' : '植物',
+    'Birds' : '鳥類',
+    'Mammals' : '哺乳類',
+
+}
 
 
 def convert_grid_to_coor(grid_x, grid_y, list_x, list_y):
@@ -322,7 +342,8 @@ map_occurrence = {
     'morph_c'	:'形態型中文名',
     'aberration_c'	:'異常個體中文名',
     'hybrid-formula_c'	:'雜交組合中文名',
-    'taxonGroup'	:'較高分類群',
+    'higherTaxa'	:'較高分類群',
+    'taxonGroup'	:'物種類群',
     'scientificName': '學名',
     'common_name_c': '中文名', 
     'alternative_name_c': '中文別名', 
@@ -451,7 +472,8 @@ map_collection = {
     'morph_c'	:'形態型中文名',
     'aberration_c'	:'異常個體中文名',
     'hybrid-formula_c'	:'雜交組合中文名',
-    'taxonGroup'	:'較高分類群',
+    'higherTaxa'	:'較高分類群',
+    'taxonGroup'	:'物種類群',
     'scientificName': '學名', 
     'common_name_c': '中文名', 
     'alternative_name_c': '中文別名', 
@@ -609,10 +631,13 @@ def create_query_display(search_dict,sq_id):
                         r_list.append(search_dict[k])
                 else:
                     r_list = list(search_dict[k])
-            elif k == 'taxonGroup':
+            elif k == 'higherTaxa':
                 if Taxon.objects.filter(taxonID=search_dict[k]).exists():
                     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
                     query += f"<br><b>{map_dict[k]}</b>：{taxon_obj.scientificName} {taxon_obj.common_name_c if taxon_obj.common_name_c  else ''}"
+            elif k == 'taxonGroup':
+                if search_dict[k] in taxon_group_map_c.keys():
+                    query += f"<br><b>{map_dict[k]}</b>：{taxon_group_map_c[search_dict[k]]}"
             else:
                 query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
         # 地圖搜尋

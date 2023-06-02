@@ -58,32 +58,42 @@
               </div>
             </div>
             <div class="two_input">
-              <div class="input_item">
-                <select name="typeStatus" id="typeStatus" required>
-                  <option value="">--不限--</option>
-                  <option value="一般">一般</option>
-                  <option value="模式">模式</option>
-                </select>
-              </div>
-              <div class="input_item">
-                <input name="taxonID" type="text" placeholder="TaiCOL物種編號" value="" />
-              </div>
+				<div class="input_item">
+					<select id="taxonGroup" name="taxonGroup">
+						<option value="">--不限--</option>
+						<option value="Insects">昆蟲</option>
+						<option value="Fishes">魚類</option>
+						<option value="Reptiles">爬蟲類</option>
+						<option value="Fungi">真菌(含地衣)</option>
+						<option value="Plants">植物</option>
+						<option value="Birds">鳥類</option>
+						<option value="Mammals">哺乳類</option>
+					</select>  
+				</div>  
+				<div class="input_item">
+					<input name="taxonID" type="text" placeholder="TaiCOL物種編號" value="" />
+				</div>
             </div>
 			<div class="two_input">
 				<div class="input_item input-100">
-				  <select id="taxonGroup" name="taxonGroup">
+				  <select id="higherTaxa" name="higherTaxa">
 				  </select>  
 				</div>  
 			</div>  
             <div class="two_input">
+				<div class="input_item">
+					<select name="typeStatus" id="typeStatus" required>
+					  <option value="">--不限--</option>
+					  <option value="一般">一般</option>
+					  <option value="模式">模式</option>
+					</select>
+				  </div>
+				  <!--
               <div class="input_item">
                 <select name="sensitiveCategory" id="sensitiveCategory" required>
                   <option value="">--不限--</option>
-                  {% for i in sensitive_list %}
-                  <option value="{{ i }}">{{ i }}</option>
-                  {% endfor %}
                 </select>
-              </div>
+              </div>-->
               <div class="input_item">
                 <select name="taxonRank" id="taxonRank" required>
                   <option value="">--不限--</option>
