@@ -444,9 +444,7 @@ $( function() {
             xhr.open('GET','/get_higher_taxa?taxon_id=' + taxon_id, true);
             xhr.onload = function () {
                 if (this.status >= 200 && this.status < 300) {
-                    console.log(xhr.response)
                     var data = JSON.parse(xhr.response);
-
                     if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
                         data = data.slice(0, datasize);
                         data = data.map(function (x) {
@@ -458,7 +456,8 @@ $( function() {
                     } else {
                         data = data.filter(function (x) {
                             let name = x[textProperty].toLowerCase();
-                            if (name.indexOf(what.toLowerCase()) != -1)
+                            what = what.toLowerCase();
+                            if (name.slice(what).search(getVariants(what)) != -1)
                                 return {
                                     value: x[valueProperty],
                                     text: x[textProperty]
@@ -494,7 +493,6 @@ $( function() {
             xhr.open('GET','/get_higher_taxa?keyword=' + what, true);
             xhr.onload = function () {
                 if (this.status >= 200 && this.status < 300) {
-                    console.log(xhr.response)
                     var data = JSON.parse(xhr.response);
 
                     if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
@@ -508,7 +506,8 @@ $( function() {
                     } else {
                         data = data.filter(function (x) {
                             let name = x[textProperty].toLowerCase();
-                            if (name.indexOf(what.toLowerCase()) != -1)
+                            what = what.toLowerCase();
+                            if (name.slice(what).search(getVariants(what)) != -1)
                                 return {
                                     value: x[valueProperty],
                                     text: x[textProperty]

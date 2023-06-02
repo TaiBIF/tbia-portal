@@ -432,7 +432,6 @@ function inithigherTaxa(what, datasize){
         xhr.open('GET','/get_higher_taxa?taxon_id=' + taxon_id, true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
-                console.log(xhr.response)
                 var data = JSON.parse(xhr.response);
 
                 if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
@@ -446,7 +445,8 @@ function inithigherTaxa(what, datasize){
                 } else {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
-                        if (name.indexOf(what.toLowerCase()) != -1)
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -482,7 +482,6 @@ function doSearch(what, datasize) {
         xhr.open('GET','/get_higher_taxa?keyword=' + what, true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
-                console.log(xhr.response)
                 var data = JSON.parse(xhr.response);
 
                 if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
@@ -496,7 +495,8 @@ function doSearch(what, datasize) {
                 } else {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
-                        if (name.indexOf(what.toLowerCase()) != -1)
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]

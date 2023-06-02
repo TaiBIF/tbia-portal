@@ -187,6 +187,12 @@ var_df_2 = pd.DataFrame([('行鳥','(行鳥|鴴)'),
 ('椿象','[蝽椿]象'),
 ('蝽象','[蝽椿]象')], columns=['char','pattern'])
 
+
+# 產生javascript使用的dict
+# dict(zip(var_df.char, var_df.pattern))
+# dict(zip(var_df_2.char, var_df_2.pattern))
+
+
 # 先對一個字再對兩個字
 
 def get_variants(string):
