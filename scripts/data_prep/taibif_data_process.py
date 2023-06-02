@@ -319,6 +319,7 @@ for d in dataset.taibifDatasetID.unique():
             for i in df.index:
                 df.loc[i,'id'] = bson.objectid.ObjectId()
                 row = df.iloc[i]
+                df.loc[i,'references'] = f"https://www.gbif.org/occurrence/{row.occurrenceID}" if row.occurrenceID else None
                 if 'Specimen' in row.basisOfRecord:
                     df.loc[i,'recordType'] = 'col'
                 else:
