@@ -420,6 +420,7 @@ df['grid_5'] = '-1_-1'
 df['grid_10'] = '-1_-1'
 df['grid_100'] = '-1_-1'
 
+df = df.reset_index(drop=True)
 for i in df.index:
     if i % 1000 == 0:
         print(i)

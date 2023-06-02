@@ -305,6 +305,7 @@ for d in dataset.taibifDatasetID.unique():
                     df_wo = df_wo.drop(columns=['taxonID']).merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName','gbifAcceptedID'], how='left')
                     df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'-999999': ''})            
                 df = pd.concat([df_w, df_wo])
+            df = df.reset_index(drop=True)
             df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
             df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
             df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))

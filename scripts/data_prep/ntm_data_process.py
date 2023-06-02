@@ -213,162 +213,174 @@ if response.status_code == 200:
     dataset = pd.DataFrame(data)
 
 
-dataset = dataset[dataset.core.isin(['OCCURRENCE','SAMPLINGEVENT'])]
+# dataset = dataset[dataset.core.isin(['OCCURRENCE','SAMPLINGEVENT'])]
 
 # 取得台博館 
 
 group = 'ntm'
 d_count = 0
-for d in dataset.taibifDatasetID.unique():
-    d_count += 1
-    print(d, ': ', d_count)
-    data = []
-    url = f"https://portal.taibif.tw/api/v2/occurrence/basic_occ?taibifDatasetID={d}&rows=1000"
-    response = requests.get(url)
-    c = 0
-    offset = 0
-    if response.status_code == 200:
-        result = response.json()
-        if total_count := result.get('count'):
-            data += result.get('results')
-            while offset < total_count:
-                c += 1
-                offset = c * 1000
-                next_url = f"https://portal.taibif.tw/api/v2/occurrence/basic_occ?taibifDatasetID={d}&rows=1000&offset={offset}"
-                response = requests.get(next_url)
-                if response.status_code == 200:
-                    result = response.json()
-                    data += result.get('results')
-    if len(data):
-        df = pd.DataFrame(data)
-        df = df.drop(columns=['occurrenceID'])
-        df = df.rename(columns={'taibifOccurrenceID': 'occurrenceID',
-                                'taibifCreatedDate': 'sourceCreated',
-                                'taibifModifiedDate': 'sourceModified',
-                                'scientificName': 'sourceScientificName',
-                                'isPreferredName': 'sourceVernacularName',
-                                'taicolTaxonID': 'taxonID',
-                                'decimalLatitude': 'verbatimLatitude',
-                                'decimalLongitude': 'verbatimLongitude'})
-        df = df[~(df.sourceVernacularName.isin([nan,'',None])&df.sourceScientificName.isin([nan,'',None]))]
-        if len(df):
-            df = df.replace({nan: '', None: ''})
-            sci_names = df[['taxonID','sourceScientificName','sourceVernacularName','gbifAcceptedID','class', 'order', 'family']].drop_duplicates().reset_index(drop=True)
-            # sci_names['taxonID'] = ''
-            sci_names['parentTaxonID'] = ''
-            sci_names['match_stage'] = 1
-            # 各階段的issue default是沒有對到
-            # 只有1,3,4
-            sci_names['stage_1'] = 2
-            sci_names['stage_2'] = None
-            sci_names['stage_3'] = 2
-            sci_names['stage_4'] = 2
-            sci_names['stage_5'] = None
-            sci_names = matching_flow(sci_names)
-            df = df.drop(columns=['occurrenceStatus', 'taibifDatasetID', 'taxonRank', 
-                                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'taxonGroup', 
-                                'year', 'month', 'country', 'county', 'datasetShortName', 'scientificNameID', 
-                                'taxonBackbone', 'day', 'geodeticDatum', 'habitatReserve', 'wildlifeReserve', 
-                                'countryCode'], errors='ignore')
-            taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
-            final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values(*fields)
-            final_taxon = pd.DataFrame(final_taxon)
-            if len(final_taxon):
-                final_taxon = final_taxon.drop(columns=['id'])
-                final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
-                # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
-                sci_names['copy_index'] = sci_names.index
-                match_taxon_id = sci_names.drop(['class','family','order'],errors='ignore').merge(final_taxon)
-                # 若沒有taxonID的 改以parentTaxonID串
-                match_parent_taxon_id = sci_names.drop(columns=['taxonID','class','family','order'],errors='ignore').merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
-                match_parent_taxon_id['taxonID'] = ''
-                match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
-                # 如果都沒有對到 要再加回來
-                match_taxon_id = match_taxon_id.append(sci_names[~sci_names.copy_index.isin(match_taxon_id.copy_index.to_list())],ignore_index=True)
-                match_taxon_id = match_taxon_id.replace({np.nan: ''})
-                match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999'})
-            if len(match_taxon_id):
-                # 要拆成原本有taxonID / 沒有taxonID的兩個部分
-                df_w = df[df.taxonID!='']
-                df_w = df_w.reset_index(drop=True)
-                if len(df_w):
-                    df_w = df_w.merge(match_taxon_id.drop(columns=['gbifAcceptedID'],errors='ignore'),on=['sourceScientificName','sourceVernacularName','taxonID'],how='left')
-                df_wo = df[df.taxonID=='']
-                df_wo = df_wo.reset_index(drop=True)
-                if len(df_wo):
-                    df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999',None:'-999999'})
-                    df_wo = df_wo.drop(columns=['taxonID']).merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName','gbifAcceptedID'], how='left')
-                    df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'-999999': ''})            
-                df = pd.concat([df_w, df_wo])
-            df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
-            df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
-            df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
-            df['group'] = group
-            df['rightsHolder'] = '國立臺灣博物館典藏'
-            df['created'] = datetime.now()
-            df['modified'] = datetime.now()
-            df['grid_1'] = '-1_-1'
-            df['grid_5'] = '-1_-1'
-            df['grid_10'] = '-1_-1'
-            df['grid_100'] = '-1_-1'
-            for i in df.index:
-                df.loc[i,'id'] = bson.objectid.ObjectId()
-                row = df.iloc[i]
-                if 'Specimen' in row.basisOfRecord:
-                    df.loc[i,'recordType'] = 'col'
-                else:
-                    df.loc[i,'recordType'] = 'occ'
-                standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
-                if standardLon and standardLat:
-                    df.loc[i,'standardLongitude'] = standardLon
-                    df.loc[i,'standardLatitude'] = standardLat
-                    df.loc[i,'location_rpt'] = location_rpt
-                    grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
-                    df.loc[i, 'grid_1'] = str(int(grid_x)) + '_' + str(int(grid_y))
-                    grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
-                    df.loc[i, 'grid_5'] = str(int(grid_x)) + '_' + str(int(grid_y))
-                    grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
-                    df.loc[i, 'grid_10'] = str(int(grid_x)) + '_' + str(int(grid_y))
-                    grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
-                    df.loc[i, 'grid_100'] = str(int(grid_x)) + '_' + str(int(grid_y))
-                try:
-                    standardOrganismQuantity = int(row.organismQuantity)
-                    df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
-                except:
-                    pass
-            ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
-            for r in ds_name:
-                if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
-                    # 更新
-                    dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
-                    dk.deprecated = False
-                    dk.save()
-                else:
-                    # 新建
-                    DatasetKey.objects.create(
-                        name = r['datasetName'],
-                        record_type = r['recordType'],
-                        group = group,
-                    )
-            match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
-            match_log.loc[match_log.taxonID=='','is_matched'] = False
-            match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
-            match_log = match_log.replace({np.nan: None})
-            match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
-            match_log['stage_1'] = match_log['stage_1'].apply(lambda x: issue_map[x] if x else x)
-            match_log['stage_2'] = match_log['stage_2'].apply(lambda x: issue_map[x] if x else x)
-            match_log['stage_3'] = match_log['stage_3'].apply(lambda x: issue_map[x] if x else x)
-            match_log['stage_4'] = match_log['stage_4'].apply(lambda x: issue_map[x] if x else x)
-            match_log['stage_5'] = match_log['stage_5'].apply(lambda x: issue_map[x] if x else x)
-            match_log['group'] = group
-            match_log = match_log.rename(columns={'id': 'tbiaID'})
-            match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
-            conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
-            db = create_engine(conn_string)
-            match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
-            df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id','gbifAcceptedID','copy_index'],errors='ignore')
-            # df = df.rename(columns={'taxon_name_id': 'scientificNameID'})
-            df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{d}.csv', index=False)
+d = dataset.taibifDatasetID[0]
+gbif_d = dataset.gbifDatasetID[0]
+# for d in dataset.taibifDatasetID.unique():
+#     d_count += 1
+    # print(d, ': ', d_count)
+data = []
+url = f"https://portal.taibif.tw/api/v2/occurrence/basic_occ?taibifDatasetID={d}&rows=1000"
+response = requests.get(url)
+c = 0
+offset = 0
+if response.status_code == 200:
+    result = response.json()
+    if total_count := result.get('count'):
+        data += result.get('results')
+        while offset < total_count:
+            c += 1
+            offset = c * 1000
+            next_url = f"https://portal.taibif.tw/api/v2/occurrence/basic_occ?taibifDatasetID={d}&rows=1000&offset={offset}"
+            response = requests.get(next_url)
+            if response.status_code == 200:
+                result = response.json()
+                data += result.get('results')
+if len(data):
+    df = pd.DataFrame(data)
+    # df = df.drop(columns=['occurrenceID'])
+    df = df.rename(columns={'taibifCreatedDate': 'sourceCreated',
+                            'taibifModifiedDate': 'sourceModified',
+                            'scientificName': 'sourceScientificName',
+                            'isPreferredName': 'sourceVernacularName',
+                            'taicolTaxonID': 'taxonID',
+                            'decimalLatitude': 'verbatimLatitude',
+                            'decimalLongitude': 'verbatimLongitude'})
+    df = df[~(df.sourceVernacularName.isin([nan,'',None])&df.sourceScientificName.isin([nan,'',None]))]
+    if len(df):
+        df = df.replace({nan: '', None: ''})
+        sci_names = df[['taxonID','sourceScientificName','sourceVernacularName','gbifAcceptedID','class', 'order', 'family']].drop_duplicates().reset_index(drop=True)
+        # sci_names['taxonID'] = ''
+        sci_names['parentTaxonID'] = ''
+        sci_names['match_stage'] = 1
+        # 各階段的issue default是沒有對到
+        # 只有1,3,4
+        sci_names['stage_1'] = 2
+        sci_names['stage_2'] = None
+        sci_names['stage_3'] = 2
+        sci_names['stage_4'] = 2
+        sci_names['stage_5'] = None
+        sci_names = matching_flow(sci_names)
+        df = df.drop(columns=['occurrenceStatus', 'taibifDatasetID', 'taxonRank', 
+                            'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'taxonGroup', 
+                            'year', 'month', 'country', 'county', 'datasetShortName', 'scientificNameID', 
+                            'taxonBackbone', 'day', 'geodeticDatum', 'habitatReserve', 'wildlifeReserve', 
+                            'countryCode'], errors='ignore')
+        taxon_list = list(sci_names[sci_names.taxonID!=''].taxonID.unique()) + list(sci_names[sci_names.parentTaxonID!=''].parentTaxonID.unique())
+        final_taxon = Taxon.objects.filter(taxonID__in=taxon_list).values(*fields)
+        final_taxon = pd.DataFrame(final_taxon)
+        if len(final_taxon):
+            final_taxon = final_taxon.drop(columns=['id'])
+            final_taxon = final_taxon.rename(columns={'scientificNameID': 'taxon_name_id'})
+            # sci_names = sci_names.rename(columns={'scientificName': 'sourceScientificName'})
+            sci_names['copy_index'] = sci_names.index
+            match_taxon_id = sci_names.drop(['class','family','order'],errors='ignore').merge(final_taxon)
+            # 若沒有taxonID的 改以parentTaxonID串
+            match_parent_taxon_id = sci_names.drop(columns=['taxonID','class','family','order'],errors='ignore').merge(final_taxon,left_on='parentTaxonID',right_on='taxonID')
+            match_parent_taxon_id['taxonID'] = ''
+            match_taxon_id = match_taxon_id.append(match_parent_taxon_id,ignore_index=True)
+            # 如果都沒有對到 要再加回來
+            match_taxon_id = match_taxon_id.append(sci_names[~sci_names.copy_index.isin(match_taxon_id.copy_index.to_list())],ignore_index=True)
+            match_taxon_id = match_taxon_id.replace({np.nan: ''})
+            match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = match_taxon_id[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999'})
+        if len(match_taxon_id):
+            # 要拆成原本有taxonID / 沒有taxonID的兩個部分
+            df_w = df[df.taxonID!='']
+            df_w = df_w.reset_index(drop=True)
+            if len(df_w):
+                df_w = df_w.merge(match_taxon_id.drop(columns=['gbifAcceptedID'],errors='ignore'),on=['sourceScientificName','sourceVernacularName','taxonID'],how='left')
+            df_wo = df[df.taxonID=='']
+            df_wo = df_wo.reset_index(drop=True)
+            if len(df_wo):
+                df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'': '-999999',None:'-999999'})
+                df_wo = df_wo.drop(columns=['taxonID']).merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName','gbifAcceptedID'], how='left')
+                df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']] = df_wo[['sourceScientificName','sourceVernacularName','gbifAcceptedID']].replace({'-999999': ''})            
+            df = pd.concat([df_w, df_wo])
+        df = df.reset_index(drop=True)
+        df['sourceModified'] = df['sourceModified'].apply(lambda x: convert_date(x))
+        df['sourceCreated'] = df['sourceCreated'].apply(lambda x: convert_date(x))
+        df['standardDate'] = df['eventDate'].apply(lambda x: convert_date(x))
+        df['group'] = group
+        df['rightsHolder'] = '國立臺灣博物館典藏'
+        df['created'] = datetime.now()
+        df['modified'] = datetime.now()
+        df['grid_1'] = '-1_-1'
+        df['grid_5'] = '-1_-1'
+        df['grid_10'] = '-1_-1'
+        df['grid_100'] = '-1_-1'
+        for i in df.index:
+            print(i)
+            df.loc[i,'id'] = bson.objectid.ObjectId()
+            row = df.iloc[i]
+            # 取得GBIF ID
+            gbif_url = f"https://api.gbif.org/v1/occurrence/{gbif_d}/{row.occurrenceID}"
+            gbif_resp = requests.get(gbif_url)
+            if gbif_resp.status_code == 200:
+                gbif_res = gbif_resp.json()
+                if gbif_res.get('occurrenceID'):
+                    df.loc[i, 'occurrenceID'] = gbif_res.get('occurrenceID')
+                if gbif_res.get('gbifID'):
+                    df.loc[i, 'references'] = f"https://www.gbif.org/occurrence/{gbif_res.get('gbifID')}" 
+            if 'Specimen' in row.basisOfRecord:
+                df.loc[i,'recordType'] = 'col'
+            else:
+                df.loc[i,'recordType'] = 'occ'
+            standardLon, standardLat, location_rpt = standardize_coor(row.verbatimLongitude, row.verbatimLatitude)
+            if standardLon and standardLat:
+                df.loc[i,'standardLongitude'] = standardLon
+                df.loc[i,'standardLatitude'] = standardLat
+                df.loc[i,'location_rpt'] = location_rpt
+                grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.01)
+                df.loc[i, 'grid_1'] = str(int(grid_x)) + '_' + str(int(grid_y))
+                grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.05)
+                df.loc[i, 'grid_5'] = str(int(grid_x)) + '_' + str(int(grid_y))
+                grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 0.1)
+                df.loc[i, 'grid_10'] = str(int(grid_x)) + '_' + str(int(grid_y))
+                grid_x, grid_y = convert_coor_to_grid(standardLon, standardLat, 1)
+                df.loc[i, 'grid_100'] = str(int(grid_x)) + '_' + str(int(grid_y))
+            try:
+                standardOrganismQuantity = int(row.organismQuantity)
+                df.loc[i,'standardOrganismQuantity'] = standardOrganismQuantity
+            except:
+                pass
+        ds_name = df[['datasetName','recordType']].drop_duplicates().to_dict(orient='records')
+        for r in ds_name:
+            if DatasetKey.objects.filter(group=group,name=r['datasetName'],record_type=r['recordType']).exists():
+                # 更新
+                dk = DatasetKey.objects.get(group=group,name=r['datasetName'],record_type=r['recordType'])
+                dk.deprecated = False
+                dk.save()
+            else:
+                # 新建
+                DatasetKey.objects.create(
+                    name = r['datasetName'],
+                    record_type = r['recordType'],
+                    group = group,
+                )
+        match_log = df[['occurrenceID','id','sourceScientificName','taxonID','parentTaxonID','match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','group','created','modified']]
+        match_log.loc[match_log.taxonID=='','is_matched'] = False
+        match_log.loc[(match_log.taxonID!='')|(match_log.parentTaxonID!=''),'is_matched'] = True
+        match_log = match_log.replace({np.nan: None})
+        match_log['match_stage'] = match_log['match_stage'].apply(lambda x: int(x) if x else x)
+        match_log['stage_1'] = match_log['stage_1'].apply(lambda x: issue_map[x] if x else x)
+        match_log['stage_2'] = match_log['stage_2'].apply(lambda x: issue_map[x] if x else x)
+        match_log['stage_3'] = match_log['stage_3'].apply(lambda x: issue_map[x] if x else x)
+        match_log['stage_4'] = match_log['stage_4'].apply(lambda x: issue_map[x] if x else x)
+        match_log['stage_5'] = match_log['stage_5'].apply(lambda x: issue_map[x] if x else x)
+        match_log['group'] = group
+        match_log = match_log.rename(columns={'id': 'tbiaID'})
+        match_log['tbiaID'] = match_log['tbiaID'].apply(lambda x: str(x))
+        conn_string = env('DATABASE_URL').replace('postgres://', 'postgresql://')
+        db = create_engine(conn_string)
+        match_log.to_sql('manager_matchlog', db, if_exists='append',schema='public', index=False)
+        df = df.drop(columns=['match_stage','stage_1','stage_2','stage_3','stage_4','stage_5','taxon_name_id','gbifAcceptedID','copy_index'],errors='ignore')
+        # df = df.rename(columns={'taxon_name_id': 'scientificNameID'})
+        df.to_csv(f'/tbia-volumes/solr/csvs/processed/{group}_{d}.csv', index=False)
 
 
 # # 台博館 & 水利署

@@ -213,6 +213,7 @@ for p in range(0,len(spe_list),10):
         df[['sourceScientificName','sourceVernacularName']] = df[['sourceScientificName','sourceVernacularName']].replace({'': '-999999',None:'-999999'})
         df = df.merge(match_taxon_id, on=['sourceScientificName','sourceVernacularName'], how='left')
         df[['sourceScientificName','sourceVernacularName']] = df[['sourceScientificName','sourceVernacularName']].replace({'-999999': ''})
+    df = df.reset_index(drop=True)
     df['group'] = group
     df['occurrenceID'] = ''
     df['rightsHolder'] = '濕地環境資料庫'
