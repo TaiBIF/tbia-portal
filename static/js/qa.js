@@ -40,6 +40,13 @@ $( function() {
     $('#qa_type').on('change',function(){
           $('#btn-group-qa_type button span.title').addClass('color-white')
     })
+
+
+    let urlParams = new URLSearchParams(window.location.search);
+    if( urlParams.get('qa_id')){
+      window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
+    }
+    //let menu = urlParams.get('qa_id')
 })
 
 

@@ -23,16 +23,16 @@
   <div class="main_1240">
     <div class="qa_top_item">
       <ul class="tabb">
-        <li class="now qa_2" data-type="2">網頁內容</li>
-        <li class="qa_1" data-type="1">網頁操作</li>
-        <li class="qa_3" data-type="3">聯盟相關</li>
+        {% for q in qa_options %}
+        <li class="{% if type == q.type %} now {% endif %}  qa_{{ q.type }}" data-type="{{ q.type }}">{{ q.value }}</li>
+        {% endfor %}
       </ul>
       <button class="rep showFeedback">意見回饋</button>
       <div class="mobile_tab">
         <select name="qa_type" id="qa_type">
-          <option value="2" selected>網頁內容</option>
-          <option value="1">網頁操作</option>
-          <option value="3">聯盟相關</option>
+          {% for q in qa_options %}
+          <option value="{{ q.type }}" {% if type == q.type %} selected {% endif %}>{{ q.value }}</option>
+          {% endfor %}
         </select>
       </div>
     </div>
@@ -41,7 +41,7 @@
     <div class="qa_list">
       <ul>
         {% for q in qa_list %}
-        <li>
+        <li class="{% if active_qa == q.id %} now {% endif %}" data-qa_id="{{ q.id }}" id="qa_hash_{{ q.id }}">
           <div class="questieon">
             <div class="mark_title">Q</div>
             <p>{{ q.question }}</p>
@@ -58,9 +58,9 @@
 
 		<div class="page_number">
       {% if page_list|length > 1 %}
-        <a href="javascript:;" class="num changePage" data-page="1" data-type="2">1</a>
+        <a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
         {% if current_page|add:'-1' in page_list %}
-        <a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="2">
+        <a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
           上一頁
         </a>
         {% else %}
@@ -71,9 +71,9 @@
         <!--目前頁面給 now-->
         {% for p in page_list %}
           {% if p == current_page %}
-            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="2">{{ p }}</a>
+            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
           {% else %}
-            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="2">{{ p }}</a>
+            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
           {% endif %}
         {% endfor %}
         {% if current_page|add:1 in page_list %}
@@ -85,7 +85,7 @@
           下一頁
         </a>
         {% endif %}
-        <a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="2">{{ total_page }}</a>
+        <a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
       {% endif %}
       </div>
     </div>

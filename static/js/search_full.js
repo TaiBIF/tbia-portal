@@ -432,7 +432,7 @@ function focusComponent(item_class, go_back){
                 </svg>
                 <p>資料下載</p>
               </button>
-              <a href="#" class="qmark"></a>
+              <a href="/qa?qa_id=14" target="_blank" class="qmark"></a>
             </div>
           </div>
 

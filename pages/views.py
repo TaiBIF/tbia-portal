@@ -149,20 +149,35 @@ def get_resource_cate(extension):
 
 
 def qa(request):
-    type = request.GET.get('type')
+    qa_options = [{'type': 2, 'value': '網頁內容'}, {'type': 1, 'value': '網頁操作'},{'type': 3, 'value': '聯盟相關'},]
     limit = 10
-    if type:
-        qa_list = Qa.objects.filter(type=type).order_by('order')
-    else:
-        qa_list = Qa.objects.filter(type=2).order_by('order')
+    index = 0
+    type = request.GET.get('type', 2)
+    qa_id = request.GET.get('qa_id')
+    active_qa = None
 
-    current_page = 0 / limit + 1
+    # if type := request.GET.get('type', 2):
+    # if type:
+    if qa_id:
+        if Qa.objects.filter(id=qa_id).exists():
+            qa_obj = Qa.objects.get(id=qa_id)
+            index = Qa.objects.filter(order__lt = qa_obj.order, type = qa_obj.type).count()
+            type = qa_obj.type
+            active_qa = qa_obj.id
+    # else:
+    #     index = 0
+    # else:
+    #     qa_list = Qa.objects.filter(type=2).order_by('order')
+
+    current_page = math.ceil(index / limit)
+    offset = limit * (current_page-1)
+    qa_list = Qa.objects.filter(type=type).order_by('order')
     total_page = math.ceil(qa_list.count()/limit)
-    page_list = get_page_list(1, total_page)
-    qa_list = qa_list[:limit]
-
-    return render(request, 'pages/qa.html', {'qa_list': qa_list, 'type': type, 'total_page': total_page,
-                                             'page_list': page_list, 'current_page': current_page})
+    page_list = get_page_list(current_page, total_page)
+    qa_list = qa_list[offset:offset+limit]
+    
+    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'qa_list': qa_list, 'type': type, 'total_page': total_page,
+                                             'page_list': page_list, 'current_page': current_page, 'active_qa': active_qa})
 
 
 def get_qa_list(request):
@@ -230,7 +245,7 @@ def index(request):
     # resource
     resource = Resource.objects.order_by('-modified')
     resource_rows = []
-    for x in resource[:8]:
+    for x in resource[:7]:
         # modified =  x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
@@ -282,8 +297,12 @@ def get_resources(request):
     page_list = get_page_list(current_page,total_page,3)
 
     resource_rows = []
-    limit = current_page*12 if request.POST.get('from') == 'resource' else 8
-    offset = (current_page-1)*12 if request.POST.get('from') == 'resource' else 0
+    req_from = request.POST.get('from')
+    limit = current_page*12 if req_from == 'resource' else 8
+    if req_from != 'resource' and type =='all':
+        limit = 7
+    offset = (current_page-1)*12 if req_from == 'resource' else 0
+
     for x in resource[offset:limit]:
         # modified = x.modified + timedelta(hours=8)
         resource_rows.append({
