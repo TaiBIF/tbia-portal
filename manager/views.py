@@ -1713,6 +1713,7 @@ def submit_news(request):
                         user = u
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
+                    content = content.replace("請至後台查看", f"查看發布內容：{request.scheme}://{request.get_host()}/news/detail/{n.id}")
                     send_notification([u.id],content,'消息發布申請結果')
             return redirect('system_news')
         else:
@@ -1734,6 +1735,7 @@ def submit_news(request):
                         user = u
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
+                    content = content.replace("請至後台查看", f"查看發布內容：{request.scheme}://{request.get_host()}/news/detail/{n.id}")
                     send_notification([u.id],content,'消息發布申請結果')
 
             return redirect('partner_news')
@@ -1774,7 +1776,8 @@ def send_notification(user_list, content, title):
         <br>
         {content}
         <br>
-
+        <br>
+        臺灣生物多樣性資訊聯盟
         """
         subject = '[生物多樣性資料庫共通查詢系統] ' + title
 

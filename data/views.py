@@ -390,7 +390,7 @@ def submit_sensitive_response(request):
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
     # 若是機關委託計畫，排除已轉移給各單位審核的
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
-        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),))
+        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),request.scheme,request.get_host()))
         task.start()
 
     return JsonResponse({"status": 'success'}, safe=False)
@@ -599,7 +599,7 @@ def transfer_sensitive_response(request):
     return JsonResponse({"status": 'success'}, safe=False)
 
 
-def generate_sensitive_csv(query_id):
+def generate_sensitive_csv(query_id, scheme, host):
     
     if SearchQuery.objects.filter(query_id=query_id).exists():
         sq = SearchQuery.objects.get(query_id=query_id)
@@ -827,13 +827,36 @@ def generate_sensitive_csv(query_id):
 
 
         if file_done:
-            #  這邊要給審查意見
             nn = Notification.objects.create(
                 type = 4,
                 content = sq.id,
                 user_id = sq.user_id
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
+
+            # 審查意見
+            comment = []
+
+            for sdr in SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True, partner_id__isnull=True):
+                if sdr.partner:
+                    partner_name = sdr.partner.select_title 
+                else:
+                    partner_name = 'TBIA聯盟'
+                comment.append(f"""
+                <b>審查單位：</b>{partner_name}
+                <br>
+                <b>審查者姓名：</b>{sdr.reviewer_name}
+                <br>
+                <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+                <br>
+                <b>審查結果：</b>{sdr.get_status_display()}
+                """)
+
+            comment = '<hr>'.join(comment) if comment else ''
+            content = content.replace('請至後台查看','審查意見如下：<br><br>')
+            content += comment
+            if sq.status == 'pass':
+                content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/sensitive/{download_id}.zip"
             send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知')
 
 
@@ -870,19 +893,19 @@ def return_geojson_query(request):
 def send_download_request(request):
     if request.method == 'POST':
         if request.POST.get('from_full'):
-            task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id))
+            task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id, request.scheme, request.get_host()))
             task.start()
         elif request.POST.get('taxon'):
-            task = threading.Thread(target=generate_species_csv, args=(request.POST, request.user.id))
+            task = threading.Thread(target=generate_species_csv, args=(request.POST, request.user.id, request.scheme, request.get_host()))
             task.start()
         else:
-            task = threading.Thread(target=generate_download_csv, args=(request.POST, request.user.id))
+            task = threading.Thread(target=generate_download_csv, args=(request.POST, request.user.id, request.scheme, request.get_host()))
             task.start()
         return JsonResponse({"status": 'success'}, safe=False)
 
 
 # 這邊是for進階搜尋 全站搜尋要先另外寫
-def generate_download_csv(req_dict,user_id):
+def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"{user_id}_{str(ObjectId())}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
@@ -1090,11 +1113,13 @@ def generate_download_csv(req_dict,user_id):
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
+    content = content.replace("請至後台查看", f"檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip")
+
     send_notification([user_id],content,'下載資料已完成通知')
 # facet.pivot=taxonID,scientificName
 
 
-def generate_species_csv(req_dict,user_id):
+def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"{user_id}_{str(ObjectId())}"
 
     # 先取得筆數，export to csv
@@ -1304,11 +1329,12 @@ def generate_species_csv(req_dict,user_id):
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
+    content = content.replace("請至後台查看", f"檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip")
     send_notification([user_id],content,'下載名錄已完成通知')
 
     # return csv file
 
-def generate_download_csv_full(req_dict,user_id):
+def generate_download_csv_full(req_dict, user_id, scheme, host):
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
@@ -1401,6 +1427,7 @@ def generate_download_csv_full(req_dict,user_id):
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
+    content = content.replace("請至後台查看", f"檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip")
     send_notification([user_id],content,'下載資料已完成通知')
 
 

@@ -9,6 +9,19 @@ from data.views import generate_sensitive_csv
 import threading
 import glob
 import os
+from conf.settings import env
+
+web_mode = env('ENV')
+if web_mode == 'stag':
+    scheme = 'https'
+    host = 'dev.tbiadata.tw'
+elif web_mode == 'prod':
+    scheme = 'https'
+    host = 'tbiadata.tw'
+else:
+    scheme = 'http'
+    host = '127.0.0.1:8000'
+
 # 從notification裡面去撈每個user最新的request時間
 
 # 系統管理員 如果7天後狀態是pending的話就直接通過
@@ -61,7 +74,7 @@ for d in data:
         # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
         # 排除已轉移給各單位審核的機關計畫
         if not SensitiveDataResponse.objects.filter(query_id=d[2],status='pending').exclude(is_transferred=True).exists():
-            task = threading.Thread(target=generate_sensitive_csv, args=(d[2],))
+            task = threading.Thread(target=generate_sensitive_csv, args=(d[2],scheme,host))
             task.start()
 
 
@@ -97,5 +110,5 @@ for d in data:
         # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
         # 排除已轉移給各單位審核的機關計畫
         if not SensitiveDataResponse.objects.filter(query_id=d[2],status='pending').exclude(is_transferred=True).exists():
-            task = threading.Thread(target=generate_sensitive_csv, args=(d[2],))
+            task = threading.Thread(target=generate_sensitive_csv, args=(d[2],scheme,host))
             task.start()
