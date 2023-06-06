@@ -16,5 +16,5 @@ for i in range(0, len(files)):
     print(i, '/',  len(files))
     df = pd.read_csv(files[i],usecols=['id','references','occurrenceID'])
     df['references'] = df.apply(lambda x: f"https://portal.taibif.tw/occurrence/{x.occurrenceID}" if x.occurrenceID else None, axis=1)
-    # query = df[['id','grid_1','grid_5','grid_10','grid_100']].to_dict(orient='records')
+    query = df[['id','references']].to_dict(orient='records')
     response = requests.post(f'{SOLR_PREFIX}tbia_records/update?commit=true', data=json.dumps(query), headers={'content-type': "application/json" })

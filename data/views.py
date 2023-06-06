@@ -40,9 +40,17 @@ from django.utils import timezone
 from os.path import exists
 from data.models import Namecode, Taxon, DatasetKey
 
-basis_dict = { 'HumanObservation':'人為觀察', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
-                'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
-                'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
+# basis_dict = { 'HumanObservation':'(人為觀察 OR HumanObservation)', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
+#                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
+#                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
+
+basis_dict = { '人為觀測':'("人為觀測" OR "HumanObservation")', 
+                '保存標本':'("保存標本" OR "PreservedSpecimen")', 
+                '化石標本':'("化石標本" OR "FossilSpecimen")', 
+                '活體標本':'("活體標本" OR "LivingSpecimen")', 
+                '組織樣本':'("組織樣本" OR "MaterialSample")',
+                '機器觀測':'("機器觀測" OR "MachineObservation")', 
+                '出現紀錄':'("出現紀錄" OR "Occurrence")'}
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -202,8 +210,12 @@ def submit_sensitive_request(request):
                 elif val == '一般':
                     query_list += [f'-typeStatus:*']
             
+            if val := req_dict.get('basisOfRecord'):
+                if val in basis_dict.keys():
+                    query_list += [f'basisOfRecord:{basis_dict[val]}']
+
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -458,8 +470,12 @@ def transfer_sensitive_response(request):
                 elif val == '一般':
                     query_list += [f'-typeStatus:*']
 
+            if val := req_dict.get('basisOfRecord'):
+                if val in basis_dict.keys():
+                    query_list += [f'basisOfRecord:{basis_dict[val]}']
+
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -678,8 +694,12 @@ def generate_sensitive_csv(query_id, scheme, host):
                 elif val == '一般':
                     query_list += [f'-typeStatus:*']
 
+            if val := req_dict.get('basisOfRecord'):
+                if val in basis_dict.keys():
+                    query_list += [f'basisOfRecord:{basis_dict[val]}']
+
             # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+            for i in ['sensitiveCategory', 'taxonRank']: 
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
@@ -964,8 +984,12 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         elif val == '一般':
             query_list += [f'-typeStatus:*']
 
+    if val := req_dict.get('basisOfRecord'):
+        if val in basis_dict.keys():
+            query_list += [f'basisOfRecord:{basis_dict[val]}']
+
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -1173,8 +1197,12 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         elif val == '一般':
             query_list += [f'-typeStatus:*']
 
+    if val := req_dict.get('basisOfRecord'):
+        if val in basis_dict.keys():
+            query_list += [f'basisOfRecord:{basis_dict[val]}']
+
     # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+    for i in ['sensitiveCategory', 'taxonRank']: 
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
@@ -2765,10 +2793,10 @@ def search_occurrence(request):
     # holder_list = ['TBN','TaiBIF','林試所','林務局','海保署']
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
-    basis_list = basis_dict.values()
+    basis_list = basis_dict.keys()
         
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_list': basis_list, 'dataset_list': dataset_list})
+        'rank_list': rank_list, 'basis_list': basis_dict, 'dataset_list': dataset_list})
 
 
 def occurrence_detail(request, id):
@@ -3098,8 +3126,12 @@ def get_map_grid(request):
             elif val == '一般':
                 query_list += [f'-typeStatus:*']
 
+        if val := request.POST.get('basisOfRecord'):
+            if val in basis_dict.keys():
+                query_list += [f'basisOfRecord:{basis_dict[val]}']
+
         # 下拉選單單選
-        for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+        for i in ['sensitiveCategory', 'taxonRank']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
@@ -3293,8 +3325,12 @@ def get_conditional_records(request):
             elif val == '一般':
                 query_list += [f'-typeStatus:*']
 
+        if val := request.POST.get('basisOfRecord'):
+            if val in basis_dict.keys():
+                query_list += [f'basisOfRecord:{basis_dict[val]}']
+
         # 下拉選單單選
-        for i in ['sensitiveCategory', 'taxonRank','basisOfRecord']: 
+        for i in ['sensitiveCategory', 'taxonRank']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
