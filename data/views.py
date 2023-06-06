@@ -1533,7 +1533,10 @@ def search_full(request):
                     rows = col_result_df[(col_result_df.val==ct) & (col_result_df.matched_col.isin(taxon_facets))]
                     matched = []
                     for ii in rows.index:
-                        matched.append({'key': col_result_df.loc[ii].matched_col, 'matched_col': map_collection[col_result_df.loc[ii].matched_col], 'matched_value': col_result_df.loc[ii].matched_value})
+                        match_val = col_result_df.loc[ii].matched_value
+                        if col_result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                            match_val = (', ').join(match_val.split(','))
+                        matched.append({'key': col_result_df.loc[ii].matched_col, 'matched_col': map_collection[col_result_df.loc[ii].matched_col], 'matched_value': match_val})
                     col_result_dict_all.append({
                         'val': ct,
                         'count': col_result_df[(col_result_df.val==ct) & (col_result_df.matched_col.isin(taxon_facets))]['count'].values[0],
@@ -1649,7 +1652,10 @@ def search_full(request):
                     rows = occ_result_df[(occ_result_df.val==ot) & (occ_result_df.matched_col.isin(taxon_facets))]
                     matched = []
                     for ii in rows.index:
-                        matched.append({'key': occ_result_df.loc[ii].matched_col, 'matched_col': map_occurrence[occ_result_df.loc[ii].matched_col], 'matched_value': occ_result_df.loc[ii].matched_value})
+                        match_val = occ_result_df.loc[ii].matched_value
+                        if occ_result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                            match_val = (', ').join(match_val.split(','))
+                        matched.append({'key': occ_result_df.loc[ii].matched_col, 'matched_col': map_occurrence[occ_result_df.loc[ii].matched_col], 'matched_value': match_val})
                     occ_result_dict_all.append({
                         'val': ot,
                         'count': occ_result_df[(occ_result_df.val==ot) & (occ_result_df.matched_col.isin(taxon_facets))]['count'].values[0],
@@ -1734,7 +1740,7 @@ def search_full(request):
             # 整理卡片
             # 相同taxonID的要放在一起
             taxon_card_len = len(taxon_result_df.val.unique())
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('taxonRank','common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('taxonRank','common_name_c','alternative_name_c','synonyms','formatted_name','taxonID','scientificNameID'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]
 
@@ -1753,7 +1759,8 @@ def search_full(request):
             taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
             taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
 
         # 照片
         taxon_result_dict = []
@@ -1773,7 +1780,10 @@ def search_full(request):
                     tr['taieol_id'] = n_obj.taieol_id
             tr['matched'] = []
             for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
-                tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': taxon_result_df.loc[ii].matched_value})
+                match_val = taxon_result_df.loc[ii].matched_value
+                if taxon_result_df.loc[ii].matched_col == '誤用名':
+                    match_val = (', ').join(match_val.split(','))
+                tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': match_val})
             taxon_result_dict.append(tr)
             
         # news
@@ -1972,6 +1982,10 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
+        if 'synonyms' in docs.keys():
+            docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+        if 'misapplied' in docs.keys():
+            docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
 
         docs = docs.to_dict('records')
 
@@ -2124,10 +2138,13 @@ def get_focus_cards(request):
                         rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]
                         matched = []
                         for ii in rows.index:
+                            match_val = result_df.loc[ii].matched_value
+                            if result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                                match_val = (', ').join(match_val.split(','))
                             matched.append({'key': result_df.loc[ii].matched_col, 
                                             'matched_col': map_dict[result_df.loc[ii].matched_col], 
-                                            'matched_value_ori': result_df.loc[ii].matched_value,
-                                            'matched_value': highlight(result_df.loc[ii].matched_value,keyword),
+                                            'matched_value_ori': match_val,
+                                            'matched_value': highlight(match_val,keyword),
                                             })
                         result_dict_all.append({
                             'val': t,
@@ -2294,7 +2311,7 @@ def get_focus_cards_taxon(request):
             # 整理卡片
             # 相同taxonID的要放在一起
             taxon_card_len = len(taxon_result_df.val.unique())
-            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
+            taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[:4]).values('common_name_c','alternative_name_c','synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             taxon_result_df = taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[:4])]            
 
@@ -2315,9 +2332,10 @@ def get_focus_cards_taxon(request):
             taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
             taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
             taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
 
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
 
         # 照片
         taxon_result_dict = []
@@ -2337,7 +2355,10 @@ def get_focus_cards_taxon(request):
                     tr['taieol_id'] = n_obj.taieol_id
             tr['matched'] = []
             for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
-                tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': taxon_result_df.loc[ii].matched_value})
+                match_val = taxon_result_df.loc[ii].matched_value
+                if taxon_result_df.loc[ii].matched_col == '誤用名':
+                    match_val = (', ').join(match_val.split(','))
+                tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': match_val})
             taxon_result_dict.append(tr)     
 
         response = {
@@ -2454,15 +2475,14 @@ def get_more_cards_taxon(request):
 
         if taxon_card_len:
             if offset >= 28:
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+2]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+2]).values('common_name_c','alternative_name_c','synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             else:
-                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+4]).values('common_name_c','alternative_name_c','formatted_synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
+                taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=taxon_result_df.val.unique()[offset:offset+4]).values('common_name_c','alternative_name_c','synonyms','formatted_name','taxonID','scientificNameID','taxonRank'))
             taicol = taicol.rename(columns={'scientificNameID': 'taxon_name_id'})
             if offset >= 28:
                 taxon_result_df = pd.merge(taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[offset:offset+2])],taicol,left_on='val',right_on='taxonID')
             else:
                 taxon_result_df = pd.merge(taxon_result_df[taxon_result_df.val.isin(taxon_result_df.val.unique()[offset:offset+4])],taicol,left_on='val',right_on='taxonID')
-
 
             taxon_result_df['occ_count'] = taxon_result_df['occ_count'].replace({np.nan: 0})
             taxon_result_df['col_count'] = taxon_result_df['col_count'].replace({np.nan: 0})
@@ -2478,10 +2498,11 @@ def get_more_cards_taxon(request):
             taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
             taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
             taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['formatted_synonyms'] = taxon_result_df['formatted_synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
 
             # 照片
-            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'formatted_synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
+            taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
             
             for tr in taxon_result_dict_all:
                 images = []
@@ -2500,7 +2521,10 @@ def get_more_cards_taxon(request):
                 tr['images'] = images
                 tr['matched'] = []
                 for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
-                    tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': taxon_result_df.loc[ii].matched_value})
+                    match_val = taxon_result_df.loc[ii].matched_value
+                    if taxon_result_df.loc[ii].matched_col == '誤用名':
+                        match_val = (', ').join(match_val.split(','))
+                    tr['matched'].append({'matched_col': taxon_result_df.loc[ii].matched_col, 'matched_value': match_val})
                 taxon_result_dict.append(tr)
         
         response = {
@@ -2625,10 +2649,13 @@ def get_more_cards(request):
                         rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]
                         matched = []
                         for ii in rows.index:
+                            match_val = result_df.loc[ii].matched_value
+                            if result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                                match_val = (', ').join(match_val.split(','))
                             matched.append({'key': result_df.loc[ii].matched_col, 
                                             'matched_col': map_dict[result_df.loc[ii].matched_col], 
-                                            'matched_value_ori': result_df.loc[ii].matched_value,
-                                            'matched_value': highlight(result_df.loc[ii].matched_value,keyword),
+                                            'matched_value_ori': match_val,
+                                            'matched_value': highlight(match_val,keyword),
                                             })
                         result_dict_all.append({
                             'val': t,
@@ -2779,9 +2806,9 @@ def occurrence_detail(request, id):
     row.update({'associatedMedia': am})
 
     if row.get('dataGeneralizations'):
-        if str(row['dataGeneralizations']) in ['True', True]:
+        if str(row['dataGeneralizations']) in ['True', True, "true"]:
             row.update({'dataGeneralizations': '是'})
-        elif str(row['dataGeneralizations']) in ['False', False]:
+        elif str(row['dataGeneralizations']) in ['False', False, "false"]:
             row.update({'dataGeneralizations': '否'})
         else:
             pass
@@ -2916,9 +2943,9 @@ def collection_detail(request, id):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
 
         if row.get('dataGeneralizations'):
-            if str(row['dataGeneralizations']) in ['True', True]:
+            if str(row['dataGeneralizations']) in ['True', True, "true"]:
                 row.update({'dataGeneralizations': '是'})
-            elif str(row['dataGeneralizations']) in ['False', False]:
+            elif str(row['dataGeneralizations']) in ['False', False, "false"]:
                 row.update({'dataGeneralizations': '否'})
             else:
                 pass
@@ -3481,6 +3508,10 @@ def get_conditional_records(request):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
+        if 'synonyms' in docs.keys():
+            docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+        if 'misapplied' in docs.keys():
+            docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
         
         docs = docs.to_dict('records')
 

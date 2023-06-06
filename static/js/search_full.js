@@ -812,7 +812,7 @@ function focusComponent(item_class, go_back){
                   <p>中⽂名：${x.common_name_c}</p>
                   <p>學名：${x.formatted_name}</p>
                   <p>中文別名：${ x.alternative_name_c }</p>
-                  <p>同物異名：${ x.formatted_synonyms }</p>
+                  <p>同物異名：${ x.synonyms }</p>
                   <p>分類階層：${ x.taxonRank }</p>
                   ${matched}
                   <p>出現記錄筆數：${ x.occ_count }</p>
@@ -1170,7 +1170,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
             <p>中⽂名：${x.common_name_c}</p>
             <p>學名：${x.formatted_name}</p>
             <p>中文別名：${ x.alternative_name_c }</p>
-            <p>同物異名：${ x.formatted_synonyms }</p>
+            <p>同物異名：${ x.synonyms }</p>
             <p>分類階層：${ x.taxonRank }</p>
             ${matched}
             <p>出現記錄筆數：${ x.occ_count }</p>
