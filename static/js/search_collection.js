@@ -93,14 +93,14 @@ function getColor(d) {
 }
 
 function style(feature) {
-  return {
-      fillColor: getColor(feature.properties.counts),
-      weight: 1,
-      opacity: 0.5,
-      color: 'black',
-      //dashArray: '3',
-      fillOpacity: 0.7
-  };
+    return {
+        fillColor: getColor(feature.properties.counts),
+        weight: 0,
+        //opacity: 0.5,
+        //color: 'black',
+        //dashArray: '3',
+        fillOpacity: 0.7
+    };
 }
 
 let map = L.map('map').setView([23.5, 121.2],7);

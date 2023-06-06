@@ -92,12 +92,12 @@
 }
 
 .choice-flow {
-    max-height: 100%; 
+    max-height: 100%;
     overflow-y: auto
 }
 
 .note-text {
-    text-align: right; 
+    text-align: right;
     color: #C65454
 }
 
@@ -130,11 +130,11 @@
 }
 
 .page-jump {
-    text-align: center; 
-    margin-right: 5px; 
+    text-align: center;
+    margin-right: 5px;
     margin-left: 5px;
-    width: 60px; 
-    border:1px; 
+    width: 60px;
+    border: 1px;
     border-bottom-style: solid;
     border-top-style: none;
     border-left-style: none;
@@ -168,14 +168,14 @@
 
 @media only screen and (max-width: 767px) {
     .page-jump {
-        width: 30px; 
+        width: 30px;
     }
 }
 
 @media only screen and (max-width: 767px) {
     .res_flex {
         flex-direction: column;
-        align-items: flex-start; 
+        align-items: flex-start;
     }
 }
 
@@ -187,4 +187,45 @@
 
 .input-100 {
     width: 100% !important;
+}
+
+
+.clear_btn {
+    color: #3F5146;
+    background: #FFF;
+    border: 1px solid #3F5146;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    width: 50%;
+    height: 50px;
+    border-radius: 25px;
+    font-size: 19px;
+    display: block;
+    margin: 0 10px
+}
+
+@media only screen and (min-width: 1000px) {
+    .clear_btn:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #3F5146;
+        color: #FFF;
+    }
+}
+
+.search_area_btns {
+    width: 50% !important;
+}
+
+
+@media only screen and (max-width: 767px) {
+    .search_area_btns {
+        width: 100% !important;
+    }
 }

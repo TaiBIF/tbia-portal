@@ -151,7 +151,7 @@ def get_resource_cate(extension):
 def qa(request):
     qa_options = [{'type': 2, 'value': '網頁內容'}, {'type': 1, 'value': '網頁操作'},{'type': 3, 'value': '聯盟相關'},]
     limit = 10
-    index = 0
+    index = 1
     type = request.GET.get('type', 2)
     qa_id = request.GET.get('qa_id')
     active_qa = None

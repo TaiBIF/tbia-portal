@@ -468,6 +468,11 @@ function focusComponent(item_class, go_back){
 
         $('.record_table').append(table_title);
 
+        // disable checkebox for common_name_c & scientificName
+        $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('disabled',true);
+        $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('checked',true);
+
+
         // append rows
         for (let i = 0; i < response.rows.length; i++) {
           let tmp = response.rows[i];
