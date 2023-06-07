@@ -1346,7 +1346,7 @@ def get_partner_stat(request):
             req = solr.request(query_list)
             total_count = req['solr_response']['response']['numFound']
             total_count = total_count - p_count
-            data_total += [{'name': '其他單位','y': total_count}]
+            data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
             has_taxon = p_count - no_taxon
     response = {
         'data_total': data_total,
@@ -1583,7 +1583,7 @@ def system_resource(request):
 
     resource_list = []
     for r in Resource.objects.all().order_by('-id')[:10]:
-        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
+        resource_list.append({'type': r.get_taxon_distype_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
     r_total_page = math.ceil(Resource.objects.all().count()/10)
     r_page_list = get_page_list(1, r_total_page)
     type_choice = Resource._meta.get_field('type').choices

@@ -14,6 +14,7 @@ urlpatterns = [
     path('get_focus_cards', views.get_focus_cards, name='get_focus_cards'),
     path('get_focus_cards_taxon', views.get_focus_cards_taxon, name='get_focus_cards_taxon'),
     path('get_taxon_dist', views.get_taxon_dist, name='get_taxon_dist'),
+    path('get_taxon_dist_init', views.get_taxon_dist_init, name='get_taxon_dist_init'),
     # path('search/full/doc/<result_type>/<keyword>', views.search_full_doc, name='search_full_doc'),
     # path('search/full/record/<record_type>/<keyword>', views.search_full_record, name='search_full_record'),
     path('search/collection', views.search_collection, name='search_collection'),

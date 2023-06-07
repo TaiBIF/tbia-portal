@@ -65,31 +65,32 @@ def get_geojson(request,id):
         return response
 
 
-def get_taxon_dist(request):
-    taxon_id = request.GET.get('taxonID')
+def get_taxon_dist_init(request):
+    taxon_id = request.POST.get('taxonID')
+    query_list = [f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+
     map_geojson = {}
-    map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
-    map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
     map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
     map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
 
-    query = {"query": f"taxonID:{taxon_id}",
-            "offset": 0,
-            "limit": 0}
-    
-    for grid in [1,5,10,100]:
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&facet.pivot=grid_x_{grid},grid_y_{grid}', data=json.dumps(query), headers={'content-type': "application/json" })
-        # map
-        data_c = {}
-        data_c = response.json()['facet_counts']['facet_pivot'][f'grid_x_{grid},grid_y_{grid}']
 
-        for i in data_c:
-            current_grid_x = i['value']
-            for j in i['pivot']:
-                current_grid_y = j['value']
-                current_count = j['count']
-                # current_center_x, current_center_y = convert_grid_to_coor(current_grid_x, current_grid_y)
-                if current_grid_x != -1 and current_grid_y != -1:
+    map_query = {"query": "*:*",
+            "offset": 0,
+            "limit": 0,
+            "filter": query_list}
+    
+    # map的排除數量為0的資料
+    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1&facet.field=grid_10&facet.field=grid_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+    
+    data_c = {}
+    for grid in [10, 100]:
+        data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+        for i in range(0, len(data_c), 2):
+            if len(data_c[i].split('_')) > 1:
+                current_grid_x = int(data_c[i].split('_')[0])
+                current_grid_y = int(data_c[i].split('_')[1])
+                current_count = data_c[i+1]
+                if current_grid_x > 0 and current_grid_y > 0:
                     borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
                     tmp = [{
                         "type": "Feature",
@@ -99,6 +100,45 @@ def get_taxon_dist(request):
                         }
                     }]
                     map_geojson[f'grid_{grid}']['features'] += tmp
+
+    return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
+
+
+def get_taxon_dist(request):
+    taxon_id = request.POST.get('taxonID')
+    grid = int(request.POST.get('grid'))
+    mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
+    query_list = ['{!field f=location_rpt}Intersects(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+
+    map_geojson = {"type":"FeatureCollection","features":[]}
+
+    map_query = {"query": "*:*",
+            "offset": 0,
+            "limit": 0,
+            "filter": query_list}
+    
+    # map的排除數量為0的資料
+    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1&facet.field=grid_{grid}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+    
+    #  print(map_query)
+    data_c = {}
+    # for grid in [1,5,10,100]:
+    data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+    for i in range(0, len(data_c), 2):
+        current_grid_x = int(data_c[i].split('_')[0])
+        current_grid_y = int(data_c[i].split('_')[1])
+        current_count = data_c[i+1]
+        if current_grid_x != -1 and current_grid_y != -1:
+            borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+            tmp = [{
+                "type": "Feature",
+                "geometry":{"type":"Polygon","coordinates":[borders]},
+                "properties": {
+                    "counts": current_count
+                }
+            }]
+            map_geojson['features'] += tmp
 
     return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
@@ -219,6 +259,8 @@ def submit_sensitive_request(request):
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
+                    elif i == 'taxonRank' and val == 'sub':
+                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
                     else:
                         query_list += [f'{i}:{val}']
 
@@ -479,6 +521,8 @@ def transfer_sensitive_response(request):
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
+                    elif i == 'taxonRank' and val == 'sub':
+                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
                     else:
                         query_list += [f'{i}:{val}']
             
@@ -703,6 +747,8 @@ def generate_sensitive_csv(query_id, scheme, host):
                 if val := req_dict.get(i):
                     if i == 'sensitiveCategory' and val == '無':
                         query_list += [f'-(-{i}:{val} {i}:*)']
+                    elif i == 'taxonRank' and val == 'sub':
+                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
                     else:
                         query_list += [f'{i}:{val}']
 
@@ -993,6 +1039,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
+            elif i == 'taxonRank' and val == 'sub':
+                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
             else:
                 query_list += [f'{i}:{val}']
 
@@ -1206,6 +1254,8 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
+            elif i == 'taxonRank' and val == 'sub':
+                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
             else:
                 query_list += [f'{i}:{val}']
 
@@ -2766,10 +2816,10 @@ def get_more_cards(request):
 
 def search_collection(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
@@ -2783,20 +2833,19 @@ def search_collection(request):
 
 def search_occurrence(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list)
-    # holder_list = ['TBN','TaiBIF','林試所','林務局','海保署']
+    dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     basis_list = basis_dict.keys()
         
     return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_list': basis_dict, 'dataset_list': dataset_list})
+        'rank_list': rank_list, 'basis_list': basis_list, 'dataset_list': dataset_list})
 
 
 def occurrence_detail(request, id):
@@ -3135,6 +3184,8 @@ def get_map_grid(request):
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
+                elif i == 'taxonRank' and val == 'sub':
+                    query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
                 else:
                     query_list += [f'{i}:{val}']
 
@@ -3334,6 +3385,8 @@ def get_conditional_records(request):
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
                     query_list += [f'-(-{i}:{val} {i}:*)']
+                elif i == 'taxonRank' and val == 'sub':
+                    query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
                 else:
                     query_list += [f'{i}:{val}']
 
@@ -3580,23 +3633,23 @@ def change_dataset(request):
         for h in holder:
             for k in holders.keys():
                 if holders[k] == h:
-                    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=group:{k}')
+                    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=group:{k}')
                     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
                     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
                     if request.GET.get('record_type') == 'col':
-                        obj = DatasetKey.objects.filter(record_type='col',group=k,deprecated=False,name__in=dataset_list)
+                        obj = DatasetKey.objects.filter(record_type='col',group=k,deprecated=False,name__in=dataset_list).distinct('name')
                     else:
-                        obj = DatasetKey.objects.filter(group=k,deprecated=False,name__in=dataset_list)
+                        obj = DatasetKey.objects.filter(group=k,deprecated=False,name__in=dataset_list).distinct('name')
                     for d in obj:
                         ds += [{'value': d.id, 'text': d.name}]
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
         d_list = response.json()['facet_counts']['facet_fields']['datasetName']
         dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
         if request.GET.get('record_type') == 'col':
-            obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
+            obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list).distinct('name')
         else:
-            obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list)
+            obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
         for d in obj:
             ds += [{'value': d.id, 'text': d.name}]
     return HttpResponse(json.dumps(ds), content_type='application/json')

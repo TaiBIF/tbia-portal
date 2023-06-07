@@ -1,12 +1,7 @@
-
-
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
-
-
-let selectBox = new vanillaSelectBox("#rightsHolder",{"placeHolder":"來源資料庫",search:true, disableSelectAll: false,
-translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
-});
+let selectBox = new vanillaSelectBox("#rightsHolder", {"placeHolder": "來源資料庫", search: true, disableSelectAll: true,
+        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} });
 
 
 // set value 之後再加event 不然會被洗掉
@@ -33,7 +28,7 @@ $.ajax({
 })
 })
 
-let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true,disableSelectAll: false,
+let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱", search: true, disableSelectAll: true,
 translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
 });
 
@@ -269,6 +264,17 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $( function() {
 
+    window.addEventListener("keydown", function (e) {
+
+        if(e.code == 'Enter') {
+
+            if ($('.popbg').length == $('.popbg.d-none').length ){
+                $('.search_condition_are .submitSearch').trigger('click')
+            }
+        }
+        
+    }, true);
+
     $('.resetSearch').on('click', function(){
         $('.clearGeo').trigger('click')
         $('.search_condition_are #searchForm').trigger("reset");
@@ -418,9 +424,6 @@ $( function() {
         }
     })
 
-    // 如果直接從帶有參數網址列進入
-    //changeAction(); 
-
     // 如果按上下一頁
     window.onpopstate = function(event) {
         drawnItems.clearLayers();
@@ -428,110 +431,110 @@ $( function() {
         changeAction();
     };
 
-} );
+});
 
 
 
-    function inithigherTaxa(what, datasize){
-        let valueProperty = "value";
-        let textProperty = "text";
-        let urlParams = new URLSearchParams(window.location.search);
-        let taxon_id = urlParams.get('higherTaxa')
+function inithigherTaxa(what, datasize){
+    let valueProperty = "value";
+    let textProperty = "text";
+    let urlParams = new URLSearchParams(window.location.search);
+    let taxon_id = urlParams.get('higherTaxa')
 
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.overrideMimeType("application/json");
-            xhr.open('GET','/get_higher_taxa?taxon_id=' + taxon_id, true);
-            xhr.onload = function () {
-                if (this.status >= 200 && this.status < 300) {
-                    var data = JSON.parse(xhr.response);
-                    if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                        data = data.slice(0, datasize);
-                        data = data.map(function (x) {
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET','/get_higher_taxa?taxon_id=' + taxon_id, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
                             }
-                        });
-                    } else {
-                        data = data.filter(function (x) {
-                            let name = x[textProperty].toLowerCase();
-                            what = what.toLowerCase();
-                            if (name.slice(what).search(getVariants(what)) != -1)
-                                return {
-                                    value: x[valueProperty],
-                                    text: x[textProperty]
-                                }
-                        });
-                    }
-                    data = [{'value': '', 'text': '--不限--'}].concat(data)
-                    resolve(data);
-                } else {
-                    reject({
-                        status: this.status,
-                        statusText: xhr.statusText
                     });
                 }
-            };
-            xhr.onerror = function () {
+                data = [{'value': '', 'text': '--不限--'}].concat(data)
+                resolve(data);
+            } else {
                 reject({
                     status: this.status,
                     statusText: xhr.statusText
                 });
-            };
-            xhr.send();
-        });
-    }
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
 
-    function doSearch(what, datasize) {
-        let valueProperty = "value";
-        let textProperty = "text";
-        
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.overrideMimeType("application/json");
-            xhr.open('GET','/get_higher_taxa?keyword=' + what, true);
-            xhr.onload = function () {
-                if (this.status >= 200 && this.status < 300) {
-                    var data = JSON.parse(xhr.response);
+function doSearch(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET','/get_higher_taxa?keyword=' + what, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
 
-                    if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                        data = data.slice(0, datasize);
-                        data = data.map(function (x) {
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
                             }
-                        });
-                    } else {
-                        data = data.filter(function (x) {
-                            let name = x[textProperty].toLowerCase();
-                            what = what.toLowerCase();
-                            if (name.slice(what).search(getVariants(what)) != -1)
-                                return {
-                                    value: x[valueProperty],
-                                    text: x[textProperty]
-                                }
-                        });
-                    }
-                    data = [{'value': '', 'text': '--不限--'}].concat(data)
-                    resolve(data);
-                } else {
-                    reject({
-                        status: this.status,
-                        statusText: xhr.statusText
                     });
                 }
-            };
-            xhr.onerror = function () {
+                data = [{'value': '', 'text': '--不限--'}].concat(data)
+                resolve(data);
+            } else {
                 reject({
                     status: this.status,
                     statusText: xhr.statusText
                 });
-            };
-            xhr.send();
-        });
-    }
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
 
 
     
@@ -656,7 +659,7 @@ function changeAction(){
         } else {
             page = 1
         }
-        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'),urlParams.get('sort'))//{
+        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'),urlParams.get('sort'), false)//{
     }
 }
 
@@ -665,31 +668,8 @@ function setTable(response, queryString, from, orderby, sort){
         drawnItems.clearLayers();
         $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-        //L.geoJSON(response.map_geojson.grid_1,{className: 'resultG_1', style: style}).addTo(map);
-        
-        //L.geoJSON(response.map_geojson.grid_5,{className: 'resultG_5', style: style}).addTo(map);
         L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10', style: style}).addTo(map);
         window.grid_100 = response.map_geojson.grid_100
-        //L.geoJSON(response.map_geojson.grid_100,{className: 'resultG_100', style: style}).addTo(map);
-        //map.fitBounds(geoResult.getBounds());
-
-        /*
-        window.grid_1 = response.map_geojson.grid_1;
-        window.grid_5 = response.map_geojson.grid_5;
-        window.grid_100 = response.map_geojson.grid_100;
-
-        
-        $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
-
-        if (map.getZoom() < 5) {
-            $('.resultG_100').removeClass('d-none')
-        } else if (map.getZoom() < 8){
-            $('.resultG_10').removeClass('d-none')
-        } else if (map.getZoom() < 9){
-            $('.resultG_5').removeClass('d-none')
-        } else {
-            $('.resultG_1').removeClass('d-none')
-        }*/
     }
 
     // 如果有資料回傳則顯示table
@@ -880,7 +860,9 @@ function setTable(response, queryString, from, orderby, sort){
 }
 
 // submit search form
-function submitSearch (page, from, new_click,limit,orderby,sort){
+function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
+    
+    if (push_state == null){ push_state = true }
 
     let map_condition = '';
 
@@ -977,26 +959,25 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         limit = 10
     }
 
-    history.pushState(null, '', window.location.pathname + '?' + window.condition + '&page=' +  page + '&from=' + from + '&limit=' + limit);
 
     // 如果調整orderby and sort
     let orderby_str = ''
     if (orderby != null){
-        let urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('orderby',orderby)
-        urlParams.set('sort',sort)
         if (from == 'orderby'){
-            urlParams.set('page',1)
             page = 1
         }
         orderby_str = '&orderby=' + orderby + '&sort=' + sort
-        queryString = urlParams.toString()
-        history.pushState(null, '', window.location.pathname + '?'  + queryString);
     }
-    
+
+    let queryString = window.condition + '&page=' +  page + '&from=' + from + '&limit=' + limit + orderby_str
+
+    if (push_state){
+        history.pushState(null, '', window.location.pathname + '?' + queryString)
+    }
+
     $.ajax({
         url: "/get_conditional_records",
-        data: window.condition + '&page=' + page + '&from=' + from + '&limit=' + limit + '&csrfmiddlewaretoken=' + $csrf_token + selected_col + orderby_str,
+        data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
         type: 'POST',
         dataType : 'json',
     })
@@ -1004,7 +985,7 @@ function submitSearch (page, from, new_click,limit,orderby,sort){
         // clear previous results
         $('.sc_result').remove()
         //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-
+        
         if (response.count == 0){
             // TODO 這邊如果有map的圖案要加回來
             $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
@@ -1128,12 +1109,3 @@ function sendSelected(){
     }
     $(".popbg").addClass('d-none');
 }
-
-
-window.addEventListener('keydown',function(event){
-    if(event.code == 'Enter') {
-        event.preventDefault();
-        return false;
-    }
-});
-  

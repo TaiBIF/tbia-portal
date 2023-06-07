@@ -620,7 +620,10 @@ def create_query_display(search_dict,sq_id):
     for k in search_dict.keys():
         if k in map_dict.keys():
             if k == 'taxonRank':
-                query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+                if search_dict[k] == 'sub':
+                    query += f"<br><b>{map_dict[k]}</b>：種下"
+                else:
+                    query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
             elif k == 'datasetName':
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):

@@ -1,5 +1,6 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+
 /*
   $('.popbg.taxon-dist').on('hide', function(){
     $("#map-box").html(""); 
@@ -28,7 +29,9 @@ function style(feature) {
   };
 }
 
+
 function getDist(taxonID, common_name_c, formatted_name){
+  // 把之前的清掉
   $("#map-box").html(""); 
   $("#map-box").html('<div id="map">');
 
@@ -36,64 +39,227 @@ function getDist(taxonID, common_name_c, formatted_name){
 
   $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
 
+  let map = L.map('map').setView([23.5, 121.2],7);
+  L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  map.setView([23.5, 121.2],7)
+
+    
   $.ajax({
-    url: "/get_taxon_dist?taxonID=" + taxonID,
-    type: 'GET',
+    url: "/get_taxon_dist_init",
+    data:  'taxonID='+ taxonID + '&csrfmiddlewaretoken=' + $csrf_token ,
+    type: 'POST',
+    dataType : 'json',
   })
   .done(function(response) {
-      // 把之前的清掉
-      let map = L.map('map').setView([23.5, 121.2],7);
-      L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      map.on('zoomend', function zoomendEvent(ev) {
-        var currentZoomLevel = ev.target.getZoom()
-      
-          if (currentZoomLevel < 5) {
-            $('[class^=resultG_]').addClass('d-none')
-            $('.resultG_100').removeClass('d-none')
-          } else if (currentZoomLevel < 8){
-            $('[class^=resultG_]').addClass('d-none')
-            $('.resultG_10').removeClass('d-none')
-          } else if (currentZoomLevel < 9){
-            $('[class^=resultG_]').addClass('d-none')
-            $('.resultG_5').removeClass('d-none')
-          } else {
-            $('[class^=resultG_]').addClass('d-none')
-            $('.resultG_1').removeClass('d-none')
-          }
-      });
-  
-      L.geoJSON(response.grid_1,{className: 'resultG_1',style: style}).addTo(map);
-      L.geoJSON(response.grid_5,{className: 'resultG_5',style: style}).addTo(map);
-      L.geoJSON(response.grid_10,{className: 'resultG_10',style: style}).addTo(map);
-      L.geoJSON(response.grid_100,{className: 'resultG_100',style: style}).addTo(map);
-
-      $('.resultG_1, .resultG_5, .resultG_10, .resultG_100').addClass('d-none')
-      if (map.getZoom() < 5) {
-        $('.resultG_100').removeClass('d-none')
-      } else if (map.getZoom() < 8){
-        $('.resultG_10').removeClass('d-none')
-      } else if (map.getZoom() < 9){
-        $('.resultG_5').removeClass('d-none')
-      } else {
-        $('.resultG_1').removeClass('d-none')
-      }
-
-      map.setView([23.5, 121.2],7)
+    L.geoJSON(response.grid_10,{className: 'resultG_10', style: style}).addTo(map);
+    L.geoJSON(response.grid_100,{className: 'resultG_100', style: style}).addTo(map);
+    $('.resultG_100').addClass('d-none')
 
   })
   .fail(function( xhr, status, errorThrown ) {
-    if (xhr.status==504){
-      alert('要求連線逾時')
+      if (xhr.status==504){
+          alert('要求連線逾時')
+      } else {
+          alert('發生未知錯誤！請聯絡管理員')
+      }
+      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+  })
+
+  map.on('zoomend', function zoomendEvent(ev) {
+    var currentZoomLevel = ev.target.getZoom()
+
+    if (currentZoomLevel < 5) {
+
+      $('[class^=resultG_]').addClass('d-none')
+      $('.resultG_100').removeClass('d-none')
+
+    } else if (currentZoomLevel < 8){
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_10').removeClass('d-none')
+        
+
+    } else if (currentZoomLevel < 12){
+      
+        div = 5/100;
+        neLat = map.getBounds().getNorthEast()['lat'] + div*5;
+        neLng = map.getBounds().getNorthEast()['lng'] + div*5;
+        swLat = map.getBounds().getSouthWest()['lat'] - div*5;
+        swLng = map.getBounds().getSouthWest()['lng'] - div*5;
+      
+        wkt_map =  "POLYGON((" +
+                swLng + " " + swLat + "," +
+                swLng + " " + neLat + "," +
+                neLng + " " + neLat + "," +
+                neLng + " " + swLat + "," +
+                swLng + " " + swLat +
+                "))";
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_5').remove()
+        $.ajax({
+          url: "/get_taxon_dist",
+          data:  'taxonID='+ taxonID +'&grid=5&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token ,
+          type: 'POST',
+          dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+        $('.resultG_5').removeClass('d-none')
+
     } else {
-      alert('發生未知錯誤！請聯絡管理員')
+
+      div = 1/100;
+      neLat = map.getBounds().getNorthEast()['lat'] + div*5;
+      neLng = map.getBounds().getNorthEast()['lng'] + div*5;
+      swLat = map.getBounds().getSouthWest()['lat'] - div*5;
+      swLng = map.getBounds().getSouthWest()['lng'] - div*5;
+    
+      wkt_map =  "POLYGON((" +
+              swLng + " " + swLat + "," +
+              swLng + " " + neLat + "," +
+              neLng + " " + neLat + "," +
+              neLng + " " + swLat + "," +
+              swLng + " " + swLat +
+              "))";
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_1').remove()
+
+        $.ajax({
+          url: "/get_taxon_dist",
+          data:  'taxonID='+ taxonID +'&grid=1&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token ,
+          type: 'POST',
+          dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+        $('.resultG_1').removeClass('d-none')
+
     }
-    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+  })
+
+  map.on('dragend', function zoomendEvent(ev) {
+    var currentZoomLevel = ev.target.getZoom()
+
+    if (currentZoomLevel < 5) {
+
+      $('[class^=resultG_]').addClass('d-none')
+      $('.resultG_100').removeClass('d-none')
+
+    } else if (currentZoomLevel < 8){
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_10').removeClass('d-none')
+        
+
+    } else if (currentZoomLevel < 12){
+
+        div = 5/100;
+        neLat = map.getBounds().getNorthEast()['lat'] + div*5;
+        neLng = map.getBounds().getNorthEast()['lng'] + div*5;
+        swLat = map.getBounds().getSouthWest()['lat'] - div*5;
+        swLng = map.getBounds().getSouthWest()['lng'] - div*5;
+      
+        wkt_map =  "POLYGON((" +
+                swLng + " " + swLat + "," +
+                swLng + " " + neLat + "," +
+                neLng + " " + neLat + "," +
+                neLng + " " + swLat + "," +
+                swLng + " " + swLat +
+                "))";
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_5').remove()
+        $.ajax({
+          url: "/get_taxon_dist",
+          data:  'taxonID='+ taxonID +'&grid=5&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token ,
+          type: 'POST',
+          dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_5', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+        $('.resultG_5').removeClass('d-none')
+
+    } else {
+
+      div = 1/100;
+      neLat = map.getBounds().getNorthEast()['lat'] + div*5;
+      neLng = map.getBounds().getNorthEast()['lng'] + div*5;
+      swLat = map.getBounds().getSouthWest()['lat'] - div*5;
+      swLng = map.getBounds().getSouthWest()['lng'] - div*5;
+    
+      wkt_map =  "POLYGON((" +
+              swLng + " " + swLat + "," +
+              swLng + " " + neLat + "," +
+              neLng + " " + neLat + "," +
+              neLng + " " + swLat + "," +
+              swLng + " " + swLat +
+              "))";
+
+        $('[class^=resultG_]').addClass('d-none')
+        $('.resultG_1').remove()
+
+        $.ajax({
+          url: "/get_taxon_dist",
+          data:  'taxonID='+ taxonID +'&grid=1&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token ,
+          type: 'POST',
+          dataType : 'json',
+        })
+        .done(function(response) {
+            L.geoJSON(response,{className: 'resultG_1', style: style}).addTo(map);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
+            }
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+        $('.resultG_1').removeClass('d-none')
+
+    }
   })
 
 }
+
+
+
 
 let params = ['item_class', 'record_type','key','value','scientific_name','limit','page','from',
               'doc_type', 'offset_value', 'more_class', 'card_class', 'is_sub', 'focus_card', 'get_record']
@@ -273,6 +439,7 @@ $( document ).ready(function() {
 
     // 如果按上下一頁
     window.onpopstate = function(event) {
+      console.log(history)
       changeAction();
     };
   
