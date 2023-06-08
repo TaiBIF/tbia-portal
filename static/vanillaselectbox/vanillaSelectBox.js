@@ -377,15 +377,16 @@ function vanillaSelectBox(domSelector, options) {
             if (this.maxOptionWidth < Infinity) {
                 this.searchZone.style.maxWidth = self.maxOptionWidth + 30 + "px";
                 this.inputBox.style.maxWidth = self.maxOptionWidth + 30 + "px";
-            }
 
+            }
+            
             var para = document.createElement("p");
             this.ul.appendChild(para);
             para.style.fontSize = "12px";
             para.innerHTML = "&nbsp;";
             this.ul.addEventListener("scroll", function (e) {
                 var y = this.scrollTop;
-                self.searchZone.parentNode.style.top = y + "px";
+                //self.searchZone.parentNode.style.top = y + "px";
             });
         }
 
@@ -620,22 +621,32 @@ function vanillaSelectBox(domSelector, options) {
                     self.drop.style.visibility = 'hidden'
                 } else {
                     self.drop.style.visibility = "visible";
+                    console.log('hey')
 
                     // 只處理資料集                    
                     if (self.domSelector=='#datasetName'){
                         let selected_value = self.getResult()
                         if (selected_value.length > 0){ 
-                            self.ul.appendChild(self.listElements[0])
+
+                            // 拿掉search zone
+                            self.ul.removeChild(self.ul.firstChild)
+                            // 拿掉para
+                            self.ul.removeChild(self.ul.firstChild)
+
                             for (let i = 0; i < self.listElements.length; i++) {
-                                if(self.listElements[i].className=='active' & self.listElements[i].innerText!='全選'){
-                                    self.ul.appendChild(self.listElements[i])
+                                if(self.listElements[i].className=='active'& self.listElements[i].innerText!='全選'){
+                                    self.ul.prepend(self.listElements[i])
                                 }
                             }
-                            for (let i = 0; i < self.listElements.length; i++) {
-                                if(self.listElements[i].className!='active'& self.listElements[i].innerText!='全選'){
-                                    self.ul.appendChild(self.listElements[i])
-                                }
-                            }
+                            var para = document.createElement("p");
+                            self.ul.prepend(para);
+                            para.style.fontSize = "12px";
+                            para.innerHTML = "&nbsp;";          
+                            self.ul.prepend(self.searchZone)
+
+                            self.ul.scrollTop = "0px";
+                            self.ul.style.top = "0px";
+                
                         }
                     }
 
