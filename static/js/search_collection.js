@@ -264,6 +264,8 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $( function() {
 
+    /*
+
     window.addEventListener("keydown", function (e) {
 
         if(e.code == 'Enter') {
@@ -273,7 +275,7 @@ $( function() {
             }
         }
         
-    }, true);
+    }, true);*/
     
     $('.resetSearch').on('click', function(){
         $('.clearGeo').trigger('click')
