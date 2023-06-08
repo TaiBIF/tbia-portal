@@ -197,7 +197,7 @@
                             </div>
                         </li>
                     </form>
-                    <li ><button class="search_btn updateInfo">確認修改</button></li>
+                    <li ><button class="read_btn updateInfo">確認修改</button></li>
                 </ul>
             </div>
         </div>
@@ -208,13 +208,13 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 feedback_table">
                         <tr>
-                            <td>編號</td>
-                            <td>單位</td>
-                            <td>時間</td>
-                            <td>Email</td>
-                            <td>類型</td>
-                            <td>內容</td>
-                            <td>已回覆</td>
+                            <td class="w-10p">編號</td>
+                            <td class="w-20p">單位</td>
+                            <td class="w-10p">時間</td>
+                            <td class="w-5p">Email</td>
+                            <td class="w-10p">類型</td>
+                            <td class="w-30p">內容</td>
+                            <td class="w-20p">已回覆</td>
                         </tr> 
                         {% for f in feedback %}
                         <tr>
@@ -238,9 +238,9 @@
                                     {% endif %}
                                 {% else %}
                                     {% if f.is_replied %}
-                                        是 <button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
+                                        是 <button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
                                     {% else %}
-                                        否<button class="search_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
+                                        否<button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -283,11 +283,11 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
                         <tr>
-                            <td>編號</td>
-                            <td>申請時間</td>
-                            <td>搜尋條件</td>
-                            <td>狀態</td>
-                            <td></td>
+                            <td class="w-10p">編號</td>
+                            <td class="w-30p">申請時間</td>
+                            <td class="w-40p">搜尋條件</td>
+                            <td class="w-10p">狀態</td>
+                            <td class="w-10p"></td>
                         </tr> 
                         {% for s in sensitive %}
                         <tr>
@@ -301,7 +301,7 @@
                                     {{ s.status }}
                                 {% endif %}
                             </td>
-                            <td><a class="pointer showRequest" 
+                            <td><a class="pointer showRequest manager_btn" 
                                 data-query_id="{{ s.query_id }}"
                                 data-query="{{ s.query }}"
                                 data-sdr_id="{{ s.id }}"
@@ -346,8 +346,8 @@
                         <tr>
                             <td class="w-5p">申請編號</td>
                             <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">申請日期</td>
-                            <td class="w-15p">查詢條件</td>
+                            <td class="w-10p">申請時間</td>
+                            <td class="w-15p">搜尋條件</td>
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                         </tr>
@@ -415,7 +415,7 @@
                 <div class="w_border10_box application_form panel">
                     <div class="form_top">
                         <!--<div class="apply_date">
-                            申請日期：{{ today }}
+                            申請時間：{{ today }}
                         </div>-->
                     </div>
                     <button class="accordion fs-16px">申請詳細資訊</button>

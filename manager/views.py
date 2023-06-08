@@ -162,7 +162,7 @@ def change_manager_page(request):
                             <td class="w-5p">下載編號</td>
                             <td class="w-10p">檔案編號</td>
                             <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">查詢條件</td>
+                            <td class="w-20p">搜尋條件</td>
                             <td class="w-5p">狀態</td>
                             <td class="w-5p">檔案連結</td>
                         </tr>
@@ -180,7 +180,7 @@ def change_manager_page(request):
             query = create_query_display(search_dict,t.id)
             link = ''
             if t.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f"#{t.id}",
@@ -198,7 +198,7 @@ def change_manager_page(request):
                             <td class="w-5p">下載編號</td>
                             <td class="w-10p">檔案編號</td>
                             <td class="w-10p">檔案產生日期</td>
-                            <td class="w-15p">查詢條件</td>
+                            <td class="w-15p">搜尋條件</td>
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                             <td class="w-5p">檔案連結</td>
@@ -227,7 +227,7 @@ def change_manager_page(request):
 
             link = ''
             if s.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f'#{s.id}',
@@ -245,7 +245,7 @@ def change_manager_page(request):
                             <td class="w-5p">下載編號</td>
                             <td class="w-10p">檔案編號</td>
                             <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">查詢條件</td>
+                            <td class="w-20p">搜尋條件</td>
                             <td class="w-5p">狀態</td>
                             <td class="w-5p">檔案連結</td>
                         </tr>
@@ -257,7 +257,7 @@ def change_manager_page(request):
             else:
                 date = ''
 
-            # 整理查詢條件
+            # 整理搜尋條件
             # 全站搜尋
             query = ''
             if 'from_full=yes' in r.query:
@@ -283,7 +283,7 @@ def change_manager_page(request):
 
             link = ''
             if r.status == 'pass':
-                link = f'<a target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.zip">下載</a>'
 
             data.append({
                 'id': f'#{r.id}',
@@ -315,9 +315,9 @@ def change_manager_page(request):
                     date = ''
 
                 if f.is_replied:
-                    a = f'是<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                    a = f'是<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                 else:
-                    a = f'否<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    a = f'否<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -360,9 +360,9 @@ def change_manager_page(request):
                         a = '否'
                 else:
                     if f.is_replied:
-                        a = f'是<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                        a = f'是<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                     else:
-                        a = f'否<button class="search_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                        a = f'否<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -381,8 +381,8 @@ def change_manager_page(request):
                         <tr>
                             <td class="w-5p">申請編號</td>
                             <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">申請日期</td>
-                            <td class="w-15p">查詢條件</td>
+                            <td class="w-10p">申請時間</td>
+                            <td class="w-15p">搜尋條件</td>
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                         </tr>'''
@@ -424,11 +424,11 @@ def change_manager_page(request):
 
     elif menu == 'sensitive_apply':
         response['header'] = """<tr>
-                            <td>編號</td>
-                            <td>申請時間</td>
-                            <td>搜尋條件</td>
-                            <td>狀態</td>
-                            <td></td>
+                            <td class="w-10p">編號</td>
+                            <td class="w-30p">申請時間</td>
+                            <td class="w-40p">搜尋條件</td>
+                            <td class="w-10p">狀態</td>
+                            <td class="w-10p"></td>
                         </tr> """
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
@@ -436,14 +436,14 @@ def change_manager_page(request):
                 due = check_due(created.strftime('%Y-%m-%d'), 14)
                 created = created.strftime('%Y-%m-%d %H:%M:%S')
 
-                # 整理查詢條件
+                # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict,r.id)
                                 
 
-                a = f'<a class="pointer showRequest" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
 
                 data.append({
                     'id': f'#{sdr.id}',
@@ -460,7 +460,7 @@ def change_manager_page(request):
             for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
 
-                # 整理查詢條件
+                # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
@@ -479,7 +479,7 @@ def change_manager_page(request):
                 
                 # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
-                a = f'<a class="pointer showRequest" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+                a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
 
                 data.append({
                     'id': f'#{sdr.id}',
@@ -601,7 +601,7 @@ def change_manager_page(request):
                 'user': n.user.name if n.user else '',
                 'modified': modified,
                 'status': n.get_status_display(),
-                'edit': f'<a href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
+                'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
             })
         total_page = math.ceil(News.objects.all().count() / 10)
     elif menu == 'news':
@@ -632,9 +632,9 @@ def change_manager_page(request):
                 modified = ''
             
             if n.status == 'pending':
-                a = f'<a href="/withdraw_news?news_id={ n.id }">撤回申請</a>'
+                a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回申請</a>'
             else:
-                a = f'<a href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
+                a = f'<a class="manager_btn" href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
 
             data.append({
                 'id': f"#{n.id}",
@@ -663,8 +663,8 @@ def change_manager_page(request):
                 'type': r.get_type_display(),
                 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
-                'edit': f'<a href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_resource" data-resource_id="{ r.id }">刪除</a>'
+                'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
+                'delete': f'<a href="javascript:;" class="delete_resource manager_btn" data-resource_id="{ r.id }">刪除</a>'
             })
 
         total_page = math.ceil(Resource.objects.all().count() / 10)
@@ -683,8 +683,8 @@ def change_manager_page(request):
                 'type': q.get_type_display(),
                 'order': q.order,
                 'question': q.question,
-                'edit': f'<a href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_qa" data-qa_id="{q.id}">刪除</a>', 
+                'edit': f'<a class="manager_btn" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
+                'delete': f'<a href="javascript:;" class="delete_qa manager_btn" data-qa_id="{q.id}">刪除</a>', 
             })
 
         total_page = math.ceil(Qa.objects.all().count() / 10)
@@ -730,7 +730,7 @@ def manager(request):
         else:
             date = ''
         query = ''
-        # 整理查詢條件
+        # 整理搜尋條件
         # 全站搜尋
         if 'from_full=yes' in r.query:
             search_str = dict(parse.parse_qsl(r.query)).get('search_str')
@@ -1253,7 +1253,7 @@ def partner_info(request):
         due = check_due(created.strftime('%Y-%m-%d'),14)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
-        # 整理查詢條件
+        # 整理搜尋條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
@@ -1504,7 +1504,7 @@ def system_info(request):
         else:
             due = check_due(created.strftime('%Y-%m-%d'),7)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
-        # 整理查詢條件
+        # 整理搜尋條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
@@ -1583,7 +1583,7 @@ def system_resource(request):
 
     resource_list = []
     for r in Resource.objects.all().order_by('-id')[:10]:
-        resource_list.append({'type': r.get_taxon_distype_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
+        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
     r_total_page = math.ceil(Resource.objects.all().count()/10)
     r_page_list = get_page_list(1, r_total_page)
     type_choice = Resource._meta.get_field('type').choices

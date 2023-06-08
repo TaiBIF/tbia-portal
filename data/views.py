@@ -149,7 +149,7 @@ def sensitive_agreement(request):
 
 def send_sensitive_request(request):
     if request.method == 'GET':
-        # 整理查詢條件
+        # 整理搜尋條件
         search_dict = {}
         for k in request.GET.keys():
             if tmp_list := request.GET.getlist(k):

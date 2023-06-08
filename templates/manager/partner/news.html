@@ -125,7 +125,7 @@
                             </div>
                         </li>
                     </form>
-                    <li ><button class="search_btn submitNews">送審</button></li>
+                    <li ><button class="read_btn submitNews">送審</button></li>
                 </ul>
             </div>
         </div>
@@ -157,9 +157,9 @@
                             <!-- 編輯按鈕 / 收回按鈕 -->
                             <td>
                                 {% if n.status == 'pending' %}
-                                <a href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回申請</a>
+                                <a class="manager_btn" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回申請</a>
                                 {% else %}
-                                <a href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
+                                <a class="manager_btn" href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
                                 {% endif %}
                             </td> 
                         </tr>

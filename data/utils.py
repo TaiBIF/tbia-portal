@@ -604,7 +604,7 @@ sensitive_cols = ['standardRawLatitude',
 'verbatimRawLongitude']
 
 
-# 整理查詢條件
+# 整理搜尋條件
 def create_query_display(search_dict,sq_id):
     query = ''
     if search_dict.get('record_type') == 'occ':

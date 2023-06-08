@@ -204,7 +204,7 @@
                                     {% endfor %}
                                 </select>    -->
                             </td>
-                            <td><a href="{% url 'system_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td><a class="manager_btn" href="{% url 'system_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
                         {% endfor %}
                     </table>						

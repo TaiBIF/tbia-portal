@@ -229,3 +229,10 @@
         width: 100% !important;
     }
 }
+
+
+@media only screen and (max-width: 767px) {
+    .vsb-menu .multi li:not(.grouped-option)::before {
+        margin-top: 0.4em !important;
+    }
+ }
