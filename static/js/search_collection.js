@@ -5,28 +5,36 @@ let selectBox = new vanillaSelectBox("#rightsHolder",
                     translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
                 });
 
-$('#rightsHolder').on('change', function(){
-let res = selectBox.getResult()
-let h_str = ''
-for(r of res) { 
-    h_str += 'holder=' + r + '&'
-}
-$.ajax({
-    url: "/change_dataset?record_type=col&" + h_str,
-    dataType : 'json',
-})
-.done(function(response) {
-    if (response.length > 0){
-        selectBox2.enable()
-        selectBox2.changeTree(response)
-        if (window.has_par){
-            selectBox2.setValue(window.d_list)
-        }
-    } else {
-        selectBox2.disable()
+$('#rightsHolder').on('change', function(e){
+    $(".loading_area").removeClass('d-none');
+    e.preventDefault()
+    let res = selectBox.getResult()
+    console.log('heelo', res)
+    let h_str = ''
+    for(r of res) { 
+        h_str += 'holder=' + r + '&'
     }
+    $.ajax({
+        url: "/change_dataset?" + h_str,
+        dataType : 'json',
+    })
+    .done(function(response) {
+        if (response.length > 0){
+            selectBox2.enable()
+            selectBox2.changeTree(response)
+            if (window.has_par){
+                selectBox2.setValue(window.d_list)
+            }
+        } else {
+                selectBox2.disable()
+        }
+        $(".loading_area").addClass('d-none');
+    })
+    .fail(function(){
+        $(".loading_area").addClass('d-none');
+    })
 })
-})
+
 
 let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱",search:true, disableSelectAll: true,
 translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 

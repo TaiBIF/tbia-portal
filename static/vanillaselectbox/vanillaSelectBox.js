@@ -621,8 +621,6 @@ function vanillaSelectBox(domSelector, options) {
                     self.drop.style.visibility = 'hidden'
                 } else {
                     self.drop.style.visibility = "visible";
-                    console.log('hey')
-
                     // 只處理資料集                    
                     if (self.domSelector=='#datasetName'){
                         let selected_value = self.getResult()
