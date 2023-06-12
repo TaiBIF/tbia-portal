@@ -5,6 +5,8 @@ from datetime import timedelta
 
 from data.utils import get_variants
 from pages.models import Notification
+from manager.models import User
+from conf.utils import notif_map
 
 register = template.Library()
 
@@ -20,22 +22,43 @@ def highlight(text, keyword, autoescape=True):
 @register.filter
 def get_notif(user_id):
     notifications = Notification.objects.filter(user_id=user_id).order_by('-created')[:10]
+
     results = ""
     for n in notifications:
-        created_8 = n.created + timedelta(hours=8)
-        if not n.is_read: 
-            is_read = '<div class="dottt"></div>'
-        else:
-            is_read = ''
-        results += f"""
-                    <li class="updateThisRead" data-nid="{n.id}">
-                    {is_read}
-                    <div class="txtcont">
-                      <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                      <p>{n.get_type_display().replace('0000', n.content)}</p>
-                    </div>
-                  </li>
-                """
+      if n.type in notif_map.keys(): 
+        href = notif_map[n.type]
+      elif n.type == 2:
+          if User.objects.filter(id=user_id,is_system_admin=True).exists():
+              href = '/manager/system/info?menu=feedback'
+          else:
+              href = '/manager/partner/info?menu=feedback'
+      elif n.type == 3:
+          if User.objects.filter(id=user_id,is_system_admin=True).exists():
+              href = '/manager/system/info?menu=sensitive'
+          else:
+              href = '/manager/partner/info?menu=sensitive'
+      elif n.type == 5:
+          if User.objects.filter(id=user_id,is_system_admin=True).exists():
+              href = '/manager/system/info?menu=account'
+          else:
+              href = '/manager/partner/info?menu=account'
+      else:
+          href = '/manager'
+
+      created_8 = n.created + timedelta(hours=8)
+      if not n.is_read: 
+          is_read = '<div class="dottt"></div>'
+      else:
+          is_read = ''
+      results += f"""
+                  <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
+                  {is_read}
+                  <div class="txtcont">
+                    <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
+                    <p>{n.get_type_display().replace('0000', n.content)}</p>
+                  </div>
+                </li>
+              """
     if not results:
         results = """
                     <li>

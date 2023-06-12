@@ -22,12 +22,27 @@ function getCurrentNotif() {
           $('.num_message').addClass('d-none')
       }
       $('.message_list').html(response.notif)
+
+      $('.redirectToAdmin').off('click')
+      $('.redirectToAdmin').on('click', function(){
+
+        let n_id = $(this).data('nid')
+        $.ajax({
+        url: `/update_this_read?n_id=${n_id}`,
+        type: 'GET',
+        success: function(){}})
+        window.location = $(this).data('href')
+        })
     }
    });
-  setTimeout(getCurrentNotif, 5000);
+   if ($('input[name=is_authenticated]').val() == 'True'){
+      setTimeout(getCurrentNotif, 5000);
+   }
 }
 
-getCurrentNotif();
+if ($('input[name=is_authenticated]').val() == 'True'){
+  getCurrentNotif();
+}
 
 
 
@@ -55,6 +70,7 @@ $(function () {
 
   $('span.caret').addClass('d-none')
 
+  /*
   $('.vsb-main button').on('click',function(){
       if ($(this).next('.vsb-menu').css('visibility')=='visible'){
           $(this).next('.vsb-menu').addClass('visible')
@@ -62,7 +78,7 @@ $(function () {
           $(this).next('.vsb-menu').css('visibility', '')
           $(this).next('.vsb-menu').removeClass('visible')
       }
-  })
+  })*/
 
   $('#feedback_partner').on('change',function(){
     if ($('#btn-group-feedback_partner .vsb-menu ul li.active').length>0){
@@ -104,6 +120,16 @@ $(function () {
         window.location = $(this).data('href')
     })
 
+
+    $('.redirectToAdmin').on('click', function(){
+     
+      let n_id = $(this).data('nid')
+      $.ajax({
+      url: `/update_this_read?n_id=${n_id}`,
+      type: 'GET',
+      success: function(){}})
+      window.location = $(this).data('href')
+    })
 
     /*
     $('.updateThisRead').on('click', function(){

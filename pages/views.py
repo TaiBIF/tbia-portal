@@ -7,7 +7,7 @@ import json
 import math
 from data.utils import get_page_list
 from django.utils import timezone
-
+from conf.utils import notif_map
 from datetime import datetime, timedelta
 
 news_type_map = {
@@ -31,13 +31,33 @@ def get_current_notif(request):
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
         results = ""
         for n in notifications:
+            if n.type in notif_map.keys(): 
+                href = notif_map[n.type]
+            elif n.type == 2:
+                if User.objects.filter(id=request.user.id,is_system_admin=True).exists():
+                    href = '/manager/system/info?menu=feedback'
+                else:
+                    href = '/manager/partner/info?menu=feedback'
+            elif n.type == 3:
+                if User.objects.filter(id=request.user.id,is_system_admin=True).exists():
+                    href = '/manager/system/info?menu=sensitive'
+                else:
+                    href = '/manager/partner/info?menu=sensitive'
+            elif n.type == 5:
+                if User.objects.filter(id=request.user.id,is_system_admin=True).exists():
+                    href = '/manager/system/info?menu=account'
+                else:
+                    href = '/manager/partner/info?menu=account'
+            else:
+                href = '/manager'
+
             created_8 = n.created + timedelta(hours=8)
             if not n.is_read: 
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
             results += f"""
-                        <li class="updateThisRead" data-nid="{n.id}">
+                        <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}
                         <div class="txtcont">
                         <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
