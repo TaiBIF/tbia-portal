@@ -86,7 +86,7 @@
                 </select>
               </div>-->
               <div class="input_item">
-                <select name="taxonRank" id="taxonRank" required>
+                <select name="taxonRank" id="taxonRank">
                   <option value="">--不限--</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
@@ -102,14 +102,14 @@
             </div>            
             <div class="two_input">
               <div class="input_item">
-                <select name="rightsHolder" id="rightsHolder" required multiple size="1">
+                <select name="rightsHolder" id="rightsHolder" multiple size="1">
                   {% for i in holder_list %}
                   <option value="{{ i }}">{{ i }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="input_item">
-                <select name="has_image" id="has_image" required>
+                <select name="has_image" id="has_image">
                   <option value="">--不限--</option>
                   <option value="y">有</option>
                   <option value="n">無</option>
@@ -140,7 +140,7 @@
                 <input name="recordedBy" type="text" placeholder="記錄者" />
               </div>
               <div class="input_item">
-                <select name="basisOfRecord" id="basisOfRecord" required>
+                <select name="basisOfRecord" id="basisOfRecord">
                   <option value="">--不限--</option>
                   {% for i in basis_list  %}
                   <option value="{{ i }}">{{ i }}</option>
@@ -150,7 +150,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="datasetName" id="datasetName" required multiple size="1">
+                <select name="datasetName" id="datasetName" multiple size="1">
                   {% for i in dataset_list %}
                   <option value="{{ i.id }}">{{ i.name }}</option>
                   {% endfor %}
@@ -367,7 +367,7 @@
 				<div class="txt_area mt-5p">
           <div class="circle-select">
             <p>半徑</p>
-            <select name="circle_radius" id="circle_radius" required>
+            <select name="circle_radius" id="circle_radius">
               <option value="1">1KM</option>
               <option value="2">2KM</option>
               <option value="5">5KM</option>

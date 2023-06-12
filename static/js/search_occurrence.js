@@ -9,7 +9,6 @@ $('#rightsHolder').on('change', function(e){
     $(".loading_area").removeClass('d-none');
     e.preventDefault()
     let res = selectBox.getResult()
-    console.log('heelo', res)
     let h_str = ''
     for(r of res) { 
         h_str += 'holder=' + r + '&'
@@ -270,18 +269,16 @@ map.on('dragend', function zoomendEvent(ev) {
 
 
 $( function() {
-
-    /*
+    
     window.addEventListener("keydown", function (e) {
-
         if(e.code == 'Enter') {
 
-            if ($('.popbg').length == $('.popbg.d-none').length ){
+            if ($('.popbg').length == $('.popbg.d-none').length && $('.vsb-menu[style*="visibility: visible"]').length == 0 ){
                 $('.search_condition_are .submitSearch').trigger('click')
             }
         }
         
-    }, true);*/
+    }, true);
 
     $('.resetSearch').on('click', function(){
         $('.clearGeo').trigger('click')
@@ -555,14 +552,15 @@ function changeAction(){
     $('.vsb-main button').css('border','').css('background','')
     $('span.caret').addClass('d-none')
 
-    $('.vsb-main button').on('click',function(){
+    /*
+    $('.vsb-main button').on('click',function(e){
         if ($(this).next('.vsb-menu').css('visibility')=='visible'){
             $(this).next('.vsb-menu').addClass('visible')
         } else {
             $(this).next('.vsb-menu').css('visibility', '')
             $(this).next('.vsb-menu').removeClass('visible')
         }
-    })
+    })*/
 
     let select_length = $(".search_condition_are select").length;
     for (let i = 0; i < select_length; i++) {

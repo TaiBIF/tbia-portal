@@ -62,7 +62,7 @@
         <div class="from_area">
           <form id="feedback_form">
           <div class="select_twobox"> 
-            <select name="partner_id" id="feedback_partner" required>
+            <select name="partner_id" id="feedback_partner">
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
@@ -70,7 +70,7 @@
                 </option>
               {% endfor %}
             </select>
-            <select name="type" id="feedback_type" required>
+            <select name="type" id="feedback_type">
               <option value="1">網頁操作</option>
               <option value="2">網頁內容</option>
               <option value="3">聯盟相關</option>
@@ -296,9 +296,7 @@
       {% endif %}
         <div class="feedback showFeedback"></div>
         <div class="ringbox">
-          {% if user.id|get_notif_count > 0 %}
-          <div class="num_message">{{ user.id|get_notif_count }}</div>
-          {% endif %}
+          <div class="num_message {% if user.id|get_notif_count <= 0 %} d-none {% endif %}">{{ user.id|get_notif_count }}</div>
           <div class="messagebox">
             <div class="wbox">
               <div class="titlebox">

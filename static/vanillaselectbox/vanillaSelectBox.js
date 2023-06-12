@@ -541,63 +541,65 @@ function vanillaSelectBox(domSelector, options) {
         self.listElements = self.drop.querySelectorAll("li:not(.grouped-option)");
         if (self.search) {
             self.inputBox.addEventListener("keyup", function (e) {
-                let searchValue = e.target.value.toUpperCase();
-                let searchValueLength = searchValue.length;
-                let nrFound = 0;
-                let nrChecked = 0;
-                let selectAll = null;
-                if (self.isSearchRemote) {
-                    if (searchValueLength == 0) {
-                        self.remoteSearchIntegrate(null);
-                    } else if (searchValueLength >= 1) {
-                        self.onSearch(searchValue)
-                            .then(function (data) {
-                                self.remoteSearchIntegrate(data);
-                            });
-                        e.stopPropagation()
-                        e.preventDefault();
-                    }
-                } else {
-                    if (searchValueLength < 1) {
-                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
-                            if (x.getAttribute('data-value') === 'all') {
-                                selectAll = x;
-                            } else {
-                                x.classList.remove("hidden-search");
-                                nrFound++;
-                                nrChecked += x.classList.contains('active');
-                            }
-                        });
+                if ( !e.isComposing ){ // 注音輸入完成才搜尋
+                    let searchValue = e.target.value.toUpperCase();
+                    let searchValueLength = searchValue.length;
+                    let nrFound = 0;
+                    let nrChecked = 0;
+                    let selectAll = null;
+                    if (self.isSearchRemote) {
+                        if (searchValueLength == 0) {
+                            self.remoteSearchIntegrate(null);
+                        } else if (searchValueLength >= 1) {
+                            self.onSearch(searchValue)
+                                .then(function (data) {
+                                    self.remoteSearchIntegrate(data);
+                                });
+                            e.stopPropagation()
+                            e.preventDefault();
+                        }
                     } else {
-                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
-                            if (x.getAttribute('data-value') !== 'all') {
-                                let text = x.getAttribute("data-text").toUpperCase();
-                                if (text.slice(searchValue).search(getVariants(searchValue)) === -1 && x.getAttribute('data-value') !== 'all') {
-                                    x.classList.add("hidden-search");
+                        if (searchValueLength < 1) {
+                            Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                                if (x.getAttribute('data-value') === 'all') {
+                                    selectAll = x;
                                 } else {
-                                    nrFound++;
                                     x.classList.remove("hidden-search");
+                                    nrFound++;
                                     nrChecked += x.classList.contains('active');
                                 }
-                            } else {
-                                selectAll = x;
-                            }
-                        });
-                    }
-                    if (selectAll) {
-                        if (nrFound === 0) {
-                            selectAll.classList.add('disabled');
+                            });
                         } else {
-                            selectAll.classList.remove('disabled');
+                            Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                                if (x.getAttribute('data-value') !== 'all') {
+                                    let text = x.getAttribute("data-text").toUpperCase();
+                                    if (text.slice(searchValue).search(getVariants(searchValue)) === -1 && x.getAttribute('data-value') !== 'all') {
+                                        x.classList.add("hidden-search");
+                                    } else {
+                                        nrFound++;
+                                        x.classList.remove("hidden-search");
+                                        nrChecked += x.classList.contains('active');
+                                    }
+                                } else {
+                                    selectAll = x;
+                                }
+                            });
                         }
-                        if (nrChecked !== nrFound) {
-                            selectAll.classList.remove("active");
-                            selectAll.innerText = self.userOptions.translations.selectAll;
-                            selectAll.setAttribute('data-selected', 'false')
-                        } else {
-                            selectAll.classList.add("active");
-                            selectAll.innerText = self.userOptions.translations.clearAll;
-                            selectAll.setAttribute('data-selected', 'true')
+                        if (selectAll) {
+                            if (nrFound === 0) {
+                                selectAll.classList.add('disabled');
+                            } else {
+                                selectAll.classList.remove('disabled');
+                            }
+                            if (nrChecked !== nrFound) {
+                                selectAll.classList.remove("active");
+                                selectAll.innerText = self.userOptions.translations.selectAll;
+                                selectAll.setAttribute('data-selected', 'false')
+                            } else {
+                                selectAll.classList.add("active");
+                                selectAll.innerText = self.userOptions.translations.clearAll;
+                                selectAll.setAttribute('data-selected', 'true')
+                            }
                         }
                     }
                 }
@@ -616,39 +618,40 @@ function vanillaSelectBox(domSelector, options) {
 
             
             this.button.addEventListener("click", function (e) {
-                if (self.isDisabled) return;
-                if (self.drop.style.visibility == "visible") {
-                    self.drop.style.visibility = 'hidden'
-                } else {
-                    self.drop.style.visibility = "visible";
-                    // 只處理資料集                    
-                    if (self.domSelector=='#datasetName'){
-                        let selected_value = self.getResult()
-                        if (selected_value.length > 0){ 
+                if (e.pointerType=='mouse'){
+                    if (self.isDisabled) return;
+                    if (self.drop.style.visibility == "visible") {
+                        self.drop.style.visibility = 'hidden'
+                    } else {
+                        self.drop.style.visibility = "visible";
+                        // 只處理資料集                    
+                        if (self.domSelector=='#datasetName'){
+                            let selected_value = self.getResult()
+                            if (selected_value.length > 0){ 
+                                // 拿掉search zone
+                                self.ul.removeChild(self.ul.firstChild)
+                                // 拿掉para
+                                self.ul.removeChild(self.ul.firstChild)
 
-                            // 拿掉search zone
-                            self.ul.removeChild(self.ul.firstChild)
-                            // 拿掉para
-                            self.ul.removeChild(self.ul.firstChild)
-
-                            for (let i = 0; i < self.listElements.length; i++) {
-                                if(self.listElements[i].className=='active'& self.listElements[i].innerText!='全選'){
-                                    self.ul.prepend(self.listElements[i])
+                                for (let i = 0; i < self.listElements.length; i++) {
+                                    if(self.listElements[i].className=='active'& self.listElements[i].innerText!='全選'){
+                                        self.ul.prepend(self.listElements[i])
+                                    }
                                 }
+                                var para = document.createElement("p");
+                                self.ul.prepend(para);
+                                para.style.fontSize = "12px";
+                                para.innerHTML = "&nbsp;";          
+                                self.ul.prepend(self.searchZone)
+
+                                self.ul.scrollTop = "0px";
+                                self.ul.style.top = "0px";
+                    
                             }
-                            var para = document.createElement("p");
-                            self.ul.prepend(para);
-                            para.style.fontSize = "12px";
-                            para.innerHTML = "&nbsp;";          
-                            self.ul.prepend(self.searchZone)
-
-                            self.ul.scrollTop = "0px";
-                            self.ul.style.top = "0px";
-                
                         }
-                    }
 
-                }
+                    }
+                
                 document.addEventListener("click", function(e){
                     document.removeEventListener("click", docListener);
                     if (self.search) {
@@ -667,6 +670,7 @@ function vanillaSelectBox(domSelector, options) {
                 e.stopPropagation();
                 if (!self.userOptions.stayOpen) {
                     VSBoxCounter.closeAllButMe(self.instanceOffset);
+                }
                 }
             });
         }
