@@ -329,7 +329,7 @@ def get_resources(request):
     page_list = get_page_list(current_page,total_page,3)
 
     resource_rows = []
-    req_from = request.POST.get('from')
+    req_from = request.POST.get('from') # 首頁或開放資源頁面
     limit = current_page*12 if req_from == 'resource' else 8
     if req_from != 'resource' and type =='all':
         limit = 7

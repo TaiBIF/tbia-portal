@@ -91,14 +91,12 @@ $(document).ready(function () {
             </li>`)
           }
         } else {
-        // if no row, show '更新中'
+        // if no row, show '無資料'
           $('.edu_list').append(`<li>
             <div class="item">
               <div class="cate_dbox">
-                <div class="cate other color-888">-----</div>
-                <div class="date">2000.5.22</div>
               </div>
-              <a class="title">更新中</a>
+              <a class="title">無資料</a>
             </div>
           </li>`)
         }
@@ -148,7 +146,7 @@ function updateNews(type, page){
                 )
             }                        
           } else {
-            $('.news_list').html('<li>暫無資料</li>')
+            $('.news_list').html('<li>無資料</li>')
           }
           $('.loadingbox').addClass('d-none');
 

@@ -63,6 +63,17 @@
 			</div>
 			<button class="search_btn">送出</button>
 		</div>
+		<div class="already_selected" data-filter="no">
+			<ul class="d-none">
+				<li>
+					<p class="date-range"></p>
+					<button class="xx">
+						<img src="/static/image/xx_w.svg" >
+					</button>
+				</li>
+			</ul>
+		</div>
+
 		<ul class="news_list" id="db-intro">
 			<li>
 				<a href="{% url 'resources_link' %}" class="imgbox">
@@ -94,11 +105,7 @@
 			{% else %}
 				<li>
 					<div class="item">
-					<div class="cate_dbox">
-						<div class="cate other color-888">-----</div>
-						<div class="date">2000.5.22</div>
-					</div>
-					<a class="title">更新中</a>
+						<a class="title">無資料</a>
 					</div>
 				</li>
 			{% endif %}

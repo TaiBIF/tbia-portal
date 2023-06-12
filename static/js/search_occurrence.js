@@ -999,7 +999,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
         if (response.count == 0){
             // TODO 這邊如果有map的圖案要加回來
             $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-            $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">暫無資料</div></div>`)
+            $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">無資料</div></div>`)
         } else {
             setTable(response, window.condition, from, orderby, sort)
 

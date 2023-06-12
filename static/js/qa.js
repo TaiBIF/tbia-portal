@@ -141,7 +141,7 @@ function updateQa(page, type){
                 updateQa($(this).data('page'), $(this).data('type'))
               })
             } else {
-                $('.qa_list ul').html('<li class="no_qa">暫無資料</li>')
+                $('.qa_list ul').html('<li class="no_qa">無資料</li>')
             }
             $('.loadingbox').addClass('d-none');
         },

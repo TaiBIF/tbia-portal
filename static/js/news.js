@@ -145,7 +145,7 @@ function updateNews(type, page){
                 changePage($(this).data('page'), $(this).data('type'))
               })
             } else {
-                $('.news_list').html('<li>暫無資料</li>')
+                $('.news_list').html('<li>無資料</li>')
             }
             $('.loadingbox').addClass('d-none');
         },
