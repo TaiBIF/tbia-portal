@@ -204,8 +204,8 @@ td hr {
 
 .chebox {
     background-color:  #FFF;
-    width: 25px;
-    height: 25px;
+    width: 25px !important;
+    height: 25px !important;
     border-radius: 5px;
     border: 1px solid #ddd;
     appearance: none;
