@@ -315,9 +315,9 @@ def change_manager_page(request):
                     date = ''
 
                 if f.is_replied:
-                    a = f'是<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                 else:
-                    a = f'否<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -360,9 +360,9 @@ def change_manager_page(request):
                         a = '否'
                 else:
                     if f.is_replied:
-                        a = f'是<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                        a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                     else:
-                        a = f'否<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                        a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -523,7 +523,7 @@ def change_manager_page(request):
                     'name': f"{a.name} ({a.email})",
                     'select': select,
                     'status': status,
-                    'a': f'<button class="search_btn save_btn w-100p" data-id="{ a.id }">儲存</button>'
+                    'a': f'<button class="manager_btn save_btn" data-id="{ a.id }">儲存</button>'
                 })
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
@@ -565,7 +565,7 @@ def change_manager_page(request):
                     'partner_title': partner_title,
                     'select': select,
                     'status': status,
-                    'a': f'<button class="search_btn save_btn w-100p saveStatus" data-pmid="{ a.id })">儲存</button>'
+                    'a': f'<button class="manager_btn save_btn saveStatus" data-pmid="{ a.id })">儲存</button>'
                 })
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
@@ -632,7 +632,7 @@ def change_manager_page(request):
                 modified = ''
             
             if n.status == 'pending':
-                a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回申請</a>'
+                a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回</a>'
             else:
                 a = f'<a class="manager_btn" href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
 
@@ -664,7 +664,7 @@ def change_manager_page(request):
                 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
                 'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_resource manager_btn" data-resource_id="{ r.id }">刪除</a>'
+                'delete': f'<a href="javascript:;" class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
 
         total_page = math.ceil(Resource.objects.all().count() / 10)
@@ -684,7 +684,7 @@ def change_manager_page(request):
                 'order': q.order,
                 'question': q.question,
                 'edit': f'<a class="manager_btn" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_qa manager_btn" data-qa_id="{q.id}">刪除</a>', 
+                'delete': f'<a href="javascript:;" class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
             })
 
         total_page = math.ceil(Qa.objects.all().count() / 10)
@@ -1096,20 +1096,24 @@ def logout_user(request):
 
 def update_partner_info(request):
     if request.method == 'POST':
+        print(request.POST)
         # 先取得原本的dictionary
         partner_id = request.POST.get('partner_id')
         info = Partner.objects.get(id=partner_id).info
         new_info = []
         for l in range(len(info)):
             i = info[l]
-            new_info.append({
-                'id': i['id'],
-                'link': request.POST.get(f'link_{l}'),
-                # 'logo': request.POST.get(f'logo'),
-                'image': i['image'],
-                'subtitle': request.POST.get(f'subtitle_{l}'),
-                'description': request.POST.get(f'description_{l}'),
-            })
+            i['link'] = request.POST.get(f'link_{l}')
+            i['description'] = request.POST.get(f'description_{l}')
+            new_info.append(i)
+            # new_info.append({
+            #     'id': i['id'],
+            #     'link': request.POST.get(f'link_{l}'),
+            #     # 'logo': request.POST.get(f'logo'),
+            #     # 'image': i['image'],
+            #     # 'subtitle': request.POST.get(f'subtitle_{l}'),
+            #     'description': request.POST.get(f'description_{l}'),
+            # })
         p = Partner.objects.get(id=partner_id)
         p.info = new_info
         p.save()

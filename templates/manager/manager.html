@@ -139,11 +139,11 @@
                         </li>
                         <li>                                
                             {% if user.status == 'pending' %}
-                            單位帳號申請已送出審核中 <button class="search_btn withdrawRequest" data-uid="{{ user.id }}">撤回申請</button>
+                            單位帳號申請已送出審核中 <button class="read_btn withdrawRequest" data-uid="{{ user.id }}">撤回</button>
                             {% elif user.status == 'pass' %}
                             單位帳號申請已通過
                             {% else %}
-                            <button class="search_btn sendRequest">送出</button>
+                            <button class="read_btn sendRequest">送出</button>
                             {% endif %}
                         </li>
                     </ul>

@@ -336,8 +336,8 @@ $( function() {
     $('.circleGeo').on('click', function(){
         $('.addC, .addG').remove()
         drawnItems.clearLayers();
-        $('p.active').removeClass('active')
-        $('.circleGeo').addClass('active');
+        //$('p.active').removeClass('active')
+        //$('.circleGeo').addClass('active');
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         $(".circle_popup").removeClass('d-none')
     })
@@ -345,8 +345,6 @@ $( function() {
     $('.popupGeo').on('click', function(){
         $('.addC').remove()
         drawnItems.clearLayers();
-        $('p.active').removeClass('active')
-        $('.popupGeo').addClass('active');
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         $(".geojson_popup").removeClass('d-none')
     })
@@ -377,7 +375,7 @@ $( function() {
     
 
     $('.circle_send').click( function(){
-    // 先把舊的移除
+        // 先把舊的移除
         $('.addC, [class^=resultG_]').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
             alert('框選失敗！請檢查經緯度格式是否正確')
@@ -389,8 +387,9 @@ $( function() {
                             parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
                 drawnItems.addLayer(circle);
                 map.fitBounds(circle.getBounds());
+                $('p.active').removeClass('active')
+                $('.circleGeo').addClass('active');
                 $(".circle_popup").addClass('d-none')
-
             } catch (e) {
                 alert('框選失敗！請檢查經緯度格式是否正確')
             }
@@ -416,7 +415,10 @@ $( function() {
                 $('input[name=geojson_id]').val(response.geojson_id)
                 geoJSON = L.geoJSON(JSON.parse(response.geojson),{ className: 'addG'}).addTo(map);
                 map.fitBounds(geoJSON.getBounds());
+                $('p.active').removeClass('active')
                 $(".geojson_popup").addClass('d-none')
+                $('.popupGeo').addClass('active');
+
             })
             .fail(function( xhr, status, errorThrown ) {
                 if (xhr.status==504){

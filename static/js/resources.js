@@ -130,7 +130,7 @@ $('.news_tab_in li').click(function(){
     })
   })
 
-  $('.search_btn').click(function(){
+  $('.date_select .search_btn').click(function(){
 	$('#db-intro').addClass('d-none')
 	$.ajax({
         url: "/get_resources",

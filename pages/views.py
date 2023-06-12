@@ -23,6 +23,38 @@ news_type_c_map = {
 
 }
 
+def get_current_notif(request):
+    count = 0
+    results = []
+    if not request.user.is_anonymous:  
+        count = Notification.objects.filter(user_id=request.user.id,is_read=False).count()
+        notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
+        results = ""
+        for n in notifications:
+            created_8 = n.created + timedelta(hours=8)
+            if not n.is_read: 
+                is_read = '<div class="dottt"></div>'
+            else:
+                is_read = ''
+            results += f"""
+                        <li class="updateThisRead" data-nid="{n.id}">
+                        {is_read}
+                        <div class="txtcont">
+                        <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
+                        <p>{n.get_type_display().replace('0000', n.content)}</p>
+                        </div>
+                    </li>
+                    """
+        if not results:
+            results = """
+                        <li>
+                        <div class="txtcont">
+                        <p class="date"></p>
+                        <p>暫無通知</p>
+                        </div>
+                    </li>
+                    """        
+    return JsonResponse({'count': count, 'notif': results}, safe=False) 
 
 def policy(request):
     return render(request, 'pages/policy.html')

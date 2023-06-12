@@ -172,7 +172,7 @@ $(document).ready(function () {
         if (checked){
             $.ajax({
                 url: "/update_personal_info",
-                data: $('#updateForm').serialize() + '&email=' + $('#updateForm input[name=user_email]').val() + '&has_password=' + has_password,
+                data: $('#updateForm').serialize() + '&email=' + $('#updateForm input[name=email]').val() + '&has_password=' + has_password,
                 type: 'POST',
                 dataType : 'json',
             })

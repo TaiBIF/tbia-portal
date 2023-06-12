@@ -41,7 +41,7 @@
     text-align: center
 }
 
-.dottt {
+.main_1240 .dottt {
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -49,17 +49,19 @@
     margin: auto 10px auto 0;
 }
 
-input {
+.main_1240 input {
     padding: 0px 10px;
     border-radius: 5px;
     border: 1px solid #ddd;
     width: 50%;
     font-size: 16px;
-    height: 35px
+    height: 35px;
+    line-height: 35px;
 }
 
 
-select {
+.main_1240 select {
+    padding: 0px 5px 0px;
     border-radius: 5px;
     border: 1px solid #ddd;
     width: 50%;
@@ -67,15 +69,13 @@ select {
     font-size: 16px
 }
 
-
 @media only screen and (max-width: 767px) {
-    input, select {
-        width: 70%;
+    .main_1240 input, .main_1240 select {
+        width: 100%;
     }
 }
 
-
-textarea {
+.main_1240 textarea {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ddd;

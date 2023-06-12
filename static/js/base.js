@@ -8,11 +8,39 @@ function showLogin(){
   }
 }
 
+// 背景更新通知
+function getCurrentNotif() {
+  // your function code here
+  $.ajax({
+    url: "/get_current_notif",
+    type: 'GET',
+    success: function(response){
+      if (response.count > 0){
+          $('.num_message').html(response.count)
+          $('.num_message').removeClass('d-none')
+      } else {
+          $('.num_message').addClass('d-none')
+      }
+      $('.message_list').html(response.notif)
+    }
+   });
+  setTimeout(getCurrentNotif, 5000);
+}
+
+getCurrentNotif();
+
+
+
 function isOverflown(element) {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
+
+ 
 $(function () {
+
+
+
 
   if (!isOverflown($('.message_list')[0])){
     $('.message_list li:last-child').addClass('box-radius-10px')
@@ -76,6 +104,8 @@ $(function () {
         window.location = $(this).data('href')
     })
 
+
+    /*
     $('.updateThisRead').on('click', function(){
         let n_id = $(this).data('nid')
         $.ajax({
@@ -90,7 +120,7 @@ $(function () {
             }
         }
         });
-    })
+    })*/
 
     $('.updateIsRead').on('click', function(){
         $.ajax({
@@ -101,6 +131,8 @@ $(function () {
           }
          });
     })
+
+
 
     $('.showFeedback').on('click', function(){
         $('.feedback-pop').removeClass('d-none')
@@ -157,6 +189,7 @@ $(function () {
     
   })
 
+  
 
   $('.resetbtn').on('click',function(){
     $.ajax({
@@ -273,8 +306,8 @@ $(".mbmu2 a").on('click', function(){
   window.location = this.href;
 })
 
-$(".popbg .xx,.popbg .ovhy").click(function (e) {
-    if ($(e.target).hasClass("xx") || $(e.target).hasClass("ovhy")) $(".popbg").addClass('d-none');
+$(".popbg .xx").click(function (e) {
+    if ($(e.target).hasClass("xx")) $(".popbg").addClass('d-none');
 });
 
 // LOGIN 

@@ -157,7 +157,7 @@
                             <!-- 編輯按鈕 / 收回按鈕 -->
                             <td>
                                 {% if n.status == 'pending' %}
-                                <a class="manager_btn" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回申請</a>
+                                <a class="manager_btn" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回</a>
                                 {% else %}
                                 <a class="manager_btn" href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
                                 {% endif %}

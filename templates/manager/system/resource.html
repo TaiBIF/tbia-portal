@@ -157,8 +157,8 @@
                                 <p>發布前請先上傳檔案</p>
                             </div>                            
                         </li>
-                    <li class="mt-20px"><button class="search_btn" id="save_resource_file">上傳</button>        
-                        <button class="search_btn ml-10px" id="publish">發布</button>           
+                    <li class="mt-20px"><button class="read_btn" id="save_resource_file">上傳</button>        
+                        <button class="read_btn ml-10px" id="publish">發布</button>           
                      </li>
                 </ul>
             </div>
@@ -169,7 +169,7 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>資源列表</div>
                 <div class="d-flex-jc-e">
-                <button class="search_btn" id="link_button">編輯推薦連結</button>
+                <button class="read_btn" id="link_button">編輯推薦連結</button>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 resource_table">
@@ -188,7 +188,7 @@
                             <td><a href="/media/resources/{{ r.filename }}" target="_blank">{{ r.filename }}</a></td>
                             <td>{{ r.modified|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
                             <td><a class="manager_btn" href="{% url 'system_resource' %}?menu=edit&resource_id={{ r.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td><a href="javascript:;" class="delete_resource manager_btn" data-resource_id='{{ r.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td><a href="javascript:;" class="delete_resource del_btn" data-resource_id='{{ r.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
                         {% endfor %}
                     </table>						
@@ -233,7 +233,7 @@
                                 <div id="editor"></div>         
                                 {% comment %} {{ form }} {% endcomment %}
                             </li>
-                            <li ><button class="search_btn">儲存</button></li>
+                            <li ><button class="read_btn">儲存</button></li>
                         </form>
                     </ul>
             </div>

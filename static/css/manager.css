@@ -95,7 +95,7 @@ td hr {
     text-align: center
 }
 
-.dottt {
+.main_1240 .dottt {
 
     width: 10px;
     height: 10px;
@@ -105,7 +105,7 @@ td hr {
 
 }
 
-.noti-dottt {
+.main_1240 .noti-dottt {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -113,29 +113,30 @@ td hr {
     margin: 0 10px auto 0;
 }
 
-input {
+.main_1240 input {
     padding: 0px 10px;
     border-radius: 5px;
     border: 1px solid #ddd;
     width: 50%;
     font-size: 16px;
-    height: 35px
+    height: 35px;
+    line-height: 35px;
 }
 
-@media only screen and (max-width: 767px) {
-    input {
-        width: 70%;
-    }
-}
-
-select {
+.main_1240 select {
+    padding: 0px 5px 0px;
     border-radius: 5px;
     border: 1px solid #ddd;
-    width: calc(50% - 10px);
+    width: 50%;
     height: 35px;
     font-size: 16px
 }
 
+@media only screen and (max-width: 767px) {
+    .main_1240 input, .main_1240 select {
+        width: 100%;
+    }
+}
 .main_1240 {
     min-height: calc(100% - 340px);
 }

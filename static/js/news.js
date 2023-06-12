@@ -26,7 +26,7 @@ $( function() {
         $(`.news_tab_in .li-news-all`).addClass('now')
     }
 
-    $('.search_btn').on('click',function(){
+    $('.date_select .search_btn').on('click',function(){
         $('.already_selected ul').removeClass('d-none');
         $('.already_selected').data('filter', 'yes');
         $('.already_selected p').html(`${$( "#start_date" ).val()}~${$( "#end_date" ).val()}`);

@@ -359,22 +359,6 @@ input {
 }
 
 
-#not_show_tech {
-    color: #FFF;
-    min-width: 90px;
-    height: 30px;
-    text-align: center;
-    padding: 0px 10px;
-    border-radius: 15px;
-    margin-right: 10px;
-    font-size: 16px;
-    background-color: #C65454;
-}
-
-#not_show_tech:hover {
-    opacity: 0.7;
-}
-
 .mt-10px {
     margin-top: 10px;
 }
@@ -389,11 +373,12 @@ input {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    padding: 3px 10px;
+    padding: 5px 0;
     border-radius: 20px;
     font-size: 16px;
+    width: 60px;
     display: block;
-    width: auto;
+    margin: auto;
 }
 
 .manager_btn:hover {
@@ -416,10 +401,10 @@ input {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    padding: 3px 20px;
+    padding: 5px 20px;
     border-radius: 5px;
-    font-size: 18px;
-    display: block;
+    font-size: 16px;
+    min-width: 130px;
 }
 
 .read_btn:hover {
