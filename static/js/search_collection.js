@@ -977,6 +977,8 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
             history.pushState(null, '', window.location.pathname + '?' + queryString)
         }
 
+        $(".loading_area").removeClass('d-none');
+
         $.ajax({
             url: "/get_conditional_records",
             data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
@@ -1086,6 +1088,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
                 })
 
             }
+            $(".loading_area").addClass('d-none');
             $([document.documentElement, document.body]).animate({
                 scrollTop: $(".sc_result").offset().top}, 200);
         })
@@ -1095,6 +1098,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
             } else {
                 alert('發生未知錯誤！請聯絡管理員')
             } 
+            $(".loading_area").addClass('d-none');
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
     }
