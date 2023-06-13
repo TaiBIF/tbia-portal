@@ -65,6 +65,7 @@ def get_geojson(request,id):
         return response
 
 
+# 全站搜尋分布圖
 def get_taxon_dist_init(request):
     taxon_id = request.POST.get('taxonID')
     query_list = [f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
@@ -104,12 +105,12 @@ def get_taxon_dist_init(request):
     return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
 
-
+# 全站搜尋分布圖
 def get_taxon_dist(request):
     taxon_id = request.POST.get('taxonID')
     grid = int(request.POST.get('grid'))
     mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
-    query_list = ['{!field f=location_rpt}Intersects(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+    query_list = ['{!field f=location_rpt}Within(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
 
     map_geojson = {"type":"FeatureCollection","features":[]}
 
@@ -314,47 +315,32 @@ def submit_sensitive_request(request):
                 except:
                     pass
 
-            geojson = {}
-            geojson['features'] = ''
 
+            # 地圖框選
+            if g_list := req_dict.get('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
+                except:
+                    pass
+
+            # 上傳polygon
             if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
+                        geo_df = gpd.GeoDataFrame.from_features(geojson)
+                        g_list = []
+                        for i in geo_df.to_wkt()['geometry']:
+                            g_list += ['"Within(%s)"' % i]
+                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
                 except:
                     pass
 
+            # 圓中心框選
             if circle_radius := req_dict.get('circle_radius'):
                 query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                except:
-                    pass
-
-            if geojson['features']:
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
-
-            # if geojson['features']:
-            #     if circle_radius := req_dict.get('circle_radius'):
-            #         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-            #     else:
-            #         geo_df = gpd.GeoDataFrame.from_features(geojson)
-            #         g_list = []
-            #         for i in geo_df.to_wkt()['geometry']:
-            #             if str(i).startswith('POLYGON'):
-            #                 g_list += [i]
-            #         try:
-            #             mp = MultiPolygon(map(wkt.loads, g_list))
-            #             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            #         except:
-            #             pass
-            
             if val := req_dict.get('name'):
                 val = val.strip()
                 # 去除重複空格
@@ -573,31 +559,30 @@ def transfer_sensitive_response(request):
                 except:
                     pass
 
-            geojson = {}
-            geojson['features'] = ''
+            # 地圖框選
+            if g_list := req_dict.get('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
+                except:
+                    pass
 
+            # 上傳polygon
             if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
+                        geo_df = gpd.GeoDataFrame.from_features(geojson)
+                        g_list = []
+                        for i in geo_df.to_wkt()['geometry']:
+                            g_list += ['"Within(%s)"' % i]
+                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
                 except:
                     pass
 
+            # 圓中心框選
             if circle_radius := req_dict.get('circle_radius'):
                 query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                except:
-                    pass
-
-            if geojson['features']:
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
                 
             if val := req_dict.get('name'):
                 val = val.strip()
@@ -799,31 +784,31 @@ def generate_sensitive_csv(query_id, scheme, host):
                 except:
                     pass
 
-            geojson = {}
-            geojson['features'] = ''
+            # 地圖框選
+            if g_list := req_dict.get('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
+                except:
+                    pass
 
+            # 上傳polygon
             if g_id := req_dict.get('geojson_id'):
                 try:
                     with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                         geojson = json.loads(j.read())
+                        geo_df = gpd.GeoDataFrame.from_features(geojson)
+                        g_list = []
+                        for i in geo_df.to_wkt()['geometry']:
+                            g_list += ['"Within(%s)"' % i]
+                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
                 except:
                     pass
 
+            # 圓中心框選
             if circle_radius := req_dict.get('circle_radius'):
                 query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-                except:
-                    pass
-
-            if geojson['features']:
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
 
             if val := req_dict.get('name'):
                 val = val.strip()
@@ -931,7 +916,7 @@ def save_geojson(request):
     if request.method == 'POST':
         geojson = request.POST.get('geojson_text')
         geojson = gpd.read_file(geojson, driver='GeoJSON')
-        geojson = geojson.dissolve()
+        # geojson = geojson.dissolve()
         geojson = geojson.to_json()
 
         oid = str(ObjectId())
@@ -1074,46 +1059,31 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         except:
             pass
 
-    geojson = {}
-    geojson['features'] = ''
+    # 地圖框選
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            mp = MultiPolygon(map(wkt.loads, g_list))
+            query_list += ['location_rpt: "Within(%s)"' % mp]
+        except:
+            pass
 
+    # 上傳polygon
     if g_id := req_dict.get('geojson_id'):
         try:
             with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                 geojson = json.loads(j.read())
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    g_list += ['"Within(%s)"' % i]
+                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
         except:
             pass
 
+    # 圓中心框選
     if circle_radius := req_dict.get('circle_radius'):
         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
-    if g_list := req_dict.getlist('polygon'):
-        try:
-            mp = MultiPolygon(map(wkt.loads, g_list))
-            query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-        except:
-            pass
-
-    if geojson['features']:
-        geo_df = gpd.GeoDataFrame.from_features(geojson)
-        g_list = []
-        for i in geo_df.to_wkt()['geometry']:
-            query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
-
-    # if geojson['features']:
-    #     if circle_radius := req_dict.get('circle_radius'):
-    #         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (geojson['features'][0]['geometry']['coordinates'][1], geojson['features'][0]['geometry']['coordinates'][0], int(circle_radius))]
-    #     else:
-    #         geo_df = gpd.GeoDataFrame.from_features(geojson)
-    #         g_list = []
-    #         for i in geo_df.to_wkt()['geometry']:
-    #             if str(i).startswith('POLYGON'):
-    #                 g_list += [i]
-    #         try:
-    #             mp = MultiPolygon(map(wkt.loads, g_list))
-    #             query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-    #         except:
-    #             pass
     
     if val := req_dict.get('name'):
         val = val.strip()
@@ -1289,31 +1259,31 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         except:
             pass
 
-    geojson = {}
-    geojson['features'] = ''
 
+    # 地圖框選
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            mp = MultiPolygon(map(wkt.loads, g_list))
+            query_list += ['location_rpt: "Within(%s)"' % mp]
+        except:
+            pass
+
+    # 上傳polygon
     if g_id := req_dict.get('geojson_id'):
         try:
             with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                 geojson = json.loads(j.read())
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    g_list += ['"Within(%s)"' % i]
+                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
         except:
             pass
 
+    # 圓中心框選
     if circle_radius := req_dict.get('circle_radius'):
         query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-    if g_list := req_dict.getlist('polygon'):
-        try:
-            mp = MultiPolygon(map(wkt.loads, g_list))
-            query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-        except:
-            pass
-
-    if geojson['features']:
-        geo_df = gpd.GeoDataFrame.from_features(geojson)
-        g_list = []
-        for i in geo_df.to_wkt()['geometry']:
-            query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
 
     if val := req_dict.get('name'):
         val = val.strip()
@@ -3125,7 +3095,7 @@ def get_map_grid(request):
         query_list = []
 
         mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
-        query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
+        query_list += ['{!field f=location_rpt}Within(%s)' % mp]
 
         # 有無影像
         if has_image := request.POST.get('has_image'):
@@ -3219,31 +3189,31 @@ def get_map_grid(request):
             except:
                 pass
 
-        geojson = {}
-        geojson['features'] = ''
+        # 地圖框選
+        if g_list := request.POST.getlist('polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['location_rpt: "Within(%s)"' % mp]
+            except:
+                pass
 
+        # 上傳polygon
         if g_id := request.POST.get('geojson_id'):
             try:
                 with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                     geojson = json.loads(j.read())
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        g_list += ['"Within(%s)"' % i]
+                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
             except:
                 pass
 
+        # 圓中心框選
         if circle_radius := request.POST.get('circle_radius'):
             query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
 
-        if g_list := request.POST.getlist('polygon'):
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            except:
-                pass
-
-        if geojson['features']:
-            geo_df = gpd.GeoDataFrame.from_features(geojson)
-            g_list = []
-            for i in geo_df.to_wkt()['geometry']:
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
 
         if val := request.POST.get('name'):
             val = val.strip()
@@ -3420,31 +3390,30 @@ def get_conditional_records(request):
             except:
                 pass
 
-        geojson = {}
-        geojson['features'] = ''
+        # 地圖框選
+        if g_list := request.POST.getlist('polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['location_rpt: "Within(%s)"' % mp]
+            except:
+                pass
 
+        # 上傳polygon
         if g_id := request.POST.get('geojson_id'):
             try:
                 with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                     geojson = json.loads(j.read())
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        g_list += ['"Within(%s)"' % i]
+                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
             except:
                 pass
 
+        # 圓中心框選
         if circle_radius := request.POST.get('circle_radius'):
             query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
-
-        if g_list := request.POST.getlist('polygon'):
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % mp]
-            except:
-                pass
-
-        if geojson['features']:
-            geo_df = gpd.GeoDataFrame.from_features(geojson)
-            g_list = []
-            for i in geo_df.to_wkt()['geometry']:
-                query_list += ['{!field f=location_rpt}Intersects(%s)' % i]
 
         if val := request.POST.get('name'):
             val = val.strip()

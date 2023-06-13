@@ -137,7 +137,10 @@ drawControl = new L.Control.Draw({
 map.addControl(drawControl); 
 
 $('.leaflet-control.leaflet-draw').addClass('d-none')
-    map.on(L.Draw.Event.CREATED, function (e) {
+
+map.on(L.Draw.Event.CREATED, function (e) {
+    // 先把之前的移除
+    drawnItems.clearLayers();
     var layer = e.layer;
     drawnItems.addLayer(layer);
 });
@@ -332,7 +335,7 @@ $( function() {
     // 從圓中心框選
     $('.circleGeo').on('click', function(){
         $('.addC, .addG').remove()
-        drawnItems.clearLayers();
+        //drawnItems.clearLayers();
         //$('p.active').removeClass('active')
         //$('.circleGeo').addClass('active');
         $('.leaflet-control.leaflet-draw').addClass('d-none')
@@ -341,7 +344,7 @@ $( function() {
 
     $('.popupGeo').on('click', function(){
         $('.addC').remove()
-        drawnItems.clearLayers();
+        //drawnItems.clearLayers();
         $('.leaflet-control.leaflet-draw').addClass('d-none')
         $(".geojson_popup").removeClass('d-none')
     })
@@ -356,6 +359,7 @@ $( function() {
         $("#circle_radius").val("1").trigger("change");
         $('#geojson_textarea').val('')
         $('input[name=geojson_id]').val('')
+        $('[class^=resultG_]').remove()
     })
 
     $(".popbg .xx, .popbg .ovhy").click(function (e) {
@@ -373,7 +377,7 @@ $( function() {
 
     $('.circle_send').click( function(){
         // 先把舊的移除
-        $('.addC, [class^=resultG_]').remove()
+        $('.addC, [class^=resultG_], .addM, .addG').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')){
             alert('框選失敗！請檢查經緯度格式是否正確')
         } else if ($('input[name=center_lat]').val() > 90 | $('input[name=center_lat]').val() < -90 | $('input[name=center_lon]').val() > 180 | $('input[name=center_lon]').val() < -180 ) {
@@ -382,6 +386,7 @@ $( function() {
             try {
                 let circle = L.circle([$('input[name=center_lat]').val(),$('input[name=center_lon]').val()],
                             parseInt($('select[name=circle_radius]').val(),10)*1000, { className: 'addC'}).addTo(map);
+                drawnItems.clearLayers();
                 drawnItems.addLayer(circle);
                 map.fitBounds(circle.getBounds());
                 $('p.active').removeClass('active')
@@ -415,7 +420,7 @@ $( function() {
                 $('p.active').removeClass('active')
                 $(".geojson_popup").addClass('d-none')
                 $('.popupGeo').addClass('active');
-
+                drawnItems.clearLayers();
             })
             .fail(function( xhr, status, errorThrown ) {
                 if (xhr.status==504){
@@ -672,9 +677,11 @@ function changeAction(){
 }
 
 function setTable(response, queryString, from, orderby, sort){
+    
     if (from=='search'){
-        drawnItems.clearLayers();
-        $('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+        //drawnItems.clearLayers();
+       //$('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+       $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
         L.geoJSON(response.map_geojson.grid_10,{className: 'resultG_10', style: style}).addTo(map);
         window.grid_100 = response.map_geojson.grid_100
