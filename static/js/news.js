@@ -5,16 +5,39 @@ $( function() {
         changePage($(this).data('page'), $(this).data('type'))
     })
 
+    let date_locale = { days: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+                    daysShort: ['日', '一', '二', '三', '四', '五', '六'],
+                    daysMin: ['日', '一', '二', '三', '四', '五', '六'],
+                    months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    monthsShort: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    today: '今天',
+                    clear: '清除',
+                    dateFormat: 'yyyy-MM-dd',   
+                    timeFormat: 'HH:mm',
+                    firstDay: 1}
+
+    let start_date_picker = new AirDatepicker('#start_date',
+        { locale: date_locale});
+
+
+    let end_date_picker = new AirDatepicker('#end_date',
+        { locale: date_locale });
+
     $('.show_start').on('click', function(){
-        $('#start_date').datepicker('show')
+      if (start_date_picker.visible) {
+        start_date_picker.hide();
+      } else {
+        start_date_picker.show();
+      }
     })
 
     $('.show_end').on('click', function(){
-        $('#end_date').datepicker('show')
+      if (end_date_picker.visible) {
+        end_date_picker.hide();
+      } else {
+        end_date_picker.show();
+      }
     })
-
-    $("#start_date").datepicker({ dateFormat: 'yy-mm-dd' });
-    $("#end_date").datepicker({ dateFormat: 'yy-mm-dd' });	
 
     $('.updateNews').on('click', function(){
         updateNews($(this).data('type'),1)

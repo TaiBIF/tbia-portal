@@ -115,3 +115,7 @@
 .ui-datepicker {
     z-index:21 !important  
 }
+
+#start_date, #end_date {
+    background-color: #fff;
+}

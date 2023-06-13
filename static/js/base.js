@@ -263,6 +263,8 @@ $(function () {
     },
   });
 });
+
+/*
 // detect event on show / hide
 (function ($) {
   $.each(['show', 'hide'], function (i, ev) {
@@ -284,6 +286,7 @@ $(document).ajaxStart(function() {
     clearTimeout(ajaxLoadTimeout);
     $(".loading_area").addClass('d-none');
 });
+*/
 
 window.addEventListener('error', function(event) {
   $(".loading_area").addClass('d-none');

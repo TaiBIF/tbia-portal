@@ -241,7 +241,6 @@ CSP_STYLE_SRC = ["'self'",
     "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
     "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
     "https://fonts.googleapis.com/",
-    "https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
     "https://cdn.quilljs.com/1.3.6/quill.snow.css"
 ]
@@ -258,7 +257,6 @@ CSP_FONT_SRC = ("'self'",
 ) 
 
 CSP_SCRIPT_SRC = ["'self'", 
-    "https://code.jquery.com/ui/1.13.0/jquery-ui.js",
     'https://www.google.com/recaptcha/api.js',
     "https://www.googletagmanager.com/",
     "https://www.google-analytics.com/",
@@ -279,7 +277,7 @@ CSP_SCRIPT_SRC = ["'self'",
     # "'unsafe-inline'",
     "https://cdn.quilljs.com/1.3.6/quill.js",
     "https://unpkg.com/terraformer@1.0.7/terraformer.js",
-    "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js"
+    "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
 ]
 
 # <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>

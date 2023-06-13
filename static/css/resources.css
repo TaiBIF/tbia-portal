@@ -121,3 +121,7 @@
 .news_list {
     z-index: 1;
 }
+
+#start_date, #end_date {
+    background-color: #fff;
+}
