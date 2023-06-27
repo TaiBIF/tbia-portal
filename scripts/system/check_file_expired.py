@@ -13,7 +13,7 @@ for sq in SearchQuery.objects.filter(modified__lt=exp).exclude(status='fail'):
     sq.status = 'expired'
     filename = sq.query_id
     type = sq.type
-    path = f'/media/download/{sq.type}/{sq.user_id}_{ sq.query_id }.zip'
+    path = f'/media/download/{sq.type}/tbia_{ sq.query_id }.zip'
     my_file = Path(path)
     my_file.unlink(missing_ok=True)
     sq.save()
