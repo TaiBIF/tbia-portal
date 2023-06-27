@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.db import connection
 
 from data.utils import *
@@ -65,7 +65,7 @@ def get_geojson(request,id):
         return response
 
 
-# 全站搜尋分布圖
+# 全站搜尋資料分布圖
 def get_taxon_dist_init(request):
     taxon_id = request.POST.get('taxonID')
     query_list = [f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
@@ -105,7 +105,7 @@ def get_taxon_dist_init(request):
     return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
 
-# 全站搜尋分布圖
+# 全站搜尋資料分布圖
 def get_taxon_dist(request):
     taxon_id = request.POST.get('taxonID')
     grid = int(request.POST.get('grid'))
@@ -176,13 +176,17 @@ def submit_sensitive_request(request):
         query_string = parse.urlencode(req_dict)
         user_id = request.user.id
         query_id = str(ObjectId())
+
+        current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='sensitive').aggregate(Max('personal_id'))
+        current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
         
         sq = SearchQuery.objects.create(
             user = User.objects.filter(id=user_id).first(),
             query = query_string,
             status = 'pending', # 如果單位都同意,檔案也製作好,這邊才會變成pass
             type = 'sensitive',
-            query_id = query_id
+            query_id = query_id,
+            personal_id = current_personal_id
         )
 
         # SensitiveDataRequest
@@ -429,8 +433,9 @@ def submit_sensitive_response(request):
 
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
     # 若是機關委託計畫，排除已轉移給各單位審核的
+    scheme = request.is_secure() and "https" or "http"
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
-        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),request.scheme,request.get_host()))
+        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),scheme,request.get_host()))
         task.start()
 
     return JsonResponse({"status": 'success'}, safe=False)
@@ -650,7 +655,7 @@ def generate_sensitive_csv(query_id, scheme, host):
         sq = SearchQuery.objects.get(query_id=query_id)
         req_dict = dict(parse.parse_qsl(sq.query))
 
-        download_id = f"{sq.user_id}_{query_id}"
+        download_id = f"tbia_{query_id}"
 
         group = []
         process = None
@@ -880,7 +885,7 @@ def generate_sensitive_csv(query_id, scheme, host):
         if file_done:
             nn = Notification.objects.create(
                 type = 4,
-                content = sq.id,
+                content = sq.personal_id,
                 user_id = sq.user_id
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
@@ -943,21 +948,22 @@ def return_geojson_query(request):
 
 def send_download_request(request):
     if request.method == 'POST':
+        scheme = request.is_secure() and "https" or "http"
         if request.POST.get('from_full'):
-            task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id, request.scheme, request.get_host()))
+            task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id, scheme, request.get_host()))
             task.start()
         elif request.POST.get('taxon'):
-            task = threading.Thread(target=generate_species_csv, args=(request.POST, request.user.id, request.scheme, request.get_host()))
+            task = threading.Thread(target=generate_species_csv, args=(request.POST, request.user.id, scheme, request.get_host()))
             task.start()
         else:
-            task = threading.Thread(target=generate_download_csv, args=(request.POST, request.user.id, request.scheme, request.get_host()))
+            task = threading.Thread(target=generate_download_csv, args=(request.POST, request.user.id, scheme, request.get_host()))
             task.start()
         return JsonResponse({"status": 'success'}, safe=False)
 
 
 # 這邊是for進階搜尋 全站搜尋要先另外寫
 def generate_download_csv(req_dict, user_id, scheme, host):
-    download_id = f"{user_id}_{str(ObjectId())}"
+    download_id = f"tbia_{str(ObjectId())}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
@@ -1111,12 +1117,16 @@ def generate_download_csv(req_dict, user_id, scheme, host):
             req_dict[k] = req_dict[k][0]
     query_string = parse.urlencode(req_dict)
 
+    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
+    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
+
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
         query = query_string,
         status = 'pending',
         type = 'record',
-        query_id = download_id.split('_')[-1]
+        query_id = download_id.split('_')[-1],
+        personal_id = current_personal_id
     )
 
     # 
@@ -1151,7 +1161,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     # 寄送通知
     nn = Notification.objects.create(
         type = 1,
-        content = sq.id,
+        content = sq.personal_id,
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
@@ -1162,7 +1172,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
 
 def generate_species_csv(req_dict, user_id, scheme, host):
-    download_id = f"{user_id}_{str(ObjectId())}"
+    download_id = f"tbia_{str(ObjectId())}"
 
     # 先取得筆數，export to csv
     query_list = []
@@ -1311,12 +1321,16 @@ def generate_species_csv(req_dict, user_id, scheme, host):
             req_dict[k] = req_dict[k][0]
     query_string = parse.urlencode(req_dict)
 
+    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='taxon').aggregate(Max('personal_id'))
+    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
+
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
         query = query_string,
         status = 'pending',
         type = 'taxon',
-        query_id = download_id.split('_')[-1]
+        query_id = download_id.split('_')[-1],
+        personal_id = current_personal_id
     )
 
     # 
@@ -1373,7 +1387,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     # 寄送通知
     nn = Notification.objects.create(
         type = 0,
-        content = sq.id,
+        content = sq.personal_id,
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
@@ -1387,7 +1401,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
-    download_id = f"{user_id}_{str(ObjectId())}"
+    download_id = f"tbia_{str(ObjectId())}"
     req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
 
     keyword = req_dict_query.get('keyword', '')
@@ -1431,13 +1445,17 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         if len(req_dict[k])==1:
             req_dict[k] = req_dict[k][0]
 
+    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
+    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
+
     query_string = parse.urlencode(req_dict)
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
         query = query_string,
         status = 'pending',
         type = 'record',
-        query_id = download_id.split('_')[-1]
+        query_id = download_id.split('_')[-1],
+        personal_id = current_personal_id
     )
 
     query = { "query": q,
@@ -1471,7 +1489,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     # 寄送通知
     nn = Notification.objects.create(
         type = 1,
-        content = sq.id,
+        content = sq.personal_id,
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
@@ -1778,12 +1796,14 @@ def search_full(request):
         if len(taxon_result_df):
             # 整理側邊欄
             taxon_groupby = taxon_result_df.groupby('matched_col')['val'].nunique()
-            for tt in taxon_groupby.index:
-                taxon_rows.append({
-                    'title': map_occurrence[tt],
-                    'total_count': taxon_groupby[tt],
-                    'key': tt
-                })
+            for f in facet_list['facet'].keys():
+            # for tt in taxon_groupby.index:
+                if f in taxon_groupby.index:
+                    taxon_rows.append({
+                        'title': map_occurrence[f],
+                        'total_count': taxon_groupby[f],
+                        'key': f
+                    })
             taxon_result_df = taxon_result_df.reset_index(drop=True)
             # 整理卡片
             # 相同taxonID的要放在一起
@@ -2852,13 +2872,13 @@ def occurrence_detail(request, id):
                 am.append({'img': a, 'license': ''})
     row.update({'associatedMedia': am})
 
-    if row.get('dataGeneralizations'):
-        if str(row['dataGeneralizations']) in ['True', True, "true"]:
-            row.update({'dataGeneralizations': '是'})
-        elif str(row['dataGeneralizations']) in ['False', False, "false"]:
-            row.update({'dataGeneralizations': '否'})
-        else:
-            pass
+    if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+        row.update({'dataGeneralizations': '是'})
+    elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+        row.update({'dataGeneralizations': '否'})
+    else:
+        pass
+
     # date
     if date := row.get('standardDate'):
         # date = date[0].replace('T', ' ').replace('Z','')
@@ -2989,13 +3009,12 @@ def collection_detail(request, id):
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_collection[row['taxonRank']]})
 
-        if row.get('dataGeneralizations'):
-            if str(row['dataGeneralizations']) in ['True', True, "true"]:
-                row.update({'dataGeneralizations': '是'})
-            elif str(row['dataGeneralizations']) in ['False', False, "false"]:
-                row.update({'dataGeneralizations': '否'})
-            else:
-                pass
+        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+            row.update({'dataGeneralizations': '是'})
+        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+            row.update({'dataGeneralizations': '否'})
+        else:
+            pass
 
         # date
         if date := row.get('standardDate'):

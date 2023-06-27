@@ -993,7 +993,7 @@ function focusComponent(item_class, go_back){
               </div>
               <div class="btn_area ${display}">
                 ${taieol}
-                <button class="getDist" data-taxonid="${x.taxonID}">分布圖</button>
+                <button class="getDist" data-taxonid="${x.taxonID}">資料分布圖</button>
               </div></li>`
 
               $(`.${response.card_class}`).append(html)
@@ -1351,7 +1351,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           </div>
           <div class="btn_area ${display}">
             ${taieol}
-            <button class="getDist" data-taxonid="${x.taxonID}">分布圖</button>
+            <button class="getDist" data-taxonid="${x.taxonID}">資料分布圖</button>
           </div></li>`
 
           $(`${card_class}`).append(html)

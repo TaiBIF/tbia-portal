@@ -1129,7 +1129,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
 
         $(".loading_area").addClass('d-none');
         $([document.documentElement, document.body]).animate({
-            scrollTop: $(".sc_result").offset().top}, 200);
+            scrollTop: $(".sc_result").offset().top - 100}, 200);
     })
     .fail(function( xhr, status, errorThrown ) {
         if (xhr.status==504){

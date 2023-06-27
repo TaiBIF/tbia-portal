@@ -1,6 +1,15 @@
 {% extends 'base.html' %} 
 {% load static %} 
 
+{% block head %}
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+{% endblock head %}
+
 {% block title %}夥伴單位｜{% endblock %}
 
 {% block body %}
@@ -26,7 +35,19 @@
 					<div class="logo_area">
 						<img src="/static/image/partner/{{ i.logo }}" >
 					</div>
-					<h2>{{ i.title }}</h2><h3><a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}</a></h3>
+					<h2>{{ i.title }}</h2>
+					<h3  {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %}>
+						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}
+							{% if i.link %} <i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i> {% endif %}
+						</a> 
+					</h3>
+					{% if i.subtitle == '生物多樣性研究博物館' %}
+					<h3>
+						<a target="_blank" href="https://hast.biodiv.tw/">植物標本資料庫
+							<i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i>
+						</a> 
+					</h3>
+					{% endif %}
 					<p>{{ i.description }}</p>
 				</div>
 				<div class="rightbox">

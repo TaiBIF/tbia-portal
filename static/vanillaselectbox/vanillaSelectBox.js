@@ -618,7 +618,7 @@ function vanillaSelectBox(domSelector, options) {
 
             
             this.button.addEventListener("click", function (e) {
-                if (e.pointerType=='mouse'){
+                if (e.pointerType=='mouse' | e.pointerType=='touch'){
                     if (self.isDisabled) return;
                     if (self.drop.style.visibility == "visible") {
                         self.drop.style.visibility = 'hidden'

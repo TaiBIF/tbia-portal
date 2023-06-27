@@ -102,6 +102,8 @@ class SearchQuery(models.Model):
     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
     type = models.CharField(max_length=20, blank=True) # taxon, record, sensitive
     query_id = models.CharField(max_length=50, blank=True)
+    # 使用者個人下載編號id
+    personal_id = models.IntegerField(null=True, blank=True)
 
 
 class SensitiveDataRequest(models.Model):

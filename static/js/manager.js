@@ -153,20 +153,23 @@ $(document).ready(function () {
             checked = false
         }  
         // 如果有任何一個跟密碼相關的欄位不是空白才判斷是否正確
-        if (($('#updateForm input[name=now_password]').val()!='')|($('#updateForm input[name=new_password]').val()!='')|($('#updateForm input[name=re_password]').val()!='')){
-            has_password = true
-            if (!checkPasswordStr($('#updateForm input[name=now_password]').val())) { // check now password
-                $('#updateForm input[name=now_password]').next('.noticbox').removeClass('d-none')
-                checked = false
-            } 
-            if (!checkPasswordStr($('#updateForm input[name=new_password]').val())) { // check new password
-                $('#updateForm input[name=new_password]').next('.noticbox').removeClass('d-none')
-                checked = false
-            } 
-            if ($('#updateForm input[name=new_password]').val() != $('#updateForm input[name=re_password]').val()) { // check repassword
-                $('#updateForm input[name=re_password]').next('.noticbox').removeClass('d-none')
-                checked = false
-            } 
+        if (!$('#updateForm input[name=now_password]').val()==undefined){
+
+            if (($('#updateForm input[name=now_password]').val()!='')|($('#updateForm input[name=new_password]').val()!='')|($('#updateForm input[name=re_password]').val()!='')){
+                has_password = true
+                if (!checkPasswordStr($('#updateForm input[name=now_password]').val())) { // check now password
+                    $('#updateForm input[name=now_password]').next('.noticbox').removeClass('d-none')
+                    checked = false
+                } 
+                if (!checkPasswordStr($('#updateForm input[name=new_password]').val())) { // check new password
+                    $('#updateForm input[name=new_password]').next('.noticbox').removeClass('d-none')
+                    checked = false
+                } 
+                if ($('#updateForm input[name=new_password]').val() != $('#updateForm input[name=re_password]').val()) { // check repassword
+                    $('#updateForm input[name=re_password]').next('.noticbox').removeClass('d-none')
+                    checked = false
+                } 
+            }
         }
     
         if (checked){

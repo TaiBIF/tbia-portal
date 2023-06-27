@@ -129,11 +129,6 @@ input[type='number']::-webkit-outer-spin-button {
     text-align: right;
 }
 
-.icon-size {
-    height: 14px;
-    width: 14px;
-}
-
 .mh-380px {
     max-height: 380px
 }

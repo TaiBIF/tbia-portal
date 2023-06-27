@@ -84,6 +84,7 @@
                                     <p>必填欄位</p>
                                 </div>
                             </li>
+                            {% if not from_google %}
                             <li>密碼變更</li>
                             <li><input type="password" name="now_password" placeholder="現在的密碼">
                                 <div class="noticbox d-none">
@@ -103,6 +104,7 @@
                                     <p>兩次密碼輸入不同</p>
                                 </div>              
                             </li>
+                            {% endif %}
                         </form>
                         <li ><button class="read_btn updateInfo">確認修改</button></li>
                     </ul>
@@ -179,7 +181,7 @@
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/record/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/record/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -244,7 +246,7 @@
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/taxon/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -311,7 +313,7 @@
                             <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
                             <td>{% if r.status == '完成' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/sensitive/{{ request.user.id }}_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
                         </tr>

@@ -290,7 +290,7 @@ $(document).ajaxStart(function() {
 
 window.addEventListener('error', function(event) {
   $(".loading_area").addClass('d-none');
-  clearTimeout(ajaxLoadTimeout);
+ // clearTimeout(ajaxLoadTimeout);
   alert('發生未知錯誤！請通知管理員')
 })
 

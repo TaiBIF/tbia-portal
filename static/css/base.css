@@ -415,3 +415,23 @@ input {
     -webkit-transition: all .3s;
 }
 
+
+.icon-size {
+    height: 14px;
+    width: 14px;
+}
+
+
+.icon-size-20 {
+    height: 20px;
+    width: 20px;
+}
+
+.partner_area .leftbox p {
+    text-align: justify;
+}
+
+
+.mb-5 {
+margin-bottom: 5px !important;
+}

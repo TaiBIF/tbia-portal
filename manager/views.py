@@ -39,7 +39,7 @@ from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, F, DateTimeField, ExpressionWrapper
+from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max
 from datetime import datetime, timedelta
 from urllib import parse
 from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list
@@ -180,10 +180,10 @@ def change_manager_page(request):
             query = create_query_display(search_dict,t.id)
             link = ''
             if t.status == 'pass':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/{request.user.id }_{ t.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">下載</a>'
 
             data.append({
-                'id': f"#{t.id}",
+                'id': f"#{t.personal_id}",
                 'query_id': t.query_id,
                 'date':  date,
                 'query':   query,
@@ -227,10 +227,10 @@ def change_manager_page(request):
 
             link = ''
             if s.status == 'pass':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/{ request.user.id }_{ s.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">下載</a>'
 
             data.append({
-                'id': f'#{s.id}',
+                'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
                 'date':  date,
                 'query':   query,
@@ -283,10 +283,10 @@ def change_manager_page(request):
 
             link = ''
             if r.status == 'pass':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/{ request.user.id }_{ r.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">下載</a>'
 
             data.append({
-                'id': f'#{r.id}',
+                'id': f'#{r.personal_id}',
                 'query_id': r.query_id,
                 'date':  date,
                 'query':   query,
@@ -749,7 +749,7 @@ def manager(request):
             query = create_query_display(search_dict,r.id)
 
         record.append({
-            'id': r.id,
+            'id': r.personal_id,
             'query_id': r.query_id,
             'date':  date,
             'query':   query,
@@ -772,7 +772,7 @@ def manager(request):
         query = create_query_display(search_dict,t.id)
 
         taxon.append({
-            'id': t.id,
+            'id': t.personal_id,
             'query_id': t.query_id,
             'date':  date,
             'query':   query,
@@ -818,7 +818,7 @@ def manager(request):
             """)
 
         sensitive.append({
-            'id': s.id,
+            'id': s.personal_id,
             'query_id': s.query_id,
             'date':  date,
             'query':   query,
@@ -829,10 +829,12 @@ def manager(request):
     s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
     s_page_list = get_page_list(1, s_total_page)
 
+    from_google = SocialAccount.objects.filter(user_id=request.user.id).exists()
+
     return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis,
     'record': record, 'taxon': taxon, 'sensitive': sensitive, 'n_page_list': n_page_list, 'n_total_page': n_total_page,
     't_page_list': t_page_list, 't_total_page': t_total_page, 's_page_list': s_page_list, 's_total_page': s_total_page,
-    'r_page_list': r_page_list, 'r_total_page': r_total_page})
+    'r_page_list': r_page_list, 'r_total_page': r_total_page, 'from_google': from_google})
 
 
 def update_personal_info(request):
@@ -894,10 +896,10 @@ def get_auth_callback(request):
 
 def send_verification_email(user, request):
     # current_site = get_current_site(request)  # the domain user is on
-
+    scheme = request.is_secure() and "https" or "http"
     email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
     email_body = render_to_string('manager/verification.html',{
-        'scheme': request.scheme,
+        'scheme': scheme,
         'user': user,
         'domain': request.get_host(),
         'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -915,10 +917,10 @@ def resend_verification_email(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-
+            scheme = request.is_secure() and "https" or "http"
             email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
             email_body = render_to_string('manager/verification.html',{
-                'scheme': request.scheme,
+                'scheme': scheme,
                 'user': user,
                 'domain': request.get_host(),
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -961,10 +963,10 @@ def send_reset_password(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-
+            scheme = request.is_secure() and "https" or "http"
             email_subject = '[生物多樣性資料庫共通查詢系統] 重設您的密碼'
             email_body = render_to_string('manager/verification_reset_password.html',{
-                'scheme': request.scheme,
+                'scheme': scheme,
                 'user': user,
                 'domain': request.get_host(),
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)), # encrypt userid for security
@@ -1708,6 +1710,9 @@ def submit_news(request):
                     status = status,
                     publish_date = publish_date
                 )
+
+
+        scheme = request.is_secure() and "https" or "http"
         if request.POST.get('from_system'):
             if ori_status =='pending' and status in ['pass', 'fail']:
                 for u in User.objects.filter(is_system_admin=True):
@@ -1717,7 +1722,7 @@ def submit_news(request):
                         user = u
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
-                    content = content.replace("請至後台查看", f"查看發布內容：{request.scheme}://{request.get_host()}/news/detail/{n.id}")
+                    content = content.replace("請至後台查看", f"查看發布內容：{scheme}://{request.get_host()}/news/detail/{n.id}")
                     send_notification([u.id],content,'消息發布申請結果')
             return redirect('system_news')
         else:
@@ -1739,7 +1744,7 @@ def submit_news(request):
                         user = u
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
-                    content = content.replace("請至後台查看", f"查看發布內容：{request.scheme}://{request.get_host()}/news/detail/{n.id}")
+                    content = content.replace("請至後台查看", f"查看發布內容：{scheme}://{request.get_host()}/news/detail/{n.id}")
                     send_notification([u.id],content,'消息發布申請結果')
 
             return redirect('partner_news')
