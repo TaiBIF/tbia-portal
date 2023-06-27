@@ -47,11 +47,14 @@ services:
     restart: always
     ports:
       - 80:80
+      - 443:443
     volumes:
       - ./scripts/nginx/staging:/etc/nginx/conf.d
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/logs/nginx:/var/log/nginx
+      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+      - ../tbia-volumes/certbot/www:/var/www/certbot
     links:
       - web:web
     logging:
@@ -59,6 +62,7 @@ services:
       options:
         max-size: "1m"
         max-file: "3"
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   solr:
     restart: always
     build: ./solr-workspace
@@ -72,3 +76,9 @@ services:
       # - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
     environment:
       - SOLR_JAVA_MEM=-Xms4g -Xmx4g
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+      - ../tbia-volumes/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
