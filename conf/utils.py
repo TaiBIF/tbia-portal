@@ -11,3 +11,13 @@ notif_map = {
     7: '/manager/system/news?menu=list',
     8: '/manager/partner/news?menu=list'
   }
+
+from conf.settings import env
+
+web_mode = env('ENV')
+if web_mode == 'stag':
+    scheme = 'https'
+elif web_mode == 'prod':
+    scheme = 'https'
+else:
+    scheme = 'http'

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
+from conf.utils import scheme
 from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX
 from pages.models import Resource, News
 from django.db.models import Q, Max
@@ -433,7 +434,6 @@ def submit_sensitive_response(request):
 
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
     # 若是機關委託計畫，排除已轉移給各單位審核的
-    scheme = request.is_secure() and "https" or "http"
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
         task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),scheme,request.get_host()))
         task.start()
@@ -948,7 +948,6 @@ def return_geojson_query(request):
 
 def send_download_request(request):
     if request.method == 'POST':
-        scheme = request.is_secure() and "https" or "http"
         if request.POST.get('from_full'):
             task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id, scheme, request.get_host()))
             task.start()

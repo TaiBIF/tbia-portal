@@ -48,6 +48,7 @@ import math
 
 import pandas as pd
 from pathlib import Path
+from conf.utils import scheme
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -896,7 +897,6 @@ def get_auth_callback(request):
 
 def send_verification_email(user, request):
     # current_site = get_current_site(request)  # the domain user is on
-    scheme = request.is_secure() and "https" or "http"
     email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
     email_body = render_to_string('manager/verification.html',{
         'scheme': scheme,
@@ -917,7 +917,6 @@ def resend_verification_email(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-            scheme = request.is_secure() and "https" or "http"
             email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
             email_body = render_to_string('manager/verification.html',{
                 'scheme': scheme,
@@ -963,7 +962,6 @@ def send_reset_password(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-            scheme = request.is_secure() and "https" or "http"
             email_subject = '[生物多樣性資料庫共通查詢系統] 重設您的密碼'
             email_body = render_to_string('manager/verification_reset_password.html',{
                 'scheme': scheme,
@@ -1712,7 +1710,6 @@ def submit_news(request):
                 )
 
 
-        scheme = request.is_secure() and "https" or "http"
         if request.POST.get('from_system'):
             if ori_status =='pending' and status in ['pass', 'fail']:
                 for u in User.objects.filter(is_system_admin=True):
