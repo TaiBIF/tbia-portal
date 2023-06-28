@@ -616,9 +616,8 @@ function vanillaSelectBox(domSelector, options) {
             self.button.style.border = "none";
         } else {
 
-            
             this.button.addEventListener("click", function (e) {
-                if (e.pointerType=='mouse' | e.pointerType=='touch'){
+                if (e.pointerType != ''){
                     if (self.isDisabled) return;
                     if (self.drop.style.visibility == "visible") {
                         self.drop.style.visibility = 'hidden'
@@ -652,25 +651,25 @@ function vanillaSelectBox(domSelector, options) {
 
                     }
                 
-                document.addEventListener("click", function(e){
-                    document.removeEventListener("click", docListener);
-                    if (self.search) {
-                        self.inputBox.value = "";
-                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
-                            x.classList.remove("hidden-search");
-                        });
-                    } 
-                    
-                    // 如果按其他地方則關閉dropdown 除了按search zone & 全選
-                    if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
-                        self.drop.style.visibility = "hidden";
+                    document.addEventListener("click", function(e){
+                        document.removeEventListener("click", docListener);
+                        if (self.search) {
+                            self.inputBox.value = "";
+                            Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                                x.classList.remove("hidden-search");
+                            });
+                        } 
+                        
+                        // 如果按其他地方則關閉dropdown 除了按search zone & 全選
+                        if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
+                            self.drop.style.visibility = "hidden";
+                        }
+                    });
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!self.userOptions.stayOpen) {
+                        VSBoxCounter.closeAllButMe(self.instanceOffset);
                     }
-                });
-                e.preventDefault();
-                e.stopPropagation();
-                if (!self.userOptions.stayOpen) {
-                    VSBoxCounter.closeAllButMe(self.instanceOffset);
-                }
                 }
             });
         }

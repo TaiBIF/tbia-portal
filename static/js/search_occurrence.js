@@ -25,7 +25,7 @@ $('#rightsHolder').on('change', function(e){
                 selectBox2.setValue(window.d_list)
             }
         } else {
-                selectBox2.disable()
+            selectBox2.disable()
         }
         $(".loading_area").addClass('d-none');
     })
@@ -273,19 +273,20 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $( function() {
     
-    window.addEventListener("keydown", function (e) {
-        if(e.code == 'Enter') {
+    $(document).on("keydown", "form", function(event) { 
+        if(event.key  == 'Enter') {
 
             if ($('.popbg').length == $('.popbg.d-none').length && $('.vsb-menu[style*="visibility: visible"]').length == 0 ){
                 $('.search_condition_are .submitSearch').trigger('click')
             }
-        }
-        
-    }, true);
+        } 
+        return event.key != "Enter";
+    });
 
     $('.resetSearch').on('click', function(){
         $('.clearGeo').trigger('click')
         $('.search_condition_are #searchForm').trigger("reset");
+        window.has_par = false
         selectBox.empty()
         selectBox2.empty()
         //selectBox3.empty()
