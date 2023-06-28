@@ -111,6 +111,12 @@ def send_feedback(request):
                 user = u
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
+            content = content.replace("，請至後台查看", "")
+            # 加上內容
+            # Email	類型	內容
+            content += f"<br><br><b>回饋者Email：</b>{fb.email}"
+            content += f"<br><b>回饋類型：</b>{Feedback.objects.get(id=fb.id).get_type_display()}"
+            content += f"<br><b>回饋內容：</b>{fb.content}"
             send_notification([u.id],content,'意見回饋通知')
 
         return JsonResponse({'status': 'success'}, safe=False)

@@ -123,7 +123,7 @@
                         <tr>
                             <td>#{{ pm.id }}</td>
                             <td>{{ pm.name }} ({{ pm.email }})</td>
-                            <td>{{ pm.partner.breadtitle|default_if_none:'' }}</td>
+                            <td>{{ pm.partner.select_title|default_if_none:'' }}</td>
                             <td>
                                 <select name="role" class="w-100p" data-id="{{ pm.id }}">
                                 {% if pm.is_partner_admin %}

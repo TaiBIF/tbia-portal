@@ -21,40 +21,43 @@
     display: block;
 }
 
-.accordion.active, .accordion:hover {
-    background-color: #76A578;
-    color: white
-}
-
 .accordion {
-    background-color: white;
-    color: black;
+    background-color: #76A578;
+    color: white;
     cursor: pointer;
-    padding: 18px;
+    padding: 15px;
     width: 100%;
     border: none;
     text-align: left;
     outline: none;
     font-size: 15px;
     transition: 0.4s;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
 
+.accordion.active, .accordion:hover {
+    color: #FFF;
+    background: #E2A460;
 
+}
 
-.accordion:after {
-    content: '\02795';
-    /* Unicode character for "plus" sign (+) */
-    font-size: 13px;
-    color: #777;
-    float: right;
+/*
+.accordion::after {
+    content: '+';
+    font-size: 22px;
+    color: white;
     margin-left: 5px;
-
 }
 
-.active:after {
+.accordion:hover::after {
+    color: white;
+}
+
+.accordion.active:after {
     content: "\2796";
-    /* Unicode character for "minus" sign (-) */
-}
+}*/
+
 
 .two_cont_area {
     margin-bottom: 50px
