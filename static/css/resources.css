@@ -125,3 +125,7 @@
 #start_date, #end_date {
     background-color: #fff;
 }
+
+p.text_tec {
+    text-align: justify;
+ }

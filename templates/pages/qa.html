@@ -7,6 +7,35 @@
 {% endblock style %}
 
 {% block body %}
+<div class="popbg tech-pop d-none">
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+			<div class="arl" data-index="10"></div>
+			<div class="arr" data-index="2"></div>
+				<!--目前的加上now 
+			<div class="dot_area">
+				<div class="dot"></div>
+				<div class="dot now"></div>
+				<div class="dot"></div>
+			</div>-->
+			<div class="techbox">
+				<div class="tech_pic">
+					<!--565*340或者兩倍大小1130*680-->
+					<img src="/static/image/tutorial/pic1.png">
+				</div>
+				<!--盡量不要超過三行-->
+				<p class="text_tec">
+					歡迎使用「生物多樣性資料庫共通查詢系統」！
+					<br>
+					如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}"  class="home"></a> <span>></span>

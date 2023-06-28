@@ -163,7 +163,7 @@ def get_news_list(request):
             # news = News.objects.all().order_by('-publish_date')[offset:offset+limit]
             news = News.objects.filter(status='pass')
         if request.POST.get('start_date') and request.POST.get('end_date'):
-            news = news.filter(publish_date__range=[request.POST.get('start_date'), request.POST.get('end_date')])
+            news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
         total_page = math.ceil(news.count() / limit)
         page_list = get_page_list(current_page,total_page,3)
         news = news.order_by('-publish_date')[offset:offset+limit]
@@ -336,7 +336,7 @@ def get_resources(request):
     
     if request.POST.get('start_date') and request.POST.get('end_date'):
         try:
-            resource = resource.filter(modified__range=[request.POST.get('start_date'),request.POST.get('end_date')])
+            resource = resource.filter(modified__gte=request.POST.get('start_date'),modified__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
         except:
             response = {
                 'rows': [],
