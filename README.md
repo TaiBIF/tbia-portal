@@ -1,28 +1,48 @@
 # TBIA portal
-This is repository for TBIA portal.
+This is repository for [TBIA portal](tbiadata.tw).
 
-## Solr setup
-Download and run solr via docker:
-# 需先建立/tbia-volumes/solr/csvs
-```
-$ docker-compose up -d
-$ docker-compose exec -u 0 solr bash
-$ cp /workspace/conf-tbia/tbia_records/managed-schema /var/solr/data/tbia_records/conf/
-$ cp /workspace/conf-tbia/tbia_records/solrconfig.xml /var/solr/data/tbia_records/conf/
-$ cp /workspace/jts-core-1.18.1.jar /opt/solr-8.11.1/server/solr-webapp/webapp/WEB-INF/lib
-# 確認jts-core-1.18.1.jar有cp過去再restart
-$ docker-compose restart solr
-```
+## Setting docker volumes
+create a folder called `tbia-volumes` with following structures:
 
-Solr Admin:  http://localhost:8983/ 
-
-### import data
 ```
-$ cd /var/solr/csvs
-$ post -c tbia_records [filename]
+- bucket
+- media
+    - download
+        - record
+        - sensitive
+        - taxon
+    - geojson
+    - match_log
+    - news
+    - resources
 ```
 
-# NomenMatch setup
+## Installing 
+
+1. copy `dotenv.example` file and rename it to `.env`
+2. start service
+
 ```
-$ git clone https://github.com/jinyinglee/NomenMatch.git
+docker-compose up -d
 ```
+
+
+## Setting solr
+
+customize solr config for the first time
+
+```
+docker-compose exec solr bash
+
+# in docker shell
+cp /workspace/conf-tbia/tbia_records/managed-schema /var/solr/data/tbia_records/conf/
+cp /workspace/conf-tbia/tbia_records/solrconfig.xml /var/solr/data/tbia_records/conf/
+exit
+
+# restart solr 
+docker-compose restart solr
+```
+
+## Setting cronjob
+
+see `cronjob.sh`
