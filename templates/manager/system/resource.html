@@ -230,11 +230,11 @@
                         <form enctype="multipart/form-data" id="linkForm" action="{% url 'edit_link' %}" method="POST">            
                             {% csrf_token %}
                             <li>   
-                                <div id="editor"></div>         
+                                <div id="editor">{{ form.content }}</div>         
                                 {% comment %} {{ form }} {% endcomment %}
                             </li>
-                            <li ><button class="read_btn">儲存</button></li>
                         </form>
+                            <li ><button class="read_btn submitLink">儲存</button></li>
                     </ul>
             </div>
         </div>

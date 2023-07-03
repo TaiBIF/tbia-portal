@@ -1462,7 +1462,6 @@ def update_tbia_about(request):
 
 def system_news(request):
     menu = request.GET.get('menu','list')
-    form = NewsForm()
     # if current_a:
     #     form.fields["content"].initial = current_a.content
     news_list = News.objects.all().order_by('-id')[:10].annotate(
@@ -1475,6 +1474,7 @@ def system_news(request):
 
     status_list = News.status.field.choices
     n = []
+    form = NewsForm()
     if news_id:= request.GET.get('news_id'):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
@@ -1896,7 +1896,7 @@ def edit_link(request):
         content = request.POST.get('content')
         # form = LinkForm(request.POST)
         # if form.is_valid():
-        #     content = form.cleaned_data['content']       
+        #     content = form.cleaned_data['content']      
 
         if Link.objects.exists():
             n = Link.objects.all().first()

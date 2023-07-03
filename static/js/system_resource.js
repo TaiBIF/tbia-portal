@@ -28,7 +28,7 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 
       (function () {
-        Quill.register("modules/imageUploader", ImageUploader);
+      //  Quill.register("modules/imageUploader", ImageUploader);
     
         var toolbarOptions = [
             [{ 'font': [] }, { 'size': [] }],
@@ -38,7 +38,7 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
             // [{ 'header': '1' }, { 'header': '2' }, 'blockquote', 'code-block' ],
             [{ 'list': 'ordered' }, { 'list': 'bullet'}, { 'indent': '-1' }, { 'indent': '+1' }],
             [ 'direction', { 'align': [] }],
-            [ 'link', 'image', 'video'],
+            [ 'link'],
             // , 'formula' ],
             [ 'clean' ]
       ]
@@ -46,43 +46,15 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
         var quill = new Quill('#editor', {
             theme: 'snow',   modules: {
                 'toolbar': toolbarOptions,
-                'imageResize': {
-                    modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
-                },
-                imageUploader: {
-                    upload: file => {
-                      return new Promise((resolve, reject) => {
-                        const formData = new FormData();
-                        formData.append("image", file);
-                        formData.append("csrfmiddlewaretoken", $csrf_token);
-      
-                        fetch(
-                          "/save_news_image",
-                          {
-                            method: "POST",
-                            body: formData
-                          }
-                        )
-                          .then(response => response.json())
-                          .then(result => {
-                            resolve( '/media/'+ result.data.url);
-                          })
-                          .catch(error => {
-                            reject("Upload failed");
-                            console.error("Error:", error);
-                          });
-                      });
-                    }
-                  }
                 }
             
           });
-    
     
           $.ajax({
             url: `/get_link_content`,
             type: 'GET',
             success: function(response){
+                console.log(response)
                 quill.pasteHTML(response.content);
             }
         });
@@ -106,6 +78,13 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
     }
     
   $(document).ready(function () {
+
+
+    $('.submitLink').on('click', function(){    
+        $('#linkForm').append(`<textarea class="d-none" name="content">${$('.ql-editor').html()}</textarea>`)
+        $('#linkForm').submit()
+    })
+    
 
       $('.changeMenu').on('click', function(){
           let menu = $(this).data('menu');
