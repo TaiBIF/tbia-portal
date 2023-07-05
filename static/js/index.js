@@ -61,9 +61,14 @@ $(document).ready(function () {
         type: 'GET',
       })
       .done(function(response) {
-        $('.tech-pop').hide()
+        $('.tech-pop:not(.tech-pop-index)').hide()
       })
   })
+
+  $('.show_tech').on('click', function(){
+    $('.tech-pop.tech-pop-index').removeClass('d-none')
+  })
+
 
     gsap.registerPlugin(ScrollTrigger);
 

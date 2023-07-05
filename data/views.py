@@ -3646,7 +3646,6 @@ name_status_map = {
     # 'accepted': 'Accepted',
     'not-accepted': '的無效名',
     'misapplied': '的誤用名',
-
 }
 
 def get_higher_taxa(request):
