@@ -130,17 +130,36 @@ $(document).ready(function () {
             
           if (response.rows.length > 0){
           for (let i = 0; i < response.rows.length; i++) {
-            $('.edu_list').append(`
-            <li>
-              <div class="item">
-                <div class="cate_dbox">
-                  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-                  <div class="date">${response.rows[i].date}</div>
+
+            if (response.rows[i].extension == 'pop') {
+              $('.edu_list').append(`
+              <li class="show_tech">
+                <div class="item">
+                  <div class="cate_dbox">
+                    <div class="date">${ response.rows[i].date }</div>
+                  </div>
+                  <a href="javascript:;" class="title ">${ response.rows[i].title }</a>
                 </div>
-                <a href="/media/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
-                <a href="/media/${response.rows[i].url}" download class="dow_btn"> </a>
-              </div>
-            </li>`)
+              </li>`)
+
+              $('.show_tech').off('click')
+              $('.show_tech').on('click', function(){
+                $('.tech-pop.tech-pop-index').removeClass('d-none')
+              })
+            
+            } else {
+              $('.edu_list').append(`
+              <li>
+                <div class="item">
+                  <div class="cate_dbox">
+                    <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+                    <div class="date">${response.rows[i].date}</div>
+                  </div>
+                  <a href="/media/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+                  <a href="/media/${response.rows[i].url}" download class="dow_btn"> </a>
+                </div>
+              </li>`)
+            }
           }
         } else {
         // if no row, show '無資料'
