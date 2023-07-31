@@ -1857,7 +1857,7 @@ def search_full(request):
         news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_news = news.count()
         news_rows = []
-        for x in news.all()[:6]:
+        for x in news[:6]:
             news_rows.append({
                 'title': x.title,
                 'content': x.content,
@@ -1866,7 +1866,7 @@ def search_full(request):
         event = News.objects.filter(type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_event = event.count()
         event_rows = []
-        for x in event.all()[:6]:
+        for x in event[:6]:
             event_rows.append({
                 'title': x.title,
                 'content': x.content,
@@ -1875,17 +1875,17 @@ def search_full(request):
         project = News.objects.filter(type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_project = project.count()
         project_rows = []
-        for x in project.all()[:6]:
+        for x in project[:6]:
             project_rows.append({
                 'title': x.title,
                 'content': x.content,
                 'id': x.id
             })
         # resource
-        resource = Resource.objects.filter(title__regex=keyword_reg)
+        resource = Resource.objects.filter(title__regex=keyword_reg).order_by('-modified')
         c_resource = resource.count()
         resource_rows = []
-        for x in resource.all()[:6]:
+        for x in resource[:6]:
             resource_rows.append({
                 'title': x.title,
                 'extension': x.extension,
@@ -2100,24 +2100,24 @@ def get_more_docs(request):
 
         rows = []
         if doc_type == 'resource':
-            resource = Resource.objects.filter(title__regex=keyword_reg)
-            for x in resource.all()[offset:offset+6]:
+            resource = Resource.objects.filter(title__regex=keyword_reg).order_by('-modified')
+            for x in resource[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
                     'extension': x.extension,
                     'url': x.url,
                     'date': x.modified.strftime("%Y.%m.%d")
                 })
-            has_more = True if resource.all()[offset+6:].count() > 0 else False
+            has_more = True if resource[offset+6:].count() > 0 else False
         else:
             news = News.objects.filter(type=doc_type).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
-            for x in news.all()[offset:offset+6]:
+            for x in news[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
                     'content': highlight(x.content,keyword),
                     'id': x.id
                 })
-            has_more = True if news.all()[offset+6:].count() > 0 else False
+            has_more = True if news[offset+6:].count() > 0 else False
 
         response = {
             'rows': rows,
