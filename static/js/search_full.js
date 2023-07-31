@@ -1270,7 +1270,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class){
                 <div class="cate pdf">${ x.extension }</div>
                 <div class="date">${ x.date }</div>
               </div>
-              <a href="/media/${ x.url }" class="title"> ${ x.title } </a>
+              <a href="/media/${ x.url }" class="title" target="_blank"> ${ x.title } </a>
               <a href="/media/${ x.url }" download class="dow_btn"> </a>
             </div></li>`)
         }
