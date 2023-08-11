@@ -104,7 +104,9 @@ def send_feedback(request):
             type = type
         )
 
-        for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
+        # 先暫時調整成只寄通知給系統管理員
+        for u in User.objects.filter(is_system_admin=True):
+        # for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
             nn = Notification.objects.create(
                 type = 2,
                 content = fb.id,
