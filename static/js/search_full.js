@@ -466,6 +466,10 @@ $( document ).ready(function() {
         location.href = $(this).data('href')
     })
 
+    $('.open-news').on('click', function(){
+      window.open($(this).data('href'))
+    })
+
     $('.selectAll').on('click', function(){
         selectAll($(this).data('type'))
     })
@@ -1285,11 +1289,17 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class){
       for (let i = 0; i < response.rows.length; i++) {
         let x = response.rows[i]
           $(card_class).append(`
-          <li>
+          <li class="open-news" data-href="/news/detail/${ x.id }">
             <div class="nstitle">${ x.title }</div>
             <p>${ x.content }</p>
           </li>`)
-        }
+      }
+
+      $('.open-news').off('click')
+      $('.open-news').on('click', function(){
+        window.open($(this).data('href'))
+      })
+    
     }
   })
   .fail(function( xhr, status, errorThrown ) {
@@ -1487,8 +1497,6 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
         $(more_type).addClass('d-none')
       }
       
-
-
       for (let i = 0; i < response.data.length; i++) {
         let x = response.data[i]
 

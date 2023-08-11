@@ -469,7 +469,7 @@
         {% if news.count > 0 %}
         <ul class="card_list_2 news-card">
           {% for i in news.rows %}
-          <li>
+          <li class="open-news" data-href="/news/detail/{{ i.id }}">
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
           </li>
@@ -502,7 +502,7 @@
         {% if event.count > 0 %}
         <ul class="card_list_2 event-card">
           {% for i in event.rows %}
-          <li>
+          <li class="open-news" data-href="/news/detail/{{ i.id }}">
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
           </li>
@@ -535,7 +535,7 @@
         {% if project.count > 0 %}
         <ul class="card_list_2 project-card">
           {% for i in project.rows %}
-          <li>
+          <li class="open-news" data-href="/news/detail/{{ i.id }}">
             <div class="nstitle">{{ i.title|highlight:keyword }}</div>
             <p>{{ i.content|highlight:keyword }}</p>
           </li>

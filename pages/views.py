@@ -259,24 +259,6 @@ def get_qa_list(request):
         return JsonResponse(response, safe=False)
 
 
-def news_detail(request, news_id):
-    if News.objects.filter(id=news_id).exists():
-        n = News.objects.get(id=news_id)
-        color = news_type_map[n.type]
-        # 系統管理員, 單位帳號, 單位管理者
-        is_authorized = False
-        if not request.user.is_anonymous:  
-            u = request.user
-            if u.is_system_admin:
-                is_authorized = True
-            elif u.id == n.user_id:
-                is_authorized = True
-            elif u.partner_id == n.partner_id:
-                is_authorized = True
-                
-        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized})
-
-
 def index(request):
     # recommended keyword
     keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)

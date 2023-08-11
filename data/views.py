@@ -1854,7 +1854,7 @@ def search_full(request):
             taxon_result_dict.append(tr)
             
         # news
-        news = News.objects.filter(type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        news = News.objects.filter(status='pass',type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_news = news.count()
         news_rows = []
         for x in news[:6]:
@@ -1863,7 +1863,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        event = News.objects.filter(type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        event = News.objects.filter(status='pass',type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_event = event.count()
         event_rows = []
         for x in event[:6]:
@@ -1872,7 +1872,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        project = News.objects.filter(type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        project = News.objects.filter(status='pass',type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
         c_project = project.count()
         project_rows = []
         for x in project[:6]:
@@ -2110,7 +2110,7 @@ def get_more_docs(request):
                 })
             has_more = True if resource[offset+6:].count() > 0 else False
         else:
-            news = News.objects.filter(type=doc_type).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+            news = News.objects.filter(status='pass',type=doc_type).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
             for x in news[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
