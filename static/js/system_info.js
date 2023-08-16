@@ -293,7 +293,12 @@ function saveStatus(current_id){
         dataType : 'json',
     })
     .done(function(response) {
-        alert('修改完成')                
+        if (response['exceed_ten']){
+            alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
+            location.reload()
+        } else {
+            alert('修改完成')
+        }
     })
     .fail(function( xhr, status, errorThrown ) {
         alert('發生未知錯誤！請聯絡管理員')

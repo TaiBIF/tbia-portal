@@ -51,7 +51,22 @@ function isOverflown(element) {
 }
 
 
- 
+
+
+var CaptchaCallback = function() {
+  jQuery('.g-recaptcha').each(function(index, el) {
+      grecaptcha.render(el, {
+          'sitekey' : jQuery(el).attr('data-sitekey'),
+          'theme' : jQuery(el).attr('data-theme'),
+          'size' : jQuery(el).attr('data-size'),
+          //'tabindex' : jQuery(el).attr('data-tabindex'),
+          'callback' : jQuery(el).attr('data-callback'),
+          'expired-callback' : jQuery(el).attr('data-expired-callback'),
+          'error-callback' : jQuery(el).attr('data-error-callback')
+      });
+  });
+};
+
 $(function () {
 
 
@@ -67,6 +82,7 @@ $(function () {
 
   let selectBoxFT = new vanillaSelectBox("#feedback_type",{"placeHolder":"請選擇問題類型",search:false, disableSelectAll: true,
   });
+
 
   $('span.caret').addClass('d-none')
 
@@ -179,7 +195,7 @@ $(function () {
   $('.feedback-pop .send').on('click',function() {
 
 
-    if ((!$('#feedback_form select[name=partner_id]').val())|(!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|(!$('#feedback_form textarea[name=content]').val())){
+    if ((!$('#g-recaptcha-response').val())|(!$('#feedback_form select[name=partner_id]').val())|(!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|(!$('#feedback_form textarea[name=content]').val())){
       alert('請完整填寫表格並檢查email格式是否正確')
     } else {
       
@@ -187,7 +203,6 @@ $(function () {
         url: "/send_feedback",
         data: $('#feedback_form').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
-
         })
         .done(function(response) {
           alert('謝謝您的回饋，我們將會儘速回覆')

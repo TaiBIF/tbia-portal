@@ -1809,9 +1809,17 @@ def send_notification(user_list, content, title):
 def update_user_status(request):
     if request.method == 'POST':
         status = request.POST.get('status')
+        exceed_ten = False
         if User.objects.filter(id=request.POST.get('user_id')).exists():
             u = User.objects.get(id=request.POST.get('user_id'))
-            u.status = status
+            partner_id = u.partner_id
+            
+            # 要確認是不是單位帳號是不是超過十個人
+            if User.objects.filter(partner_id=partner_id,status='pass').count() >= 10:
+                # status 改為pending
+                status = 'pending'
+                exceed_ten = True
+            
             if status == 'pass':
                 if request.POST.get('role') == 'is_partner_account':
                     u.is_partner_account = True
@@ -1825,6 +1833,8 @@ def update_user_status(request):
                 u.is_partner_account = False
                 u.is_partner_admin = False
                 u.is_staff = False
+
+            u.status = status
             u.save()
 
             if status != 'pending':
@@ -1836,7 +1846,7 @@ def update_user_status(request):
                 content = nn.get_type_display().replace('0000', str(nn.content))
                 send_notification([u.id],content,'單位帳號申請結果通知')
 
-        return JsonResponse({"status": 'success'}, safe=False)
+        return JsonResponse({"status": 'success',"exceed_ten": exceed_ten}, safe=False)
 
 
 def save_resource_file(request):

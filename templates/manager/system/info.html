@@ -230,18 +230,11 @@
                             <td>{{ f.email }}</td>
                             <td>{{ f.get_type_display }}</td>
                             <td>{{ f.content }}</td>
-                            <td>{% if f.partner %}
-                                    {% if f.is_replied %}
-                                        是
-                                    {% else %}
-                                        否
-                                    {% endif %}
+                            <td>
+                                {% if f.is_replied %}
+                                    是 <button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
                                 {% else %}
-                                    {% if f.is_replied %}
-                                        是 <button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
-                                    {% else %}
-                                        否<button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
-                                    {% endif %}
+                                    否<button class="manager_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
                                 {% endif %}
                             </td>
                         </tr>

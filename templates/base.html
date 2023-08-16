@@ -21,7 +21,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
+    <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit" async defer></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
     <script src="{% static 'js/ga_head.js' %}"></script>
     {% block head %}{% endblock head %}
@@ -65,6 +66,7 @@
           <form id="feedback_form">
           <div class="select_twobox"> 
             <select name="partner_id" id="feedback_partner">
+              <option value="">--重設--</option>
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
@@ -73,6 +75,7 @@
               {% endfor %}
             </select>
             <select name="type" id="feedback_type">
+              <option value="">--重設--</option>
               <option value="1">網頁操作</option>
               <option value="2">網頁內容</option>
               <option value="3">聯盟相關</option>
@@ -86,6 +89,17 @@
             <p>您的電⼦郵件
             <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
           </div>
+          {% if not user.is_authenticated %}
+            <div
+              class="g-recaptcha g-recaptcha-style"
+              data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
+              data-theme="light" 
+              data-size="normal"
+              data-callback="verify"
+              data-expired-callback="expired"
+              data-error-callback="error">
+            </div>
+          {% endif %}
           </form>
           <button class="send">確認送出</button>
         </div>
@@ -445,7 +459,7 @@
 
                 <div  class="input_item">
                   <div
-                    class="g-recaptcha "
+                    class="g-recaptcha"
                     data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
                     data-theme="light" data-size="normal"
                     data-callback="verify"
