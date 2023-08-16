@@ -2963,6 +2963,9 @@ def occurrence_detail(request, id):
         if Partner.objects.filter(group=group).values('info').exists():
             row['references'] = Partner.objects.get(group=group).info[0]['link']
 
+    modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
+    row.update({'modified': modified})
+
     return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
@@ -3096,6 +3099,9 @@ def collection_detail(request, id):
                 # for i in info['info']:
                 #     if i.get('subtitle') == row.get('rightsHolder'):
                 logo = logo[0]['logo']
+
+        modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
+        row.update({'modified': modified})
 
     else:
         row = []
