@@ -258,15 +258,15 @@
                   {% else %}
                   <div class="lefttxt2">
                   {% endif %}
-										<p>中⽂名：{{ i.common_name_c|highlight:keyword }}</p>
-										<p>學名：{{ i.formatted_name|highlight:keyword }}</p>
-										<p>中文別名：{{ i.alternative_name_c|highlight:keyword }}</p>
-										<p>同物異名：{{ i.synonyms|highlight:keyword }}</p>
+										<p>中⽂名：{% highlight i.common_name_c keyword '1' %}</p>
+										<p>學名：{% highlight i.formatted_name keyword '1' %}</p>
+										<p>中文別名：{% highlight i.alternative_name_c keyword '1' %}</p>
+										<p>同物異名：{% highlight i.synonyms keyword '1' %}</p>
 										<p>分類階層：{{ i.taxonRank }}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                      <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                      <p>{{ ii.matched_col }}：{% highlight ii.matched_value keyword '1'  %}</p>
                       {% endif %}    
                     {%  endfor %}
 										<p>出現記錄筆數：{{ i.occ_count|intcomma }}</p>
@@ -369,12 +369,18 @@
                   data-sort="asc">  
                 <div class="num">{{ i.count }}</div>
                 <div class="num_bottom"></div>
-                <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
-                <p>學名：{{ i.val|highlight:keyword }}</p>
+                <p>中文名：{% highlight i.common_name_c keyword '1' %}</p>
+                <p>學名：{% highlight i.val keyword '1' %}</p>
                 <p>鑑定層級：{{ i.taxonRank }}</p>
                 {% for ii in i.matched %}
                   {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                    <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                    <p>{{ ii.matched_col }}：
+                      {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
+                        {% highlight ii.matched_value keyword '1' %}
+                      {% else %}
+                        {% highlight ii.matched_value keyword %}
+                      {% endif %}
+                    </p>
                   {% endif %}    
                 {%  endfor %}
               </li>
@@ -428,12 +434,18 @@
                 data-sort="asc">
               <div class="num">{{ i.count }}</div>
               <div class="num_bottom"></div>
-              <p>中文名：{{ i.common_name_c|highlight:keyword }}</p>
-              <p>學名：{{ i.val|highlight:keyword }}</p>
+              <p>中文名：{% highlight i.common_name_c keyword '1' %}</p>
+              <p>學名：{% highlight i.val keyword '1' %}</p>
               <p>鑑定層級：{{ i.taxonRank }}</p>
               {% for ii in i.matched %}
                 {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                  <p>{{ ii.matched_col }}：{{ ii.matched_value|highlight:keyword }}</p>
+                  <p>{{ ii.matched_col }}：
+                    {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
+                      {% highlight ii.matched_value keyword '1' %}
+                    {% else %}
+                      {% highlight ii.matched_value keyword %}
+                    {% endif %}
+                  </p>
                 {% endif %}    
               {%  endfor %}
             </li>
@@ -470,8 +482,8 @@
         <ul class="card_list_2 news-card">
           {% for i in news.rows %}
           <li class="open-news" data-href="/news/detail/{{ i.id }}">
-            <div class="nstitle">{{ i.title|highlight:keyword }}</div>
-            <p>{{ i.content|highlight:keyword }}</p>
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
           </li>
           {% endfor %}
         </ul>
@@ -503,8 +515,8 @@
         <ul class="card_list_2 event-card">
           {% for i in event.rows %}
           <li class="open-news" data-href="/news/detail/{{ i.id }}">
-            <div class="nstitle">{{ i.title|highlight:keyword }}</div>
-            <p>{{ i.content|highlight:keyword }}</p>
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
           </li>
           {% endfor %}
         </ul>
@@ -536,8 +548,8 @@
         <ul class="card_list_2 project-card">
           {% for i in project.rows %}
           <li class="open-news" data-href="/news/detail/{{ i.id }}">
-            <div class="nstitle">{{ i.title|highlight:keyword }}</div>
-            <p>{{ i.content|highlight:keyword }}</p>
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
           </li>
           {% endfor %}
         </ul>
@@ -584,7 +596,7 @@
                   <div class="cate pdf">{{ i.extension }}</div>
                   <div class="date">{{ i.date }}</div>
                 </div>
-                <a href="/media/{{ i.url }}" class="title" target="_blank"> {{ i.title|highlight:keyword }} </a>
+                <a href="/media/{{ i.url }}" class="title" target="_blank"> {% highlight i.title keyword %} </a>
                 <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
               </div>
             </li>

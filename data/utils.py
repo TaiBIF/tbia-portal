@@ -9,6 +9,19 @@ import os
 from os.path import exists
 from data.models import DatasetKey, Taxon
 
+spe_chars = ['+','-', '&','&&', '||', '!','(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/']
+
+def escape_solr_query(string):
+    final_string = ''
+    for s in string:
+        if s in spe_chars:
+            final_string += f'\{s}'
+        else:
+            final_string += s
+    return final_string
+
+
+
 # x: longtitude, y: latitude
 
 taxon_group_map = {
@@ -222,6 +235,14 @@ def get_page_list(current_page, total_page, window=5):
   else:
     page_list = list(range(list_index*window-(window-1),list_index*window+1))
   return page_list
+
+# from django.core.paginator import Paginator
+
+# def get_page_list(current_page, total_count, data_per_page, window=5):
+#   objects = [r for r in range(1,total_count+1)]
+#   p = Paginator(objects, data_per_page)
+#   page_list = list(p.get_elided_page_range(current_page, on_each_side=int((window-1)/2), on_ends=0))
+#   return page_list
 
 
 def is_alpha(word):
@@ -620,7 +641,8 @@ def create_query_display(search_dict,sq_id):
 
     d_list = []
     r_list = []
-    # print(search_dict)
+    l_list = []
+
     for k in search_dict.keys():
         if k in map_dict.keys():
             if k == 'taxonRank':
@@ -649,6 +671,14 @@ def create_query_display(search_dict,sq_id):
                         r_list.append(search_dict[k])
                 else:
                     r_list = list(search_dict[k])
+            elif k == 'locality':
+                if isinstance(search_dict[k], str):
+                    if search_dict[k].startswith('['):
+                        l_list = eval(search_dict[k])
+                    else:
+                        l_list.append(search_dict[k])
+                else:
+                    l_list = list(search_dict[k])
             elif k == 'higherTaxa':
                 if Taxon.objects.filter(taxonID=search_dict[k]).exists():
                     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
@@ -682,6 +712,8 @@ def create_query_display(search_dict,sq_id):
         query += f"<br><b>來源資料庫</b>：{'、'.join(r_list)}" 
     if d_list:
         query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
+    if l_list:
+        query += f"<br><b>{map_dict['locality']}</b>：{'、'.join(l_list)}" 
     return query
 
 # taxon-related columns

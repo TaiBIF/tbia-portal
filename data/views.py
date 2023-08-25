@@ -40,10 +40,8 @@ from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
 from data.models import Namecode, Taxon, DatasetKey
+import html
 
-# basis_dict = { 'HumanObservation':'(人為觀察 OR HumanObservation)', 'PreservedSpecimen':'保存標本', 'FossilSpecimen':'化石標本', 
-#                 'LivingSpecimen':'活體標本', 'MaterialSample':'組織樣本',
-#                 'MachineObservation':'機器觀測', 'Occurrence':'出現紀錄'}
 
 basis_dict = { '人為觀測':'("人為觀測" OR "HumanObservation")', 
                 '保存標本':'("保存標本" OR "PreservedSpecimen")', 
@@ -55,6 +53,8 @@ basis_dict = { '人為觀測':'("人為觀測" OR "HumanObservation")',
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
+taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID']
+
 
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
@@ -225,13 +225,14 @@ def submit_sensitive_request(request):
                     for vv in taxon_group_map[val]:
                         query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+            for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
+                        val = html.unescape(val)
                         keyword_reg = ''
                         for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                         keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
 
@@ -303,12 +304,25 @@ def submit_sensitive_request(request):
                         r_list.append(val)
                 else:
                     r_list = list(val)
-                # for v in val:
-                #     r_list.append(v)
             
             if r_list:
                 r_list_str = '" OR "'.join(r_list)
                 query_list += [f'rightsHolder:("{r_list_str}")']
+
+            l_list = []
+
+            if val := req_dict.get('locality'):
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        l_list = eval(val)
+                    else:
+                        l_list.append(val)
+                else:
+                    l_list = list(val)
+            
+            if l_list:
+                l_list_str = '" OR "'.join(l_list)
+                query_list += [f'locality:("{l_list_str}")']
 
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
@@ -352,11 +366,10 @@ def submit_sensitive_request(request):
                 val = re.sub(' +', ' ', val)
                 # 去除頭尾空格
                 val = val.strip()
-                # 去除特殊字元
-                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
+                val = html.unescape(val)
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = get_variants(keyword_reg)
                 col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
@@ -472,13 +485,14 @@ def transfer_sensitive_response(request):
                     for vv in taxon_group_map[val]:
                         query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+            for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
+                        val = html.unescape(val)
                         keyword_reg = ''
                         for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                         keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
 
@@ -554,6 +568,22 @@ def transfer_sensitive_response(request):
                 r_list_str = '" OR "'.join(r_list)
                 query_list += [f'rightsHolder:("{r_list_str}")']
 
+            l_list = []
+
+            if val := req_dict.get('locality'):
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        l_list = eval(val)
+                    else:
+                        l_list.append(val)
+                else:
+                    l_list = list(val)
+            
+            if l_list:
+                l_list_str = '" OR "'.join(l_list)
+                query_list += [f'locality:("{l_list_str}")']
+
+
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
                     start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -595,11 +625,10 @@ def transfer_sensitive_response(request):
                 val = re.sub(' +', ' ', val)
                 # 去除頭尾空格
                 val = val.strip()
-                # 去除特殊字元
-                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
+                val = html.unescape(val)
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = get_variants(keyword_reg)
                 col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
@@ -696,13 +725,14 @@ def generate_sensitive_csv(query_id, scheme, host):
                     for vv in taxon_group_map[val]:
                         query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-            for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+            for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
                     if val != 'undefined':
                         val = val.strip()
                         keyword_reg = ''
+                        val = html.unescape(val)
                         for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                         keyword_reg = get_variants(keyword_reg)
                         query_list += [f'{i}:/.*{keyword_reg}.*/']
 
@@ -779,6 +809,21 @@ def generate_sensitive_csv(query_id, scheme, host):
                 r_list_str = '" OR "'.join(r_list)
                 query_list += [f'rightsHolder:("{r_list_str}")']
 
+            l_list = []
+
+            if val := req_dict.get('locality'):
+                if isinstance(val, str):
+                    if val.startswith('['):
+                        l_list = eval(val)
+                    else:
+                        l_list.append(val)
+                else:
+                    l_list = list(val)
+            
+            if l_list:
+                l_list_str = '" OR "'.join(l_list)
+                query_list += [f'locality:("{l_list_str}")']
+
             if req_dict.get('start_date') and req_dict.get('end_date'):
                 try: 
                     start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -821,11 +866,10 @@ def generate_sensitive_csv(query_id, scheme, host):
                 val = re.sub(' +', ' ', val)
                 # 去除頭尾空格
                 val = val.strip()
-                # 去除特殊字元
-                # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
                 keyword_reg = ''
+                val = html.unescape(val)
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = get_variants(keyword_reg)
                 col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
                 query_str = ' OR '.join( col_list )
@@ -989,13 +1033,14 @@ def generate_download_csv(req_dict, user_id, scheme, host):
             for vv in taxon_group_map[val]:
                 query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-    for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+    for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
+                val = html.unescape(val)
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
 
@@ -1054,6 +1099,21 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         r_list_str = '" OR "'.join(r_list)
         query_list += [f'rightsHolder:("{r_list_str}")']
 
+    l_list = []
+
+    if val := req_dict.getlist('locality'):
+        if isinstance(val, str):
+            if val.startswith('['):
+                l_list = eval(val)
+            else:
+                l_list.append(val)
+        else:
+            l_list = list(val)
+
+    if l_list:
+        l_list_str = '" OR "'.join(l_list)
+        query_list += [f'locality:("{l_list_str}")']
+
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
             start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -1096,11 +1156,10 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         val = re.sub(' +', ' ', val)
         # 去除頭尾空格
         val = val.strip()
-        # 去除特殊字元
-        # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
+        val = html.unescape(val)
         for j in val:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
@@ -1193,13 +1252,14 @@ def generate_species_csv(req_dict, user_id, scheme, host):
             for vv in taxon_group_map[val]:
                 query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-    for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+    for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 keyword_reg = ''
+                val = html.unescape(val)
                 for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
     
@@ -1258,6 +1318,21 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         r_list_str = '" OR "'.join(r_list)
         query_list += [f'rightsHolder:("{r_list_str}")']
 
+    l_list = []
+
+    if val := req_dict.getlist('locality'):
+        if isinstance(val, str):
+            if val.startswith('['):
+                l_list = eval(val)
+            else:
+                l_list.append(val)
+        else:
+            l_list = list(val)
+    
+    if l_list:
+        l_list_str = '" OR "'.join(l_list)
+        query_list += [f'locality:("{l_list_str}")']
+
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
             start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -1300,11 +1375,10 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         val = re.sub(' +', ' ', val)
         # 去除頭尾空格
         val = val.strip()
-        # 去除特殊字元
-        # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
         keyword_reg = ''
+        val = html.unescape(val)
         for j in val:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
@@ -1417,19 +1491,31 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list = ['recordType:col']
 
     keyword_reg = ''
+    keyword = html.unescape(keyword)
     for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_reg = get_variants(keyword_reg)
+
+    # 查詢學名相關欄位時 去除重複空格
+    keyword_name = re.sub(' +', ' ', keyword)
+    keyword_name_reg = ''
+    for j in keyword_name:
+        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = get_variants(keyword_name_reg)
+
 
     if key == 'taxonID':
         for k in taxon_facets:
-            query_list += [f'{k}:/.*{keyword_reg}.*/']
+            query_list += [f'{k}:/.*{keyword_name_reg}.*/']
         q = ' OR '.join(query_list)
     else:
-        q = f'{key}:/.*{keyword_reg}.*/'
+        if key in taxon_keyword_list:
+            q = f'{key}:/.*{keyword_name_reg}.*/'
+        else:
+            q = f'{key}:/.*{keyword_reg}.*/'
 
     if key == 'sourceScientificName': # 若前後有<i>也算進去
-        q = f'sourceScientificName: (/.*{keyword_reg}.*/ AND (/.*[<i>]{value}[<\/i>].*/ OR {value}))'
+        q = f'sourceScientificName: (/.*[<i>]{value}[<\/i>].*/ OR "{value}")'
     else:
         fq_list.append(f'{key}:{value}')
     if scientific_name and scientific_name != 'undefined':
@@ -1464,6 +1550,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             "sort":  "scientificName asc",
             "fields": fl_cols,
             }
+
 
     if not fq_list:
         query.pop('filter')
@@ -1501,12 +1588,13 @@ def search_full(request):
     keyword = request.GET.get('keyword', '')
 
     if keyword:
+        # TODO 只有在查詢學名相關欄位的時候才需要去除重複空格
         keyword = keyword.strip()
 
-        # 去除重複空格
-        keyword = re.sub(' +', ' ', keyword)
+        # # 去除重複空格
+        # keyword = re.sub(' +', ' ', keyword)
         # 去除頭尾空格
-        keyword = keyword.strip()
+        # keyword = keyword.strip()
         # 去除特殊字元
         # keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
 
@@ -1531,10 +1619,18 @@ def search_full(request):
             "sort":  "scientificName asc"
             }
 
+        keyword = html.unescape(keyword)
         keyword_reg = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
+
+        # 查詢學名相關欄位時 去除重複空格
+        keyword_name = re.sub(' +', ' ', keyword)
+        keyword_name_reg = ''
+        for j in keyword_name:
+            keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_name_reg = get_variants(keyword_name_reg)
 
         ## collection
         facet_list = col_facets
@@ -1543,8 +1639,12 @@ def search_full(request):
                 facet_list['facet'].pop('eventDate')
         q = ''
         for i in facet_list['facet']:
-            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+            if i in taxon_keyword_list:
+                q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': 'recordType:col'}})
+            else:
+                q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
         query.update(facet_list)
         q = q[:-4]
         query.update({'query': q})
@@ -1662,8 +1762,12 @@ def search_full(request):
                 facet_list['facet'].pop('eventDate')
         q = ''
         for i in facet_list['facet']:
-            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            if i in taxon_keyword_list:
+                q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
+            else:
+                q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.pop('filter', None)
         query.update(facet_list)
         q = q[:-4]
@@ -1732,7 +1836,6 @@ def search_full(request):
                     rows = occ_result_df[(occ_result_df.val==ot) & (occ_result_df.matched_col.isin(['sourceScientificName','sourceVernacularName']))]
                     for ii in rows.index:
                         ot_c += 1
-                        # matched = []
                         matched = [{'key': occ_result_df.loc[ii].matched_col, 'matched_col': map_occurrence[occ_result_df.loc[ii].matched_col], 'matched_value': occ_result_df.loc[ii].matched_value}]
                         occ_result_dict_all.append({
                             'val': ot,
@@ -1790,7 +1893,6 @@ def search_full(request):
         taxon_result_dict_all = []
         taxon_rows = []
         taxon_card_len = 0
-
 
         if len(taxon_result_df):
             # 整理側邊欄
@@ -1951,17 +2053,23 @@ def get_records(request): # 全站搜尋
             title = '物種出現紀錄'
             obv_str = '紀錄'
 
+        
+        keyword = html.unescape(keyword)
+
+        if key in taxon_keyword_list:
+            keyword = re.sub(' +', ' ', keyword)
+
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = get_variants(keyword_reg)
+
         search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}'
         
         if 'scientificName' not in search_str and scientific_name and scientific_name != 'undefined':
             search_str += f'&scientificName={scientific_name}'
 
         offset = (page-1)*10
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-        keyword_reg = get_variants(keyword_reg)
-
 
         if key == 'taxonID':
             for k in taxon_facets:
@@ -1984,7 +2092,7 @@ def get_records(request): # 全站搜尋
             "offset": offset,
             "sort":  orderby + ' ' + sort
             }
-
+        
         if not fq_list:
             query.pop('filter')
 
@@ -2089,6 +2197,7 @@ def get_more_docs(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
         keyword_reg = ''
+        keyword = html.unescape(keyword)
         for j in keyword:    
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
         keyword_reg = get_variants(keyword_reg)
@@ -2134,12 +2243,29 @@ def get_focus_cards(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
+
+        # # 查詢學名相關欄位時 去除重複空格
+        # if key in taxon_keyword_list:
+        #     keyword = re.sub(' +', ' ', keyword)
         
+        keyword = html.unescape(keyword)
         keyword_reg = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
-        q = f'{key}:/.*{keyword_reg}.*/' 
+
+
+        # 查詢學名相關欄位時 去除重複空格
+        keyword_name = re.sub(' +', ' ', keyword)
+        keyword_name_reg = ''
+        for j in keyword_name:
+            keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_name_reg = get_variants(keyword_name_reg)
+
+        if key in taxon_keyword_list:
+            q = f'{key}:/.*{keyword_name_reg}.*/' 
+        else:
+            q = f'{key}:/.*{keyword_reg}.*/' 
         
         if record_type == 'col':
             facet_list = {'facet': {k: v for k, v in col_facets['facet'].items() if k == key} }
@@ -2164,10 +2290,16 @@ def get_focus_cards(request):
                 } 
 
         for i in facet_list['facet']:
-            if record_type == 'col':
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+            if i in taxon_keyword_list:
+                if record_type == 'col':
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': 'recordType:col'}})
+                else:
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
             else:
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+                if record_type == 'col':
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+                else:
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.update(facet_list)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
@@ -2211,7 +2343,7 @@ def get_focus_cards(request):
                             matched.append({'key': result_df.loc[ii].matched_col, 
                                             'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                             'matched_value_ori': match_val,
-                                            'matched_value': highlight(match_val,keyword),
+                                            'matched_value': highlight(match_val,keyword,'1'),
                                             })
                         result_dict_all.append({
                             'val': t,
@@ -2227,7 +2359,7 @@ def get_focus_cards(request):
                             matched = [{'key': result_df.loc[ii].matched_col, 
                                         'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                         'matched_value_ori': result_df.loc[ii].matched_value,
-                                        'matched_value': highlight(result_df.loc[ii].matched_value,keyword),
+                                        'matched_value': highlight(result_df.loc[ii].matched_value,keyword,'1'),
                                         }]
                             result_dict_all.append({
                                 'val': t,
@@ -2237,7 +2369,7 @@ def get_focus_cards(request):
                             })
                         res_c += 1
 
-                for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets)) & ~(result_df.matched_col.isin(['sourceScientificName','sourceVernacularName']))].index:
+                for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets+['sourceScientificName','sourceVernacularName']))].index:
                     if res_c in range(offset,offset+9):
                         matched= [{'key': result_df.loc[ii].matched_col,
                                     'matched_col': map_dict[result_df.loc[ii].matched_col], 
@@ -2272,9 +2404,10 @@ def get_focus_cards(request):
                     result_df['name'] = ''
                     result_df['taxonRank'] = ''
                 result_df['val'] = result_df['formatted_name']
+                result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword, '1'))
                 result_df = result_df.replace({np.nan:'', None:''})
-                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword))
-                result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword))
+                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword, '1'))
+                result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword, '1'))
                 result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
 
 
@@ -2298,10 +2431,20 @@ def get_focus_cards_taxon(request):
         key = request.POST.get('key', '')
         
         keyword_reg = ''
+        keyword = html.unescape(keyword)
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
-        q = f'{key}:/.*{keyword_reg}.*/' 
+
+        # 查詢學名相關欄位時 去除重複空格
+        keyword_name = re.sub(' +', ' ', keyword)
+        keyword_name_reg = ''
+        for j in keyword_name:
+            keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_name_reg = get_variants(keyword_name_reg)
+
+
+        q = f'{key}:/.*{keyword_name_reg}.*/' 
 
         title_prefix = '物種 > '
 
@@ -2318,7 +2461,10 @@ def get_focus_cards_taxon(request):
 
         facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+            if i in taxon_keyword_list:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': 'recordType:col'}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
         query.update(facet_list)
         query.update({'query': q})
 
@@ -2338,7 +2484,10 @@ def get_focus_cards_taxon(request):
 
         # occurrence
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            if i in taxon_keyword_list:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.pop('filter', None)
         query.update(facet_list)
 
@@ -2395,11 +2544,11 @@ def get_focus_cards_taxon(request):
             taxon_result_df.occ_count = taxon_result_df.occ_count.astype('int64')
             taxon_result_df.col_count = taxon_result_df.col_count.astype('int64')
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
-            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
             taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
 
             taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
@@ -2440,7 +2589,6 @@ def get_focus_cards_taxon(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-# TODO
 def get_more_cards_taxon(request):
     if request.method == 'POST':
         taxon_result_dict = []
@@ -2464,17 +2612,29 @@ def get_more_cards_taxon(request):
         # map_dict = map_occurrence
 
         keyword_reg = ''
+        keyword = html.unescape(keyword)
         q = ''
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
+
+        # 查詢學名相關欄位時 去除重複空格
+        keyword_name = re.sub(' +', ' ', keyword)
+        keyword_name_reg = ''
+        for j in keyword_name:
+            keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_name_reg = get_variants(keyword_name_reg)
         
         if is_sub == 'true':
             facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
 
         for i in facet_list['facet']:
-            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
+            if i in taxon_keyword_list:
+                q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': 'recordType:col'}})
+            else:
+                q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': 'recordType:col'}})
 
         query.update(facet_list)
         query.update({'query': q[:-4]})
@@ -2501,7 +2661,10 @@ def get_more_cards_taxon(request):
 
         # occurrence
         for i in facet_list['facet']:
-            facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+            if i in taxon_keyword_list:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
         query.pop('filter', None)
         query.update(facet_list)
 
@@ -2561,11 +2724,11 @@ def get_more_cards_taxon(request):
             taxon_result_df.occ_count = taxon_result_df.occ_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
             taxon_result_df.col_count = taxon_result_df.col_count.replace({np.nan: 0}).astype('int64').apply(lambda x: f"{x:,}")
             taxon_result_df = taxon_result_df.replace({np.nan: ''})
-            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword))
-            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword))
+            taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword, '1')) # 一定是對到taxon相關的
+            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
             taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
 
             # 照片
@@ -2613,6 +2776,7 @@ def get_more_cards(request):
         offset = int(offset) if offset else offset
         key = card_class.split('-')[1]
 
+
         query = {
             "query": '',
             "limit": 0,
@@ -2631,20 +2795,34 @@ def get_more_cards(request):
 
         keyword_reg = ''
         q = ''
+        keyword = html.unescape(keyword)
         for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
 
-        
+        # 查詢學名相關欄位時 去除重複空格
+        keyword_name = re.sub(' +', ' ', keyword)
+        keyword_name_reg = ''
+        for j in keyword_name:
+            keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_name_reg = get_variants(keyword_name_reg)
+
         if is_sub == 'true':
             facet_list = {'facet': {k: v for k, v in occ_facets['facet'].items() if k == key} }
 
         for i in facet_list['facet']:
-            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            if card_class.startswith('.col'):
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': ['recordType:col']}})
+            if i in taxon_keyword_list:
+                q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
+                if card_class.startswith('.col'):
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': ['recordType:col']}})
+                else:
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
             else:
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+                q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+                if card_class.startswith('.col'):
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': ['recordType:col']}})
+                else:
+                    facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
 
         query.update(facet_list)
         query.update({'query': q[:-4]})
@@ -2722,7 +2900,7 @@ def get_more_cards(request):
                             matched.append({'key': result_df.loc[ii].matched_col, 
                                             'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                             'matched_value_ori': match_val,
-                                            'matched_value': highlight(match_val,keyword),
+                                            'matched_value': highlight(match_val,keyword,'1'),
                                             })
                         result_dict_all.append({
                             'val': t,
@@ -2738,7 +2916,7 @@ def get_more_cards(request):
                             matched = [{'key': result_df.loc[ii].matched_col, 
                                         'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                         'matched_value_ori': result_df.loc[ii].matched_value,
-                                        'matched_value': highlight(result_df.loc[ii].matched_value,keyword),
+                                        'matched_value': highlight(result_df.loc[ii].matched_value,keyword,'1'),
                                         }]
                             result_dict_all.append({
                                 'val': t,
@@ -2747,7 +2925,7 @@ def get_more_cards(request):
                                 'match_type': 'non-taxon-related'
                             })
                         res_c += 1
-                for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets)) & ~(result_df.matched_col.isin(['sourceScientificName','sourceVernacularName']))].index:
+                for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets+['sourceScientificName','sourceVernacularName']))].index:
                     if res_c in range(offset,offset+9):
                         matched= [{'key': result_df.loc[ii].matched_col,
                                     'matched_col': map_dict[result_df.loc[ii].matched_col], 
@@ -2789,9 +2967,10 @@ def get_more_cards(request):
                     result_df['name'] = ''
                     result_df['taxonRank'] = ''
                 result_df['val'] = result_df['formatted_name']
+                result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
                 result_df = result_df.replace({np.nan:'', None:''})
-                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword))
-                result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword))
+                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
+                result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
                 result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
 
         response = {
@@ -3138,13 +3317,14 @@ def get_map_grid(request):
                 for vv in taxon_group_map[val]:
                     query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-        for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
+        for i in ['recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
                 if val != 'undefined':
                     val = val.strip()
+                    val = html.unescape(val)
                     keyword_reg = ''
                     for j in val:
-                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                     keyword_reg = get_variants(keyword_reg)
                     query_list += [f'{i}:/.*{keyword_reg}.*/']
 
@@ -3203,6 +3383,16 @@ def get_map_grid(request):
             r_list_str = '" OR "'.join(r_list)
             query_list += [f'rightsHolder:("{r_list_str}")']
         
+        l_list = []
+
+        if val := request.POST.getlist('locality'):
+            for v in val:
+                l_list.append(v)
+        
+        if l_list:
+            l_list_str = '" OR "'.join(l_list)
+            query_list += [f'locality:("{l_list_str}")']
+
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
                 start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -3245,11 +3435,10 @@ def get_map_grid(request):
             val = re.sub(' +', ' ', val)
             # 去除頭尾空格
             val = val.strip()
-            # 去除特殊字元
-            # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
             keyword_reg = ''
+            val = html.unescape(val)
             for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
             keyword_reg = get_variants(keyword_reg)
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
             query_str = ' OR '.join( col_list )
@@ -3313,15 +3502,17 @@ def get_conditional_records(request):
         if orderby not in selected_col:
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
+
         query_list = []
 
-        # 有無影像
+        # 有無影像 - 控制詞彙
         if has_image := request.POST.get('has_image'):
             if has_image == 'y':
                 query_list += ['associatedMedia:*']
             elif has_image == 'n':
                 query_list += ['-associatedMedia:*']
 
+        # 記錄類型 - 控制詞彙
         record_type = request.POST.get('record_type')
 
         if record_type == 'col': # occurrence include occurrence + collection
@@ -3332,27 +3523,29 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        # 物種類群    
+        # 物種類群 - 控制詞彙
         if val := request.POST.get('taxonGroup'):
             if val in taxon_group_map.keys():
                 for vv in taxon_group_map[val]:
                     query_list += [f'''{vv['key']}:"{vv['value']}"''']
 
-        for i in ['locality', 'recordedBy', 'resourceContacts', 'preservation']:
-            if val := request.POST.get(i):
-                if val != 'undefined':
-                    val = val.strip()
-                    keyword_reg = ''
-                    for j in val:
-                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-                    keyword_reg = get_variants(keyword_reg)
-                    query_list += [f'{i}:/.*{keyword_reg}.*/']
-        
+        # 物種編號 - 控制詞彙
         if val := request.POST.get('taxonID'):
             query_list += [f'taxonID:"{val}"']
 
-
-        # 較高分類群
+        # 記錄者, 資料集聯絡人, 保存方式 - 自由欄位
+        for i in ['recordedBy', 'resourceContacts', 'preservation']:
+            if val := request.POST.get(i):
+                if val != 'undefined':
+                    val = val.strip()
+                    val = html.unescape(val)
+                    keyword_reg = ''
+                    for j in val:
+                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+                    keyword_reg = get_variants(keyword_reg)
+                    query_list += [f'{i}:/.*{keyword_reg}.*/']
+        
+        # 較高分類群 - 控制詞彙
         # 找到該分類群的階層 & 名稱
         # 要包含自己的階層
         if val := request.POST.get('higherTaxa'):
@@ -3361,20 +3554,24 @@ def get_conditional_records(request):
                 higher_name = Taxon.objects.get(taxonID=val).scientificName
                 query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
         
+        # 數量 - 固定是數字
         if quantity := request.POST.get('organismQuantity'):
             query_list += [f'standardOrganismQuantity: {quantity}']
 
+        # 標本類型 - 對查詢來說是固定詞彙
         if val := request.POST.get('typeStatus'):
             if val == '模式':
                 query_list += [f'typeStatus:[* TO *]']
             elif val == '一般':
                 query_list += [f'-typeStatus:*']
 
+        # 記錄類型 - 控制詞彙
         if val := request.POST.get('basisOfRecord'):
             if val in basis_dict.keys():
                 query_list += [f'basisOfRecord:{basis_dict[val]}']
 
         # 下拉選單單選
+        # 出現地, 敏感層級, 鑑定層級 - 控制詞彙
         for i in ['sensitiveCategory', 'taxonRank']: 
             if val := request.POST.get(i):
                 if i == 'sensitiveCategory' and val == '無':
@@ -3385,6 +3582,7 @@ def get_conditional_records(request):
                     query_list += [f'{i}:{val}']
 
         # 下拉選單多選
+        # 資料集名稱 - 控制詞彙
         d_list = []
         if val := request.POST.getlist('datasetName'):
             for v in val:
@@ -3395,6 +3593,12 @@ def get_conditional_records(request):
             d_list_str = '" OR "'.join(d_list)
             query_list += [f'datasetName:("{d_list_str}")']
 
+        # locality
+        if val := request.POST.getlist('locality'):
+            l_list_str = '" OR "'.join(val)
+            query_list += [f'locality:("{l_list_str}")']
+
+        # 來源資料庫 - 控制詞彙
         r_list = []
         if val := request.POST.getlist('rightsHolder'):
             for v in val:
@@ -3404,6 +3608,7 @@ def get_conditional_records(request):
             r_list_str = '" OR "'.join(r_list)
             query_list += [f'rightsHolder:("{r_list_str}")']
         
+        # 記錄日期 - 對查詢來說是控制詞彙
         if request.POST.get('start_date') and request.POST.get('end_date'):
             try: 
                 start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
@@ -3414,7 +3619,7 @@ def get_conditional_records(request):
             except:
                 pass
 
-        # 地圖框選
+        # 地圖框選 - 對查詢來說是控制詞彙
         if g_list := request.POST.getlist('polygon'):
             try:
                 mp = MultiPolygon(map(wkt.loads, g_list))
@@ -3422,7 +3627,7 @@ def get_conditional_records(request):
             except:
                 pass
 
-        # 上傳polygon
+        # 上傳polygon - 對查詢來說是控制詞彙
         if g_id := request.POST.get('geojson_id'):
             try:
                 with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
@@ -3435,27 +3640,28 @@ def get_conditional_records(request):
             except:
                 pass
 
-        # 圓中心框選
+        # 圓中心框選 - 對查詢來說是控制詞彙
         if circle_radius := request.POST.get('circle_radius'):
             query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
 
+        # 學名相關 - 自由欄位
         if val := request.POST.get('name'):
             val = val.strip()
             # 去除重複空格
             val = re.sub(' +', ' ', val)
             # 去除頭尾空格
             val = val.strip()
-            # 去除特殊字元
-            # val = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', val)
             keyword_reg = ''
+            val = html.unescape(val)
             for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
+                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
             keyword_reg = get_variants(keyword_reg)
             col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
             query_str = ' OR '.join( col_list )
             query_list += [ '(' + query_str + ')' ]
 
         # 
+
 
         page = int(request.POST.get('page', 1))
         offset = (page-1)*limit
@@ -3474,16 +3680,18 @@ def get_conditional_records(request):
                 "sort":  orderby + ' ' + sort,
                 }
         
-        query2 = { "query": "raw_location_rpt:[* TO *]",
+        # 確認是否有敏感資料
+        query2 = { "query": "*:*",
                 "offset": 0,
                 "limit": 0,
-                "filter": query_list,
+                "filter": ["raw_location_rpt:[* TO *]"] + query_list,
                 }
         
-        query3 = { "query": "taxonID:*",
+        # 確認是否有物種名錄
+        query3 = { "query": "*:*",
                 "offset": 0,
                 "limit": 0,
-                "filter": query_list,
+                "filter": ["taxonID:*"] + query_list,
                 }
         
         if not query_list:
@@ -3491,8 +3699,9 @@ def get_conditional_records(request):
             query2.pop('filter')
             query3.pop('filter')
 
-
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+        query_req = json.dumps(query)
+        print(query_req)
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
 
         # 新搜尋的才重新query地圖資訊
         if request.POST.get('from') not in ['page','orderby']:
@@ -3653,6 +3862,57 @@ name_status_map = {
     'not-accepted': '的無效名',
     'misapplied': '的誤用名',
 }
+
+def get_locality(request):
+    keyword = request.GET.get('locality') if request.GET.getlist('locality') != 'null' else ''
+
+    keyword_reg = ''
+    keyword = html.unescape(keyword)
+    for j in keyword:
+        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = get_variants(keyword_reg)
+
+    if request.GET.get('record_type') == 'col':
+        record_type = '&fq=recordType:col'
+    else:
+        record_type = ''
+
+    ds = []
+    if keyword_reg:
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.čp=OR&q=*%3A*&fq=locality:/.*{keyword_reg}.*/{record_type}&rows=0')
+    else:
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+    l_list = response.json()['facet_counts']['facet_fields']['locality']
+    l_list = [l_list[x] for x in range(0, len(l_list),2)]
+    for l in l_list:
+        ds.append({'text': l, 'value': l})
+
+    return HttpResponse(json.dumps(ds), content_type='application/json')
+
+
+def get_locality_init(request):
+    keyword = request.GET.getlist('locality')
+
+    if request.GET.get('record_type') == 'col':
+        record_type = '&fq=recordType:col'
+    else:
+        record_type = ''
+
+    ds = []
+    keyword = [f'"{k}"' for k in keyword if k ]
+    if keyword:
+        f_str = ' OR '.join(keyword)
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
+    else:
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+
+    l_list = response.json()['facet_counts']['facet_fields']['locality']
+    l_list = [l_list[x] for x in range(0, len(l_list),2)]
+    for l in l_list:
+        ds.append({'text': l, 'value': l})
+
+    return HttpResponse(json.dumps(ds), content_type='application/json')
+
 
 def get_higher_taxa(request):
     ds = '[]'

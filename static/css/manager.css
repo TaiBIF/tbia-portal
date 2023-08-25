@@ -163,6 +163,10 @@ td hr {
     color: #C65454
 }
 
+span.expired-notice {
+    color: #C65454
+}
+
 @media only screen and (max-width: 999px) {
     .mb_scroll {
         margin-top: 60px

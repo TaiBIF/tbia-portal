@@ -408,8 +408,8 @@
                     </div>
                     <button class="accordion fs-16px">審查意見</button>
                     <div class="form_box panel d-none form-flow fs-14px">
-                        {% if not is_partner_admin %}
-                        <fieldset disabled />
+                        {% if not user.is_partner_admin %}
+                        <fieldset disabled >
                         {% endif %}
                         <form id="reviewForm">
                         <div class="inpu_2">
@@ -435,7 +435,7 @@
                         </div>
                         </form>
                     </div>                
-                    {% if is_partner_admin %}
+                    {% if user.is_partner_admin %}
                     <button class="send send-check mt-15px">確認送出</button>
                     <button class="send-submitted d-none mt-15px" disabled>審核已完成不得修改</button>
                     {% endif %}

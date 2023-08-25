@@ -177,10 +177,10 @@
                         <tr>
                             <td>#{{ r.id }}</td>
                             <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td>{{ r.date|safe|default_if_none:'' }}</td>
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
-                            <td>{% if r.status == '完成' %}
+                            <td>{% if r.status == '完成' and r.status != '過期' %}
                                 <a class="manager_btn" target="_blank" href="/media/download/record/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
@@ -242,10 +242,10 @@
                         <tr>
                             <td>#{{ r.id }}</td>
                             <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td>{{ r.date|safe|default_if_none:'' }}</td>
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.status }}</td>
-                            <td>{% if r.status == '完成' %}
+                            <td>{% if r.status == '完成' and r.status != '過期' %}
                                 <a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>
@@ -308,11 +308,11 @@
                         <tr>
                             <td>#{{ r.id }}</td>
                             <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|default_if_none:'' }}</td>
+                            <td>{{ r.date|safe|default_if_none:'' }}</td>
                             <td>{{ r.query|safe }}</td>
                             <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
-                            <td>{% if r.status == '完成' %}
+                            <td>{% if r.status == '完成' and r.status != '過期' %}
                                 <a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{{ r.query_id }}.zip">下載</a>
                                 {% endif %}
                             </td>

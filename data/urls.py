@@ -34,5 +34,7 @@ urlpatterns = [
     path('get_geojson/<str:id>/', views.get_geojson, name='get_geojson'),
     path('change_dataset', views.change_dataset, name='change_dataset'),
     path('get_higher_taxa', views.get_higher_taxa, name='get_higher_taxa'),
+    path('get_locality', views.get_locality, name='get_locality'),
+    path('get_locality_init', views.get_locality_init, name='get_locality_init'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),
 ]

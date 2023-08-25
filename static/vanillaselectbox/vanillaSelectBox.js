@@ -70,6 +70,9 @@ function getVariants(text){
     return new_string
 }
 
+function escapeRegExp(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
 
 let VSBoxCounter = function () {
     let count = 0;
@@ -267,8 +270,10 @@ function vanillaSelectBox(domSelector, options) {
                 .then(function (data) {
                     self.buildSelect(data);
                     self.createTree();
-                    if (data.length>1){
-                        self.setValue(data[1]['value'])
+                    if (self.domSelector!='#locality'){
+                        if (data.length>1){
+                            self.setValue(data[1]['value'])
+                        }
                     }
                     changeAction()
                 });
@@ -525,10 +530,13 @@ function vanillaSelectBox(domSelector, options) {
 
         let optionsLength = self.options.length - Number(!self.userOptions.disableSelectAll);
 
-        if (optionsLength == nrActives) { // Bastoune idea to preserve the placeholder
+        // 不要顯示全部 都顯示選了幾個選項
+        /*if (optionsLength == nrActives) { // Bastoune idea to preserve the placeholder
             let wordForAll = self.userOptions.translations.all;
             selectedTexts = wordForAll;
-        } else if (self.multipleSize != -1) {
+        } else */ 
+        
+        if (self.multipleSize != -1) {
             if (nrActives > self.multipleSize) {
                 let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                 selectedTexts = nrActives + " " + wordForItems;
@@ -575,7 +583,7 @@ function vanillaSelectBox(domSelector, options) {
                             Array.prototype.slice.call(self.listElements).forEach(function (x) {
                                 if (x.getAttribute('data-value') !== 'all') {
                                     let text = x.getAttribute("data-text").toUpperCase();
-                                    if (text.slice(searchValue).search(getVariants(searchValue)) === -1 && x.getAttribute('data-value') !== 'all') {
+                                    if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
                                         x.classList.add("hidden-search");
                                     } else {
                                         nrFound++;
@@ -625,8 +633,8 @@ function vanillaSelectBox(domSelector, options) {
                         self.drop.style.visibility = 'hidden'
                     } else {
                         self.drop.style.visibility = "visible";
-                        // 只處理資料集                    
-                        if (self.domSelector=='#datasetName'){
+                        // 只處理資料集 & 出現地             
+                        if (self.domSelector=='#datasetName'|self.domSelector=='#locality'){
                             let selected_value = self.getResult()
                             if (selected_value.length > 0){ 
                                 // 拿掉search zone
@@ -663,7 +671,7 @@ function vanillaSelectBox(domSelector, options) {
                         } 
                         
                         // 如果按其他地方則關閉dropdown 除了按search zone & 全選
-                        if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
+                        if (e.target.id!='search_locality' & e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
                             self.drop.style.visibility = "hidden";
                         }
                     });
@@ -782,10 +790,13 @@ function vanillaSelectBox(domSelector, options) {
                         sep = self.userOptions.buttonItemsSeparator;
                     }
                 }
+                /*
                 if (nrAll == nrActives - Number(!self.userOptions.disableSelectAll)) {
                     let wordForAll = self.userOptions.translations.all;
                     selectedTexts = wordForAll;
-                } else if (self.multipleSize != -1) {
+                } else */
+                
+                if (self.multipleSize != -1) {
                     if (nrActives > self.multipleSize) {
                         let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                         selectedTexts = nrActives + " " + wordForItems;
@@ -877,15 +888,27 @@ vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
         self.remoteSearchIntegrateIt(data);
     } else {
         let dataChecked = self.optionsCheckedToData();
+        /*
         if (dataChecked.length > 0){
             for (var i = data.length - 1; i >= 0; i--) {
                 if(dataChecked.indexOf(data[i].id) !=-1){
                     data.slice(i,1);
                 }
             }
+        }*/
+        let dc_value = Array()
+        for (dc of dataChecked){
+            dc_value = dc_value.concat(dc['value'])
         }
-        data = data.concat(dataChecked);
-
+        let final_data = Array()
+        for (dd of data){
+            if (!dc_value.includes(dd['value'])){
+                final_data = final_data.concat(dd)
+            }
+            
+        }
+        
+        data = final_data.concat(dataChecked);
         self.remoteSearchIntegrateIt(data);
     }
 }
@@ -1273,9 +1296,10 @@ vanillaSelectBox.prototype.checkUncheckAll = function () {
     if (checkAllElement) {
         if (nrChecked === nrCheckable) {
             // check the checkAll checkbox
+            /*
             if (nrChecked === totalAvailableElements) {
                 self.title.textContent = self.userOptions.translations.all;
-            }
+            }*/
             checkAllElement.classList.add("active");
             checkAllElement.innerText = self.userOptions.translations.clearAll;
             checkAllElement.setAttribute('data-selected', 'true')
@@ -1367,10 +1391,13 @@ vanillaSelectBox.prototype.setValue = function (values) {
                         x.classList.remove("active");
                     }
                 });
+                /*
                 if (nrAll == nrActives - Number(!self.userOptions.disableSelectAll)) {
                     let wordForAll = self.userOptions.translations.all;
                     selectedTexts = wordForAll;
-                } else if (self.multipleSize != -1) {
+                } else */
+                
+                if (self.multipleSize != -1) {
                     if (nrActives > self.multipleSize) {
                         let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                         selectedTexts = nrActives + " " + wordForItems;
