@@ -1,0 +1,84 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    container_name: tbia-web-prod-container
+    image: tbia-web-prod-image
+    expose:
+      - 8001
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+    volumes:
+      - .:/code
+      - ../tbia-volumes/static:/tbia-volumes/static
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+      - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/solr:/tbia-volumes/solr
+    # command: "./scripts/docker-web-entry.sh"
+    command: "./scripts/wait-for-it.sh solr:8983 -t 5 -- ./scripts/docker-web-entry.sh"
+    restart: always
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # environment:
+    #   - POSTGRES_HOST=postgres
+    #   - POSTGRES_PORT=5432
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=example
+    #   - POSTGRES_DB=tbia
+  postgres:
+    image: postgres:13-alpine
+    container_name: tbia-db-prod-container
+    restart: always
+    volumes:
+      - ../tbia-volumes/pgdata:/var/lib/postgresql/data/pgdata
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=tbia
+      - PGDATA=/var/lib/postgresql/data/pgdata
+  nginx:
+    image: nginx:1.19.10-alpine
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./scripts/nginx/production:/etc/nginx/conf.d
+      - ../tbia-volumes/static:/tbia-volumes/static
+      - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/logs/nginx:/var/log/nginx
+      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+      - ../tbia-volumes/certbot/www:/var/www/certbot
+    links:
+      - web:web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  solr:
+    restart: always
+    build: ./solr-workspace
+    image: solr:8.11.1
+    container_name: tbia-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - ../tbia-volumes/solr:/var/solr
+      - ./solr-workspace/:/workspace
+      # - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
+    environment:
+      - SOLR_JAVA_MEM=-Xms4g -Xmx4g
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+      - ../tbia-volumes/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"

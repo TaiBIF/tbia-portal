@@ -435,3 +435,7 @@ input {
 .mb-5 {
 margin-bottom: 5px !important;
 }
+
+.g-recaptcha-style {
+    margin-bottom: 30px;
+}

@@ -11,8 +11,10 @@ from conf.utils import notif_map
 register = template.Library()
 
 
-@register.filter
-def highlight(text, keyword, autoescape=True):
+@register.simple_tag
+def highlight(text, keyword, taxon_related=0):
+    if taxon_related == '1':
+        keyword = re.sub(' +', ' ', keyword)
     keyword = get_variants(re.escape(keyword))
     # text_after = re.sub(regex_search_term, regex_replacement, text_before)
     new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)

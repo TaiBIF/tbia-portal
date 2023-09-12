@@ -137,11 +137,11 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
                       $('#preview').addClass('d-none')
                       $('#saveForm input[name=url]').val('')
                   }
-              }
-              .fail(function( xhr, status, errorThrown ) {
+              },
+              fail: function( xhr, status, errorThrown ) {
                 alert('發生未知錯誤！請聯絡管理員')
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+                }
             })
         })
 

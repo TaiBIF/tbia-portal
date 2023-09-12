@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 
 SITE_ID = 1 # oauth
 SOCIALACCOUNT_LOGIN_ON_GET=True
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # ACCOUNT_ADAPTER = 'conf.users.adapter.MyAccountAdapter'
 
@@ -236,7 +237,7 @@ CSRF_TRUSTED_ORIGINS = ['http://dev.tbiadata.tw','https://tbiadata.tw']
 # Content Security Policy 
 CSP_DEFAULT_SRC = ("'self'",) 
 CSP_FRAME_SRC = ("'self'","https://www.google.com/","https://www.youtube.com/") 
-CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/") 
+CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/","https://analytics.google.com/","https://stats.g.doubleclick.net/") 
 CSP_STYLE_SRC = ["'self'",
     "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
     "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",

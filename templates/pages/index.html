@@ -26,11 +26,6 @@
 <div class="popbg tech-pop {% if request.session.not_show_tech %} d-none {% endif %}" >
 	<div class="ovhy">
 		<div class="wbox_center index_tech">
-      <!--
-      <div class="d-flex-jc-fe w-85p">
-        <a id="not_show_tech" class="pointer">不再顯示</a>
-      </div>-->
-
 			<div class="xx">
 			</div>
 			<div class="arl" data-index="10"></div>
@@ -46,6 +41,39 @@
       <div class="noshow">
        <a id="not_show_tech" class="pointer">不再顯示</a>
 			</div>
+				<div class="tech_pic">
+					<!--565*340或者兩倍大小1130*680-->
+					<img src="/static/image/tutorial/pic1.png">
+				</div>
+				<!--盡量不要超過三行-->
+				<p class="text_tec">
+					歡迎使用「生物多樣性資料庫共通查詢系統」！
+          <br>
+          如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
+				</p>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+<!--從開放資源點選教學popbox-->
+<div class="popbg tech-pop tech-pop-index d-none" >
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+			<div class="arl" data-index="10"></div>
+			<div class="arr" data-index="2"></div>
+				<!--目前的加上now 
+			<div class="dot_area">
+				<div class="dot"></div>
+				<div class="dot now"></div>
+				<div class="dot"></div>
+			</div>-->
+
+			<div class="techbox">
 				<div class="tech_pic">
 					<!--565*340或者兩倍大小1130*680-->
 					<img src="/static/image/tutorial/pic1.png">
@@ -281,16 +309,31 @@
           </div>
         </li>        
         {% for i in resource %}
-        <li>
-          <div class="item">
-            <div class="cate_dbox">
-              <div class="cate {{ i.cate }}">{{ i.extension }}</div>
+          {% if i.extension == 'pop' %}
+          <li class="show_tech">
+            <div class="item">
+              <div class="cate_dbox">
               <div class="date">{{ i.date }}</div>
+              </div>
+              <a href="javascript:;" class="title ">{{ i.title }}</a>
+              <!--
+              <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
+              <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
+              -->
             </div>
-            <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
-            <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-          </div>
-        </li>
+          </li>
+          {% else %}
+          <li>
+            <div class="item">
+              <div class="cate_dbox">
+                <div class="cate {{ i.cate }}">{{ i.extension }}</div>
+                <div class="date">{{ i.date }}</div>
+              </div>
+              <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
+              <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
+            </div>
+          </li>
+          {% endif %}
         {% endfor %}
       </ul>
       <div class="more_right clearfix">

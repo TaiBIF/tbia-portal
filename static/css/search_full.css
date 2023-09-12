@@ -3,7 +3,7 @@
     align-items: center
 }
 
-.dow_btn {
+.downloadData.dow_btn {
     padding: 0px 10px;
     font-size: 16px;
     color: #3F5146;
@@ -22,14 +22,14 @@
     align-items: center
 }
 
-.dow_btn svg {
+.downloadData.dow_btn svg {
     width: 16px;
     height: 16px;
     margin-right: 5px
 }
 
 @media only screen and (max-width: 767px) {
-    .dow_btn {
+    .downloadData.dow_btn {
         font-size: 14px;
         padding: 0 10px;
         height: 30px;
@@ -37,16 +37,16 @@
         min-width: initial
     }
 
-    .dow_btn svg {
+    .downloadData.dow_btn svg {
         margin-right: 0
     }
 
-    .dow_btn p {
+    .downloadData.dow_btn p {
         display: none
     }
 }
 
-.dow_btn:hover {
+.downloadData.dow_btn:hover {
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -56,7 +56,7 @@
     color: #FFF
 }
 
-.dow_btn:hover svg path {
+.downloadData.dow_btn:hover svg path {
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;

@@ -66,10 +66,22 @@ let selectBox8 = new vanillaSelectBox("#higherTaxa",
         "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
         "onInit": inithigherTaxa,
     }
-}
-);
+});
 
 let selectBox9 = new vanillaSelectBox("#taxonGroup",{"placeHolder":"物種類群",search:false, disableSelectAll: true,
+});
+
+let selectBox10 = new vanillaSelectBox("#locality",
+{
+    "search": true,
+    "placeHolder" : "出現地",
+    "disableSelectAll": true,
+    "remote": {
+        "onSearch": doSearchLocality, // used for search and init
+        "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
+        "onInit": initLocality,
+    },
+    translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"}
 });
 
 
@@ -296,6 +308,7 @@ $( function() {
         selectBox7.empty()
         selectBox8.empty()
         selectBox9.empty()
+        selectBox10.empty()
     })
 
 
@@ -524,6 +537,7 @@ function inithigherTaxa(what, datasize){
     });
 }
 
+
 function doSearch(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
@@ -575,6 +589,108 @@ function doSearch(what, datasize) {
 }
 
 
+function initLocality(what, datasize){
+    let valueProperty = "value";
+    let textProperty = "text";
+    let urlParams = new URLSearchParams(window.location.search);
+    let keyword_list = urlParams.getAll('locality')
+    
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET','/get_locality_init?locality=' + keyword_list.join('&locality='), true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                //data = [{'value': '', 'text': '--不限--'}].concat(data)
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+
+
+function doSearchLocality(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET','/get_locality?locality=' + what, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                //data = [{'value': '', 'text': '--不限--'}].concat(data)
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+
     
 function changeAction(){
     
@@ -609,11 +725,14 @@ function changeAction(){
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
 
+    //selectBox10.setValue('')
+
     if (queryString.split('&').length>1){
         // 把條件填入表格
         let entries = urlParams.entries(); 
         let d_list = Array();
         let r_list = Array();
+        let l_list = Array();
 
         for(const [key, value] of entries) { 
             if (key=='datasetName') {
@@ -632,6 +751,9 @@ function changeAction(){
                 console.log(value)
             } else if (key == 'taxonGroup'){
                 selectBox9.setValue(value)
+            } else if (key == 'locality'){
+                l_list.push(value)
+                //selectBox10.setValue(value)
             } else {
 
                 $(`[name=${key}]`).val(value)
@@ -680,6 +802,7 @@ function changeAction(){
         // 這步會把selectBox2洗掉
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
+        selectBox10.setValue(l_list);
 
 
         // 如果有選項的 顏色改為黑色

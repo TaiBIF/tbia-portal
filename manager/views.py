@@ -50,6 +50,9 @@ import pandas as pd
 from pathlib import Path
 from conf.utils import scheme
 
+import pytz
+
+
 class NewsForm(forms.ModelForm):
     content = RichTextField()
     class Meta:
@@ -104,7 +107,9 @@ def send_feedback(request):
             type = type
         )
 
-        for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
+        # 先暫時調整成只寄通知給系統管理員
+        for u in User.objects.filter(is_system_admin=True):
+        # for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
             nn = Notification.objects.create(
                 type = 2,
                 content = fb.id,
@@ -175,10 +180,17 @@ def change_manager_page(request):
                         </tr>
                 """
         # taxon = []
+        now = datetime.now()
+        now = now.replace(tzinfo=pytz.timezone('UTC'))
+
         for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[offset:offset+10]:
             if t.modified:
                 date = t.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
+                if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
+                    expired_date = t.modified + timedelta(days=365)
+                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
+
             else:
                 date = ''
 
@@ -186,7 +198,7 @@ def change_manager_page(request):
             search_dict = dict(parse.parse_qsl(t.query))
             query = create_query_display(search_dict,t.id)
             link = ''
-            if t.status == 'pass':
+            if t.status == 'pass' and t.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">下載</a>'
 
             data.append({
@@ -211,10 +223,17 @@ def change_manager_page(request):
                             <td class="w-5p">檔案連結</td>
                         </tr>
         """
+
+        now = datetime.now()
+        now = now.replace(tzinfo=pytz.timezone('UTC'))
+
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
             if s.modified:
                 date = s.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
+                if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
+                    expired_date = s.modified + timedelta(days=365)
+                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
             else:
                 date = ''
 
@@ -233,7 +252,7 @@ def change_manager_page(request):
                 comment.append(f"""<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else "" }<br><b>審查結果：</b>{sdr.get_status_display()}""")
 
             link = ''
-            if s.status == 'pass':
+            if s.status == 'pass' and s.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">下載</a>'
 
             data.append({
@@ -257,10 +276,16 @@ def change_manager_page(request):
                             <td class="w-5p">檔案連結</td>
                         </tr>
         """
+        now = datetime.now()
+        now = now.replace(tzinfo=pytz.timezone('UTC'))
+
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
             if r.modified:
                 date = r.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
+                if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
+                    expired_date = r.modified + timedelta(days=365)
+                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
             else:
                 date = ''
 
@@ -289,7 +314,7 @@ def change_manager_page(request):
 
 
             link = ''
-            if r.status == 'pass':
+            if r.status == 'pass' and r.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">下載</a>'
 
             data.append({
@@ -298,7 +323,7 @@ def change_manager_page(request):
                 'date':  date,
                 'query':   query,
                 'status': r.get_status_display(),
-                'link': link
+                'link': link 
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
@@ -450,16 +475,16 @@ def change_manager_page(request):
                     query = create_query_display(search_dict,r.id)
                                 
 
-                a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
 
-                data.append({
-                    'id': f'#{sdr.id}',
-                    #'query_id': r.query_id,
-                    'created':  created + '<br>審核期限：'+due,
-                    'query':   query,
-                    'status': sdr.get_status_display(),
-                    'a': a
-                })
+                    data.append({
+                        'id': f'#{sdr.id}',
+                        #'query_id': r.query_id,
+                        'created':  created + '<br>審核期限：'+due,
+                        'query':   query,
+                        'status': sdr.get_status_display(),
+                        'a': a
+                    })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
 
@@ -473,29 +498,29 @@ def change_manager_page(request):
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict,r.id)
                 
-                if sdr.is_transferred:
-                    status = '已轉交單位審核'
-                    due = check_due(created.strftime('%Y-%m-%d'), 14)
-                    created = created.strftime('%Y-%m-%d %H:%M:%S')
-                else:
-                    status = sdr.get_status_display()
-                    due = check_due(created.strftime('%Y-%m-%d'), 7)
-                    created = created.strftime('%Y-%m-%d %H:%M:%S')
-                
-                date = created + '<br>審核期限：' + due
-                
-                # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
+                    if sdr.is_transferred:
+                        status = '已轉交單位審核'
+                        due = check_due(created.strftime('%Y-%m-%d'), 14)
+                        created = created.strftime('%Y-%m-%d %H:%M:%S')
+                    else:
+                        status = sdr.get_status_display()
+                        due = check_due(created.strftime('%Y-%m-%d'), 7)
+                        created = created.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    date = created + '<br>審核期限：' + due
+                    
+                    # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
-                a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+                    a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
 
-                data.append({
-                    'id': f'#{sdr.id}',
-                    #'query_id': r.query_id,
-                    'created':  date,
-                    'query':   query,
-                    'status': status,
-                    'a': a
-                })
+                    data.append({
+                        'id': f'#{sdr.id}',
+                        #'query_id': r.query_id,
+                        'created':  date,
+                        'query':   query,
+                        'status': status,
+                        'a': a
+                    })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
     elif menu == 'account':
@@ -699,6 +724,7 @@ def change_manager_page(request):
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
     page_list = get_page_list(int(page), total_page)
+    print(page_list)
     response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
     response['page_list'] = page_list
     response['total_page'] = total_page
@@ -728,12 +754,16 @@ def manager(request):
     n_page_list = get_page_list(1, n_total_page)
     # print(page_list)
 
-    # TODO 未來要考慮檔案是否過期
+    now = datetime.now()
+    now = now.replace(tzinfo=pytz.timezone('UTC'))
     record = []
     for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[:10]:
         if r.modified:
             date = r.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
+            if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
+                expired_date = r.modified + timedelta(days=365)
+                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
         else:
             date = ''
         query = ''
@@ -759,7 +789,7 @@ def manager(request):
             'id': r.personal_id,
             'query_id': r.query_id,
             'date':  date,
-            'query':   query,
+            'query':  query,
             'status': r.get_status_display()
         })
     r_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
@@ -772,6 +802,9 @@ def manager(request):
         if t.modified:
             date = t.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
+            if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
+                expired_date = t.modified + timedelta(days=365)
+                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
         else:
             date = ''
         # 進階搜尋
@@ -797,6 +830,9 @@ def manager(request):
         if s.modified:
             date = s.modified + timedelta(hours=8)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
+            if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
+                expired_date = s.modified + timedelta(days=365)
+                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
         else:
             date = ''
 
@@ -1807,9 +1843,17 @@ def send_notification(user_list, content, title):
 def update_user_status(request):
     if request.method == 'POST':
         status = request.POST.get('status')
+        exceed_ten = False
         if User.objects.filter(id=request.POST.get('user_id')).exists():
             u = User.objects.get(id=request.POST.get('user_id'))
-            u.status = status
+            partner_id = u.partner_id
+            
+            # 要確認是不是單位帳號是不是超過十個人
+            if User.objects.filter(partner_id=partner_id,status='pass').count() >= 10:
+                # status 改為pending
+                status = 'pending'
+                exceed_ten = True
+            
             if status == 'pass':
                 if request.POST.get('role') == 'is_partner_account':
                     u.is_partner_account = True
@@ -1823,6 +1867,8 @@ def update_user_status(request):
                 u.is_partner_account = False
                 u.is_partner_admin = False
                 u.is_staff = False
+
+            u.status = status
             u.save()
 
             if status != 'pending':
@@ -1834,7 +1880,7 @@ def update_user_status(request):
                 content = nn.get_type_display().replace('0000', str(nn.content))
                 send_notification([u.id],content,'單位帳號申請結果通知')
 
-        return JsonResponse({"status": 'success'}, safe=False)
+        return JsonResponse({"status": 'success',"exceed_ten": exceed_ten}, safe=False)
 
 
 def save_resource_file(request):

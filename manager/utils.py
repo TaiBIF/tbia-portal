@@ -14,7 +14,7 @@ partner_map = {}
 holders = {
 'brcas': '臺灣生物多樣性資訊機構 TaiBIF',
 'brmas': '中央研究院生物多樣性中心植物標本資料庫',
-'tesri': '台灣生物多樣性網絡 TBN',
+'tbri': '台灣生物多樣性網絡 TBN',
 'forest': '生態調查資料庫系統',
 'cpami': '臺灣國家公園生物多樣性資料庫',
 'tcd': '濕地環境資料庫',

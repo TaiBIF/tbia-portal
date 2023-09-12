@@ -44,7 +44,9 @@ https://github.com/PhilippeMarcMeyer/vanillaSelectBox
 */
 
 
-let var_dict = {'鈎': '[鈎鉤]', '鉤': '[鈎鉤]', '臺': '[臺台]', '台': '[臺台]', '螺': '[螺螺]', '螺': '[螺螺]', '羣': '[群羣]', '群': '[群羣]', '峯': '[峯峰]', '峰': '[峯峰]', '曬': '[晒曬]', '晒': '[晒曬]', '裏': '[裏裡]', '裡': '[裏裡]', '薦': '[荐薦]', '荐': '[荐薦]', '艷': '[豔艷]', '豔': '[豔艷]', '粧': '[妝粧]', '妝': '[妝粧]', '濕': '[溼濕]', '溼': '[溼濕]', '樑': '[梁樑]', '梁': '[梁樑]', '秘': '[祕秘]', '祕': '[祕秘]', '污': '[汙污]', '汙': '[汙污]', '册': '[冊册]', '冊': '[冊册]', '唇': '[脣唇]', '脣': '[脣唇]', '朶': '[朵朶]', '朵': '[朵朶]', '鷄': '[雞鷄]', '雞': '[雞鷄]', '猫': '[貓猫]', '貓': '[貓猫]', '踪': '[蹤踪]', '蹤': '[蹤踪]', '恒': '[恆恒]', '恆': '[恆恒]', '獾': '[貛獾]', '貛': '[貛獾]', '万': '[萬万]', '萬': '[萬万]', '两': '[兩两]', '兩': '[兩两]', '椮': '[槮椮]', '槮': '[槮椮]', '体': '[體体]', '體': '[體体]', '鳗': '[鰻鳗]', '鰻': '[鰻鳗]', '蝨': '[虱蝨]', '虱': '[虱蝨]', '鲹': '[鰺鲹]', '鰺': '[鰺鯵]', '鳞': '[鱗鳞]', '鱗': '[鱗鳞]', '鳊': '[鯿鳊]', '鯿': '[鯿鳊]', '鯵': '[鰺鯵]', '鲨': '[鯊鲨]', '鯊': '[鯊鲨]', '鹮': '[䴉鹮]', '䴉': '[䴉鹮]', '鴴': '(行鳥|鴴)', '鵐': '(鵐|巫鳥)', '䱵': '(䱵|魚翁)', '䲗': '(䲗|魚銜)', '䱀': '(䱀|魚央)', '䳭': '(䳭|即鳥)', '鱼': '[魚鱼]', '魚': '[魚鱼]', '鹨': '[鷚鹨]', '鷚': '[鷚鹨]', '蓟': '[薊蓟]', '薊': '[薊蓟]', '黒': '[黑黒]', '黑': '[黑黒]', '隠': '[隱隠]', '隱': '[隱隠]', '黄': '[黃黄]', '黃': '[黃黄]', '囓': '[嚙囓]', '嚙': '[嚙囓]', '莨': '[茛莨]', '茛': '[茛莨]', '霉': '[黴霉]', '黴': '[黴霉]', '莓': '[苺莓]', '苺': '[苺莓]', '藥': '[葯藥]', '葯': '[葯藥]', '菫': '[堇菫]', '堇': '[堇菫]',}
+let var_dict = {
+    '刺': '[刺刺]', '刺': '[刺刺]', '葉': '[葉葉]', '葉': '[葉葉]',
+    '鈎': '[鈎鉤]', '鉤': '[鈎鉤]', '臺': '[臺台]', '台': '[臺台]', '螺': '[螺螺]', '螺': '[螺螺]', '羣': '[群羣]', '群': '[群羣]', '峯': '[峯峰]', '峰': '[峯峰]', '曬': '[晒曬]', '晒': '[晒曬]', '裏': '[裏裡]', '裡': '[裏裡]', '薦': '[荐薦]', '荐': '[荐薦]', '艷': '[豔艷]', '豔': '[豔艷]', '粧': '[妝粧]', '妝': '[妝粧]', '濕': '[溼濕]', '溼': '[溼濕]', '樑': '[梁樑]', '梁': '[梁樑]', '秘': '[祕秘]', '祕': '[祕秘]', '污': '[汙污]', '汙': '[汙污]', '册': '[冊册]', '冊': '[冊册]', '唇': '[脣唇]', '脣': '[脣唇]', '朶': '[朵朶]', '朵': '[朵朶]', '鷄': '[雞鷄]', '雞': '[雞鷄]', '猫': '[貓猫]', '貓': '[貓猫]', '踪': '[蹤踪]', '蹤': '[蹤踪]', '恒': '[恆恒]', '恆': '[恆恒]', '獾': '[貛獾]', '貛': '[貛獾]', '万': '[萬万]', '萬': '[萬万]', '两': '[兩两]', '兩': '[兩两]', '椮': '[槮椮]', '槮': '[槮椮]', '体': '[體体]', '體': '[體体]', '鳗': '[鰻鳗]', '鰻': '[鰻鳗]', '蝨': '[虱蝨]', '虱': '[虱蝨]', '鲹': '[鰺鲹]', '鰺': '[鰺鯵]', '鳞': '[鱗鳞]', '鱗': '[鱗鳞]', '鳊': '[鯿鳊]', '鯿': '[鯿鳊]', '鯵': '[鰺鯵]', '鲨': '[鯊鲨]', '鯊': '[鯊鲨]', '鹮': '[䴉鹮]', '䴉': '[䴉鹮]', '鴴': '(行鳥|鴴)', '鵐': '(鵐|巫鳥)', '䱵': '(䱵|魚翁)', '䲗': '(䲗|魚銜)', '䱀': '(䱀|魚央)', '䳭': '(䳭|即鳥)', '鱼': '[魚鱼]', '魚': '[魚鱼]', '鹨': '[鷚鹨]', '鷚': '[鷚鹨]', '蓟': '[薊蓟]', '薊': '[薊蓟]', '黒': '[黑黒]', '黑': '[黑黒]', '隠': '[隱隠]', '隱': '[隱隠]', '黄': '[黃黄]', '黃': '[黃黄]', '囓': '[嚙囓]', '嚙': '[嚙囓]', '莨': '[茛莨]', '茛': '[茛莨]', '霉': '[黴霉]', '黴': '[黴霉]', '莓': '[苺莓]', '苺': '[苺莓]', '藥': '[葯藥]', '葯': '[葯藥]', '菫': '[堇菫]', '堇': '[堇菫]',}
 let var2_dict = {'行鳥': '(行鳥|鴴)', '蝦虎': '[鰕蝦]虎', '鰕虎': '[鰕蝦]虎', '巫鳥': '(鵐|巫鳥)', '魚翁': '(䱵|魚翁)', '魚銜': '(䲗|魚銜)', '魚央': '(䱀|魚央)', '游蛇': '[遊游]蛇', '遊蛇': '[遊游]蛇', '即鳥': '(䳭|即鳥)', '椿象': '[蝽椿]象', '蝽象': '[蝽椿]象'}
 
 function getVariants(text){
@@ -68,6 +70,9 @@ function getVariants(text){
     return new_string
 }
 
+function escapeRegExp(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
 
 let VSBoxCounter = function () {
     let count = 0;
@@ -265,8 +270,10 @@ function vanillaSelectBox(domSelector, options) {
                 .then(function (data) {
                     self.buildSelect(data);
                     self.createTree();
-                    if (data.length>1){
-                        self.setValue(data[1]['value'])
+                    if (self.domSelector!='#locality'){
+                        if (data.length>1){
+                            self.setValue(data[1]['value'])
+                        }
                     }
                     changeAction()
                 });
@@ -523,10 +530,13 @@ function vanillaSelectBox(domSelector, options) {
 
         let optionsLength = self.options.length - Number(!self.userOptions.disableSelectAll);
 
-        if (optionsLength == nrActives) { // Bastoune idea to preserve the placeholder
+        // 不要顯示全部 都顯示選了幾個選項
+        /*if (optionsLength == nrActives) { // Bastoune idea to preserve the placeholder
             let wordForAll = self.userOptions.translations.all;
             selectedTexts = wordForAll;
-        } else if (self.multipleSize != -1) {
+        } else */ 
+        
+        if (self.multipleSize != -1) {
             if (nrActives > self.multipleSize) {
                 let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                 selectedTexts = nrActives + " " + wordForItems;
@@ -573,7 +583,7 @@ function vanillaSelectBox(domSelector, options) {
                             Array.prototype.slice.call(self.listElements).forEach(function (x) {
                                 if (x.getAttribute('data-value') !== 'all') {
                                     let text = x.getAttribute("data-text").toUpperCase();
-                                    if (text.slice(searchValue).search(getVariants(searchValue)) === -1 && x.getAttribute('data-value') !== 'all') {
+                                    if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
                                         x.classList.add("hidden-search");
                                     } else {
                                         nrFound++;
@@ -623,8 +633,8 @@ function vanillaSelectBox(domSelector, options) {
                         self.drop.style.visibility = 'hidden'
                     } else {
                         self.drop.style.visibility = "visible";
-                        // 只處理資料集                    
-                        if (self.domSelector=='#datasetName'){
+                        // 只處理資料集 & 出現地             
+                        if (self.domSelector=='#datasetName'|self.domSelector=='#locality'){
                             let selected_value = self.getResult()
                             if (selected_value.length > 0){ 
                                 // 拿掉search zone
@@ -661,7 +671,7 @@ function vanillaSelectBox(domSelector, options) {
                         } 
                         
                         // 如果按其他地方則關閉dropdown 除了按search zone & 全選
-                        if (e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
+                        if (e.target.id!='search_locality' & e.target.id!='search_datasetName' & e.target.id!='search_rightsHolder' & e.target.id!='search_higherTaxa' & e.target.dataset.text!='全選'){
                             self.drop.style.visibility = "hidden";
                         }
                     });
@@ -780,10 +790,13 @@ function vanillaSelectBox(domSelector, options) {
                         sep = self.userOptions.buttonItemsSeparator;
                     }
                 }
+                /*
                 if (nrAll == nrActives - Number(!self.userOptions.disableSelectAll)) {
                     let wordForAll = self.userOptions.translations.all;
                     selectedTexts = wordForAll;
-                } else if (self.multipleSize != -1) {
+                } else */
+                
+                if (self.multipleSize != -1) {
                     if (nrActives > self.multipleSize) {
                         let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                         selectedTexts = nrActives + " " + wordForItems;
@@ -797,7 +810,7 @@ function vanillaSelectBox(domSelector, options) {
             }
             e.preventDefault();
             e.stopPropagation();
-            if (self.userOptions.placeHolder != "" && (self.title.textContent == "--不限--"|self.title.textContent == "")) {
+            if (self.userOptions.placeHolder != "" && (self.title.textContent == "--重設--"|self.title.textContent == "--不限--"|self.title.textContent == "")) {
                 self.title.textContent = self.userOptions.placeHolder;
             }
         });
@@ -875,15 +888,27 @@ vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
         self.remoteSearchIntegrateIt(data);
     } else {
         let dataChecked = self.optionsCheckedToData();
+        /*
         if (dataChecked.length > 0){
             for (var i = data.length - 1; i >= 0; i--) {
                 if(dataChecked.indexOf(data[i].id) !=-1){
                     data.slice(i,1);
                 }
             }
+        }*/
+        let dc_value = Array()
+        for (dc of dataChecked){
+            dc_value = dc_value.concat(dc['value'])
         }
-        data = data.concat(dataChecked);
-
+        let final_data = Array()
+        for (dd of data){
+            if (!dc_value.includes(dd['value'])){
+                final_data = final_data.concat(dd)
+            }
+            
+        }
+        
+        data = final_data.concat(dataChecked);
         self.remoteSearchIntegrateIt(data);
     }
 }
@@ -1271,9 +1296,10 @@ vanillaSelectBox.prototype.checkUncheckAll = function () {
     if (checkAllElement) {
         if (nrChecked === nrCheckable) {
             // check the checkAll checkbox
+            /*
             if (nrChecked === totalAvailableElements) {
                 self.title.textContent = self.userOptions.translations.all;
-            }
+            }*/
             checkAllElement.classList.add("active");
             checkAllElement.innerText = self.userOptions.translations.clearAll;
             checkAllElement.setAttribute('data-selected', 'true')
@@ -1365,10 +1391,13 @@ vanillaSelectBox.prototype.setValue = function (values) {
                         x.classList.remove("active");
                     }
                 });
+                /*
                 if (nrAll == nrActives - Number(!self.userOptions.disableSelectAll)) {
                     let wordForAll = self.userOptions.translations.all;
                     selectedTexts = wordForAll;
-                } else if (self.multipleSize != -1) {
+                } else */
+                
+                if (self.multipleSize != -1) {
                     if (nrActives > self.multipleSize) {
                         let wordForItems = nrActives === 1 ? self.userOptions.translations.item : self.userOptions.translations.items;
                         selectedTexts = nrActives + " " + wordForItems;
