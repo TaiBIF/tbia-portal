@@ -17,7 +17,7 @@ news_type_map = {
 }
 
 news_type_c_map = {
-    'news':'消息公告',
+    'news':'新聞公告',
     'event': '活動訊息',
     'project': '計畫徵求',
 
