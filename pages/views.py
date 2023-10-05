@@ -165,7 +165,7 @@ def get_news_list(request):
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
         total_page = math.ceil(news.count() / limit)
-        page_list = get_page_list(current_page,total_page,3)
+        page_list = get_page_list(current_page,total_page,5)
         news = news.order_by('-publish_date')[offset:offset+limit]
         news_list = []
         for n in news:
@@ -246,7 +246,7 @@ def get_qa_list(request):
         qa = Qa.objects.filter(type=type).order_by('order')
 
         total_page = math.ceil(qa.count() / limit)
-        page_list = get_page_list(current_page,total_page,3)
+        page_list = get_page_list(current_page,total_page,5)
 
         qa_list = []
         for q in qa[offset:offset+limit]:
@@ -328,7 +328,7 @@ def get_resources(request):
     total_page = math.ceil(resource.count() / 12)
 
     current_page = int(request.POST.get('get_page', 1))
-    page_list = get_page_list(current_page,total_page,3)
+    page_list = get_page_list(current_page,total_page,5)
 
     resource_rows = []
     req_from = request.POST.get('from') # 首頁或開放資源頁面
@@ -393,6 +393,8 @@ def resources(request):
     resource_count = resource.count()
     has_more = True if resource_count > 12 else False
     total_page = math.ceil(resource_count / 12)
+    current_page = 1
+    page_list = get_page_list(current_page,total_page)
     for x in resource[:12]:
         modified = x.modified + timedelta(hours=8)
         resource_rows.append({
@@ -402,7 +404,7 @@ def resources(request):
             'url': x.url,
             'date': modified.strftime("%Y.%m.%d")})
     return render(request, 'pages/resources.html', {'resource': resource_rows, 'has_more': has_more,
-            'total_page': total_page, 'type': type})
+            'total_page': total_page, 'type': type, 'page_list': page_list, 'current_page': current_page})
 
 
 def resources_link(request):

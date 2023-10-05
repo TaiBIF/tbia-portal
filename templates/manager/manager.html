@@ -192,7 +192,7 @@
 					{% if r_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="download">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in r_page_list %}
@@ -204,11 +204,11 @@
                     {% endfor %}
                     {% if 2 in r_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="download">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ r_total_page }}" data-type="download">{{ r_total_page }}</a>
@@ -257,7 +257,7 @@
 					{% if t_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="download_taxon">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in t_page_list %}
@@ -269,11 +269,11 @@
                     {% endfor %}
                     {% if 2 in t_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="download_taxon">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ t_total_page }}" data-type="download_taxon">{{ t_total_page }}</a>
@@ -324,7 +324,7 @@
 					{% if s_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in s_page_list %}
@@ -336,11 +336,11 @@
                     {% endfor %}
                     {% if 2 in s_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive">{{ s_total_page }}</a>
@@ -380,7 +380,7 @@
 					{% if n_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="notification">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in n_page_list %}
@@ -392,11 +392,11 @@
                     {% endfor %}
                     {% if 2 in n_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="notification">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="notification">{{ n_total_page }}</a>

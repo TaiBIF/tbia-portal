@@ -174,7 +174,7 @@
 					{% if q_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="qa">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in q_page_list %}
@@ -186,11 +186,11 @@
                     {% endfor %}
                     {% if 2 in q_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="qa">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ q_total_page }}" data-type="qa">{{ q_total_page }}</a>

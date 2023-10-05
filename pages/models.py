@@ -111,15 +111,15 @@ class Notification(models.Model):
         db_table = 'notification'
 
 
-class Download(models.Model):
-    file = models.CharField(max_length=1000, blank=True, null=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=10, blank=True, null=True)
-    submitted = models.DateTimeField(auto_now_add=True)
-    expired = models.DateTimeField()
-    class Meta:
-        db_table = 'download'
+# class Download(models.Model):
+#     file = models.CharField(max_length=1000, blank=True, null=True)
+#     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+#     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+#     status = models.CharField(max_length=10, blank=True, null=True)
+#     submitted = models.DateTimeField(auto_now_add=True)
+#     expired = models.DateTimeField()
+#     class Meta:
+#         db_table = 'download'
 
 
 class Qa(models.Model):

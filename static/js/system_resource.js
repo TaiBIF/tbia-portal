@@ -216,27 +216,19 @@ function changePage(page, menu){
           $(`.${menu}_table`).parent().next('.page_number').remove()
 
           // 修改頁碼
-          if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+          //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
             $(`.${menu}_table`).parent().after(
                 `<div class="page_number">
                 <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-                <a href="javascript:;" class="pre">上一頁</a>  
-                <a href="javascript:;" class="next">下一頁</a>
+                <a href="javascript:;" class="pre"><span></span>上一頁</a>  
+                <a href="javascript:;" class="next">下一頁<span></span></a>
                 <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                 </div>`)
-        }		
+        //}		
     
         let s_menu = ''
         if (menu=='resource') {
           s_menu = 'list'
-        }
-
-        if (response.page_list.includes(response.current_page-1)){
-            $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-            $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page-1);
-            $(`.${s_menu} .item .page_number a.pre`).data('type', menu);    
-        } else {
-            $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
         }
 
         let html = ''
@@ -257,6 +249,15 @@ function changePage(page, menu){
             $(`.${s_menu} .item .page_number a.next`).data('type', menu);
         } else {
             $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
+        }
+
+        // 如果有上一頁，改掉prev的onclick
+        if (response.current_page - 1 > 0){
+            $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
+            $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page-1);
+            $(`.${s_menu} .item .page_number a.pre`).data('type', menu);    
+        } else {
+            $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
         }
 
         $('.changePage').off('click')

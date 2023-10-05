@@ -94,13 +94,23 @@
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    /*width: 20px;*/
+    width: 80px;
     padding: 0 15px;
     margin-left: 10px;
     height: 35px;
     border-radius: 3px;
     font-size: 16px;
 }
+
+
+@media only screen and (max-width: 767px) {
+    .search_btn {
+        font-size: 14px;    
+        min-width: 70px;
+
+    }
+}
+
 
 @media only screen and (min-width: 1000px) {
    .search_btn:hover {
@@ -112,6 +122,8 @@
         background: #E2A460
     }
 }
+
+
 .ui-datepicker {
     z-index:21 !important  
 }

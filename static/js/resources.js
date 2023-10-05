@@ -19,34 +19,45 @@ $( function() {
       $('.tech-pop').removeClass('d-none')
     })
   
-    // left
-    $('.index_tech .arl').on('click', function(){
-      let index = parseInt($(this).data('index'))
-  
-      if (index == 1) {
-        $(this).data('index', 10)
-      } else {
-        $(this).data('index', $(this).data('index')-1)
-      }
-  
-      $('.index_tech .text_tec').html($tutorial[index])
-      $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
-    })
-  
-    // right
-    $('.index_tech .arr').on('click', function(){
-      let index = parseInt($(this).data('index'))
-  
-      if (index == 10) {
-        $(this).data('index', 1)
-      } else {
-        $(this).data('index', $(this).data('index')+1)
-      }
+  // left 上一張
+  $('.index_tech .arl').on('click', function(){
+    let index = parseInt($(this).data('index'))
 
-      $('.index_tech .text_tec').html($tutorial[index])
-      $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
+    if (index == 1) {
+      $('.index_tech .arl').data('index', 10)
+      $('.index_tech .arr').data('index', 2)
+    } else if (index ==10){
+      $('.index_tech .arl').data('index', 9)
+      $('.index_tech .arr').data('index', 1)
+    } else {
+      $('.index_tech .arl').data('index', index-1)
+      $('.index_tech .arr').data('index', index+1)
+    }
 
-    })
+    $('.index_tech .text_tec').html($tutorial[index])
+    $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
+  })
+
+
+  // right 下一張
+  $('.index_tech .arr').on('click', function(){
+    let index = parseInt($(this).data('index'))
+
+    if (index == 10) {
+      $('.index_tech .arr').data('index', 1)
+      $('.index_tech .arl').data('index', 9)
+    } else if (index ==1){
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', 10)
+    } else {
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', index-1)
+    }
+
+    $('.index_tech .text_tec').html($tutorial[index])
+    $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
+  })
+
 
   // default active page
   if (($('input[name=resource_type]').val() != 'all' ) & ($('input[name=resource_type]').val() != '' )) {
@@ -200,23 +211,17 @@ function updateResource(page, by){
     })
   
       // 修改頁碼
-      if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+      //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
         $(`.page_number`).append(
           `
             <a href="javascript:;" class="num changePage" data-page="1" data-type="${by}">1</a>
-            <a href="javascript:;" class="pre">上一頁</a>  
-            <a href="javascript:;" class="next">下一頁</a>
+            <a href="javascript:;" class="pre"><span></span>上一頁</a>  
+            <a href="javascript:;" class="next">下一頁<span></span></a>
             <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${by}">${response.total_page}</a>
         `)
-      }		
+      //}		
         
-      if (response.page_list.includes(response.current_page-1)){
-        $('.pre').addClass('changePage')
-        $('.pre').data('page', response.current_page-1)
-        $('.pre').data('type', by)
-      } else {
-        $('.pre').addClass('pt-none')
-      }
+
 
       let html = ''
       for (let i = 0; i < response.page_list.length; i++) {
@@ -237,6 +242,14 @@ function updateResource(page, by){
       } else {
         $('.next').addClass('pt-none')
       }  
+
+      if (response.current_page - 1 > 0){
+        $('.pre').addClass('changePage')
+        $('.pre').data('page', response.current_page-1)
+        $('.pre').data('type', by)
+      } else {
+        $('.pre').addClass('pt-none')
+      }
 
       $('.changePage').off('click')
       $('.changePage').on('click', function(){

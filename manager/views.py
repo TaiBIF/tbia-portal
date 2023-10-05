@@ -724,7 +724,6 @@ def change_manager_page(request):
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
     page_list = get_page_list(int(page), total_page)
-    print(page_list)
     response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
     response['page_list'] = page_list
     response['total_page'] = total_page

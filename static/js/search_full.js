@@ -374,36 +374,45 @@ $( document ).ready(function() {
   $('.show_tech').on('click', function(){
     $('.tech-pop').removeClass('d-none')
   })
-  // left
+
+  // left 上一張
   $('.index_tech .arl').on('click', function(){
     let index = parseInt($(this).data('index'))
 
     if (index == 1) {
-      $(this).data('index', 10)
+      $('.index_tech .arl').data('index', 10)
+      $('.index_tech .arr').data('index', 2)
+    } else if (index ==10){
+      $('.index_tech .arl').data('index', 9)
+      $('.index_tech .arr').data('index', 1)
     } else {
-      $(this).data('index', $(this).data('index')-1)
+      $('.index_tech .arl').data('index', index-1)
+      $('.index_tech .arr').data('index', index+1)
     }
 
     $('.index_tech .text_tec').html($tutorial[index])
     $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
   })
 
-  // right
+
+  // right 下一張
   $('.index_tech .arr').on('click', function(){
     let index = parseInt($(this).data('index'))
 
     if (index == 10) {
-      $(this).data('index', 1)
+      $('.index_tech .arr').data('index', 1)
+      $('.index_tech .arl').data('index', 9)
+    } else if (index ==1){
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', 10)
     } else {
-      $(this).data('index', $(this).data('index')+1)
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', index-1)
     }
 
     $('.index_tech .text_tec').html($tutorial[index])
     $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
-
   })
-
-
 
   $('.imgarea').on('click', function(){
     $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
@@ -601,7 +610,7 @@ function focusComponent(item_class, go_back){
       }
       queryString = searchParams.toString()
       history.pushState(null, '', window.location.pathname + '?'  + queryString);
-    }
+  }
 
 
     // hide all items
