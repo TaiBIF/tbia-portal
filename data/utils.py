@@ -542,17 +542,32 @@ map_collection = {
 }
 
 
+date_formats = ['%Y/%m/%d','%Y%m%d','%Y-%m-%d','%Y/%m/%d %p %H:%M:%S','%Y-%m-%d %H:%M','%Y-%m-%d %H:%M:%S','%Y/%m/%d %H:%M:%S']
 
 def convert_date(date):
     formatted_date = None
     if date != '' and date is not None:
-        try:
-            formatted_date = parser.parse(date) 
-        except parser._parser.ParserError:
-            formatted_date = datetime.fromtimestamp(int(date))
-        except:
-            formatted_date = None
+        for ff in date_formats:
+            try:
+                formatted_date = datetime.strptime(date, ff)
+                return formatted_date
+            except:
+                formatted_date = None
+        if not formatted_date:
+            try: 
+                date = date.split('T')[0]
+                formatted_date = datetime.strptime(date, '%Y-%m-%d')
+                return formatted_date
+            except:
+                formatted_date = None        
+        if not formatted_date:
+            try:
+                formatted_date = datetime.fromtimestamp(int(date))
+                return formatted_date
+            except:
+                formatted_date = None
     return formatted_date
+
 
 
 

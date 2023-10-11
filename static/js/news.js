@@ -123,24 +123,15 @@ function updateNews(type, page){
             //$('.page_number').remove()
 
               // 修改頁碼
-              if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+              //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
                   $(`.page_number`).append(
                     `
                       <a href="javascript:;" class="num changePage" data-page="1" data-type="${type}">1</a>
-                      <a href="javascript:;" class="pre">上一頁</a>  
-                      <a href="javascript:;" class="next">下一頁</a>
+                      <a href="javascript:;" class="pre"><span></span>上一頁</a>  
+                      <a href="javascript:;" class="next">下一頁<span></span></a>
                       <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
                   `)
-              }		
-                
-              if (response.page_list.includes(response.current_page-1)){
-                $('.pre').addClass('changePage')
-                $('.pre').data('page', response.current_page-1)
-                $('.pre').data('type', type)
-                //$('.pre').attr('onclick',`changePage(${response.current_page-1}, '${type}')`);
-              } else {
-                $('.pre').addClass('pt-none')
-              }
+              //}		
 
               let html = ''
               for (let i = 0; i < response.page_list.length; i++) {
@@ -162,6 +153,17 @@ function updateNews(type, page){
               } else {
                 $('.next').addClass('pt-none')
               }  
+
+
+              // 如果有上一頁，改掉prev的onclick  
+              if (response.current_page - 1 > 0){
+                $('.pre').addClass('changePage')
+                $('.pre').data('page', response.current_page-1)
+                $('.pre').data('type', type)
+                //$('.pre').attr('onclick',`changePage(${response.current_page-1}, '${type}')`);
+              } else {
+                $('.pre').addClass('pt-none')
+              }
 
               $('.changePage').off('click')
               $('.changePage').on('click', function(){

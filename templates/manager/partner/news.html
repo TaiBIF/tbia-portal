@@ -170,7 +170,7 @@
 					{% if n_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="news">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        上一頁
+                        <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in n_page_list %}
@@ -182,11 +182,11 @@
                     {% endfor %}
                     {% if 2 in n_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="news">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁
+                        下一頁<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="news">{{ n_total_page }}</a>

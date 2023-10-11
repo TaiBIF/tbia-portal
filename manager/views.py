@@ -724,7 +724,6 @@ def change_manager_page(request):
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
     page_list = get_page_list(int(page), total_page)
-    print(page_list)
     response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
     response['page_list'] = page_list
     response['total_page'] = total_page
@@ -1849,7 +1848,7 @@ def update_user_status(request):
             partner_id = u.partner_id
             
             # 要確認是不是單位帳號是不是超過十個人
-            if User.objects.filter(partner_id=partner_id,status='pass').count() >= 10:
+            if User.objects.filter(partner_id=partner_id,status='pass').count() > 10:
                 # status 改為pending
                 status = 'pending'
                 exceed_ten = True

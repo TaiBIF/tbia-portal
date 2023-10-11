@@ -162,8 +162,43 @@
 			{% endif %}
 		</ul> 
 
+
 		<div class="page_number">
-		{% if total_page > 1 %}
+			{% comment %} {% if page_list|length > 1 %} {% endcomment %}
+				<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
+				{% if current_page|add:'-1' in page_list %}
+				<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
+					<span></span>上一頁
+				</a>
+				{% else %}
+				<a href="javascript:;" class="pre pt-none">
+					<span></span>上一頁
+				</a>
+				{% endif %}
+				<!--目前頁面給 now-->
+				{% for p in page_list %}
+					{% if p == current_page %}
+						<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
+					{% else %}
+						<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
+					{% endif %}
+				{% endfor %}
+				{% if current_page|add:1 in page_list %}
+				<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
+					下一頁<span></span>
+				</a>
+				{% else %}
+				<a href="javascript:;" class="next pt-none">
+					下一頁<span></span>
+				</a>
+				{% endif %}
+				<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
+			{% comment %} {% endif %} {% endcomment %}
+		</div>
+	
+		<!--
+		<div class="page_number">
+		 {% if total_page > 1 %} 
 			<a class="num">1</a>
 			<a class="pre">
 				<span></span>上一頁
@@ -174,8 +209,8 @@
 				下一頁<span></span>
 			</a>
 			<a href="javascript:" class="num changePage" data-page="{{ total_page }}" data-type="resource">{{ total_page }}</a>
-		{% endif %}
-		</div>
+		 {% endif %} 
+		</div>-->
 
 	</div>
 </div>

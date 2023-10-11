@@ -270,12 +270,20 @@ function vanillaSelectBox(domSelector, options) {
                 .then(function (data) {
                     self.buildSelect(data);
                     self.createTree();
-                    if (self.domSelector!='#locality'){
+                    if (self.domSelector=='#higherTaxa'){
                         if (data.length>1){
                             self.setValue(data[1]['value'])
+                            window.higherTaxaInit = true
+                        } else {
+                            window.higherTaxaInit = true
                         }
+                    } else if (self.domSelector=='#locality') {
+                        window.localityInit = true
                     }
-                    changeAction()
+                    // 確定兩邊都init完成後才觸發changeAction
+                    if( window.localityInit == true & window.higherTaxaInit == true) {
+                        changeAction()
+                    }
                 });
         } else {
             self.createTree();

@@ -220,10 +220,17 @@ def submit_sensitive_request(request):
                 query_list += ['recordType:col']
 
             # 物種類群    
+            # if val := req_dict.get('taxonGroup'):
+            #     if val in taxon_group_map.keys():
+            #         for vv in taxon_group_map[val]:
+            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
             if val := req_dict.get('taxonGroup'):
                 if val in taxon_group_map.keys():
+                    vv_list = []
                     for vv in taxon_group_map[val]:
-                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+                    query_list += [" OR ".join(vv_list)]
 
             for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
@@ -480,10 +487,17 @@ def transfer_sensitive_response(request):
                 query_list += ['recordType:col']
 
             # 物種類群    
+            # if val := req_dict.get('taxonGroup'):
+            #     if val in taxon_group_map.keys():
+            #         for vv in taxon_group_map[val]:
+            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
             if val := req_dict.get('taxonGroup'):
                 if val in taxon_group_map.keys():
+                    vv_list = []
                     for vv in taxon_group_map[val]:
-                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+                    query_list += [" OR ".join(vv_list)]
 
             for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
@@ -720,10 +734,17 @@ def generate_sensitive_csv(query_id, scheme, host):
                 query_list += ['recordType:col']
 
             # 物種類群    
+            # if val := req_dict.get('taxonGroup'):
+            #     if val in taxon_group_map.keys():
+            #         for vv in taxon_group_map[val]:
+            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
             if val := req_dict.get('taxonGroup'):
                 if val in taxon_group_map.keys():
+                    vv_list = []
                     for vv in taxon_group_map[val]:
-                        query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+                    query_list += [" OR ".join(vv_list)]
+
 
             for i in ['recordedBy', 'resourceContacts', 'preservation']:
                 if val := req_dict.get(i):
@@ -1028,10 +1049,17 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         query_list += ['recordType:col']
 
     # 物種類群    
+    # if val := req_dict.get('taxonGroup'):
+    #     if val in taxon_group_map.keys():
+    #         for vv in taxon_group_map[val]:
+    #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
     if val := req_dict.get('taxonGroup'):
         if val in taxon_group_map.keys():
+            vv_list = []
             for vv in taxon_group_map[val]:
-                query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+            query_list += [" OR ".join(vv_list)]
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
@@ -1247,10 +1275,17 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         query_list += ['recordType:col']
 
     # 物種類群    
+    # if val := req_dict.get('taxonGroup'):
+    #     if val in taxon_group_map.keys():
+    #         for vv in taxon_group_map[val]:
+    #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
     if val := req_dict.get('taxonGroup'):
         if val in taxon_group_map.keys():
+            vv_list = []
             for vv in taxon_group_map[val]:
-                query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+            query_list += [" OR ".join(vv_list)]
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
@@ -3312,10 +3347,17 @@ def get_map_grid(request):
             query_list += ['recordType:col']
 
         # 物種類群    
+        # if val := request.POST.get('taxonGroup'):
+        #     if val in taxon_group_map.keys():
+        #         for vv in taxon_group_map[val]:
+        #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
+
         if val := request.POST.get('taxonGroup'):
             if val in taxon_group_map.keys():
+                vv_list = []
                 for vv in taxon_group_map[val]:
-                    query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+                query_list += [" OR ".join(vv_list)]
 
         for i in ['recordedBy', 'resourceContacts', 'preservation']:
             if val := request.POST.get(i):
@@ -3524,10 +3566,19 @@ def get_conditional_records(request):
             obv_str = '紀錄'
 
         # 物種類群 - 控制詞彙
+        # if val := request.POST.get('taxonGroup'):
+        #     if val in taxon_group_map.keys():
+        #         vv_list = []
+        #         for vv in taxon_group_map[val]:
+        #             vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+        #         query_list += [" OR ".join(vv_list)]
+
         if val := request.POST.get('taxonGroup'):
             if val in taxon_group_map.keys():
+                vv_list = []
                 for vv in taxon_group_map[val]:
-                    query_list += [f'''{vv['key']}:"{vv['value']}"''']
+                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+                query_list += [" OR ".join(vv_list)]
 
         # 物種編號 - 控制詞彙
         if val := request.POST.get('taxonID'):

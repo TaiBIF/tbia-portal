@@ -1134,136 +1134,142 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
     }
 
     let queryString = window.condition + '&page=' +  page + '&from=' + from + '&limit=' + limit + orderby_str
-
-    if (push_state){
-        history.pushState(null, '', window.location.pathname + '?' + queryString)
-    }
-
-    $(".loading_area").removeClass('d-none');
-
-    $.ajax({
-        url: "/get_conditional_records",
-        data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-        // clear previous results
-        $('.sc_result').remove()
-        //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+    
+    if (queryString.length > 2000) {
         
-        if (response.count == 0){
-            // TODO 這邊如果有map的圖案要加回來
-            $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-            $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">無資料</div></div>`)
-        } else {
-            setTable(response, window.condition, from, orderby, sort)
+        alert('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。')
+    } else {
 
-            // 判斷是從分頁或搜尋點選
-            if (from == 'search'){
-                // uncheck all first
-                $(`input[id^="occ-"]`).prop('checked',false)
-                // show selected columns
-                for (let i = 0; i < response.selected_col.length; i++) {
-                $(`.row-${response.selected_col[i]}`).removeClass('d-none');
-                $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
+        if (push_state){
+            history.pushState(null, '', window.location.pathname + '?' + queryString)
+        }
+
+        $(".loading_area").removeClass('d-none');
+
+        $.ajax({
+            url: "/get_conditional_records",
+            data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
+            type: 'POST',
+            dataType : 'json',
+        })
+        .done(function(response) {
+            // clear previous results
+            $('.sc_result').remove()
+            //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+            
+            if (response.count == 0){
+                // TODO 這邊如果有map的圖案要加回來
+                $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+                $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">無資料</div></div>`)
             } else {
-                sendSelected()
-            }
+                setTable(response, window.condition, from, orderby, sort)
 
-            // disable checkebox for common_name_c & scientificName
-            $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
-            $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
-
-            // append pagination
-            if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-                $('.result_table').after(
-                    `<div class="d-flex-ai-c-jc-c">
-                    <div class="page_number">
-                    <a href="javascript:;" class="pre">
-                        <span></span>
-                    </a>
-                    <a href="javascript:;" class="next">
-                        <span></span>
-                    </a>
-                    </div>
-                    <span class="ml-20px">
-                        跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
-                        <a class="jumpto pointer">GO</a>  
-                    </span>
-                </div>`)
-            }		
-
-            $('.jumpto').on('click', function(){
-                submitSearch($('input[name=jumpto]').val(),'page',false,limit,orderby,sort)
-            })
-  
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
-                    html += `<a href="javascript:;" class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+                // 判斷是從分頁或搜尋點選
+                if (from == 'search'){
+                    // uncheck all first
+                    $(`input[id^="occ-"]`).prop('checked',false)
+                    // show selected columns
+                    for (let i = 0; i < response.selected_col.length; i++) {
+                    $(`.row-${response.selected_col[i]}`).removeClass('d-none');
+                    $(`#occ-${response.selected_col[i]}`).prop('checked',true);}
                 } else {
-                    html += `<a href="javascript:;" class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                    sendSelected()
                 }
-            }
-            $('.pre').after(html)
 
-            // 如果有上一頁，改掉pre的onclick
-            if ((response.current_page - 1) > 0 ){
-                $('.pre').addClass('submitSearch')
-                $('.pre').data('page', response.current_page-1)
-                $('.pre').data('from', 'page')
-            }
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page){
-                $('.next').addClass('submitSearch')
-                $('.next').data('page', response.current_page+1)
-                $('.next').data('from', 'page')
-            }
+                // disable checkebox for common_name_c & scientificName
+                $('#occ-common_name_c, #occ-scientificName').prop('disabled',true);
+                $('#occ-common_name_c, #occ-scientificName').prop('checked',true);
 
-            // 如果有前面的page list, 加上...
-            if (response.current_page > 5){
-                $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}" data-from="page">...</a> `)
-            }
-            // 如果有後面的page list, 加上...
-            if (response.page_list[response.page_list.length - 1] < response.total_page){
-                if (response.current_page +5 > response.total_page){
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
-                } else {
-                    $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page+5}" data-from="page">...</a>`)
+                // append pagination
+                if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                    $('.result_table').after(
+                        `<div class="d-flex-ai-c-jc-c">
+                        <div class="page_number">
+                        <a href="javascript:;" class="pre">
+                            <span></span>
+                        </a>
+                        <a href="javascript:;" class="next">
+                            <span></span>
+                        </a>
+                        </div>
+                        <span class="ml-20px">
+                            跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
+                            <a class="jumpto pointer">GO</a>  
+                        </span>
+                    </div>`)
+                }		
+
+                $('.jumpto').on('click', function(){
+                    submitSearch($('input[name=jumpto]').val(),'page',false,limit,orderby,sort)
+                })
+    
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page){
+                        html += `<a href="javascript:;" class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += `<a href="javascript:;" class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                    }
                 }
+                $('.pre').after(html)
+
+                // 如果有上一頁，改掉pre的onclick
+                if ((response.current_page - 1) > 0 ){
+                    $('.pre').addClass('submitSearch')
+                    $('.pre').data('page', response.current_page-1)
+                    $('.pre').data('from', 'page')
+                }
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page){
+                    $('.next').addClass('submitSearch')
+                    $('.next').data('page', response.current_page+1)
+                    $('.next').data('from', 'page')
+                }
+
+                // 如果有前面的page list, 加上...
+                if (response.current_page > 5){
+                    $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}" data-from="page">...</a> `)
+                }
+                // 如果有後面的page list, 加上...
+                if (response.page_list[response.page_list.length - 1] < response.total_page){
+                    if (response.current_page +5 > response.total_page){
+                        $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
+                    } else {
+                        $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page+5}" data-from="page">...</a>`)
+                    }
+                }
+
+                if (limit) {
+                    $('.page_number a.submitSearch').data('limit', limit)
+                }
+
+                if (orderby) {
+                    $('.page_number a.submitSearch').data('orderby', orderby)
+                }
+
+                if (sort) {
+                    $('.page_number a.submitSearch').data('sort', sort)
+                }
+
+                $('.page_number a.submitSearch').on('click', function(){
+                    submitSearch($(this).data('page'),$(this).data('from'),false,$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
+                })
             }
 
-            if (limit) {
-                $('.page_number a.submitSearch').data('limit', limit)
+            $(".loading_area").addClass('d-none');
+            $([document.documentElement, document.body]).animate({
+                scrollTop: $(".sc_result").offset().top - 100}, 200);
+        })
+        .fail(function( xhr, status, errorThrown ) {
+            if (xhr.status==504){
+                alert('要求連線逾時')
+            } else {
+                alert('發生未知錯誤！請聯絡管理員')
             }
-
-            if (orderby) {
-                $('.page_number a.submitSearch').data('orderby', orderby)
-            }
-
-            if (sort) {
-                $('.page_number a.submitSearch').data('sort', sort)
-            }
-
-            $('.page_number a.submitSearch').on('click', function(){
-                submitSearch($(this).data('page'),$(this).data('from'),false,$(this).data('limit'),$(this).data('orderby'),$(this).data('sort'))
-            })
+            $(".loading_area").addClass('d-none');
+            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
         }
-
-        $(".loading_area").addClass('d-none');
-        $([document.documentElement, document.body]).animate({
-            scrollTop: $(".sc_result").offset().top - 100}, 200);
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        if (xhr.status==504){
-            alert('要求連線逾時')
-        } else {
-            alert('發生未知錯誤！請聯絡管理員')
-        }
-        $(".loading_area").addClass('d-none');
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
     }
 }
 

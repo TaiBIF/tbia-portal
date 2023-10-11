@@ -17,14 +17,19 @@ let $tutorial = {
 
 $(document).ready(function () {
 
-  // left
+  // left 上一張
   $('.index_tech .arl').on('click', function(){
     let index = parseInt($(this).data('index'))
 
     if (index == 1) {
-      $(this).data('index', 10)
+      $('.index_tech .arl').data('index', 10)
+      $('.index_tech .arr').data('index', 2)
+    } else if (index ==10){
+      $('.index_tech .arl').data('index', 9)
+      $('.index_tech .arr').data('index', 1)
     } else {
-      $(this).data('index', $(this).data('index')-1)
+      $('.index_tech .arl').data('index', index-1)
+      $('.index_tech .arr').data('index', index+1)
     }
 
     $('.index_tech .text_tec').html($tutorial[index])
@@ -32,16 +37,20 @@ $(document).ready(function () {
   })
 
 
-  // right
+  // right 下一張
   $('.index_tech .arr').on('click', function(){
     let index = parseInt($(this).data('index'))
 
     if (index == 10) {
-      $(this).data('index', 1)
+      $('.index_tech .arr').data('index', 1)
+      $('.index_tech .arl').data('index', 9)
+    } else if (index ==1){
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', 10)
     } else {
-      $(this).data('index', $(this).data('index')+1)
+      $('.index_tech .arr').data('index', index+1)
+      $('.index_tech .arl').data('index', index-1)
     }
-
 
     $('.index_tech .text_tec').html($tutorial[index])
     $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)

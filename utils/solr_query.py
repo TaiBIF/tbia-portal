@@ -3,10 +3,12 @@ import urllib
 import requests
 import json
 
-if env in ['dev']:
-    SOLR_PREFIX = 'http://127.0.0.1:8983/solr/'
-else:
-    SOLR_PREFIX = 'http://solr:8983/solr/'
+# if env in ['dev']:
+#     SOLR_PREFIX = 'http://127.0.0.1:8983/solr/'
+# else:
+# SOLR_PREFIX = 'http://solr:8983/solr/'
+SOLR_PREFIX = env('SOLR_PREFIX')
+
 
 class SolrQuery(object):
     def __init__(self, core):
