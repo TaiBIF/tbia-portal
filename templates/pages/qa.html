@@ -86,15 +86,15 @@
     </div>
 
 		<div class="page_number">
-      {% if page_list|length > 1 %}
+      {% comment %} {% if page_list|length > 1 %} {% endcomment %}
         <a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
         {% if current_page|add:'-1' in page_list %}
         <a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-          上一頁
+          <span></span>上一頁
         </a>
         {% else %}
         <a href="javascript:;" class="pre pt-none">
-          上一頁
+          <span></span>上一頁
         </a>
         {% endif %}
         <!--目前頁面給 now-->
@@ -107,15 +107,15 @@
         {% endfor %}
         {% if current_page|add:1 in page_list %}
         <a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="2">
-          下一頁
+          下一頁<span></span>
         </a>
         {% else %}
         <a href="javascript:;" class="next pt-none">
-          下一頁
+          下一頁<span></span>
         </a>
         {% endif %}
         <a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
-      {% endif %}
+      {% comment %} {% endif %} {% endcomment %}
       </div>
     </div>
 </div>
