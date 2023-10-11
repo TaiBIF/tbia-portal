@@ -159,4 +159,6 @@ class Taxon(models.Model):
     redlist = models.CharField(blank=True, null=True, max_length=100)
     protected = models.CharField(blank=True, null=True, max_length=100)
     sensitive = models.CharField(blank=True, null=True, max_length=100)
+    alien_type = models.CharField(blank=True, null=True, max_length=10000)
+    is_endemic = models.BooleanField(blank=True, null=True) 
 
