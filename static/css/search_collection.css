@@ -242,3 +242,26 @@
         margin-top: 0.4em !important;
     }
  }
+
+
+ .page-inf {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center
+}
+
+.page-inf span {
+    margin-left: 20px;
+}
+
+@media only screen and (max-width: 1599px) {
+     .page-inf {
+        flex-direction: column;
+        justify-content: center
+    }
+
+    .page-inf span {
+        margin-top: 10px;
+    }
+}
