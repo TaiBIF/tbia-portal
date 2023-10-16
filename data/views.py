@@ -2194,7 +2194,10 @@ def get_records(request): # 全站搜尋
                         docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
-                docs.loc[i , 'organismQuantity'] = int(quantity[0])
+                quantity = str(quantity[0])
+                if quantity.endswith('.0'):
+                    quantity = quantity[:-2]
+                docs.loc[i , 'organismQuantity'] = quantity
             else:
                 if row.get('organismQuantity'):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
@@ -3163,7 +3166,10 @@ def occurrence_detail(request, id):
 
     # 數量
     if quantity := row.get('standardOrganismQuantity'):
-        quantity = int(quantity[0])
+        # quantity = int(quantity[0])
+        quantity = str(quantity[0])
+        if quantity.endswith('.0'):
+            quantity = quantity[:-2]
     else:
         quantity = None
     row.update({'quantity': quantity})
@@ -3305,7 +3311,10 @@ def collection_detail(request, id):
 
         # 數量
         if quantity := row.get('standardOrganismQuantity'):
-            quantity = int(quantity[0])
+            # quantity = int(quantity[0])
+            quantity = str(quantity[0])
+            if quantity.endswith('.0'):
+                quantity = quantity[:-2]
         else:
             quantity = None
         row.update({'quantity': quantity})
@@ -3870,7 +3879,10 @@ def get_conditional_records(request):
                         docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
             # 數量
             if quantity := row.get('standardOrganismQuantity'):
-                docs.loc[i , 'organismQuantity'] = int(quantity[0])
+                quantity = str(quantity[0])
+                if quantity.endswith('.0'):
+                    quantity = quantity[:-2]
+                docs.loc[i , 'organismQuantity'] = quantity
             else:
                 if row.get('organismQuantity'):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
