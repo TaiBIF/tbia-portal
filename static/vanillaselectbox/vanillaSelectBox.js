@@ -655,6 +655,7 @@ function vanillaSelectBox(domSelector, options) {
                                         self.ul.prepend(self.listElements[i])
                                     }
                                 }
+
                                 var para = document.createElement("p");
                                 self.ul.prepend(para);
                                 para.style.fontSize = "12px";
@@ -913,10 +914,10 @@ vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
             if (!dc_value.includes(dd['value'])){
                 final_data = final_data.concat(dd)
             }
-            
         }
         
-        data = final_data.concat(dataChecked);
+        //data = final_data.concat(dataChecked);
+        data = dataChecked.concat(final_data);
         self.remoteSearchIntegrateIt(data);
     }
 }

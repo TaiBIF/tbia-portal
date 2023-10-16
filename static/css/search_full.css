@@ -397,3 +397,9 @@
     cursor: pointer
 }
 
+@media only screen and (max-width: 767px) {
+
+    .two_cont_area .left_menu.mbmove.open {
+        z-index: 100
+    }
+}

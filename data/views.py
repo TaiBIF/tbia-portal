@@ -49,7 +49,17 @@ basis_dict = { '人為觀測':'("人為觀測" OR "HumanObservation")',
                 '活體標本':'("活體標本" OR "LivingSpecimen")', 
                 '組織樣本':'("組織樣本" OR "MaterialSample")',
                 '機器觀測':'("機器觀測" OR "MachineObservation")', 
-                '出現紀錄':'("出現紀錄" OR "Occurrence")'}
+                '出現紀錄':'("出現紀錄" OR "Occurrence")',
+                'MaterialCitation': ("MaterialCitation")}
+
+basis_map = { 'HumanObservation':'人為觀測', 
+                'PreservedSpecimen': '保存標本',
+                'FossilSpecimen': '化石標本',
+                'LivingSpecimen': '活體標本',
+                'MaterialSample': '組織樣本',
+                'MachineObservation': '機器觀測',
+                'Occurrence': '出現紀錄',
+                'MaterialCitation': 'MaterialCitation'}
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -1478,7 +1488,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
             if d['taxonID']['buckets']:
                 df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
         if len(df):
-            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','misapplied','taxonID','cites','iucn','redlist','protected','sensitive'))
+            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','misapplied','taxonID','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic'))
             df = df.merge(subset_taxon, how='left')
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
@@ -2188,6 +2198,23 @@ def get_records(request): # 全站搜尋
             else:
                 if row.get('organismQuantity'):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+            
+            # 分類階層
+            if row.get('taxonRank', ''):
+                docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
+
+            # 座標是否有模糊化
+            if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+                docs.loc[i , 'dataGeneralizations'] = '是'
+            elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+                docs.loc[i , 'dataGeneralizations'] = '否'
+            else:
+                pass
+
+            # 紀錄類型
+            if row.get('basisOfRecord',''):
+                if row.get('basisOfRecord') in basis_map.keys():
+                    docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
 
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
@@ -3027,7 +3054,7 @@ def search_collection(request):
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
 
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
     return render(request, 'pages/search_collection.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
@@ -3043,7 +3070,7 @@ def search_occurrence(request):
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '物種不開放', '無']
+    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     basis_list = basis_dict.keys()
         
@@ -3751,7 +3778,6 @@ def get_conditional_records(request):
             query3.pop('filter')
 
         query_req = json.dumps(query)
-        print(query_req)
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
 
         # 新搜尋的才重新query地圖資訊
@@ -3848,6 +3874,24 @@ def get_conditional_records(request):
             else:
                 if row.get('organismQuantity'):
                     docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+            
+            # 分類階層
+            if row.get('taxonRank', ''):
+                docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
+
+            # 座標是否有模糊化
+            if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+                docs.loc[i , 'dataGeneralizations'] = '是'
+            elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+                docs.loc[i , 'dataGeneralizations'] = '否'
+            else:
+                pass
+
+            # 紀錄類型
+            if row.get('basisOfRecord',''):
+                if row.get('basisOfRecord') in basis_map.keys():
+                    docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
+
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
         if 'synonyms' in docs.keys():

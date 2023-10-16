@@ -90,7 +90,7 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
           let menu = $(this).data('menu');
           if (menu == 'edit') {
             $('#saveForm input[name=resource_id]').val('')
-            $('#saveForm select[name=resource_type]').val('')
+            $('#saveForm select[name=resource_type]').val('strategy')
             $('#saveForm input[name=file]').val('')
             $('#saveForm input[name=url]').val('')
             $('#preview').parent('li').html(`<span id="preview" class="d-none"></span>`)

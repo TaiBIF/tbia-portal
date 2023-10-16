@@ -1165,7 +1165,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
                     // append pagination
                     if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
                         $('.result_table').after(
-                            `<div class="d-flex-ai-c-jc-c">
+                            `<div class="page-inf">
                             <div class="page_number">
                             <a href="javascript:;" class="pre">
                                 <span></span>
@@ -1174,7 +1174,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
                                 <span></span>
                             </a>
                             </div>
-                            <span class="ml-20px">
+                            <span>
                                 跳至<input name="jumpto" type="number" min="1" step="1" class="page-jump">頁
                                 <a class="jumpto pointer">GO</a>  
                             </span>
