@@ -46,7 +46,13 @@ class Partner(models.Model):
     select_title = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁(同個MOU簽署單位) 但後台是分開的 在前台顯示需區分
     title = models.CharField(max_length=100, null=True, blank=True)
     logo = models.TextField(null=True, blank=True)
-    info = models.JSONField(null=True, blank=True)
+    info = models.JSONField(null=True, blank=True) 
+    # ['id', 'link', 'image', 'subtitle', 'description', 'dbname', 'color'] 
+    # 'subtitle' 在夥伴頁面上呈現的資料庫名稱
+    # 'dbname' 在進階搜尋下拉選單對應的資料庫名稱，在資料內同樣也存這個名字 (=rightsHolder)
+    # 'color' 後台圓餅圖使用的顏色
+    index_order = models.IntegerField(null=True, blank=True) # 在首頁的順序
+    # 顯示順序： brcas 1, forest 2, tbri 3, tfri 4, oca 5, nps 6, ntm 7, wra 8
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)
     class Meta:

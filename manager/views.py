@@ -15,7 +15,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
-from manager.utils import generate_token, partner_map, check_due
+from manager.utils import generate_token, check_due
 from django.conf import settings
 import threading
 from django.http import (
@@ -1381,11 +1381,16 @@ def get_partner_stat(request):
                 for r in range(0,len(facets),2):
                     p_count += facets[r+1]
                     if facets[r+1] > 0 :
-                        for pg in partner_map[group]:
-                            if pg['dbname'] == facets[r]:
-                                p_color = pg['color']
-                                break
-                        data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+                        # for pg in partner_map[group]:
+                        #     if pg['dbname'] == facets[r]:
+                        #         p_color = pg['color']
+                        #         break
+                        if Partner.objects.filter(group=group).exists():
+                            for pp in Partner.objects.get(group=group).info:
+                                if pp['dbname'] == facets[r]:
+                                    p_color = pp['color']
+                                    break
+                            data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
             solr = SolrQuery('tbia_records')
             query_list = [('q', '*:*'),('rows', 0)]
             req = solr.request(query_list)
@@ -1449,11 +1454,17 @@ def get_system_stat(request):
             for fp in f.get('pivot'):
                 p_dbname = fp.get('value')
                 p_count = fp.get('count')
-                for pg in partner_map[p_group]:
-                    if pg['dbname'] == p_dbname:
-                        p_color = pg['color']
-                        break
-                data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                
+                if Partner.objects.filter(group=p_group).exists():
+                    for pp in Partner.objects.get(group=p_group).info:
+                        if pp['dbname'] == p_dbname:
+                            p_color = pp['color']
+                            break
+                    # for pg in partner_map[p_group]:
+                    #     if pg['dbname'] == p_dbname:
+                    #         p_color = pg['color']
+                    #         break
+                    data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
 
             # if data['responseHeader']['status'] == 0:
             #     facets = data['facet_counts']['facet_fields']['rightsHolder']

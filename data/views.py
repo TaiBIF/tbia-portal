@@ -7,7 +7,7 @@ from django.db.models import Q, Max
 from django.db import connection
 
 from data.utils import *
-from manager.utils import holders
+# from manager.utils import holders
 # from data.taicol import taicol
 import pandas as pd
 import numpy as np
@@ -3940,17 +3940,18 @@ def change_dataset(request):
     ds = []
     if holder := request.GET.getlist('holder'):    
         for h in holder:
-            for k in holders.keys():
-                if holders[k] == h:
-                    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=group:{k}')
-                    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-                    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-                    if request.GET.get('record_type') == 'col':
-                        obj = DatasetKey.objects.filter(record_type='col',group=k,deprecated=False,name__in=dataset_list).distinct('name')
-                    else:
-                        obj = DatasetKey.objects.filter(group=k,deprecated=False,name__in=dataset_list).distinct('name')
-                    for d in obj:
-                        ds += [{'value': d.id, 'text': d.name}]
+            if DatasetKey.objects.filter(rights_holder=h).exists():
+            # for k in holders.keys():
+            #     if holders[k] == h:
+                response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
+                d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+                dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+                if request.GET.get('record_type') == 'col':
+                    obj = DatasetKey.objects.filter(record_type='col',rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
+                else:
+                    obj = DatasetKey.objects.filter(rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
+                for d in obj:
+                    ds += [{'value': d.id, 'text': d.name}]
     else:
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
         d_list = response.json()['facet_counts']['facet_fields']['datasetName']
