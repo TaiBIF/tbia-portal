@@ -1335,13 +1335,17 @@ def get_request_detail(request):
 
 def manager_partner(request):
     partner_admin = ''
-    download_url = ''
+    download_url = []
     info = []
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            if exists(os.path.join('/tbia-volumes/media/match_log', f'{current_user.partner.group}_match_log.zip')):
-                download_url = os.path.join('/media/match_log', f'{current_user.partner.group}_match_log.zip')
+            # for p in current_user.partner:
+            for pp in current_user.partner.info:
+                # if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
+                #     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
+                if exists(os.path.join('/tbia-volumes/media/match_log',f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip')):
+                    download_url.append({'url': os.path.join('/media/match_log', f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip'), 'name': pp['subtitle']})
             # download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
             partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
             partner_admin = [p[0] for p in partner_admin]
@@ -1431,9 +1435,12 @@ def manager_system(request):
         no_taxon = req['solr_response']['response']['numFound']
         has_taxon = total_count - no_taxon
         match_logs = []
-        for g in Partner.objects.all():
-            if os.path.exists(f'/tbia-volumes/media/match_log/{g.group}_match_log.zip'):
-                match_logs.append({'url': f'/media/match_log/{g.group}_match_log.zip','name':f"{g.breadtitle} - {g.info[0]['subtitle']}"})
+        for p in Partner.objects.all():
+            for pp in p.info:
+                # print(f"{p.breadtitle} - {pp['subtitle']}")
+                # print(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip')
+                if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
+                    match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
                                                             'data_total':data_total,'keywords': keywords, 'match_logs': match_logs})
 

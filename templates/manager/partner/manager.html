@@ -92,16 +92,29 @@
                     <div id="container" class="h-100p"></div>
                 </figure>
             </div>
+
+
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況 
-                {% if download_url %}
-                    <a class="download_taxon_a" target="_blank" href="{{ download_url }}">(下載學名比對結果清單)</a>
-                {% endif %}
+                <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況</div>
+                <div class="d-flex-jc-sb">
+                    <div class="w-50p">
+                        <figure class="highcharts-figure h-300px">
+                            <div id="container2" class="h-100p"></div>
+                        </figure>
+                    </div>                    
+                    <div class="w-50p mt-15px ml-20px">
+                        <p>下載學名比對結果清單</p>
+                        <ul class="mt-5px ml-20px fs-16px">
+                            {% for i in download_url %}
+                            <li>
+                                <a class="download_taxon_a" target="_blank" href="{{ i.url }}">{{ i.name }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-                <figure class="highcharts-figure h-300px">
-                    <div id="container2" class="h-100p"></div>
-                </figure>
             </div>
+
         </div>
         {% else %}
         您的權限不足
