@@ -1415,15 +1415,15 @@ def manager_system(request):
     no_taxon = 0
     has_taxon = 0
     partner_admin = ''
-    data_total = []
+    # data_total = []
     if not request.user.is_anonymous:
         # 資料筆數 - 改成用單位?
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
-        data = requests.get(url).json()
-        if data['responseHeader']['status'] == 0:
-            facets = data['facet_counts']['facet_fields']['rightsHolder']
-            for r in range(0,len(facets),2):
-                data_total.append({'name': facets[r],'y': facets[r+1]})
+        # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+        # data = requests.get(url).json()
+        # if data['responseHeader']['status'] == 0:
+        #     facets = data['facet_counts']['facet_fields']['rightsHolder']
+        #     for r in range(0,len(facets),2):
+        #         data_total.append({'name': facets[r],'y': facets[r+1]})
         # TaiCOL對應狀況
         solr = SolrQuery('tbia_records')
         query_list = [('q', '*:*'),('rows', 0)]
@@ -1442,7 +1442,8 @@ def manager_system(request):
                 if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
                     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                            'data_total':data_total,'keywords': keywords, 'match_logs': match_logs})
+                                                            # 'data_total':data_total,
+                                                            'keywords': keywords, 'match_logs': match_logs})
 
 
 def get_system_stat(request):
@@ -1472,6 +1473,8 @@ def get_system_stat(request):
                     #         p_color = pg['color']
                     #         break
                     data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                elif p_group == 'gbif':
+                    data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
 
             # if data['responseHeader']['status'] == 0:
             #     facets = data['facet_counts']['facet_fields']['rightsHolder']
