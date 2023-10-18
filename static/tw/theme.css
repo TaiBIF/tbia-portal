@@ -3838,7 +3838,7 @@ body {
 
 .about_bn .w_bg .leftbox .linktogithub {
     background: #3F5146;
-    width: 300px;
+    /* width: 300px; */
     height: 70px;
     display: flex;
     align-items: center;
@@ -3852,7 +3852,7 @@ body {
 }
 
 .about_bn .w_bg .leftbox .linktogithub span {
-    margin-left: 10px;
+    /*margin-left: 10px;*/
     display: inline-block
 }
 

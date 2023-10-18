@@ -357,7 +357,11 @@ def get_resources(request):
 
 def about(request):
     content = About.objects.all().first().content
-    return render(request, 'pages/about.html',{'content': content})
+    
+    url = None
+    if Resource.objects.filter(title='臺灣生物多樣性資訊聯盟章程').exists():
+        url = Resource.objects.get(title='臺灣生物多樣性資訊聯盟章程').url
+    return render(request, 'pages/about.html',{'content': content, 'url': url})
 
 
 def agreement(request):

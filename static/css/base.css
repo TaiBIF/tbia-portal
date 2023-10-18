@@ -210,6 +210,14 @@ input {
     width: 40% !important;
 }
 
+.w-45p {
+    width: 45% !important;
+}
+
+.w-48p {
+    width: 48% !important;
+}
+
 .w-50p {
     width: 50% !important;
 }

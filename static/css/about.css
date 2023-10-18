@@ -3,3 +3,24 @@
     -webkit-animation: w_100 0.5s 0s linear forwards;
     animation: w_100 0.5s 0s linear forwards;
 }
+
+.ml-10px {
+    margin-left: 10px;
+}
+
+/* .ml-5px {
+    margin-left: 5px;
+} */
+
+@media only screen and (max-width: 767px) {
+    .about_bn .w_bg .leftbox .linktogithub .ml-10px  {
+        margin-left: 5px;
+    }
+
+    .about_bn .w_bg .leftbox .linktogithub img  {
+        width: 25px;
+        height: 25px;
+    }
+
+
+}
