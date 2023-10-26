@@ -310,6 +310,33 @@
       {% else %}
       <div class="right_btn2">
       {% endif %}
+      <div class="top-search">
+        <button class="top-toggle-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
+            <g id="loupe" transform="translate(0.038 0.035)">
+              <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
+                <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146"/>
+              </g>
+            </g>
+          </svg>
+        </button>
+        <div class="searchbox">
+          <form action="{% url 'search_full' %}" method="GET">
+            <div class="wbox">
+              <input type="text" placeholder="請輸入關鍵字" name="keyword">
+              <button class="mb-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
+                  <g id="loupe" transform="translate(0.038 0.035)">
+                    <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
+                      <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146"/>
+                    </g>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
         <div class="feedback showFeedback"></div>
         <div class="ringbox">
           <div class="num_message {% if user.id|get_notif_count <= 0 %} d-none {% endif %}">{{ user.id|get_notif_count }}</div>

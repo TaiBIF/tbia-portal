@@ -1,5 +1,38 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+function toggleSearchBox() {
+  if ($(window).width() < 999) {
+    $('.top-toggle-btn').off('click');
+    $('.top-toggle-btn').on('click', function() {
+      $('.searchbox').slideToggle();
+    });
+  } else {
+    $('.top-toggle-btn').off('click'); 
+    $('.top-toggle-btn').on('click', function() {
+      $('.searchbox .mb-btn').trigger('click');
+    });
+  }
+}
+
+toggleSearchBox();
+
+$(window).on('resize', function() {
+  toggleSearchBox();
+});
+
+function reloadOnWindowResize() {
+  $(window).on('resize', function() {
+    if ($(window).width() < 999) {
+      location.reload(); 
+    }
+  });
+}
+
+// 初始加载时执行一次
+reloadOnWindowResize();
+
+
+
 function showLogin(){
   if ($('input[name=is_authenticated]').val()=='False'){
     $('.login_pop').removeClass('d-none');
