@@ -30,7 +30,7 @@ taxon_group_map = {
     'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
     'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
-    'Birds' : [{'key': 'subclass', 'value': 'Aves'}],
+    'Birds' : [{'key': 'class', 'value': 'Aves'}],
     'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
 }
 
@@ -42,7 +42,6 @@ taxon_group_map_c = {
     'Plants' : '植物',
     'Birds' : '鳥類',
     'Mammals' : '哺乳類',
-
 }
 
 
@@ -578,8 +577,6 @@ download_cols = [
 'standardDate',
 'standardLatitude',
 'standardLongitude',
-# 'standardRawLatitude',
-# 'standardRawLongitude',
 'standardOrganismQuantity',
 'associatedMedia',
 'basisOfRecord',
@@ -611,8 +608,6 @@ download_cols = [
 'verbatimCoordinateSystem',
 'verbatimLatitude',
 'verbatimLongitude',
-# 'verbatimRawLatitude',
-# 'verbatimRawLongitude',
 'verbatimSRS',
 'scientificNameID',
 'taxonID',

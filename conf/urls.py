@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include('pages.urls')),
     path('', include('data.urls')),
     path('', include('manager.urls')),
+    path('', include('api.urls')),
     # path('ckeditor/upload/', login_required(ckeditor_views.upload), name='ckeditor_upload'),
     # path('ckeditor/', include('ckeditor_uploader.urls')),
     path('accounts/', include('allauth.urls')),  # django-allauth網址

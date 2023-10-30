@@ -1,0 +1,47 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block head %}
+{% endblock head %}
+{% block title %}API｜{% endblock %}
+{% block style %}
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/resources_link.css' %}" />
+{% endblock style %}
+{% block body %}
+<div class="path">
+	<div class="main_1240">
+		<a href="{% url 'index' %}" class="home"></a> <span>></span>
+		<p>進階搜尋</p>
+		<span>></span>
+		<p>API</p>
+	</div>
+</div>
+
+<div class="in_bn resource_bn">
+	<div class="title">
+		<h2>API</h2>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
+	</div>
+</div>
+<div class="container_area">
+	<div class="main_1240"> 
+		<div class="w_bgr10 news_de">
+			<div class="nstitlebox">
+				<h3>Open API version 1.0</h3>
+			</div>
+			<div class="editor">
+				<p class="link-editor">
+					API服務類型
+					<br>
+					觀測紀錄查詢 occurrence
+				</p>
+			</div>
+		</div> 
+	</div>
+</div>
+{% endblock body %}

@@ -65,7 +65,6 @@ basis_map = { 'HumanObservation':'人為觀測',
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
 taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID']
 
-
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
         sq = SearchQuery.objects.get(id=id)
@@ -3707,7 +3706,9 @@ def get_conditional_records(request):
                 pass
 
         # 地圖框選 - 對查詢來說是控制詞彙
-        if g_list := request.POST.getlist('polygon'):
+       
+        if g_list := request.POST.getlist('polygon'): 
+            print(g_list)
             try:
                 mp = MultiPolygon(map(wkt.loads, g_list))
                 query_list += ['location_rpt: "Within(%s)"' % mp]

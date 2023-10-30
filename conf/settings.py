@@ -39,7 +39,8 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 INSTALLED_APPS = [
     'pages',
     'manager',
-    'data',    
+    'data',
+    'api',
     'ckeditor',
     'ckeditor_uploader',
     'django.contrib.admin',
