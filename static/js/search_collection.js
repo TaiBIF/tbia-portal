@@ -1210,7 +1210,7 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
 
                     // 如果有前面的page list, 加上...
                     if (response.current_page > 5){
-                        $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}," data-from="page">...</a> `)
+                        $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page-5}" data-from="page">...</a> `)
                     }
                     // 如果有後面的page list, 加上...
                     if (response.page_list[response.page_list.length - 1] < response.total_page){
