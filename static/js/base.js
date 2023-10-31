@@ -20,16 +20,16 @@ $(window).on('resize', function() {
   toggleSearchBox();
 });
 
-function reloadOnWindowResize() {
-  $(window).on('resize', function() {
-    if ($(window).width() < 999) {
-      location.reload(); 
-    }
-  });
-}
+// function reloadOnWindowResize() {
+//   $(window).on('resize', function() {
+//     if ($(window).width() < 999) {
+//       location.reload(); 
+//     }
+//   });
+// }
 
 // 初始加载时执行一次
-reloadOnWindowResize();
+// reloadOnWindowResize();
 
 
 

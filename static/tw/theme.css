@@ -608,7 +608,7 @@ body {
     position: fixed;
     width: 100%;
     height: 100%;
-    z-index: 5;
+    z-index: 10;
     top: 0px;
     left: 0;
     background: #FFF;
@@ -841,6 +841,20 @@ body {
     height: 100%
 }
 
+@media only screen and (max-width: 1279px) {
+    .header .right_menu ul {
+        margin-left: 170px;
+        justify-content: flex-start
+    }
+}
+
+@media only screen and (max-width: 999px) {
+    .header .right_menu ul {
+        justify-content: center;
+        margin-left: 0
+    }
+}
+
 .header .right_menu li {
     position: relative;
     height: 100%;
@@ -870,7 +884,8 @@ body {
 
 @media only screen and (max-width: 1599px) {
     .header .right_menu li a.big_title {
-        padding: 0px 15px
+        min-width: 115px;
+        padding: 0px 10px
     }
 }
 
@@ -1003,6 +1018,12 @@ body {
     margin-top: -23px
 }
 
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 {
+        margin-top: -20px
+    }
+}
+
 @media only screen and (max-width: 999px) {
     .header .right_btn2 {
         right: 50px;
@@ -1025,6 +1046,14 @@ body {
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
     background: url("../image/users.svg") no-repeat top left
+}
+
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2.login_done .member_login .icon {
+        width: 40px;
+        height: 40px;
+        background-size: cover
+    }
 }
 
 .header .right_btn2.login_done .member_login:hover .member_slimenu {
@@ -1055,11 +1084,12 @@ body {
     background-size: cover
 }
 
-@media only screen and (max-width: 999px) {
+@media only screen and (max-width: 1279px) {
     .header .right_btn2 .ringbox {
         width: 40px;
         height: 40px;
-        background-size: cover
+        background-size: cover;
+        margin-right: 5px
     }
 }
 
@@ -1297,6 +1327,14 @@ body {
     position: relative
 }
 
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .top-search {
+        margin-right: 5px;
+        width: 40px;
+        height: 40px
+    }
+}
+
 @media only screen and (max-width: 999px) {
     .header .right_btn2 .top-search {
         width: 40px;
@@ -1314,6 +1352,14 @@ body {
     position: relative;
     z-index: 5;
     border-radius: 50%
+}
+
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .top-search button {
+        width: 40px;
+        height: 40px;
+        background-size: cover
+    }
 }
 
 @media only screen and (max-width: 999px) {
@@ -1384,10 +1430,16 @@ body {
     visibility: hidden
 }
 
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .top-search .searchbox {
+        top: -10px
+    }
+}
+
 @media only screen and (max-width: 999px) {
     .header .right_btn2 .top-search .searchbox {
         position: fixed;
-        width: 100vw;
+        width: 100%;
         top: 60px;
         left: 0;
         opacity: 1;
@@ -1457,18 +1509,135 @@ body {
     margin-right: 8px
 }
 
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .feedback {
+        width: 40px;
+        height: 40px;
+        background-size: cover;
+        margin-right: 5px
+    }
+}
+
 .header .right_btn2 .feedback:hover {
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/emails.svg") no-repeat top center
+    background: url("../image/emails.svg") no-repeat top center;
+    background-size: cover
 }
 
 @media only screen and (max-width: 999px) {
     .header .right_btn2 .feedback {
         display: none
+    }
+}
+
+.header .right_btn2 .languagebox {
+    position: relative;
+    cursor: pointer;
+    background: url("../image/earth.svg") no-repeat top center;
+    width: 46px;
+    height: 46px;
+    cursor: pointer;
+    margin-right: 8px
+}
+
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .languagebox {
+        width: 40px;
+        height: 40px;
+        background-size: cover;
+        margin-right: 5px
+    }
+}
+
+.header .right_btn2 .languagebox:hover {
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    background: url("../image/earths.svg") no-repeat top center;
+    background-size: cover
+}
+
+.header .right_btn2 .languagebox:hover .slimenu {
+    visibility: visible;
+    opacity: 1;
+    -moz-opacity: 1;
+    filter: alpha(opacity=100);
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}
+
+@media only screen and (max-width: 999px) {
+    .header .right_btn2 .languagebox {
+        display: none
+    }
+}
+
+.header .right_btn2 .languagebox .slimenu {
+    width: 160px;
+    position: absolute;
+    right: 50%;
+    margin-right: -80px;
+    top: 40px;
+    padding-top: 15px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    opacity: 0;
+    -moz-opacity: 0;
+    filter: alpha(opacity=100);
+    visibility: hidden
+}
+
+.header .right_btn2 .languagebox .slimenu ul {
+    list-style: none;
+    background: #FFF;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.16);
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden
+}
+
+.header .right_btn2 .languagebox .slimenu ul li {
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    text-align: center
+}
+
+.header .right_btn2 .languagebox .slimenu ul li:last-child {
+    border-bottom: 0
+}
+
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .languagebox .slimenu ul li {
+        text-align: left
+    }
+}
+
+@media only screen and (min-width: 1000px) {
+    .header .right_btn2 .languagebox .slimenu ul li:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        color: #76A578;
+        background: #EEF4EF
     }
 }
 
@@ -1496,6 +1665,14 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s
+}
+
+@media only screen and (max-width: 1279px) {
+    .header .right_btn2 .member_login .icon {
+        width: 40px;
+        height: 40px;
+        background-size: cover
+    }
 }
 
 .header .right_btn2 .member_login p {
@@ -1582,7 +1759,8 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/users.svg") no-repeat top left
+    background: url("../image/users.svg") no-repeat top left;
+    background-size: cover
 }
 
 .header .right_btn2 .member_login:hover p {
