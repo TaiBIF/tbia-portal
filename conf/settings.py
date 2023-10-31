@@ -23,6 +23,16 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
+
+datahub_db_settings = {
+    "host": env('DATAHUB_POSTGRES_HOST'),
+    "port": int(env('DATAHUB_POSTGRES_PORT')),
+    "user": env('DATAHUB_POSTGRES_USER'),
+    "password": env('DATAHUB_POSTGRES_PASSWORD'),
+    "database": env('DATAHUB_POSTGRES_DB'),
+}
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 

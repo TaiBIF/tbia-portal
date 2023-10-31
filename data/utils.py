@@ -7,7 +7,53 @@ import numpy as np
 import bisect
 import os
 from os.path import exists
-from data.models import DatasetKey, Taxon
+from data.models import Taxon #DatasetKey, 
+from conf.settings import datahub_db_settings
+import psycopg2
+
+
+def get_dataset_key(key):
+    conn = psycopg2.connect(**datahub_db_settings)
+    query = 'SELECT "name" FROM dataset WHERE id = %s'
+    with conn.cursor() as cursor:
+        cursor.execute(query, (key,))
+        results = cursor.fetchone()
+        conn.close()
+        if len (results):
+            return results[0]
+        else:
+            return None
+        
+
+# DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
+
+def get_dataset_list(dataset_list ,record_type=None, rights_holder=None):
+    results = []
+    conn = psycopg2.connect(**datahub_db_settings)
+
+
+    query = f''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f' 
+                {f"AND record_type = '{record_type}'" if record_type else ''}  
+                {f"AND rights_holder = '{rights_holder}'" if rights_holder else ''}  
+            '''
+
+
+    # if record_type:
+    #     query = '''SELECT id, "name" FROM dataset WHERE "name" IN %s AND record_type = %s AND deprecated = 'f' '''
+    #     with conn.cursor() as cursor:
+    #         cursor.execute(query, (tuple(dataset_list),record_type, ))
+    #         results = cursor.fetchall()
+    #         conn.close()
+    # else:
+    #     query = ''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f'  '''
+    with conn.cursor() as cursor:
+        cursor.execute(query, (tuple(dataset_list), ))
+        results = cursor.fetchall()
+        conn.close()
+        
+    return results
+
+
 
 spe_chars = ['+','-', '&','&&', '||', '!','(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/']
 
@@ -666,15 +712,21 @@ def create_query_display(search_dict,sq_id):
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
                         for d in eval(search_dict[k]):
-                            if DatasetKey.objects.filter(id=d).exists():
-                                d_list.append(DatasetKey.objects.get(id=d).name)
+                            if d_name := get_dataset_key(d):
+                                d_list.append(d_name)
+                            # if DatasetKey.objects.filter(id=d).exists():
+                                # d_list.append(DatasetKey.objects.get(id=d).name)
                     else:
-                        if DatasetKey.objects.filter(id=search_dict[k]).exists():
-                            d_list.append(DatasetKey.objects.get(id=search_dict[k]).name)
+                        if d_name := get_dataset_key(search_dict[k]):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=search_dict[k]).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=search_dict[k]).name)
                 else:
                     for d in list(search_dict[k]):
-                        if DatasetKey.objects.filter(id=d).exists():
-                            d_list.append(DatasetKey.objects.get(id=d).name)
+                        if d_name := get_dataset_key(d):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=d).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=d).name)
             elif k == 'rightsHolder':
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):

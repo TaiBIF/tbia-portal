@@ -2,21 +2,6 @@ from django.db import models
 from django.utils import timezone
 
 
-class DatasetKey(models.Model):
-    name = models.CharField(max_length=1000, blank=False, null=False, db_index=True)
-    record_type = models.CharField(max_length=20, blank=False, null=False, db_index=True)
-    rights_holder = models.CharField(max_length=100, blank=True, null=True, db_index=True) # 來源資料庫
-    deprecated = models.BooleanField(default=False) # 資料庫內是否還有此資料集名稱
-
-    class Meta:
-        # indexes = [
-        #     models.UniqueIndex(fields=['name','record_type','group'], name='dataset_idx'),
-        # ]
-        constraints = [
-            models.UniqueConstraint(fields=['name','record_type','rights_holder'], name='dataset_unique')
-        ]
-
-
 # 新舊TaiCOL namecode對應 & TaiEOL對應
 class Namecode(models.Model): 
     taxon_name_id = models.CharField(max_length=100, blank=False, null=False)
@@ -170,3 +155,18 @@ class Taxon(models.Model):
     alien_type = models.CharField(blank=True, null=True, max_length=10000)
     is_endemic = models.BooleanField(blank=True, null=True) 
 
+
+# deprecated
+class DatasetKey(models.Model):
+    name = models.CharField(max_length=1000, blank=False, null=False, db_index=True)
+    record_type = models.CharField(max_length=20, blank=False, null=False, db_index=True)
+    rights_holder = models.CharField(max_length=100, blank=True, null=True, db_index=True) # 來源資料庫
+    deprecated = models.BooleanField(default=False) # 資料庫內是否還有此資料集名稱
+
+    class Meta:
+        # indexes = [
+        #     models.UniqueIndex(fields=['name','record_type','group'], name='dataset_idx'),
+        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['name','record_type','rights_holder'], name='dataset_unique')
+        ]

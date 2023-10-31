@@ -39,7 +39,7 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
-from data.models import Namecode, Taxon, DatasetKey
+from data.models import Namecode, Taxon #, DatasetKey
 import html
 
 
@@ -296,15 +296,21 @@ def submit_sensitive_request(request):
                 if isinstance(val, str):
                     if val.startswith('['):
                         for d in eval(val):
-                            if DatasetKey.objects.filter(id=d).exists():
-                                d_list.append(DatasetKey.objects.get(id=d).name)
+                            if d_name := get_dataset_key(d):
+                                d_list.append(d_name)
+                            # if DatasetKey.objects.filter(id=d).exists():
+                            #     d_list.append(DatasetKey.objects.get(id=d).name)
                     else:
-                        if DatasetKey.objects.filter(id=val).exists():
-                            d_list.append(DatasetKey.objects.get(id=val).name)
+                        if d_name := get_dataset_key(val):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=val).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=val).name)
                 else:
                     for d in list(val):
-                        if DatasetKey.objects.filter(id=d).exists():
-                            d_list.append(DatasetKey.objects.get(id=d).name)
+                        if d_name := get_dataset_key(d):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=d).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=d).name)
 
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
@@ -563,16 +569,21 @@ def transfer_sensitive_response(request):
                 if isinstance(val, str):
                     if val.startswith('['):
                         for d in eval(val):
-                            if DatasetKey.objects.filter(id=d).exists():
-                                d_list.append(DatasetKey.objects.get(id=d).name)
+                            if d_name := get_dataset_key(d):
+                                d_list.append(d_name)
+                            # if DatasetKey.objects.filter(id=d).exists():
+                            #     d_list.append(DatasetKey.objects.get(id=d).name)
                     else:
-                        if DatasetKey.objects.filter(id=val).exists():
-                            d_list.append(DatasetKey.objects.get(id=val).name)
+                        if d_name := get_dataset_key(val):
+                                d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=val).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=val).name)
                 else:
                     for d in list(val):
-                        if DatasetKey.objects.filter(id=d).exists():
-                            d_list.append(DatasetKey.objects.get(id=d).name)
-            
+                        if d_name := get_dataset_key(d):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=d).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=d).name)            
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
                 query_list += [f'datasetName:("{d_list_str}")']
@@ -811,15 +822,21 @@ def generate_sensitive_csv(query_id, scheme, host):
                 if isinstance(val, str):
                     if val.startswith('['):
                         for d in eval(val):
-                            if DatasetKey.objects.filter(id=d).exists():
-                                d_list.append(DatasetKey.objects.get(id=d).name)
+                            if d_name := get_dataset_key(d):
+                                d_list.append(d_name)
+                            # if DatasetKey.objects.filter(id=d).exists():
+                            #     d_list.append(DatasetKey.objects.get(id=d).name)
                     else:
-                        if DatasetKey.objects.filter(id=val).exists():
-                            d_list.append(DatasetKey.objects.get(id=val).name)
+                        if d_name := get_dataset_key(val):
+                               d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=val).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=val).name)
                 else:
                     for d in list(val):
-                        if DatasetKey.objects.filter(id=d).exists():
-                            d_list.append(DatasetKey.objects.get(id=d).name)
+                        if d_name := get_dataset_key(d):
+                            d_list.append(d_name)
+                        # if DatasetKey.objects.filter(id=d).exists():
+                        #     d_list.append(DatasetKey.objects.get(id=d).name)
             
             if d_list:
                 d_list_str = '" OR "'.join(d_list)
@@ -1120,9 +1137,10 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     d_list = []
     if val := req_dict.getlist('datasetName'):
         for v in val:
-            if DatasetKey.objects.filter(id=v).exists():
-                d_list.append(DatasetKey.objects.get(id=v).name)
-
+            if d_name := get_dataset_key(v):
+                d_list.append(d_name)
+            # if DatasetKey.objects.filter(id=v).exists():
+            #     d_list.append(DatasetKey.objects.get(id=v).name)
     if d_list:
         d_list_str = '" OR "'.join(d_list)
         query_list += [f'datasetName:("{d_list_str}")']
@@ -1346,9 +1364,10 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     d_list = []
     if val := req_dict.getlist('datasetName'):
         for v in val:
-            if DatasetKey.objects.filter(id=v).exists():
-                d_list.append(DatasetKey.objects.get(id=v).name)
-    
+            if d_name := get_dataset_key(v):
+                    d_list.append(d_name)
+            # if DatasetKey.objects.filter(id=v).exists():
+            #     d_list.append(DatasetKey.objects.get(id=v).name)
     if d_list:
         d_list_str = '" OR "'.join(d_list)
         query_list += [f'datasetName:("{d_list_str}")']
@@ -3054,7 +3073,9 @@ def search_collection(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
+    if len(dataset_list):
+        dataset_list = get_dataset_list(record_type='col',dataset_list=dataset_list)
+    # dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
 
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
@@ -3071,7 +3092,9 @@ def search_occurrence(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
+    if len(dataset_list):
+        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
+    # dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
     sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     basis_list = basis_dict.keys()
@@ -3444,8 +3467,11 @@ def get_map_grid(request):
         d_list = []
         if val := request.POST.getlist('datasetName'):
             for v in val:
-                if DatasetKey.objects.filter(id=v).exists():
-                    d_list.append(DatasetKey.objects.get(id=v).name)
+                if d_name := get_dataset_key(v):
+                        d_list.append(d_name)
+
+                # if DatasetKey.objects.filter(id=v).exists():
+                #     d_list.append(DatasetKey.objects.get(id=v).name)
         
         if d_list:
             d_list_str = '" OR "'.join(d_list)
@@ -3672,8 +3698,10 @@ def get_conditional_records(request):
         d_list = []
         if val := request.POST.getlist('datasetName'):
             for v in val:
-                if DatasetKey.objects.filter(id=v).exists():
-                    d_list.append(DatasetKey.objects.get(id=v).name)
+                if d_name := get_dataset_key(v):
+                        d_list.append(d_name)
+                # if DatasetKey.objects.filter(id=v).exists():
+                #     d_list.append(DatasetKey.objects.get(id=v).name)
         
         if d_list:
             d_list_str = '" OR "'.join(d_list)
@@ -3939,30 +3967,41 @@ def get_conditional_records(request):
 
 def change_dataset(request):
     ds = []
+    results = []
     if holder := request.GET.getlist('holder'):    
         for h in holder:
-            if DatasetKey.objects.filter(rights_holder=h).exists():
+            # if DatasetKey.objects.filter(rights_holder=h).exists():
             # for k in holders.keys():
             #     if holders[k] == h:
-                response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
-                d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-                dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
+            d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+            dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+            if len(dataset_list):
                 if request.GET.get('record_type') == 'col':
-                    obj = DatasetKey.objects.filter(record_type='col',rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
+                    results = get_dataset_list(record_type='col',rights_holder=h,dataset_list=dataset_list)
                 else:
-                    obj = DatasetKey.objects.filter(rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
-                for d in obj:
-                    ds += [{'value': d.id, 'text': d.name}]
+                    results = get_dataset_list(rights_holder=h,dataset_list=dataset_list)
+                #     obj = DatasetKey.objects.filter(record_type='col',rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
+                # else:
+                #     obj = DatasetKey.objects.filter(rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
+            for d in results:
+                ds += [{'value': d[0], 'text': d[1]}]
     else:
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
         d_list = response.json()['facet_counts']['facet_fields']['datasetName']
         dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-        if request.GET.get('record_type') == 'col':
-            obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list).distinct('name')
-        else:
-            obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
-        for d in obj:
-            ds += [{'value': d.id, 'text': d.name}]
+        if len(dataset_list):
+            if request.GET.get('record_type') == 'col':
+                results = get_dataset_list(record_type='col',dataset_list=dataset_list)
+            else:
+                results = get_dataset_list(dataset_list=dataset_list)
+
+        # if request.GET.get('record_type') == 'col':
+        #     obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list).distinct('name')
+        # else:
+        #     obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
+        for d in results:
+            ds += [{'value': d[0], 'text': d[1]}]
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
