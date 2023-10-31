@@ -285,15 +285,15 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $( function() {
     
-    $(document).on("keydown", "form", function(event) { 
-        if(event.key  == 'Enter') {
+    // $(document).on("keydown", "form", function(event) { 
+    //     if(event.key  == 'Enter') {
 
-            if ($('.popbg').length == $('.popbg.d-none').length && $('.vsb-menu[style*="visibility: visible"]').length == 0 ){
-                $('.search_condition_are .submitSearch').trigger('click')
-            }
-        } 
-        return event.key != "Enter";
-    });
+    //         if ($('.popbg').length == $('.popbg.d-none').length && $('.vsb-menu[style*="visibility: visible"]').length == 0 ){
+    //             $('.search_condition_are .submitSearch').trigger('click')
+    //         }
+    //     } 
+    //     return event.key != "Enter";
+    // });
 
     $('.resetSearch').on('click', function(){
         $('.clearGeo').trigger('click')

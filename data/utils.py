@@ -84,6 +84,8 @@ rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 
               'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'special-form', 'race', 'stirp', 'morph', 'aberration', 'hybrid-formula']
 
 var_df = pd.DataFrame([
+('鲃','[鲃䰾]'),
+('䰾','[鲃䰾]'),
 ('刺','[刺刺]'),
 ('刺','[刺刺]'),
 ('葉','[葉葉]'),
