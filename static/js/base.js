@@ -156,6 +156,9 @@ $(function () {
     })
 
     $('.i-register').on('click', function(){
+        // 移除原本的錯誤tag
+        $('#registerForm .noticbox').addClass('d-none')
+
         $('.login_pop .loginbox').addClass('d-none')
         $('.login_pop .register_area').removeClass('d-none')
     })

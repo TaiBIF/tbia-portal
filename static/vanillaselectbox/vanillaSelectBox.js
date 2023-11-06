@@ -624,11 +624,6 @@ function vanillaSelectBox(domSelector, options) {
                 
             })
 
-
-
-
-
-
             self.inputBox.addEventListener("keyup", function (e) {
                 if ( !e.isComposing ){ 
                     // 注音輸入完成才搜尋

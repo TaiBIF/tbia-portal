@@ -43,23 +43,36 @@ from data.models import Namecode, Taxon #, DatasetKey
 import html
 
 
-basis_dict = { '人為觀測':'("人為觀測" OR "HumanObservation")', 
-                '保存標本':'("保存標本" OR "PreservedSpecimen")', 
-                '化石標本':'("化石標本" OR "FossilSpecimen")', 
-                '活體標本':'("活體標本" OR "LivingSpecimen")', 
-                '組織樣本':'("組織樣本" OR "MaterialSample")',
-                '機器觀測':'("機器觀測" OR "MachineObservation")', 
-                '出現紀錄':'("出現紀錄" OR "Occurrence")',
-                'MaterialCitation': ("MaterialCitation")}
+basis_dict = {
+    "人為觀測": '("人為觀測" OR "HumanObservation")',
+    "機器觀測": '("機器觀測" OR "MachineObservation")',
+    "保存標本": '("保存標本" OR "PreservedSpecimen")',
+    "材料樣本": '("材料樣本" OR "MaterialSample")',
+    "活體標本": '("活體標本" OR "LivingSpecimen")',
+    "化石標本": '("化石標本" OR "FossilSpecimen")',
+    "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
+    "材料實體": '("材料實體" OR "MaterialEntity")',
+    "分類群": '("分類群" OR "Taxon")',
+    "出現紀錄": '("出現紀錄" OR "Occurrence")',
+    "調查活動": '("調查活動" OR "Event")'
+}
 
-basis_map = { 'HumanObservation':'人為觀測', 
-                'PreservedSpecimen': '保存標本',
-                'FossilSpecimen': '化石標本',
-                'LivingSpecimen': '活體標本',
-                'MaterialSample': '組織樣本',
-                'MachineObservation': '機器觀測',
-                'Occurrence': '出現紀錄',
-                'MaterialCitation': 'MaterialCitation'}
+
+basis_map = {
+    "HumanObservation":"人為觀測",
+    "MachineObservation":"機器觀測",
+    "PreservedSpecimen":"保存標本",
+    "MaterialSample":"材料樣本",
+    "LivingSpecimen":"活體標本",
+    "FossilSpecimen":"化石標本",
+    "MaterialCitation":"文獻紀錄",
+    "MaterialEntity":"材料實體",
+    "Taxon":"分類群",
+    "Occurrence":"出現紀錄",
+    "Event":"調查活動"
+}
+
+
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']

@@ -30,6 +30,7 @@ urlpatterns = [
     # path('ckeditor/upload/', login_required(ckeditor_views.upload), name='ckeditor_upload'),
     # path('ckeditor/', include('ckeditor_uploader.urls')),
     path('accounts/', include('allauth.urls')),  # django-allauth網址
+    path("robots.txt",TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = "pages.views.page_not_found_view"
