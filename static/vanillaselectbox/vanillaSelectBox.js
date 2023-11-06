@@ -558,8 +558,80 @@ function vanillaSelectBox(domSelector, options) {
         }
         self.listElements = self.drop.querySelectorAll("li:not(.grouped-option)");
         if (self.search) {
+
+            self.inputBox.addEventListener("compositionend", function(e){
+                // 注音輸入完成才搜尋
+                let searchValue = e.target.value.toUpperCase();
+                let searchValueLength = searchValue.length;
+                let nrFound = 0;
+                let nrChecked = 0;
+                let selectAll = null;
+                if (self.isSearchRemote) {
+                    if (searchValueLength == 0) {
+                        self.remoteSearchIntegrate(null);
+                    } else if (searchValueLength >= 1) {
+                        self.onSearch(searchValue)
+                            .then(function (data) {
+                                self.remoteSearchIntegrate(data);
+                            });
+                        e.stopPropagation()
+                        e.preventDefault();
+                    }
+                } else {
+                    if (searchValueLength < 1) {
+                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                            if (x.getAttribute('data-value') === 'all') {
+                                selectAll = x;
+                            } else {
+                                x.classList.remove("hidden-search");
+                                nrFound++;
+                                nrChecked += x.classList.contains('active');
+                            }
+                        });
+                    } else {
+                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                            if (x.getAttribute('data-value') !== 'all') {
+                                let text = x.getAttribute("data-text").toUpperCase();
+                                if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
+                                    x.classList.add("hidden-search");
+                                } else {
+                                    nrFound++;
+                                    x.classList.remove("hidden-search");
+                                    nrChecked += x.classList.contains('active');
+                                }
+                            } else {
+                                selectAll = x;
+                            }
+                        });
+                    }
+                    if (selectAll) {
+                        if (nrFound === 0) {
+                            selectAll.classList.add('disabled');
+                        } else {
+                            selectAll.classList.remove('disabled');
+                        }
+                        if (nrChecked !== nrFound) {
+                            selectAll.classList.remove("active");
+                            selectAll.innerText = self.userOptions.translations.selectAll;
+                            selectAll.setAttribute('data-selected', 'false')
+                        } else {
+                            selectAll.classList.add("active");
+                            selectAll.innerText = self.userOptions.translations.clearAll;
+                            selectAll.setAttribute('data-selected', 'true')
+                        }
+                    }
+                }
+                
+            })
+
+
+
+
+
+
             self.inputBox.addEventListener("keyup", function (e) {
-                if ( !e.isComposing ){ // 注音輸入完成才搜尋
+                if ( !e.isComposing ){ 
+                    // 注音輸入完成才搜尋
                     let searchValue = e.target.value.toUpperCase();
                     let searchValueLength = searchValue.length;
                     let nrFound = 0;
@@ -622,6 +694,8 @@ function vanillaSelectBox(domSelector, options) {
                     }
                 }
             }); 
+
+
         }
 
         if (self.userOptions.stayOpen) {
