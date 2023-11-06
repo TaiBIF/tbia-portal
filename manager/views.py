@@ -1196,7 +1196,10 @@ def update_keywords(request):
     if request.method == 'POST':
         for i in range(3):
             order = i+1
-            Keyword.objects.filter(order=order).update(keyword=request.POST.get(f"keyword_{order}"))
+            Keyword.objects.filter(order=order,lang='zh-hant').update(keyword=request.POST.get(f"keyword_{order}"))
+        for i in range(3):
+            order = i+1
+            Keyword.objects.filter(order=order,lang='en-us').update(keyword=request.POST.get(f"keyword_en_{order}"))
         return JsonResponse({"status": 'success'}, safe=False)
 
 
@@ -1411,7 +1414,7 @@ def get_partner_stat(request):
 
 
 def manager_system(request):
-    keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
+    # keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
     no_taxon = 0
     has_taxon = 0
     partner_admin = ''
@@ -1442,8 +1445,8 @@ def manager_system(request):
                 if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
                     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                            # 'data_total':data_total,
-                                                            'keywords': keywords, 'match_logs': match_logs})
+                                                            # 'data_total':data_total,'keywords': keywords,
+                                                             'match_logs': match_logs})
 
 
 def get_system_stat(request):
@@ -1675,8 +1678,9 @@ def system_resource(request):
 
 
 def system_keyword(request):
-    keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
-    return render(request, 'manager/system/keyword.html', {'keywords':keywords})
+    keywords = Keyword.objects.filter(lang='zh-hant').order_by('order').values_list('keyword', flat=True)
+    keywords_en = Keyword.objects.filter(lang='en-us').order_by('order').values_list('keyword', flat=True)
+    return render(request, 'manager/system/keyword.html', {'keywords':keywords,'keywords_en': keywords_en})
 
 
 def submit_news(request):

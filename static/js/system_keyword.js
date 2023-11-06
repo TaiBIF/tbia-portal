@@ -36,6 +36,19 @@ $(document).ready(function () {
           $('input[name=keyword_3]').next('.noticbox').removeClass('d-none')
           checked = false
         }  
+
+        if (!$('input[name=keyword_en_1]').val()){
+          $('input[name=keyword_en_1]').next('.noticbox').removeClass('d-none')
+          checked = false
+        }  
+        if (!$('input[name=keyword_en_2]').val()){
+          $('input[name=keyword_en_2]').next('.noticbox').removeClass('d-none')
+          checked = false
+        }  
+        if (!$('input[name=keyword_en_3]').val()){ 
+          $('input[name=keyword_en_3]').next('.noticbox').removeClass('d-none')
+          checked = false
+        }  
         
         
         if (checked){

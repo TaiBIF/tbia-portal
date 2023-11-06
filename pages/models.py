@@ -7,8 +7,13 @@ from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Keyword(models.Model):
+    lang_choice = [
+        ('en-us', '英文'),
+        ('zh-hant', '中文'),
+    ]
     keyword = models.TextField( blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
+    lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True)
     # created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
