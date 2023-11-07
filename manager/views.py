@@ -677,7 +677,7 @@ def change_manager_page(request):
                     'partner_title': partner_title,
                     'select': select,
                     'status': status,
-                    'a': f'<button class="manager_btn save_btn saveStatus" data-pmid="{ a.id })">儲存</button>'
+                    'a': f'<button class="manager_btn save_btn saveStatus" data-pmid="{ a.id }">儲存</button>'
                 })
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)

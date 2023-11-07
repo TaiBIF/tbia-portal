@@ -2014,18 +2014,23 @@ def search_full(request):
         taxon_result_dict = []
         for tr in taxon_result_dict_all:
             tr['images'] = []
-            if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
-                n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
-                namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
-                url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
-                r = requests.get(url)
-                img = r.json()
-                if img:
-                    # ii = img[0]
-                    for ii in img:
-                        tr['images'] += [{'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}]
-                if n_obj.taieol_id:
-                    tr['taieol_id'] = n_obj.taieol_id
+            results = get_species_images(tr['taxon_name_id'])
+            if results:
+                tr['taieol_id'] = results[0]
+                tr['images'] = results[1]
+
+            # if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+            #     n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
+            #     namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+            #     url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+            #     r = requests.get(url)
+            #     img = r.json()
+            #     if img:
+            #         # ii = img[0]
+            #         for ii in img:
+            #             tr['images'] += [{'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}]
+            #     if n_obj.taieol_id:
+            #         tr['taieol_id'] = n_obj.taieol_id
             tr['matched'] = []
             for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
                 match_val = taxon_result_df.loc[ii].matched_value
@@ -2659,18 +2664,21 @@ def get_focus_cards_taxon(request):
         taxon_result_dict = []
         for tr in taxon_result_dict_all:
             tr['images'] = []
-            if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
-                n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
-                namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
-                url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
-                r = requests.get(url)
-                img = r.json()
-                
-                if img:
-                    for ii in img:
-                        tr['images'] += [{'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}]
-                if n_obj.taieol_id:
-                    tr['taieol_id'] = n_obj.taieol_id
+            results = get_species_images(tr['taxon_name_id'])
+            if results:
+                tr['taieol_id'] = results[0]
+                tr['images'] = results[1]
+            # if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+            #     n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
+            #     namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+            #     url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+            #     r = requests.get(url)
+            #     img = r.json()
+            #     if img:
+            #         for ii in img:
+            #             tr['images'] += [{'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}]
+            #     if n_obj.taieol_id:
+            #         tr['taieol_id'] = n_obj.taieol_id
             tr['matched'] = []
             for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
                 match_val = taxon_result_df.loc[ii].matched_value
@@ -2837,20 +2845,24 @@ def get_more_cards_taxon(request):
             taxon_result_dict_all = taxon_result_df[['val', 'occ_count', 'col_count', 'common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'taxonID', 'taxon_name_id','taxonRank']].drop_duplicates().to_dict(orient='records')
             
             for tr in taxon_result_dict_all:
-                images = []
-                if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
-                    namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
-                    n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
-                    url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
-                    r = requests.get(url)
-                    img = r.json()
+                tr['images'] = []
+                results = get_species_images(tr['taxon_name_id'])
+                if results:
+                    tr['taieol_id'] = results[0]
+                    tr['images'] = results[1]
+                # if Namecode.objects.filter(taxon_name_id=tr['taxon_name_id']).exists():
+                #     namecode = Namecode.objects.get(taxon_name_id=tr['taxon_name_id']).namecode
+                #     n_obj = Namecode.objects.get(taxon_name_id=tr['taxon_name_id'])
+                #     url = 'https://data.taieol.tw/eol/endpoint/image/species/{}'.format(namecode)
+                #     r = requests.get(url)
+                #     img = r.json()
                     
-                    for ii in img:
-                        foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
-                        images.append(foto)
-                    if n_obj.taieol_id:
-                        tr['taieol_id'] = n_obj.taieol_id
-                tr['images'] = images
+                #     for ii in img:
+                #         foto = {'author':ii['author'], 'src':ii['image_big'], 'provider':ii['provider']}
+                #         images.append(foto)
+                #     if n_obj.taieol_id:
+                #         tr['taieol_id'] = n_obj.taieol_id
+                # tr['images'] = images
                 tr['matched'] = []
                 for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
                     match_val = taxon_result_df.loc[ii].matched_value

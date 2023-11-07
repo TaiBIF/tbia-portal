@@ -24,6 +24,14 @@ def get_dataset_key(key):
             results = results[0]
     return results
         
+def get_species_images(taxon_name_id):
+    conn = psycopg2.connect(**datahub_db_settings)
+    query = "SELECT taieol_id, images FROM species_images WHERE taxon_name_id = %s"
+    with conn.cursor() as cursor:
+        cursor.execute(query, (str(taxon_name_id),))
+        results = cursor.fetchone()
+        conn.close()
+    return results
 
 # DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
 
@@ -304,7 +312,7 @@ dup_col = ['scientificName', 'common_name_c',
             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',  'sourceScientificName', 'sourceVernacularName']
 
 # 進階搜尋查詢name欄位
-name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName']
+name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName']
 
 def get_key(val, my_dict):
     for key, value in my_dict.items():
@@ -429,6 +437,7 @@ map_occurrence = {
     'misapplied': '誤用名',
     'sourceScientificName': '來源資料庫使用學名',
     'sourceVernacularName': '來源資料庫使用中文名',
+    'originalScientificName': '原始紀錄物種',
     'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
@@ -559,6 +568,7 @@ map_collection = {
     'misapplied': '誤用名',
     'sourceScientificName': '來源資料庫使用學名',
     'sourceVernacularName': '來源資料庫使用中文名',
+    'originalScientificName': '原始紀錄物種',
     'rightsHolder': '來源資料庫', 
     'taxonID': 'TaiCOL物種編號', 
     'catalogNumber': '館藏號', 

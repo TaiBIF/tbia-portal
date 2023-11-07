@@ -201,6 +201,22 @@ occ_facets = {  'facet': {
                     },
                 }
         },
+        'originalScientificName': {
+            'type': 'terms',
+            'field': 'originalScientificName',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                'taxonID':{
+                    'type': 'terms',
+                    'field': 'taxonID',
+                    'limit': 30,
+                    'numBuckets': True,
+                },
+            }        
+        },
         'taxonRank': {
             'type': 'terms',
             'field': 'taxonRank',
@@ -669,6 +685,22 @@ col_facets = { 'facet': {
                         'numBuckets': True,
                     },
                 }
+        },
+        'originalScientificName': {
+            'type': 'terms',
+            'field': 'originalScientificName',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                'taxonID':{
+                    'type': 'terms',
+                    'field': 'taxonID',
+                    'limit': 30,
+                    'numBuckets': True,
+                },
+            }        
         },
         'rightsHolder': {
             'type': 'terms',
