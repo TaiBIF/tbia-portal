@@ -154,7 +154,11 @@ class Taxon(models.Model):
     sensitive = models.CharField(blank=True, null=True, max_length=100)
     alien_type = models.CharField(blank=True, null=True, max_length=10000)
     is_endemic = models.BooleanField(blank=True, null=True) 
-
+    is_fossil = models.BooleanField(blank=True, null=True) 
+    is_terrestrial = models.BooleanField(blank=True, null=True) 
+    is_freshwater = models.BooleanField(blank=True, null=True) 
+    is_brackish = models.BooleanField(blank=True, null=True) 
+    is_marine = models.BooleanField(blank=True, null=True) 
 
 # deprecated
 class DatasetKey(models.Model):

@@ -1519,8 +1519,11 @@ def generate_species_csv(req_dict, user_id, scheme, host):
             if d['taxonID']['buckets']:
                 df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
         if len(df):
-            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','misapplied','taxonID','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic'))
+            subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','misapplied','taxonID','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
+            'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine'))
             df = df.merge(subset_taxon, how='left')
+            is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+            df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
 
     csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
