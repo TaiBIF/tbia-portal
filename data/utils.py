@@ -13,16 +13,16 @@ import psycopg2
 
 
 def get_dataset_key(key):
+    results = None
     conn = psycopg2.connect(**datahub_db_settings)
     query = 'SELECT "name" FROM dataset WHERE id = %s'
     with conn.cursor() as cursor:
         cursor.execute(query, (key,))
         results = cursor.fetchone()
         conn.close()
-        if len (results):
-            return results[0]
-        else:
-            return None
+        if results:
+            results = results[0]
+    return results
         
 
 # DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
@@ -778,7 +778,61 @@ def create_query_display(search_dict,sq_id):
         query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
     if l_list:
         query += f"<br><b>{map_dict['locality']}</b>：{'、'.join(l_list)}" 
+
     return query
+
+
+# 整理搜尋條件 再次查詢按鈕的連結
+def create_query_a(search_dict):
+    query_a = ''
+
+    d_list = []
+    r_list = []
+    l_list = []
+
+    for k in search_dict.keys():
+        if k == 'datasetName':
+            if isinstance(search_dict[k], str):
+                if search_dict[k].startswith('['):
+                    for d in eval(search_dict[k]):
+                        d_list.append(d)
+                else:
+                    d_list.append(search_dict[k])
+            else:
+                for d in list(search_dict[k]):
+                    d_list.append(d)
+        elif k == 'rightsHolder':
+            if isinstance(search_dict[k], str):
+                if search_dict[k].startswith('['):
+                    r_list = eval(search_dict[k])
+                else:
+                    r_list.append(search_dict[k])
+            else:
+                r_list = list(search_dict[k])
+        elif k == 'locality':
+            if isinstance(search_dict[k], str):
+                if search_dict[k].startswith('['):
+                    l_list = eval(search_dict[k])
+                else:
+                    l_list.append(search_dict[k])
+            else:
+                l_list = list(search_dict[k])
+
+    for l in l_list:
+        query_a += f'&locality={l}'
+    for r in r_list:
+        query_a += f'&rightsHolder={r}'
+    for d in d_list:
+        query_a += f'&datasetName={d}'
+
+    return query_a
+
+
+def query_a_href(query, query_a):
+    query += f'''<br><a class="search-again-a" target="_blank" href="{query_a}">再次查詢<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
+    return query
+
+
 
 # taxon-related columns
 taxon_cols = [

@@ -1557,7 +1557,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     key = req_dict_query.get('key', '')
     value = req_dict_query.get('value', '')
     record_type = req_dict_query.get('record_type', 'occ')
-    scientific_name = req_dict_query.get('scientificName', '')
+    scientific_name = req_dict_query.get('scientific_name', '')
 
     # only facet selected field
     query_list = []
@@ -1598,6 +1598,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list.append(f'scientificName:{scientific_name}')
 
     req_dict = dict(req_dict)
+    print(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
         if nq in req_dict.keys():
@@ -1609,7 +1610,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
 
+    # TODO 全站搜尋的搜尋要加上'page','from','taxon','selected_col'
     query_string = parse.urlencode(req_dict)
+
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
         query = query_string,
@@ -2100,6 +2103,7 @@ def search_full(request):
 
 def get_records(request): # 全站搜尋
     if request.method == 'POST':
+        from_str = request.POST.get('from', '')
         keyword = request.POST.get('keyword', '')
         key = request.POST.get('key', '')
         value = request.POST.get('value', '')
@@ -2107,6 +2111,7 @@ def get_records(request): # 全站搜尋
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
+
         if request.POST.get('orderby'):
             orderby =  orderby = request.POST.get('orderby')
         else:
@@ -2115,6 +2120,7 @@ def get_records(request): # 全站搜尋
             sort =  sort = request.POST.get('sort')
         else:
             sort = 'asc'
+
 
         # only facet selected field
         fq_list = []
@@ -2140,10 +2146,10 @@ def get_records(request): # 全站搜尋
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = get_variants(keyword_reg)
 
-        search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}'
-        
-        if 'scientificName' not in search_str and scientific_name and scientific_name != 'undefined':
-            search_str += f'&scientificName={scientific_name}'
+        search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}&orderby={orderby}&sort={sort}&limit={limit}&page={page}&from={from_str}&get_record=true'
+
+        if 'scientific_name' not in search_str and scientific_name and scientific_name != 'undefined':
+            search_str += f'&scientific_name={scientific_name}'
 
         offset = (page-1)*10
 
@@ -2271,7 +2277,7 @@ def get_records(request): # 全站搜尋
 
         if orderby not in selected_col:
             selected_col.append(orderby)
-
+        
         response = {
             'title': title,
             'orderby': orderby,

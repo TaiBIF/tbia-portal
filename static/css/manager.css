@@ -279,3 +279,23 @@ span.expired-notice {
     stroke: #FFFFFF
 }
 
+.search-again-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.search-again-a path {
+    fill: #76A578;
+}
+
+.search-again-a:hover path {
+    fill: #E2A460;
+}
+
+.search-again-a {
+    color: #76A578;
+}
+
+.search-again-a:hover {
+    color: #E2A460;
+}

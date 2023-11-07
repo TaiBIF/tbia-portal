@@ -42,7 +42,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list
+from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list, create_query_a, query_a_href
 from os.path import exists
 import math
 
@@ -201,6 +201,19 @@ def change_manager_page(request):
             if t.status == 'pass' and t.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">下載</a>'
 
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
+            query = query_a_href(query,query_a)
+            
             data.append({
                 'id': f"#{t.personal_id}",
                 'query_id': t.query_id,
@@ -240,6 +253,19 @@ def change_manager_page(request):
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
             query = create_query_display(search_dict,s.id)
+
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
+            query = query_a_href(query,query_a)
 
             # 審查意見
             comment = []
@@ -297,7 +323,7 @@ def change_manager_page(request):
                 search_dict = dict(parse.parse_qsl(search_str))
                 # print(search_dict)
 
-                query += f"<br><b>關鍵字</b>：{search_dict['keyword']}"
+                query += f"<b>關鍵字</b>：{search_dict['keyword']}"
                 
                 if search_dict.get('record_type') == 'occ':
                     map_dict = map_occurrence
@@ -305,25 +331,41 @@ def change_manager_page(request):
                     map_dict = map_collection
                 key = map_dict.get(search_dict['key'])
                 query += f"<br><b>{key}</b>：{search_dict['value']}"
-                if search_dict.get('scientificName'):
-                    query += f"<br><b>學名</b>：{search_dict['scientificName']}"
+                if search_dict.get('scientific_name'):
+                    query += f"<br><b>學名</b>：{search_dict['scientific_name']}"
+                if 'total_count' in search_dict.keys():
+                    search_dict.pop('total_count')
+                query_a = '/search/full?' + parse.urlencode(search_dict)
+
             else:
             # 進階搜尋
                 search_dict = dict(parse.parse_qsl(r.query))
                 query = create_query_display(search_dict,r.id)
 
+                if search_dict.get("record_type") == 'col':
+                    search_prefix = 'collection'
+                else:
+                    search_prefix = 'occurrence'
+                tmp_a = create_query_a(search_dict)
+                for i in ['locality','datasetName','rightsHolder','total_count']:
+                    if i in search_dict.keys():
+                        search_dict.pop(i)
+
+                query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">下載</a>'
 
+            query = query_a_href(query,query_a)
+            
             data.append({
                 'id': f'#{r.personal_id}',
                 'query_id': r.query_id,
                 'date':  date,
                 'query':   query,
                 'status': r.get_status_display(),
-                'link': link 
+                'link': link,
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
@@ -433,6 +475,19 @@ def change_manager_page(request):
             search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
             query = create_query_display(search_dict,s.id)
 
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
+            query = query_a_href(query,query_a)
+
             # 審查意見
             comment = []
 
@@ -474,8 +529,19 @@ def change_manager_page(request):
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict,r.id)
                                 
+                    if search_dict.get("record_type") == 'col':
+                        search_prefix = 'collection'
+                    else:
+                        search_prefix = 'occurrence'
+                    tmp_a = create_query_a(search_dict)
+                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                        if i in search_dict.keys():
+                            search_dict.pop(i)
+                    query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
                     a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    
+                    query = query_a_href(query,query_a)
 
                     data.append({
                         'id': f'#{sdr.id}',
@@ -483,7 +549,7 @@ def change_manager_page(request):
                         'created':  created + '<br>審核期限：'+due,
                         'query':   query,
                         'status': sdr.get_status_display(),
-                        'a': a
+                        'a': a,
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
@@ -498,6 +564,18 @@ def change_manager_page(request):
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict,r.id)
                 
+                    if search_dict.get("record_type") == 'col':
+                        search_prefix = 'collection'
+                    else:
+                        search_prefix = 'occurrence'
+                    tmp_a = create_query_a(search_dict)
+                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                        if i in search_dict.keys():
+                            search_dict.pop(i)
+
+                    query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
+
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
                         due = check_due(created.strftime('%Y-%m-%d'), 14)
@@ -513,13 +591,15 @@ def change_manager_page(request):
 
                     a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
 
+                    query = query_a_href(query,query_a)
+                    
                     data.append({
                         'id': f'#{sdr.id}',
                         #'query_id': r.query_id,
                         'created':  date,
                         'query':   query,
                         'status': status,
-                        'a': a
+                        'a': a,
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
@@ -778,18 +858,32 @@ def manager(request):
                 map_dict = map_collection
             key = map_dict.get(search_dict['key'])
             query += f"<br><b>{key}</b>：{search_dict['value']}"
-            query += f"<br><b>學名</b>：{search_dict.get('scientificName','')}"
+            query += f"<br><b>學名</b>：{search_dict.get('scientific_name','')}"
+            if 'total_count' in search_dict.keys():
+                search_dict.pop('total_count')
+            query_a = '/search/full?' + parse.urlencode(search_dict)
+
         else:
         # 進階搜尋
             search_dict = dict(parse.parse_qsl(r.query))
             query = create_query_display(search_dict,r.id)
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
         record.append({
             'id': r.personal_id,
             'query_id': r.query_id,
             'date':  date,
             'query':  query,
-            'status': r.get_status_display()
+            'status': r.get_status_display(),
+            'query_a': query_a
         })
     r_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
     r_page_list = get_page_list(1, r_total_page)
@@ -810,12 +904,24 @@ def manager(request):
         search_dict = dict(parse.parse_qsl(t.query))
         query = create_query_display(search_dict,t.id)
 
+        if search_dict.get("record_type") == 'col':
+            search_prefix = 'collection'
+        else:
+            search_prefix = 'occurrence'
+        tmp_a = create_query_a(search_dict)
+        for i in ['locality','datasetName','rightsHolder','total_count']:
+            if i in search_dict.keys():
+                search_dict.pop(i)
+
+        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
         taxon.append({
             'id': t.personal_id,
             'query_id': t.query_id,
-            'date':  date,
-            'query':   query,
-            'status': t.get_status_display()
+            'date': date,
+            'query': query,
+            'status': t.get_status_display(),
+            'query_a': query_a
         })
 
     t_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count()/10)
@@ -838,6 +944,19 @@ def manager(request):
         # 進階搜尋
         search_dict = dict(parse.parse_qsl(s.query))
         query = create_query_display(search_dict,s.id)
+
+        if search_dict.get("record_type") == 'col':
+            search_prefix = 'collection'
+        else:
+            search_prefix = 'occurrence'
+        # if 'total_count' in search_dict.keys():
+        #     search_dict.pop('total_count')
+        tmp_a = create_query_a(search_dict)
+        for i in ['locality','datasetName','rightsHolder','total_count']:
+            if i in search_dict.keys():
+                search_dict.pop(i)
+
+        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
     # for sdr in SensitiveDataResponse.objects.filter(query_id__in=SearchQuery.objects.filter(user_id=request.user.id, type='senstive').values('query_id')):
 
@@ -865,7 +984,8 @@ def manager(request):
             'date':  date,
             'query':   query,
             'status': s.get_status_display(),
-            'comment': '<hr>'.join(comment) if comment else ''
+            'comment': '<hr>'.join(comment) if comment else '',
+            'query_a': query_a
         })
 
     s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
@@ -1306,12 +1426,22 @@ def partner_info(request):
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
             query = create_query_display(search_dict,r.id)
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
         sensitive.append({
             'id': sdr.id,
             'query_id': r.query_id,
             'created':  created,
             'query':   query,
+            'query_a':   query_a,
             'status': sdr.get_status_display(),
             'due': due
         })
@@ -1578,11 +1708,24 @@ def system_info(request):
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
             query = create_query_display(search_dict,r.id)
+
+            if search_dict.get("record_type") == 'col':
+                search_prefix = 'collection'
+            else:
+                search_prefix = 'occurrence'
+            tmp_a = create_query_a(search_dict)
+            for i in ['locality','datasetName','rightsHolder','total_count']:
+                if i in search_dict.keys():
+                    search_dict.pop(i)
+
+            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
         sensitive.append({
             'id': sdr.id,
             'query_id': r.query_id,
             'created':  created,
             'query':   query,
+            'query_a':   query_a,
             'status': sdr.get_status_display(),
             'is_transferred': sdr.is_transferred,
             'due': due,
@@ -1609,6 +1752,17 @@ def system_info(request):
         search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
         query = create_query_display(search_dict,s.id)
 
+        if search_dict.get("record_type") == 'col':
+            search_prefix = 'collection'
+        else:
+            search_prefix = 'occurrence'
+        tmp_a = create_query_a(search_dict)
+        for i in ['locality','datasetName','rightsHolder','total_count']:
+            if i in search_dict.keys():
+                search_dict.pop(i)
+
+        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+
         # 審查意見
         comment = []
 
@@ -1632,6 +1786,7 @@ def system_info(request):
             'query_id': s.query_id,
             'date':  date,
             'query':   query,
+            'query_a':   query_a,
             'status': s.get_status_display(),
             'comment': '<hr>'.join(comment) if comment else '',
             'due': due

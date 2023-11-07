@@ -9,13 +9,19 @@
 }
 
 
-.track_table tr:not(:first-child) td:nth-child(2) {
+.sensitive_track_table tr:not(:first-child) td:nth-child(2) {
     word-wrap: break-word;
     word-break: break-all;
     white-space: normal;
 }
 
-.track_table tr:not(:first-child) td:nth-child(4), .track_table tr:not(:first-child) td:nth-child(5) {
+/* .track_table tr:not(:first-child) td:nth-child(1) {
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
+} */
+
+.sensitive_track_table tr:not(:first-child) td:nth-child(4), .sensitive_track_table tr:not(:first-child) td:nth-child(5) {
     text-align: left
 }
 
@@ -242,4 +248,25 @@ td hr {
 
 .fs-14px {
     font-size: 14px
+}
+
+.search-again-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.search-again-a path {
+    fill: #76A578;
+}
+
+.search-again-a:hover path {
+    fill: #E2A460;
+}
+
+.search-again-a {
+    color: #76A578;
+}
+
+.search-again-a:hover {
+    color: #E2A460;
 }

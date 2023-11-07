@@ -622,6 +622,8 @@ function focusComponent(item_class, go_back){
     $('.result_table').remove()
     $('.page_number').remove()
 
+    // let $key = key;
+
     // append rows
     $.ajax({
         url: "/get_records",
@@ -635,6 +637,7 @@ function focusComponent(item_class, go_back){
                 page: page,
                 orderby: orderby,
                 sort: sort,
+                from: from,
               },
         type: 'POST',
         dataType : 'json',
@@ -754,6 +757,8 @@ function focusComponent(item_class, go_back){
             getRecords(record_type,key,value,scientific_name,limit,page,'orderby',go_back,$(this).data('orderby'),$(this).data('sort'))
         })
 
+        // let selected_key = Object.keys(map_dict).find(a => map_dict[a] === key)
+        window.selected_key = key
         // 判斷是從分頁或卡片點選
         if ((from == 'card') || ( $(`.${record_type}-choice input:checked`).length==0 )){ //如果都沒有選的話用預設值
           // uncheck all first
@@ -763,17 +768,24 @@ function focusComponent(item_class, go_back){
             $(`.row-${response.selected_col[i]}`).removeClass('d-none');
             $(`#${record_type}-${response.selected_col[i]}`).prop('checked',true);
           }
+
+          if (key != 'taxonID'){
+            $(`.row-${key}`).removeClass('d-none');
+          }
+          
           clickToAnchor('#records')
+          
         } else {
           sendSelected(record_type)
         }
 
-        // disable checkebox for key field
-        let selected_key = Object.keys(map_dict).find(a => map_dict[a] === key)
-        window.selected_key = selected_key
-        $(`#${record_type}-${selected_key}`).prop('disabled',true);
-        $(`#${record_type}-${selected_key}`).prop('checked',true);
 
+        // disable checkebox for key field 預設一定要勾選
+        if (key != 'taxonID') {
+          $(`#${record_type}-${key}`).prop('disabled',true);
+          $(`#${record_type}-${key}`).prop('checked',true);
+        }        
+        
         // append pagination
         if (response.total_page > 1){  // 判斷是否有下一頁，有才加分頁按鈕
           $('.result_table').after(
@@ -1586,7 +1598,9 @@ function sendSelected(record_type){
   let selected_field = $(`.${record_type}-choice input:checked`)
   // 所有都先隱藏，除了對到的欄位
   $('td[class^="row-"]').addClass('d-none');
-  $(`.row-${window.selected_key}`).removeClass('d-none');
+  if (window.selected_key != 'taxonID'){
+    $(`.row-${window.selected_key}`).removeClass('d-none');
+  }
   // 再顯示選擇的欄位
   for (let i = 0; i < selected_field.length; i++) {
     $(`td.row-${selected_field[i].id.split('-')[1]}`).removeClass('d-none');
