@@ -1,6 +1,7 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
-from manager.models import Partner
+from manager.models import Partner, Workday
+from django.db.models import Max
 
 class TokenGenerator(PasswordResetTokenGenerator):
 
@@ -45,32 +46,16 @@ import os
 lst = os.listdir('/tbia-volumes/bucket/calendar/')
 lst.sort()
 
-# today = datetime.today() + timedelta(hours=8)
-
-# this_year = today.year
-# c_cal = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year}.csv')
-# if exists(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv'):
-#     c_cal_1 = pd.read_csv(f'/tbia-volumes/bucket/calendar/calendar_{this_year+1}.csv')
-#     c_cal = c_cal.append(c_cal_1, ignore_index=True)
-
-c_cal = pd.DataFrame()
-for l in lst:
-    c = pd.read_csv(f'/tbia-volumes/bucket/calendar/{l}')
-    c_cal = c_cal.append(c, ignore_index=True)
-
+max_day = Workday.objects.all().aggregate(Max('date'))['date__max']
 
 def check_due(checked_date, review_days): # 日期, 審核期限
     final_due = ''
-    checked_date = checked_date.replace('-','')
     c = 0
-    row_i = c_cal[c_cal.西元日期 == int(checked_date)].index[0]
     while c < review_days:
-        row_i += 1
-        if not row_i > c_cal.index.max():
-            if c_cal.iloc[row_i].是否放假 == 0:
-                due = c_cal.iloc[row_i]
-                final_due = str(due.西元日期)
-                final_due = datetime.strptime(final_due,'%Y%m%d').strftime('%Y-%m-%d')
+        checked_date += timedelta(days=1)
+        if not checked_date > max_day:
+            if Workday.objects.get(date=checked_date).is_dayoff == 0:
+                final_due = checked_date
+                final_due = final_due.strftime('%Y-%m-%d')
                 c += 1
     return final_due
-

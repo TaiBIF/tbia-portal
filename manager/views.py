@@ -465,7 +465,7 @@ def change_manager_page(request):
         # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
                 date = s.created + timedelta(hours=8)
-                due = check_due(date.strftime('%Y-%m-%d'),14) # 已經是轉交單位審核的，期限為14天
+                due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 date = ''
@@ -520,7 +520,7 @@ def change_manager_page(request):
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
-                due = check_due(created.strftime('%Y-%m-%d'), 14)
+                due = check_due(created.date(), 14)
                 created = created.strftime('%Y-%m-%d %H:%M:%S')
 
                 # 整理搜尋條件
@@ -578,11 +578,11 @@ def change_manager_page(request):
 
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
-                        due = check_due(created.strftime('%Y-%m-%d'), 14)
+                        due = check_due(created.date(), 14)
                         created = created.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         status = sdr.get_status_display()
-                        due = check_due(created.strftime('%Y-%m-%d'), 7)
+                        due = check_due(created.date(), 7)
                         created = created.strftime('%Y-%m-%d %H:%M:%S')
                     
                     date = created + '<br>審核期限：' + due
@@ -1418,7 +1418,7 @@ def partner_info(request):
     sensitive = []
     for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10]:
         created = sdr.created + timedelta(hours=8)
-        due = check_due(created.strftime('%Y-%m-%d'),14)
+        due = check_due(created.date(),14)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
 
         # 整理搜尋條件
@@ -1699,9 +1699,9 @@ def system_info(request):
     for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[:10]:
         created = sdr.created + timedelta(hours=8)
         if sdr.is_transferred:
-            due = check_due(created.strftime('%Y-%m-%d'),14)
+            due = check_due(created.date(),14)
         else:
-            due = check_due(created.strftime('%Y-%m-%d'),7)
+            due = check_due(created.date(),7)
         created = created.strftime('%Y-%m-%d %H:%M:%S')
         # 整理搜尋條件
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
@@ -1741,7 +1741,7 @@ def system_info(request):
     # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
         if s.created:
             date = s.created + timedelta(hours=8)
-            due = check_due(date.strftime('%Y-%m-%d'), 14)
+            due = check_due(date.date(), 14)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         else:
             date = ''

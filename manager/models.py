@@ -176,3 +176,10 @@ class MatchLog(models.Model):
     stage_5 = models.CharField(max_length=20, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(null=True, blank=True)
+
+
+# 工作日
+class Workday(models.Model):
+    # '西元日期','是否放假'
+    date = models.DateField(blank=True, null=True)
+    is_dayoff = models.BooleanField(default=False)
