@@ -246,3 +246,8 @@
 #editor {
     height: 300px;
 }
+
+.upload-warning {
+    font-size: 14px;
+    color: #C65454
+}

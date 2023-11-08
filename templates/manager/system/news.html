@@ -118,6 +118,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="news_id" value="{{ n.id }}">
                             <input type="hidden" name="from_system" value="yes">
+                            <li class="upload-warning"><p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
                             <li>審核狀態</li>
                             <li>
                                 <select name="status">
