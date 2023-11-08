@@ -8207,6 +8207,7 @@ body {
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
     align-items: center;
+    margin-left: 5px;
 }
 
 .sc_de_top .left_area .cont_padbox .flex_inf .code:hover {
@@ -8220,13 +8221,15 @@ body {
 
 @media only screen and (max-width: 999px) {
     .sc_de_top .left_area .cont_padbox .flex_inf .code {
-        margin-bottom: 0px
+        margin-bottom: 0px;
+        margin-left: 0px;
     }
 }
 
 @media only screen and (max-width: 767px) {
     .sc_de_top .left_area .cont_padbox .flex_inf .code {
-        font-size: 16px
+        font-size: 16px;
+        margin-left: 0px;
     }
 }
 
