@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='workday',
+            model_name='Workday',
             name='date',
             field=models.DateField(blank=True, null=True),
         ),
