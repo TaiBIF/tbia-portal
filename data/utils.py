@@ -7,9 +7,13 @@ import numpy as np
 import bisect
 import os
 from os.path import exists
-from data.models import Taxon #DatasetKey, 
+# from data.models import Taxon #DatasetKey, 
 from conf.settings import datahub_db_settings
 import psycopg2
+from django.db.models import Q
+import requests
+from utils.solr_query import SOLR_PREFIX
+
 
 
 def get_dataset_key(key):
@@ -132,10 +136,10 @@ def format_grid(grid_x, grid_y, grid, count):
     return dic
 
 rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
-          'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
+            'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
             'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 
             'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
-              'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'special-form', 'race', 'stirp', 'morph', 'aberration', 'hybrid-formula']
+            'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'specialform', 'race', 'stirp', 'morph', 'aberration', 'hybridformula']
 
 var_df = pd.DataFrame([
 ('鲃','[鲃䰾]'),
@@ -754,9 +758,14 @@ def create_query_display(search_dict,sq_id):
                 else:
                     l_list = list(search_dict[k])
             elif k == 'higherTaxa':
-                if Taxon.objects.filter(taxonID=search_dict[k]).exists():
-                    taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
-                    query += f"<br><b>{map_dict[k]}</b>：{taxon_obj.scientificName} {taxon_obj.common_name_c if taxon_obj.common_name_c  else ''}"
+                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{search_dict[k]}')
+                if response.status_code == 200:
+                    resp = response.json()
+                    if data := resp['response']['docs']:
+                        data = data[0]
+                        query += f"<br><b>{map_dict[k]}</b>：{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
+                # if Taxon.objects.filter(taxonID=search_dict[k]).exists():
+                #     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
             elif k == 'taxonGroup':
                 if search_dict[k] in taxon_group_map_c.keys():
                     query += f"<br><b>{map_dict[k]}</b>：{taxon_group_map_c[search_dict[k]]}"
@@ -928,7 +937,7 @@ taxon_cols = [
     'subsection_c',
     'species_c',
     'subspecies_c',
-    'nothosubspecies_c'
+    'nothosubspecies_c',
     'variety_c',
     'subvariety_c',
     'nothovariety_c',
@@ -946,3 +955,22 @@ taxon_cols = [
     'synonyms',
     'misapplied'
 ]
+
+
+
+# deprecated
+# def taxon_full_filter(value):
+
+#     fields = [t for t in taxon_cols if t not in ['special-form','special-form_c','hybrid-formula','hybrid-formula_c']]
+#     fields.append('specialform')
+#     fields.append('specialform_c')
+#     fields.append('hybridformula')
+#     fields.append('hybridformula_c')
+
+#     queries = [Q(**{f'{f}__icontains': value}) for f in fields]
+
+#     qs = Q()
+#     for query in queries:
+#         qs = qs | query
+        
+#     return Taxon.objects.filter(qs).order_by('scientificName')

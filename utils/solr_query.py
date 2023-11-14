@@ -573,6 +573,7 @@ occ_facets = {  'facet': {
 }
 
 
+
 col_facets = { 'facet': {
         'scientificName': {
             'type': 'terms',
@@ -1093,5 +1094,315 @@ col_facets = { 'facet': {
             }        
         },
     }}
+
+
+
+
+taxon_all_facets = { 'facet': {
+        'scientificName': {
+            'type': 'terms',
+            'field': 'scientificName',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #     'taxonID':{
+            #         'type': 'terms',
+            #         'field': 'id',
+            #         'limit': 30,
+            #         'numBuckets': True,
+            #     },
+            # }        
+        },
+        'common_name_c': {
+            'type': 'terms',
+            'field': 'common_name_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #     'taxonID':{
+            #         'type': 'terms',
+            #         'field': 'id',
+            #         'limit': 30,
+            #         'numBuckets': True,
+            #     },
+            # }
+        },
+        'alternative_name_c': {
+            'type': 'terms',
+            'field': 'alternative_name_c',
+            'mincount': 1,
+            'limit': 30,
+            'allBuckets': True,
+            'numBuckets': True,
+            'facet':{
+                    'taxonID':{
+                        'type': 'terms',
+                        'field': 'id',
+                        'limit': 30,
+                        'numBuckets': True,
+                    },
+                }
+        },
+        'synonyms': {
+            'type': 'terms',
+            'field': 'synonyms',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'misapplied': {
+            'type': 'terms',
+            'field': 'misapplied',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'kingdom': {
+            'type': 'terms',
+            'field': 'kingdom',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'phylum': {
+            'type': 'terms',
+            'field': 'phylum',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'class': {
+            'type': 'terms',
+            'field': 'class',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'order': {
+            'type': 'terms',
+            'field': 'order',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'family': {
+            'type': 'terms',
+            'field': 'family',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'genus': {
+            'type': 'terms',
+            'field': 'genus',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'species': {
+            'type': 'terms',
+            'field': 'species',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'kingdom_c': {
+            'type': 'terms',
+            'field': 'kingdom_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'phylum_c': {
+            'type': 'terms',
+            'field': 'phylum_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'class_c': {
+            'type': 'terms',
+            'field': 'class_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'order_c': {
+            'type': 'terms',
+            'field': 'order_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'family_c': {
+            'type': 'terms',
+            'field': 'family_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+        'genus_c': {
+            'type': 'terms',
+            'field': 'genus_c',
+            'mincount': 1,
+            # 'limit': 30,
+            'allBuckets': True,
+            'numBuckets': False,
+            # 'facet':{
+            #         'taxonID':{
+            #             'type': 'terms',
+            #             'field': 'id',
+            #             'limit': 30,
+            #             'allBuckets': True,
+            #             'numBuckets': True,
+            #         },
+            #     }
+        },
+    }}
+
+
+
 
 

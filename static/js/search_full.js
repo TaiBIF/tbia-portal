@@ -1034,6 +1034,17 @@ function focusComponent(item_class, go_back){
                 }
               }
 
+              let right_img_class = ''
+
+              if (x.images.length > 0){
+                right_img_class = 'right_img' 
+                left_text_class = 'lefttxt'
+              } else {
+                right_img_class = 'right_img2'
+                left_text_class = 'lefttxt2'
+              }
+      
+
               let taieol = '';
               let display = '';
 
@@ -1046,7 +1057,7 @@ function focusComponent(item_class, go_back){
 
               html = `	<li>							
               <div class="flex_top">
-                <div class="lefttxt">
+                <div class="${left_text_class}">
                   <p>中⽂名：${x.common_name_c}</p>
                   <p>學名：${x.formatted_name}</p>
                   <p>中文別名：${ x.alternative_name_c }</p>
@@ -1056,7 +1067,7 @@ function focusComponent(item_class, go_back){
                   <p>出現記錄筆數：${ x.occ_count }</p>
                   <p>自然史典藏筆數：${ x.col_count }</p>
                 </div>
-                <div class="right_img">
+                <div class="${right_img_class}">
                   <div class="imgbox">
                     ${image_str}
                   </div>
@@ -1364,14 +1375,20 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
 
 
       if (response.has_more==true & response.reach_end==false){
+
         $(offset_value).val(Number(offset)+ 4 )
+
       } else if (response.has_more==true) {
+
         $(more_type).addClass('d-none')
         if (response.reach_end) {
           $(`${more_type}_end`).removeClass('d-none')
         }
+
       } else {
+
         $(more_type).addClass('d-none')
+        
       }
       
       for (let i = 0; i < response.data.length; i++) {
@@ -1418,6 +1435,17 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
           }
         }
 
+        let right_img_class = ''
+
+        if (x.images.length > 0){
+          right_img_class = 'right_img' 
+          left_text_class = 'lefttxt'
+        } else {
+          right_img_class = 'right_img2'
+          left_text_class = 'lefttxt2'
+        }
+
+
         let taieol = '';
         let display = '';
 
@@ -1429,7 +1457,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
 
         html = `<li>							
           <div class="flex_top">
-          <div class="lefttxt">
+          <div class="${left_text_class}">
             <p>中⽂名：${x.common_name_c}</p>
             <p>學名：${x.formatted_name}</p>
             <p>中文別名：${ x.alternative_name_c }</p>
@@ -1439,7 +1467,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
             <p>出現記錄筆數：${ x.occ_count }</p>
             <p>自然史典藏筆數：${ x.col_count }</p>
           </div>
-          <div class="right_img">
+          <div class="${right_img_class}">
             <div class="imgbox">
               ${image_str}
             </div>
