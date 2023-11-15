@@ -22,6 +22,7 @@ django-ckeditor = "^6.5.1"
 django-csp = "^3.7"
 django-quill-editor = "^0.1.40"
 sqlalchemy = "^2.0.9"
+django-cors-headers = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 

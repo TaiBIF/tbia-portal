@@ -1,0 +1,263 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-14 04:03+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/base.html:63 templates/base.html:251
+msgid "意見回饋"
+msgstr "Feedback"
+
+#: templates/base.html:66
+msgid "請填寫下列表格，我們將會儘快回覆"
+msgstr ""
+"Please fill out the form below, and we will get back to you as soon as "
+"possible."
+
+#: templates/base.html:72 templates/base.html:81
+msgid "-- 重設 --"
+msgstr "-- Reset --"
+
+#: templates/base.html:82
+msgid "網頁操作"
+msgstr "Web Interactions"
+
+#: templates/base.html:83
+msgid "網頁內容"
+msgstr "Web Content"
+
+#: templates/base.html:84
+msgid "聯盟相關"
+msgstr "Alliance-related"
+
+#: templates/base.html:88
+msgid "問題描述"
+msgstr "Description of the issue"
+
+#: templates/base.html:92
+msgid "您的電⼦郵件"
+msgstr "Your Email"
+
+#: templates/base.html:107 templates/base.html:632
+msgid "確認送出"
+msgstr "Submit"
+
+#: templates/base.html:138 templates/base.html:402
+msgid "帳號後台"
+msgstr "Your account"
+
+#: templates/base.html:143 templates/base.html:404
+msgid "單位後台"
+msgstr "Partner account"
+
+#: templates/base.html:149 templates/base.html:407
+msgid "系統管理後台"
+msgstr "System account"
+
+#: templates/base.html:154 templates/base.html:409
+msgid "登出"
+msgstr "Logout"
+
+#: templates/base.html:162 templates/base.html:502
+msgid "會員登入"
+msgstr "Login"
+
+#: templates/base.html:169 templates/base.html:281 templates/base.html:448
+msgid "關於TBIA"
+msgstr "About TBIA"
+
+#: templates/base.html:174 templates/base.html:285 templates/base.html:449
+msgid "聯盟簡介"
+msgstr "What is TBIA"
+
+#: templates/base.html:178 templates/base.html:288 templates/base.html:450
+msgid "夥伴單位"
+msgstr "Partnerships"
+
+#: templates/base.html:185 templates/base.html:293 templates/base.html:430
+msgid "進階搜尋"
+msgstr "Advanced Search"
+
+#: templates/base.html:190 templates/base.html:297 templates/base.html:431
+msgid "物種出現紀錄查詢"
+msgstr ""
+
+#: templates/base.html:194 templates/base.html:432
+msgid "自然史典藏查詢"
+msgstr ""
+
+#: templates/base.html:201 templates/base.html:304 templates/base.html:435
+msgid "最新消息"
+msgstr "News"
+
+#: templates/base.html:206 templates/base.html:308 templates/base.html:436
+msgid "新聞公告"
+msgstr "News Announcement"
+
+#: templates/base.html:210 templates/base.html:309 templates/base.html:437
+msgid "活動訊息"
+msgstr "Event Information"
+
+#: templates/base.html:214 templates/base.html:310 templates/base.html:438
+msgid "計畫徵求"
+msgstr "Call for Project"
+
+#: templates/base.html:221 templates/base.html:315 templates/base.html:441
+msgid "開放資料相關資源"
+msgstr "Resources"
+
+#: templates/base.html:226 templates/base.html:319 templates/base.html:442
+msgid "TBIA 策略文件"
+msgstr ""
+
+#: templates/base.html:230 templates/base.html:320 templates/base.html:443
+msgid "開放資料指引"
+msgstr ""
+
+#: templates/base.html:234 templates/base.html:321 templates/base.html:444
+msgid "參考文件/工具"
+msgstr ""
+
+#: templates/base.html:238 templates/base.html:322 templates/base.html:445
+msgid "教學文件"
+msgstr ""
+
+#: templates/base.html:245 templates/base.html:327 templates/base.html:451
+msgid "常見Q&A"
+msgstr "Q&A"
+
+#: templates/base.html:298
+msgid "自然史典藏<br>查詢"
+msgstr ""
+
+#: templates/base.html:350
+msgid "請輸入關鍵字"
+msgstr "Search"
+
+#: templates/base.html:382
+msgid "最近10筆通知"
+msgstr "Latest 10 notifications"
+
+#: templates/base.html:384
+msgid "全部已讀"
+msgstr "All marked as read"
+
+#: templates/base.html:385
+msgid "查看全部"
+msgstr "See all"
+
+#: templates/base.html:399 templates/base.html:543
+msgid "登入"
+msgstr "Login"
+
+#: templates/base.html:423 templates/base.html:472
+msgid "臺灣生物多樣性資訊聯盟"
+msgstr "Taiwan Biodiversity Information Alliance"
+
+#: templates/base.html:456 templates/base.html:459 templates/base.html:462
+msgid "贊助單位"
+msgstr "Funders"
+
+#: templates/base.html:469
+msgid "使用條款"
+msgstr "Terms of Use"
+
+#: templates/base.html:469
+msgid "隱私權政策"
+msgstr "Privacy Policy"
+
+#: templates/base.html:508
+msgid "請輸入您的帳號(email)"
+msgstr "Account (your Email)"
+
+#: templates/base.html:511 templates/base.html:519 templates/base.html:534
+#: templates/base.html:580 templates/base.html:588 templates/base.html:596
+#: templates/base.html:604
+msgid "錯誤"
+msgstr "Error"
+
+#: templates/base.html:512 templates/base.html:589
+msgid "請輸入正確信箱"
+msgstr ""
+
+#: templates/base.html:516 templates/base.html:593
+msgid "請輸入您的密碼"
+msgstr "Password"
+
+#: templates/base.html:520 templates/base.html:597
+msgid "請輸入6~10位英文或數字"
+msgstr ""
+
+#: templates/base.html:535
+msgid "登入前請完成驗證"
+msgstr ""
+
+#: templates/base.html:541
+msgid "記住我的帳號"
+msgstr "Remember my account"
+
+#: templates/base.html:555
+msgid "使用Google登入"
+msgstr "continue with Google"
+
+#: templates/base.html:559 templates/base.html:634
+msgid "我要註冊"
+msgstr "Register"
+
+#: templates/base.html:560
+msgid "忘記密碼?"
+msgstr "Forgot your password?"
+
+#: templates/base.html:577
+msgid "姓名"
+msgstr "Username"
+
+#: templates/base.html:581
+msgid "請輸入姓名"
+msgstr ""
+
+#: templates/base.html:585
+msgid "請輸入您的Email作為帳號"
+msgstr "Enter your Email as your account"
+
+#: templates/base.html:601
+msgid "請再次輸入密碼"
+msgstr "Re-enter your password"
+
+#: templates/base.html:605
+msgid "兩次密碼輸入不同"
+msgstr ""
+
+#: templates/base.html:609
+msgid "註冊"
+msgstr "Register"
+
+#: templates/base.html:628
+msgid "請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。"
+msgstr ""
+
+#: templates/base.html:630
+msgid "請輸入您的Email"
+msgstr "Email"
+
+#: templates/base.html:635
+msgid "返回登入"
+msgstr ""
+
+#: templates/pages/index.html:122
+msgid "臺灣生物多樣性開放資料任意門"
+msgstr "Anywhere Portal to Biodiversity Open Databases in Taiwan"

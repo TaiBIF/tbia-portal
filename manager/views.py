@@ -29,7 +29,6 @@ import json
 from allauth.socialaccount.models import SocialAccount
 from utils.solr_query import SOLR_PREFIX
 import requests
-from utils.solr_query import SolrQuery
 import subprocess
 import os
 import time
@@ -60,14 +59,6 @@ class NewsForm(forms.ModelForm):
         fields = (
             'content',
         )
-
-# class NewsForm(forms.ModelForm):
-#     content = RichTextField()
-
-#     class Meta:
-#         model  = News
-#         fields = ('content',)
-
 
 class LinkForm(forms.ModelForm):
     content = RichTextField()
@@ -1229,7 +1220,7 @@ def login_user(request):
                     request.session.set_expiry(0)
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 # return redirect('index')
-                response = {'status':'success', 'message': '登入成功'}
+                response = {'status':'success', 'message': ''}
 
             if user and not user.is_email_verified:
                 # messages.add_message(request, messages.ERROR,
@@ -1283,13 +1274,13 @@ def update_partner_info(request):
         return JsonResponse(response, safe=False)
 
 
-# #  這邊改成再比對的時候就先產生好
+# deprecated  這邊改成再比對的時候就先產生好
 # def generate_no_taxon_csv(p_name,scheme,host,update):
 #     CSV_MEDIA_FOLDER = 'match_log'
 #     csv_folder = os.path.join(settings.MEDIA_ROOT, CSV_MEDIA_FOLDER)
 #     filename = f'{p_name}_match_log.csv'
 #     csv_file_path = os.path.join(csv_folder, filename)
-#     # solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&indent=true&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
+#     # solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
 #     # occurrenceID	id	sourceScientificName	taxonID	parentTaxonID	taxonRank	scientificName	match_stage	stage_1	stage_2	stage_3	stage_4	stage_5	is_matched
 #     downloadURL = scheme+"://"+host+settings.MEDIA_URL+os.path.join(CSV_MEDIA_FOLDER, filename)
 #     if update or not os.path.exists(csv_file_path): # 指定要更新或沒有檔案才執行
@@ -1309,7 +1300,7 @@ def update_partner_info(request):
 #         # commands = f'curl "{solr_url}"  > {csv_file_path} '
 #         # process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #     return downloadURL
-#     # curl "http://localhost:8888/solr/collection1/select?q=*%3A*&wt=cvs&indent=true&start=0&rows=2000000000&fl=id,title" > full-output-of-my-solr-index.csv
+#     # curl "http://localhost:8888/solr/collection1/select?q=*%3A*&wt=cvs&start=0&rows=2000000000&fl=id,title" > full-output-of-my-solr-index.csv
 
 
 def update_keywords(request):
@@ -1511,7 +1502,7 @@ def get_partner_stat(request):
             response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
             no_taxon = response.json()['response']['numFound']
             # 資料筆數
-            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=group%3A{group}&rows=0&start=0"
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&q.op=OR&q=group%3A{group}&rows=0&start=0"
             data = requests.get(url).json()
             if data['responseHeader']['status'] == 0:
                 facets = data['facet_counts']['facet_fields']['rightsHolder']
@@ -1528,13 +1519,12 @@ def get_partner_stat(request):
                                     p_color = pp['color']
                                     break
                             data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
-            solr = SolrQuery('tbia_records')
-            query_list = [('q', '*:*'),('rows', 0)]
-            req = solr.request(query_list)
-            total_count = req['solr_response']['response']['numFound']
-            total_count = total_count - p_count
-            data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
-            has_taxon = p_count - no_taxon
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+            if response.status_code == 200:
+                total_count = response.json()['response']['numFound']
+                total_count = total_count - p_count
+                data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
+                has_taxon = p_count - no_taxon
     response = {
         'data_total': data_total,
         'has_taxon': has_taxon,
@@ -1551,21 +1541,21 @@ def manager_system(request):
     # data_total = []
     if not request.user.is_anonymous:
         # 資料筆數 - 改成用單位?
-        # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+        # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
         # data = requests.get(url).json()
         # if data['responseHeader']['status'] == 0:
         #     facets = data['facet_counts']['facet_fields']['rightsHolder']
         #     for r in range(0,len(facets),2):
         #         data_total.append({'name': facets[r],'y': facets[r+1]})
         # TaiCOL對應狀況
-        solr = SolrQuery('tbia_records')
-        query_list = [('q', '*:*'),('rows', 0)]
-        req = solr.request(query_list)
-        total_count = req['solr_response']['response']['numFound']
-        solr = SolrQuery('tbia_records')
-        query_list = [('q', '-taxonID:*'),('rows', 0)]
-        req = solr.request(query_list)
-        no_taxon = req['solr_response']['response']['numFound']
+
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+        if response.status_code == 200:
+            total_count = response.json()['response']['numFound']
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+        if response.status_code == 200:
+            no_taxon = response.json()['response']['numFound']
+
         has_taxon = total_count - no_taxon
         match_logs = []
         for p in Partner.objects.all():
@@ -1586,7 +1576,7 @@ def get_system_stat(request):
     data_total = []
     # if not request.user.is_anonymous:
         # 資料筆數 - 改成用單位?
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&start=0"
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
@@ -1622,14 +1612,14 @@ def get_system_stat(request):
 
 
     # TaiCOL對應狀況
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '*:*'),('rows', 0)]
-    req = solr.request(query_list)
-    total_count = req['solr_response']['response']['numFound']
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '-taxonID:*'),('rows', 0)]
-    req = solr.request(query_list)
-    no_taxon = req['solr_response']['response']['numFound']
+
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    if response.status_code == 200:
+        total_count = response.json()['response']['numFound']
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+    if response.status_code == 200:
+        no_taxon = response.json()['response']['numFound']
+
     has_taxon = total_count - no_taxon
     response = {
         'data_total': data_total,
@@ -1941,7 +1931,7 @@ def submit_news(request):
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
                     content = content.replace("請至後台查看", f"查看發布內容：{scheme}://{request.get_host()}/news/detail/{n.id}")
-                    send_notification([u.id],content,'消息發布申請結果')
+                    send_notification([u.id],content,'消息發布申請結果通知')
             return redirect('system_news')
         else:
             # 新增送審通知
@@ -1963,7 +1953,7 @@ def submit_news(request):
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
                     content = content.replace("請至後台查看", f"查看發布內容：{scheme}://{request.get_host()}/news/detail/{n.id}")
-                    send_notification([u.id],content,'消息發布申請結果')
+                    send_notification([u.id],content,'消息發布申請結果通知')
 
             return redirect('partner_news')
 
@@ -2084,6 +2074,7 @@ def submit_resource(request):
         else:
             resource_id = 0
 
+        # TODO 可以改成create or update ?
         if Resource.objects.filter(id=resource_id).exists():
             Resource.objects.filter(id=resource_id).update(
                 type = request.POST.get('type'),
@@ -2180,6 +2171,7 @@ def system_qa(request):
 
 
 def submit_qa(request):
+    print(request.POST)
     if request.method == 'POST':
         if request.POST.get('qa_id'):
             qa_id = int(request.POST.get('qa_id'))
@@ -2211,7 +2203,9 @@ def submit_qa(request):
             Qa.objects.filter(id=qa_id).update(
                 type = request.POST.get('type'),
                 question = request.POST.get('question'),
+                question_en = request.POST.get('question_en'),
                 answer = request.POST.get('answer'),
+                answer_en = request.POST.get('answer_en'),
                 order = order
             )
 
@@ -2223,7 +2217,9 @@ def submit_qa(request):
             Qa.objects.create(
                 type = request.POST.get('type'),
                 question = request.POST.get('question'),
+                question_en = request.POST.get('question_en'),
                 answer = request.POST.get('answer'),
+                answer_en = request.POST.get('answer_en'),
                 order = order
             )
         return redirect('system_qa')

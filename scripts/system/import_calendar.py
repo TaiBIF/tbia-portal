@@ -8,7 +8,7 @@ import glob
 import os
 from conf.settings import env
 
-
+# 從政府開放資料平台匯入工作日曆
 # today = datetime.today() + timedelta(hours=8)
 
 folder = '/tbia-volumes/bucket/calendar'

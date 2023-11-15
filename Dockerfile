@@ -9,6 +9,8 @@ RUN apt-get update \
     # tools
     && apt-get install -y curl \
     && apt-get install -y zip \
+    # django i18n
+    && apt-get install -y gettext \
     # psycopg2 dependencies
     # && apt-get install -y libpq-dev \
     # Translations dependencies

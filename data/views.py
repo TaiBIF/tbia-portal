@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT
 from conf.utils import scheme
-from utils.solr_query import SolrQuery, col_facets, occ_facets, SOLR_PREFIX, taxon_all_facets
+from utils.solr_query import col_facets, occ_facets, SOLR_PREFIX, taxon_all_facets
 from pages.models import Resource, News
 from django.db.models import Q, Max
 from django.db import connection
@@ -39,9 +39,14 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 from os.path import exists
-from data.models import Namecode#, Taxon , DatasetKey
+# from data.models import Namecode, Taxon , DatasetKey
 import html
 
+name_status_map = {
+    # 'accepted': 'Accepted',
+    'not-accepted': '的無效名',
+    'misapplied': '的誤用名',
+}
 
 basis_dict = {
     "人為觀測": '("人為觀測" OR "HumanObservation")',
@@ -2274,7 +2279,7 @@ def get_focus_cards_taxon(request):
             taxon_result_df['col_count'] = 0 
             taxon_result_df['occ_count'] = 0 
             # 取得出現紀錄及自然史典藏筆數
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&indent=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
             data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
             # print(response.json())
 
@@ -2439,7 +2444,7 @@ def get_more_cards_taxon(request):
             taxon_result_df['col_count'] = 0 
             taxon_result_df['occ_count'] = 0 
             # 取得出現紀錄及自然史典藏筆數
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&indent=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
             data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
             # print(response.json())
 
@@ -2732,39 +2737,39 @@ def get_more_cards(request):
 
 def search_collection(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     if len(dataset_list):
         dataset_list = get_dataset_list(record_type='col',dataset_list=dataset_list)
     # dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
 
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
+    # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
-    return render(request, 'pages/search_collection.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
+    return render(request, 'pages/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'dataset_list': dataset_list})
     
 
 def search_occurrence(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     if len(dataset_list):
         dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
     # dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
-    sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
+    # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     basis_list = basis_dict.keys()
         
-    return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, 'sensitive_list': sensitive_list,
+    return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_list': basis_list, 'dataset_list': dataset_list})
 
 
@@ -2777,8 +2782,7 @@ def occurrence_detail(request, id):
             }
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
     row = pd.DataFrame(response.json()['response']['docs'])
-    row = row.replace({np.nan: ''})
-    row = row.replace({'nan': ''})
+    row = row.replace({np.nan: '', 'nan': ''})
     row = row.to_dict('records')
     row = row[0]
 
@@ -2915,8 +2919,7 @@ def collection_detail(request, id):
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
 
     row = pd.DataFrame(response.json()['response']['docs'])
-    row = row.replace({np.nan: ''})
-    row = row.replace({'nan': ''})
+    row = row.replace({np.nan: '', 'nan': ''})
     row = row.to_dict('records')
     row = row[0]
     if row.get('recordType') == ['col']:
@@ -3655,7 +3658,7 @@ def change_dataset(request):
             # if DatasetKey.objects.filter(rights_holder=h).exists():
             # for k in holders.keys():
             #     if holders[k] == h:
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
             d_list = response.json()['facet_counts']['facet_fields']['datasetName']
             dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
             if len(dataset_list):
@@ -3669,7 +3672,7 @@ def change_dataset(request):
             for d in results:
                 ds += [{'value': d[0], 'text': d[1]}]
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&indent=true&q.op=OR&q=*%3A*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
         d_list = response.json()['facet_counts']['facet_fields']['datasetName']
         dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
         if len(dataset_list):
@@ -3687,11 +3690,6 @@ def change_dataset(request):
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
-name_status_map = {
-    # 'accepted': 'Accepted',
-    'not-accepted': '的無效名',
-    'misapplied': '的誤用名',
-}
 
 def get_locality(request):
     keyword = request.GET.get('locality') if request.GET.getlist('locality') != 'null' else ''
@@ -3709,9 +3707,9 @@ def get_locality(request):
 
     ds = []
     if keyword_reg:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.čp=OR&q=*%3A*&fq=locality:/.*{keyword_reg}.*/{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.čp=OR&q=*%3A*&fq=locality:/.*{keyword_reg}.*/{record_type}&rows=0')
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
     l_list = response.json()['facet_counts']['facet_fields']['locality']
     l_list = [l_list[x] for x in range(0, len(l_list),2)]
     for l in l_list:
@@ -3732,9 +3730,9 @@ def get_locality_init(request):
     keyword = [f'"{k}"' for k in keyword if k ]
     if keyword:
         f_str = ' OR '.join(keyword)
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&indent=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
 
     l_list = response.json()['facet_counts']['facet_fields']['locality']
     l_list = [l_list[x] for x in range(0, len(l_list),2)]
@@ -4219,7 +4217,7 @@ def search_full(request):
             taxon_result_df['col_count'] = 0 
             taxon_result_df['occ_count'] = 0 
             # 取得出現紀錄及自然史典藏筆數
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&indent=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
             data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
             # print(response.json())
             print('c', time.time()-s)

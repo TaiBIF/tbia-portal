@@ -20,8 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 # from ckeditor_uploader import views as ckeditor_views
 from django.contrib.auth.decorators import login_required
+from django.conf.urls.i18n import i18n_patterns
+
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     path('admin/', admin.site.urls),
     path('', include('pages.urls')),
     path('', include('data.urls')),
@@ -32,6 +35,15 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # django-allauth網址
     path("robots.txt",TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += i18n_patterns(
+    path("i18n/", include("django.conf.urls.i18n")),
+    path('', include('pages.urls')),
+    path('', include('data.urls')),
+    path('', include('manager.urls'))
+)
+
+
 
 handler404 = "pages.views.page_not_found_view"
 handler500 = "pages.views.error_view"

@@ -1,7 +1,7 @@
 from django.http import request, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from pages.models import *
-from utils.solr_query import SolrQuery
+from utils.solr_query import SOLR_PREFIX
 from manager.models import Partner, About
 import json
 import math
@@ -9,6 +9,8 @@ from data.utils import get_page_list
 from django.utils import timezone
 from conf.utils import notif_map
 from datetime import datetime, timedelta
+from django.utils.translation import get_language, gettext
+import requests
 
 news_type_map = {
     'news':'green',
@@ -75,6 +77,7 @@ def get_current_notif(request):
                     </li>
                     """        
     return JsonResponse({'count': count, 'notif': results}, safe=False) 
+
 
 def policy(request):
     return render(request, 'pages/policy.html')
@@ -250,7 +253,9 @@ def get_qa_list(request):
 
         qa_list = []
         for q in qa[offset:offset+limit]:
-            qa_list.append({'question': q.question, 'answer': q.answer})
+            ques = q.question_en if get_language() == 'en-us' and q.question_en else q.question
+            ans = q.answer_en if get_language() == 'en-us' and q.answer_en else q.answer
+            qa_list.append({'question': ques, 'answer': ans})
         response['data'] = qa_list
         response['page_list'] = page_list
         response['current_page'] = current_page
@@ -261,19 +266,22 @@ def get_qa_list(request):
 
 def index(request):
     # recommended keyword
-    keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
+    keywords = Keyword.objects.filter(lang=get_language()).order_by('order').values_list('keyword', flat=True)
 
     # count of data
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '*:*'),('rows', 0)]
-    req = solr.request(query_list)
-    count_occurrence = req['solr_response']['response']['numFound']
+
+    count_occurrence = 0
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    if response.status_code == 200:
+        count_occurrence = response.json()['response']['numFound']
+
     count_occurrence = "{:,}".format(count_occurrence)
 
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '*:*'),('rows', 0), ('fq','recordType:col')]
-    req = solr.request(query_list)
-    count_collection = req['solr_response']['response']['numFound']
+    count_collection = 0
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0&fq=recordType:col')
+    if response.status_code == 200:
+        count_collection = response.json()['response']['numFound']
+
     count_collection = "{:,}".format(count_collection)
 
     # resource
