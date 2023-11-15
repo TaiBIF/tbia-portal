@@ -888,7 +888,7 @@ function vanillaSelectBox(domSelector, options) {
             }
             e.preventDefault();
             e.stopPropagation();
-            if (self.userOptions.placeHolder != "" && (self.title.textContent == "--重設--"|self.title.textContent == "--不限--"|self.title.textContent == "")) {
+            if (self.userOptions.placeHolder != "" && (self.title.textContent == "-- 重設 --"|self.title.textContent == "--不限--"|self.title.textContent == "")) {
                 self.title.textContent = self.userOptions.placeHolder;
             }
         });

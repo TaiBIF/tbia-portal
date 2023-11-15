@@ -33,7 +33,7 @@ function showRequest(query_id,query,sdr_id) {
         $('.detail-pop .send-check').removeClass('d-none')
         $('.detail-pop .send-submitted').addClass('d-none')
 
-        // 要先全部清除
+        // 要先全部重設
         $("#detailForm").trigger("reset");
         $("#reviewForm").trigger("reset");
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load i18n %}
 {% block title %}常見Q&A｜{% endblock %}
 
 {% block style %}
@@ -73,12 +74,12 @@
         <li class="{% if active_qa == q.id %} now {% endif %}" data-qa_id="{{ q.id }}" id="qa_hash_{{ q.id }}">
           <div class="questieon">
             <div class="mark_title">Q</div>
-            <p>{{ q.question }}</p>
+            <p>{% if LANGUAGE_CODE == 'en-us' and q.question_en != None and q.question_en != '' %}{{ q.question_en }}{% else %}{{ q.question }}{% endif %}</p>
             <div class="arr"></div>
           </div>
           <div class="ans">
             <div class="mark_title">A</div>
-            <p>{{ q.answer|safe }}</p>
+            <p>{% if LANGUAGE_CODE == 'en-us' and q.answer_en != None and q.answer_en != '' %}{{ q.answer_en|safe }}{% else %}{{ q.answer|safe }}{% endif %}</p>
           </div>
         </li>
         {% endfor %}

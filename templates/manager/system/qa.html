@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %} 
+{% load i18n %}
 {% block title %}系統管理後台｜{% endblock %}
 
 {% block head %}
@@ -130,6 +131,14 @@
                                 <p>必填欄位</p>
                             </div>
                         </li>
+                        <li>問題（英文）</li>
+                        <li>
+                            <textarea name="question_en" placeholder="">{{ current_q.question_en|default_if_none:'' }}</textarea>
+                            {% comment %} <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div> {% endcomment %}
+                        </li>
                         <li>答案</li>
                         <li>
                             <textarea name="answer" placeholder="">{{ current_q.answer }}</textarea>
@@ -137,6 +146,14 @@
                                 <div class="in1">錯誤</div>
                                 <p>必填欄位</p>
                             </div>
+                        </li>
+                        <li>答案（英文）</li>
+                        <li>
+                            <textarea name="answer_en" placeholder="">{{ current_q.answer_en|default_if_none:'' }}</textarea>
+                            {% comment %} <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div> {% endcomment %}
                         </li>
                     </form>
                     <li class="mt-20px">   

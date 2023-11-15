@@ -1,6 +1,7 @@
 {% extends 'base.html' %} 
 {% load tags %} 
 {% load static %}
+{% load i18n %}
 {% load humanize %}
 {% block title %}全站搜尋｜{% endblock %}
 
@@ -630,7 +631,7 @@
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
 				<button class="selt selectAll" data-type=".col-choice">全選</button>
-				<button class="selt resetAll" data-type=".col-choice">重置</button>
+				<button class="selt resetAll" data-type=".col-choice">重設</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -768,7 +769,7 @@
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
 				<button class="selt selectAll" data-type=".occ-choice">全選</button>
-				<button class="selt resetAll" data-type=".occ-choice">重置</button>
+				<button class="selt resetAll" data-type=".occ-choice">重設</button>
 			</div>
 			<ul class="catalist">
 				<li>

@@ -1,6 +1,6 @@
 {% extends './base.html' %}
 {% load static %} 
-
+{% load i18n %}
 {% block style %}
 <link rel="stylesheet" type="text/css" href="/static/css/404.css" />
 {% endblock style %}
@@ -8,7 +8,7 @@
 {% block body %}
 <div class="error">
 <p class="content">
-    您要求的網址不存在，若有疑問請<a class="showFeedback" href="javascript:;">聯絡我們</a>，謝謝。
+    您要求的網址不存在或有錯誤，若有疑問請<a class="showFeedback" href="javascript:;">聯絡我們</a>，謝謝。
 </p>
 </div>
 {% endblock body %}

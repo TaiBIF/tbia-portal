@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 {% load socialaccount %}
 {% load tags %}
 
@@ -39,6 +40,7 @@
   </div>
 
   <!--通用訊息匡pop-->
+  <!--
   <div class="messageboxfix d-none">
     <div class="message_box">
       <div class="informationicon">!</div>
@@ -49,7 +51,8 @@
       </div>
     </div>
   </div>
-
+  -->
+  
   <!--意見回饋popbox-->
   <div class="popbg feedback-pop d-none">
     <div class="ovhy">
@@ -57,16 +60,16 @@
         <div class="xx">
         </div>
         <div class="titlegreen">
-          意見回饋
+          {% trans '意見回饋' %}
         </div>
         <p class="shortxt">
-          請填寫下列表格，我們會將會盡快回覆
+          {% trans '請填寫下列表格，我們將會儘快回覆' %}
         </p>
         <div class="from_area">
           <form id="feedback_form">
           <div class="select_twobox"> 
             <select name="partner_id" id="feedback_partner">
-              <option value="">--重設--</option>
+              <option value="">{% trans '-- 重設 --' %}</option>
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
@@ -75,18 +78,18 @@
               {% endfor %}
             </select>
             <select name="type" id="feedback_type">
-              <option value="">--重設--</option>
-              <option value="1">網頁操作</option>
-              <option value="2">網頁內容</option>
-              <option value="3">聯盟相關</option>
+              <option value="">{% trans '-- 重設 --' %}</option>
+              <option value="1">{% trans '網頁操作' %}</option>
+              <option value="2">{% trans '網頁內容' %}</option>
+              <option value="3">{% trans '聯盟相關' %}</option>
             </select>				
           </div>
           <div class="txt_area">
-            <p>問題描述：</p>
+            <p>{% trans '問題描述' %}</p>
             <textarea name="content"></textarea>
           </div>
           <div class="email_area">
-            <p>您的電⼦郵件
+            <p>{% trans '您的電⼦郵件' %}
             <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
           </div>
           {% if not user.is_authenticated %}
@@ -101,7 +104,7 @@
             </div>
           {% endif %}
           </form>
-          <button class="send">確認送出</button>
+          <button class="send">{% trans '確認送出' %}</button>
         </div>
       </div>
     </div>
@@ -132,23 +135,23 @@
               </a>
               <div class="mbmu2">
                 <a href="{% url 'manager' %}" class="s_title">
-                  <p>帳號後台</p>
+                  <p>{% trans '帳號後台' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>
                 {% if user.is_partner_admin or user.is_partner_account %}
                 <a href="{% url 'manager_partner' %}" class="s_title">
-                  <p>單位後台</p>
+                  <p>{% trans '單位後台' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>
                 {% endif %}
                 {% if user.is_system_admin %}
                 <a href="{% url 'manager_system' %}" class="s_title">
-                  <p>系統管理後台</p>
+                  <p>{% trans '系統管理後台' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>
                 {% endif %}
                 <a href="{% url 'logout' %}" class="s_title">
-                  <p>登出</p>
+                  <p>{% trans '登出' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>						
               </div>
@@ -156,96 +159,96 @@
             {% else %}
             <li>
               <a href="javascript:;" class="one_set showLogin">
-                <p>會員登入</p>
+                <p>{% trans '會員登入' %}</p>
                 <img class="arright" src="{% static 'image/next.svg' %}" />
               </a>
             </li>
             {% endif %}
             <li class="rd_mb_two_menu_li">
               <a href="{% url 'about' %}" class="one_set rd_mb_two_menu">
-                <p>關於TBIA</p>
+                <p>{% trans '關於TBIA' %}</p>
                 <img class="ardown" src="{% static 'image/ardown.svg' %}" />
               </a>
               <div class="mbmu2">
                 <a href="{% url 'about' %}#about" class="s_title">
-                  <p>聯盟簡介</p>
+                  <p>{% trans '聯盟簡介' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'about' %}#partner" class="s_title">
-                  <p>夥伴單位</p>
+                  <p>{% trans '夥伴單位' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </div>
             </li>
             <li class="rd_mb_two_menu_li">
               <a href="{% url 'search_occurrence' %}" class="one_set rd_mb_two_menu">
-                <p>進階搜尋</p>
+                <p>{% trans '進階搜尋' %}</p>
                 <img class="ardown" src="{% static 'image/ardown.svg' %}" />
               </a>
               <div class="mbmu2">
                 <a href="{% url 'search_occurrence' %}" class="s_title">
-                  <p>物種出現紀錄查詢</p>
+                  <p>{% trans '物種出現紀錄查詢' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'search_collection' %}" class="s_title">
-                  <p>自然史典藏查詢</p>
+                  <p>{% trans '自然史典藏查詢' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </div>
             </li>
             <li class="rd_mb_two_menu_li">
               <a href="{% url 'news' %}" class="one_set rd_mb_two_menu">
-                <p>最新消息</p>
+                <p>{% trans '最新消息' %}</p>
                 <img class="ardown" src="{% static 'image/ardown.svg' %}" />
               </a>
               <div class="mbmu2">
                 <a href="{% url 'news' %}?type=news" class="s_title">
-                  <p>新聞公告</p>
+                  <p>{% trans '新聞公告' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'news' %}?type=event" class="s_title">
-                  <p>活動訊息</p>
+                  <p>{% trans '活動訊息' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'news' %}?type=project" class="s_title">
-                  <p>計畫徵求</p>
+                  <p>{% trans '計畫徵求' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </div>
             </li>
             <li class="rd_mb_two_menu_li">
               <a href="{% url 'resources' %}" class="one_set rd_mb_two_menu">
-                <p>開放資料相關資源</p>
+                <p>{% trans '開放資料相關資源' %}</p>
                 <img class="ardown" src="{% static 'image/ardown.svg' %}" />
               </a>
               <div class="mbmu2">
                 <a href="{% url 'resources' %}?type=strategy" class="s_title">
-                  <p>TBIA 策略文件</p>
+                  <p>{% trans 'TBIA 策略文件' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'resources' %}?type=guide" class="s_title">
-                  <p>開放資料指引</p>
+                  <p>{% trans '開放資料指引' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'resources' %}?type=tool" class="s_title">
-                  <p>參考文件/工具</p>
+                  <p>{% trans '參考文件/工具' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'resources' %}?type=tutorial" class="s_title">
-                  <p>教學文件</p>
+                  <p>{% trans '教學文件' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </div>
             </li>
             <li>
               <a href="{% url 'qa' %}" class="one_set">
-                <p>常見Q&A</p>
+                <p>{% trans '常見Q&A' %}</p>
                 <img class="arright" src="{% static 'image/next.svg' %}" />
               </a>
             </li>
             <li>
               <a href="javascript:;" class="one_set showFeedback">
-                <p>意見回饋</p>
+                <p>{% trans '意見回饋' %}</p>
               </a>
             </li>
             <li class="rd_mb_two_menu_li">
@@ -254,11 +257,15 @@
                 <img class="ardown" src="{% static 'image/ardown.svg' %}" >
               </a>
               <div class="mbmu2">
-                <a href="#" class="s_title">
+                <form id="language-selected" action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                  <input name="next" type="hidden" value="{{ redirect_to }}" />
+                  <input id="language" name="language" type="hidden"/>
+                </form>
+                <a href="#" class="s_title language-item" value="zh-hant">
                   <p>繁體中文</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>
-                <a href="#" class="s_title">
+                <a href="#" class="s_title language-item" value="en-us">
                   <p>English</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
                 </a>
@@ -271,53 +278,53 @@
       <div class="right_menu">
         <ul>
           <li>
-            <a href="{% url 'about' %}" class="big_title">關於TBIA</a>
+            <a href="{% url 'about' %}" class="big_title">{% trans '關於TBIA' %}</a>
             <div class="line"></div>
             <div class="menu_2">
               <div class="item">
-                <a href="{% url 'about' %}#about" class="s_title">聯盟簡介</a>
+                <a href="{% url 'about' %}#about" class="s_title">{% trans '聯盟簡介' %}</a>
               </div>
               <div class="item">
-                <a href="{% url 'about' %}#partner" class="s_title">夥伴單位</a>
+                <a href="{% url 'about' %}#partner" class="s_title">{% trans '夥伴單位' %}</a>
               </div>
             </div>
           </li>
           <li>
-            <a href="{% url 'search_occurrence' %}" class="big_title">進階搜尋</a>
+            <a href="{% url 'search_occurrence' %}" class="big_title">{% trans '進階搜尋' %}</a>
             <div class="line"></div>
             <div class="menu_2">
               <div class="item">
-                <a href="{% url 'search_occurrence' %}" class="s_title">物種出現紀錄查詢</a>
-                <a href="{% url 'search_collection' %}" class="s_title">自然史典藏<br>查詢</a>
+                <a href="{% url 'search_occurrence' %}" class="s_title">{% trans '物種出現紀錄查詢' %}</a>
+                <a href="{% url 'search_collection' %}" class="s_title">{% trans '自然史典藏<br>查詢' %}</a>
                 <a href="{% url 'api_doc' %}" class="s_title">API</a>
               </div>
             </div>
           </li>
           <li>
-            <a href="{% url 'news' %}" class="big_title">最新消息</a>
+            <a href="{% url 'news' %}" class="big_title">{% trans '最新消息' %}</a>
             <div class="line"></div>
             <div class="menu_2">
               <div class="item">
-                <a href="{% url 'news' %}?type=news" class="s_title">新聞公告</a>
-                <a href="{% url 'news' %}?type=event" class="s_title">活動訊息</a>
-                <a href="{% url 'news' %}?type=project" class="s_title">計畫徵求</a>
+                <a href="{% url 'news' %}?type=news" class="s_title">{% trans '新聞公告' %}</a>
+                <a href="{% url 'news' %}?type=event" class="s_title">{% trans '活動訊息' %}</a>
+                <a href="{% url 'news' %}?type=project" class="s_title">{% trans '計畫徵求' %}</a>
               </div>
             </div>
           </li>
           <li>
-            <a href="{% url 'resources' %}" class="big_title">開放資料相關資源</a>
+            <a href="{% url 'resources' %}" class="big_title">{% trans '開放資料相關資源' %}</a>
             <div class="line"></div>
             <div class="menu_2">
               <div class="item">
-                <a href="{% url 'resources' %}?type=strategy" class="s_title">TBIA 策略文件</a>
-                <a href="{% url 'resources' %}?type=guide" class="s_title">開放資料指引</a>
-                <a href="{% url 'resources' %}?type=tool" class="s_title">參考文件/工具</a>
-                <a href="{% url 'resources' %}?type=tutorial" class="s_title">教學文件</a>
+                <a href="{% url 'resources' %}?type=strategy" class="s_title">{% trans 'TBIA 策略文件' %}</a>
+                <a href="{% url 'resources' %}?type=guide" class="s_title">{% trans '開放資料指引' %}</a>
+                <a href="{% url 'resources' %}?type=tool" class="s_title">{% trans '參考文件/工具' %}</a>
+                <a href="{% url 'resources' %}?type=tutorial" class="s_title">{% trans '教學文件' %}</a>
               </div>
             </div>
           </li>
           <li>
-            <a href="{% url 'qa' %}" class="big_title">常見Q&A</a>
+            <a href="{% url 'qa' %}" class="big_title">{% trans '常見Q&A' %}</a>
             <div class="line"></div>
           </li>
         </ul>
@@ -340,7 +347,7 @@
         <div class="searchbox">
           <form action="{% url 'search_full' %}" method="GET">
             <div class="wbox">
-              <input type="text" placeholder="請輸入關鍵字" name="keyword">
+              <input type="text" placeholder="{% trans '請輸入關鍵字' %}" name="keyword">
               <button class="mb-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
                   <g id="loupe" transform="translate(0.038 0.035)">
@@ -358,8 +365,12 @@
         <div class="languagebox">
           <div class="slimenu">
             <ul>
-              <li>繁體中文</li>
-              <li>English</li>
+              <form id="language-selected" action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                <input name="next" type="hidden" value="{{ redirect_to }}" />
+                <input id="language" name="language" type="hidden"/>
+              </form>
+              <li class="language-item" value="zh-hant">繁體中文</li>
+              <li class="language-item" value="en-us">English</li>
             </ul>
           </div>
         </div>
@@ -368,10 +379,10 @@
           <div class="messagebox">
             <div class="wbox">
               <div class="titlebox">
-                <p>最近10筆通知</p>
+                <p>{% trans '最近10筆通知' %}</p>
                 <div>
-                  <button class="updateIsRead">全部已讀</button>
-                  <a href="{% url 'manager' %}?menu=notification">查看全部</a>
+                  <button class="updateIsRead">{% trans '全部已讀' %}</button>
+                  <a href="{% url 'manager' %}?menu=notification">{% trans '查看全部' %}</a>
                 </div>
               </div>
               <ul class="message_list">
@@ -384,17 +395,17 @@
 
         {% comment %} <div onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="member_login"> {% endcomment %}
           <div class="icon"></div>
-            <p>登入</p>
+            <p>{% trans '登入' %}</p>
             <div class="member_slimenu">
               <ul>
-                <li data-href="{% url 'manager' %}">帳號後台</li>
+                <li data-href="{% url 'manager' %}">{% trans '帳號後台' %}</li>
                 {% if user.is_partner_admin or user.is_partner_account %}
-                <li data-href="{% url 'manager_partner' %}">單位後台</li>
+                <li data-href="{% url 'manager_partner' %}">{% trans '單位後台' %}</li>
                 {% endif %}
                 {% if user.is_system_admin %}
-                <li data-href="{% url 'manager_system' %}">系統管理後台</li>
+                <li data-href="{% url 'manager_system' %}">{% trans '系統管理後台' %}</li>
                 {% endif %}
-                <li data-href="/logout">登出</li>
+                <li data-href="/logout">{% trans '登出' %}</li>
               </ul>
             </div>        
         </div>
@@ -408,56 +419,56 @@
         <div class="ftlogo_inf">
           <div class="logobox">
             <a href="{% url 'index' %}">
-              <img src="{% static 'image/logo_w.svg' %}" alt="臺灣生物多樣性資訊聯盟" />
+              <img src="{% static 'image/logo_w.svg' %}" alt="{% trans '臺灣生物多樣性資訊聯盟' %}" />
             </a>
           </div>
           <div class="inf">Email：<a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a></div>
         </div>
         <ul class="footer_menu">
           <li>
-            <a href="{% url 'search_occurrence' %}" class="big_link">進階搜尋</a>
-            <a href="{% url 'search_occurrence' %}" class="sma_link">物種出現紀錄查詢</a>
-            <a href="{% url 'search_collection' %}" class="sma_link">自然史典藏查詢</a>
+            <a href="{% url 'search_occurrence' %}" class="big_link">{% trans '進階搜尋' %}</a>
+            <a href="{% url 'search_occurrence' %}" class="sma_link">{% trans '物種出現紀錄查詢' %}</a>
+            <a href="{% url 'search_collection' %}" class="sma_link">{% trans '自然史典藏查詢' %}</a>
           </li>
           <li>
-            <a href="{% url 'news' %}" class="big_link">最新消息</a>
-            <a href="{% url 'news' %}?type=news" class="sma_link">新聞公告</a>
-            <a href="{% url 'news' %}?type=event" class="sma_link">活動訊息</a>
-            <a href="{% url 'news' %}?type=project" class="sma_link">計畫徵求</a>
+            <a href="{% url 'news' %}" class="big_link">{% trans '最新消息' %}</a>
+            <a href="{% url 'news' %}?type=news" class="sma_link">{% trans '新聞公告' %}</a>
+            <a href="{% url 'news' %}?type=event" class="sma_link">{% trans '活動訊息' %}</a>
+            <a href="{% url 'news' %}?type=project" class="sma_link">{% trans '計畫徵求' %}</a>
           </li>
           <li>
-            <a href="{% url 'resources' %}" class="big_link">開放資料相關資源</a>
-            <a href="{% url 'resources' %}?type=strategy" class="sma_link">TBIA 策略文件</a>
-            <a href="{% url 'resources' %}?type=guide" class="sma_link">開放資料指引</a>
-            <a href="{% url 'resources' %}?type=tool" class="sma_link">參考文件/工具</a>
-            <a href="{% url 'resources' %}?type=tutorial" class="sma_link">教學文件</a>
+            <a href="{% url 'resources' %}" class="big_link">{% trans '開放資料相關資源' %}</a>
+            <a href="{% url 'resources' %}?type=strategy" class="sma_link">{% trans 'TBIA 策略文件' %}</a>
+            <a href="{% url 'resources' %}?type=guide" class="sma_link">{% trans '開放資料指引' %}</a>
+            <a href="{% url 'resources' %}?type=tool" class="sma_link">{% trans '參考文件/工具' %}</a>
+            <a href="{% url 'resources' %}?type=tutorial" class="sma_link">{% trans '教學文件' %}</a>
           </li>
           <li>
-            <a href="{% url 'about' %}" class="big_link">關於TBIA</a>
-            <a href="{% url 'about' %}#about" class="sma_link">聯盟簡介</a>
-            <a href="{% url 'about' %}#partner" class="sma_link">夥伴單位</a>
-            <a href="{% url 'qa' %}" class="big_link mt-10px">常見Q&A</a>
+            <a href="{% url 'about' %}" class="big_link">{% trans '關於TBIA' %}</a>
+            <a href="{% url 'about' %}#about" class="sma_link">{% trans '聯盟簡介' %}</a>
+            <a href="{% url 'about' %}#partner" class="sma_link">{% trans '夥伴單位' %}</a>
+            <a href="{% url 'qa' %}" class="big_link mt-10px">{% trans '常見Q&A' %}</a>
           </li>
         </ul>
         <div class="right_inf">
           <div class="addpart">
-            <p>贊助單位</p>
+            <p>{% trans '贊助單位' %}</p>
             <div class="d-flex-jc-sb">
               <a href="https://www.forest.gov.tw" class="cir" target="_blank">
-                <img src="{% static 'image/partner/forest.png' %}" alt="贊助單位" />
+                <img src="{% static 'image/partner/forest.png' %}" alt="{% trans '贊助單位' %}" />
               </a>
               <a href="https://www.forest.gov.tw" class="cir" target="_blank">
-                <img src="{% static 'image/partner/國土生態綠網.png' %}" alt="贊助單位" />
+                <img src="{% static 'image/partner/國土生態綠網.png' %}" alt="{% trans '贊助單位' %}" />
               </a>
             </div>
           </div>
         </div>
       </div>
       <div class="copy d-flex-ai-c-jc-c">
-        <a target="_blank" href="{% url 'terms' %}">使用條款</a> | <a target="_blank" href="{% url 'policy' %}">隱私權政策</a>
+        <a target="_blank" href="{% url 'terms' %}">{% trans '使用條款' %}</a> | <a target="_blank" href="{% url 'policy' %}">{% trans '隱私權政策' %}</a>
       </div>
       <div class="copy">
-        <h6>Copyright © TBIA 臺灣生物多樣性資訊聯盟</h6>
+        <h6>Copyright © TBIA {% trans '臺灣生物多樣性資訊聯盟' %}</h6>
       </div>
     </div>
 
@@ -487,25 +498,25 @@
           <div class="right_cont">
             <div class="alcont_center">
               <div class="titlegreen">
-                會員登入
-                <span>Login</span>
+                {% trans '會員登入' %}
+                <!-- <span>Login</span> -->
               </div>
               <form id="loginForm">
                 {% csrf_token %}
                 <div class="input_item">
-                  <input type="text" name="email" placeholder="請輸入您的帳號(email)">
+                  <input type="text" name="email" placeholder="{% trans '請輸入您的帳號(Email)' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>請輸入正確信箱</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '請輸入正確信箱' %}</p>
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="password" placeholder="請輸入您的密碼">
+                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>請輸入6~10位英文或數字</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
                   </div>
                 </div>
 
@@ -519,16 +530,16 @@
                     data-error-callback="error">
                     </div>
                     <div class="noticbox d-none">
-                      <div class="in1">錯誤</div>
-                      <p>登入前請完成驗證</p>
+                      <div class="in1">{% trans '錯誤' %}</div>
+                      <p>{% trans '登入前請完成驗證' %}</p>
                     </div>
                   </div>
                 <div class="checkbox_area">
                   <div class="flex_center">
                     <input type="checkbox" name="rememberme">
-                    <p>記住我的帳號</p>
+                    <p>{% trans '記住我的帳號' %}</p>
                   </div>
-                  <button type="button" class="loginbtn login-onclick">登入</button>
+                  <button type="button" class="loginbtn login-onclick">{% trans '登入' %}</button>
                 </div>
                 </form>
     
@@ -540,12 +551,12 @@
                       <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
                       <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
                     </g>
-                    <p>使用Google登入</p>
+                    <p>{% trans '使用Google登入' %}</p>
                   </svg>
                 </a>
               <div class="linkbtn_2">
-                <a href="javascript:;" class="i-register">我要註冊</a>
-                <a href="javascript:;" class="forget-psw">忘記密碼?</a>
+                <a href="javascript:;" class="i-register">{% trans '我要註冊' %}</a>
+                <a href="javascript:;" class="forget-psw">{% trans '忘記密碼?' %}</a>
               </div>
             </div>
           </div>
@@ -557,46 +568,50 @@
             <div class="alcont_center">
               <div class="titlegreen">
                 會員註冊
-                <span>Register</span>
+                <!-- <span>Register</span> -->
               </div>
               <form id="registerForm">
               {% csrf_token %}
                 <div class="input_item">
-                  <input type="text" name="name" placeholder="姓名">
+                  <input type="text" name="name" placeholder="{% trans '姓名' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>請輸入姓名</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '請輸入姓名' %}</p>
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="text" name="email" placeholder="請輸入您的Email作為帳號">
+                  <input type="text" name="email" placeholder="{% trans '請輸入您的Email作為帳號' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>請輸入正確信箱</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '請輸入正確信箱' %}</p>
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="password" placeholder="請輸入您的密碼">
+                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>請輸入6~10位英文或數字</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="repassword" placeholder="請再次輸入密碼">
+                  <input type="password" name="repassword" placeholder="{% trans '請再次輸入密碼' %}">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
-                    <div class="in1">錯誤</div>
-                    <p>兩次密碼輸入不同</p>
+                    <div class="in1">{% trans '錯誤' %}</div>
+                    <p>{% trans '兩次密碼輸入不同' %}</p>
                   </div>
                 </div>
               </form>
-              <button class="loginbtn register-onclick">註冊</button>
+              <button class="loginbtn register-onclick">{% trans '註冊' %}</button>
               <div class="linkbtn_1">
+                {% if LANGUAGE_CODE == 'en-us' %}
+                *Registering implies your agreement to our<a class="checka" target="_blank" href="{% url 'terms' %}">terms of use</a>.
+                {% else %}
                 *註冊即代表您同意我們的<a class="checka" target="_blank" href="{% url 'terms' %}">使⽤條款</a>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -606,17 +621,17 @@
           <div class="right_cont">
             <div class="alcont_center">
               <div class="titlegreen">
-                忘記密碼
-                <span>Password</span>
+                重設密碼
+                <!-- <span>Password</span> -->
               </div>
-              <p class="center">請輸入當初加入會員使用的E-Mail，我們將協助您重新設定密碼。</p>
+              <p class="center">{% trans '請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。' %}</p>
               <div class="input_item">
-                <input type="text" name="reset_email" placeholder="請輸入您的email">
+                <input type="text" name="reset_email" placeholder="{% trans '請輸入您的Email' %}">
               </div>
-              <button class="loginbtn resetbtn">確認送出</button>
+              <button class="loginbtn resetbtn">{% trans '確認送出' %}</button>
               <div class="linkbtn_2">
-                <a href="javascript:;" class="i-register">我要註冊</a>
-                <a href="javascript:;" class="back-login">返回登入?</a>
+                <a href="javascript:;" class="i-register">{% trans '我要註冊' %}</a>
+                <a href="javascript:;" class="back-login">{% trans '返回登入' %}</a>
               </div>
             </div>
           </div>

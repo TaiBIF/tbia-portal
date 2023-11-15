@@ -89,7 +89,9 @@ $(document).ready(function () {
               data: {'type': $('#saveForm select[name=qa_type]').find(":selected").val(), 
                      'qa_id': $('#saveForm input[name=qa_id]').val(), 
                      'answer': $('#saveForm textarea[name=answer]').val(),
+                     'answer_en': $('#saveForm textarea[name=answer_en]').val(),
                      'question': $('#saveForm textarea[name=question]').val(),
+                     'question_en': $('#saveForm textarea[name=question_en]').val(),
                      'order': $('#saveForm input[name=order]').val()
                     },
               headers: {'X-CSRFToken': $csrf_token},

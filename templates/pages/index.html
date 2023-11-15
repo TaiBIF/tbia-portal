@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load i18n %}
 {% load tags %}
 
 {% block style %}
@@ -118,10 +119,10 @@
       </div>
     </div>
     <div class="content_area">
-      <h2>臺灣生物多樣性開放資料任意門</h2>
+      <h2>{% trans '臺灣生物多樣性開放資料任意門' %}</h2>
       <div class="input_set">
         <form action="{% url 'search_full' %}" method="GET">
-          <input placeholder="請輸入關鍵字" type="text" name="keyword" />
+          <input placeholder="{% trans '請輸入關鍵字' %}" type="text" name="keyword" />
           <button type="submit">
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
               <g id="loupe" transform="translate(0 -0.003)">

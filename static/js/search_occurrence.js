@@ -1,7 +1,7 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 let selectBox = new vanillaSelectBox("#rightsHolder", {"placeHolder": "來源資料庫", search: true, disableSelectAll: true,
-        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} });
+        translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "重設"} });
 
 
 // set value 之後再加event 不然會被洗掉
@@ -35,7 +35,7 @@ $('#rightsHolder').on('change', function(e){
 })
 
 let selectBox2 = new vanillaSelectBox("#datasetName",{"placeHolder":"資料集名稱", search: true, disableSelectAll: true,
-translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"} 
+translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "重設"} 
 });
 
 /*
@@ -81,7 +81,7 @@ let selectBox10 = new vanillaSelectBox("#locality",
         "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
         "onInit": initLocality,
     },
-    translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "清除"}
+    translations: { "all": "全部", "items": " 個選項", "selectAll": "全選", "clearAll": "重設"}
 });
 
 
@@ -335,7 +335,7 @@ $( function() {
                     months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
                     monthsShort: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
                     today: '今天',
-                    clear: '清除',
+                    clear: '重設',
                     dateFormat: 'yyyy-MM-dd',   
                     timeFormat: 'HH:mm',
                     firstDay: 1}

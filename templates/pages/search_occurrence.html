@@ -1,6 +1,6 @@
 {% extends 'base.html' %} 
 {% load static %} 
-
+{% load i18n %}
 {% block head %}
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -206,7 +206,7 @@
 			<div class="catetitle">
 				<div class="titlebox">欄位選項</div>	
 				<button class="selt selectAll">全選</button>
-				<button class="selt resetAll">重置</button>
+				<button class="selt resetAll">重設</button>
 			</div>
 			<ul class="catalist">
 				<li>
@@ -332,7 +332,7 @@
 			<div class="xx">
 			</div>
 			<div class="titlegreen">
-				空間查詢
+				上傳Polygon
 			</div>
 			<p class="shortxt">
         請以GeoJSON格式貼上欲查詢的Polygon：

@@ -319,7 +319,7 @@ function showRequest(query_id,query,sdr_id,is_transferred){
        $('.detail-pop .send-check, .detail-pop .send-transfer').removeClass('d-none')
        $('.detail-pop .send-submitted, .detail-pop .send-transferred').addClass('d-none')
 
-       // 要先全部清除
+       // 要先全部重設
        $("#detailForm").trigger("reset");
        $("#reviewForm").trigger("reset");
 

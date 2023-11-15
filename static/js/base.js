@@ -103,6 +103,10 @@ var CaptchaCallback = function() {
 $(function () {
 
 
+  $('.language-item').on('click',function (event) {
+    document.getElementById("language").setAttribute("value",event.target.getAttribute("value"));
+    document.getElementById("language-selected").submit();
+  });
 
 
   if (!isOverflown($('.message_list')[0])){
@@ -231,7 +235,9 @@ $(function () {
   $('.feedback-pop .send').on('click',function() {
 
 
-    if ((!$('#g-recaptcha-response').val())|(!$('#feedback_form select[name=partner_id]').val())|(!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|(!$('#feedback_form textarea[name=content]').val())){
+    if ((!$('#g-recaptcha-response').val())|(!$('#feedback_form select[name=partner_id]').val())|
+        (!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|
+        (!$('#feedback_form textarea[name=content]').val())){
       alert('請完整填寫表格並檢查email格式是否正確')
     } else {
       
@@ -349,8 +355,8 @@ window.addEventListener('error', function(event) {
 $(function () {
   $(window).resize(function(){
         if($(window).width()>768){
-                $('.mb_bmenu').hide()
-                $('.hmenu').removeClass('active')
+          $('.mb_bmenu').hide()
+          $('.hmenu').removeClass('active')
         }
     })	
 
@@ -443,9 +449,12 @@ function login(){
         dataType : 'json',
     })
     .done(function(response) {
-      alert(response.message)
+      
       if (response.status=='success'){
-        location.reload() }
+        location.reload() 
+      } else {
+        alert(response.message)
+      }
     })
     .fail(function( xhr, status, errorThrown ) {
       alert('發生未知錯誤！請聯絡管理員')
