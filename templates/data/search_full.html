@@ -22,7 +22,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search_full.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}" />
 {% endblock style %}
 
 {% block body %}
@@ -105,7 +105,7 @@
       <div class="input_item">
         <form id="fullForm" action="{% url 'search_full' %}">
           <p class="d-none keyword-p">{{ keyword }}</p>
-          <input id="keyword_input" type="text" name="keyword" placeholder="請輸入關鍵字" value="{{ keyword }}"/>
+          <input id="keyword_input" type="text" name="keyword" placeholder="{% trans '請輸入關鍵字' %}" value="{{ keyword }}"/>
           <button id="fullSubmit">
             <img src="{% static 'image/search_icon.svg' %}" alt="" />
           </button>
@@ -905,5 +905,5 @@
 {% endblock body %} 
 
 {% block script %}
-<script src="{% static 'js/search_full.js' %}"></script>
+<script src="{% static 'js/data/search_full.js' %}"></script>
 {% endblock script %}

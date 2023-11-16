@@ -7,7 +7,7 @@
 {% endblock head %}
 {% block title %}開放資料相關資源｜{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/resources.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/resources.css' %}" />
 {% endblock style %}
 {% block body %}
 {% csrf_token %}
@@ -218,5 +218,5 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/resources.js' %}"></script>
+<script src="{% static 'js/pages/resources.js' %}"></script>
 {% endblock script %}

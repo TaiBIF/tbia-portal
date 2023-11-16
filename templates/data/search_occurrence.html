@@ -2,15 +2,19 @@
 {% load static %} 
 {% load i18n %}
 {% block head %}
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
   crossorigin=""/>
+<!--
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+-->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
   crossorigin=""></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-{% comment %} <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script> {% endcomment %}
+
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -24,11 +28,11 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search_collection.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}" />
 {% endblock style %}
 
+{% block title %}物種出現紀錄查詢｜{% endblock %}
 
-{% block title %}自然史典藏查詢｜{% endblock %}
 {% block body %}
 {% csrf_token %}
 <div class="path">
@@ -36,74 +40,65 @@
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
     <p>進階搜尋</p>
     <span>></span>
-    <p>自然史典藏查詢</p>
+    <p>物種出現紀錄查詢</p>
   </div>
 </div>
 
 <div class="nbn_title">
-  <h2>自然史典藏查詢</h2>
+  <h2>物種出現紀錄查詢</h2>
 </div>
 
 <div class="container_area">
   <div class="main_1240">
     <div class="search_condition_are">
       <form id="searchForm">
-        <input type="hidden" name="record_type" value="col">
+        <input type="hidden" name="record_type" value="occ">
         <input type="hidden" name="geojson_id" value="">
         <div class="secboxtop2">
           <div class="leftbox">
             <div class="two_input">
               <div class="input_item">
-                <input type="text" name="name" placeholder="中文名/學名/中文別名" value=""/>
+                <input type="text" name="name" placeholder="中文名/學名/中文別名" />
               </div>
-            </div>
-            <div class="two_input">
-				<div class="input_item">
-					<select id="taxonGroup" name="taxonGroup">
-						<option value="">--不限--</option>
-						<option value="Insects">昆蟲</option>
-						<option value="Fishes">魚類</option>
-						<option value="Reptiles">爬蟲類</option>
-						<option value="Fungi">真菌(含地衣)</option>
-						<option value="Plants">植物</option>
-						<option value="Birds">鳥類</option>
-						<option value="Mammals">哺乳類</option>
-					</select>  
-				</div>  
-				<div class="input_item">
-					<input name="taxonID" type="text" placeholder="TaiCOL物種編號" value="" />
-				</div>
-            </div>
-            <div class="two_input">
-				<div class="input_item">
-					<select name="typeStatus" id="typeStatus">
-					  <option value="">--不限--</option>
-					  <option value="一般">一般</option>
-					  <option value="模式">模式</option>
-					</select>
-				  </div>
-				  <!--
               <div class="input_item">
+                <input name="taxonID" type="text" placeholder="TaiCOL物種編號" />
+              </div>                
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select id="taxonGroup" name="taxonGroup">
+                  <option value="">-- 不限 --</option>
+                  <option value="Insects">昆蟲</option>
+                  <option value="Fishes">魚類</option>
+                  <option value="Reptiles">爬蟲類</option>
+                  <option value="Fungi">真菌(含地衣)</option>
+                  <option value="Plants">植物</option>
+                  <option value="Birds">鳥類</option>
+                  <option value="Mammals">哺乳類</option>
+                </select>  
+              </div>  
+              <!--<div class="input_item">
+                
                 <select name="sensitiveCategory" id="sensitiveCategory" required>
-                  <option value="">--不限--</option>
+                  <option value="">-- 不限 --</option>
                 </select>
               </div>-->
               <div class="input_item">
                 <select name="taxonRank" id="taxonRank">
-                  <option value="">--不限--</option>
+                  <option value="">-- 不限 --</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{{ i.0 }}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-			<div class="two_input">
-				<div class="input_item input-100">
-				  <select id="higherTaxa" name="higherTaxa">
-				  </select>  
-				</div>  
-			</div>              
-			<div class="two_input">
+            <div class="two_input">
+              <div class="input_item input-100">
+                <select id="higherTaxa" name="higherTaxa">
+                </select>  
+              </div>  
+            </div>            
+            <div class="two_input">
               <div class="input_item">
                 <select name="rightsHolder" id="rightsHolder" multiple size="1">
                   {% for i in holder_list %}
@@ -111,41 +106,45 @@
                   {% endfor %}
                 </select>
               </div>
-			  <div class="input_item">
+              <div class="input_item">
                 <select name="has_image" id="has_image">
-					<option value="">--不限--</option>
-					<option value="y">有</option>
-					<option value="n">無</option>
-				  </select>              
-				</div>
+                  <option value="">-- 不限 --</option>
+                  <option value="y">有</option>
+                  <option value="n">無</option>
+                </select>
+              </div>
             </div>
-
             <div class="two_input">
               <div class="line_cneter">~</div>
               <div class="input_item">
-                <input name="start_date" id="start_date" type="text" placeholder="起始日期（YYYY-MM-DD）" value="" />
+                <input name="start_date" class="form-control" id="start_date" type="text" placeholder="起始日期（YYYY-MM-DD）" />
                 <a class="dateicon show_start"></a>
               </div>
               <div class="input_item">
-                <input name="end_date" id="end_date" type="text" placeholder="結束日期（YYYY-MM-DD）" value=""/>
-                <a class="dateicon show_end"></a>
+                <input name="end_date" id="end_date" type="text" placeholder="結束日期（YYYY-MM-DD）" value="" />
+                <span class="dateicon show_end"></span>
               </div>
             </div>
             <div class="two_input">
               <div class="input_item">
-				<select id="locality" name="locality" multiple size="1">>
+                <select id="locality" name="locality" multiple size="1">
                 </select>
               </div>
               <div class="input_item">
-                <input name="organismQuantity" type="number" placeholder="數量" min="0"/>
+                <input name="organismQuantity" type="number" placeholder="數量" min="0" />
               </div>
             </div>
             <div class="two_input">
               <div class="input_item">
-                <input name="recordedBy" type="text" placeholder="採集者" value=""/>
+                <input name="recordedBy" type="text" placeholder="記錄者" />
               </div>
               <div class="input_item">
-                <input name="preservation" type="text" placeholder="保存方式" value=""/>
+                <select name="basisOfRecord" id="basisOfRecord">
+                  <option value="">-- 不限 --</option>
+                  {% for i in basis_list  %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
             <div class="two_input">
@@ -154,10 +153,10 @@
                   {% for i in dataset_list %}
                   <option value="{{ i.0 }}">{{ i.1 }}</option>
                   {% endfor %}
-                </select>              
+                </select>
               </div>
               <div class="input_item">
-                <input name="resourceContacts" type="text" placeholder="資料集聯絡人" value="" />
+                <input name="resourceContacts" type="text" placeholder="資料集聯絡人" />
               </div>
             </div>
           </div>
@@ -168,18 +167,18 @@
             </div>
             <div class="btn_area">
               <label class="btnupload">
-                <p class="mapGeo" data-type="map" >地圖框選</p>
+                <p class="w-110px mapGeo" data-type="map">地圖框選</p>
               </label>
               <label class="btnupload">
-                <p class="circleGeo" data-type="circle">圓中心框選</p>
+                <p class="w-120px circleGeo" data-type="circle">圓中心框選</p>
               </label>
               <label class="btnupload">
-                <p class="popupGeo" data-type="polygon">上傳Polygon</p>
+                <p class="w-130px popupGeo" data-type="polygon">上傳Polygon</p>
               </label>
               <label class="btnupload">
-                <p class="clearGeo">重設</p>
+                <p class="clearGeo">重設</p>  
               </label>
-            </div>
+            </div>          
             <div class="map_img">
               <div class="imgbox">
                 <div id="map" class="img"></div>
@@ -189,17 +188,17 @@
         </div>
         </form>
         <div class="d-flex-ai-c-jc-c ">
-			<div class="search_area_btns d-flex-ai-c">
-			  <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
-			  <button class="clear_btn resetSearch">清除搜尋條件</button>
-			</div>
-		</div>    
-	</div>
+          <div class="search_area_btns d-flex-ai-c">
+            <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">搜尋</button>
+            <button class="clear_btn resetSearch">清除搜尋條件</button>
+          </div>
+        </div>
+    </div>
   </div>
 </div>
 
-<!-- 自然史典藏欄位選擇 -->
-<div class="popbg col-choice d-none">
+<!-- 物種出現紀錄欄位選擇 -->
+<div class="popbg occ-choice d-none">
 	<div class="ovhy choice-ovhy">
 		<div class="wbox_center choice-flow">
 			<div class="xx choice-xx">
@@ -211,123 +210,112 @@
 			</div>
 			<ul class="catalist">
 				<li>
-					<input type="checkbox" class="chebox" id="col-common_name_c">
+					<input type="checkbox" class="chebox" id="occ-common_name_c">
 					<p>中文名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-scientificName">
+					<input type="checkbox" class="chebox" id="occ-scientificName">
 					<p>學名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-alternative_name_c">
+					<input type="checkbox" class="chebox" id="occ-alternative_name_c">
 					<p>中文別名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-synonyms">
+					<input type="checkbox" class="chebox" id="occ-synonyms">
 					<p>同物異名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-misapplied">
+					<input type="checkbox" class="chebox" id="occ-misapplied">
 					<p>誤用名</p>
 				</li>				
-				<li>
-					<input type="checkbox" class="chebox" id="col-sourceScientificName">
+        <li>
+					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
 					<p>來源資料庫使用學名</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-sourceVernacularName">
+					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
 					<p>來源資料庫使用中文名</p>
-				</li>	
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-taxonRank">
+					<p>鑑定層級</p>
+				</li>				
 				<li>
-					<input type="checkbox" class="chebox" id="col-rightsHolder">
+					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
+					<p>敏感層級</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-rightsHolder">
 					<p>來源資料庫</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-taxonID">
+					<input type="checkbox" class="chebox" id="occ-taxonID">
 					<p>TaiCOL物種編號</p>
 				</li>
+
 				<li>
-					<input type="checkbox" class="chebox" id="col-collectionID">
-					<p>館藏號</p>
+					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<p>紀錄日期</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-taxonRank">
-					<p>鑑定層級</p>
+					<input type="checkbox" class="chebox" id="occ-locality">
+					<p>出現地</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-sensitiveCategory">
-					<p>敏感層級</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-typeStatus">
-					<p>標本類型</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-preservation">
-					<p>保存方式</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-eventDate">
-					<p>採集日期</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-locality">
-					<p>採集地</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-recordedBy">
-					<p>採集者</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-recordNumber">
-					<p>採集號</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-organismQuantity">
+					<input type="checkbox" class="chebox" id="occ-organismQuantity">
 					<p>數量</p>
-				</li>				
-        <li>
-					<input type="checkbox" class="chebox" id="col-organismQuantityType">
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
 					<p>數量單位</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
+					<input type="checkbox" class="chebox" id="occ-recordedBy">
+					<p>記錄者</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
 					<p>經度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
 					<p>緯度</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimCoordinateSystem">
-					<p>座標系統</p>
-				</li>
-				<li>
-					<input type="checkbox" class="chebox" id="col-verbatimSRS">
+					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
 					<p>空間參考系統</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-coordinateUncertaintyInMeters">
+					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
+					<p>座標系統</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
 					<p>座標誤差</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-dataGeneralizations">
+					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
 					<p>座標是否有模糊化</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-coordinatePrecision">
+					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
 					<p>座標模糊化程度</p>
 				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
+					<p>紀錄類型</p>
+				</li>
 				<li>				
-					<input type="checkbox" class="chebox" id="col-datasetName">
+					<input type="checkbox" class="chebox" id="occ-datasetName">
 					<p>資料集名稱</p>
 				</li>
 				<li>
-					<input type="checkbox" class="chebox" id="col-resourceContacts">
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
 					<p>資料集聯絡人</p>
 				</li>
-        <li>
-					<input type="checkbox" class="chebox" id="col-license">
+				<li>
+					<input type="checkbox" class="chebox" id="occ-license">
 					<p>授權狀況</p>
 				</li>
 			</ul>
@@ -347,20 +335,20 @@
 				上傳Polygon
 			</div>
 			<p class="shortxt">
-			請以GeoJSON格式貼上欲查詢的Polygon：
-			</p>
-			<div class="from_area h-100p">
-				<div class="txt_area">
-					<textarea id="geojson_textarea" class="h-300px"></textarea>
-				</div>
-				<p class="shortxt note-text">
-				*上限2.5 MB
-				</p>
-				<p class="shortxt text-right">
-				可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
-				</p>
-				<button class="send geojson_send">確認送出</button>
-			</div>
+        請以GeoJSON格式貼上欲查詢的Polygon：
+        </p>
+        <div class="from_area h-100p">
+          <div class="txt_area">
+            <textarea id="geojson_textarea" class="h-300px"></textarea>
+          </div>
+          <p class="shortxt note-text">
+          *上限2.5 MB
+          </p>
+          <p class="shortxt text-right">
+          可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
+          </p>
+          <button class="send geojson_send">確認送出</button>
+        </div>
 		</div>
 	</div>
 </div>
@@ -406,5 +394,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/search_collection.js' %}"></script>
-{% endblock %}
+<script src="{% static 'js/data/search_occurrence.js' %}"></script>
+{% endblock script %}

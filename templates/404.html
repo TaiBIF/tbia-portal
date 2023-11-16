@@ -7,8 +7,12 @@
 {% block title %}錯誤｜{% endblock %}
 {% block body %}
 <div class="error">
-<p class="content">
-    您要求的網址不存在或有錯誤，若有疑問請<a class="showFeedback" href="javascript:;">聯絡我們</a>，謝謝。
-</p>
+    <p class="content">
+        {% if LANGUAGE_CODE == 'en-us' %}
+        We can't find the page you are looking for. You are always welcome to <a class="showFeedback" href="javascript:;">contact us</a>.
+        {% else %}
+        您要求的網址不存在或有錯誤，若有疑問請<a class="showFeedback" href="javascript:;">聯絡我們</a>，謝謝。
+        {% endif %}
+    </p>
 </div>
 {% endblock body %}

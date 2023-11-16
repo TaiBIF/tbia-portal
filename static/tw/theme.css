@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap");
 
 
-.img_link img, .img_link>.show_box, .img_link .span {
+/* .img_link img, .img_link>.show_box, .img_link .span {
     display: inline-block;
     *display: inline;
     *zoom: 1
@@ -12,7 +12,7 @@
     font-size: 0;
     letter-spacing: 0;
     line-height: 0
-}
+} */
 
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
     padding-right: 10px;
@@ -865,7 +865,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0px 20px;
-    min-width: 130px;
+    min-width: 140px;
     color: #555;
     height: 100%;
     text-align: center;
@@ -884,7 +884,7 @@ body {
 
 @media only screen and (max-width: 1599px) {
     .header .right_menu li a.big_title {
-        min-width: 115px;
+        /* min-width: 115px; */
         padding: 0px 10px
     }
 }

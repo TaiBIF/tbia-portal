@@ -10,7 +10,7 @@ import json
 from api.models import APIkey
 from data.utils import *
 import requests
-from utils.solr_query import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 

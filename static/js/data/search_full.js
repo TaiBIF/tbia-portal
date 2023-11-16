@@ -63,7 +63,8 @@ function getDist(taxonID, common_name_c, formatted_name){
       if (xhr.status==504){
           alert('要求連線逾時')
       } else {
-          alert('發生未知錯誤！請聯絡管理員')
+          alert($('input[name=unexpected-error-alert]').val())
+
       }
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
   })
@@ -113,7 +114,8 @@ function getDist(taxonID, common_name_c, formatted_name){
             if (xhr.status==504){
                 alert('要求連線逾時')
             } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
             }
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -152,7 +154,8 @@ function getDist(taxonID, common_name_c, formatted_name){
             if (xhr.status==504){
                 alert('要求連線逾時')
             } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
             }
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -207,7 +210,8 @@ function getDist(taxonID, common_name_c, formatted_name){
             if (xhr.status==504){
                 alert('要求連線逾時')
             } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
             }
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -246,7 +250,8 @@ function getDist(taxonID, common_name_c, formatted_name){
             if (xhr.status==504){
                 alert('要求連線逾時')
             } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
             }
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -924,7 +929,8 @@ function focusComponent(item_class, go_back){
         if (xhr.status==504){
           alert('要求連線逾時')
         } else {
-          alert('發生未知錯誤！請聯絡管理員')
+          alert($('input[name=unexpected-error-alert]').val())
+
         }
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
       })
@@ -1145,7 +1151,8 @@ function focusComponent(item_class, go_back){
           if (xhr.status==504){
             alert('要求連線逾時')
           } else {
-            alert('發生未知錯誤！請聯絡管理員')
+            alert($('input[name=unexpected-error-alert]').val())
+
           }
           console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -1253,7 +1260,8 @@ function focusComponent(item_class, go_back){
           if (xhr.status==504){
             alert('要求連線逾時')
           } else {
-            alert('發生未知錯誤！請聯絡管理員')
+            alert($('input[name=unexpected-error-alert]').val())
+
           }
           console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -1338,7 +1346,8 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class){
     if (xhr.status==504){
       alert('要求連線逾時')
     } else {
-      alert('發生未知錯誤！請聯絡管理員')
+      alert($('input[name=unexpected-error-alert]').val())
+
     }      
     console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
   })
@@ -1515,7 +1524,8 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
       if (xhr.status==504){
         alert('要求連線逾時')
       } else {
-        alert('發生未知錯誤！請聯絡管理員')
+        alert($('input[name=unexpected-error-alert]').val())
+
       }      
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
@@ -1600,7 +1610,8 @@ function getMoreCards(card_class, offset_value, more_type, is_sub){
       if (xhr.status==504){
         alert('要求連線逾時')
       } else {
-        alert('發生未知錯誤！請聯絡管理員')
+        alert($('input[name=unexpected-error-alert]').val())
+
       }      
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
@@ -1656,7 +1667,8 @@ function downloadData(search_str, total_count){
         if (xhr.status==504){
           alert('要求連線逾時')
         } else {
-          alert('發生未知錯誤！請聯絡管理員')
+          alert($('input[name=unexpected-error-alert]').val())
+
         }      
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
       })

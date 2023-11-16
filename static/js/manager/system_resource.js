@@ -139,7 +139,8 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
                   }
               },
               fail: function( xhr, status, errorThrown ) {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
                 }
             })

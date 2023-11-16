@@ -157,6 +157,7 @@ class SensitiveDataResponse(models.Model):
 
 class About(models.Model):
     content = models.TextField(null=True, blank=True)
+    content_en = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
 

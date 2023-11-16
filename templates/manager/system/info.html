@@ -11,7 +11,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/system_info.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}" />
 {% endblock style %}
 
 
@@ -192,6 +192,13 @@
                         </li>
                         <li>TBIA簡介</li>
                         <li><textarea name="about_content">{{ content }}</textarea>
+                            <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                        <li>TBIA英文簡介</li>
+                        <li><textarea name="about_content_en">{{ content_en }}</textarea>
                             <div class="noticbox d-none">
                                 <div class="in1">錯誤</div>
                                 <p>必填欄位</p>
@@ -553,5 +560,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/system_info.js' %}"></script>
+<script src="{% static 'js/manager/system_info.js' %}"></script>
 {% endblock script %}

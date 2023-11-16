@@ -14,9 +14,8 @@ from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_bytes, force_str, force_text, DjangoUnicodeDecodeError
+from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeError
 from manager.utils import generate_token, check_due
-from django.conf import settings
 import threading
 from django.http import (
     request,
@@ -27,7 +26,7 @@ from django.http import (
 )
 import json
 from allauth.socialaccount.models import SocialAccount
-from utils.solr_query import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX
 import requests
 import subprocess
 import os
@@ -1088,7 +1087,7 @@ def resend_verification_email(request):
 
 def verify_user(request, uidb64, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
 
     except Exception as e:
@@ -1134,7 +1133,7 @@ def send_reset_password(request):
 
 def verify_reset_password(request, uidb64, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
 
     except Exception as e:
@@ -1633,8 +1632,10 @@ def get_system_stat(request):
 def update_tbia_about(request):
     if request.method == 'POST':
         content = request.POST.get('about_content')
+        content_en = request.POST.get('about_content_en')
         a = About.objects.all().first()
         a.content = content
+        a.content_en = content_en
         a.save()
         return JsonResponse({"status": 'success'}, safe=False)
 
@@ -1669,6 +1670,7 @@ def system_info(request):
     system_admin = ','.join(system_admin)
 
     content = About.objects.all().first().content
+    content_en = About.objects.all().first().content_en
     menu = request.GET.get('menu','info')
     partner_members = User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[:10]
 
@@ -1785,7 +1787,7 @@ def system_info(request):
     sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
     sr_page_list = get_page_list(1, sr_total_page)
 
-    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 
+    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'content_en': content_en, 
                         'system_admin': system_admin, 'partner_members': partner_members,
                         'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track,
                         'f_page_list': f_page_list, 'f_total_page': f_total_page, 'sr_page_list': sr_page_list, 'sr_total_page': sr_total_page,

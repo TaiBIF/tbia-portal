@@ -1,5 +1,4 @@
 {% extends 'base.html' %} 
-
 {% load static %} 
 {% load i18n %}
 {% block head %}
@@ -16,11 +15,10 @@
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock head %}
-
-{% block title %}物種出現紀錄｜{% endblock %}
+{% block title %}自然史典藏｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/occurrence_detail.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}" />
 {% endblock style %}
 
 {% block body %}
@@ -49,13 +47,14 @@
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
-    <p>物種出現紀錄</p>
+    <p>自然史典藏</p>
   </div>
 </div>
 
 <div class="nbn_title">
-  <h2>物種出現紀錄</h2>
+  <h2>自然史典藏</h2>
 </div>
+
 <div class="container_area">
   <div class="main_1240">
     <div class="sc_de_top">
@@ -116,7 +115,7 @@
       {% else %}
       <div class="right_area">
         <div class="no-imgbox">    
-          <p>無照片</p>
+          <p >無照片</p>
         </div>
       </div>
       {% endif %}
@@ -126,28 +125,44 @@
         <div class="whcont">
           <ul class="inforall">
             <li>
-              <h3>敏感層級：</h3>
-              <p>{{ row.sensitiveCategory }}</p>
-            </li>
-            <li>
-              <h3>記錄者：</h3>
-              <p>{{ row.recordedBy }}</p>
+              <h3>館藏號：</h3>
+              <p>{{ row.catalogNumber }}</p>
             </li>
             <li>
               <h3>鑑定層級：</h3>
               <p>{{ row.taxonRank }}</p>
             </li>
             <li>
-              <h3>紀錄日期：</h3>
+              <h3>採集者：</h3>
+              <p>{{ row.recordedBy }}</p>
+            </li>
+            <li>
+              <h3>標本類型：</h3>
+              <p>{{ row.typeStatus }}</p>
+            </li>
+            <li>
+              <h3>採集號：</h3>
+              <p>{{ row.recordNumber }}</p>
+            </li>
+            <li>
+              <h3>採集日期：</h3>
               {% if row.date != None and row.eventDate != row.date %}
-              <p>{{ row.date }}<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>{{ row.date }}<br><small class="color-silver">[原始採集日期] {{ row.eventDate }}</small></p>
               {% elif row.date != None and row.eventDate == row.date %}
               <p>{{ row.date }}</p>
               {% elif row.date == None and row.eventDate != None %}
-              <p>---<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>---<br><small class="color-silver">[原始採集日期] {{ row.eventDate }}</small></p>
               {% else %}
               <p></p>
               {% endif %}
+            </li>
+            <li>
+              <h3>採集地：</h3>
+              <p>{{ row.locality }}</p>
+            </li>            
+            <li>
+              <h3>保存方式</h3>
+              <p>{{ row.preservation }}</p>
             </li>
             <li>
               <h3>數量：</h3>
@@ -164,10 +179,6 @@
               <p>{{ row.organismQuantityType }}</p>
             </li>
             <li>
-              <h3>出現地：</h3>
-              <p>{{ row.locality }}</p>
-            </li>            
-            <li>
               <h3>授權狀況：</h3>
               <p>{{ row.license }}</p>
             </li>
@@ -178,17 +189,18 @@
             <li>
               <h3>資料集聯絡⼈：</h3>
               <p>{{ row.resourceContacts }}</p>
-            </li>          
+            </li>   
             <li>
               <h3>資料最後更新時間：</h3>
               <p>{{ row.modified }}</p>
             </li>
           </ul>
           {% if row.references != '' and  row.references != None %}
-          <a href="{{ row.references }}" target="_blank" class="from_data pointer">來源資料庫：{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+          <a class="from_data" href="{{ row.references }}" target="_blank">來源資料庫：{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
           {% else %}
-          <a class="from_data">來源資料庫：{{ row.rightsHolder }}</a>
+          <a class="from_data" >來源資料庫：{{ row.rightsHolder }}</a>
           {% endif %}
+  
         </div>
       </div>
       <div class="right_area">
@@ -201,6 +213,7 @@
         </div>
         <ul class="inforall">
           <li>
+            <!-- 判斷是否為夥伴單位帳號 -->
             <h3>經度：</h3>
             {% if row.lon != None %}
             <p>{{ row.lon }}</p>
@@ -215,6 +228,7 @@
             <p>{{ row.coordinateUncertaintyInMeters }}</p>
           </li>
           <li>
+            <!-- 判斷是否為夥伴單位帳號 -->
             <h3>緯度：</h3>
             {% if row.lat != None %}
             <p>{{ row.lat }}</p>
@@ -244,5 +258,5 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/occurrence_detail.js' %}"></script>
+<script src="{% static 'js/data/collection_detail.js' %}"></script>
 {% endblock script %}

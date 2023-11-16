@@ -165,7 +165,8 @@ $(document).ready(function () {
                 alert('修改完成')                
             })
             .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
+            alert($('input[name=unexpected-error-alert]').val())
+
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })  
         } 
@@ -209,7 +210,8 @@ $(document).ready(function () {
             window.location.reload()
         })
         .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
+            alert($('input[name=unexpected-error-alert]').val())
+
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })  
     })
@@ -262,7 +264,8 @@ $(document).ready(function () {
             window.location.reload()
         })
         .fail(function( xhr, status, errorThrown ) {
-            alert('發生未知錯誤！請聯絡管理員')
+            alert($('input[name=unexpected-error-alert]').val())
+
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })  
     })
@@ -303,7 +306,8 @@ function saveStatus(current_id){
         }
     })
     .fail(function( xhr, status, errorThrown ) {
-        alert('發生未知錯誤！請聯絡管理員')
+        alert($('input[name=unexpected-error-alert]').val())
+
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })  
 }
@@ -386,7 +390,8 @@ function showRequest(query_id,query,sdr_id,is_transferred){
 
     })
     .fail(function( xhr, status, errorThrown ) {
-      alert('發生未知錯誤！請聯絡管理員')
+      alert($('input[name=unexpected-error-alert]').val())
+
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })  
 
@@ -406,7 +411,8 @@ function updateFeedback(current_id){
         window.location.reload()
     })
     .fail(function( xhr, status, errorThrown ) {
-    alert('發生未知錯誤！請聯絡管理員')
+    alert($('input[name=unexpected-error-alert]').val())
+
     console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })  
 }

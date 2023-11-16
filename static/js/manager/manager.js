@@ -78,7 +78,7 @@ function withdrawRequest(user_id){
         }
     })
     .fail(function( xhr, status, errorThrown ) {
-        alert('發生未知錯誤！請聯絡管理員')
+        alert($('input[name=unexpected-error-alert]').val())
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
     })  
 
@@ -133,7 +133,7 @@ $(document).ready(function () {
                 }
             })
             .fail(function( xhr, status, errorThrown ) {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })  
             
@@ -187,7 +187,7 @@ $(document).ready(function () {
                 }
             })
             .fail(function( xhr, status, errorThrown ) {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })  
         }

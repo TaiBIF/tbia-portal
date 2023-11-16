@@ -115,7 +115,7 @@ function doSearchLocality(what, datasize) {
                             }
                     });
                 }
-                //data = [{'value': '', 'text': '--不限--'}].concat(data)
+                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
                 resolve(data);
             } else {
                 reject({
@@ -166,7 +166,7 @@ function initLocality(what, datasize){
                             }
                     });
                 }
-                //data = [{'value': '', 'text': '--不限--'}].concat(data)
+                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
                 resolve(data);
             } else {
                 reject({
@@ -290,7 +290,8 @@ map.on('zoomend', function zoomendEvent(ev) {
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -313,7 +314,8 @@ map.on('zoomend', function zoomendEvent(ev) {
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -346,7 +348,8 @@ map.on('dragend', function zoomendEvent(ev) {
                     if (xhr.status==504){
                         alert('要求連線逾時')
                     } else {
-                        alert('發生未知錯誤！請聯絡管理員')
+                        alert($('input[name=unexpected-error-alert]').val())
+
                     }
                     console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -369,7 +372,8 @@ map.on('dragend', function zoomendEvent(ev) {
                     if (xhr.status==504){
                         alert('要求連線逾時')
                     } else {
-                        alert('發生未知錯誤！請聯絡管理員')
+                        alert($('input[name=unexpected-error-alert]').val())
+
                     }
                     console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -562,7 +566,8 @@ $( function() {
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -618,7 +623,7 @@ function inithigherTaxa(what, datasize){
                             }
                     });
                 }
-                data = [{'value': '', 'text': '--不限--'}].concat(data)
+                data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
                 resolve(data);
             } else {
                 reject({
@@ -668,7 +673,7 @@ function doSearch(what, datasize) {
                             }
                     });
                 }
-                data = [{'value': '', 'text': '--不限--'}].concat(data)
+                data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
                 resolve(data);
             } else {
                 reject({
@@ -980,7 +985,8 @@ function setTable(response, queryString, from, orderby, sort){
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -1005,7 +1011,8 @@ function setTable(response, queryString, from, orderby, sort){
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -1055,7 +1062,8 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
             if (xhr.status==504){
                 alert('要求連線逾時')
             } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                alert($('input[name=unexpected-error-alert]').val())
+
             }
             console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -1246,7 +1254,8 @@ function submitSearch (page, from, new_click, limit, orderby, sort, push_state){
                 if (xhr.status==504){
                     alert('要求連線逾時')
                 } else {
-                    alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
+
                 } 
                 $(".loading_area").addClass('d-none');
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)

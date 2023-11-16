@@ -112,7 +112,7 @@ function sendRequest(){
                 if (xhr.status==504){
                 alert('要求連線逾時')
                 } else {
-                alert('發生未知錯誤！請聯絡管理員')
+                    alert($('input[name=unexpected-error-alert]').val())
                 }
                 console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
             })

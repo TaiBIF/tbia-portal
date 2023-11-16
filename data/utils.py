@@ -12,7 +12,7 @@ from conf.settings import datahub_db_settings
 import psycopg2
 from django.db.models import Q
 import requests
-from utils.solr_query import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX
 
 
 

@@ -21,9 +21,11 @@ from django.conf.urls.static import static
 # from ckeditor_uploader import views as ckeditor_views
 from django.contrib.auth.decorators import login_required
 from django.conf.urls.i18n import i18n_patterns
+from django.views.i18n import JavaScriptCatalog
 
 
 urlpatterns = [
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("i18n/", include("django.conf.urls.i18n")),
     path('admin/', admin.site.urls),
     path('', include('pages.urls')),
@@ -37,6 +39,7 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("i18n/", include("django.conf.urls.i18n")),
     path('', include('pages.urls')),
     path('', include('data.urls')),

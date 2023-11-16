@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-
+SOLR_PREFIX = env('SOLR_PREFIX')
 
 datahub_db_settings = {
     "host": env('DATAHUB_POSTGRES_HOST'),

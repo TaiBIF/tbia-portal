@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
-from conf.settings import STATIC_ROOT
+from conf.settings import STATIC_ROOT, MEDIA_ROOT, SOLR_PREFIX
 from conf.utils import scheme
-from utils.solr_query import col_facets, occ_facets, SOLR_PREFIX, taxon_all_facets
+from data.solr_query import col_facets, occ_facets, taxon_all_facets
 from pages.models import Resource, News
 from django.db.models import Q, Max
 from django.db import connection
@@ -31,7 +31,6 @@ import re
 from bson.objectid import ObjectId
 import subprocess
 import os
-from conf import settings
 import threading
 from manager.models import SearchQuery, User, SensitiveDataRequest, SensitiveDataResponse, Partner
 from pages.models import Notification
@@ -984,7 +983,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             if not query_list:
                 query.pop('filter')
 
-            csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+            csv_folder = os.path.join(MEDIA_ROOT, 'download')
             csv_folder = os.path.join(csv_folder, 'sensitive')
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
@@ -1308,7 +1307,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     if not query_list:
         query.pop('filter')
     
-    csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+    csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
@@ -1590,7 +1589,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                     df = df.merge(subset_taxon, how='left')
                     is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
                     df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
-    csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+    csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
     compression_options = dict(method='zip', archive_name=f'{download_id}.csv')
@@ -1702,7 +1701,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     if not fq_list:
         query.pop('filter')
 
-    csv_folder = os.path.join(settings.MEDIA_ROOT, 'download')
+    csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
@@ -2750,7 +2749,7 @@ def search_collection(request):
     # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
-    return render(request, 'pages/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+    return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'dataset_list': dataset_list})
     
 
@@ -2769,7 +2768,7 @@ def search_occurrence(request):
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     basis_list = basis_dict.keys()
         
-    return render(request, 'pages/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
+    return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_list': basis_list, 'dataset_list': dataset_list})
 
 
@@ -2905,7 +2904,7 @@ def occurrence_detail(request, id):
     modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
     row.update({'modified': modified})
 
-    return render(request, 'pages/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+    return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
 def collection_detail(request, id):
@@ -3045,7 +3044,7 @@ def collection_detail(request, id):
     else:
         row = []
 
-    return render(request, 'pages/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+    return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
 
@@ -4318,7 +4317,7 @@ def search_full(request):
             'resource': {'count': 0},
         }
 
-    return render(request, 'pages/search_full.html', response)
+    return render(request, 'data/search_full.html', response)
 
 
 

@@ -1,7 +1,7 @@
 from django.http import request, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from pages.models import *
-from utils.solr_query import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX
 from manager.models import Partner, About
 import json
 import math
@@ -63,16 +63,16 @@ def get_current_notif(request):
                         {is_read}
                         <div class="txtcont">
                         <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                        <p>{n.get_type_display().replace('0000', n.content)}</p>
+                        <p>{ gettext(n.get_type_display()).replace('0000',n.content)}</p>
                         </div>
                     </li>
                     """
         if not results:
-            results = """
+            results = f"""
                         <li>
                         <div class="txtcont">
                         <p class="date"></p>
-                        <p>暫無通知</p>
+                        <p>{gettext('暫無通知')}</p>
                         </div>
                     </li>
                     """        
@@ -364,12 +364,15 @@ def get_resources(request):
 
 
 def about(request):
-    content = About.objects.all().first().content
+    if get_language() == 'en-us':
+        content = About.objects.all().first().content_en
+    else:
+        content = About.objects.all().first().content
     
     url = None
     if Resource.objects.filter(title='臺灣生物多樣性資訊聯盟章程').exists():
         url = Resource.objects.get(title='臺灣生物多樣性資訊聯盟章程').url
-    return render(request, 'pages/about.html',{'content': content, 'url': url})
+    return render(request, 'pages/about.html',{'url': url, 'content': content})
 
 
 def agreement(request):

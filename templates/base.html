@@ -22,14 +22,17 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
-  <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
-    <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit" async defer></script>
+    <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
+    <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit{% if LANGUAGE_CODE == 'en-us' %}&hl=en{% endif %}" async defer></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
-    <script src="{% static 'js/ga_head.js' %}"></script>
+    <script src="{% static 'js/GA/ga_head.js' %}"></script>
+    <!-- use django template in js -->
+    <script src="{% url 'javascript-catalog' %}"></script>
     {% block head %}{% endblock head %}
     {% block style %}{% endblock style %}
   </head>
   <body>
+  <input type="hidden" name="unexpected-error-alert" value="{% trans '發生未知錯誤！請聯絡管理員' %}">
   <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
 
   <!--loading-->
@@ -68,7 +71,7 @@
         <div class="from_area">
           <form id="feedback_form">
           <div class="select_twobox"> 
-            <select name="partner_id" id="feedback_partner">
+            <select name="partner_id" id="feedback_partner" placeholder="{% trans '請選擇回饋對象' %}">
               <option value="">{% trans '-- 重設 --' %}</option>
               <option value="0">TBIA聯盟</option>
               {% for p in partners %} 
@@ -77,7 +80,7 @@
                 </option>
               {% endfor %}
             </select>
-            <select name="type" id="feedback_type">
+            <select name="type" id="feedback_type" placeholder="{% trans '請選擇問題類型' %}">
               <option value="">{% trans '-- 重設 --' %}</option>
               <option value="1">{% trans '網頁操作' %}</option>
               <option value="2">{% trans '網頁內容' %}</option>
@@ -105,6 +108,8 @@
           {% endif %}
           </form>
           <button class="send">{% trans '確認送出' %}</button>
+          <input type="hidden" name="feedback-error-alert" value="{% trans '請完整填寫表格並檢查email格式是否正確' %}">
+          <input type="hidden" name="feedback-success-alert" value="{% trans '謝謝您的回饋，我們將會儘速回覆' %}">
         </div>
       </div>
     </div>
@@ -413,7 +418,7 @@
     </div>
   </div>
     {% block body %}{% endblock body %}
-    <script src="{% static 'js/ga_head.js' %}"></script>
+    <script src="{% static 'js/GA/ga_head.js' %}"></script>
     <div class="footer">
       <div class="main_1240">
         <div class="ftlogo_inf">

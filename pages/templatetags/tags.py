@@ -7,6 +7,7 @@ from data.utils import get_variants
 from pages.models import Notification
 from manager.models import User
 from conf.utils import notif_map
+from django.utils.translation import get_language, gettext
 
 register = template.Library()
 
@@ -52,21 +53,22 @@ def get_notif(user_id):
           is_read = '<div class="dottt"></div>'
       else:
           is_read = ''
+      print(n.content)
       results += f"""
                   <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                   {is_read}
                   <div class="txtcont">
                     <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                    <p>{n.get_type_display().replace('0000', n.content)}</p>
+                    <p>{gettext(n.get_type_display()).replace('0000', n.content)}</p>
                   </div>
                 </li>
               """
     if not results:
-        results = """
+        results = f"""
                     <li>
                     <div class="txtcont">
                       <p class="date"></p>
-                      <p>暫無通知</p>
+                      <p>{gettext('暫無通知')}</p>
                     </div>
                   </li>
                 """

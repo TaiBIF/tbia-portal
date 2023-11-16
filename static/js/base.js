@@ -114,10 +114,10 @@ $(function () {
   }
 
 
-  let selectBoxFP = new vanillaSelectBox("#feedback_partner",{"placeHolder":"請選擇回饋對象",search:false, disableSelectAll: true,
+  let selectBoxFP = new vanillaSelectBox("#feedback_partner",{"placeHolder": $('#feedback_partner').attr('placeholder'),search:false, disableSelectAll: true,
   });
 
-  let selectBoxFT = new vanillaSelectBox("#feedback_type",{"placeHolder":"請選擇問題類型",search:false, disableSelectAll: true,
+  let selectBoxFT = new vanillaSelectBox("#feedback_type",{"placeHolder": $('#feedback_type').attr('placeholder'),search:false, disableSelectAll: true,
   });
 
 
@@ -238,7 +238,7 @@ $(function () {
     if ((!$('#g-recaptcha-response').val())|(!$('#feedback_form select[name=partner_id]').val())|
         (!$('#feedback_form select[name=type]').val())|(!validateEmail($('#feedback_form input[name=email]').val()))|
         (!$('#feedback_form textarea[name=content]').val())){
-      alert('請完整填寫表格並檢查email格式是否正確')
+      alert($('input[name=feedback-error-alert]').val())
     } else {
       
       $.ajax({
@@ -247,11 +247,12 @@ $(function () {
         type: 'POST',
         })
         .done(function(response) {
-          alert('謝謝您的回饋，我們將會儘速回覆')
+          alert($('input[name=feedback-success-alert]').val())
+
           $('.feedback-pop').addClass('d-none')
         })
         .fail(function( xhr, status, errorThrown ) {
-          alert('發生未知錯誤！請聯絡管理員')
+          alert($('input[name=unexpected-error-alert]').val())
           console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
           $('.login_pop').addClass('d-none')
 
@@ -285,7 +286,7 @@ $(function () {
     alert(response.message)
   })
   .fail(function( xhr, status, errorThrown ) {
-    alert('發生未知錯誤！請聯絡管理員')
+    alert($('input[name=unexpected-error-alert]').val())
     console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
           $('.login_pop').addClass('d-none')
 
@@ -353,6 +354,7 @@ window.addEventListener('error', function(event) {
 })
 
 $(function () {
+  console.log(gettext('最新消息'))
   $(window).resize(function(){
         if($(window).width()>768){
           $('.mb_bmenu').hide()
@@ -457,7 +459,7 @@ function login(){
       }
     })
     .fail(function( xhr, status, errorThrown ) {
-      alert('發生未知錯誤！請聯絡管理員')
+      alert($('input[name=unexpected-error-alert]').val())
       console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
       $('.login_pop').addClass('d-none')
     }) 
@@ -510,7 +512,7 @@ function register(){
           
       })
       .fail(function( xhr, status, errorThrown ) {
-        alert('發生未知錯誤！請聯絡管理員')
+        alert($('input[name=unexpected-error-alert]').val())
         console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
         $('.login_pop').addClass('d-none')
       })  
