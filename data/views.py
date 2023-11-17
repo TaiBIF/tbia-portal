@@ -47,20 +47,6 @@ name_status_map = {
     'misapplied': '的誤用名',
 }
 
-basis_dict = {
-    "人為觀測": '("人為觀測" OR "HumanObservation")',
-    "機器觀測": '("機器觀測" OR "MachineObservation")',
-    "保存標本": '("保存標本" OR "PreservedSpecimen")',
-    "材料樣本": '("材料樣本" OR "MaterialSample")',
-    "活體標本": '("活體標本" OR "LivingSpecimen")',
-    "化石標本": '("化石標本" OR "FossilSpecimen")',
-    "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
-    "材料實體": '("材料實體" OR "MaterialEntity")',
-    "分類群": '("分類群" OR "Taxon")',
-    "出現紀錄": '("出現紀錄" OR "Occurrence")',
-    "調查活動": '("調查活動" OR "Event")'
-}
-
 
 basis_map = {
     "HumanObservation":"人為觀測",
@@ -232,199 +218,8 @@ def submit_sensitive_request(request):
 
         # 抓出所有單位
         if request.POST.get('type') == '0':
-            query_list = []
 
-            # 有無影像
-            if has_image := req_dict.get('has_image'):
-                if has_image == 'y':
-                    query_list += ['associatedMedia:*']
-                elif has_image == 'n':
-                    query_list += ['-associatedMedia:*']
-
-            record_type = req_dict.get('record_type')
-            if record_type == 'col': # occurrence include occurrence + collection
-                query_list += ['recordType:col']
-
-            # 物種類群    
-            # if val := req_dict.get('taxonGroup'):
-            #     if val in taxon_group_map.keys():
-            #         for vv in taxon_group_map[val]:
-            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-
-            if val := req_dict.get('taxonGroup'):
-                if val in taxon_group_map.keys():
-                    vv_list = []
-                    for vv in taxon_group_map[val]:
-                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-                    query_list += [" OR ".join(vv_list)]
-
-            for i in ['recordedBy', 'resourceContacts', 'preservation']:
-                if val := req_dict.get(i):
-                    if val != 'undefined':
-                        val = val.strip()
-                        val = html.unescape(val)
-                        keyword_reg = ''
-                        for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                        keyword_reg = get_variants(keyword_reg)
-                        query_list += [f'{i}:/.*{keyword_reg}.*/']
-
-            if val := req_dict.get('taxonID'):
-                query_list += [f'taxonID:"{val}"']
-
-            # higherTaxa
-            # 找到該分類群的階層 & 名稱
-            # 要包含自己的階層
-            if val := req_dict.get('higherTaxa'):
-                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-                if response.status_code == 200:
-                    resp = response.json()
-                    if data := resp['response']['docs']:
-                        data = data[0]
-                        higher_rank = data.get('taxonRank')
-                        higher_name = data.get('scientificName')
-                        query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-                # if Taxon.objects.filter(taxonID=val).exists():
-                #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-                #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-            if quantity := req_dict.get('organismQuantity'):
-                query_list += [f'standardOrganismQuantity: {quantity}']
-
-            if val := req_dict.get('typeStatus'):
-                if val == '模式':
-                    query_list += [f'typeStatus:[* TO *]']
-                elif val == '一般':
-                    query_list += [f'-typeStatus:*']
-            
-            if val := req_dict.get('basisOfRecord'):
-                if val in basis_dict.keys():
-                    query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-            # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank']: 
-                if val := req_dict.get(i):
-                    if i == 'sensitiveCategory' and val == '無':
-                        query_list += [f'-(-{i}:{val} {i}:*)']
-                    elif i == 'taxonRank' and val == 'sub':
-                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-                    else:
-                        query_list += [f'{i}:{val}']
-
-            # 下拉選單多選
-            d_list = []
-            if val := req_dict.get('datasetName'):
-                # for d in val:
-                #         if DatasetKey.objects.filter(id=d).exists():
-                #             d_list.append(DatasetKey.objects.get(id=d).name)
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        for d in eval(val):
-                            if d_name := get_dataset_key(d):
-                                d_list.append(d_name)
-                            # if DatasetKey.objects.filter(id=d).exists():
-                            #     d_list.append(DatasetKey.objects.get(id=d).name)
-                    else:
-                        if d_name := get_dataset_key(val):
-                            d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=val).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=val).name)
-                else:
-                    for d in list(val):
-                        if d_name := get_dataset_key(d):
-                            d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=d).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=d).name)
-
-            if d_list:
-                d_list_str = '" OR "'.join(d_list)
-                query_list += [f'datasetName:("{d_list_str}")']
-
-            r_list = []
-
-            if val := req_dict.get('rightsHolder'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        r_list = eval(val)
-                    else:
-                        r_list.append(val)
-                else:
-                    r_list = list(val)
-            
-            if r_list:
-                r_list_str = '" OR "'.join(r_list)
-                query_list += [f'rightsHolder:("{r_list_str}")']
-
-            l_list = []
-
-            if val := req_dict.get('locality'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        l_list = eval(val)
-                    else:
-                        l_list.append(val)
-                else:
-                    l_list = list(val)
-            
-            if l_list:
-                l_list_str = '" OR "'.join(l_list)
-                query_list += [f'locality:("{l_list_str}")']
-
-            if req_dict.get('start_date') and req_dict.get('end_date'):
-                try: 
-                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-                    end_date = end_date.isoformat() + 'Z'
-                    end_date = end_date.replace('00:00:00','23:59:59')
-                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
-                except:
-                    pass
-
-
-            # 地圖框選
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
-                except:
-                    pass
-
-            # 上傳polygon
-            if g_id := req_dict.get('geojson_id'):
-                try:
-                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                        geojson = json.loads(j.read())
-                        geo_df = gpd.GeoDataFrame.from_features(geojson)
-                        g_list = []
-                        for i in geo_df.to_wkt()['geometry']:
-                            g_list += ['"Within(%s)"' % i]
-                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-                except:
-                    pass
-
-            # 圓中心框選
-            if circle_radius := req_dict.get('circle_radius'):
-                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-            if val := req_dict.get('name'):
-                val = val.strip()
-                # 去除重複空格
-                val = re.sub(' +', ' ', val)
-                # 去除頭尾空格
-                val = val.strip()
-                keyword_reg = ''
-                val = html.unescape(val)
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-                query_str = ' OR '.join( col_list )
-                query_list += [ '(' + query_str + ')' ]
-            # 
-            # if query_list and query_list != ['recordType:col']:
-
+            query_list = create_search_query(req_dict=req_dict, from_request=False)
 
             query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
@@ -514,196 +309,8 @@ def transfer_sensitive_response(request):
             # 機關計畫送交給夥伴單位審核
             sq = SearchQuery.objects.get(query_id=query_id)
             req_dict = dict(parse.parse_qsl(sq.query))
-            query_list = []
 
-            # 有無影像
-            if has_image := req_dict.get('has_image'):
-                if has_image == 'y':
-                    query_list += ['associatedMedia:*']
-                elif has_image == 'n':
-                    query_list += ['-associatedMedia:*']
-
-            record_type = req_dict.get('record_type')
-            if record_type == 'col': # occurrence include occurrence + collection
-                query_list += ['recordType:col']
-
-            # 物種類群    
-            # if val := req_dict.get('taxonGroup'):
-            #     if val in taxon_group_map.keys():
-            #         for vv in taxon_group_map[val]:
-            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-
-            if val := req_dict.get('taxonGroup'):
-                if val in taxon_group_map.keys():
-                    vv_list = []
-                    for vv in taxon_group_map[val]:
-                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-                    query_list += [" OR ".join(vv_list)]
-
-            for i in ['recordedBy', 'resourceContacts', 'preservation']:
-                if val := req_dict.get(i):
-                    if val != 'undefined':
-                        val = val.strip()
-                        val = html.unescape(val)
-                        keyword_reg = ''
-                        for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                        keyword_reg = get_variants(keyword_reg)
-                        query_list += [f'{i}:/.*{keyword_reg}.*/']
-
-            if val := req_dict.get('taxonID'):
-                query_list += [f'taxonID:"{val}"']
-
-            # higherTaxa
-            # 找到該分類群的階層 & 名稱
-            # 要包含自己的階層ｄｃ
-            if val := req_dict.get('higherTaxa'):
-                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-                if response.status_code == 200:
-                    resp = response.json()
-                    if data := resp['response']['docs']:
-                        data = data[0]
-                        higher_rank = data.get('taxonRank')
-                        higher_name = data.get('scientificName')
-                        query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-                # if Taxon.objects.filter(taxonID=val).exists():
-                #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-                #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-            
-            if quantity := req_dict.get('organismQuantity'):
-                query_list += [f'standardOrganismQuantity: {quantity}']
-
-            if val := req_dict.get('typeStatus'):
-                if val == '模式':
-                    query_list += [f'typeStatus:[* TO *]']
-                elif val == '一般':
-                    query_list += [f'-typeStatus:*']
-
-            if val := req_dict.get('basisOfRecord'):
-                if val in basis_dict.keys():
-                    query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-            # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank']: 
-                if val := req_dict.get(i):
-                    if i == 'sensitiveCategory' and val == '無':
-                        query_list += [f'-(-{i}:{val} {i}:*)']
-                    elif i == 'taxonRank' and val == 'sub':
-                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-                    else:
-                        query_list += [f'{i}:{val}']
-            
-            # 下拉選單多選
-            d_list = []
-            if val := req_dict.get('datasetName'):
-                # for d in val:
-                #         if DatasetKey.objects.filter(id=d).exists():
-                #             d_list.append(DatasetKey.objects.get(id=d).name)
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        for d in eval(val):
-                            if d_name := get_dataset_key(d):
-                                d_list.append(d_name)
-                            # if DatasetKey.objects.filter(id=d).exists():
-                            #     d_list.append(DatasetKey.objects.get(id=d).name)
-                    else:
-                        if d_name := get_dataset_key(val):
-                                d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=val).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=val).name)
-                else:
-                    for d in list(val):
-                        if d_name := get_dataset_key(d):
-                            d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=d).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=d).name)            
-            if d_list:
-                d_list_str = '" OR "'.join(d_list)
-                query_list += [f'datasetName:("{d_list_str}")']
-
-            r_list = []
-            if val := req_dict.get('rightsHolder'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        r_list = eval(val)
-                    else:
-                        r_list.append(val)
-                else:
-                    r_list = list(val)
-            
-            if r_list:
-                r_list_str = '" OR "'.join(r_list)
-                query_list += [f'rightsHolder:("{r_list_str}")']
-
-            l_list = []
-
-            if val := req_dict.get('locality'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        l_list = eval(val)
-                    else:
-                        l_list.append(val)
-                else:
-                    l_list = list(val)
-            
-            if l_list:
-                l_list_str = '" OR "'.join(l_list)
-                query_list += [f'locality:("{l_list_str}")']
-
-
-            if req_dict.get('start_date') and req_dict.get('end_date'):
-                try: 
-                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-                    end_date = end_date.isoformat() + 'Z'
-                    end_date = end_date.replace('00:00:00','23:59:59')
-                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
-                except:
-                    pass
-
-            # 地圖框選
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
-                except:
-                    pass
-
-            # 上傳polygon
-            if g_id := req_dict.get('geojson_id'):
-                try:
-                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                        geojson = json.loads(j.read())
-                        geo_df = gpd.GeoDataFrame.from_features(geojson)
-                        g_list = []
-                        for i in geo_df.to_wkt()['geometry']:
-                            g_list += ['"Within(%s)"' % i]
-                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-                except:
-                    pass
-
-            # 圓中心框選
-            if circle_radius := req_dict.get('circle_radius'):
-                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-                
-            if val := req_dict.get('name'):
-                val = val.strip()
-                # 去除重複空格
-                val = re.sub(' +', ' ', val)
-                # 去除頭尾空格
-                val = val.strip()
-                keyword_reg = ''
-                val = html.unescape(val)
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-                query_str = ' OR '.join( col_list )
-                query_list += [ '(' + query_str + ')' ]
-            # 
-            # if query_list and query_list != ['recordType:col']:
+            query_list = create_search_query(req_dict=req_dict, from_request=False)
 
             query = { "query": "*:*",
                     "offset": 0,
@@ -771,199 +378,11 @@ def generate_sensitive_csv(query_id, scheme, host):
                 ps = [p for p in ps[0]]
                 group = list(Partner.objects.filter(id__in=ps).values_list('group'))
                 group = [g for g in group[0]]
-        # if group:
 
             fl_cols = download_cols + sensitive_cols
             # 先取得筆數，export to csv
-            query_list = []
 
-            # 有無影像
-            if has_image := req_dict.get('has_image'):
-                if has_image == 'y':
-                    query_list += ['associatedMedia:*']
-                elif has_image == 'n':
-                    query_list += ['-associatedMedia:*']
-
-            record_type = req_dict.get('record_type')
-            if record_type == 'col': # occurrence include occurrence + collection
-                query_list += ['recordType:col']
-
-            # 物種類群    
-            # if val := req_dict.get('taxonGroup'):
-            #     if val in taxon_group_map.keys():
-            #         for vv in taxon_group_map[val]:
-            #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-            if val := req_dict.get('taxonGroup'):
-                if val in taxon_group_map.keys():
-                    vv_list = []
-                    for vv in taxon_group_map[val]:
-                        vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-                    query_list += [" OR ".join(vv_list)]
-
-
-            for i in ['recordedBy', 'resourceContacts', 'preservation']:
-                if val := req_dict.get(i):
-                    if val != 'undefined':
-                        val = val.strip()
-                        keyword_reg = ''
-                        val = html.unescape(val)
-                        for j in val:
-                            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                        keyword_reg = get_variants(keyword_reg)
-                        query_list += [f'{i}:/.*{keyword_reg}.*/']
-
-            if val := req_dict.get('taxonID'):
-                query_list += [f'taxonID:"{val}"']
-
-
-            # 較高分類群
-            # 找到該分類群的階層 & 名稱
-            # 要包含自己的階層
-            if val := req_dict.get('higherTaxa'):
-                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-                if response.status_code == 200:
-                    resp = response.json()
-                    if data := resp['response']['docs']:
-                        data = data[0]
-                        higher_rank = data.get('taxonRank')
-                        higher_name = data.get('scientificName')
-                        query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-                # if Taxon.objects.filter(taxonID=val).exists():
-                #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-                #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-                #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-            if quantity := req_dict.get('organismQuantity'):
-                query_list += [f'standardOrganismQuantity: {quantity}']
-
-            if val := req_dict.get('typeStatus'):
-                if val == '模式':
-                    query_list += [f'typeStatus:[* TO *]']
-                elif val == '一般':
-                    query_list += [f'-typeStatus:*']
-
-            if val := req_dict.get('basisOfRecord'):
-                if val in basis_dict.keys():
-                    query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-            # 下拉選單單選
-            for i in ['sensitiveCategory', 'taxonRank']: 
-                if val := req_dict.get(i):
-                    if i == 'sensitiveCategory' and val == '無':
-                        query_list += [f'-(-{i}:{val} {i}:*)']
-                    elif i == 'taxonRank' and val == 'sub':
-                        query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-                    else:
-                        query_list += [f'{i}:{val}']
-
-            # 下拉選單多選
-            d_list = []
-            if val := req_dict.get('datasetName'):
-                # for d in val:
-                #         if DatasetKey.objects.filter(id=d).exists():
-                #             d_list.append(DatasetKey.objects.get(id=d).name)
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        for d in eval(val):
-                            if d_name := get_dataset_key(d):
-                                d_list.append(d_name)
-                            # if DatasetKey.objects.filter(id=d).exists():
-                            #     d_list.append(DatasetKey.objects.get(id=d).name)
-                    else:
-                        if d_name := get_dataset_key(val):
-                               d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=val).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=val).name)
-                else:
-                    for d in list(val):
-                        if d_name := get_dataset_key(d):
-                            d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=d).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=d).name)
-            
-            if d_list:
-                d_list_str = '" OR "'.join(d_list)
-                query_list += [f'datasetName:("{d_list_str}")']
-
-            r_list = []
-            if val := req_dict.get('rightsHolder'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        r_list = eval(val)
-                    else:
-                        r_list.append(val)
-                else:
-                    r_list = list(val)
-            
-            if r_list:
-                r_list_str = '" OR "'.join(r_list)
-                query_list += [f'rightsHolder:("{r_list_str}")']
-
-            l_list = []
-
-            if val := req_dict.get('locality'):
-                if isinstance(val, str):
-                    if val.startswith('['):
-                        l_list = eval(val)
-                    else:
-                        l_list.append(val)
-                else:
-                    l_list = list(val)
-            
-            if l_list:
-                l_list_str = '" OR "'.join(l_list)
-                query_list += [f'locality:("{l_list_str}")']
-
-            if req_dict.get('start_date') and req_dict.get('end_date'):
-                try: 
-                    start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                    end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-                    end_date = end_date.isoformat() + 'Z'
-                    end_date = end_date.replace('00:00:00','23:59:59')
-                    query_list += [f'standardDate:[{start_date} TO {end_date}]']
-                except:
-                    pass
-
-            # 地圖框選
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
-                except:
-                    pass
-
-            # 上傳polygon
-            if g_id := req_dict.get('geojson_id'):
-                try:
-                    with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                        geojson = json.loads(j.read())
-                        geo_df = gpd.GeoDataFrame.from_features(geojson)
-                        g_list = []
-                        for i in geo_df.to_wkt()['geometry']:
-                            g_list += ['"Within(%s)"' % i]
-                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-                except:
-                    pass
-
-            # 圓中心框選
-            if circle_radius := req_dict.get('circle_radius'):
-                query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-
-            if val := req_dict.get('name'):
-                val = val.strip()
-                # 去除重複空格
-                val = re.sub(' +', ' ', val)
-                # 去除頭尾空格
-                val = val.strip()
-                keyword_reg = ''
-                val = html.unescape(val)
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
-                col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-                query_str = ' OR '.join( col_list )
-                query_list += [ '(' + query_str + ')' ]
+            query_list = create_search_query(req_dict=req_dict, from_request=False)
 
             # 排除掉不同意的單位
             if group:
@@ -1103,174 +522,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     else:
         fl_cols = download_cols
 
-    # 先取得筆數，export to csv
-    query_list = []
-
-    # 有無影像
-    if has_image := req_dict.get('has_image'):
-        if has_image == 'y':
-            query_list += ['associatedMedia:*']
-        elif has_image == 'n':
-            query_list += ['-associatedMedia:*']
-
-    record_type = req_dict.get('record_type')
-    if record_type == 'col': # occurrence include occurrence + collection
-        query_list += ['recordType:col']
-
-    # 物種類群    
-    # if val := req_dict.get('taxonGroup'):
-    #     if val in taxon_group_map.keys():
-    #         for vv in taxon_group_map[val]:
-    #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-
-    if val := req_dict.get('taxonGroup'):
-        if val in taxon_group_map.keys():
-            vv_list = []
-            for vv in taxon_group_map[val]:
-                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-            query_list += [" OR ".join(vv_list)]
-
-    for i in ['recordedBy', 'resourceContacts', 'preservation']:
-        if val := req_dict.get(i):
-            if val != 'undefined':
-                val = val.strip()
-                keyword_reg = ''
-                val = html.unescape(val)
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
-                query_list += [f'{i}:/.*{keyword_reg}.*/']
-
-    if val := req_dict.get('taxonID'):
-        query_list += [f'taxonID:"{val}"']
-
-    # 較高分類群
-    # 找到該分類群的階層 & 名稱
-    # 要包含自己的階層
-    if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-        if response.status_code == 200:
-            resp = response.json()
-            if data := resp['response']['docs']:
-                data = data[0]
-                higher_rank = data.get('taxonRank')
-                higher_name = data.get('scientificName')
-                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-        # if Taxon.objects.filter(taxonID=val).exists():
-        #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-        #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-        #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-    if quantity := req_dict.get('organismQuantity'):
-        query_list += [f'standardOrganismQuantity: {quantity}']
-
-    if val := req_dict.get('typeStatus'):
-        if val == '模式':
-            query_list += [f'typeStatus:[* TO *]']
-        elif val == '一般':
-            query_list += [f'-typeStatus:*']
-
-    if val := req_dict.get('basisOfRecord'):
-        if val in basis_dict.keys():
-            query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-    # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank']: 
-        if val := req_dict.get(i):
-            if i == 'sensitiveCategory' and val == '無':
-                query_list += [f'-(-{i}:{val} {i}:*)']
-            elif i == 'taxonRank' and val == 'sub':
-                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-            else:
-                query_list += [f'{i}:{val}']
-
-    # 下拉選單多選
-    d_list = []
-    if val := req_dict.getlist('datasetName'):
-        for v in val:
-            if d_name := get_dataset_key(v):
-                d_list.append(d_name)
-            # if DatasetKey.objects.filter(id=v).exists():
-            #     d_list.append(DatasetKey.objects.get(id=v).name)
-    if d_list:
-        d_list_str = '" OR "'.join(d_list)
-        query_list += [f'datasetName:("{d_list_str}")']
-
-    r_list = []
-    if val := req_dict.getlist('rightsHolder'):
-        for v in val:
-            r_list.append(v)
-    
-    if r_list:
-        r_list_str = '" OR "'.join(r_list)
-        query_list += [f'rightsHolder:("{r_list_str}")']
-
-    l_list = []
-
-    if val := req_dict.getlist('locality'):
-        if isinstance(val, str):
-            if val.startswith('['):
-                l_list = eval(val)
-            else:
-                l_list.append(val)
-        else:
-            l_list = list(val)
-
-    if l_list:
-        l_list_str = '" OR "'.join(l_list)
-        query_list += [f'locality:("{l_list_str}")']
-
-    if req_dict.get('start_date') and req_dict.get('end_date'):
-        try: 
-            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-            end_date = end_date.isoformat() + 'Z'
-            end_date = end_date.replace('00:00:00','23:59:59')
-            query_list += [f'standardDate:[{start_date} TO {end_date}]']
-        except:
-            pass
-
-    # 地圖框選
-    if g_list := req_dict.getlist('polygon'):
-        try:
-            mp = MultiPolygon(map(wkt.loads, g_list))
-            query_list += ['location_rpt: "Within(%s)"' % mp]
-        except:
-            pass
-
-    # 上傳polygon
-    if g_id := req_dict.get('geojson_id'):
-        try:
-            with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                geojson = json.loads(j.read())
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    g_list += ['"Within(%s)"' % i]
-                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-        except:
-            pass
-
-    # 圓中心框選
-    if circle_radius := req_dict.get('circle_radius'):
-        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-    
-    if val := req_dict.get('name'):
-        val = val.strip()
-        # 去除重複空格
-        val = re.sub(' +', ' ', val)
-        # 去除頭尾空格
-        val = val.strip()
-        keyword_reg = ''
-        val = html.unescape(val)
-        for j in val:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
-        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-        query_str = ' OR '.join( col_list )
-        query_list += [ '(' + query_str + ')' ]
+    query_list = create_search_query(req_dict=req_dict, from_request=True)
 
     req_dict = dict(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
@@ -1339,174 +591,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
-    # 先取得筆數，export to csv
-    query_list = []
-
-    # 有無影像
-    if has_image := req_dict.get('has_image'):
-        if has_image == 'y':
-            query_list += ['associatedMedia:*']
-        elif has_image == 'n':
-            query_list += ['-associatedMedia:*']
-
-    record_type = req_dict.get('record_type')
-    if record_type == 'col': # occurrence include occurrence + collection
-        query_list += ['recordType:col']
-
-    # 物種類群    
-    # if val := req_dict.get('taxonGroup'):
-    #     if val in taxon_group_map.keys():
-    #         for vv in taxon_group_map[val]:
-    #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-
-    if val := req_dict.get('taxonGroup'):
-        if val in taxon_group_map.keys():
-            vv_list = []
-            for vv in taxon_group_map[val]:
-                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-            query_list += [" OR ".join(vv_list)]
-
-    for i in ['recordedBy', 'resourceContacts', 'preservation']:
-        if val := req_dict.get(i):
-            if val != 'undefined':
-                val = val.strip()
-                keyword_reg = ''
-                val = html.unescape(val)
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
-                query_list += [f'{i}:/.*{keyword_reg}.*/']
-    
-    if val := req_dict.get('taxonID'):
-        query_list += [f'taxonID:"{val}"']
-
-    # 較高分類群
-    # 找到該分類群的階層 & 名稱
-    # 要包含自己的階層
-    if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-        if response.status_code == 200:
-            resp = response.json()
-            if data := resp['response']['docs']:
-                data = data[0]
-                higher_rank = data.get('taxonRank')
-                higher_name = data.get('scientificName')
-                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-        # if Taxon.objects.filter(taxonID=val).exists():
-        #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-        #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-        #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-    if quantity := req_dict.get('organismQuantity'):
-        query_list += [f'standardOrganismQuantity: {quantity}']
-
-    if val := req_dict.get('typeStatus'):
-        if val == '模式':
-            query_list += [f'typeStatus:[* TO *]']
-        elif val == '一般':
-            query_list += [f'-typeStatus:*']
-
-    if val := req_dict.get('basisOfRecord'):
-        if val in basis_dict.keys():
-            query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-    # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank']: 
-        if val := req_dict.get(i):
-            if i == 'sensitiveCategory' and val == '無':
-                query_list += [f'-(-{i}:{val} {i}:*)']
-            elif i == 'taxonRank' and val == 'sub':
-                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-            else:
-                query_list += [f'{i}:{val}']
-
-    # 下拉選單多選
-    d_list = []
-    if val := req_dict.getlist('datasetName'):
-        for v in val:
-            if d_name := get_dataset_key(v):
-                    d_list.append(d_name)
-            # if DatasetKey.objects.filter(id=v).exists():
-            #     d_list.append(DatasetKey.objects.get(id=v).name)
-    if d_list:
-        d_list_str = '" OR "'.join(d_list)
-        query_list += [f'datasetName:("{d_list_str}")']
-
-    r_list = []
-    if val := req_dict.getlist('rightsHolder'):
-        for v in val:
-            r_list.append(v)
-    
-    if r_list:
-        r_list_str = '" OR "'.join(r_list)
-        query_list += [f'rightsHolder:("{r_list_str}")']
-
-    l_list = []
-
-    if val := req_dict.getlist('locality'):
-        if isinstance(val, str):
-            if val.startswith('['):
-                l_list = eval(val)
-            else:
-                l_list.append(val)
-        else:
-            l_list = list(val)
-    
-    if l_list:
-        l_list_str = '" OR "'.join(l_list)
-        query_list += [f'locality:("{l_list_str}")']
-
-    if req_dict.get('start_date') and req_dict.get('end_date'):
-        try: 
-            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-            end_date = end_date.isoformat() + 'Z'
-            end_date = end_date.replace('00:00:00','23:59:59')
-            query_list += [f'standardDate:[{start_date} TO {end_date}]']
-        except:
-            pass
-
-
-    # 地圖框選
-    if g_list := req_dict.getlist('polygon'):
-        try:
-            mp = MultiPolygon(map(wkt.loads, g_list))
-            query_list += ['location_rpt: "Within(%s)"' % mp]
-        except:
-            pass
-
-    # 上傳polygon
-    if g_id := req_dict.get('geojson_id'):
-        try:
-            with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                geojson = json.loads(j.read())
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    g_list += ['"Within(%s)"' % i]
-                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-        except:
-            pass
-
-    # 圓中心框選
-    if circle_radius := req_dict.get('circle_radius'):
-        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
-
-    if val := req_dict.get('name'):
-        val = val.strip()
-        # 去除重複空格
-        val = re.sub(' +', ' ', val)
-        # 去除頭尾空格
-        val = val.strip()
-        keyword_reg = ''
-        val = html.unescape(val)
-        for j in val:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
-        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-        query_str = ' OR '.join( col_list )
-        query_list += [ '(' + query_str + ')' ]
+    query_list = create_search_query(req_dict=req_dict, from_request=True)
 
     req_dict = dict(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
@@ -1580,12 +665,9 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                     for u in used_cols:
                         if u not in subset_taxon.keys():
                             subset_taxon[u] = ''
-                    # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                     # 整理順序
                     subset_taxon = subset_taxon[used_cols]
                     subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
-                    # subset_taxon = pd.DataFrame(Taxon.objects.filter(taxonID__in=df.taxonID.to_list()).values('common_name_c','alternative_name_c','synonyms','misapplied','taxonID','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                    # 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine'))
                     df = df.merge(subset_taxon, how='left')
                     is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
                     df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
@@ -2135,12 +1217,8 @@ def get_focus_cards(request):
                             if u not in taicol.keys():
                                 taicol[u] = ''
                         taicol = taicol[used_cols]
-                        # taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-                        # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
 
-                # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
-                # taicol = taicol.rename(columns={'scientificName': 'name'})
                 if len(taicol):
                     result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
                     result_df = result_df.replace({np.nan:'', None:''})
@@ -2686,14 +1764,6 @@ def get_more_cards(request):
             if len(result_df):
                 taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
                 response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
-                # if response.status_code == 200:
-                #     resp = response.json()
-                #     if data := resp['response']['docs']:
-                #         taicol = pd.DataFrame(data)
-                #         taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-                #         # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
-                #         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
-
                 if response.status_code == 200:
                     resp = response.json()
                     if data := resp['response']['docs']:
@@ -2704,8 +1774,6 @@ def get_more_cards(request):
                             if u not in taicol.keys():
                                 taicol[u] = ''
                         taicol = taicol[used_cols]
-                        # taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-                        # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
 
                 if len(taicol):
@@ -3050,179 +2118,17 @@ def collection_detail(request, id):
 
 def get_map_grid(request):
     if request.method == 'POST':
-        grid = int(request.POST.get('grid'))
+        req_dict = request.POST
+        grid = int(req_dict.get('grid'))
         map_geojson = {"type":"FeatureCollection","features":[]}
 
         # use JSON API to avoid overlong query url
-        query_list = []
+        # query_list = []
 
-        mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
+        query_list = create_search_query(req_dict=req_dict, from_request=True)
+
+        mp = MultiPolygon(map(wkt.loads, req_dict.getlist('map_bound')))
         query_list += ['{!field f=location_rpt}Within(%s)' % mp]
-
-        # 有無影像
-        if has_image := request.POST.get('has_image'):
-            if has_image == 'y':
-                query_list += ['associatedMedia:*']
-            elif has_image == 'n':
-                query_list += ['-associatedMedia:*']
-
-        record_type = request.POST.get('record_type')
-        if record_type == 'col': # occurrence include occurrence + collection
-            query_list += ['recordType:col']
-
-        # 物種類群    
-        # if val := request.POST.get('taxonGroup'):
-        #     if val in taxon_group_map.keys():
-        #         for vv in taxon_group_map[val]:
-        #             query_list += [f'''{vv['key']}:"{vv['value']}"''']
-
-        if val := request.POST.get('taxonGroup'):
-            if val in taxon_group_map.keys():
-                vv_list = []
-                for vv in taxon_group_map[val]:
-                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-                query_list += [" OR ".join(vv_list)]
-
-        for i in ['recordedBy', 'resourceContacts', 'preservation']:
-            if val := request.POST.get(i):
-                if val != 'undefined':
-                    val = val.strip()
-                    val = html.unescape(val)
-                    keyword_reg = ''
-                    for j in val:
-                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                    keyword_reg = get_variants(keyword_reg)
-                    query_list += [f'{i}:/.*{keyword_reg}.*/']
-
-        if val := request.POST.get('taxonID'):
-            query_list += [f'taxonID:"{val}"']
-
-        # 較高分類群
-        # 找到該分類群的階層 & 名稱
-        # 要包含自己的階層
-        if val := request.POST.get('higherTaxa'):
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-            if response.status_code == 200:
-                resp = response.json()
-                if data := resp['response']['docs']:
-                    data = data[0]
-                    higher_rank = data.get('taxonRank')
-                    higher_name = data.get('scientificName')
-                    query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-            # if Taxon.objects.filter(taxonID=val).exists():
-            #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-            #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-            #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-        if quantity := request.POST.get('organismQuantity'):
-            query_list += [f'standardOrganismQuantity: {quantity}']
-
-        if val := request.POST.get('typeStatus'):
-            if val == '模式':
-                query_list += [f'typeStatus:[* TO *]']
-            elif val == '一般':
-                query_list += [f'-typeStatus:*']
-
-        if val := request.POST.get('basisOfRecord'):
-            if val in basis_dict.keys():
-                query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-        # 下拉選單單選
-        for i in ['sensitiveCategory', 'taxonRank']: 
-            if val := request.POST.get(i):
-                if i == 'sensitiveCategory' and val == '無':
-                    query_list += [f'-(-{i}:{val} {i}:*)']
-                elif i == 'taxonRank' and val == 'sub':
-                    query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-                else:
-                    query_list += [f'{i}:{val}']
-
-        # 下拉選單多選
-        d_list = []
-        if val := request.POST.getlist('datasetName'):
-            for v in val:
-                if d_name := get_dataset_key(v):
-                        d_list.append(d_name)
-
-                # if DatasetKey.objects.filter(id=v).exists():
-                #     d_list.append(DatasetKey.objects.get(id=v).name)
-        
-        if d_list:
-            d_list_str = '" OR "'.join(d_list)
-            query_list += [f'datasetName:("{d_list_str}")']
-
-        r_list = []
-        if val := request.POST.getlist('rightsHolder'):
-            for v in val:
-                r_list.append(v)
-        
-        if r_list:
-            r_list_str = '" OR "'.join(r_list)
-            query_list += [f'rightsHolder:("{r_list_str}")']
-        
-        l_list = []
-
-        if val := request.POST.getlist('locality'):
-            for v in val:
-                l_list.append(v)
-        
-        if l_list:
-            l_list_str = '" OR "'.join(l_list)
-            query_list += [f'locality:("{l_list_str}")']
-
-        if request.POST.get('start_date') and request.POST.get('end_date'):
-            try: 
-                start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d')
-                end_date = end_date.isoformat() + 'Z'
-                end_date = end_date.replace('00:00:00','23:59:59')
-                query_list += [f'standardDate:[{start_date} TO {end_date}]']
-            except:
-                pass
-
-        # 地圖框選
-        if g_list := request.POST.getlist('polygon'):
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['location_rpt: "Within(%s)"' % mp]
-            except:
-                pass
-
-        # 上傳polygon
-        if g_id := request.POST.get('geojson_id'):
-            try:
-                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                    geojson = json.loads(j.read())
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        g_list += ['"Within(%s)"' % i]
-                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-            except:
-                pass
-
-        # 圓中心框選
-        if circle_radius := request.POST.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
-
-
-        if val := request.POST.get('name'):
-            val = val.strip()
-            # 去除重複空格
-            val = re.sub(' +', ' ', val)
-            # 去除頭尾空格
-            val = val.strip()
-            keyword_reg = ''
-            val = html.unescape(val)
-            for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-            keyword_reg = get_variants(keyword_reg)
-            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-            query_str = ' OR '.join( col_list )
-            query_list += [ '(' + query_str + ')' ]
-
-        # 
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_query = { "query": "*:*",
@@ -3252,28 +2158,25 @@ def get_map_grid(request):
                 }]
                 map_geojson['features'] += tmp
 
-        # response = {
-        #     'map_geojson': map_geojson,
-        # }
-        
+
         return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
 
 def get_conditional_records(request):
     if request.method == 'POST':
-        limit = int(request.POST.get('limit', 10))
-        orderby = request.POST.get('orderby','scientificName')
-        sort = request.POST.get('sort', 'asc')
+        req_dict = request.POST
+        limit = int(req_dict.get('limit', 10))
+        orderby = req_dict.get('orderby','scientificName')
+        sort = req_dict.get('sort', 'asc')
         
         map_geojson = {}
-        # map_geojson[f'grid_1'] = {"type":"FeatureCollection","features":[]}
-        # map_geojson[f'grid_5'] = {"type":"FeatureCollection","features":[]}
+
         map_geojson[f'grid_10'] = {"type":"FeatureCollection","features":[]}
         map_geojson[f'grid_100'] = {"type":"FeatureCollection","features":[]}
 
         # selected columns
-        if request.POST.getlist('selected_col'):
-            selected_col = request.POST.getlist('selected_col')
+        if req_dict.getlist('selected_col'):
+            selected_col = req_dict.getlist('selected_col')
         else:
             selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate']
 
@@ -3281,17 +2184,9 @@ def get_conditional_records(request):
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
-        query_list = []
+        query_list = create_search_query(req_dict=req_dict, from_request=True)
 
-        # 有無影像 - 控制詞彙
-        if has_image := request.POST.get('has_image'):
-            if has_image == 'y':
-                query_list += ['associatedMedia:*']
-            elif has_image == 'n':
-                query_list += ['-associatedMedia:*']
-
-        # 記錄類型 - 控制詞彙
-        record_type = request.POST.get('record_type')
+        record_type = req_dict.get('record_type')
 
         if record_type == 'col': # occurrence include occurrence + collection
             query_list += ['recordType:col']
@@ -3301,169 +2196,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        # 物種類群 - 控制詞彙
-        # if val := request.POST.get('taxonGroup'):
-        #     if val in taxon_group_map.keys():
-        #         vv_list = []
-        #         for vv in taxon_group_map[val]:
-        #             vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-        #         query_list += [" OR ".join(vv_list)]
-
-        if val := request.POST.get('taxonGroup'):
-            if val in taxon_group_map.keys():
-                vv_list = []
-                for vv in taxon_group_map[val]:
-                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-                query_list += [" OR ".join(vv_list)]
-
-        # 物種編號 - 控制詞彙
-        if val := request.POST.get('taxonID'):
-            query_list += [f'taxonID:"{val}"']
-
-        # 記錄者, 資料集聯絡人, 保存方式 - 自由欄位
-        for i in ['recordedBy', 'resourceContacts', 'preservation']:
-            if val := request.POST.get(i):
-                if val != 'undefined':
-                    val = val.strip()
-                    val = html.unescape(val)
-                    keyword_reg = ''
-                    for j in val:
-                        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                    keyword_reg = get_variants(keyword_reg)
-                    query_list += [f'{i}:/.*{keyword_reg}.*/']
-        
-        # 較高分類群 - 控制詞彙
-        # 找到該分類群的階層 & 名稱
-        # 要包含自己的階層
-        if val := request.POST.get('higherTaxa'):
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
-            if response.status_code == 200:
-                resp = response.json()
-                if data := resp['response']['docs']:
-                    data = data[0]
-                    higher_rank = data.get('taxonRank')
-                    higher_name = data.get('scientificName')
-                    query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-            # if Taxon.objects.filter(taxonID=val).exists():
-            #     higher_rank = Taxon.objects.get(taxonID=val).taxonRank
-            #     higher_name = Taxon.objects.get(taxonID=val).scientificName
-            #     query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
-
-
-        # 數量 - 固定是數字
-        if quantity := request.POST.get('organismQuantity'):
-            query_list += [f'standardOrganismQuantity: {quantity}']
-
-        # 標本類型 - 對查詢來說是固定詞彙
-        if val := request.POST.get('typeStatus'):
-            if val == '模式':
-                query_list += [f'typeStatus:[* TO *]']
-            elif val == '一般':
-                query_list += [f'-typeStatus:*']
-
-        # 記錄類型 - 控制詞彙
-        if val := request.POST.get('basisOfRecord'):
-            if val in basis_dict.keys():
-                query_list += [f'basisOfRecord:{basis_dict[val]}']
-
-        # 下拉選單單選
-        # 出現地, 敏感層級, 鑑定層級 - 控制詞彙
-        for i in ['sensitiveCategory', 'taxonRank']: 
-            if val := request.POST.get(i):
-                if i == 'sensitiveCategory' and val == '無':
-                    query_list += [f'-(-{i}:{val} {i}:*)']
-                elif i == 'taxonRank' and val == 'sub':
-                    query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
-                else:
-                    query_list += [f'{i}:{val}']
-
-        # 下拉選單多選
-        # 資料集名稱 - 控制詞彙
-        d_list = []
-        if val := request.POST.getlist('datasetName'):
-            for v in val:
-                if d_name := get_dataset_key(v):
-                        d_list.append(d_name)
-                # if DatasetKey.objects.filter(id=v).exists():
-                #     d_list.append(DatasetKey.objects.get(id=v).name)
-        
-        if d_list:
-            d_list_str = '" OR "'.join(d_list)
-            query_list += [f'datasetName:("{d_list_str}")']
-
-        # locality
-        if val := request.POST.getlist('locality'):
-            l_list_str = '" OR "'.join(val)
-            query_list += [f'locality:("{l_list_str}")']
-
-        # 來源資料庫 - 控制詞彙
-        r_list = []
-        if val := request.POST.getlist('rightsHolder'):
-            for v in val:
-                r_list.append(v)
-        
-        if r_list:
-            r_list_str = '" OR "'.join(r_list)
-            query_list += [f'rightsHolder:("{r_list_str}")']
-        
-        # 記錄日期 - 對查詢來說是控制詞彙
-        if request.POST.get('start_date') and request.POST.get('end_date'):
-            try: 
-                start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-                end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d')
-                end_date = end_date.isoformat() + 'Z'
-                end_date = end_date.replace('00:00:00','23:59:59')
-                query_list += [f'standardDate:[{start_date} TO {end_date}]']
-            except:
-                pass
-
-        # 地圖框選 - 對查詢來說是控制詞彙
-       
-        if g_list := request.POST.getlist('polygon'): 
-            print(g_list)
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['location_rpt: "Within(%s)"' % mp]
-            except:
-                pass
-
-        # 上傳polygon - 對查詢來說是控制詞彙
-        if g_id := request.POST.get('geojson_id'):
-            try:
-                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                    geojson = json.loads(j.read())
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        g_list += ['"Within(%s)"' % i]
-                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-            except:
-                pass
-
-        # 圓中心框選 - 對查詢來說是控制詞彙
-        if circle_radius := request.POST.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (request.POST.get('center_lat'), request.POST.get('center_lon'), int(circle_radius))]
-
-        # 學名相關 - 自由欄位
-        if val := request.POST.get('name'):
-            val = val.strip()
-            # 去除重複空格
-            val = re.sub(' +', ' ', val)
-            # 去除頭尾空格
-            val = val.strip()
-            keyword_reg = ''
-            val = html.unescape(val)
-            for j in val:
-                keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-            keyword_reg = get_variants(keyword_reg)
-            col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
-            query_str = ' OR '.join( col_list )
-            query_list += [ '(' + query_str + ')' ]
-
-        # 
-
-
-        page = int(request.POST.get('page', 1))
+        page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
         query = { "query": "*:*",
                 "offset": offset,
@@ -3503,7 +2236,7 @@ def get_conditional_records(request):
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
 
         # 新搜尋的才重新query地圖資訊
-        if request.POST.get('from') not in ['page','orderby']:
+        if req_dict.get('from') not in ['page','orderby']:
             # map的排除數量為0的資料
             map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1&facet.field=grid_1&facet.field=grid_5&facet.field=grid_10&facet.field=grid_100', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
             data_c = {}
@@ -3945,13 +2678,6 @@ def search_full(request):
         if len(col_result_df):
             taxon_ids = [f"id:{d}" for d in col_result_df.val.unique()]
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
-            # if response.status_code == 200:
-            #     resp = response.json()
-            #     if data := resp['response']['docs']:
-            #         taicol = pd.DataFrame(data)
-            #         taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-            #         # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
-            #         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -3962,8 +2688,6 @@ def search_full(request):
                         if u not in taicol.keys():
                             taicol[u] = ''
                     taicol = taicol[used_cols]
-                    # taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-                    # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                     taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
 
             if len(taicol):
@@ -4098,13 +2822,6 @@ def search_full(request):
         if len(occ_result_df):
             taxon_ids = [f"id:{d}" for d in occ_result_df.val.unique()]
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
-            # if response.status_code == 200:
-            #     resp = response.json()
-            #     if data := resp['response']['docs']:
-            #         taicol = pd.DataFrame(data)
-            #         taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-            #         # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
-            #         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -4115,8 +2832,6 @@ def search_full(request):
                         if u not in taicol.keys():
                             taicol[u] = ''
                     taicol = taicol[used_cols]
-                    # taicol = taicol[['common_name_c','formatted_name','id','scientificName','taxonRank']]
-                    # taicol = pd.DataFrame(Taxon.objects.filter(taxonID__in=col_result_df.val.unique()).values('common_name_c','formatted_name','taxonID','scientificName','taxonRank'))
                     taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
 
             if len(taicol):

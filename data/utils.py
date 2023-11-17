@@ -13,8 +13,27 @@ import psycopg2
 from django.db.models import Q
 import requests
 from conf.settings import SOLR_PREFIX
+import html
+import geopandas as gpd
+import shapely.wkt as wkt
+from shapely.geometry import MultiPolygon
+import json
+import re
 
 
+basis_dict = {
+    "人為觀測": '("人為觀測" OR "HumanObservation")',
+    "機器觀測": '("機器觀測" OR "MachineObservation")',
+    "保存標本": '("保存標本" OR "PreservedSpecimen")',
+    "材料樣本": '("材料樣本" OR "MaterialSample")',
+    "活體標本": '("活體標本" OR "LivingSpecimen")',
+    "化石標本": '("化石標本" OR "FossilSpecimen")',
+    "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
+    "材料實體": '("材料實體" OR "MaterialEntity")',
+    "分類群": '("分類群" OR "Taxon")',
+    "出現紀錄": '("出現紀錄" OR "Occurrence")',
+    "調查活動": '("調查活動" OR "Event")'
+}
 
 def get_dataset_key(key):
     results = None
@@ -324,18 +343,6 @@ def get_key(val, my_dict):
              return key
  
     return "key doesn't exist"
-
-# facet_collection = ['scientificName', 'common_name_c','alternative_name_c', 
-#                     'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-#                     'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license',
-#                     'kingdom','phylum','class','order','family','genus','species',
-#                     'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
-
-# facet_occurrence = ['scientificName', 'common_name_c', 'alternative_name_c', 
-#                     'synonyms', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
-#                     'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license',
-#                     'kingdom','phylum','class','order','family','genus','species',
-#                     'kingdom_c','phylum_c','class_c','order_c','family_c','genus_c']
 
 map_occurrence = {
     'domain'	:'域',
@@ -703,6 +710,7 @@ sensitive_cols = ['standardRawLatitude',
 
 # 整理搜尋條件
 def create_query_display(search_dict,sq_id):
+    # TODO 這邊要active translation
     query = ''
     if search_dict.get('record_type') == 'occ':
         query += '<b>類別</b>：物種出現紀錄'
@@ -958,6 +966,214 @@ taxon_cols = [
 
 
 
+# 已經預先存好的req_dict, getlist改為get
+# generate_sensitive_csv (v), transfer_sensitive_response (v), submit_sensitive_request(v)
+
+# 直接從form傳過來的req_dict, 使用getlist
+# datasetName, rightsHolder, locality, polygon
+# , generate_download_csv, generate_species_csv(v), get_map_grid(v), get_conditional_records(v)
+
+def create_search_query(req_dict, from_request=False):
+
+    query_list = []
+
+    # 有無影像
+    if has_image := req_dict.get('has_image'):
+        if has_image == 'y':
+            query_list += ['associatedMedia:*']
+        elif has_image == 'n':
+            query_list += ['-associatedMedia:*']
+
+    record_type = req_dict.get('record_type')
+    if record_type == 'col': # occurrence include occurrence + collection
+        query_list += ['recordType:col']
+
+    if val := req_dict.get('taxonGroup'):
+        if val in taxon_group_map.keys():
+            vv_list = []
+            for vv in taxon_group_map[val]:
+                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+            query_list += [" OR ".join(vv_list)]
+
+    for i in ['recordedBy', 'resourceContacts', 'preservation']:
+        if val := req_dict.get(i):
+            if val != 'undefined':
+                val = val.strip()
+                val = html.unescape(val)
+                keyword_reg = ''
+                for j in val:
+                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+                keyword_reg = get_variants(keyword_reg)
+                query_list += [f'{i}:/.*{keyword_reg}.*/']
+
+    if val := req_dict.get('taxonID'):
+        query_list += [f'taxonID:"{val}"']
+
+    # higherTaxa
+    # 找到該分類群的階層 & 名稱
+    # 要包含自己的階層
+    if val := req_dict.get('higherTaxa'):
+        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
+        if response.status_code == 200:
+            resp = response.json()
+            if data := resp['response']['docs']:
+                data = data[0]
+                higher_rank = data.get('taxonRank')
+                higher_name = data.get('scientificName')
+                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
+
+    if quantity := req_dict.get('organismQuantity'):
+        query_list += [f'standardOrganismQuantity: {quantity}']
+
+    if val := req_dict.get('typeStatus'):
+        if val == '模式':
+            query_list += [f'typeStatus:[* TO *]']
+        elif val == '一般':
+            query_list += [f'-typeStatus:*']
+    
+    if val := req_dict.get('basisOfRecord'):
+        if val in basis_dict.keys():
+            query_list += [f'basisOfRecord:{basis_dict[val]}']
+
+    # 下拉選單單選
+    for i in ['sensitiveCategory', 'taxonRank']: 
+        if val := req_dict.get(i):
+            if i == 'sensitiveCategory' and val == '無':
+                query_list += [f'-(-{i}:{val} {i}:*)']
+            elif i == 'taxonRank' and val == 'sub':
+                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
+            else:
+                query_list += [f'{i}:{val}']
+
+    # 下拉選單多選
+    d_list = []
+    if from_request:
+        if val := req_dict.getlist('datasetName'):
+            for v in val:
+                if d_name := get_dataset_key(v):
+                        d_list.append(d_name)
+    else:
+        if val := req_dict.get('datasetName'):
+            if isinstance(val, str):
+                if val.startswith('['):
+                    for d in eval(val):
+                        if d_name := get_dataset_key(d):
+                            d_list.append(d_name)
+                else:
+                    if d_name := get_dataset_key(val):
+                        d_list.append(d_name)
+            else:
+                for d in list(val):
+                    if d_name := get_dataset_key(d):
+                        d_list.append(d_name)
+    if d_list:
+        d_list_str = '" OR "'.join(d_list)
+        query_list += [f'datasetName:("{d_list_str}")']
+
+    r_list = []
+
+    if from_request:
+        if val := req_dict.getlist('rightsHolder'):
+            for v in val:
+                r_list.append(v)
+    else:
+        if val := req_dict.get('rightsHolder'):
+            if isinstance(val, str):
+                if val.startswith('['):
+                    r_list = eval(val)
+                else:
+                    r_list.append(val)
+            else:
+                r_list = list(val)
+    
+    
+    if r_list:
+        r_list_str = '" OR "'.join(r_list)
+        query_list += [f'rightsHolder:("{r_list_str}")']
+
+    l_list = []
+
+    if from_request:
+        if val := req_dict.getlist('locality'):
+            l_list_str = '" OR "'.join(val)
+            query_list += [f'locality:("{l_list_str}")']
+    else:
+        if val := req_dict.get('locality'):
+            if isinstance(val, str):
+                if val.startswith('['):
+                    l_list = eval(val)
+                else:
+                    l_list.append(val)
+            else:
+                l_list = list(val)
+        if l_list:
+            l_list_str = '" OR "'.join(l_list)
+            query_list += [f'locality:("{l_list_str}")']
+
+    print(l_list_str)
+
+    if req_dict.get('start_date') and req_dict.get('end_date'):
+        try: 
+            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
+            end_date = end_date.isoformat() + 'Z'
+            end_date = end_date.replace('00:00:00','23:59:59')
+            query_list += [f'standardDate:[{start_date} TO {end_date}]']
+        except:
+            pass
+
+    # 地圖框選
+    if from_request:
+        if g_list := req_dict.getlist('polygon'): 
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['location_rpt: "Within(%s)"' % mp]
+            except:
+                pass
+    else:
+        if g_list := req_dict.get('polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                query_list += ['location_rpt: "Within(%s)"' % mp]
+            except:
+                pass
+
+    # 上傳polygon
+    if g_id := req_dict.get('geojson_id'):
+        try:
+            with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                geojson = json.loads(j.read())
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    g_list += ['"Within(%s)"' % i]
+                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
+        except:
+            pass
+
+    # 圓中心框選
+    if circle_radius := req_dict.get('circle_radius'):
+        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+
+    # 學名相關
+    if val := req_dict.get('name'):
+        val = val.strip()
+        # 去除重複空格
+        val = re.sub(' +', ' ', val)
+        # 去除頭尾空格
+        val = val.strip()
+        keyword_reg = ''
+        val = html.unescape(val)
+        for j in val:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = get_variants(keyword_reg)
+        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
+        query_str = ' OR '.join( col_list )
+        query_list += [ '(' + query_str + ')' ]
+
+    return query_list
+
+
 # deprecated
 # def taxon_full_filter(value):
 
@@ -974,3 +1190,4 @@ taxon_cols = [
 #         qs = qs | query
         
 #     return Taxon.objects.filter(qs).order_by('scientificName')
+
