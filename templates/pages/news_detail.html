@@ -16,13 +16,13 @@
 {% block body %}
 		<div class="path"> 
 			<div class="main_1240"> 
-				<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'news' %}" >最新消息</a> <span>></span> <p>新聞公告</p>
+				<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'news' %}" >{% trans '最新消息' %}</a> <span>></span> <p>{% trans n.get_type_display %}</p>
 			</div>
 		</div>
 		<div class="in_bn news_bn">
 			<div class="title">
-				<h2>最新消息</h2>
-				<h3>NEWS</h3>
+				<h2>{% trans '最新消息' %}</h2>
+				{% comment %} <h3>NEWS</h3> {% endcomment %}
 			</div>
 		</div>
 		<div class="container_area">
@@ -32,7 +32,7 @@
 					<div class="nstitlebox">
 						<div class="tag_date">
 							<div class="tag {{ color }}">
-								{{ n.get_type_display }}
+								{% trans n.get_type_display %}
 							</div> 
 							<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
 						</div>
@@ -85,7 +85,7 @@
 				</div>
 				-->
 			{% else %}
-			<p>無資料</p>
+			<p>{% trans '無資料' %}</p>
 			{% endif %}
 			</div>
 

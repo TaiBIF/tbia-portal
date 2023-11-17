@@ -1,14 +1,14 @@
 // Function to check letters and numbers
-function checkPasswordStr(inputText){
+function checkPasswordStr(inputText) {
     let letterNumber = /^[0-9a-zA-Z]{6,10}$/
-    if(inputText.match(letterNumber)){
+    if (inputText.match(letterNumber)) {
         return true
     } else {
         return false
     }
 }
 
-function resetPassword(){
+function resetPassword() {
     // remove all notice first
     $('#resetForm .noticbox').addClass('d-none')
 
@@ -17,38 +17,35 @@ function resetPassword(){
     if (!checkPasswordStr($('#resetForm input[name=password]').val())) { // check password
         $('#resetForm input[name=password]').next('.noticbox').removeClass('d-none')
         checked = false
-    } 
-    
+    }
+
     if ($('#resetForm input[name=password]').val() != $('#resetForm input[name=repassword]').val()) { // check repassword
         $('#resetForm input[name=repassword]').next('.noticbox').removeClass('d-none')
         checked = false
-    } 
+    }
 
-    if (checked){
+    if (checked) {
         $.ajax({
             url: "/reset_password_submit",
-            data: $('#resetForm').serialize() ,
+            data: $('#resetForm').serialize(),
             type: 'POST',
-            dataType : 'json',
+            dataType: 'json',
         })
-        .done(function(response) {
-            if (response.status=='success'){
-                alert(response.message)
-                location.href="/"
-            } else {
-                alert(response.message)
-            }
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
-
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+            .done(function (response) {
+                alert(gettext(response.message))
+                if (response.status == 'success') {
+                    location.href = "/"
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert($('input[name=unexpected-error-alert]').val())
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     }
 }
 
-$( function() {
-    $('.resetPassword').on('click', function(){
+$(function () {
+    $('.resetPassword').on('click', function () {
         resetPassword()
     })
 })

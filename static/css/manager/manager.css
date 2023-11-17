@@ -193,14 +193,14 @@ span.expired-notice {
 }
 
 .chebox:checked {
-    background: url("../image/checkmark.svg") no-repeat center;
+    background: url("/static/image/checkmark.svg") no-repeat center;
     background-color:  #76A578;
     color: #FFF ;
     /*display: block;*/
 }
 
 .chebox:disabled {
-    background: url("../image/checkmark.svg") no-repeat center;
+    background: url("/static/image/checkmark.svg") no-repeat center;
     background-color: #ddd;
     color: #FFF ;
     /*display: block;*/

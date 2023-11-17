@@ -1045,7 +1045,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/users.svg") no-repeat top left
+    background: url("/static/image/users.svg") no-repeat top left
 }
 
 @media only screen and (max-width: 1279px) {
@@ -1070,7 +1070,7 @@ body {
 
 .header .right_btn2 .ringbox {
     display: none;
-    background: url("../image/ring.svg") no-repeat top center;
+    background: url("/static/image/ring.svg") no-repeat top center;
     width: 46px;
     height: 46px;
     cursor: pointer;
@@ -1100,7 +1100,7 @@ body {
         -o-transition: all .3s;
         -ms-transition: all .3s;
         -webkit-transition: all .3s;
-        background: url("../image/rings.svg") no-repeat top center;
+        background: url("/static/image/rings.svg") no-repeat top center;
         background-size: cover
     }
 
@@ -1124,7 +1124,7 @@ body {
         -o-transition: all .3s;
         -ms-transition: all .3s;
         -webkit-transition: all .3s;
-        background: url("../image/rings.svg") no-repeat top center;
+        background: url("/static/image/rings.svg") no-repeat top center;
         background-size: cover
     }
 
@@ -1348,7 +1348,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: url("../image/tpsearchicon.svg") no-repeat top center;
+    background: url("/static/image/tpsearchicon.svg") no-repeat top center;
     position: relative;
     z-index: 5;
     border-radius: 50%
@@ -1386,7 +1386,7 @@ body {
         -o-transition: all .3s;
         -ms-transition: all .3s;
         -webkit-transition: all .3s;
-        background: url("../image/tpsearchicons.svg") no-repeat top center
+        background: url("/static/image/tpsearchicons.svg") no-repeat top center
     }
 
     .header .right_btn2 .top-search:hover .searchbox {
@@ -1502,7 +1502,7 @@ body {
 }
 
 .header .right_btn2 .feedback {
-    background: url("../image/email.svg") no-repeat top center;
+    background: url("/static/image/email.svg") no-repeat top center;
     width: 46px;
     height: 46px;
     cursor: pointer;
@@ -1524,7 +1524,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/emails.svg") no-repeat top center;
+    background: url("/static/image/emails.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -1537,7 +1537,7 @@ body {
 .header .right_btn2 .languagebox {
     position: relative;
     cursor: pointer;
-    background: url("../image/earth.svg") no-repeat top center;
+    background: url("/static/image/earth.svg") no-repeat top center;
     width: 46px;
     height: 46px;
     cursor: pointer;
@@ -1559,7 +1559,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/earths.svg") no-repeat top center;
+    background: url("/static/image/earths.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -1657,7 +1657,7 @@ body {
     left: 0;
     position: absolute;
     display: block;
-    background: url("../image/user.svg") no-repeat top left;
+    background: url("/static/image/user.svg") no-repeat top left;
     height: 46px;
     width: 46px;
     transition: all .3s;
@@ -1759,7 +1759,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/users.svg") no-repeat top left;
+    background: url("/static/image/users.svg") no-repeat top left;
     background-size: cover
 }
 
@@ -1800,7 +1800,7 @@ body {
 }
 
 .section_1 .bn_bg {
-    background: url("../image/bn_bg.svg") no-repeat top center;
+    background: url("/static/image/bn_bg.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%;
@@ -1981,7 +1981,7 @@ body {
 
 .section_1 .item_01 .img {
     position: absolute;
-    background: url("../image/bn_item01.svg") no-repeat top center;
+    background: url("/static/image/bn_item01.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2000,7 +2000,7 @@ body {
 
 .section_1 .item_02 .img {
     position: absolute;
-    background: url("../image/bn_item02.svg") no-repeat top center;
+    background: url("/static/image/bn_item02.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2020,7 +2020,7 @@ body {
 
 .section_1 .item_03 .img {
     position: absolute;
-    background: url("../image/bn_item03.svg") no-repeat top center;
+    background: url("/static/image/bn_item03.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2046,7 +2046,7 @@ body {
 
 .section_1 .item_05 .img {
     position: absolute;
-    background: url("../image/bn_item05.svg") no-repeat top center;
+    background: url("/static/image/bn_item05.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2072,7 +2072,7 @@ body {
 
 .section_1 .item_06 .img {
     position: absolute;
-    background: url("../image/bn_item06.svg") no-repeat top center;
+    background: url("/static/image/bn_item06.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2098,7 +2098,7 @@ body {
 
 .section_1 .item_07 .img {
     position: absolute;
-    background: url("../image/bn_item07.svg") no-repeat top center;
+    background: url("/static/image/bn_item07.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2131,7 +2131,7 @@ body {
 
 .section_1 .item_08 .img {
     position: absolute;
-    background: url("../image/bn_item08.svg") no-repeat top center;
+    background: url("/static/image/bn_item08.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2203,7 +2203,7 @@ body {
 
 .section_1 .topbox2 .main_center .itembox .bird .img {
     position: absolute;
-    background: url("../image/bn_item09.svg") no-repeat top center;
+    background: url("/static/image/bn_item09.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -2357,7 +2357,7 @@ body {
     filter: alpha(opacity=100);
     width: 100%;
     height: 100%;
-    background: url("../image/section2bg.svg") no-repeat top center;
+    background: url("/static/image/section2bg.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -2585,7 +2585,7 @@ body {
 }
 
 .news_list li .imgbox .img_area {
-    /*background: url("../image/news_listdemo.jpg") no-repeat top center;
+    /*background: url("/static/image/news_listdemo.jpg") no-repeat top center;
     background-size: cover;*/
     width: 100%;
     height: 100%;
@@ -2651,7 +2651,7 @@ body {
     min-width: 90px;
     height: 30px;
     text-align: center;
-    padding: 0px 10px;
+    padding: 0px 5px;
     border-radius: 15px;
     margin-right: 10px;
     font-size: 16px
@@ -2665,7 +2665,7 @@ body {
         font-size: 12px;
         min-width: 60px;
         margin-right: 5px;
-        padding: 0px 5px
+        /* padding: 0px 5px */
     }
 }
 
@@ -2873,7 +2873,7 @@ body {
     filter: alpha(opacity=100);
     width: 100%;
     height: 100%;
-    background: url("../image/section3bg.svg") no-repeat top center;
+    background: url("/static/image/section3bg.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -3113,11 +3113,11 @@ body {
     bottom: 0;
     width: 50px;
     height: 50px;
-    background: url("../image/dwbtn.svg") no-repeat top center
+    background: url("/static/image/dwbtn.svg") no-repeat top center
 }
 
 .edu_list li .dow_btn:hover {
-    background: url("../image/dwbtns.svg") no-repeat top center;
+    background: url("/static/image/dwbtns.svg") no-repeat top center;
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -3317,7 +3317,7 @@ body {
     filter: alpha(opacity=100);
     width: 100%;
     height: 100%;
-    background: url("../image/section4bg.svg") no-repeat top center;
+    background: url("/static/image/section4bg.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -3655,7 +3655,7 @@ body {
 
 .path .home {
     display: block;
-    background: url("../image/home.svg") no-repeat top center;
+    background: url("/static/image/home.svg") no-repeat top center;
     width: 23px;
     height: 20px
 }
@@ -3718,12 +3718,12 @@ body {
 }
 
 .in_bn.news_bn {
-    background: url("../image/news_bn.svg") no-repeat top center;
+    background: url("/static/image/news_bn.svg") no-repeat top center;
     background-size: cover
 }
 
 .in_bn.about_bn {
-    background: url("../image/abtopbn.svg") no-repeat top center;
+    background: url("/static/image/abtopbn.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -3734,19 +3734,19 @@ body {
 }
 
 .in_bn.resource_bn {
-    background: url("../image/resourcesbg.svg") no-repeat top center;
+    background: url("/static/image/resourcesbg.svg") no-repeat top center;
     background-size: cover
 }
 
 @media only screen and (max-width: 767px) {
     .in_bn.resource_bn {
-        background: url("../image/resourcesbgm.svg") no-repeat top center;
+        background: url("/static/image/resourcesbgm.svg") no-repeat top center;
         background-size: cover
     }
 }
 
 .in_bn.qa_bn {
-    background: url("../image/qabn.svg") no-repeat top center;
+    background: url("/static/image/qabn.svg") no-repeat top center;
     background-size: cover
 }
 
@@ -3811,7 +3811,7 @@ body {
     width: 28px;
     height: 17px;
     margin-left: -14px;
-    background: url("../image/nstabar.svg") no-repeat top center
+    background: url("/static/image/nstabar.svg") no-repeat top center
 }
 
 @media only screen and (max-width: 767px) {
@@ -3947,7 +3947,7 @@ body {
 
 .date_select .input_item .dateicon {
     position: absolute;
-    background: url("../image/calendar.svg") no-repeat top center;
+    background: url("/static/image/calendar.svg") no-repeat top center;
     width: 24px;
     height: 24px;
     cursor: pointer;
@@ -3993,7 +3993,7 @@ body {
 
 .page_number .pre span {
     display: inline-block;
-    background: url("../image/pre.svg") no-repeat top center;
+    background: url("/static/image/pre.svg") no-repeat top center;
     width: 10px;
     height: 17px;
     margin-right: 10px
@@ -4005,7 +4005,7 @@ body {
 
 .page_number .next span {
     display: inline-block;
-    background: url("../image/next.svg") no-repeat top center;
+    background: url("/static/image/next.svg") no-repeat top center;
     width: 10px;
     height: 17px;
     margin-left: 10px
@@ -4090,7 +4090,7 @@ body {
     left: 0;
     top: 0;
     position: absolute;
-    background: url("../image/abbg1.svg") no-repeat top center;
+    background: url("/static/image/abbg1.svg") no-repeat top center;
     background-size: cover;
     width: 100%;
     height: 100%
@@ -4124,13 +4124,13 @@ body {
     }
 }
 
-@media only screen and (max-width: 999px) {
+/* @media only screen and (max-width: 999px) {
     .about_bn .bg_area .bird {
         right: -45%
     }
-}
+} */
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .bg_area .bird {
         right: -30%;
         top: 43%
@@ -4141,7 +4141,7 @@ body {
     position: relative
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .bg_area .bird img {
         width: 120px
     }
@@ -4163,7 +4163,7 @@ body {
     margin-bottom: 5px
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .abtitlebox h2 {
         font-size: 40px;
         line-height: 40px
@@ -4177,7 +4177,7 @@ body {
     text-align: center
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .abtitlebox p {
         font-size: 20px
     }
@@ -4194,7 +4194,7 @@ body {
     margin-bottom: 160px
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg {
         padding: 30px 15px;
         margin-bottom: 40px
@@ -4211,14 +4211,15 @@ body {
     }
 }
 
-@media only screen and (max-width: 999px) {
+/* @media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox {
         max-width: 100%
     }
-}
+} */
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox {
+        max-width: 100%;
         margin-bottom: 30px
     }
 }
@@ -4230,13 +4231,13 @@ body {
     margin-bottom: 20px
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox h3 {
         font-size: 20px
     }
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox p {
         margin-bottom: 20px
     }
@@ -4271,7 +4272,7 @@ body {
     background: #76A578
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox .linktogithub {
         width: 100%;
         height: 60px
@@ -4296,14 +4297,14 @@ body {
     }
 }
 
-@media only screen and (max-width: 999px) {
+/* @media only screen and (max-width: 999px) {
     .about_bn .w_bg .rightbox {
         top: 280px;
         right: 0
     }
-}
+} */
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 999px) {
     .about_bn .w_bg .rightbox {
         position: relative;
         right: -50px;
@@ -4323,7 +4324,7 @@ body {
 
 @media only screen and (max-width: 999px) {
     .about_bn .w_bg .rightbox .imgbox .tbia_pic {
-        width: 300px
+        width: 70%;
     }
 }
 
@@ -4353,7 +4354,26 @@ body {
     }
 }
 
-@media only screen and (max-width: 1279px) and (max-width: 767px) {
+
+@media only screen and (max-width: 999px) {
+    .about_bn .w_bg .rightbox .imgbox .man {
+        left: -5%;
+        top: 28%
+    }
+
+    .about_bn .w_bg .rightbox .imgbox .man img {
+        width: 280px
+    }
+}
+@media only screen and (max-width: 767px) {
+    .about_bn .w_bg .rightbox .imgbox .man {
+        left: -15%;
+        top: 28%
+    }
+
+}
+
+@media only screen and (max-width: 1279px) and (max-width: 999px) {
     .about_bn .w_bg .rightbox .imgbox .man img {
         width: 150px
     }
@@ -4369,7 +4389,7 @@ body {
     position: absolute;
     height: 510px;
     width: 100%;
-    background: url("../image/abbg2ss.svg") fixed no-repeat bottom center;
+    background: url("/static/image/abbg2ss.svg") fixed no-repeat bottom center;
     background-size: cover;
     bottom: 0
 }
@@ -5070,7 +5090,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/arupwhite.svg") no-repeat left top;
+    background: url("/static/image/arupwhite.svg") no-repeat left top;
     background-size: cover
 }
 
@@ -5160,7 +5180,7 @@ body {
     position: absolute;
     right: 20px;
     top: 28px;
-    background: url("../image/ardown.svg") no-repeat left top;
+    background: url("/static/image/ardown.svg") no-repeat left top;
     background-size: cover;
     width: 26px;
     height: 14px;
@@ -5352,7 +5372,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/xx.svg") no-repeat left top;
+    background: url("/static/image/xx.svg") no-repeat left top;
     background-size: cover;
     width: 50px;
     height: 50px
@@ -5365,7 +5385,7 @@ body {
         -o-transition: all .3s;
         -ms-transition: all .3s;
         -webkit-transition: all .3s;
-        background: url("../image/xxs.svg") no-repeat left top
+        background: url("/static/image/xxs.svg") no-repeat left top
     }
 }
 
@@ -5431,13 +5451,13 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("../image/mapimg.jpg") no-repeat center;
+    background: url("/static/image/mapimg.jpg") no-repeat center;
     background-size: cover
 }
 
 .popbg .wbox_center .arl {
     position: absolute;
-    background: url("../image/pre.svg") no-repeat center;
+    background: url("/static/image/pre.svg") no-repeat center;
     background-size: cover;
     width: 28px;
     height: 52px;
@@ -5478,7 +5498,7 @@ body {
 
 .popbg .wbox_center .arr {
     position: absolute;
-    background: url("../image/next.svg") no-repeat center;
+    background: url("/static/image/next.svg") no-repeat center;
     background-size: cover;
     width: 28px;
     height: 52px;
@@ -5960,7 +5980,12 @@ body {
     font-size: 16px
 }
 
-.popbg .loginbox .right_cont .linkbtn_1 a {
+.popbg .loginbox .right_cont .linkbtn_en {
+    text-align: left;
+    font-size: 16px
+}
+
+.popbg .loginbox .right_cont .linkbtn_1 a,  .popbg .loginbox .right_cont .linkbtn_en a {
     color: #C65454
 }
 
@@ -6863,11 +6888,11 @@ body {
 }
 
 .two_cont_area .left_menu li:hover .big_link p a.qusemark, .two_cont_area .left_menu li.now .big_link p a.qusemark {
-    background: url("../image/quesmarkw.svg") no-repeat center
+    background: url("/static/image/quesmarkw.svg") no-repeat center
 }
 
 .two_cont_area .left_menu li:hover .big_link .arr, .two_cont_area .left_menu li.now .big_link .arr {
-    background: url("../image/nextw.svg") no-repeat center
+    background: url("/static/image/nextw.svg") no-repeat center
 }
 
 .two_cont_area .left_menu li:hover .big_link .arrd, .two_cont_area .left_menu li.now .big_link .arrd {
@@ -6876,7 +6901,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    background: url("../image/nextw.svg") no-repeat center;
+    background: url("/static/image/nextw.svg") no-repeat center;
     -moz-transform: rotate(-90deg);
     -ms-transform: rotate(-90deg);
     -o-transform: rotate(-90deg);
@@ -6913,7 +6938,7 @@ body {
     display: block;
     width: 24px;
     height: 24px;
-    background: url("../image/quesmark.svg") no-repeat center;
+    background: url("/static/image/quesmark.svg") no-repeat center;
     right: -30px;
     top: 2px;
     z-index: 2
@@ -6922,7 +6947,7 @@ body {
 .two_cont_area .big_link .arr {
     position: absolute;
     right: 20px;
-    background: url("../image/next.svg") no-repeat center;
+    background: url("/static/image/next.svg") no-repeat center;
     width: 10px;
     height: 18px;
     top: 21px
@@ -6936,7 +6961,7 @@ body {
     -webkit-transition: all .3s;
     position: absolute;
     right: 20px;
-    background: url("../image/next.svg") no-repeat center;
+    background: url("/static/image/next.svg") no-repeat center;
     width: 10px;
     height: 18px;
     top: 21px;
@@ -7232,7 +7257,7 @@ body {
 
 .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img .imgbox .imgarea {
     width: 100%;
-    /*background: url("../image/searpicub@2x.jpg") no-repeat center;
+    /*background: url("/static/image/searpicub@2x.jpg") no-repeat center;
     background-size: cover;
     padding-bottom: calc((260/435)*100%);*/
     object-fit: cover;
@@ -7619,7 +7644,7 @@ body {
 }
 
 .catalist li .chebox:checked {
-    background: url("../image/checkmark.svg") no-repeat center;
+    background: url("/static/image/checkmark.svg") no-repeat center;
     background-color: #76A578;
     color: #FFF
 }
@@ -7784,7 +7809,7 @@ body {
 .search_condition_are .secboxtop2 .leftbox .input_item select {
     -webkit-appearance: none;
     -moz-appearance: none;
-    background: url("../image/ardownselect.svg") right 15px top 20px no-repeat
+    background: url("/static/image/ardownselect.svg") right 15px top 20px no-repeat
 }
 
 .search_condition_are .secboxtop2 .leftbox .input_item .item_center {
@@ -7801,7 +7826,7 @@ body {
 
 .search_condition_are .secboxtop2 .leftbox .input_item .dateicon {
     position: absolute;
-    background: url("../image/calendar.svg") no-repeat top center;
+    background: url("/static/image/calendar.svg") no-repeat top center;
     width: 24px;
     height: 24px;
     cursor: pointer;
@@ -7871,7 +7896,7 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("../image/mapimg.jpg") no-repeat center;
+    background: url("/static/image/mapimg.jpg") no-repeat center;
     background-size: cover
 }
 
@@ -7961,14 +7986,14 @@ body {
 
 .qmark {
     display: inline-block;
-    background: url("../image/quesmark.svg") no-repeat center;
+    background: url("/static/image/quesmark.svg") no-repeat center;
     width: 24px;
     height: 25px;
     flex: 0 0 25px
 }
 
 .qmark:hover {
-    background: url("../image/quesmarkg.svg") no-repeat center
+    background: url("/static/image/quesmarkg.svg") no-repeat center
 }
 
 .sc_result {
@@ -8266,7 +8291,7 @@ body {
 
 .sc_de_top .right_area .imgbox .imgarea {
     width: 100%;
-    /*background: url("../image/searpicub@2x.jpg") no-repeat center;
+    /*background: url("/static/image/searpicub@2x.jpg") no-repeat center;
     background-size: cover;
     padding-bottom: calc((260/435)*100%);*/
     object-fit: cover;
@@ -8504,7 +8529,7 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("../image/mapimg.jpg") no-repeat center;
+    background: url("/static/image/mapimg.jpg") no-repeat center;
     background-size: cover
 }
 

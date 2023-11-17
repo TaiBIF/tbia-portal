@@ -322,11 +322,11 @@ function vanillaSelectBox(domSelector, options) {
         if (self.userOptions.stayOpen) {
             this.button = document.createElement("div");
         } else {
-            this.button = document.createElement("button");
-            if(this.keepInlineStyles) {
-                var cssList = self.getCssArray(".vsb-main button");
-                this.button.setAttribute("style", cssList);
-            }
+            this.button = document.createElement("button");            
+            // if(this.keepInlineStyles) {
+            //     var cssList = self.getCssArray(".vsb-main button");
+            //     this.button.setAttribute("style", cssList);
+            // }
         }
         this.button.style.maxWidth = this.userOptions.maxWidth + "px";
         if (this.userOptions.minWidth !== -1) {

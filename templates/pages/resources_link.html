@@ -16,20 +16,20 @@
 {% block body %}
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>開放資料相關資源</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '開放資料相關資源' %}</p>
 	</div>
 </div>
 <div class="in_bn resource_bn">
 	<div class="title">
-		<h2>開放資料相關資源</h2>
-		<h3>Resources</h3>
+		<h2>{% trans '開放資料相關資源' %}</h2>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
 	<div class="main_1240"> 
 		<div class="w_bgr10 news_de">
 			<div class="nstitlebox">
-				<h3>國內外各大資料庫及推薦網站連結</h3>
+				<h3>{% trans '國內外各大資料庫及推薦網站連結' %}</h3>
 			</div>
 			<div class="partner_area partner_area_custom">
 					<div class="itembox">
@@ -50,10 +50,6 @@
 								<div class="pic">
 									<img src="/static/image/GBIF-cover.png" >
 								</div>
-								<!--
-								<a href="https://www.gbif.org" class="linkto" target="_blank">
-									聯絡我們
-								</a>-->
 							</div>
 						</div>
 					</div>
@@ -78,7 +74,7 @@
 					</div>
 			</div>
 			<div class="editor">
-				<p class="link-editor">網站連結</p>
+				<p class="link-editor">{% trans '網站連結' %}</p>
 				{{ n.content|safe }}
 			</div>
 		</div> 

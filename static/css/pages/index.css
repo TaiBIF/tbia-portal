@@ -54,7 +54,7 @@
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    width: 90px;
+    min-width: 90px;
 }
 
 .popbg .wbox_center .noshow a:hover {

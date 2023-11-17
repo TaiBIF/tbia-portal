@@ -1,12 +1,12 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
-function changeURL(menu){
-    history.pushState(null, '', window.location.pathname + '?'  + 'menu=' + menu);
+function changeURL(menu) {
+    history.pushState(null, '', window.location.pathname + '?' + 'menu=' + menu);
 }
 
 // 如果按上下一頁
-window.onpopstate = function(e) {
-    e.preventDefault(); 
+window.onpopstate = function (e) {
+    e.preventDefault();
 
     $('.rightbox_content').addClass('d-none')
     $('.col_menu.second_menu a').removeClass('now')
@@ -16,27 +16,27 @@ window.onpopstate = function(e) {
     let urlParams = new URLSearchParams(queryString);
 
     let menu = urlParams.get('menu')
-    if (menu){
+    if (menu) {
 
-        $(`a.${ menu }`).addClass('now')
-        $(`a.${ menu }`).parent(".second_menu").slideToggle();
+        $(`a.${menu}`).addClass('now')
+        $(`a.${menu}`).parent(".second_menu").slideToggle();
 
-        $(`.rightbox_content.${ menu }`).removeClass('d-none')
+        $(`.rightbox_content.${menu}`).removeClass('d-none')
     }
 };
 
 
-function changePage(page, menu){
+function changePage(page, menu) {
     $.ajax({
         url: `/change_manager_page?page=${page}&menu=${menu}`,
         type: 'GET',
-        success: function(response){
+        success: function (response) {
             // 修改表格內容
 
             $(`.${menu}_table`).html(`
             ${response.header}
             ${response.data}`)
-            
+
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
@@ -50,7 +50,7 @@ function changePage(page, menu){
                 </div>`)
             //}		
 
-            if (menu=='sensitive_apply'){
+            if (menu == 'sensitive_apply') {
                 s_menu = 'sensitive'
             } else {
                 s_menu = menu
@@ -59,7 +59,7 @@ function changePage(page, menu){
 
             let html = ''
             for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page){
+                if (response.page_list[i] == response.current_page) {
                     html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
                 } else {
                     html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
@@ -67,51 +67,51 @@ function changePage(page, menu){
             }
 
             $(`.${s_menu} .item .page_number a.pre`).after(html)
-    
+
             // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page){
+            if (response.current_page < response.total_page) {
                 $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page+1);
+                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page + 1);
                 $(`.${s_menu} .item .page_number a.next`).data('type', menu);
             } else {
                 $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
             }
-            
+
             // 如果有上一頁，改掉prev的onclick
-            if (response.current_page - 1 > 0){
+            if (response.current_page - 1 > 0) {
                 $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page-1);
-                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);    
+                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page - 1);
+                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);
             } else {
                 $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
             }
-            
+
             $('.changePage').off('click')
-            $('.changePage').on('click', function(){
-                changePage($(this).data('page'),$(this).data('type'))
-            })        
-                
+            $('.changePage').on('click', function () {
+                changePage($(this).data('page'), $(this).data('type'))
+            })
+
             $('.saveStatus').off('click')
-            $('.saveStatus').on('click', function(){
+            $('.saveStatus').on('click', function () {
                 let current_id = $(this).data('pmid')
                 saveStatus(current_id)
             })
-            
+
             $('.showRequest').off('click')
-            $('.showRequest').on('click', function(){
+            $('.showRequest').on('click', function () {
                 let query_id = $(this).data('query_id')
                 let query = $(this).data('query')
                 let sdr_id = $(this).data('sdr_id')
                 let is_transferred = $(this).data('is_transferred')
-                showRequest(query_id,query,sdr_id,is_transferred)
+                showRequest(query_id, query, sdr_id, is_transferred)
             })
 
             $('.updateFeedback').off('click')
-            $('.updateFeedback').on('click', function(){
+            $('.updateFeedback').on('click', function () {
                 let current_id = $(this).data('fid')
                 updateFeedback(current_id)
             })
-            
+
         }
     });
 
@@ -125,51 +125,51 @@ $(document).ready(function () {
 
     $(`.rightbox_content.${$('input[name=menu]').val()}`).removeClass('d-none')
 
-    $('.updateFeedback').on('click', function(){
+    $('.updateFeedback').on('click', function () {
         let current_id = $(this).data('fid')
         updateFeedback(current_id)
     })
 
-    $('.saveStatus').on('click', function(){
+    $('.saveStatus').on('click', function () {
         let current_id = $(this).data('pmid')
         saveStatus(current_id)
     })
 
-    $('.hide_submit-check').on('click', function(){
+    $('.hide_submit-check').on('click', function () {
         $('.submit-check').addClass('d-none')
     })
 
-    $('.hide_submit-transfer').on('click', function(){
+    $('.hide_submit-transfer').on('click', function () {
         $('.submit-transfer').addClass('d-none')
     })
 
-    $('.updateInfo').on('click', function(){
-            // remove all notice first
+    $('.updateInfo').on('click', function () {
+        // remove all notice first
         $('.noticbox').addClass('d-none')
 
         let checked = true;
-    
-        if (!$('textarea[name=about_content]').val()){ // check name
+
+        if (!$('textarea[name=about_content]').val()) { // check name
             $('textarea[name=about_content]').next('.noticbox').removeClass('d-none')
             checked = false
-        }  
-        
-        if (checked){
+        }
+
+        if (checked) {
             $.ajax({
                 url: "/update_tbia_about",
                 data: $('#updateForm').serialize(),
                 type: 'POST',
-                dataType : 'json',
+                dataType: 'json',
             })
-            .done(function(response) {
-                alert('修改完成')                
-            })
-            .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
+                .done(function (response) {
+                    alert('修改完成')
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    alert($('input[name=unexpected-error-alert]').val())
 
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })  
-        } 
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+        }
     })
 
     $(".mb_fixed_btn").on("click", function (event) {
@@ -190,57 +190,57 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    $('.showRequest').on('click', function(){
+    $('.showRequest').on('click', function () {
         let query_id = $(this).data('query_id')
         let query = $(this).data('query')
         let sdr_id = $(this).data('sdr_id')
         let is_transferred = $(this).data('is_transferred')
-        showRequest(query_id,query,sdr_id,is_transferred)
+        showRequest(query_id, query, sdr_id, is_transferred)
     })
-    
-    $('.transferRequest').on('click', function(){
+
+    $('.transferRequest').on('click', function () {
         $.ajax({
             url: "/transfer_sensitive_response",
             type: 'POST',
-            data: {'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: $csrf_token},
+            data: { 'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: $csrf_token },
             dataType: 'json'
         })
-        .done(function(response) {
-            alert('轉交成功')
-            window.location.reload()
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
+            .done(function (response) {
+                alert('轉交成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert($('input[name=unexpected-error-alert]').val())
 
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     })
-    
-    $('.open-page').on('click', function(){
+
+    $('.open-page').on('click', function () {
         window.location = $(this).data('href')
     })
-    
-    
-    $('.changeMenu').on('click', function(){
+
+
+    $('.changeMenu').on('click', function () {
         let menu = $(this).data('menu');
-        $('.rightbox_content').addClass('d-none'); 
-        $(`.rightbox_content.${menu}`).removeClass('d-none'); 
+        $('.rightbox_content').addClass('d-none');
+        $(`.rightbox_content.${menu}`).removeClass('d-none');
         changeURL(menu)
     })
-    
-    $('.changePage').on('click', function(){
-        changePage($(this).data('page'),$(this).data('type'))
+
+    $('.changePage').on('click', function () {
+        changePage($(this).data('page'), $(this).data('type'))
     })
-    
-    $('.send-transfer').on('click',function(){
+
+    $('.send-transfer').on('click', function () {
         $('.submit-transfer').removeClass('d-none')
     })
 
-    $('.send-check').on('click',function(){
+    $('.send-check').on('click', function () {
 
         let checked = true;
 
-        if ((!$(`#reviewForm input[name=reviewer_name]`).val())|(!$(`#reviewForm textarea[name=comment]`).val())){
+        if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
             checked = false;
         }
 
@@ -252,26 +252,26 @@ $(document).ready(function () {
         }
     })
 
-    $('.send_review').on('click', function (){
+    $('.send_review').on('click', function () {
         $.ajax({
             url: "/submit_sensitive_response",
             type: 'POST',
             data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
             dataType: 'json'
         })
-        .done(function(response) {
-            alert('送出成功')
-            window.location.reload()
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
+            .done(function (response) {
+                alert('送出成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert($('input[name=unexpected-error-alert]').val())
 
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     })
 
-    $('.accordion').on('click', function(){
-        if ($(this).hasClass('active')){
+    $('.accordion').on('click', function () {
+        if ($(this).hasClass('active')) {
             $(this).removeClass('active')
             $(this).next('.panel').addClass('d-none').removeClass('d-block')
         } else {
@@ -286,75 +286,76 @@ $(document).ready(function () {
 })
 
 
-function saveStatus(current_id){
+function saveStatus(current_id) {
     $.ajax({
         url: "/update_user_status",
-        data: {'user_id': current_id,
-                csrfmiddlewaretoken: $csrf_token,
-                'role': $(`select[name="role"][data-id=${current_id}]`).val(),
-                'status': $(`select[name="status"][data-id=${current_id}]`).val(),
-            },
+        data: {
+            'user_id': current_id,
+            csrfmiddlewaretoken: $csrf_token,
+            'role': $(`select[name="role"][data-id=${current_id}]`).val(),
+            'status': $(`select[name="status"][data-id=${current_id}]`).val(),
+        },
         type: 'POST',
-        dataType : 'json',
+        dataType: 'json',
     })
-    .done(function(response) {
-        if (response['exceed_ten']){
-            alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
-            location.reload()
-        } else {
-            alert('修改完成')
-        }
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        alert($('input[name=unexpected-error-alert]').val())
+        .done(function (response) {
+            if (response['exceed_ten']) {
+                alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
+                location.reload()
+            } else {
+                alert('修改完成')
+            }
+        })
+        .fail(function (xhr, status, errorThrown) {
+            alert($('input[name=unexpected-error-alert]').val())
 
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })  
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 }
 
-function showRequest(query_id,query,sdr_id,is_transferred){
+function showRequest(query_id, query, sdr_id, is_transferred) {
 
     $.ajax({
         url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
         type: 'GET',
     })
-    .done(function(response) {
+        .done(function (response) {
 
-       $('.detail-pop .send-check, .detail-pop .send-transfer').removeClass('d-none')
-       $('.detail-pop .send-submitted, .detail-pop .send-transferred').addClass('d-none')
+            $('.detail-pop .send-check, .detail-pop .send-transfer').removeClass('d-none')
+            $('.detail-pop .send-submitted, .detail-pop .send-transferred').addClass('d-none')
 
-       // 要先全部重設
-       $("#detailForm").trigger("reset");
-       $("#reviewForm").trigger("reset");
+            // 要先全部重設
+            $("#detailForm").trigger("reset");
+            $("#reviewForm").trigger("reset");
 
-       $('#reviewForm input[name=query_id] ').val(query_id)
-       $('#reviewForm input[name=sdr_id] ').val(sdr_id)
+            $('#reviewForm input[name=query_id] ').val(query_id)
+            $('#reviewForm input[name=sdr_id] ').val(sdr_id)
 
-       $('.detail-pop').removeClass('d-none')
-       $('.detail-pop .riginf').html(query)
-       $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
-       $('.detail-pop input[name=phone] ').val(response.detail.phone)
-       $('.detail-pop input[name=address] ').val(response.detail.address)
-       $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
-       $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
-       $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+            $('.detail-pop').removeClass('d-none')
+            $('.detail-pop .riginf').html(query)
+            $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
+            $('.detail-pop input[name=phone] ').val(response.detail.phone)
+            $('.detail-pop input[name=address] ').val(response.detail.address)
+            $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
+            $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
+            $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
 
-        
-       if (response.detail.type=='0'){
-            $('.detail-pop input[name=type] ').val('個人研究計畫')
-            $('.project_type').html('個人研究計畫名稱')
-            $('.p_affli').addClass('d-none')
-       } else {
-            $('.detail-pop input[name=type] ').val('委辦工作計畫')
-            $('.project_type').html('委辦工作計畫名稱')
-            $('.p_affli').removeClass('d-none')
-            $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
-       }
 
-       $('.apply_peo .item_set1').remove()
-       if (response.detail.users.length > 0) {
-            for (let i = 0; i < response.detail.users.length; i++) {
-                $('.apply_peo').append(`
+            if (response.detail.type == '0') {
+                $('.detail-pop input[name=type] ').val('個人研究計畫')
+                $('.project_type').html('個人研究計畫名稱')
+                $('.p_affli').addClass('d-none')
+            } else {
+                $('.detail-pop input[name=type] ').val('委辦工作計畫')
+                $('.project_type').html('委辦工作計畫名稱')
+                $('.p_affli').removeClass('d-none')
+                $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
+            }
+
+            $('.apply_peo .item_set1').remove()
+            if (response.detail.users.length > 0) {
+                for (let i = 0; i < response.detail.users.length; i++) {
+                    $('.apply_peo').append(`
                     <div class="item_set1">
                         <span class="ml-10px">姓名</span>
                         <input type="text" value="${response.detail.users[i]['user_name']}" disabled>
@@ -363,56 +364,57 @@ function showRequest(query_id,query,sdr_id,is_transferred){
                         <span class="ml-10px">職稱</span>
                         <input type="text" name="user_job_title" value="${response.detail.users[i]['user_job_title']}" disabled>
                     </div>`)
+                }
+            } else {
+                $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
             }
-        } else {
-            $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
-        }
 
-        // 審查意見
-        if (is_transferred=='True'){
-            $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').addClass('d-none')
-            $('.send-transferred').removeClass('d-none')
-        } else if (response.review.status != 'pending') {
-            $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
-            $('#reviewForm textarea[name=comment]').val(response.review.comment)
-            $('#reviewForm select[name=status]').val(response.review.status)
-            $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
-            $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
-            $('#reviewForm select[name=status]').attr('disabled', 'disabled');
+            // 審查意見
+            if (is_transferred == 'True') {
+                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').addClass('d-none')
+                $('.send-transferred').removeClass('d-none')
+            } else if (response.review.status != 'pending') {
+                $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
+                $('#reviewForm textarea[name=comment]').val(response.review.comment)
+                $('#reviewForm select[name=status]').val(response.review.status)
+                $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
+                $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
+                $('#reviewForm select[name=status]').attr('disabled', 'disabled');
 
-            $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').addClass('d-none')
-            $('.detail-pop .send-submitted').removeClass('d-none')
-        } else {
-            $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
-            $('#reviewForm textarea[name=comment]').attr('disabled', false);
-            $('#reviewForm select[name=status]').attr('disabled', false);
-        }
+                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').addClass('d-none')
+                $('.detail-pop .send-submitted').removeClass('d-none')
+            } else {
+                $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
+                $('#reviewForm textarea[name=comment]').attr('disabled', false);
+                $('#reviewForm select[name=status]').attr('disabled', false);
+            }
 
-    })
-    .fail(function( xhr, status, errorThrown ) {
-      alert($('input[name=unexpected-error-alert]').val())
+        })
+        .fail(function (xhr, status, errorThrown) {
+            alert($('input[name=unexpected-error-alert]').val())
 
-      console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })  
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 
 }
 
-function updateFeedback(current_id){
+function updateFeedback(current_id) {
     $.ajax({
         url: "/update_feedback",
-        data: {'current_id': current_id,
-                csrfmiddlewaretoken: $csrf_token,
-            },
+        data: {
+            'current_id': current_id,
+            csrfmiddlewaretoken: $csrf_token,
+        },
         type: 'POST',
-        dataType : 'json',
+        dataType: 'json',
     })
-    .done(function(response) {
-        alert('修改完成')
-        window.location.reload()
-    })
-    .fail(function( xhr, status, errorThrown ) {
-    alert($('input[name=unexpected-error-alert]').val())
+        .done(function (response) {
+            alert('修改完成')
+            window.location.reload()
+        })
+        .fail(function (xhr, status, errorThrown) {
+            alert($('input[name=unexpected-error-alert]').val())
 
-    console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })  
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 }

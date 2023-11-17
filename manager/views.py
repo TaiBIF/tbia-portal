@@ -109,7 +109,7 @@ def send_feedback(request):
             content = content.replace("，請至後台查看", "")
             # 加上內容
             # Email	類型	內容
-            content += f"<br><br><b>回饋者Email：</b>{fb.email}"
+            content += f"<br><br><b>回饋者email：</b>{fb.email}"
             content += f"<br><b>回饋類型：</b>{Feedback.objects.get(id=fb.id).get_type_display()}"
             content += f"<br><b>回饋內容：</b>{fb.content}"
             send_notification([u.id],content,'意見回饋通知')
@@ -133,6 +133,7 @@ def update_feedback(request):
 
 
 def change_manager_page(request):
+    # TODO 這邊和帳號後台相關的要translation active
     page = request.GET.get('page')
     menu = request.GET.get('menu')
     offset = (int(page)-1) * 10
@@ -365,7 +366,7 @@ def change_manager_page(request):
             response['header'] = """<tr>
                             <td>編號</td>
                             <td>時間</td>
-                            <td>Email</td>
+                            <td>email</td>
                             <td>類型</td>
                             <td>內容</td>
                             <td class="w-15p">已回覆</td>
@@ -399,7 +400,7 @@ def change_manager_page(request):
                             <td>編號</td>
                             <td>單位</td>
                             <td>時間</td>
-                            <td>Email</td>
+                            <td>email</td>
                             <td>類型</td>
                             <td>內容</td>
                             <td>已回覆</td>
@@ -1247,7 +1248,6 @@ def logout_user(request):
 
 def update_partner_info(request):
     if request.method == 'POST':
-        print(request.POST)
         # 先取得原本的dictionary
         partner_id = request.POST.get('partner_id')
         info = Partner.objects.get(id=partner_id).info
@@ -1256,6 +1256,7 @@ def update_partner_info(request):
             i = info[l]
             i['link'] = request.POST.get(f'link_{l}')
             i['description'] = request.POST.get(f'description_{l}')
+            i['description_en'] = request.POST.get(f'description_en_{l}')
             new_info.append(i)
             # new_info.append({
             #     'id': i['id'],
@@ -2217,6 +2218,7 @@ def submit_qa(request):
                 q.order += 1
                 q.save()
             Qa.objects.create(
+                id = Qa.objects.all().aggregate(Max('id'))['id__max']+1,
                 type = request.POST.get('type'),
                 question = request.POST.get('question'),
                 question_en = request.POST.get('question_en'),

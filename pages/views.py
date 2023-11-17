@@ -6,7 +6,7 @@ from manager.models import Partner, About
 import json
 import math
 from data.utils import get_page_list
-from django.utils import timezone
+from django.utils import timezone, translation
 from conf.utils import notif_map
 from datetime import datetime, timedelta
 from django.utils.translation import get_language, gettext
@@ -26,6 +26,7 @@ news_type_c_map = {
 }
 
 def get_current_notif(request):
+    translation.activate(request.GET.get('lang'))
     count = 0
     results = []
     if not request.user.is_anonymous:  
@@ -58,6 +59,7 @@ def get_current_notif(request):
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
+            print(gettext(n.get_type_display()))
             results += f"""
                         <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}
@@ -236,6 +238,7 @@ def qa(request):
 
 
 def get_qa_list(request):
+    # TODO 這邊要translation active
     if request.method == 'POST':
         response = {}
         type = request.POST.get('type')

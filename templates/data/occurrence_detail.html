@@ -17,7 +17,7 @@
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock head %}
 
-{% block title %}物種出現紀錄｜{% endblock %}
+{% block title %}{% trans '物種出現紀錄' %}｜{% endblock %}
 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}" />
@@ -49,12 +49,12 @@
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
-    <p>物種出現紀錄</p>
+    <p>{% trans '物種出現紀錄' %}</p>
   </div>
 </div>
 
 <div class="nbn_title">
-  <h2>物種出現紀錄</h2>
+  <h2>{% trans '物種出現紀錄' %}</h2>
 </div>
 <div class="container_area">
   <div class="main_1240">
@@ -68,22 +68,22 @@
             <img src="/static/image/partner/{{ logo }}" >
             {% endif %}
           </div>
-          <h2>中⽂名：{{ row.common_name_c }}</h2>
-          <h2>學名：{{ row.formatted_name|safe }}</h2>
+          <h2>{% trans '中⽂名' %}：{{ row.common_name_c }}</h2>
+          <h2>{% trans '學名' %}：{{ row.formatted_name|safe }}</h2>
           <div class="flex_inf">
             <div class="short">
-              <p>來源資料庫使⽤中⽂名：{{ row.sourceVernacularName }}</p>
-              <p>來源資料庫使⽤學名：{{ row.sourceScientificName|safe }}</p>
+              <p>{% trans '來源資料庫使⽤中⽂名' %}：{{ row.sourceVernacularName }}</p>
+              <p>{% trans '來源資料庫使⽤學名' %}：{{ row.sourceScientificName|safe }}</p>
               {% if not row.sourceScientificName and not row.sourceVernacularName %}
-              <p><small class="color-silver">[原始紀錄物種] {{ row.originalScientificName }}</small></p>
+              <p><small class="color-silver">[{% trans '原始紀錄物種' %}] {{ row.originalScientificName }}</small></p>
               {% endif %}
             </div>
             {% if row.taxonID %}
-            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.taxonID }}">物種編號：{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}：{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
             {% elif row.parentTaxonID %}
-            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.parentTaxonID }}">物種編號：{{ row.parentTaxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.parentTaxonID }}">{% trans '物種編號' %}：{{ row.parentTaxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
             {% else %}
-            <div class="yellow-btn">臺灣物種名錄未收錄或無法對應</div>
+            <div class="yellow-btn">{% trans '臺灣物種名錄未收錄或無法對應' %}</div>
             {% endif %}
           </div>
           {% if path_str %}
@@ -107,7 +107,7 @@
           <div class="picbox mySlides fade">
             <div class="img-container">
               <img class="imgarea" src="{{ am.img }}">
-              <p class="bottom-right">影像授權：{% if am.license %}{{ am.license }}{% else %}無{% endif %}</p>
+              <p class="bottom-right">{% trans '影像授權' %}：{% if am.license %}{{ am.license }}{% else %}{% trans '無' %}{% endif %}</p>
             </div>
           </div>
           {% endfor %}
@@ -116,7 +116,7 @@
       {% else %}
       <div class="right_area">
         <div class="no-imgbox">    
-          <p>無照片</p>
+          <p>{% trans '無照片' %}</p>
         </div>
       </div>
       {% endif %}
@@ -126,68 +126,68 @@
         <div class="whcont">
           <ul class="inforall">
             <li>
-              <h3>敏感層級：</h3>
+              <h3>{% trans '敏感層級' %}：</h3>
               <p>{{ row.sensitiveCategory }}</p>
             </li>
             <li>
-              <h3>記錄者：</h3>
+              <h3>{% trans '記錄者' %}：</h3>
               <p>{{ row.recordedBy }}</p>
             </li>
             <li>
-              <h3>鑑定層級：</h3>
+              <h3>{% trans '鑑定層級' %}：</h3>
               <p>{{ row.taxonRank }}</p>
             </li>
             <li>
-              <h3>紀錄日期：</h3>
+              <h3>{% trans '紀錄日期' %}：</h3>
               {% if row.date != None and row.eventDate != row.date %}
-              <p>{{ row.date }}<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>{{ row.date }}<br><small class="color-silver">[{% trans '原始紀錄日期' %}] {{ row.eventDate }}</small></p>
               {% elif row.date != None and row.eventDate == row.date %}
               <p>{{ row.date }}</p>
               {% elif row.date == None and row.eventDate != None %}
-              <p>---<br><small class="color-silver">[原始紀錄日期] {{ row.eventDate }}</small></p>
+              <p>---<br><small class="color-silver">[{% trans '原始紀錄日期' %}] {{ row.eventDate }}</small></p>
               {% else %}
               <p></p>
               {% endif %}
             </li>
             <li>
-              <h3>數量：</h3>
+              <h3>{% trans '數量' %}：</h3>
               {% if row.quantity != None %}
               <p>{{ row.quantity }}</p>
               {% elif row.quantity == None and row.organismQuantity != None %}
-              <p>---<br><small class="color-silver">[原始紀錄數量]{{ row.organismQuantity }}</small></p>
+              <p>---<br><small class="color-silver">[{% trans '原始紀錄數量' %}]{{ row.organismQuantity }}</small></p>
               {% else %}
               <p></p>
               {% endif %}
             </li>
             <li>
-              <h3>數量單位：</h3>
+              <h3>{% trans '數量單位' %}：</h3>
               <p>{{ row.organismQuantityType }}</p>
             </li>
             <li>
-              <h3>出現地：</h3>
+              <h3>{% trans '出現地' %}：</h3>
               <p>{{ row.locality }}</p>
             </li>            
             <li>
-              <h3>授權狀況：</h3>
+              <h3>{% trans '授權狀況' %}：</h3>
               <p>{{ row.license }}</p>
             </li>
             <li>
-              <h3>資料集名稱：</h3>
+              <h3>{% trans '資料集名稱' %}：</h3>
               <p>{{ row.datasetName }}</p>
             </li>
             <li>
-              <h3>資料集聯絡⼈：</h3>
+              <h3>{% trans '資料集聯絡⼈' %}：</h3>
               <p>{{ row.resourceContacts }}</p>
             </li>          
             <li>
-              <h3>資料最後更新時間：</h3>
+              <h3>{% trans '資料最後更新時間' %}：</h3>
               <p>{{ row.modified }}</p>
             </li>
           </ul>
           {% if row.references != '' and  row.references != None %}
-          <a href="{{ row.references }}" target="_blank" class="from_data pointer">來源資料庫：{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+          <a href="{{ row.references }}" target="_blank" class="from_data pointer">{% trans '來源資料庫' %}：{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
           {% else %}
-          <a class="from_data">來源資料庫：{{ row.rightsHolder }}</a>
+          <a class="from_data">{% trans '來源資料庫' %}：{{ row.rightsHolder }}</a>
           {% endif %}
         </div>
       </div>
@@ -201,39 +201,39 @@
         </div>
         <ul class="inforall">
           <li>
-            <h3>經度：</h3>
+            <h3>{% trans '經度' %}：</h3>
             {% if row.lon != None %}
             <p>{{ row.lon }}</p>
             {% elif row.lon == None and row.verbatimLongitude != None %}
-            <p>---<br><small class="color-silver">[原始紀錄經度]{{ row.verbatimLongitude }}</small></p>
+            <p>---<br><small class="color-silver">[{% trans '原始紀錄經度' %}]{{ row.verbatimLongitude }}</small></p>
             {% else %}
             <p></p>
             {% endif %}
           </li>
           <li>
-            <h3>座標誤差：</h3>
+            <h3>{% trans '座標誤差' %}：</h3>
             <p>{{ row.coordinateUncertaintyInMeters }}</p>
           </li>
           <li>
-            <h3>緯度：</h3>
+            <h3>{% trans '緯度' %}：</h3>
             {% if row.lat != None %}
             <p>{{ row.lat }}</p>
             {% elif row.lat == None and row.verbatimLatitude != None %}
-            <p>---<br><small class="color-silver">[原始紀錄緯度]{{ row.verbatimLatitude }}</small></p>
+            <p>---<br><small class="color-silver">[{% trans '原始紀錄緯度' %}]{{ row.verbatimLatitude }}</small></p>
             {% else %}
             <p></p>
             {% endif %}
           </li>
           <li>
-            <h3>座標是否有模糊化：</h3>
+            <h3>{% trans '座標是否有模糊化' %}：</h3>
             <p>{{ row.dataGeneralizations }}</p>
           </li>
           <li>
-            <h3>座標系統：</h3>
+            <h3>{% trans '座標系統' %}：</h3>
             <p>{{ row.verbatimCoordinateSystem }}</p>
           </li>
           <li>
-            <h3>座標模糊化程度：</h3>
+            <h3>{% trans '座標模糊化程度' %}：</h3>
             <p>{{ row.coordinatePrecision }}</p>
           </li>
         </ul>

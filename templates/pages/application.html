@@ -12,47 +12,47 @@
 
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>申請單次使用去模糊化敏感資料</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '申請單次使用去模糊化敏感資料' %}</p>
 	</div>
 </div>
  
  <div class="minh_content">
 	<div class="nbn_title">
-		<h2>申請單次使用去模糊化敏感資料</h2>
+		<h2>{% trans '申請單次使用去模糊化敏感資料' %}</h2>
 	</div>
 	<div class="main_1240"> 
 		<div class="w_border10_box application_form marb_30">
 			<div class="form_top">
 				<div class="apply_date">
-					申請時間：{{ today }}
+					{% trans '申請時間' %}：{{ today }}
 				</div>
 				<div class="path_inf">
-					<p>申請資料搜尋條件</p>
+					<p>{% trans '申請資料搜尋條件' %}</p>
 					<span> > </span>
 					<div class="riginf">
 						{{ query|safe }}
 					</div>
 				</div>
 			</div>
-			<p class="notice"><span>*</span>為必填欄位</p>
+			<p class="notice"><span>*</span>{% trans '為必填欄位' %}</p>
 			<div class="form_box">
 				<form id="appilcationForm">
 				<div class="inpu_3">
 					<div class="input_item">
 						<p>
-							<span class="color_red">*</span>申請人姓名
+							<span class="color_red">*</span>{% trans '申請人姓名' %}
 						</p>
 						<input name="applicant" type="text">
 					</div>
 					<div class="input_item">
 						<p>
-							<span class="color_red">*</span>聯絡電話
+							<span class="color_red">*</span>{% trans '聯絡電話' %}
 						</p>
 						<input name="phone" type="text">
 					</div>
 					<div class="input_item">
 						<p>
-							<span class="color_red">*</span>聯絡地址
+							<span class="color_red">*</span>{% trans '聯絡地址' %}
 						</p>
 						<input name="address" type="text">
 					</div>
@@ -60,17 +60,17 @@
 				<div class="inpu_2">
 					<div class="input_item">
 						<p>
-							<span class="color_red">*</span>申請人所屬單位
+							<span class="color_red">*</span>{% trans '申請人所屬單位' %}
 						</p>
 						<input name="affiliation" type="text">
 					</div>
 					<div class="input_item">
 						<p>
-							<span class="color_red">*</span>計畫類型
+							<span class="color_red">*</span>{% trans '計畫類型' %}
 						</p>
 						<select name="type" id="apply_type">
-							<option value="0">個人研究計畫</option>
-							<option value="1">委辦工作計畫</option>
+							<option value="0">{% trans '個人研究計畫' %}</option>
+							<option value="1">{% trans '委辦工作計畫' %}</option>
 						</select>
 					</div>
 
@@ -78,13 +78,13 @@
 				<div class="inpu_2">
 					<div class="input_item">
 						<p class="project_type">
-							<span class="color_red">*</span>個人研究計畫名稱
+							<span class="color_red">*</span>{% trans '個人研究計畫名稱' %}
 						</p>
 						<input name="project_name" type="text">
 					</div>
 					<div class="input_item p_affli d-none">
 						<p>
-							委託計畫單位
+							{% trans '委託計畫單位' %}
 						</p>
 						<input name="project_affiliation" type="text">
 					</div>
@@ -92,17 +92,17 @@
 				</div>
 				<div class="text_area">
 					<p>
-						<span class="color_red">*</span>計畫摘要
+						<span class="color_red">*</span>{% trans '計畫摘要' %}
 					</p>
-					<textarea name="abstract" placeholder="請描述申請用途"></textarea>
+					<textarea name="abstract" placeholder="{% trans '請描述申請用途' %}"></textarea>
 				</div>
 				</form>
 				<div class="apply_peo">
-					<p class="title">申請資料使用者</p>
+					<p class="title">{% trans '申請資料使用者' %}</p>
 					<div class="item_set1">
-						<input type="text" name="user" placeholder="姓名">
-						<input type="text" name="user_affiliation" placeholder="單位">
-						<input type="text" name="user_job_title" placeholder="職稱">
+						<input type="text" name="user" placeholder="{% trans '姓名' %}">
+						<input type="text" name="user_affiliation" placeholder="{% trans '單位' %}">
+						<input type="text" name="user_job_title" placeholder="{% trans '職稱' %}">
 						<button class="add">
 							<div class="line1"></div>
 							<div class="line2"></div>
@@ -114,7 +114,7 @@
 
 		<div class="bt_center two">
 			<!--<button>回上一頁</button>-->
-			<button class="sendRequest" onclick="sendRequest()">確認送出</button>
+			<button class="sendRequest" onclick="sendRequest()">{% trans '確認送出' %}</button>
 		</div>
 	</div>
 </div>

@@ -53,7 +53,6 @@ def get_notif(user_id):
           is_read = '<div class="dottt"></div>'
       else:
           is_read = ''
-      print(n.content)
       results += f"""
                   <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                   {is_read}

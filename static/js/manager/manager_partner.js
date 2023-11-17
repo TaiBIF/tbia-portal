@@ -20,119 +20,119 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    if ($('input[name=is_partner]').val()=='True'){
+    if ($('input[name=is_partner]').val() == 'True') {
 
         $.ajax({
             url: "/get_partner_stat?partner_id=" + $('input[name=partner_id]').val(),
             type: 'GET',
         })
-        .done(function(response) {
-            Highcharts.setOptions({
-                lang: {
-                    thousandsSep: ","
-                },
-                credits: {
-                    enabled: false
-                }
-            })
-            Highcharts.chart('container', {
-                chart: {
-                    plotBackgroundColor: null,
-                    plotBorderWidth: null,
-                    plotShadow: false,
-                    type: 'pie'
-                },
-                navigation: {
-                    buttonOptions: {
-                        enabled: false
-                        }
-                },                
-                title: {
-                    text: ''
-                },
-                tooltip: {
-                    pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
-                },
-                accessibility: {
-                    point: {
-                        valueSuffix: '%'
-                    }
-                },
-                plotOptions: {
-                    pie: {
-                        size:'100%',
-                        /*
-                        colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
-                        '#555','#3B86C0','#304237','#C65454','#ccc' ],*/
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        dataLabels: {
-                            enabled: true,
-                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                        }
-                    }
-                },
-                series: [{
-                    name: '',
-                    colorByPoint: true,
-                    data: response.data_total
-                }]
-            });
-    
-            Highcharts.chart('container2', {
-                chart: {
-                    plotBackgroundColor: null,
-                    plotBorderWidth: null,
-                    plotShadow: false,
-                    type: 'pie'
-                },
-                navigation: {
-                    buttonOptions: {
+            .done(function (response) {
+                Highcharts.setOptions({
+                    lang: {
+                        thousandsSep: ","
+                    },
+                    credits: {
                         enabled: false
                     }
-                },                
-                title: {
-                    text: ''
-                },
-                tooltip: {
-                    pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
-                },
-                accessibility: {
-                    point: {
-                        valueSuffix: '%'
-                    }
-                },
-                plotOptions: {
-                    pie: {
-                        size:'100%',
-                        colors: ['#ddd','#C65454'],
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        dataLabels: {
-                            enabled: true,
-                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                })
+                Highcharts.chart('container', {
+                    chart: {
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        type: 'pie'
+                    },
+                    navigation: {
+                        buttonOptions: {
+                            enabled: false
                         }
-                    }
-                },
-                series: [{
-                    name: 'Brands',
-                    colorByPoint: true,
-                    data: [{
-                        name: '有對應',
-                        y: response.has_taxon,
-                        sliced: true,
-                        selected: true
-                    }, {
-                        name: '無對應',
-                        y: response.no_taxon
+                    },
+                    title: {
+                        text: ''
+                    },
+                    tooltip: {
+                        pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                    },
+                    accessibility: {
+                        point: {
+                            valueSuffix: '%'
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            size: '100%',
+                            /*
+                            colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
+                            '#555','#3B86C0','#304237','#C65454','#ccc' ],*/
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                            }
+                        }
+                    },
+                    series: [{
+                        name: '',
+                        colorByPoint: true,
+                        data: response.data_total
                     }]
-                }]
-            });
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+                });
+
+                Highcharts.chart('container2', {
+                    chart: {
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        type: 'pie'
+                    },
+                    navigation: {
+                        buttonOptions: {
+                            enabled: false
+                        }
+                    },
+                    title: {
+                        text: ''
+                    },
+                    tooltip: {
+                        pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                    },
+                    accessibility: {
+                        point: {
+                            valueSuffix: '%'
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            size: '100%',
+                            colors: ['#ddd', '#C65454'],
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                            }
+                        }
+                    },
+                    series: [{
+                        name: 'Brands',
+                        colorByPoint: true,
+                        data: [{
+                            name: '有對應',
+                            y: response.has_taxon,
+                            sliced: true,
+                            selected: true
+                        }, {
+                            name: '無對應',
+                            y: response.no_taxon
+                        }]
+                    }]
+                });
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert($('input[name=unexpected-error-alert]').val())
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     }
 
 })
@@ -156,9 +156,9 @@ function getNoTaxonCSV(){
 }
 */
 
-function updateInfo(){
+function updateInfo() {
     // remove all notice first
-    $('.noticbox').css('display','none')
+    $('.noticbox').css('display', 'none')
 
     let checked = true;
 
@@ -172,23 +172,23 @@ function updateInfo(){
         $('input[name=description]').next('.noticbox').css('display','')
         checked = false
     }  */
-    
-    if (checked){
+
+    if (checked) {
         $.ajax({
             url: "/update_partner_info",
             data: $('#updateForm').serialize(),
             type: 'POST',
-            dataType : 'json',
+            dataType: 'json',
         })
-        .done(function(response) {
-            alert(response.message)
-            if (response.message=='修改完成！'){
-                window.location = '/'
-            }
-        })
-        .fail(function( xhr, status, errorThrown ) {
-            alert($('input[name=unexpected-error-alert]').val())
-            console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })  
+            .done(function (response) {
+                alert(response.message)
+                if (response.message == '修改完成！') {
+                    window.location = '/'
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert($('input[name=unexpected-error-alert]').val())
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     }
 }

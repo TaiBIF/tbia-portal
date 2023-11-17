@@ -12,25 +12,25 @@
 <input type="hidden" name="resend_email" value="{{ email }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p>會員註冊</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '會員註冊' %}</p>
     </div>
 </div>
  
 <div class="minh_content">
     <div class="nbn_title">
-        <h2>會員註冊</h2>
+        <h2>{% trans '會員註冊' %}</h2>
     </div>
     <div class="main_1240"> 
         <div class="w_border10_box">
             <div class="maxw_760"> 
                 <p class="marb_20">
-                    我們將寄出一封驗證信至您填寫的信箱，請完成您的電子信箱認證就可啟用會員帳號。謝謝！
+                    {% trans '我們將寄出一封驗證信至您填寫的信箱，請完成您的電子信箱認證就可啟用會員帳號。謝謝！' %}
                 </p>
                 <div class="gray_box">
                     {{ email }}
                 </div>
                 <div class="bt_center">
-                    <button class="resendEmail">重新寄送</button>
+                    <button class="resendEmail">{% trans '重新寄送' %}</button>
                 </div>
             </div>
         </div>

@@ -10,13 +10,13 @@
 
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>保密協議</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '保密協議' %}</p>
 	</div>
 </div>
  		
 <div class="minh_content">
 	<div class="nbn_title">
-		<h2>保密協議
+		<h2>{% trans '保密協議' %}
 		</h2>
 	</div>
 	<div class="main_1240"> 
@@ -94,10 +94,10 @@
 		{% if not request.GET.from == 'manager' %}
 		<div class="agreebox">
 			<input name="policy" type="checkbox" class="chebox">
-			<p>我已閱讀並同意以上協議</p>
+			<p>{% trans '我已閱讀並同意以上協議' %}</p>
 		</div>
 		<div class="bt_center">
-			<button>確認送出</button>
+			<button>{% trans '確認送出' %}</button>
 		</div>
 		{% endif %}
 	</div>

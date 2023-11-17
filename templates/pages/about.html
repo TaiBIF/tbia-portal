@@ -25,12 +25,12 @@
 		</div>
 		<div class="main_1240">
 			<div class="abtitlebox" id="about">
-				<h2>關於TBIA</h2>
-				<p>ABOUT</p>
+				<h2>{% trans '關於TBIA' %}</h2>
+				{% comment %} <p>ABOUT</p> {% endcomment %}
 			</div>
 			<div class="w_bg">
 				<div class="leftbox">
-					<h3>TBIA 臺灣生物多樣性資訊聯盟</h3>
+					<h3>{% if LANGUAGE_CODE != 'en-us' %}TBIA {% endif %}{% trans '臺灣生物多樣性資訊聯盟' %}</h3>
 					<p class="marb_40 content-area">
 						{{ content }}
 					</p>
@@ -66,7 +66,7 @@
 	</div>
 	<div class="about_part" id="partner">
 		<div class="title">
-			<h3 id="partnertag" name="partnertag">夥伴單位</h3>
+			<h3 id="partnertag" name="partnertag">{% trans '夥伴單位' %}</h3>
 		</div>
 		<div class="main_1240">
 			<ul class="part_list">

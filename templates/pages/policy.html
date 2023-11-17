@@ -1,16 +1,16 @@
 {% extends 'base.html' %} 
 {% load static %}
 {% load i18n %}
-{% block title %}隱私權政策｜{% endblock %}
+{% block title %}{% trans '隱私權政策' %}｜{% endblock %}
 {% block body %}
 <div class="path"> 
 <div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>隱私權政策</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '隱私權政策' %}</p>
 	</div>
 </div>
 <div class="minh_content">
 	<div class="nbn_title">
-		<h2>隱私權政策</h2>
+		<h2>{% trans '隱私權政策' %}</h2>
 	</div>
 	<div class="main_1240"> 
 		<div class="w_border10_box agree_arae marb_30">

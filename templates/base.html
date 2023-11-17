@@ -4,7 +4,7 @@
 {% load tags %}
 
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="{{ LANGUAGE_CODE }}">
   <head>
     <meta name="google-site-verification" content="E9mmmKHP7UB6GO2NqO0ckABcGdQZ7HLVEnETYIp-oDc" />
     <meta charset="UTF-8" />
@@ -14,7 +14,7 @@
     <meta http-equiv="Expires" content="0" />  
     <title>{% block title %}{% endblock title %}TBIA</title>
     <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}" />
-    <script src="https://code.jquery.com/jquery-3.6.1.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
     <link href="/static/vanillaselectbox/vanillaSelectBox.css" rel="stylesheet" />
@@ -34,6 +34,7 @@
   <body>
   <input type="hidden" name="unexpected-error-alert" value="{% trans '發生未知錯誤！請聯絡管理員' %}">
   <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
+  <input type="hidden" name="lang" value="{{ LANGUAGE_CODE }}">
 
   <!--loading-->
   <div class="loading_area d-none">
@@ -108,7 +109,7 @@
           {% endif %}
           </form>
           <button class="send">{% trans '確認送出' %}</button>
-          <input type="hidden" name="feedback-error-alert" value="{% trans '請完整填寫表格並檢查email格式是否正確' %}">
+          <input type="hidden" name="feedback-error-alert" value="{% trans '請完整填寫表格並檢查Email格式是否正確' %}">
           <input type="hidden" name="feedback-success-alert" value="{% trans '謝謝您的回饋，我們將會儘速回覆' %}">
         </div>
       </div>
@@ -264,7 +265,7 @@
               <div class="mbmu2">
                 <form id="language-selected" action="{% url 'set_language' %}" method="post">{% csrf_token %}
                   <input name="next" type="hidden" value="{{ redirect_to }}" />
-                  <input id="language" name="language" type="hidden"/>
+                  <input name="language" type="hidden"/>
                 </form>
                 <a href="#" class="s_title language-item" value="zh-hant">
                   <p>繁體中文</p>
@@ -370,10 +371,6 @@
         <div class="languagebox">
           <div class="slimenu">
             <ul>
-              <form id="language-selected" action="{% url 'set_language' %}" method="post">{% csrf_token %}
-                <input name="next" type="hidden" value="{{ redirect_to }}" />
-                <input id="language" name="language" type="hidden"/>
-              </form>
               <li class="language-item" value="zh-hant">繁體中文</li>
               <li class="language-item" value="en-us">English</li>
             </ul>
@@ -434,6 +431,7 @@
             <a href="{% url 'search_occurrence' %}" class="big_link">{% trans '進階搜尋' %}</a>
             <a href="{% url 'search_occurrence' %}" class="sma_link">{% trans '物種出現紀錄查詢' %}</a>
             <a href="{% url 'search_collection' %}" class="sma_link">{% trans '自然史典藏查詢' %}</a>
+            <a href="{% url 'api_doc' %}" class="sma_link">API</a>
           </li>
           <li>
             <a href="{% url 'news' %}" class="big_link">{% trans '最新消息' %}</a>
@@ -509,7 +507,7 @@
               <form id="loginForm">
                 {% csrf_token %}
                 <div class="input_item">
-                  <input type="text" name="email" placeholder="{% trans '請輸入您的帳號(Email)' %}">
+                  <input type="text" name="email" placeholder="{% trans '請輸入您的帳號(Email)' %}" autocomplete="username">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
                     <div class="in1">{% trans '錯誤' %}</div>
@@ -517,7 +515,7 @@
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}">
+                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
                     <div class="in1">{% trans '錯誤' %}</div>
@@ -572,7 +570,7 @@
           <div class="right_cont">
             <div class="alcont_center">
               <div class="titlegreen">
-                會員註冊
+                {% trans '會員註冊' %}
                 <!-- <span>Register</span> -->
               </div>
               <form id="registerForm">
@@ -586,7 +584,7 @@
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="text" name="email" placeholder="{% trans '請輸入您的Email作為帳號' %}">
+                  <input type="text" name="email" placeholder="{% trans '請輸入您的Email作為帳號' %}" autocomplete="username">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
                     <div class="in1">{% trans '錯誤' %}</div>
@@ -594,7 +592,7 @@
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}">
+                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
                     <div class="in1">{% trans '錯誤' %}</div>
@@ -602,7 +600,7 @@
                   </div>
                 </div>
                 <div class="input_item">
-                  <input type="password" name="repassword" placeholder="{% trans '請再次輸入密碼' %}">
+                  <input type="password" name="repassword" placeholder="{% trans '請再次輸入密碼' %}" autocomplete="new-password">
                   <!--送出時錯誤出現-->
                   <div class="noticbox d-none">
                     <div class="in1">{% trans '錯誤' %}</div>
@@ -611,13 +609,15 @@
                 </div>
               </form>
               <button class="loginbtn register-onclick">{% trans '註冊' %}</button>
-              <div class="linkbtn_1">
                 {% if LANGUAGE_CODE == 'en-us' %}
-                *Registering implies your agreement to our<a class="checka" target="_blank" href="{% url 'terms' %}">terms of use</a>.
+                <div class="linkbtn_en">
+                  *Registering implies you agree to our <a class="checka" target="_blank" href="{% url 'terms' %}">terms of use</a>.
+                </div>
                 {% else %}
-                *註冊即代表您同意我們的<a class="checka" target="_blank" href="{% url 'terms' %}">使⽤條款</a>
+                <div class="linkbtn_1">
+                  *註冊即代表您同意我們的<a class="checka" target="_blank" href="{% url 'terms' %}">使⽤條款</a>
+                </div>
                 {% endif %}
-              </div>
             </div>
           </div>
         </div> 
@@ -626,7 +626,7 @@
           <div class="right_cont">
             <div class="alcont_center">
               <div class="titlegreen">
-                重設密碼
+                {% trans '重設密碼' %}
                 <!-- <span>Password</span> -->
               </div>
               <p class="center">{% trans '請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。' %}</p>

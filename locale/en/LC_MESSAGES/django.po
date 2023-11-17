@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 02:05+0000\n"
+"POT-Creation-Date: 2023-11-17 07:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,259 +22,319 @@ msgstr ""
 msgid "發生未知錯誤！請聯絡管理員"
 msgstr "An unexpected error occurred! Please contact us."
 
-#: templates/base.html:66 templates/base.html:256
+#: templates/base.html:67 templates/base.html:257 templates/pages/qa.html:57
 msgid "意見回饋"
 msgstr "Feedback"
 
-#: templates/base.html:69
+#: templates/base.html:70
 msgid "請填寫下列表格，我們將會儘快回覆"
 msgstr ""
 "Please fill out the form below, and we will get back to you as soon as "
 "possible."
 
-#: templates/base.html:74
+#: templates/base.html:75
 msgid "請選擇回饋對象"
 msgstr "Select the feedback recipient"
 
-#: templates/base.html:75 templates/base.html:84
+#: templates/base.html:76 templates/base.html:85
 msgid "-- 重設 --"
 msgstr "-- Reset --"
 
-#: templates/base.html:83
+#: templates/base.html:84
 msgid "請選擇問題類型"
 msgstr "Select the issue type"
 
-#: templates/base.html:85
+#: templates/base.html:86
 msgid "網頁操作"
 msgstr "Web Interactions"
 
-#: templates/base.html:86
+#: templates/base.html:87
 msgid "網頁內容"
 msgstr "Web Content"
 
-#: templates/base.html:87
+#: templates/base.html:88
 msgid "聯盟相關"
 msgstr "Alliance-related"
 
-#: templates/base.html:91
+#: templates/base.html:92
 msgid "問題描述"
 msgstr "Description of the issue"
 
-#: templates/base.html:95
+#: templates/base.html:96
 msgid "您的電⼦郵件"
-msgstr "Your Email"
+msgstr "Your email"
 
-#: templates/base.html:110 templates/base.html:637
+#: templates/base.html:111 templates/base.html:637
+#: templates/data/search_collection.html:368
+#: templates/data/search_collection.html:405
+#: templates/data/search_occurrence.html:354
+#: templates/data/search_occurrence.html:391
+#: templates/manager/reset_password.html:47 templates/pages/agreement.html:100
+#: templates/pages/application.html:117
 msgid "確認送出"
 msgstr "Submit"
 
-#: templates/base.html:111
-msgid "請完整填寫表格並檢查email格式是否正確"
+#: templates/base.html:112
+msgid "請完整填寫表格並檢查Email格式是否正確"
 msgstr ""
 "Please fill out the form completely and check if the email address is "
 "correct. "
 
-#: templates/base.html:112
+#: templates/base.html:113
 msgid "謝謝您的回饋，我們將會儘速回覆"
 msgstr ""
 "Thank you for your feedback. We will get back to you as soon as possible."
 
-#: templates/base.html:143 templates/base.html:407
+#: templates/base.html:144 templates/base.html:404
+#: templates/manager/manager.html:17
 msgid "帳號後台"
-msgstr "Your account"
+msgstr "Account"
 
-#: templates/base.html:148 templates/base.html:409
+#: templates/base.html:149 templates/base.html:406
 msgid "單位後台"
 msgstr "Partner account"
 
-#: templates/base.html:154 templates/base.html:412
+#: templates/base.html:155 templates/base.html:409
 msgid "系統管理後台"
 msgstr "System account"
 
-#: templates/base.html:159 templates/base.html:414
+#: templates/base.html:160 templates/base.html:411
 msgid "登出"
 msgstr "Logout"
 
-#: templates/base.html:167 templates/base.html:507
+#: templates/base.html:168 templates/base.html:505
 msgid "會員登入"
 msgstr "Login"
 
-#: templates/base.html:174 templates/base.html:286 templates/base.html:453
+#: templates/base.html:175 templates/base.html:287 templates/base.html:451
+#: templates/pages/about.html:5 templates/pages/about.html:13
+#: templates/pages/about.html:22 templates/pages/about.html:28
+#: templates/pages/partner.html:18
 msgid "關於TBIA"
 msgstr "About TBIA"
 
-#: templates/base.html:179 templates/base.html:290 templates/base.html:454
+#: templates/base.html:180 templates/base.html:291 templates/base.html:452
 msgid "聯盟簡介"
 msgstr "What is TBIA"
 
-#: templates/base.html:183 templates/base.html:293 templates/base.html:455
+#: templates/base.html:184 templates/base.html:294 templates/base.html:453
+#: templates/pages/about.html:70 templates/pages/index.html:371
+#: templates/pages/partner.html:13 templates/pages/partner.html:18
+#: templates/pages/partner.html:23
 msgid "夥伴單位"
 msgstr "Partnerships"
 
-#: templates/base.html:190 templates/base.html:298 templates/base.html:435
+#: templates/base.html:191 templates/base.html:299 templates/base.html:432
+#: templates/data/search_collection.html:43
+#: templates/data/search_occurrence.html:45
 msgid "進階搜尋"
 msgstr "Advanced Search"
 
-#: templates/base.html:195 templates/base.html:302 templates/base.html:436
+#: templates/base.html:196 templates/base.html:303 templates/base.html:433
+#: templates/data/search_full.html:123 templates/data/search_full.html:125
+#: templates/data/search_occurrence.html:38
+#: templates/data/search_occurrence.html:47
+#: templates/data/search_occurrence.html:52
 msgid "物種出現紀錄查詢"
 msgstr ""
 
-#: templates/base.html:199 templates/base.html:437
+#: templates/base.html:200 templates/base.html:434
+#: templates/data/search_collection.html:37
+#: templates/data/search_collection.html:45
+#: templates/data/search_collection.html:50
 msgid "自然史典藏查詢"
 msgstr ""
 
-#: templates/base.html:206 templates/base.html:309 templates/base.html:440
+#: templates/base.html:207 templates/base.html:310 templates/base.html:438
+#: templates/pages/index.html:217 templates/pages/news.html:21
+#: templates/pages/news.html:26 templates/pages/news_detail.html:19
+#: templates/pages/news_detail.html:24
 msgid "最新消息"
 msgstr "News"
 
-#: templates/base.html:211 templates/base.html:313 templates/base.html:441
+#: templates/base.html:212 templates/base.html:314 templates/base.html:439
+#: templates/data/search_full.html:213 templates/data/search_full.html:475
+#: templates/pages/index.html:221 templates/pages/news.html:41
 msgid "新聞公告"
 msgstr "News Announcement"
 
-#: templates/base.html:215 templates/base.html:314 templates/base.html:442
+#: templates/base.html:216 templates/base.html:315 templates/base.html:440
+#: templates/data/search_full.html:219 templates/data/search_full.html:508
+#: templates/pages/index.html:222 templates/pages/news.html:45
 msgid "活動訊息"
 msgstr "Event Information"
 
-#: templates/base.html:219 templates/base.html:315 templates/base.html:443
+#: templates/base.html:220 templates/base.html:316 templates/base.html:441
+#: templates/data/search_full.html:225 templates/data/search_full.html:541
+#: templates/pages/index.html:223 templates/pages/news.html:49
 msgid "計畫徵求"
 msgstr "Call for Project"
 
-#: templates/base.html:226 templates/base.html:320 templates/base.html:446
+#: templates/base.html:227 templates/base.html:321 templates/base.html:444
+#: templates/data/search_full.html:231 templates/data/search_full.html:574
+#: templates/pages/index.html:282 templates/pages/resources_link.html:19
+#: templates/pages/resources_link.html:24
 msgid "開放資料相關資源"
 msgstr "Resources"
 
-#: templates/base.html:231 templates/base.html:324 templates/base.html:447
+#: templates/base.html:232 templates/base.html:325 templates/base.html:445
+#: templates/pages/index.html:290
 msgid "TBIA 策略文件"
 msgstr ""
 
-#: templates/base.html:235 templates/base.html:325 templates/base.html:448
+#: templates/base.html:236 templates/base.html:326 templates/base.html:446
+#: templates/pages/index.html:293
 msgid "開放資料指引"
 msgstr ""
 
-#: templates/base.html:239 templates/base.html:326 templates/base.html:449
+#: templates/base.html:240 templates/base.html:327 templates/base.html:447
+#: templates/pages/index.html:296
 msgid "參考文件/工具"
 msgstr ""
 
-#: templates/base.html:243 templates/base.html:327 templates/base.html:450
+#: templates/base.html:244 templates/base.html:328 templates/base.html:448
+#: templates/pages/index.html:299
 msgid "教學文件"
 msgstr ""
 
-#: templates/base.html:250 templates/base.html:332 templates/base.html:456
+#: templates/base.html:251 templates/base.html:333 templates/base.html:454
+#: templates/pages/qa.html:39 templates/pages/qa.html:44
 msgid "常見Q&A"
 msgstr "Q&A"
 
-#: templates/base.html:303
+#: templates/base.html:304
 msgid "自然史典藏<br>查詢"
 msgstr ""
 
-#: templates/base.html:355 templates/pages/index.html:126
-#: templates/pages/search_full.html:108
+#: templates/base.html:356 templates/data/search_full.html:104
+#: templates/pages/index.html:120
 msgid "請輸入關鍵字"
 msgstr "Search"
 
-#: templates/base.html:387
+#: templates/base.html:384
 msgid "最近10筆通知"
 msgstr "Latest 10 notifications"
 
-#: templates/base.html:389
+#: templates/base.html:386 templates/manager/manager.html:393
 msgid "全部已讀"
 msgstr "All marked as read"
 
-#: templates/base.html:390
+#: templates/base.html:387
 msgid "查看全部"
 msgstr "See all"
 
-#: templates/base.html:404 templates/base.html:548
+#: templates/base.html:401 templates/base.html:546
 msgid "登入"
 msgstr "Login"
 
-#: templates/base.html:428 templates/base.html:477
+#: templates/base.html:425 templates/base.html:475
+#: templates/pages/about.html:34
 msgid "臺灣生物多樣性資訊聯盟"
 msgstr "Taiwan Biodiversity Information Alliance"
 
-#: templates/base.html:461 templates/base.html:464 templates/base.html:467
+#: templates/base.html:459 templates/base.html:462 templates/base.html:465
 msgid "贊助單位"
 msgstr "Funders"
 
-#: templates/base.html:474
+#: templates/base.html:472 templates/pages/terms.html:4
+#: templates/pages/terms.html:13 templates/pages/terms.html:18
 msgid "使用條款"
 msgstr "Terms of Use"
 
-#: templates/base.html:474
+#: templates/base.html:472 templates/pages/policy.html:4
+#: templates/pages/policy.html:8 templates/pages/policy.html:13
 msgid "隱私權政策"
 msgstr "Privacy Policy"
 
-#: templates/base.html:513
-#, fuzzy
-#| msgid "請輸入您的帳號(email)"
+#: templates/base.html:511
 msgid "請輸入您的帳號(Email)"
-msgstr "Account (your Email)"
+msgstr "Account (Your email)"
 
-#: templates/base.html:516 templates/base.html:524 templates/base.html:539
-#: templates/base.html:585 templates/base.html:593 templates/base.html:601
-#: templates/base.html:609
+#: templates/base.html:514 templates/base.html:522 templates/base.html:537
+#: templates/base.html:583 templates/base.html:591 templates/base.html:599
+#: templates/base.html:607 templates/manager/manager.html:84
+#: templates/manager/manager.html:92 templates/manager/manager.html:98
+#: templates/manager/manager.html:104 templates/manager/reset_password.html:33
+#: templates/manager/reset_password.html:40
 msgid "錯誤"
 msgstr "Error"
 
-#: templates/base.html:517 templates/base.html:594
+#: templates/base.html:515 templates/base.html:592
 msgid "請輸入正確信箱"
 msgstr ""
 
-#: templates/base.html:521 templates/base.html:598
+#: templates/base.html:519 templates/base.html:596
 msgid "請輸入您的密碼"
 msgstr "Password"
 
-#: templates/base.html:525 templates/base.html:602
+#: templates/base.html:523 templates/base.html:600
+#: templates/manager/manager.html:93 templates/manager/manager.html:99
+#: templates/manager/reset_password.html:27
+#: templates/manager/reset_password.html:34
 msgid "請輸入6~10位英文或數字"
 msgstr ""
 
-#: templates/base.html:540
+#: templates/base.html:538
 msgid "登入前請完成驗證"
 msgstr ""
 
-#: templates/base.html:546
+#: templates/base.html:544
 msgid "記住我的帳號"
 msgstr "Remember my account"
 
-#: templates/base.html:560
+#: templates/base.html:558
 msgid "使用Google登入"
 msgstr "continue with Google"
 
-#: templates/base.html:564 templates/base.html:639
+#: templates/base.html:562 templates/base.html:639
 msgid "我要註冊"
 msgstr "Register"
 
-#: templates/base.html:565
+#: templates/base.html:563
 msgid "忘記密碼?"
 msgstr "Forgot your password?"
 
-#: templates/base.html:582
+#: templates/base.html:574 templates/manager/register_success.html:14
+#: templates/manager/register_success.html:20
+#: templates/manager/register_verification.html:15
+#: templates/manager/register_verification.html:21
+msgid "會員註冊"
+msgstr "Register"
+
+#: templates/base.html:580 templates/manager/manager.html:81
+#: templates/pages/application.html:103
 msgid "姓名"
 msgstr "Username"
 
-#: templates/base.html:586
+#: templates/base.html:584
 msgid "請輸入姓名"
 msgstr ""
 
-#: templates/base.html:590
+#: templates/base.html:588
 msgid "請輸入您的Email作為帳號"
-msgstr "Enter your Email as your account"
+msgstr "Enter your email as your account"
 
-#: templates/base.html:606
+#: templates/base.html:604 templates/manager/reset_password.html:38
 msgid "請再次輸入密碼"
 msgstr "Re-enter your password"
 
-#: templates/base.html:610
+#: templates/base.html:608 templates/manager/manager.html:105
+#: templates/manager/reset_password.html:41
 msgid "兩次密碼輸入不同"
 msgstr ""
 
-#: templates/base.html:614
+#: templates/base.html:612
 msgid "註冊"
 msgstr "Register"
 
+#: templates/base.html:630 templates/manager/reset_password.html:13
+#: templates/manager/reset_password.html:19
+msgid "重設密碼"
+msgstr "Reset Password"
+
 #: templates/base.html:633
 msgid "請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。"
-msgstr ""
+msgstr "Enter your email address to reset your password"
 
 #: templates/base.html:635
 msgid "請輸入您的Email"
@@ -282,31 +342,1272 @@ msgstr "Email"
 
 #: templates/base.html:640
 msgid "返回登入"
+msgstr "Login"
+
+#: templates/data/collection_detail.html:18
+#: templates/data/collection_detail.html:50
+#: templates/data/collection_detail.html:55 templates/pages/index.html:190
+msgid "自然史典藏"
+msgstr "Collection"
+
+#: templates/data/collection_detail.html:70
+#: templates/data/occurrence_detail.html:71 templates/data/search_full.html:258
+msgid "中⽂名"
 msgstr ""
 
-#: templates/pages/index.html:123
+#: templates/data/collection_detail.html:71
+#: templates/data/occurrence_detail.html:72
+#: templates/data/search_collection.html:225
+#: templates/data/search_full.html:259 templates/data/search_full.html:371
+#: templates/data/search_full.html:436 templates/data/search_full.html:640
+#: templates/data/search_full.html:778
+#: templates/data/search_occurrence.html:222
+msgid "學名"
+msgstr "Scientific Name"
+
+#: templates/data/collection_detail.html:74
+#: templates/data/occurrence_detail.html:75
+msgid "來源資料庫使⽤中⽂名"
+msgstr ""
+
+#: templates/data/collection_detail.html:75
+#: templates/data/occurrence_detail.html:76
+msgid "來源資料庫使⽤學名"
+msgstr ""
+
+#: templates/data/collection_detail.html:77
+#: templates/data/occurrence_detail.html:78
+msgid "原始紀錄物種"
+msgstr ""
+
+#: templates/data/collection_detail.html:81
+#: templates/data/collection_detail.html:83
+#: templates/data/occurrence_detail.html:82
+#: templates/data/occurrence_detail.html:84
+msgid "物種編號"
+msgstr ""
+
+#: templates/data/collection_detail.html:85
+#: templates/data/occurrence_detail.html:86
+msgid "臺灣物種名錄未收錄或無法對應"
+msgstr ""
+
+#: templates/data/collection_detail.html:109
+#: templates/data/occurrence_detail.html:110
+msgid "影像授權"
+msgstr ""
+
+#: templates/data/collection_detail.html:109
+#: templates/data/occurrence_detail.html:110
+msgid "無"
+msgstr ""
+
+#: templates/data/collection_detail.html:118
+#: templates/data/occurrence_detail.html:119
+msgid "無照片"
+msgstr ""
+
+#: templates/data/collection_detail.html:128
+#: templates/data/search_collection.html:257
+#: templates/data/search_full.html:672
+msgid "館藏號"
+msgstr ""
+
+#: templates/data/collection_detail.html:132
+#: templates/data/occurrence_detail.html:137
+#: templates/data/search_collection.html:261
+#: templates/data/search_full.html:372 templates/data/search_full.html:437
+#: templates/data/search_full.html:676 templates/data/search_full.html:802
+#: templates/data/search_occurrence.html:246
+msgid "鑑定層級"
+msgstr ""
+
+#: templates/data/collection_detail.html:136
+#: templates/data/search_collection.html:151
+#: templates/data/search_collection.html:285
+#: templates/data/search_full.html:700
+msgid "採集者"
+msgstr ""
+
+#: templates/data/collection_detail.html:140
+#: templates/data/search_collection.html:269
+#: templates/data/search_full.html:684
+msgid "標本類型"
+msgstr ""
+
+#: templates/data/collection_detail.html:144
+#: templates/data/search_collection.html:289
+#: templates/data/search_full.html:704
+msgid "採集號"
+msgstr ""
+
+#: templates/data/collection_detail.html:148
+#: templates/data/search_collection.html:277
+#: templates/data/search_full.html:692
+msgid "採集日期"
+msgstr ""
+
+#: templates/data/collection_detail.html:150
+#: templates/data/collection_detail.html:154
+msgid "原始採集日期"
+msgstr ""
+
+#: templates/data/collection_detail.html:160
+#: templates/data/search_collection.html:281
+#: templates/data/search_full.html:696
+msgid "採集地"
+msgstr ""
+
+#: templates/data/collection_detail.html:164
+#: templates/data/search_collection.html:154
+#: templates/data/search_collection.html:273
+#: templates/data/search_full.html:688
+msgid "保存方式"
+msgstr ""
+
+#: templates/data/collection_detail.html:168
+#: templates/data/occurrence_detail.html:153
+#: templates/data/search_collection.html:146
+#: templates/data/search_collection.html:293
+#: templates/data/search_full.html:708 templates/data/search_full.html:826
+#: templates/data/search_occurrence.html:138
+#: templates/data/search_occurrence.html:271
+msgid "數量"
+msgstr ""
+
+#: templates/data/collection_detail.html:172
+#: templates/data/occurrence_detail.html:157
+msgid "原始紀錄數量"
+msgstr ""
+
+#: templates/data/collection_detail.html:178
+#: templates/data/occurrence_detail.html:163
+#: templates/data/search_collection.html:297
+#: templates/data/search_full.html:712 templates/data/search_full.html:830
+#: templates/data/search_occurrence.html:275
+msgid "數量單位"
+msgstr ""
+
+#: templates/data/collection_detail.html:182
+#: templates/data/occurrence_detail.html:171
+#: templates/data/search_collection.html:337
+#: templates/data/search_full.html:752 templates/data/search_full.html:878
+#: templates/data/search_occurrence.html:323
+msgid "授權狀況"
+msgstr ""
+
+#: templates/data/collection_detail.html:186
+#: templates/data/occurrence_detail.html:175
+#: templates/data/search_collection.html:329
+#: templates/data/search_full.html:744 templates/data/search_full.html:870
+#: templates/data/search_occurrence.html:315
+msgid "資料集名稱"
+msgstr ""
+
+#: templates/data/collection_detail.html:190
+#: templates/data/occurrence_detail.html:179
+msgid "資料集聯絡⼈"
+msgstr ""
+
+#: templates/data/collection_detail.html:194
+#: templates/data/occurrence_detail.html:183
+msgid "資料最後更新時間"
+msgstr ""
+
+#: templates/data/collection_detail.html:199
+#: templates/data/collection_detail.html:201
+#: templates/data/occurrence_detail.html:188
+#: templates/data/occurrence_detail.html:190
+#: templates/data/search_collection.html:249
+#: templates/data/search_full.html:664 templates/data/search_full.html:810
+#: templates/data/search_occurrence.html:254
+msgid "來源資料庫"
+msgstr ""
+
+#: templates/data/collection_detail.html:217
+#: templates/data/occurrence_detail.html:204
+#: templates/data/search_collection.html:301
+#: templates/data/search_full.html:716 templates/data/search_full.html:838
+#: templates/data/search_occurrence.html:283
+msgid "經度"
+msgstr ""
+
+#: templates/data/collection_detail.html:221
+#: templates/data/occurrence_detail.html:208
+msgid "原始紀錄經度"
+msgstr ""
+
+#: templates/data/collection_detail.html:227
+#: templates/data/occurrence_detail.html:214
+#: templates/data/search_collection.html:317
+#: templates/data/search_full.html:732 templates/data/search_full.html:854
+#: templates/data/search_occurrence.html:299
+msgid "座標誤差"
+msgstr ""
+
+#: templates/data/collection_detail.html:232
+#: templates/data/occurrence_detail.html:218
+#: templates/data/search_collection.html:305
+#: templates/data/search_full.html:720 templates/data/search_full.html:842
+#: templates/data/search_occurrence.html:287
+msgid "緯度"
+msgstr ""
+
+#: templates/data/collection_detail.html:236
+#: templates/data/occurrence_detail.html:222
+msgid "原始紀錄緯度"
+msgstr ""
+
+#: templates/data/collection_detail.html:242
+#: templates/data/occurrence_detail.html:228
+#: templates/data/search_collection.html:321
+#: templates/data/search_full.html:736 templates/data/search_full.html:858
+#: templates/data/search_occurrence.html:303
+msgid "座標是否有模糊化"
+msgstr ""
+
+#: templates/data/collection_detail.html:246
+#: templates/data/occurrence_detail.html:232
+#: templates/data/search_collection.html:309
+#: templates/data/search_full.html:724 templates/data/search_full.html:850
+#: templates/data/search_occurrence.html:295
+msgid "座標系統"
+msgstr ""
+
+#: templates/data/collection_detail.html:250
+#: templates/data/occurrence_detail.html:236
+#: templates/data/search_collection.html:325
+#: templates/data/search_full.html:740 templates/data/search_full.html:862
+#: templates/data/search_occurrence.html:307
+msgid "座標模糊化程度"
+msgstr ""
+
+#: templates/data/occurrence_detail.html:20
+#: templates/data/occurrence_detail.html:52
+#: templates/data/occurrence_detail.html:57 templates/data/search_full.html:176
+#: templates/data/search_full.html:344 templates/pages/index.html:172
+msgid "物種出現紀錄"
+msgstr "Occurrence"
+
+#: templates/data/occurrence_detail.html:129
+#: templates/data/search_collection.html:265
+#: templates/data/search_full.html:680 templates/data/search_full.html:806
+#: templates/data/search_occurrence.html:250
+msgid "敏感層級"
+msgstr ""
+
+#: templates/data/occurrence_detail.html:133
+#: templates/data/search_full.html:834
+#: templates/data/search_occurrence.html:143
+#: templates/data/search_occurrence.html:279
+msgid "記錄者"
+msgstr ""
+
+#: templates/data/occurrence_detail.html:141
+#: templates/data/search_full.html:818
+#: templates/data/search_occurrence.html:263
+msgid "紀錄日期"
+msgstr ""
+
+#: templates/data/occurrence_detail.html:143
+#: templates/data/occurrence_detail.html:147
+msgid "原始紀錄日期"
+msgstr ""
+
+#: templates/data/occurrence_detail.html:167
+#: templates/data/search_full.html:822
+#: templates/data/search_occurrence.html:267
+msgid "出現地"
+msgstr ""
+
+#: templates/data/search_collection.html:63
+#: templates/data/search_occurrence.html:65
+msgid "中文名/學名/中文別名"
+msgstr ""
+
+#: templates/data/search_collection.html:69
+#: templates/data/search_collection.html:86
+#: templates/data/search_collection.html:99
+#: templates/data/search_collection.html:122
+#: templates/data/search_occurrence.html:74
+#: templates/data/search_occurrence.html:115
+#: templates/data/search_occurrence.html:147
+msgid "-- 不限 --"
+msgstr ""
+
+#: templates/data/search_collection.html:70
+#: templates/data/search_occurrence.html:75
+msgid "昆蟲"
+msgstr ""
+
+#: templates/data/search_collection.html:71
+#: templates/data/search_occurrence.html:76
+msgid "魚類"
+msgstr ""
+
+#: templates/data/search_collection.html:72
+#: templates/data/search_occurrence.html:77
+msgid "爬蟲類"
+msgstr ""
+
+#: templates/data/search_collection.html:73
+#: templates/data/search_occurrence.html:78
+msgid "真菌(含地衣)"
+msgstr ""
+
+#: templates/data/search_collection.html:74
+#: templates/data/search_occurrence.html:79
+msgid "植物"
+msgstr ""
+
+#: templates/data/search_collection.html:75
+#: templates/data/search_occurrence.html:80
+msgid "鳥類"
+msgstr ""
+
+#: templates/data/search_collection.html:76
+#: templates/data/search_occurrence.html:81
+msgid "哺乳類"
+msgstr ""
+
+#: templates/data/search_collection.html:80
+#: templates/data/search_collection.html:253
+#: templates/data/search_full.html:668 templates/data/search_full.html:814
+#: templates/data/search_occurrence.html:68
+#: templates/data/search_occurrence.html:258
+msgid "TaiCOL物種編號"
+msgstr ""
+
+#: templates/data/search_collection.html:87
+msgid "一般"
+msgstr ""
+
+#: templates/data/search_collection.html:88
+msgid "模式"
+msgstr ""
+
+#: templates/data/search_collection.html:123
+#: templates/data/search_occurrence.html:116
+msgid "有影像"
+msgstr ""
+
+#: templates/data/search_collection.html:124
+#: templates/data/search_occurrence.html:117
+msgid "無影像"
+msgstr ""
+
+#: templates/data/search_collection.html:132
+#: templates/data/search_occurrence.html:124
+msgid "起始日期"
+msgstr ""
+
+#: templates/data/search_collection.html:136
+#: templates/data/search_occurrence.html:128
+msgid "結束日期"
+msgstr ""
+
+#: templates/data/search_collection.html:166
+#: templates/data/search_collection.html:333
+#: templates/data/search_full.html:748 templates/data/search_full.html:874
+#: templates/data/search_occurrence.html:163
+#: templates/data/search_occurrence.html:319
+msgid "資料集聯絡人"
+msgstr ""
+
+#: templates/data/search_collection.html:172
+#: templates/data/search_occurrence.html:169
+msgid "空間查詢"
+msgstr ""
+
+#: templates/data/search_collection.html:177
+#: templates/data/search_occurrence.html:174
+msgid "地圖框選"
+msgstr ""
+
+#: templates/data/search_collection.html:180
+#: templates/data/search_collection.html:381
+#: templates/data/search_occurrence.html:177
+#: templates/data/search_occurrence.html:367
+msgid "圓中心框選"
+msgstr ""
+
+#: templates/data/search_collection.html:183
+#: templates/data/search_collection.html:353
+#: templates/data/search_occurrence.html:180
+#: templates/data/search_occurrence.html:339
+msgid "上傳Polygon"
+msgstr ""
+
+#: templates/data/search_collection.html:186
+#: templates/data/search_collection.html:216
+#: templates/data/search_full.html:631 templates/data/search_full.html:769
+#: templates/data/search_occurrence.html:183
+#: templates/data/search_occurrence.html:213
+msgid "重設"
+msgstr Reset"
+
+#: templates/data/search_collection.html:199
+#: templates/data/search_occurrence.html:196
+msgid "搜尋"
+msgstr "Search"
+
+#: templates/data/search_collection.html:200
+#: templates/data/search_occurrence.html:197
+msgid "清除搜尋條件"
+msgstr ""
+
+#: templates/data/search_collection.html:214
+#: templates/data/search_full.html:629 templates/data/search_full.html:767
+#: templates/data/search_occurrence.html:211
+msgid "欄位選項"
+msgstr ""
+
+#: templates/data/search_collection.html:215
+#: templates/data/search_full.html:630 templates/data/search_full.html:768
+#: templates/data/search_occurrence.html:212
+msgid "全選"
+msgstr ""
+
+#: templates/data/search_collection.html:221
+#: templates/data/search_full.html:370 templates/data/search_full.html:435
+#: templates/data/search_full.html:636 templates/data/search_full.html:774
+#: templates/data/search_occurrence.html:218
+msgid "中文名"
+msgstr ""
+
+#: templates/data/search_collection.html:229
+#: templates/data/search_full.html:260 templates/data/search_full.html:644
+#: templates/data/search_full.html:782
+#: templates/data/search_occurrence.html:226
+msgid "中文別名"
+msgstr ""
+
+#: templates/data/search_collection.html:233
+#: templates/data/search_full.html:261 templates/data/search_full.html:648
+#: templates/data/search_full.html:786
+#: templates/data/search_occurrence.html:230
+msgid "同物異名"
+msgstr ""
+
+#: templates/data/search_collection.html:237
+#: templates/data/search_full.html:652 templates/data/search_full.html:790
+#: templates/data/search_occurrence.html:234
+msgid "誤用名"
+msgstr ""
+
+#: templates/data/search_collection.html:241
+#: templates/data/search_full.html:656 templates/data/search_full.html:794
+#: templates/data/search_occurrence.html:238
+msgid "來源資料庫使用學名"
+msgstr ""
+
+#: templates/data/search_collection.html:245
+#: templates/data/search_full.html:660 templates/data/search_full.html:798
+#: templates/data/search_occurrence.html:242
+msgid "來源資料庫使用中文名"
+msgstr ""
+
+#: templates/data/search_collection.html:313
+#: templates/data/search_full.html:728 templates/data/search_full.html:846
+#: templates/data/search_occurrence.html:291
+msgid "空間參考系統"
+msgstr ""
+
+#: templates/data/search_collection.html:340
+#: templates/data/search_full.html:755 templates/data/search_full.html:881
+#: templates/data/search_occurrence.html:326
+msgid "確認"
+msgstr "Submit"
+
+#: templates/data/search_collection.html:356
+#: templates/data/search_occurrence.html:342
+msgid "請以GeoJSON格式貼上欲查詢的Polygon："
+msgstr ""
+
+#: templates/data/search_collection.html:363
+#: templates/data/search_occurrence.html:349
+msgid "上限2.5 MB"
+msgstr ""
+
+#: templates/data/search_collection.html:386
+#: templates/data/search_occurrence.html:372
+msgid "半徑"
+msgstr ""
+
+#: templates/data/search_collection.html:397
+#: templates/data/search_occurrence.html:383
+msgid "中心點經度"
+msgstr ""
+
+#: templates/data/search_collection.html:401
+#: templates/data/search_occurrence.html:387
+msgid "中心點緯度"
+msgstr ""
+
+#: templates/data/search_full.html:6
+msgid "全站搜尋"
+msgstr ""
+
+#: templates/data/search_full.html:91 templates/data/search_full.html:96
+msgid "全站搜尋結果"
+msgstr ""
+
+#: templates/data/search_full.html:118
+msgid "想找到更精準的資料嗎？"
+msgstr ""
+
+#: templates/data/search_full.html:118
+msgid "試試進階搜尋"
+msgstr ""
+
+#: templates/data/search_full.html:131 templates/data/search_full.html:133
+msgid "⾃然史典藏查詢"
+msgstr ""
+
+#: templates/data/search_full.html:143
+msgid "類<br />別<br />篩<br />選"
+msgstr ""
+
+#: templates/data/search_full.html:144 templates/manager/manager.html:30
+msgid "關閉"
+msgstr ""
+
+#: templates/data/search_full.html:150
+msgid "所有結果"
+msgstr ""
+
+#: templates/data/search_full.html:158 templates/data/search_full.html:244
+msgid "物種"
+msgstr ""
+
+#: templates/data/search_full.html:163 templates/data/search_full.html:182
+#: templates/data/search_full.html:201
+msgid "全部"
+msgstr "All"
+
+#: templates/data/search_full.html:195 templates/data/search_full.html:410
+msgid "⾃然史典藏"
+msgstr "Collection"
+
+#: templates/data/search_full.html:262
+msgid "分類階層"
+msgstr ""
+
+#: templates/data/search_full.html:269
+msgid "出現記錄筆數"
+msgstr ""
+
+#: templates/data/search_full.html:270
+msgid "自然史典藏筆數"
+msgstr ""
+
+#: templates/data/search_full.html:305
+msgid "生命大百科介紹"
+msgstr ""
+
+#: templates/data/search_full.html:309 templates/data/search_full.html:316
+#: templates/data/search_full.html:893
+msgid "資料分布圖"
+msgstr ""
+
+#: templates/data/search_full.html:323 templates/data/search_full.html:389
+#: templates/data/search_full.html:454 templates/data/search_full.html:490
+#: templates/data/search_full.html:523 templates/data/search_full.html:556
+#: templates/data/search_full.html:605 templates/pages/index.html:248
+#: templates/pages/news.html:108 templates/pages/news_detail.html:89
+msgid "無資料"
+msgstr "Currently not available"
+
+#: templates/data/search_full.html:331 templates/data/search_full.html:397
+#: templates/data/search_full.html:462 templates/data/search_full.html:498
+#: templates/data/search_full.html:531 templates/data/search_full.html:564
+#: templates/data/search_full.html:612
+msgid "更多結果"
+msgstr ""
+
+#: templates/data/search_full.html:334 templates/data/search_full.html:400
+#: templates/data/search_full.html:465
+msgid ""
+"符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更"
+"多或更符合的關鍵字"
+msgstr ""
+
+#: templates/data/search_full.html:866
+#: templates/data/search_occurrence.html:311
+msgid "紀錄類型"
+msgstr ""
+
+#: templates/manager/manager.html:29
+msgid "展<br>開"
+msgstr ""
+
+#: templates/manager/manager.html:41
+msgid "個人資訊"
+msgstr ""
+
+#: templates/manager/manager.html:47 templates/manager/manager.html:391
+msgid "暫無通知"
+msgstr "No notifications yet."
+
+#: 
+msgid "通知"
+msgstr "Notifications"
+
+#: templates/manager/manager.html:53 templates/manager/manager.html:158
+msgid "資料下載"
+msgstr ""
+
+#: templates/manager/manager.html:59 templates/manager/manager.html:235
+msgid "名錄下載"
+msgstr ""
+
+#: templates/manager/manager.html:65 templates/manager/manager.html:312
+msgid "單次使用去模糊化敏感資料"
+msgstr ""
+
+#: templates/manager/manager.html:75
+msgid "基本資料編輯"
+msgstr ""
+
+#: templates/manager/manager.html:79
+msgid "帳號"
+msgstr "Account"
+
+#: templates/manager/manager.html:85
+msgid "必填欄位"
+msgstr ""
+
+#: templates/manager/manager.html:89
+msgid "密碼變更"
+msgstr ""
+
+#: templates/manager/manager.html:90
+msgid "現在的密碼"
+msgstr ""
+
+#: templates/manager/manager.html:96
+msgid "新的密碼"
+msgstr ""
+
+#: templates/manager/manager.html:102
+msgid "再次確認新的密碼"
+msgstr ""
+
+#: templates/manager/manager.html:110
+msgid "確認修改"
+msgstr ""
+
+#: templates/manager/manager.html:114
+msgid "申請成為夥伴帳號"
+msgstr ""
+
+#: templates/manager/manager.html:116
+msgid "選擇所屬夥伴單位"
+msgstr ""
+
+#: templates/manager/manager.html:140
+msgid "我已閱讀並同意"
+msgstr ""
+
+#: templates/manager/manager.html:140 templates/pages/agreement.html:13
+#: templates/pages/agreement.html:19
+msgid "保密協議"
+msgstr ""
+
+#: templates/manager/manager.html:145
+msgid "單位帳號申請已送出審核中"
+msgstr ""
+
+#: templates/manager/manager.html:145
+msgid "撤回"
+msgstr ""
+
+#: templates/manager/manager.html:147
+msgid "單位帳號申請已通過"
+msgstr ""
+
+#: templates/manager/manager.html:149 templates/pages/news.html:66
+msgid "送出"
+msgstr "Submit"
+
+#: templates/manager/manager.html:164 templates/manager/manager.html:318
+msgid "下載資料欄位說明文件"
+msgstr ""
+
+#: templates/manager/manager.html:170 templates/manager/manager.html:247
+#: templates/manager/manager.html:324
+msgid "下載編號"
+msgstr ""
+
+#: templates/manager/manager.html:171 templates/manager/manager.html:248
+#: templates/manager/manager.html:325
+msgid "檔案編號"
+msgstr ""
+
+#: templates/manager/manager.html:172 templates/manager/manager.html:249
+#: templates/manager/manager.html:326
+msgid "檔案產生日期"
+msgstr ""
+
+#: templates/manager/manager.html:173 templates/manager/manager.html:250
+#: templates/manager/manager.html:327
+msgid "搜尋條件"
+msgstr ""
+
+#: templates/manager/manager.html:174 templates/manager/manager.html:251
+#: templates/manager/manager.html:329
+msgid "狀態"
+msgstr ""
+
+#: templates/manager/manager.html:175 templates/manager/manager.html:252
+#: templates/manager/manager.html:330
+msgid "檔案連結"
+msgstr ""
+
+#: templates/manager/manager.html:185 templates/manager/manager.html:262
+#: templates/manager/manager.html:340
+msgid "再次查詢"
+msgstr ""
+
+#: templates/manager/manager.html:197 templates/manager/manager.html:274
+#: templates/manager/manager.html:353
+msgid "下載"
+msgstr ""
+
+#: templates/manager/manager.html:208 templates/manager/manager.html:285
+#: templates/manager/manager.html:364 templates/manager/manager.html:420
+#: templates/pages/news.html:120 templates/pages/news.html:124
+#: templates/pages/qa.html:92 templates/pages/qa.html:96
+msgid "上一頁"
+msgstr ""
+
+#: templates/manager/manager.html:220 templates/manager/manager.html:224
+#: templates/manager/manager.html:297 templates/manager/manager.html:301
+#: templates/manager/manager.html:376 templates/manager/manager.html:380
+#: templates/manager/manager.html:432 templates/manager/manager.html:436
+#: templates/pages/news.html:137 templates/pages/news.html:141
+#: templates/pages/qa.html:109 templates/pages/qa.html:113
+msgid "下一頁"
+msgstr ""
+
+#: templates/manager/manager.html:241
+msgid "下載名錄欄位說明文件"
+msgstr ""
+
+#: templates/manager/manager.html:328
+msgid "審查意見"
+msgstr ""
+
+#: templates/manager/manager.html:398
+msgid "日期"
+msgstr ""
+
+#: templates/manager/manager.html:399
+msgid "內容"
+msgstr "Content"
+
+#: templates/manager/manager.html:445
+msgid "請先登入"
+msgstr ""
+
+#: templates/manager/register_success.html:25
+msgid "驗證成功"
+msgstr ""
+
+#: templates/manager/register_success.html:26
+msgid "您的電子信箱驗證成功，歡迎加入TBIA網站會員！"
+msgstr ""
+
+#: templates/manager/register_success.html:28
+msgid "回首頁"
+msgstr ""
+
+#: templates/manager/register_verification.html:27
+msgid ""
+"我們將寄出一封驗證信至您填寫的信箱，請完成您的電子信箱認證就可啟用會員帳號。"
+"謝謝！"
+msgstr ""
+
+#: templates/manager/register_verification.html:33
+msgid "重新寄送"
+msgstr ""
+
+#: templates/manager/reset_password.html:26
+msgid "您可在下方欄位修改您的密碼，下次請使用新的密碼登入"
+msgstr ""
+
+#: templates/manager/reset_password.html:27
+msgid "新密碼"
+msgstr ""
+
+#: templates/manager/reset_password.html:31
+msgid "請輸入密碼"
+msgstr "Enter your password"
+
+#: templates/pages/about.html:44
+msgid "聯盟章程"
+msgstr ""
+
+#: templates/pages/agreement.html:97
+msgid "我已閱讀並同意以上協議"
+msgstr ""
+
+#: templates/pages/application.html:15 templates/pages/application.html:21
+msgid "申請單次使用去模糊化敏感資料"
+msgstr ""
+
+#: templates/pages/application.html:27
+msgid "申請時間"
+msgstr ""
+
+#: templates/pages/application.html:30
+msgid "申請資料搜尋條件"
+msgstr ""
+
+#: templates/pages/application.html:37
+msgid "為必填欄位"
+msgstr ""
+
+#: templates/pages/application.html:43
+msgid "申請人姓名"
+msgstr ""
+
+#: templates/pages/application.html:49
+msgid "聯絡電話"
+msgstr ""
+
+#: templates/pages/application.html:55
+msgid "聯絡地址"
+msgstr ""
+
+#: templates/pages/application.html:63
+msgid "申請人所屬單位"
+msgstr ""
+
+#: templates/pages/application.html:69
+msgid "計畫類型"
+msgstr ""
+
+#: templates/pages/application.html:72
+msgid "個人研究計畫"
+msgstr ""
+
+#: templates/pages/application.html:73
+msgid "委辦工作計畫"
+msgstr ""
+
+#: templates/pages/application.html:81
+msgid "個人研究計畫名稱"
+msgstr ""
+
+#: templates/pages/application.html:87
+msgid "委託計畫單位"
+msgstr ""
+
+#: templates/pages/application.html:95
+msgid "計畫摘要"
+msgstr ""
+
+#: templates/pages/application.html:97
+msgid "請描述申請用途"
+msgstr ""
+
+#: templates/pages/application.html:101
+msgid "申請資料使用者"
+msgstr ""
+
+#: templates/pages/application.html:104
+msgid "單位"
+msgstr "Affiliation"
+
+#: templates/pages/application.html:105
+msgid "職稱"
+msgstr ""
+
+#: templates/pages/index.html:45
+msgid "不再顯示"
+msgstr "Don't show again"
+
+#: templates/pages/index.html:117
 msgid "臺灣生物多樣性開放資料任意門"
 msgstr "Anywhere Portal to Biodiversity Open Databases in Taiwan"
 
-#~ msgid "下載名錄編號 #0000 已處理完成，請至後台查看"
-#~ msgstr ""
-#~ "The download of checklist #0000 has been processed. Please check in your "
-#~ "account panel."
+#: templates/pages/index.html:220 templates/pages/news.html:37
+msgid "所有消息"
+msgstr "All"
 
-#~ msgid "下載資料編號 #0000 已處理完成，請至後台查看"
-#~ msgstr ""
-#~ "The download of records #0000 has been processed. Please check in your "
-#~ "account panel."
+#: templates/pages/index.html:253
+msgid "查看更多訊息"
+msgstr "See all"
 
-#~ msgid "單次使用敏感資料申請編號 #0000 審核已完成，請至後台查看"
-#~ msgstr ""
-#~ "The review result for the one-time sensitive data request #0000 has been "
-#~ "processed. Please check in your account panel."
+#: templates/pages/index.html:287
+msgid "所有資源"
+msgstr "All"
 
-#~ msgid "申請單位帳號審核已完成，結果為：0000"
-#~ msgstr ""
-#~ "The review for the organization account application has been completed. "
-#~ "The result is: 0000."
+#: templates/pages/index.html:309 templates/pages/resources_link.html:33
+msgid "國內外各大資料庫及推薦網站連結"
+msgstr "Recommended databases & websites"
 
-#~ msgid "暫無通知"
-#~ msgstr "No notifications yet."
+#: templates/pages/index.html:342
+msgid "查看更多資源"
+msgstr "See all"
+
+#: templates/pages/news.html:56
+msgid "篩選"
+msgstr ""
+
+#: templates/pages/partner.html:60
+msgid "聯絡我們"
+msgstr "Contact us"
+
+#: templates/pages/resources_link.html:78
+msgid "網站連結"
+msgstr ""
+
+msgid "下載名錄編號 #0000 已處理完成，請至後台查看"
+msgstr ""
+"The download of checklist #0000 has been processed. Please check in your "
+"account panel."
+
+msgid "下載資料編號 #0000 已處理完成，請至後台查看"
+msgstr ""
+"The download of records #0000 has been processed. Please check in your "
+"account panel."
+
+msgid "單次使用敏感資料申請編號 #0000 審核已完成，請至後台查看"
+msgstr ""
+"The review result for the one-time sensitive data request #0000 has been "
+"processed. Please check in your account panel."
+
+msgid "申請單位帳號審核已完成，結果為：0000"
+msgstr ""
+"The review for the organization account application has been completed. "
+"The result is: 0000."
+
+msgid ""
+"歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議"
+"您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。"
+msgstr ""
+"Welcome to the &quot;Biodiversity Database Portal System&quot;! If this "
+"is your first time using this system, we recommend that you utilize the "
+"keyword search feature on the homepage to find the information you are "
+"looking for."
+
+msgid ""
+"關鍵字查詢結果頁面的左側選單除了呈現結果的分類外，也可以針對您所查詢的關鍵"
+"字所在欄位，再篩選出對應的結果。"
+msgstr ""
+"On the keyword search results page, the left-hand menu not only "
+"categorizes the results but also allows you to filter results based on "
+"the fields where your queried keyword appears."
+
+msgid ""
+"關鍵字查詢結果以票卡形式呈現，每張票卡皆以一個物種為單位，其中物種出現紀錄"
+"及自然史典藏結果票卡右上角的數字為符合此張票卡結果的資料筆數。<br>關鍵字如"
+"出現在多個欄位，則將會呈現多種欄位組合結果的票卡。"
+msgstr ""
+"The keyword search results are presented in card format, with each card "
+"representing an individual species. The number in the upper right corner "
+"of each card, which corresponds to species occurrence records and results "
+"from the natural history collection, indicates the number of data entries "
+"that match this card's results. <br>If the keyword appears in multiple "
+"fields, the results will be presented in different cards, displaying "
+"combinations of results from various fields."
+
+msgid ""
+"若您以關鍵字搜尋無法找到精確的結果，可使用右上角的進階搜尋功能（包含物種出"
+"現紀錄查詢及自然史典藏查詢）。<br>進階搜尋功能也可以在網頁最上方的標頭中找"
+"到。"
+msgstr ""
+"If you cannot find precise results using keywords, you can use the "
+"advanced search feature in the upper right corner, which includes species "
+"occurrence records and natural history collection queries. <br>You can "
+"also access the advanced search feature at the top of the webpage."
+
+msgid "進階搜尋功能可針對特定欄位做搜尋，也可以利用地圖進行空間查詢。"
+msgstr ""
+"The advanced search feature allows you to search specific fields and "
+"perform spatial queries using the map."
+
+msgid ""
+"進階搜尋的查詢結果預設僅會出現部分欄位，若欲查看其他欄位，可使用結果列表左"
+"上方的「欄位選項」勾選您希望呈現的欄位。"
+msgstr ""
+"The query results in the advanced search will display only some of the "
+"fields by default. If you want to view other fields, you can click the "
+"&quot;Field Options&quot; button at the top left of the results list and "
+"select the fields you wish to display."
+
+msgid ""
+"您查詢的資料結果可在登入後透過「資料下載」功能取得，也可以透過「名錄下載」"
+"功能取得您查詢結果中的完整物種名錄。<br>若您希望取得敏感物種的點位資訊，則"
+"可透過「申請單次使用去模糊化敏感資料」功能取得。"
+msgstr ""
+"The results of your query can be obtained after logging in through the "
+"&quot;Download records&quot; function. You can also obtain the complete "
+"species list from your query results through the &quot;Download "
+"checklist&quot; function.<br>If you wish to obtain the location "
+"information of sensitive species, you can do so through the &quot;Apply "
+"for One-Time Use of Non-Blurred Sensitive Data&quot; function."
+
+msgid "您申請取用的資料檔案皆可在登入後的帳號後台頁面中查閱並下載。"
+msgstr ""
+"All data files that you apply to access can be viewed and downloaded from "
+"your account panel after logging in."
+
+msgid ""
+"進階搜尋的每一筆查詢結果都可以透過最前方的「查看」功能，查閱詳細的資料內"
+"容。"
+msgstr ""
+"You can click the &quot;View&quot; option at the front of each query "
+"result in the advanced search page to access detailed data content."
+
+msgid ""
+"每一筆資料的詳細內容頁面除了呈現物種分類階層與共通欄位的內容外，如來源資料"
+"庫有提供影像及座標點位亦會呈現。<br>除此之外，也可從資料詳細內容頁面外連至"
+"來源資料庫查看更完整的資訊。"
+msgstr ""
+"The detailed content page of each entry not only displays the species "
+"classification hierarchy and common fields but also includes images and "
+"coordinate points if provided by the source database. <br>In addition, "
+"you can also follow external links from the data details page to view "
+"more comprehensive information from the source database."
+
+
+
+
+#: static/js/data/search_collection.js:4 static/js/data/search_occurrence.js:4
+msgid "來源資料庫"
+msgstr ""
+
+#: static/js/data/search_collection.js:6 static/js/data/search_collection.js:42
+#: static/js/data/search_collection.js:82 static/js/data/search_occurrence.js:5
+#: static/js/data/search_occurrence.js:41
+#: static/js/data/search_occurrence.js:92
+msgid "全部"
+msgstr ""
+
+#: static/js/data/search_collection.js:6 static/js/data/search_collection.js:42
+#: static/js/data/search_collection.js:82 static/js/data/search_occurrence.js:5
+#: static/js/data/search_occurrence.js:41
+#: static/js/data/search_occurrence.js:92
+msgid " 個選項"
+msgstr ""
+
+#: static/js/data/search_collection.js:40
+#: static/js/data/search_occurrence.js:40
+msgid "資料集名稱"
+msgstr ""
+
+#: static/js/data/search_collection.js:49
+msgid "標本類型"
+msgstr ""
+
+#: static/js/data/search_collection.js:51
+#: static/js/data/search_occurrence.js:53
+msgid "鑑定層級"
+msgstr ""
+
+#: static/js/data/search_collection.js:53
+#: static/js/data/search_occurrence.js:57
+msgid "半徑"
+msgstr ""
+
+#: static/js/data/search_collection.js:56
+#: static/js/data/search_occurrence.js:61
+msgid "有無影像"
+msgstr ""
+
+#: static/js/data/search_collection.js:61
+#: static/js/data/search_occurrence.js:69
+msgid "較高分類群"
+msgstr ""
+
+#: static/js/data/search_collection.js:70
+#: static/js/data/search_occurrence.js:79
+msgid "物種類群"
+msgstr ""
+
+#: static/js/data/search_collection.js:75
+msgid "採集地"
+msgstr ""
+
+#: static/js/data/search_collection.js:287
+#: static/js/data/search_collection.js:311
+#: static/js/data/search_collection.js:345
+#: static/js/data/search_collection.js:369
+#: static/js/data/search_collection.js:553
+#: static/js/data/search_collection.js:971
+#: static/js/data/search_collection.js:997
+#: static/js/data/search_collection.js:1050 static/js/data/search_full.js:61
+#: static/js/data/search_full.js:112 static/js/data/search_full.js:152
+#: static/js/data/search_full.js:208 static/js/data/search_full.js:248
+#: static/js/data/search_full.js:919 static/js/data/search_full.js:1143
+#: static/js/data/search_full.js:1518 static/js/data/search_full.js:1661
+#: static/js/data/search_occurrence.js:195
+#: static/js/data/search_occurrence.js:219
+#: static/js/data/search_occurrence.js:253
+#: static/js/data/search_occurrence.js:277
+#: static/js/data/search_occurrence.js:466
+#: static/js/data/search_occurrence.js:974
+#: static/js/data/search_occurrence.js:1000
+#: static/js/data/search_occurrence.js:1052 static/js/pages/application.js:115
+msgid "要求連線逾時"
+msgstr ""
+
+#: static/js/data/search_collection.js:508
+#: static/js/data/search_collection.js:522
+#: static/js/data/search_occurrence.js:419
+#: static/js/data/search_occurrence.js:433
+msgid "框選失敗！請檢查經緯度格式是否正確"
+msgstr ""
+
+#: static/js/data/search_collection.js:510
+#: static/js/data/search_occurrence.js:421
+msgid "框選失敗！請檢查經緯度數值是否正確"
+msgstr ""
+
+#: static/js/data/search_collection.js:561
+#: static/js/data/search_occurrence.js:475
+msgid "上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限"
+msgstr ""
+
+
+#: static/js/data/search_collection.js:835 static/js/data/search_full.js:648
+#: static/js/data/search_occurrence.js:845
+msgid "欄位選項"
+msgstr ""
+
+#: static/js/data/search_collection.js:842
+#: static/js/data/search_occurrence.js:852
+msgid " 筆"
+msgstr ""
+
+#: static/js/data/search_collection.js:846
+#: static/js/data/search_occurrence.js:856
+msgid "資料筆數"
+msgstr ""
+
+#: static/js/data/search_collection.js:848
+#: static/js/data/search_occurrence.js:858
+msgid "名錄下載"
+msgstr ""
+
+#: static/js/data/search_collection.js:850
+#: static/js/data/search_occurrence.js:860
+msgid "申請單次使用去模糊化敏感資料"
+msgstr ""
+
+#: static/js/data/search_collection.js:916 static/js/data/search_full.js:705
+#: static/js/data/search_full.js:708 static/js/data/search_occurrence.js:920
+msgid "查看"
+msgstr ""
+
+#: static/js/data/search_collection.js:967
+#: static/js/data/search_collection.js:993 static/js/data/search_full.js:1657
+#: static/js/data/search_occurrence.js:970
+#: static/js/data/search_occurrence.js:996
+msgid "請求已送出，下載檔案處理完成後將以Email通知"
+msgstr ""
+
+#: static/js/data/search_collection.js:1005
+#: static/js/data/search_collection.js:1015 static/js/data/search_full.js:1669
+#: static/js/data/search_occurrence.js:982
+#: static/js/data/search_occurrence.js:1008
+#: static/js/data/search_occurrence.js:1018 static/js/pages/agreement.js:9
+#: static/js/pages/application.js:125
+msgid "請先登入"
+msgstr ""
+
+#: static/js/data/search_collection.js:1120
+#: static/js/data/search_occurrence.js:1148
+msgid "您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。"
+msgstr ""
+
+#: static/js/data/search_collection.js:1143
+#: static/js/data/search_occurrence.js:1171 static/js/pages/index.js:219
+#: static/js/pages/resources.js:184
+msgid "無資料"
+msgstr ""
+
+#: static/js/data/search_full.js:643
+msgid "結果列表"
+msgstr ""
+
+#: static/js/data/search_full.js:656
+msgid "資料下載"
+msgstr ""
+
+#: static/js/data/search_full.js:674
+msgid "功能"
+msgstr ""
+
+#: static/js/data/search_full.js:1058 static/js/data/search_full.js:1463
+msgid "中⽂名"
+msgstr ""
+
+#: static/js/data/search_full.js:1060 static/js/data/search_full.js:1465
+msgid "中文別名"
+msgstr ""
+
+#: static/js/data/search_full.js:1062 static/js/data/search_full.js:1467
+msgid "分類階層"
+msgstr ""
+
+#: static/js/data/search_full.js:1065 static/js/data/search_full.js:1470
+msgid "自然史典藏筆數"
+msgstr ""
+
+#: static/js/data/search_full.js:1124
+msgid "更多結果"
+msgstr ""
+
+#: static/js/data/search_full.js:1216 static/js/data/search_full.js:1589
+msgid "學名"
+msgstr ""
+
+#: static/js/data/search_full.js:1238
+msgid ""
+"符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更"
+"多或更符合的關鍵字"
+msgstr ""
+
+#: static/js/data/search_occurrence.js:49
+msgid "紀錄類型"
+msgstr ""
+
+#: static/js/data/search_occurrence.js:85
+msgid "出現地"
+msgstr ""
+
+#: static/js/manager/manager.js:141
+msgid "送出前請閱讀並勾選同意保密協議"
+msgstr ""
+
+#: static/js/manager/register_verification.js:14
+msgid "已重新寄送"
+msgstr ""
+
+#: static/js/pages/agreement.js:6
+msgid "未勾選同意以上協議"
+msgstr ""
+
+#: static/js/pages/application.js:16
+msgid "個人研究計畫名稱"
+msgstr ""
+
+#: static/js/pages/application.js:110
+msgid "請求已送出，審核完畢後將以Email通知"
+msgstr ""
+
+#: static/js/pages/application.js:122
+msgid "請完整填寫表格"
+msgstr ""
+
+#: static/js/pages/news.js:169 static/js/pages/qa.js:206
+msgid "發生未知錯誤！請聯絡管理員"
+msgstr ""
+
+#: static/js/pages/qa.js:71
+msgid "問題類型"
+msgstr ""

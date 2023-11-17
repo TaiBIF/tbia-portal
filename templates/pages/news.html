@@ -18,13 +18,13 @@
 <input type="hidden" name="news_type" value="{{ type }}">
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>最新消息</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '最新消息' %}</p>
 	</div>
 </div>
 <div class="in_bn news_bn">
 	<div class="title">
-		<h2>最新消息</h2>
-		<h3>NEWS</h3>
+		<h2>{% trans '最新消息' %}</h2>
+		{% comment %} <h3>NEWS</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
@@ -33,26 +33,26 @@
 			<!--目前位置給class>now-->
 			<ul class="news_tab_in">
 				<li class="li-news-all updateNews" data-type="all">
-					<p>所有消息</p>
+					<p>{% trans '所有消息' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-news updateNews" data-type="news">
-					<p>新聞公告</p>
+					<p>{% trans '新聞公告' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-event updateNews" data-type="event">
-					<p>活動訊息</p>
+					<p>{% trans '活動訊息' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-project updateNews" data-type="project">
-					<p>計畫徵求</p>
+					<p>{% trans '計畫徵求' %}</p>
 					<div class="arr"></div>
 				</li>
 			</ul> 
 		</div>
 
 		<div class="date_select">
-			<p>篩選</p>
+			<p>{% trans '篩選' %}</p>
 			<div class="input_item"> 
 				<input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
 				<a class="dateicon show_start"></a>		
@@ -62,7 +62,7 @@
 				<input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
 				<a class="dateicon show_end"></a>		
 			</div>				
-			<button class="search_btn">送出</button>
+			<button class="search_btn">{% trans '送出' %}</button>
 		</div>
 		<div class="already_selected" data-filter="no">
 			<ul class="d-none">
@@ -104,7 +104,7 @@
 			</li>
 			{% endfor %}
 			{% else %}
-			<li>無資料</li>
+			<li>{% trans '無資料' %}</li>
 			{% endif %}
 
 		</ul>
@@ -115,11 +115,11 @@
 			<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
 			{% if current_page|add:'-1' in page_list %}
 			<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-				<span></span>上一頁
+				<span></span>{% trans '上一頁' %}
 			</a>
 			{% else %}
 			<a href="javascript:;" class="pre pt-none">
-				<span></span>上一頁
+				<span></span>{% trans '上一頁' %}
 			</a>
 			{% endif %}
 			<!--目前頁面給 now-->
@@ -132,11 +132,11 @@
 			{% endfor %}
 			{% if current_page|add:1 in page_list %}
 			<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
-				下一頁<span></span>
+				{% trans '下一頁' %}<span></span>
 			</a>
 			{% else %}
 			<a href="javascript:;" class="next pt-none">
-				下一頁<span></span>
+				{% trans '下一頁' %}<span></span>
 			</a>
 			{% endif %}
 			<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>

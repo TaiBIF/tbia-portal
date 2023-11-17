@@ -14,7 +14,7 @@
 <input type="hidden" name="user_email" value="{{ user.email }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 帳號後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '帳號後台' %}</p>
     </div>
 </div>
  
@@ -26,8 +26,8 @@
         <div class="left_menu mbmove">
             <!--手機用的按鈕-->
             <div class="mb_fixed_btn">
-                <p>展<br>開</p>
-                <span>關閉</span>
+                <p>{% trans '展<br>開' %}</p>
+                <span>{% trans '關閉' %}</span>
             </div>					
             <div class="mb_scroll">
                 <ul>
@@ -38,31 +38,31 @@
                     </li>
                     <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="info">
-                            <p>個人資訊</p>
+                            <p>{% trans '個人資訊' %}</p>
                             <div class="arr"></div>
                         </a>
                     </li>
                     <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="notification">
-                            <p>通知</p>
+                            <p>{% trans '通知' %}</p>
                             <div class="arr"></div>
                         </a>
                     </li>
                     <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="download">
-                            <p>資料下載</p>
+                            <p>{% trans '資料下載' %}</p>
                             <div class="arr"></div>
                         </a>
                     </li>
                     <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="download_taxon">
-                            <p>名錄下載</p>
+                            <p>{% trans '名錄下載' %}</p>
                             <div class="arr"></div>
                         </a>
                     </li>
                     <li>
                         <a href="javascript:;" class="big_link rd_click" data-type="sensitive">
-                            <p>單次使用去模糊化敏感資料</p>
+                            <p>{% trans '單次使用去模糊化敏感資料' %}</p>
                             <div class="arr"></div>
                         </a>
                     </li>
@@ -72,48 +72,48 @@
 
         <div class="rightbox_content info d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>基本資料編輯</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '基本資料編輯' %}</div>
                     <ul class="edit-list">
                         <form id="updateForm">
                             {% csrf_token %}
-                            <li>帳號</li>
+                            <li>{% trans '帳號' %}</li>
                             <li><input type="text" name="email" value="{{ user.email }}" disabled></li>
-                            <li>姓名</li>
+                            <li>{% trans '姓名' %}</li>
                             <li><input type="text" name="name" value="{{ user.name }}" >
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
-                                    <p>必填欄位</p>
+                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    <p>{% trans '必填欄位' %}</p>
                                 </div>
                             </li>
                             {% if not from_google %}
-                            <li>密碼變更</li>
-                            <li><input type="password" name="now_password" placeholder="現在的密碼">
+                            <li>{% trans '密碼變更' %}</li>
+                            <li><input type="password" name="now_password" placeholder="{% trans '現在的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
-                                    <p>請輸入6~10位英文或數字</p>
+                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
                                 </div>
                             </li>
-                            <li><input type="password" name="new_password" placeholder="新的密碼">
+                            <li><input type="password" name="new_password" placeholder="{% trans '新的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
-                                    <p>請輸入6~10位英文或數字</p>
+                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
                                 </div>              
                             </li>
-                            <li><input type="password" name="re_password" placeholder="再次確認新的密碼">
+                            <li><input type="password" name="re_password" placeholder="{% trans '再次確認新的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
-                                    <p>兩次密碼輸入不同</p>
+                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    <p>{% trans '兩次密碼輸入不同' %}</p>
                                 </div>              
                             </li>
                             {% endif %}
                         </form>
-                        <li ><button class="read_btn updateInfo">確認修改</button></li>
+                        <li ><button class="read_btn updateInfo">{% trans '確認修改' %}</button></li>
                     </ul>
             </div>
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>申請成為夥伴帳號</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '申請成為夥伴帳號' %}</div>
                     <ul class="edit-list">
-                        <li>選擇所屬夥伴單位</li>
+                        <li>{% trans '選擇所屬夥伴單位' %}</li>
                         <li>
                             <form id="partnerForm">
                                 {% csrf_token %}
@@ -137,16 +137,16 @@
                         <li class="ag-style">
                             <div class="agreebox jc-start">
                                 <input type="checkbox" class="chebox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}>
-                                我已閱讀並同意<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager">保密協議</a>
+                                {% trans '我已閱讀並同意' %}<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager">{% trans '保密協議' %}</a>
                             </div>
                         </li>
                         <li>                                
                             {% if user.status == 'pending' %}
-                            單位帳號申請已送出審核中 <button class="read_btn withdrawRequest" data-uid="{{ user.id }}">撤回</button>
+                            {% trans '單位帳號申請已送出審核中' %} <button class="read_btn withdrawRequest" data-uid="{{ user.id }}">{% trans '撤回' %}</button>
                             {% elif user.status == 'pass' %}
-                            單位帳號申請已通過
+                            {% trans '單位帳號申請已通過' %}
                             {% else %}
-                            <button class="read_btn sendRequest">送出</button>
+                            <button class="read_btn sendRequest">{% trans '送出' %}</button>
                             {% endif %}
                         </li>
                     </ul>
@@ -155,24 +155,24 @@
 
         <div class="rightbox_content download d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>資料下載</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '資料下載' %}</div>
                 <div class="d-flex-jc-fe">
                     <a href="/media/資料欄位說明文件.pdf" target="_blank" class="dow_btn">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <p>下載資料欄位說明文件</p>
+                        <p>{% trans '下載資料欄位說明文件' %}</p>
                     </a>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 download_table">
                         <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">搜尋條件</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
+                            <td class="w-5p">{% trans '下載編號' %}</td>
+                            <td class="w-10p">{% trans '檔案編號' %}</td>
+                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
+                            <td class="w-20p">{% trans '搜尋條件' %}</td>
+                            <td class="w-5p">{% trans '狀態' %}</td>
+                            <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
                         {% for r in record %}
                         <tr>
@@ -182,7 +182,7 @@
                             <td> 
                                 {{ r.query|safe }}
                                 <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">再次查詢
+                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
                                     <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
                                         <g id="loupe" transform="translate(0 -0.003)">
                                         <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
@@ -192,9 +192,9 @@
                                     </svg>
                                 </a>
                             </td>
-                            <td>{{ r.status }}</td>
+                            <td>{% trans r.status %}</td>
                             <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/record/tbia_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/record/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -205,7 +205,7 @@
 					{% if r_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="download">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        <span></span>上一頁
+                        <span></span>{% trans '上一頁' %}
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in r_page_list %}
@@ -217,11 +217,11 @@
                     {% endfor %}
                     {% if 2 in r_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="download">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ r_total_page }}" data-type="download">{{ r_total_page }}</a>
@@ -232,24 +232,24 @@
 
         <div class="rightbox_content download_taxon d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>名錄下載</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '名錄下載' %}</div>
                 <div class="d-flex-jc-fe">
                     <a href="/media/名錄欄位說明文件.pdf" target="_blank" class="dow_btn">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <p>下載名錄欄位說明文件</p>
+                        <p>{% trans '下載名錄欄位說明文件' %}</p>
                     </a>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 download_taxon_table">
                         <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">搜尋條件</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
+                            <td class="w-5p">{% trans '下載編號' %}</td>
+                            <td class="w-10p">{% trans '檔案編號' %}</td>
+                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
+                            <td class="w-20p">{% trans '搜尋條件' %}</td>
+                            <td class="w-5p">{% trans '狀態' %}</td>
+                            <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
                         {% for r in taxon %}
                         <tr>
@@ -259,7 +259,7 @@
                             <td>
                                 {{ r.query|safe }}
                                 <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">再次查詢
+                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
                                     <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
                                         <g id="loupe" transform="translate(0 -0.003)">
                                         <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
@@ -269,9 +269,9 @@
                                     </svg>
                                 </a>
                             </td>
-                            <td>{{ r.status }}</td>
+                            <td>{% trans r.status %}</td>
                             <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -282,7 +282,7 @@
 					{% if t_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="download_taxon">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        <span></span>上一頁
+                        <span></span>{% trans '上一頁' %}
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in t_page_list %}
@@ -294,11 +294,11 @@
                     {% endfor %}
                     {% if 2 in t_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="download_taxon">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ t_total_page }}" data-type="download_taxon">{{ t_total_page }}</a>
@@ -309,25 +309,25 @@
 
         <div class="rightbox_content sensitive d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>單次使用去模糊化敏感資料</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '單次使用去模糊化敏感資料' %}</div>
                 <div class="d-flex-jc-fe">
                     <a href="/media/資料欄位說明文件.pdf" target="_blank" class="dow_btn">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <p>下載資料欄位說明文件</p>
+                        <p>{% trans '下載資料欄位說明文件' %}</p>
                     </a>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_table">
                         <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-15p">搜尋條件</td>
-                            <td class="w-15p">審查意見</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
+                            <td class="w-5p">{% trans '下載編號' %}</td>
+                            <td class="w-10p">{% trans '檔案編號' %}</td>
+                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
+                            <td class="w-15p">{% trans '搜尋條件' %}</td>
+                            <td class="w-15p">{% trans '審查意見' %}</td>
+                            <td class="w-5p">{% trans '狀態' %}</td>
+                            <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
                         {% for r in sensitive %}
                         <tr>
@@ -337,7 +337,7 @@
                             <td>
                                 {{ r.query|safe }}
                                 <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">再次查詢
+                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
                                     <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
                                         <g id="loupe" transform="translate(0 -0.003)">
                                         <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
@@ -348,9 +348,9 @@
                                 </a>
                             </td>
                             <td>{{ r.comment|safe }}</td>
-                            <td>{{ r.status }}</td>
+                            <td>{% trans r.status %}</td>
                             <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{{ r.query_id }}.zip">下載</a>
+                                <a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -361,7 +361,7 @@
 					{% if s_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        <span></span>上一頁
+                        <span></span>{% trans '上一頁' %}
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in s_page_list %}
@@ -373,11 +373,11 @@
                     {% endfor %}
                     {% if 2 in s_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive">{{ s_total_page }}</a>
@@ -388,15 +388,15 @@
 
         <div class="rightbox_content notification d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>通知</div>
+                <div class="box-title"><div class="dottt"></div>{% trans '通知' %}</div>
                 <div class="d-flex-jc-fe">
-                <button class="read_btn updateIsRead">全部已讀</button>
+                <button class="read_btn updateIsRead">{% trans '全部已讀' %}</button>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1  notification_table">
                         <tr>
-                            <td>日期</td>
-                            <td>內容</td>
+                            <td>{% trans '日期' %}</td>
+                            <td>{% trans '內容' %}</td>
                         </tr>
                         {% for n in notis %}
                         <tr>
@@ -417,7 +417,7 @@
 					{% if n_page_list|length > 1 %}
                     <a href="javascript:;" class="num changePage" data-page="1" data-type="notification">1</a>
                     <a href="javascript:;" class="pre pt-none">
-                        <span></span>上一頁
+                        <span></span>{% trans '上一頁' %}
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in n_page_list %}
@@ -429,11 +429,11 @@
                     {% endfor %}
                     {% if 2 in n_page_list %}
                     <a href="javascript:;" class="next changePage" data-page="2" data-type="notification">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% else %}
                     <a href="javascript:;" class="next pt-none">
-                        下一頁<span></span>
+                        {% trans '下一頁' %}<span></span>
                     </a>
                     {% endif %}
                     <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="notification">{{ n_total_page }}</a>
@@ -442,7 +442,7 @@
             </div>
         </div>
         {% else %}
-        請先登入
+        {% trans '請先登入' %}
         {% endif %}
     </div>
 

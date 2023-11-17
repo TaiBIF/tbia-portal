@@ -1,0 +1,419 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-17 07:29+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: static/js/data/search_collection.js:4 static/js/data/search_occurrence.js:4
+msgid "來源資料庫"
+msgstr ""
+
+#: static/js/data/search_collection.js:6 static/js/data/search_collection.js:42
+#: static/js/data/search_collection.js:82 static/js/data/search_occurrence.js:5
+#: static/js/data/search_occurrence.js:41
+#: static/js/data/search_occurrence.js:92
+msgid "全部"
+msgstr ""
+
+#: static/js/data/search_collection.js:6 static/js/data/search_collection.js:42
+#: static/js/data/search_collection.js:82 static/js/data/search_occurrence.js:5
+#: static/js/data/search_occurrence.js:41
+#: static/js/data/search_occurrence.js:92
+msgid " 個選項"
+msgstr ""
+
+#: static/js/data/search_collection.js:6 static/js/data/search_collection.js:42
+#: static/js/data/search_collection.js:82 static/js/data/search_occurrence.js:5
+#: static/js/data/search_occurrence.js:41
+#: static/js/data/search_occurrence.js:92
+msgid "重設"
+msgstr ""
+
+#: static/js/data/search_collection.js:40
+#: static/js/data/search_occurrence.js:40
+msgid "資料集名稱"
+msgstr ""
+
+#: static/js/data/search_collection.js:49
+msgid "標本類型"
+msgstr ""
+
+#: static/js/data/search_collection.js:51
+#: static/js/data/search_occurrence.js:53
+msgid "鑑定層級"
+msgstr ""
+
+#: static/js/data/search_collection.js:53
+#: static/js/data/search_occurrence.js:57
+msgid "半徑"
+msgstr ""
+
+#: static/js/data/search_collection.js:56
+#: static/js/data/search_occurrence.js:61
+msgid "有無影像"
+msgstr ""
+
+#: static/js/data/search_collection.js:61
+#: static/js/data/search_occurrence.js:69
+msgid "較高分類群"
+msgstr ""
+
+#: static/js/data/search_collection.js:70
+#: static/js/data/search_occurrence.js:79
+msgid "物種類群"
+msgstr ""
+
+#: static/js/data/search_collection.js:75
+msgid "採集地"
+msgstr ""
+
+#: static/js/data/search_collection.js:287
+#: static/js/data/search_collection.js:311
+#: static/js/data/search_collection.js:345
+#: static/js/data/search_collection.js:369
+#: static/js/data/search_collection.js:553
+#: static/js/data/search_collection.js:971
+#: static/js/data/search_collection.js:997
+#: static/js/data/search_collection.js:1050 static/js/data/search_full.js:61
+#: static/js/data/search_full.js:112 static/js/data/search_full.js:152
+#: static/js/data/search_full.js:208 static/js/data/search_full.js:248
+#: static/js/data/search_full.js:919 static/js/data/search_full.js:1143
+#: static/js/data/search_full.js:1518 static/js/data/search_full.js:1661
+#: static/js/data/search_occurrence.js:195
+#: static/js/data/search_occurrence.js:219
+#: static/js/data/search_occurrence.js:253
+#: static/js/data/search_occurrence.js:277
+#: static/js/data/search_occurrence.js:466
+#: static/js/data/search_occurrence.js:974
+#: static/js/data/search_occurrence.js:1000
+#: static/js/data/search_occurrence.js:1052 static/js/pages/application.js:115
+msgid "要求連線逾時"
+msgstr ""
+
+#: static/js/data/search_collection.js:508
+#: static/js/data/search_collection.js:522
+#: static/js/data/search_occurrence.js:419
+#: static/js/data/search_occurrence.js:433
+msgid "框選失敗！請檢查經緯度格式是否正確"
+msgstr ""
+
+#: static/js/data/search_collection.js:510
+#: static/js/data/search_occurrence.js:421
+msgid "框選失敗！請檢查經緯度數值是否正確"
+msgstr ""
+
+#: static/js/data/search_collection.js:561
+#: static/js/data/search_occurrence.js:475
+msgid "上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限"
+msgstr ""
+
+#: static/js/data/search_collection.js:612
+#: static/js/data/search_collection.js:662
+#: static/js/data/search_occurrence.js:522
+#: static/js/data/search_occurrence.js:573
+msgid "-- 不限 --"
+msgstr ""
+
+#: static/js/data/search_collection.js:835 static/js/data/search_full.js:648
+#: static/js/data/search_occurrence.js:845
+msgid "欄位選項"
+msgstr ""
+
+#: static/js/data/search_collection.js:842
+#: static/js/data/search_occurrence.js:852
+msgid " 筆"
+msgstr ""
+
+#: static/js/data/search_collection.js:846
+#: static/js/data/search_occurrence.js:856
+msgid "資料筆數"
+msgstr ""
+
+#: static/js/data/search_collection.js:848
+#: static/js/data/search_occurrence.js:858
+msgid "名錄下載"
+msgstr ""
+
+#: static/js/data/search_collection.js:850
+#: static/js/data/search_occurrence.js:860
+msgid "申請單次使用去模糊化敏感資料"
+msgstr ""
+
+#: static/js/data/search_collection.js:916 static/js/data/search_full.js:705
+#: static/js/data/search_full.js:708 static/js/data/search_occurrence.js:920
+msgid "查看"
+msgstr ""
+
+#: static/js/data/search_collection.js:967
+#: static/js/data/search_collection.js:993 static/js/data/search_full.js:1657
+#: static/js/data/search_occurrence.js:970
+#: static/js/data/search_occurrence.js:996
+msgid "請求已送出，下載檔案處理完成後將以Email通知"
+msgstr ""
+
+#: static/js/data/search_collection.js:1005
+#: static/js/data/search_collection.js:1015 static/js/data/search_full.js:1669
+#: static/js/data/search_occurrence.js:982
+#: static/js/data/search_occurrence.js:1008
+#: static/js/data/search_occurrence.js:1018 static/js/pages/agreement.js:9
+#: static/js/pages/application.js:125
+msgid "請先登入"
+msgstr ""
+
+#: static/js/data/search_collection.js:1120
+#: static/js/data/search_occurrence.js:1148
+msgid "您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。"
+msgstr ""
+
+#: static/js/data/search_collection.js:1143
+#: static/js/data/search_occurrence.js:1171 static/js/pages/index.js:219
+#: static/js/pages/resources.js:184
+msgid "無資料"
+msgstr ""
+
+#: static/js/data/search_full.js:643
+msgid "結果列表"
+msgstr ""
+
+#: static/js/data/search_full.js:656
+msgid "資料下載"
+msgstr ""
+
+#: static/js/data/search_full.js:674
+msgid "功能"
+msgstr ""
+
+#: static/js/data/search_full.js:1058 static/js/data/search_full.js:1463
+msgid "中⽂名"
+msgstr ""
+
+#: static/js/data/search_full.js:1060 static/js/data/search_full.js:1465
+msgid "中文別名"
+msgstr ""
+
+#: static/js/data/search_full.js:1062 static/js/data/search_full.js:1467
+msgid "分類階層"
+msgstr ""
+
+#: static/js/data/search_full.js:1065 static/js/data/search_full.js:1470
+msgid "自然史典藏筆數"
+msgstr ""
+
+#: static/js/data/search_full.js:1124
+msgid "更多結果"
+msgstr ""
+
+#: static/js/data/search_full.js:1216 static/js/data/search_full.js:1589
+msgid "學名"
+msgstr ""
+
+#: static/js/data/search_full.js:1238
+msgid ""
+"符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更"
+"多或更符合的關鍵字"
+msgstr ""
+
+#: static/js/data/search_occurrence.js:49
+msgid "紀錄類型"
+msgstr ""
+
+#: static/js/data/search_occurrence.js:85
+msgid "出現地"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid "Linear,Quad,Cubic,Quart,Quint,Strong"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid "onComplete,onUpdate,onStart,onRepeat,onReverseComplete,onInterrupt"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid "staggerTo,staggerFrom,staggerFromTo"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid ""
+"parent,duration,ease,delay,overwrite,runBackwards,startAt,yoyo,"
+"immediateRender,repeat,repeatDelay,data,paused,reversed,lazy,callbackScope,"
+"stringFilter,id,yoyoEase,stagger,inherit,repeatRefresh,keyframes,autoRevert,"
+"scrollTrigger"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid "to,from,fromTo,delayedCall,set,killTweensOf"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid "padding,margin,Width,Radius"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid ","
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid ""
+"0:translateX,1:translateY,2:translateZ,8:rotate,8:rotationZ,8:rotateZ,9:"
+"rotateX,10:rotateY"
+msgstr ""
+
+#: static/js/gsap.min.js:10
+msgid ""
+"x,y,z,top,right,bottom,left,width,height,fontSize,padding,margin,perspective"
+msgstr ""
+
+#: static/js/manager/manager.js:22 static/js/pages/news.js:121
+#: static/js/pages/qa.js:160
+msgid "下一頁"
+msgstr ""
+
+#: static/js/manager/manager.js:141
+msgid "送出前請閱讀並勾選同意保密協議"
+msgstr ""
+
+#: static/js/manager/register_verification.js:14
+msgid "已重新寄送"
+msgstr ""
+
+#: static/js/pages/agreement.js:6
+msgid "未勾選同意以上協議"
+msgstr ""
+
+#: static/js/pages/application.js:16
+msgid "個人研究計畫名稱"
+msgstr ""
+
+#: static/js/pages/application.js:110
+msgid "請求已送出，審核完畢後將以Email通知"
+msgstr ""
+
+#: static/js/pages/application.js:122
+msgid "請完整填寫表格"
+msgstr ""
+
+#: static/js/pages/news.js:169 static/js/pages/qa.js:206
+msgid "發生未知錯誤！請聯絡管理員"
+msgstr ""
+
+#: static/js/pages/qa.js:71
+msgid "問題類型"
+msgstr ""
+
+#: static/js/pages/resources.js:201
+msgid "上一頁"
+msgstr ""
+
+#: static/js/tutorial.js:4
+msgid ""
+"歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議您"
+"可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。"
+msgstr ""
+"Welcome to the &quot;Biodiversity Database Portal System&quot;! If this is "
+"your first time using this system, we recommend that you utilize the keyword "
+"search feature on the homepage to find the information you are looking for."
+
+#: static/js/tutorial.js:5
+msgid ""
+"關鍵字查詢結果頁面的左側選單除了呈現結果的分類外，也可以針對您所查詢的關鍵字"
+"所在欄位，再篩選出對應的結果。"
+msgstr ""
+"On the keyword search results page, the left-hand menu not only categorizes "
+"the results but also allows you to filter results based on the fields where "
+"your queried keyword appears."
+
+#: static/js/tutorial.js:6
+msgid ""
+"關鍵字查詢結果以票卡形式呈現，每張票卡皆以一個物種為單位，其中物種出現紀錄及"
+"自然史典藏結果票卡右上角的數字為符合此張票卡結果的資料筆數。<br>關鍵字如出現"
+"在多個欄位，則將會呈現多種欄位組合結果的票卡。"
+msgstr ""
+"The keyword search results are presented in card format, with each card "
+"representing an individual species. The number in the upper right corner of "
+"each card, which corresponds to species occurrence records and results from "
+"the natural history collection, indicates the number of data entries that "
+"match this card's results. <br>If the keyword appears in multiple fields, "
+"the results will be presented in different cards, displaying combinations of "
+"results from various fields."
+
+#: static/js/tutorial.js:7
+msgid ""
+"若您以關鍵字搜尋無法找到精確的結果，可使用右上角的進階搜尋功能（包含物種出現"
+"紀錄查詢及自然史典藏查詢）。<br>進階搜尋功能也可以在網頁最上方的標頭中找到。"
+msgstr ""
+"If you cannot find precise results using keywords, you can use the advanced "
+"search feature in the upper right corner, which includes species occurrence "
+"records and natural history collection queries. <br>You can also access the "
+"advanced search feature at the top of the webpage."
+
+#: static/js/tutorial.js:8
+msgid "進階搜尋功能可針對特定欄位做搜尋，也可以利用地圖進行空間查詢。"
+msgstr ""
+"The advanced search feature allows you to search specific fields and perform "
+"spatial queries using the map."
+
+#: static/js/tutorial.js:9
+msgid ""
+"進階搜尋的查詢結果預設僅會出現部分欄位，若欲查看其他欄位，可使用結果列表左上"
+"方的「欄位選項」勾選您希望呈現的欄位。"
+msgstr ""
+"The query results in the advanced search will display only some of the "
+"fields by default. If you want to view other fields, you can click the &quot;"
+"Field Options&quot; button at the top left of the results list and select "
+"the fields you wish to display."
+
+#: static/js/tutorial.js:10
+msgid ""
+"您查詢的資料結果可在登入後透過「資料下載」功能取得，也可以透過「名錄下載」功"
+"能取得您查詢結果中的完整物種名錄。<br>若您希望取得敏感物種的點位資訊，則可透"
+"過「申請單次使用去模糊化敏感資料」功能取得。"
+msgstr ""
+"The results of your query can be obtained after logging in through the &quot;"
+"Download records&quot; function. You can also obtain the complete species "
+"list from your query results through the &quot;Download checklist&quot; "
+"function.<br>If you wish to obtain the location information of sensitive "
+"species, you can do so through the &quot;Apply for One-Time Use of Non-"
+"Blurred Sensitive Data&quot; function."
+
+#: static/js/tutorial.js:11
+msgid "您申請取用的資料檔案皆可在登入後的帳號後台頁面中查閱並下載。"
+msgstr ""
+"All data files that you apply to access can be viewed and downloaded from "
+"your account panel after logging in."
+
+#: static/js/tutorial.js:12
+msgid ""
+"進階搜尋的每一筆查詢結果都可以透過最前方的「查看」功能，查閱詳細的資料內容。"
+msgstr ""
+"You can click the &quot;View&quot; option at the front of each query result "
+"in the advanced search page to access detailed data content."
+
+#: static/js/tutorial.js:13
+msgid ""
+"每一筆資料的詳細內容頁面除了呈現物種分類階層與共通欄位的內容外，如來源資料庫"
+"有提供影像及座標點位亦會呈現。<br>除此之外，也可從資料詳細內容頁面外連至來源"
+"資料庫查看更完整的資訊。"
+msgstr ""
+"The detailed content page of each entry not only displays the species "
+"classification hierarchy and common fields but also includes images and "
+"coordinate points if provided by the source database. <br>In addition, you "
+"can also follow external links from the data details page to view more "
+"comprehensive information from the source database."
+
+#~ msgid "國內外各大資料庫及推薦網站連結"
+#~ msgstr "Recommended databases & websites"
