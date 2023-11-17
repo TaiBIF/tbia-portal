@@ -27,11 +27,7 @@
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-					<br>
-					如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 		</div>
 	</div>
@@ -40,13 +36,13 @@
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}"  class="home"></a> <span>></span>
-    <p>常見Q&A</p>
+    <p>{% trans '常見Q&A' %}</p>
   </div>
 </div>
 <div class="in_bn qa_bn">
   <div class="title">
-    <h2>常見Q&A</h2>
-    <h3>Question & Answer</h3>
+    <h2>{% trans '常見Q&A' %}</h2>
+    {% comment %} <h3>Question & Answer</h3> {% endcomment %}
   </div>
 </div>
 <div class="container_area">
@@ -54,14 +50,14 @@
     <div class="qa_top_item">
       <ul class="tabb">
         {% for q in qa_options %}
-        <li class="{% if type == q.type %} now {% endif %}  qa_{{ q.type }}" data-type="{{ q.type }}">{{ q.value }}</li>
+        <li class="{% if type == q.type %} now {% endif %}  qa_{{ q.type }}" data-type="{{ q.type }}">{% trans q.value %}</li>
         {% endfor %}
       </ul>
-      <button class="rep showFeedback">意見回饋</button>
+      <button class="rep showFeedback">{% trans '意見回饋' %}</button>
       <div class="mobile_tab">
         <select name="qa_type" id="qa_type">
           {% for q in qa_options %}
-          <option value="{{ q.type }}" {% if type == q.type %} selected {% endif %}>{{ q.value }}</option>
+          <option value="{{ q.type }}" {% if type == q.type %} selected {% endif %}>{% trans q.value %}</option>
           {% endfor %}
         </select>
       </div>
@@ -91,11 +87,11 @@
         <a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
         {% if current_page|add:'-1' in page_list %}
         <a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-          <span></span>上一頁
+          <span></span>{% trans '上一頁' %}
         </a>
         {% else %}
         <a href="javascript:;" class="pre pt-none">
-          <span></span>上一頁
+          <span></span>{% trans '上一頁' %}
         </a>
         {% endif %}
         <!--目前頁面給 now-->
@@ -108,11 +104,11 @@
         {% endfor %}
         {% if current_page|add:1 in page_list %}
         <a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="2">
-          下一頁<span></span>
+          {% trans '下一頁' %}<span></span>
         </a>
         {% else %}
         <a href="javascript:;" class="next pt-none">
-          下一頁<span></span>
+          {% trans '下一頁' %}<span></span>
         </a>
         {% endif %}
         <a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
@@ -124,5 +120,6 @@
 {% endblock body %}
 
 {% block script %}
+<script src="{% static 'js/tutorial.js' %}"></script>
 <script src="{% static 'js/pages/qa.js' %}"></script>
 {% endblock script %}

@@ -40,18 +40,14 @@
 
 			<div class="techbox">
       <div class="noshow">
-       <a id="not_show_tech" class="pointer">不再顯示</a>
+       <a id="not_show_tech" class="pointer">{% trans '不再顯示' %}</a>
 			</div>
 				<div class="tech_pic">
 					<!--565*340或者兩倍大小1130*680-->
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-          <br>
-          如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 
 		</div>
@@ -81,11 +77,7 @@
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-          <br>
-          如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 
 		</div>
@@ -174,11 +166,13 @@
                 </g>
               </svg>
             </div>
-            <p>物種出現紀錄</p>
+            <p>{% trans '物種出現紀錄' %}</p>
           </div>
           <div class="numbox">
             <p>{{ count_occurrence }}</p>
+            {% if LANGUAGE_CODE == 'zh-hant' %}
             <span>筆</span>
+            {% endif %}
           </div>
         </div>
         <div class="itembox">
@@ -190,11 +184,13 @@
                 </g>
               </svg>
             </div>
-            <p>自然史典藏</p>
+            <p>{% trans '自然史典藏' %}</p>
           </div>
           <div class="numbox">
             <p>{{ count_collection }}</p>
+            {% if LANGUAGE_CODE == 'zh-hant' %}
             <span>筆</span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -215,13 +211,13 @@
       </div>
     </div>
     <div class="main_1240">
-      <h2 class="title"><span></span>最新消息</h2>
+      <h2 class="title"><span></span>{% trans '最新消息' %}</h2>
       <ul class="news_tab">
         <!--點選時給class="now"-->
-        <li class="li-news-all now updateNews" data-type="all">所有消息<span></span></li>
-        <li class="li-news-news updateNews" data-type="news">新聞公告<span></span></li>
-        <li class="li-news-event updateNews" data-type="event">活動訊息<span></span></li>
-        <li class="li-news-project updateNews" data-type="project">計畫徵求<span></span></li>
+        <li class="li-news-all now updateNews" data-type="all">{% trans '所有消息' %}<span></span></li>
+        <li class="li-news-news updateNews" data-type="news">{% trans '新聞公告' %}<span></span></li>
+        <li class="li-news-event updateNews" data-type="event">{% trans '活動訊息' %}<span></span></li>
+        <li class="li-news-project updateNews" data-type="project">{% trans '計畫徵求' %}<span></span></li>
       </ul>
       <ul class="news_list">
         {% if news_list|length > 0 %}
@@ -233,7 +229,7 @@
             <div class="infbox">
               <div class="center_box">
                 <div class="tag_date">
-                  <div class="tag {{ n.color }}">{{ n.type_c }}</div>
+                  <div class="tag {{ n.color }}">{% trans n.type_c %}</div>
                   <p class="date">{{ n.publish_date }}</p>
                 </div>
                 <a href="{% url 'news_detail' n.id %}" target="_blank" class="nstitle">
@@ -246,12 +242,12 @@
           </li>
           {% endfor %}
         {% else %}
-          <li>無資料</li>
+          <li>{% trans '無資料' %}</li>
         {% endif %}
       </ul>
       <div class="more_right clearfix">
         <a href="{% url 'news' %}" class="go_more">
-          <p>查看更多訊息</p>
+          <p>{% trans '查看更多訊息' %}</p>
           <span class="line"></span>
           <span class="arrow">
             <svg xmlns="http://www.w3.org/2000/svg" width="9.406" height="10.75" viewBox="0 0 9.406 10.75">
@@ -280,24 +276,24 @@
     <div class="main_1240">
       <div class="titletop">
         <span></span>
-        <p>開放資料相關資源</p>
+        <p>{% trans '開放資料相關資源' %}</p>
         <span></span>
       </div>
       <ul class="edu_tag">
         <li id="all" class="now">
-          <p>所有資源<span></span></p>
+          <p>{% trans '所有資源' %}<span></span></p>
         </li>
         <li id="strategy">
-          <p>TBIA 策略文件<span></span></p>
+          <p>{% trans 'TBIA 策略文件' %}<span></span></p>
         </li>
         <li id="guide" >
-          <p>開放資料指引<span></span></p>
+          <p>{% trans '開放資料指引' %}<span></span></p>
         </li>
         <li id="tool">
-          <p >參考文件/工具<span></span></p>
+          <p>{% trans '參考文件/工具' %}<span></span></p>
         </li>
         <li id="tutorial">
-          <p>教學文件<span></span></p>
+          <p>{% trans '教學文件' %}<span></span></p>
         </li>
       </ul>
       <!--手機版只顯示4個-->
@@ -307,7 +303,7 @@
             <div class="cate_dbox">
               <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
             </div>
-            <a href="/resources/link" class="title" target="_blank">國內外各大資料庫及推薦網站連結</a>
+            <a href="/resources/link" class="title" target="_blank">{% trans '國內外各大資料庫及推薦網站連結' %}</a>
           </div>
         </li>        
         {% for i in resource %}
@@ -340,7 +336,7 @@
       </ul>
       <div class="more_right clearfix">
         <a href="{% url 'resources' %}" class="go_more">
-          <p>查看更多資源</p>
+          <p>{% trans '查看更多資源' %}</p>
           <span class="line"></span>
           <span class="arrow">
             <svg xmlns="http://www.w3.org/2000/svg" width="9.406" height="10.75" viewBox="0 0 9.406 10.75">
@@ -369,7 +365,7 @@
       </div>
     </div>
     <div class="main_1240">
-      <h2 class="title"><span></span>夥伴單位</h2>
+      <h2 class="title"><span></span>{% trans '夥伴單位' %}</h2>
       <ul class="index_partner">
         {% for p in index_partners %}
         <li>
@@ -387,5 +383,6 @@
 
 {% endblock body %} 
 {% block script %}
+<script src="{% static 'js/tutorial.js' %}"></script>
 <script src="{% static 'js/pages/index.js' %}"></script>
 {% endblock script %}

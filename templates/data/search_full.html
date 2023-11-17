@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 {% load humanize %}
-{% block title %}全站搜尋｜{% endblock %}
+{% block title %}{% trans '全站搜尋' %}｜{% endblock %}
 
 {% block head %}
 
@@ -48,11 +48,7 @@
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-					<br>
-					如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 		</div>
 	</div>
@@ -92,12 +88,12 @@
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>
-    <p>全站搜尋結果</p>
+    <p>{% trans '全站搜尋結果' %}</p>
   </div>
 </div>
 
 <div class="nbn_title">
-  <h2>全站搜尋結果</h2>
+  <h2>{% trans '全站搜尋結果' %}</h2>
 </div>
 <div class="main_1240">
   <div class="searchbar_top">
@@ -119,22 +115,22 @@
       --> 
     </div>
     <div class="rightbox_select">
-      <p>想找到更精準的資料嗎？<br />試試進階搜尋</p>
+      <p>{% trans '想找到更精準的資料嗎？' %}<br />{% trans '試試進階搜尋' %}</p>
       <div class="icon_two">
         <div class="item pointer open-page" data-href="/search/occurrence">
           <a>
             <img src="{% static 'image/mapicon.svg' %}" alt="" />
-            <span>物種出現紀錄查詢</span>
+            <span>{% trans '物種出現紀錄查詢' %}</span>
           </a>
-          <a class="hvmask">物種出現紀錄查詢</a>
+          <a class="hvmask">{% trans '物種出現紀錄查詢' %}</a>
           <div class="line"></div>
         </div>
         <div class="item pointer open-page" data-href="/search/collection">
           <a>
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
-            <span>⾃然史典藏查詢</span>
+            <span>{% trans '⾃然史典藏查詢' %}</span>
           </a>
-          <a class="hvmask">⾃然史典藏查詢</a>
+          <a class="hvmask">{% trans '⾃然史典藏查詢' %}</a>
         </div>
       </div>
     </div>
@@ -144,14 +140,14 @@
     <div class="left_menu mbmove">
       <!--手機用的按鈕-->
       <div class="mb_fixed_btn">
-        <p>類<br />別<br />篩<br />選</p>
-        <span>關閉</span>
+        <p>{% trans '類<br />別<br />篩<br />選' %}</p>
+        <span>{% trans '關閉' %}</span>
       </div>
       <div class="mb_scroll">
         <ul class="item_list">
           <li class="now li-all">
             <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
-              <p>所有結果</p>
+              <p>{% trans '所有結果' %}</p>
               <div class="arr"></div>
             </a>
           </li>
@@ -159,17 +155,17 @@
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
               <p>
-                物種
+                {% trans '物種' %}
               </p>
               <div class="arrd"></div>
             </div>
             <div class="spe_menu second_menu">
-              <a id="facet_spe_all" class="focusComponent" href="javascript:;" data-item_class="item_spe" data-go_back="false">全部({{ taxon.count|intcomma }})</a>
+              <a id="facet_spe_all" class="focusComponent" href="javascript:;" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma }})</a>
               {% for i in taxon.rows %} 
               <a id="facet_taxon_{{ i.key }}" class="focusCards" href="javascript:;" 
               data-record_type="taxon"
               data-key="{{ i.key }}"
-              data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -177,18 +173,18 @@
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
               <p>
-                物種出現紀錄
+                {% trans '物種出現紀錄' %}
                 <a href="/qa?qa_id=7" target="_blank" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
             <div class="occ_menu second_menu">
-              <a id="facet_occ_all" class="focusComponent" href="javascript:;" data-item_class="item_occ" data-go_back="false">全部({{ occurrence.count|intcomma }})</a>
+              <a id="facet_occ_all" class="focusComponent" href="javascript:;" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
               <a id="facet_occ_{{ i.key }}" class="focusCards" href="javascript:;" 
               data-record_type="occ"
               data-key="{{ i.key }}"
-              data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
@@ -196,43 +192,43 @@
             <div class="big_link">
               <div class="maskfor_click rd_click"></div>
               <p>
-                ⾃然史典藏
+                {% trans '⾃然史典藏' %}
                 <a href="/qa?qa_id=8" target="_blank" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
             <div class="col_menu second_menu">
-              <a id="facet_col_all" class="focusComponent" href="javascript:;" data-item_class="item_col" data-go_back="false">全部({{ collection.count|intcomma }})</a>
+              <a id="facet_col_all" class="focusComponent" href="javascript:;" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
                 <a id="facet_col_{{ i.key }}" class="focusCards" href="javascript:;"
                 data-record_type="col"
                 data-key="{{ i.key }}"
-                data-go_back="false">{{ i.title }}({{ i.total_count|intcomma }})</a>
+                data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
               {% endfor %}
             </div>
           </li>
 
           <li class="li-item_news">
             <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
-              <p>新聞公告</p>
+              <p>{% trans '新聞公告' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_event">
             <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
-              <p>活動訊息</p>
+              <p>{% trans '活動訊息' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_project">
             <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
-              <p>計畫徵求</p>
+              <p>{% trans '計畫徵求' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_resource">
             <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
-              <p>開放資料相關資源</p>
+              <p>{% trans '開放資料相關資源' %}</p>
               <div class="arr"></div>
             </a>
           </li>
@@ -245,7 +241,7 @@
 					<div class="item item_spe"  id="item_spe">
 						<div class="titlebox_line">
 							<div class="title">
-								<p>物種 ({{ taxon.count|intcomma }})</p>
+								<p>{% trans '物種' %} ({{ taxon.count|intcomma }})</p>
 								<div class="line"></div>
 							</div>
 						</div>
@@ -259,19 +255,19 @@
                   {% else %}
                   <div class="lefttxt2">
                   {% endif %}
-										<p>中⽂名：{% highlight i.common_name_c keyword '1' %}</p>
-										<p>學名：{% highlight i.formatted_name keyword '1' %}</p>
-										<p>中文別名：{% highlight i.alternative_name_c keyword '1' %}</p>
-										<p>同物異名：{% highlight i.synonyms keyword '1' %}</p>
-										<p>分類階層：{{ i.taxonRank }}</p>
+										<p>{% trans '中⽂名' %}：{% highlight i.common_name_c keyword '1' %}</p>
+										<p>{% trans '學名' %}：{% highlight i.formatted_name keyword '1' %}</p>
+										<p>{% trans '中文別名' %}：{% highlight i.alternative_name_c keyword '1' %}</p>
+										<p>{% trans '同物異名' %}：{% highlight i.synonyms keyword '1' %}</p>
+										<p>{% trans '分類階層' %}：{{ i.taxonRank }}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                      <p>{{ ii.matched_col }}：{% highlight ii.matched_value keyword '1'  %}</p>
+                      <p>{% trans ii.matched_col %}：{% highlight ii.matched_value keyword '1'  %}</p>
                       {% endif %}    
                     {%  endfor %}
-										<p>出現記錄筆數：{{ i.occ_count|intcomma }}</p>
-										<p>自然史典藏筆數：{{ i.col_count|intcomma }}</p>
+										<p>{% trans '出現記錄筆數' %}：{{ i.occ_count|intcomma }}</p>
+										<p>{% trans '自然史典藏筆數' %}：{{ i.col_count|intcomma }}</p>
 									</div>
                   {% if i.images %}
 									<div class="right_img">
@@ -305,25 +301,25 @@
 
                 {% if i.taieol_id %}
                 <div class="btn_area">
-                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">生命大百科介紹</a>
+                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">{% trans '生命大百科介紹' %}</a>
                   <button class="getDist" 
                   data-taxonid="{{ i.taxonID }}"
                   data-common_name_c="{{ i.common_name_c }}"
-                  data-formatted_name="{{ i.formatted_name }}">資料分布圖</button>
+                  data-formatted_name="{{ i.formatted_name }}">{% trans '資料分布圖' %}</button>
                 </div>
                 {% else %}
                 <div class="btn_area jc-fe">
                   <button class="getDist" 
                   data-taxonid="{{ i.taxonID }}"
                   data-common_name_c="{{ i.common_name_c }}"
-                  data-formatted_name="{{ i.formatted_name }}">資料分布圖</button>
+                  data-formatted_name="{{ i.formatted_name }}">{% trans '資料分布圖' %}</button>
                 </div>
                 {% endif %}
 							</li>
               {% endfor %}
 						</ul>
             {% else %}
-            <div class="no_data">無資料</div>
+            <div class="no_data">{% trans '無資料' %}</div>
             {% endif %}
             <!--超過4個才有更多按鈕-->
             {% if taxon.more %}
@@ -331,10 +327,10 @@
               data-card_class=".taxon-card" 
               data-offset_value="#taxon_offset"
               data-more_type=".taxon_more" 
-              data-is_sub="false"> 更多結果 </a>
+              data-is_sub="false"> {% trans '更多結果' %} </a>
             <input type="hidden" id="taxon_offset" value="4">
             <div class="no_data taxon_more_end d-none"> 
-              符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字
+              {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
             </div>    
             {% endif %}
 					</div>
@@ -344,7 +340,7 @@
       <div class="item item_occ" id="item_occ">
         <div class="titlebox_line">
           <div class="title">
-            <p>物種出現紀錄 ({{ occurrence.count|intcomma }})</p>
+            <p>{% trans '物種出現紀錄' %} ({{ occurrence.count|intcomma }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -370,12 +366,12 @@
                   data-sort="asc">  
                 <div class="num">{{ i.count }}</div>
                 <div class="num_bottom"></div>
-                <p>中文名：{% highlight i.common_name_c keyword '1' %}</p>
-                <p>學名：{% highlight i.val keyword '1' %}</p>
-                <p>鑑定層級：{{ i.taxonRank }}</p>
+                <p>{% trans '中文名' %}：{% highlight i.common_name_c keyword '1' %}</p>
+                <p>{% trans '學名' %}：{% highlight i.val keyword '1' %}</p>
+                <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
                 {% for ii in i.matched %}
                   {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                    <p>{{ ii.matched_col }}：
+                    <p>{% trans ii.matched_col %}：
                       {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
                         {% highlight ii.matched_value keyword '1' %}
                       {% else %}
@@ -389,7 +385,7 @@
           </ul>
         {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">無資料</div>
+        <div class="no_data">{% trans '無資料' %}</div>
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
@@ -397,10 +393,10 @@
           data-card_class=".occ-card" 
           data-offset_value="#occ_offset"
           data-more_type=".occ_more" 
-          data-is_sub="false"> 更多結果 </a>
+          data-is_sub="false"> {% trans '更多結果' %} </a>
         <input type="hidden" id="occ_offset" value="9">
         <div class="no_data occ_more_end d-none"> 
-          符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字
+          {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
         </div>
         {% endif %}
       </div>
@@ -410,7 +406,7 @@
       <div class="item item_col" id="item_col">
         <div class="titlebox_line">
           <div class="title">
-            <p>⾃然史典藏 ({{ collection.count|intcomma }})</p>
+            <p>{% trans '⾃然史典藏' %} ({{ collection.count|intcomma }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -435,12 +431,12 @@
                 data-sort="asc">
               <div class="num">{{ i.count }}</div>
               <div class="num_bottom"></div>
-              <p>中文名：{% highlight i.common_name_c keyword '1' %}</p>
-              <p>學名：{% highlight i.val keyword '1' %}</p>
-              <p>鑑定層級：{{ i.taxonRank }}</p>
+              <p>{% trans '中文名' %}：{% highlight i.common_name_c keyword '1' %}</p>
+              <p>{% trans '學名' %}：{% highlight i.val keyword '1' %}</p>
+              <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
               {% for ii in i.matched %}
                 {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                  <p>{{ ii.matched_col }}：
+                  <p>{% trans ii.matched_col %}：
                     {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
                       {% highlight ii.matched_value keyword '1' %}
                     {% else %}
@@ -454,7 +450,7 @@
           </ul>
         {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">無資料</div>
+        <div class="no_data">{% trans '無資料' %}</div>
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
@@ -462,10 +458,10 @@
           data-card_class=".col-card" 
           data-offset_value="#col_offset"
           data-more_type=".col_more" 
-          data-is_sub="false"> 更多結果 </a>
+          data-is_sub="false"> {% trans '更多結果' %} </a>
         <input type="hidden" id="col_offset" value="9">
         <div class="no_data col_more_end d-none"> 
-          符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字
+          {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
         </div>
         {% endif %}
       </div>
@@ -475,7 +471,7 @@
       <div class="item item_news" id="item_news">
         <div class="titlebox_line">
           <div class="title">
-            <p>新聞公告 ({{ news.count }})</p>
+            <p>{% trans '新聞公告' %} ({{ news.count }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -490,7 +486,7 @@
         </ul>
         {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">無資料</div>
+        <div class="no_data">{% trans '無資料' %}</div>
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if news.count > 6 %}
@@ -498,7 +494,7 @@
           data-doc_type="news"
           data-offset_value="#news_offset"
           data-more_class=".more_news"
-          data-card_class=".news-card"> 更多結果 </a>
+          data-card_class=".news-card"> {% trans '更多結果' %} </a>
         <input type="hidden" id="news_offset" value="6">
         {% endif %}
       </div>
@@ -508,7 +504,7 @@
       <div class="item item_event" id="item_event">
         <div class="titlebox_line">
           <div class="title">
-            <p>活動訊息 ({{ event.count }})</p>
+            <p>{% trans '活動訊息' %} ({{ event.count }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -523,7 +519,7 @@
         </ul>
         {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">無資料</div>
+        <div class="no_data">{% trans '無資料' %}</div>
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if event.count > 6 %}
@@ -531,7 +527,7 @@
           data-doc_type="event"
           data-offset_value="#event_offset"
           data-more_class=".more_event"
-          data-card_class=".event-card"> 更多結果 </a>
+          data-card_class=".event-card"> {% trans '更多結果' %} </a>
         <input type="hidden" id="event_offset" value="6">
         {% endif %}
       </div>
@@ -541,7 +537,7 @@
       <div class="item item_project" id="item_project">
         <div class="titlebox_line">
           <div class="title">
-            <p>計畫徵求 ({{ project.count }})</p>
+            <p>{% trans '計畫徵求' %} ({{ project.count }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -556,7 +552,7 @@
         </ul>
         {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">無資料</div>
+        <div class="no_data">{% trans '無資料' %}</div>
         {% endif %} 
         {% if project.count > 6 %}
         <!--超過6個才有更多按鈕-->
@@ -564,7 +560,7 @@
           data-doc_type="project"
           data-offset_value="#project_offset"
           data-more_class=".more_project"
-          data-card_class=".project-card">更多結果 </a>
+          data-card_class=".project-card">{% trans '更多結果' %} </a>
         <input type="hidden" id="project_offset" value="6">
         {% endif %}
       </div>
@@ -574,7 +570,7 @@
       <div class="item item_resource" id="item_resource">
         <div class="titlebox_line">
           <div class="title">
-            <p>開放資料相關資源 ({{ resource.count }})</p>
+            <p>{% trans '開放資料相關資源' %} ({{ resource.count }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -587,7 +583,7 @@
                 <div class="cate_dbox">
                 <div class="date">{{ i.date }}</div>
                 </div>
-                <a href="javascript:;" class="title ">{{ i.title }}</a>
+                <a href="javascript:;" class="title ">{% highlight i.title keyword %}</a>
               </div>
             </li>
             {% else %}
@@ -605,14 +601,14 @@
             {% endfor %}
         </ul>
         {% else %}
-        <div class="no_data w-100p">無資料</div>
+        <div class="no_data w-100p">{% trans '無資料' %}</div>
         {% endif %} 
         {% if resource.count > 6 %}
         <a href="javascript:;" class="more more_resource getMoreDocs" 
           data-doc_type="resource"
           data-offset_value="#resource_offset"
           data-more_class=".more_resource"
-          data-card_class=".resource-card"> 更多結果 </a>
+          data-card_class=".resource-card"> {% trans '更多結果' %} </a>
         <input type="hidden" id="resource_offset" value="6">
         {% endif %}
       </div>
@@ -629,133 +625,133 @@
 			<div class="xx">
 			</div>
 			<div class="catetitle">
-				<div class="titlebox">欄位選項</div>	
-				<button class="selt selectAll" data-type=".col-choice">全選</button>
-				<button class="selt resetAll" data-type=".col-choice">重設</button>
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll" data-type=".col-choice">{% trans '全選' %}</button>
+				<button class="selt resetAll" data-type=".col-choice">{% trans '重設' %}</button>
 			</div>
 			<ul class="catalist">
 				<li>
 					<input type="checkbox" class="chebox" id="col-common_name_c" checked>
-					<p>中文名</p>
+					<p>{% trans '中文名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-scientificName" checked>
-					<p>學名</p>
+					<p>{% trans '學名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-alternative_name_c" checked>
-					<p>中文別名</p>
+					<p>{% trans '中文別名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-synonyms">
-					<p>同物異名</p>
+					<p>{% trans '同物異名' %}</p>
 				</li>
         <li>
 					<input type="checkbox" class="chebox" id="col-misapplied">
-					<p>誤用名</p>
+					<p>{% trans '誤用名' %}</p>
 				</li>				
 				<li>
 					<input type="checkbox" class="chebox" id="col-sourceScientificName">
-					<p>來源資料庫使用學名</p>
+					<p>{% trans '來源資料庫使用學名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-sourceVernacularName">
-					<p>來源資料庫使用中文名</p>
+					<p>{% trans '來源資料庫使用中文名' %}</p>
 				</li>	
 				<li>
 					<input type="checkbox" class="chebox" id="col-rightsHolder" checked>
-					<p>來源資料庫</p>
+					<p>{% trans '來源資料庫' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-taxonID">
-					<p>TaiCOL物種編號</p>
+					<p>{% trans 'TaiCOL物種編號' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-collectionID">
-					<p>館藏號</p>
+					<p>{% trans '館藏號' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-taxonRank">
-					<p>鑑定層級</p>
+					<p>{% trans '鑑定層級' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-sensitiveCategory">
-					<p>敏感層級</p>
+					<p>{% trans '敏感層級' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-typeStatus">
-					<p>標本類型</p>
+					<p>{% trans '標本類型' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-preservation">
-					<p>保存方式</p>
+					<p>{% trans '保存方式' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-eventDate">
-					<p>採集日期</p>
+					<p>{% trans '採集日期' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-locality">
-					<p>採集地</p>
+					<p>{% trans '採集地' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-recordedBy" checked>
-					<p>採集者</p>
+					<p>{% trans '採集者' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-recordNumber">
-					<p>採集號</p>
+					<p>{% trans '採集號' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-organismQuantity">
-					<p>數量</p>
+					<p>{% trans '數量' %}</p>
 				</li>				
         <li>
 					<input type="checkbox" class="chebox" id="col-organismQuantityType">
-					<p>數量單位</p>
+					<p>{% trans '數量單位' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
-					<p>經度</p>
+					<p>{% trans '經度' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
-					<p>緯度</p>
+					<p>{% trans '緯度' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-verbatimCoordinateSystem">
-					<p>座標系統</p>
+					<p>{% trans '座標系統' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-verbatimSRS">
-					<p>空間參考系統</p>
+					<p>{% trans '空間參考系統' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-coordinateUncertaintyInMeters">
-					<p>座標誤差</p>
+					<p>{% trans '座標誤差' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-dataGeneralizations">
-					<p>座標是否有模糊化</p>
+					<p>{% trans '座標是否有模糊化' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-coordinatePrecision">
-					<p>座標模糊化程度</p>
+					<p>{% trans '座標模糊化程度' %}</p>
 				</li>
 				<li>				
 					<input type="checkbox" class="chebox" id="col-datasetName">
-					<p>資料集名稱</p>
+					<p>{% trans '資料集名稱' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-resourceContacts">
-					<p>資料集聯絡人</p>
+					<p>{% trans '資料集聯絡人' %}</p>
 				</li>
         <li>
 					<input type="checkbox" class="chebox" id="col-license">
-					<p>授權狀況</p>
+					<p>{% trans '授權狀況' %}</p>
 				</li>
 			</ul>
-			<button class="send_bt sendSelected" data-type="col">確認</button>
+			<button class="send_bt sendSelected" data-type="col">{% trans '確認' %}</button>
 		</div>
 	</div>
 </div>
@@ -767,121 +763,121 @@
 			<div class="xx">
 			</div>
 			<div class="catetitle">
-				<div class="titlebox">欄位選項</div>	
-				<button class="selt selectAll" data-type=".occ-choice">全選</button>
-				<button class="selt resetAll" data-type=".occ-choice">重設</button>
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll" data-type=".occ-choice">{% trans '全選' %}</button>
+				<button class="selt resetAll" data-type=".occ-choice">{% trans '重設' %}</button>
 			</div>
 			<ul class="catalist">
 				<li>
 					<input type="checkbox" class="chebox" id="occ-common_name_c" checked>
-					<p>中文名</p>
+					<p>{% trans '中文名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-scientificName" checked>
-					<p>學名</p>
+					<p>{% trans '學名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-alternative_name_c" checked>
-					<p>中文別名</p>
+					<p>{% trans '中文別名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-synonyms">
-					<p>同物異名</p>
+					<p>{% trans '同物異名' %}</p>
 				</li>
         <li>
 					<input type="checkbox" class="chebox" id="occ-misapplied">
-					<p>誤用名</p>
+					<p>{% trans '誤用名' %}</p>
 				</li>				
         <li>
 					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
-					<p>來源資料庫使用學名</p>
+					<p>{% trans '來源資料庫使用學名' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
-					<p>來源資料庫使用中文名</p>
+					<p>{% trans '來源資料庫使用中文名' %}</p>
 				</li>				
 				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonRank">
-					<p>鑑定層級</p>
+					<p>{% trans '鑑定層級' %}</p>
 				</li>				
 				<li>
 					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
-					<p>敏感層級</p>
+					<p>{% trans '敏感層級' %}</p>
 				</li>				
         <li>
 					<input type="checkbox" class="chebox" id="occ-rightsHolder" checked>
-					<p>來源資料庫</p>
+					<p>{% trans '來源資料庫' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonID">
-					<p>TaiCOL物種編號</p>
+					<p>{% trans 'TaiCOL物種編號' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-eventDate">
-					<p>紀錄日期</p>
+					<p>{% trans '紀錄日期' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
-					<p>出現地</p>
+					<p>{% trans '出現地' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-organismQuantity">
-					<p>數量</p>
+					<p>{% trans '數量' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
-					<p>數量單位</p>
+					<p>{% trans '數量單位' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-recordedBy" checked>
-					<p>記錄者</p>
+					<p>{% trans '記錄者' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
-					<p>經度</p>
+					<p>{% trans '經度' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
-					<p>緯度</p>
+					<p>{% trans '緯度' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
-					<p>空間參考系統</p>
+					<p>{% trans '空間參考系統' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
-					<p>座標系統</p>
+					<p>{% trans '座標系統' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
-					<p>座標誤差</p>
+					<p>{% trans '座標誤差' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
-					<p>座標是否有模糊化</p>
+					<p>{% trans '座標是否有模糊化' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
-					<p>座標模糊化程度</p>
+					<p>{% trans '座標模糊化程度' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
-					<p>紀錄類型</p>
+					<p>{% trans '紀錄類型' %}</p>
 				</li>
 				<li>				
 					<input type="checkbox" class="chebox" id="occ-datasetName">
-					<p>資料集名稱</p>
+					<p>{% trans '資料集名稱' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-resourceContacts">
-					<p>資料集聯絡人</p>
+					<p>{% trans '資料集聯絡人' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-license">
-					<p>授權狀況</p>
+					<p>{% trans '授權狀況' %}</p>
 				</li>
 			</ul>
-			<button class="send_bt sendSelected" data-type="occ">確認</button>
+			<button class="send_bt sendSelected" data-type="occ">{% trans '確認' %}</button>
 		</div>
 	</div>
 </div>
@@ -893,7 +889,7 @@
 			<div class="xx taxon-dist">
 			</div>
 			<div class="titlegreen">
-				資料分布圖
+				{% trans '資料分布圖' %}
 			</div>
       <div id="map-box">
         <p id="taxon_name"><p>
@@ -905,5 +901,6 @@
 {% endblock body %} 
 
 {% block script %}
+<script src="{% static 'js/tutorial.js' %}"></script>
 <script src="{% static 'js/data/search_full.js' %}"></script>
 {% endblock script %}

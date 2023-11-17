@@ -39,11 +39,7 @@
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-					<br>
-					如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 		</div>
 	</div>
@@ -60,7 +56,7 @@
 <div class="in_bn resource_bn">
 	<div class="title">
 		<h2>開放資料相關資源</h2>
-		<h3>Resources</h3>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
@@ -223,5 +219,6 @@
 {% endblock body %}
 
 {% block script %}
+<script src="{% static 'js/tutorial.js' %}"></script>
 <script src="{% static 'js/pages/resources.js' %}"></script>
 {% endblock script %}
