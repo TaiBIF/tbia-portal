@@ -255,15 +255,15 @@
                   {% else %}
                   <div class="lefttxt2">
                   {% endif %}
-										<p>{% trans '中⽂名' %}：{% highlight i.common_name_c keyword '1' %}</p>
-										<p>{% trans '學名' %}：{% highlight i.formatted_name keyword '1' %}</p>
-										<p>{% trans '中文別名' %}：{% highlight i.alternative_name_c keyword '1' %}</p>
-										<p>{% trans '同物異名' %}：{% highlight i.synonyms keyword '1' %}</p>
+										<p>{% trans '中⽂名' %}：{{ i.common_name_c }}</p>
+										<p>{% trans '學名' %}：{{ i.formatted_name }}</p>
+										<p>{% trans '中文別名' %}：{{ i.alternative_name_c }}</p>
+										<p>{% trans '同物異名' %}：{{  i.synonyms }}</p>
 										<p>{% trans '分類階層' %}：{{ i.taxonRank }}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                      <p>{% trans ii.matched_col %}：{% highlight ii.matched_value keyword '1'  %}</p>
+                      <p>{% trans ii.matched_col %}：{{ ii.matched_value }}</p>
                       {% endif %}    
                     {%  endfor %}
 										<p>{% trans '出現記錄筆數' %}：{{ i.occ_count|intcomma }}</p>
@@ -303,16 +303,12 @@
                 <div class="btn_area">
                   <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">{% trans '生命大百科介紹' %}</a>
                   <button class="getDist" 
-                  data-taxonid="{{ i.taxonID }}"
-                  data-common_name_c="{{ i.common_name_c }}"
-                  data-formatted_name="{{ i.formatted_name }}">{% trans '資料分布圖' %}</button>
+                  data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
                 </div>
                 {% else %}
                 <div class="btn_area jc-fe">
                   <button class="getDist" 
-                  data-taxonid="{{ i.taxonID }}"
-                  data-common_name_c="{{ i.common_name_c }}"
-                  data-formatted_name="{{ i.formatted_name }}">{% trans '資料分布圖' %}</button>
+                  data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
                 </div>
                 {% endif %}
 							</li>
@@ -347,7 +343,6 @@
         {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
-            
               <li class="getRecords" 
                   data-record_type="occ"
                   {% if i.match_type == 'taxon-related' and i.val != '' %}
@@ -355,7 +350,7 @@
                   data-value="{{ i.taxonID }}"
                   {% else %}
                   data-key="{{ i.matched.0.key }}"
-                  data-value="{{ i.matched.0.matched_value }}"
+                  data-value="{{ i.matched.0.matched_value_ori }}"
                   {% endif %}
                   data-scientific_name="{{ i.name }}"
                   data-limit="{{ i.count }}"
@@ -366,17 +361,18 @@
                   data-sort="asc">  
                 <div class="num">{{ i.count }}</div>
                 <div class="num_bottom"></div>
-                <p>{% trans '中文名' %}：{% highlight i.common_name_c keyword '1' %}</p>
-                <p>{% trans '學名' %}：{% highlight i.val keyword '1' %}</p>
+                <p>{% trans '中文名' %}：{{ i.common_name_c|safe }}</p>
+                <p>{% trans '學名' %}：{{ i.val|safe }}</p>
                 <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
                 {% for ii in i.matched %}
                   {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                    <p>{% trans ii.matched_col %}：
+                    <p>{% trans ii.matched_col %}：{{ ii.matched_value|safe }}
+                      <!--
                       {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
-                        {% highlight ii.matched_value keyword '1' %}
+                        {{ ii.matched_value|safe }}
                       {% else %}
-                        {% highlight ii.matched_value keyword %}
-                      {% endif %}
+                        {{ ii.matched_value|safe }}
+                      {% endif %}-->
                     </p>
                   {% endif %}    
                 {%  endfor %}
@@ -420,7 +416,7 @@
                 data-value="{{ i.taxonID }}"
                 {% else %}
                 data-key="{{ i.matched.0.key }}"
-                data-value="{{ i.matched.0.matched_value }}"
+                data-value="{{ i.matched.0.matched_value_ori }}"
                 {% endif %}
                 data-scientific_name="{{ i.name }}"
                 data-limit="{{ i.count }}"
@@ -431,17 +427,18 @@
                 data-sort="asc">
               <div class="num">{{ i.count }}</div>
               <div class="num_bottom"></div>
-              <p>{% trans '中文名' %}：{% highlight i.common_name_c keyword '1' %}</p>
-              <p>{% trans '學名' %}：{% highlight i.val keyword '1' %}</p>
+              <p>{% trans '中文名' %}：{{ i.common_name_c|safe }}</p>
+              <p>{% trans '學名' %}：{{ i.val|safe }}</p>
               <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
               {% for ii in i.matched %}
                 {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                  <p>{% trans ii.matched_col %}：
+                  <p>{% trans ii.matched_col %}：{{ ii.matched_value|safe }}
+                    <!--
                     {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
-                      {% highlight ii.matched_value keyword '1' %}
+                      {{ ii.matched_value|safe }}
                     {% else %}
-                      {% highlight ii.matched_value keyword %}
-                    {% endif %}
+                      {{ ii.matched_value|safe }}
+                    {% endif %}-->
                   </p>
                 {% endif %}    
               {%  endfor %}
@@ -892,7 +889,7 @@
 				{% trans '資料分布圖' %}
 			</div>
       <div id="map-box">
-        <p id="taxon_name"><p>
+        {% comment %} <p id="taxon_name"><p> {% endcomment %}
         <div id="map"></div>
       </div>
 		</div>

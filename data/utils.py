@@ -19,6 +19,12 @@ import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 import json
 import re
+from data.solr_query import *
+from pages.templatetags.tags import highlight, get_variants
+
+# taxon-related fields
+taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
+taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID','originalScientificName']
 
 
 basis_dict = {
@@ -160,150 +166,7 @@ rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 
             'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
             'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'specialform', 'race', 'stirp', 'morph', 'aberration', 'hybridformula']
 
-var_df = pd.DataFrame([
-('鲃','[鲃䰾]'),
-('䰾','[鲃䰾]'),
-('刺','[刺刺]'),
-('刺','[刺刺]'),
-('葉','[葉葉]'),
-('葉','[葉葉]'),
-('鈎','[鈎鉤]'),
-('鉤','[鈎鉤]'),
-('臺','[臺台]'),
-('台','[臺台]'),
-('螺','[螺螺]'),
-('螺','[螺螺]'),
-('羣','[群羣]'),
-('群','[群羣]'),
-('峯','[峯峰]'),
-('峰','[峯峰]'),
-('曬','[晒曬]'),
-('晒','[晒曬]'),
-('裏','[裏裡]'),
-('裡','[裏裡]'),
-('薦','[荐薦]'),
-('荐','[荐薦]'),
-('艷','[豔艷]'),
-('豔','[豔艷]'),
-('粧','[妝粧]'),
-('妝','[妝粧]'),
-('濕','[溼濕]'),
-('溼','[溼濕]'),
-('樑','[梁樑]'),
-('梁','[梁樑]'),
-('秘','[祕秘]'),
-('祕','[祕秘]'),
-('污','[汙污]'),
-('汙','[汙污]'),
-('册','[冊册]'),
-('冊','[冊册]'),
-('唇','[脣唇]'),
-('脣','[脣唇]'),
-('朶','[朵朶]'),
-('朵','[朵朶]'),
-('鷄','[雞鷄]'),
-('雞','[雞鷄]'),
-('猫','[貓猫]'),
-('貓','[貓猫]'),
-('踪','[蹤踪]'),
-('蹤','[蹤踪]'),
-('恒','[恆恒]'),
-('恆','[恆恒]'),
-('獾','[貛獾]'),
-('貛','[貛獾]'),
-('万','[萬万]'),
-('萬','[萬万]'),
-('两','[兩两]'),
-('兩','[兩两]'),
-('椮','[槮椮]'),
-('槮','[槮椮]'),
-('体','[體体]'),
-('體','[體体]'),
-('鳗','[鰻鳗]'),
-('鰻','[鰻鳗]'),
-('蝨','[虱蝨]'),
-('虱','[虱蝨]'),
-('鲹','[鰺鲹]'),
-('鰺','[鰺鲹]'),
-('鳞','[鱗鳞]'),
-('鱗','[鱗鳞]'),
-('鳊','[鯿鳊]'),
-('鯿','[鯿鳊]'),
-('鯵','[鰺鯵]'),
-('鰺','[鰺鯵]'),
-('鲨','[鯊鲨]'),
-('鯊','[鯊鲨]'),
-('鹮','[䴉鹮]'),
-('䴉','[䴉鹮]'),
-('鴴','(行鳥|鴴)'),
-('鵐','(鵐|巫鳥)'),
-('䱵','(䱵|魚翁)'),
-('䲗','(䲗|魚銜)'),
-('䱀','(䱀|魚央)'),
-('䳭','(䳭|即鳥)'),
-('鱼','[魚鱼]'),
-('魚','[魚鱼]'),
-('万','[萬万]'),
-('萬','[萬万]'),
-('鹨','[鷚鹨]'),
-('鷚','[鷚鹨]'),
-('蓟','[薊蓟]'),
-('薊','[薊蓟]'),
-('黒','[黑黒]'),
-('黑','[黑黒]'),
-('隠','[隱隠]'),
-('隱','[隱隠]'),
-('黄','[黃黄]'),
-('黃','[黃黄]'),
-('囓','[嚙囓]'),
-('嚙','[嚙囓]'),
-('莨','[茛莨]'),
-('茛','[茛莨]'),
-('霉','[黴霉]'),
-('黴','[黴霉]'),
-('莓','[苺莓]'),  
-('苺','[苺莓]'),  
-('藥','[葯藥]'),  
-('葯','[葯藥]'),  
-('菫','[堇菫]'),
-('堇','[堇菫]')], columns=['char','pattern'])
-var_df['idx'] = var_df.groupby(['pattern']).ngroup()
 
-var_df_2 = pd.DataFrame([('行鳥','(行鳥|鴴)'),
-('蝦虎','[鰕蝦]虎'),
-('鰕虎','[鰕蝦]虎'),
-('巫鳥','(鵐|巫鳥)'),
-('魚翁','(䱵|魚翁)'),
-('魚銜','(䲗|魚銜)'),
-('魚央','(䱀|魚央)'),
-('游蛇','[遊游]蛇'),
-('遊蛇','[遊游]蛇'),
-('即鳥','(䳭|即鳥)'),
-('椿象','[蝽椿]象'),
-('蝽象','[蝽椿]象')], columns=['char','pattern'])
-
-
-# 產生javascript使用的dict
-# dict(zip(var_df.char, var_df.pattern))
-# dict(zip(var_df_2.char, var_df_2.pattern))
-
-
-# 先對一個字再對兩個字
-
-def get_variants(string):
-  new_string = ''
-  # 單個異體字
-  for s in string:    
-    if len(var_df[var_df['char']==s]):
-      new_string += var_df[var_df['char']==s].pattern.values[0]
-    else:
-      new_string += s
-  # 兩個異體字
-  for i in var_df_2.index:
-    char = var_df_2.loc[i, 'char']
-    if char in new_string:
-      new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
-  return new_string
 
 
 def get_page_list(current_page, total_page, window=5):
@@ -330,9 +193,9 @@ def is_alpha(word):
         return False
 
 
-dup_col = ['scientificName', 'common_name_c', 
-            'alternative_name_c', 'synonyms', 'misapplied','kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
-            'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',  'sourceScientificName', 'sourceVernacularName']
+# dup_col = ['scientificName', 'common_name_c', 
+#             'alternative_name_c', 'synonyms', 'misapplied','kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
+#             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',  'sourceScientificName', 'sourceVernacularName']
 
 # 進階搜尋查詢name欄位
 name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName']
@@ -680,7 +543,7 @@ download_cols = [
 'verbatimSRS',
 'scientificNameID',
 'taxonID',
-'parentTaxonID',
+# 'parentTaxonID',
 'scientificName',
 'name_author',
 'taxonRank',
@@ -1110,7 +973,6 @@ def create_search_query(req_dict, from_request=False):
             l_list_str = '" OR "'.join(l_list)
             query_list += [f'locality:("{l_list_str}")']
 
-    print(l_list_str)
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -1191,3 +1053,493 @@ def create_search_query(req_dict, from_request=False):
         
 #     return Taxon.objects.filter(qs).order_by('scientificName')
 
+
+# 全站搜尋 物種出現紀錄 / 自然史典藏
+def get_search_full_cards(keyword, card_class, is_sub, offset, key):
+
+    keyword = keyword.strip()
+
+    # # 去除重複空格
+    # keyword = re.sub(' +', ' ', keyword)
+    # 去除頭尾空格
+    # keyword = keyword.strip()
+    # 去除特殊字元
+    # keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
+
+    if re.match(r'^([\s\d]+)$', keyword):
+        # 純數字
+        enable_query_date = False
+    elif re.match(r'^[0-9-]*$', keyword):
+        # 數字和-的組合 一定要符合日期格式才行
+        try:
+            datetime.strptime(keyword, '%Y-%m-%d')
+            enable_query_date = True
+        except:
+            enable_query_date = False
+    else:
+        enable_query_date = True
+
+
+    query = {
+        "query": '',
+        "limit": 0,
+        "filter": ['recordType:col'],
+        "facet": {},
+        "sort":  "scientificName asc"
+        }        
+
+    keyword_reg = ''
+    q = ''
+    keyword = html.unescape(keyword)
+    for j in keyword:
+        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = get_variants(keyword_reg)
+
+    # 查詢學名相關欄位時 去除重複空格
+    keyword_name = re.sub(' +', ' ', keyword)
+    keyword_name_reg = ''
+    for j in keyword_name:
+        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = get_variants(keyword_name_reg)
+
+
+    if card_class.startswith('.col'):
+        facet_list = col_facets
+        map_dict = map_collection
+        record_type = 'col'
+        title_prefix = '自然史典藏 > '
+    else: # taxon 跟 occ 都算在這裡
+        facet_list = occ_facets
+        map_dict = map_occurrence
+        query.pop('filter', None)
+        record_type = 'occ'
+        title_prefix = '物種出現紀錄 > '
+
+    if not enable_query_date:
+        if 'eventDate' in facet_list['facet'].keys():
+            facet_list['facet'].pop('eventDate')
+
+
+    if is_sub == 'true':
+        facet_list = {'facet': {k: v for k, v in facet_list['facet'].items() if k == key} }
+
+
+    q = ''
+
+    for i in facet_list['facet']:
+        if i in taxon_keyword_list:
+            q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
+            if card_class.startswith('.col'):
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': ['recordType:col']}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
+        else:
+            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
+            if card_class.startswith('.col'):
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': ['recordType:col']}})
+            else:
+                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+
+    query.update(facet_list)
+    query.update({'query': q[:-4]})
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+    facets.pop('count', None)      
+
+    total_count = response.json()['response']['numFound']
+    menu_rows = [] # 側邊欄
+    result = [] # 卡片
+    has_more = False
+
+    # 2023/11/20前 如果是對到高階層的話，存parentTaxonID，會有taxonID是空值，但其實有對到高階層的情況，產生bug
+    # 目前全部改存taxonID
+
+    for i in facets:
+        x = facets[i]
+        if x['allBuckets']['count']:
+            menu_rows.append({
+                'title': map_dict[i],
+                'total_count': x['allBuckets']['count'],
+                'key': i
+            })
+        for k in x['buckets']:
+            bucket = k['taxonID']['buckets']
+            # print(bucket)
+            if bucket:
+                if i == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                        for item in bucket:
+                            if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
+                                result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                else:
+                    for item in bucket:
+                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+            elif not bucket and k['count']:
+                if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                    result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+
+    # 卡片
+    result_df = pd.DataFrame(result)
+    res_c = 0
+    result_dict_all = []
+    
+    if len(result_df):
+        for t in result_df.val.unique():
+            # 若是taxon-related的算在同一張
+            rows = []
+            if len(result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]):
+                if res_c in range(offset,offset+9):
+                    rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]
+                    matched = []
+                    for ii in rows.index:
+                        match_val = result_df.loc[ii].matched_value
+                        if result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                            match_val = (', ').join(match_val.split(','))
+                        matched.append({'key': result_df.loc[ii].matched_col, 
+                                        'matched_col': map_dict[result_df.loc[ii].matched_col], 
+                                        'matched_value_ori': match_val,
+                                        'matched_value': highlight(match_val,keyword,'1'),
+                                        })
+                    result_dict_all.append({
+                        'val': t,
+                        'count': result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]['count'].values[0],
+                        'matched': matched,
+                        'match_type': 'taxon-related'
+                    })
+                res_c += 1
+            # 如果沒有任何taxon-related的對到，則顯示來源資料庫使用的名稱
+            else: # 內容不一樣 要拆成不同卡片
+                rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(['sourceScientificName','sourceVernacularName','originalScientificName']))]
+                for ii in rows.index:
+                    if res_c in range(offset,offset+9):
+                        matched = [{'key': result_df.loc[ii].matched_col, 
+                                    'matched_col': map_dict[result_df.loc[ii].matched_col], 
+                                    'matched_value_ori': result_df.loc[ii].matched_value,
+                                    'matched_value': highlight(result_df.loc[ii].matched_value,keyword,'1'),
+                                    }]
+                        result_dict_all.append({
+                            'val': t,
+                            'count': result_df.loc[ii]['count'],
+                            'matched': matched,
+                            'match_type': 'non-taxon-related'
+                        })
+                    res_c += 1
+            for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets+['sourceScientificName','sourceVernacularName','originalScientificName']))].index:
+                if res_c in range(offset,offset+9):
+                    matched= [{'key': result_df.loc[ii].matched_col,
+                                'matched_col': map_dict[result_df.loc[ii].matched_col], 
+                                'matched_value_ori': result_df.loc[ii].matched_value,
+                                'matched_value': highlight(result_df.loc[ii].matched_value,keyword),
+                                }]
+                    result_dict_all.append({
+                        'val': result_df.loc[ii].val,
+                        'count': result_df.loc[ii]['count'],
+                        'matched': matched,
+                        'match_type': 'non-taxon-related'
+                    })
+                res_c += 1
+            if offset >= 27:
+                if res_c > offset+3:
+                    has_more = True
+                    break
+            else:
+                if res_c > offset+9:
+                    has_more = True
+                    break
+
+        if offset >= 27:
+            result_df = pd.DataFrame(result_dict_all[:3])
+        else:
+            result_df = pd.DataFrame(result_dict_all[:9])
+
+        taicol = []
+        if len(result_df):
+            taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
+            # print(taxon_ids)
+            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
+            if response.status_code == 200:
+                resp = response.json()
+                if data := resp['response']['docs']:
+                    taicol = pd.DataFrame(data)
+                    used_cols = ['common_name_c','formatted_name','id','scientificName','taxonRank']
+                    taicol = taicol[[u for u in used_cols if u in taicol.keys()]]
+                    for u in used_cols:
+                        if u not in taicol.keys():
+                            taicol[u] = ''
+                    taicol = taicol[used_cols]
+                    taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+            # print(taicol)
+            if len(taicol):
+                result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
+                result_df = result_df.replace({np.nan:'', None:''})
+                result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x] if x else x)
+            else:
+                result_df['common_name_c'] = ''
+                result_df['formatted_name'] = ''
+                result_df['taxonID'] = ''
+                result_df['name'] = ''
+                result_df['taxonRank'] = ''
+            result_df['val'] = result_df['formatted_name']
+            result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
+            result_df = result_df.replace({np.nan:'', None:''})
+            result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
+            result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
+            result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
+
+    # get_focus_card 使用
+    if key:
+        title = f"{title_prefix}{map_dict[key]}"
+        item_class = f"item_{record_type}_{key}"
+        card_class = f"{record_type}-{key}-card"
+    else:
+        title = None
+        item_class = None
+        card_class = None
+
+    response = {
+        'total_count': total_count, # 總數
+        'menu_rows': menu_rows, # 側邊欄
+        'data': result_df.to_dict('records'), # 卡片
+        'has_more': has_more,
+        'reach_end': True if offset >= 27 else False,
+        # get_focus_card 使用
+        'item_class': item_class,
+        'card_class': card_class,
+        'title': title,
+    }
+
+    return response
+
+
+
+# 全站搜尋 物種
+def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
+    taxon_result_dict = []
+    # keyword = request.POST.get('keyword', '')
+    # card_class = request.POST.get('card_class', '')
+    # is_sub = request.POST.get('is_sub', '')
+    # offset = request.POST.get('offset', '')
+    offset = int(offset) if offset else offset
+    if card_class and card_class != '.taxon-card':
+        key = card_class.split('-')[1]
+    else:
+        key = None
+
+    taxon_facet_list = taxon_all_facets
+
+    keyword_reg = ''
+    keyword = html.unescape(keyword)
+    # q = ''
+    for j in keyword:
+        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = get_variants(keyword_reg)
+
+    # 查詢學名相關欄位時 去除重複空格
+    keyword_name = re.sub(' +', ' ', keyword)
+    keyword_name_reg = ''
+    for j in keyword_name:
+        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = get_variants(keyword_name_reg)
+    
+    if is_sub == 'true':
+        taxon_facet_list = {'facet': {k: v for k, v in taxon_all_facets['facet'].items() if k == key} }
+
+    taxon_q = ''
+
+    for i in taxon_facet_list['facet']:
+        facet_taxon_query = f'({i}:/.*{keyword_name_reg}.*/) OR ({i}:/{keyword_name_reg}/{"^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""}) '
+        taxon_q += f'({i}:/.*{keyword_name_reg}.*/) OR ' 
+        taxon_q += f'({i}:/{keyword_name_reg}/{"^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""} ) OR ' 
+        taxon_facet_list['facet'][i].update({'domain': { 'query': facet_taxon_query}})
+
+    taxon_q = taxon_q[:-4]
+
+    query = {}
+    query['query'] = taxon_q
+    query['limit'] = 4 if offset < 28 else 2
+    query['offset'] = offset
+    query['facet'] = taxon_facet_list['facet']
+
+    response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+    facets.pop('count', None)
+    data = response.json()['response']
+
+    total_count = data['numFound']
+    if total_count:
+        taicol = pd.DataFrame(data['docs'])
+        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank'] if c in taicol.keys()]
+        taicol = taicol[taicol_cols]
+    taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
+
+    # 側邊欄
+    menu_rows = []
+    for i in facets:
+        x = facets[i]
+        if x['allBuckets']['count']:
+            menu_rows.append({
+                'title': map_collection[i],
+                'total_count': x['allBuckets']['count'],
+                'key': i
+            })
+
+    taxon_result = []
+    regexp = re.compile(keyword_name_reg)
+    for d in data['docs']:
+        # if is_sub == 'false':
+        for k in taxon_facet_list['facet'].keys():
+            if d.get(k):
+                if regexp.search(d.get(k)):
+                    taxon_result.append({
+                        'val': d.get('id'),
+                        'matched_value': d.get(k),
+                        'matched_col': k,
+                    })
+
+    # 物種整理
+    taxon_result_df = pd.DataFrame(taxon_result)
+    taxon_result_dict_all = []
+
+    if len(taxon_result_df):
+        for tt in taxon_result_df.val.unique():
+            rows = []
+            if len(taxon_result_df[(taxon_result_df.val==tt)]):
+                # tt_c += 1
+                rows = taxon_result_df[(taxon_result_df.val==tt)]
+                matched = []
+                for ii in rows.index:
+                    match_val = taxon_result_df.loc[ii].matched_value
+                    if taxon_result_df.loc[ii].matched_col in ['synonyms','misapplied']:
+                        match_val = (', ').join(match_val.split(','))
+                    matched.append({'key': taxon_result_df.loc[ii].matched_col, 'matched_col': map_collection[taxon_result_df.loc[ii].matched_col], 'matched_value': match_val})
+                taxon_result_dict_all.append({
+                    'val': tt,
+                    'matched': matched,
+                    # 'match_type': 'taxon-related'
+                })
+
+    taxon_result_df = pd.DataFrame(taxon_result_dict_all[:4])
+
+    if len(taxon_result_df):
+        taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+        taxon_result_df = pd.merge(taxon_result_df,taicol,left_on='val',right_on='taxonID', how='left')
+        taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
+        taxon_result_df['taxonRank'] = taxon_result_df['taxonRank'].apply(lambda x: map_occurrence[x] if x else x)
+        taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
+        if 'synonyms' in taxon_result_df.keys():
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+        taxon_result_df['col_count'] = 0 
+        taxon_result_df['occ_count'] = 0 
+        # 取得出現紀錄及自然史典藏筆數
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
+        data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
+        # print(response.json())
+
+        for d in data:
+            taxon_result_df.loc[taxon_result_df.taxonID==d['value'],'occ_count'] = d['count']
+            col_count = 0
+            for dp in d['pivot']:
+                if dp.get('value') == 'col':
+                    col_count = dp.get('count')
+            taxon_result_df.loc[taxon_result_df.taxonID==d['value'],'col_count'] = col_count
+        
+        # 處理hightlight
+        # taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))
+        if 'common_name_c' in taxon_result_df.keys():
+            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+        if 'alternative_name_c' in taxon_result_df.keys():
+            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+        if 'synonyms' in taxon_result_df.keys():
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+        taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
+
+    # 照片
+    taxon_result_dict = []
+    for tr in taxon_result_df.to_dict('records'):
+        tr['images'] = []
+        results = get_species_images(tr['taxon_name_id'])
+        if results:
+            tr['taieol_id'] = results[0]
+            tr['images'] = results[1]
+        # tr['matched'] = []
+        # for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
+        tmp = []
+        for ii in tr['matched']:
+            match_val = ii['matched_value']
+            if ii['matched_col'] == '誤用名':
+                match_val = (', ').join(match_val.split(','))
+            match_val = highlight(match_val,keyword,'1')
+            tmp.append({'matched_col': ii['matched_col'], 'matched_value': match_val})
+        tr['matched'] = tmp
+        taxon_result_dict.append(tr)
+
+    # get_focus_card_taxon 使用
+    map_dict = map_occurrence # occ或col沒有差別
+
+    if key:
+        title = f"物種 > {map_dict[key]}"
+        item_class = f"item_taxon_{key}"
+        card_class = f"taxon-{key}-card"
+    else:
+        title = None
+        item_class = None
+        card_class = None
+
+
+    response = {
+        'title': title,
+        'item_class': item_class,
+        'card_class': card_class,
+        'total_count': total_count, # 總數
+        'menu_rows': menu_rows, # 側邊欄
+        'data': taxon_result_dict,
+        'has_more': True if total_count > offset + 4  else False,
+        'reach_end': True if offset >= 28 else False
+    }
+
+    return response
+
+
+def get_map_response(map_query, grid_list):
+
+    map_geojson = {}
+
+
+    # map_query = {"query": "*:*",
+    #         "offset": 0,
+    #         "limit": 0,
+    #         "filter": query_list}
+    
+    # map的排除數量為0的資料
+
+    facet_str = ''
+    for g in grid_list:    
+        map_geojson[f'grid_{g}'] = {"type":"FeatureCollection","features":[]}
+        facet_str += f'&facet.field=grid_{g}'
+    
+    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+    
+    data_c = {}
+    for grid in grid_list:
+        data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+        for i in range(0, len(data_c), 2):
+            if len(data_c[i].split('_')) > 1:
+                current_grid_x = int(data_c[i].split('_')[0])
+                current_grid_y = int(data_c[i].split('_')[1])
+                current_count = data_c[i+1]
+                if current_grid_x > 0 and current_grid_y > 0:
+                    borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                    tmp = [{
+                        "type": "Feature",
+                        "geometry":{"type":"Polygon","coordinates":[borders]},
+                        "properties": {
+                            "counts": current_count
+                        }
+                    }]
+                    map_geojson[f'grid_{grid}']['features'] += tmp
+    
+    return map_geojson

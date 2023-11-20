@@ -59,7 +59,7 @@ def get_current_notif(request):
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
-            print(gettext(n.get_type_display()))
+            # print(gettext(n.get_type_display()))
             results += f"""
                         <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}

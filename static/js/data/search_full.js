@@ -27,14 +27,14 @@ function style(feature) {
 }
 
 
-function getDist(taxonID, common_name_c, formatted_name) {
+function getDist(taxonID) {
   // 把之前的清掉
   $("#map-box").html("");
   $("#map-box").html('<div id="map">');
 
   $('.popbg.taxon-dist').removeClass('d-none')
 
-  $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
+  // $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
 
   let map = L.map('map').setView([23.5, 121.2], 7);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -408,7 +408,7 @@ $(document).ready(function () {
   })
 
   $('.getDist').on('click', function () {
-    getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+    getDist($(this).data('taxonid'))
   })
 
   $('.getMoreCards').on('click', function () {
@@ -1060,7 +1060,7 @@ function focusCards(record_type, key, go_back) {
 
           $('.getDist').off('click')
           $('.getDist').on('click', function () {
-            getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+            getDist($(this).data('taxonid'))
           })
 
           $('.getRecords').off('click')
@@ -1469,7 +1469,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
 
           $('.getDist').off('click')
           $('.getDist').on('click', function () {
-            getDist($(this).data('taxonid'), $(this).data('common_name_c'), $(this).data('formatted_name'))
+            getDist($(this).data('taxonid'))
           })
         }
       })
