@@ -22,4 +22,5 @@ urlpatterns = [
     path('policy', views.policy, name='policy'),
     path('update_not_show', views.update_not_show, name='update_not_show'),
     path('get_current_notif', views.get_current_notif, name='get_current_notif'),
+    path('get_variants', views.get_variants, name='get_variants'),
 ]

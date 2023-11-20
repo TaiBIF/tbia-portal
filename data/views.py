@@ -1726,14 +1726,6 @@ def search_full(request):
     keyword = request.GET.get('keyword', '')
 
     if keyword:
-        keyword = keyword.strip()
-
-        keyword = html.unescape(keyword)
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
-
         ## collection
 
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
@@ -1769,6 +1761,14 @@ def search_full(request):
         print('e', time.time()-s)
 
         s = time.time()
+
+        keyword = keyword.strip()
+
+        keyword = html.unescape(keyword)
+        keyword_reg = ''
+        for j in keyword:
+            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = get_variants(keyword_reg)
 
         # news
         news = News.objects.filter(status='pass',type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))

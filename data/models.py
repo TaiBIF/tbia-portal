@@ -21,6 +21,13 @@ class Name(models.Model):
     name_status = models.CharField(blank=True, null=True, max_length=20)
     taxonID = models.CharField(blank=True, null=True, max_length=20)
 
+# for get_variants 異體字
+class Variant(models.Model):
+    char = models.CharField(blank=True, null=True, max_length=10)
+    pattern = models.CharField(blank=True, null=True, max_length=1000)
+    char_len = models.IntegerField(default=1)
+
+
 
 # deprecated - 移至solr
 # class Taxon(models.Model):
