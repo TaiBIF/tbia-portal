@@ -22,8 +22,8 @@ $(function () {
         $('.apply_peo').append(`
         <div class="item_set1">
             <input type="text" name="user" placeholder="${gettext('姓名')}">
-            <input type="text" name="user_affiliation" placeholder="${('單位')}">
-            <input type="text" name="user_job_title" placeholder="${('職稱')}">
+            <input type="text" name="user_affiliation" placeholder="${gettext('單位')}">
+            <input type="text" name="user_job_title" placeholder="${gettext('職稱')}">
             <button class="delete">
                 <div class="line1"></div>
             </button>
@@ -114,7 +114,7 @@ function sendRequest() {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })

@@ -89,7 +89,7 @@
               </div>-->
               <div class="input_item">
                 <select name="taxonRank" id="taxonRank">
-                  <option value="">-- 不限 --</option>
+                  <option value="">{% trans '-- 不限 --' %}</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{% trans i.0 %}</option>
                   {% endfor %}
@@ -198,8 +198,12 @@
           </div>
         </div>
     </div>
+
+
+
   </div>
 </div>
+
 
 <!-- 物種出現紀錄欄位選擇 -->
 <div class="popbg occ-choice d-none">
@@ -339,7 +343,7 @@
 				{% trans '上傳Polygon' %}
 			</div>
 			<p class="shortxt">
-			{% trans '請以GeoJSON格式貼上欲查詢的Polygon：' %}
+      {% trans '請以GeoJSON格式貼上欲查詢的Polygon' %}{% trans '：' %}
 			</p>
 			<div class="from_area h-100p">
 				<div class="txt_area">
@@ -349,7 +353,11 @@
 				*{% trans '上限2.5 MB' %}
 				</p>
 				<p class="shortxt text-right">
-				可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
+					{% if LANGUAGE_CODE == 'en-us' %}
+						You can use <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> to convert KML or shapefile into GeoJSON.
+					{% else %}
+						可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
+					{% endif %}
 				</p>
 				<button class="send geojson_send">{% trans '確認送出' %}</button>
 			</div>

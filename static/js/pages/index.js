@@ -76,7 +76,7 @@ $(document).ready(function () {
                   <div class="cate_dbox">
                     <div class="date">${response.rows[i].date}</div>
                   </div>
-                  <a href="javascript:;" class="title ">${response.rows[i].title}</a>
+                  <a href="javascript:;" class="title ">${gettext(response.rows[i].title)}</a>
                 </div>
               </li>`)
 
@@ -98,7 +98,7 @@ $(document).ready(function () {
                     <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
                     <div class="date">${response.rows[i].date}</div>
                   </div>
-                  <a href="/media/${response.rows[i].url}" class="title" target="_blank">${response.rows[i].title}</a>
+                  <a href="/media/${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
                   <a href="/media/${response.rows[i].url}" download class="dow_btn"> </a>
                 </div>
               </li>`)
@@ -116,7 +116,7 @@ $(document).ready(function () {
         }
       })
       .fail(function (xhr, status, errorThrown) {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
       })
   })

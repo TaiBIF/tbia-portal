@@ -257,7 +257,7 @@ $(function () {
           $('.feedback-pop').addClass('d-none')
         })
         .fail(function (xhr, status, errorThrown) {
-          alert($('input[name=unexpected-error-alert]').val())
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
           $('.login_pop').addClass('d-none')
 
@@ -291,7 +291,7 @@ $(function () {
         alert(response.message)
       })
       .fail(function (xhr, status, errorThrown) {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         $('.login_pop').addClass('d-none')
 
@@ -463,7 +463,7 @@ function login() {
         }
       })
       .fail(function (xhr, status, errorThrown) {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         $('.login_pop').addClass('d-none')
       })
@@ -515,7 +515,7 @@ function register() {
 
       })
       .fail(function (xhr, status, errorThrown) {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         $('.login_pop').addClass('d-none')
       })

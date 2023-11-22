@@ -313,7 +313,7 @@
               <div class="cate_dbox">
               <div class="date">{{ i.date }}</div>
               </div>
-              <a href="javascript:;" class="title ">{{ i.title }}</a>
+              <a href="javascript:;" class="title ">{% trans i.title %}</a>
               <!--
               <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
               <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
@@ -327,7 +327,7 @@
                 <div class="cate {{ i.cate }}">{{ i.extension }}</div>
                 <div class="date">{{ i.date }}</div>
               </div>
-              <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
+              <a href="/media/{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
               <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
             </div>
           </li>

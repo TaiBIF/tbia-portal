@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %} 
 {% load i18n %}
-{% block title %}單位後台｜{% endblock %}
+{% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_partner.css' %}" />
@@ -24,7 +24,7 @@
 <input type="hidden" name="partner_id" value="{{ user.partner.id  }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 單位後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '單位後台' %}</p>
     </div>
 </div>
  

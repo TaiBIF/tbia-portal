@@ -1,7 +1,7 @@
 {% extends 'base.html' %} 
 {% load static %}
 {% load i18n %}
-{% block title %}保密協議｜{% endblock %}
+{% block title %}{% trans '保密協議' %}｜{% endblock %}
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/pages/agreement.css' %}" />
 {% endblock style %}
@@ -22,71 +22,133 @@
 	<div class="main_1240"> 
 		<div class="w_border10_box agree_arae marb_30">
 			<div class="scrollbox">
-				更新日期：2022/10/20
+				{% trans '更新日期' %}：2022/10/20
 				<br>
 				<br>
-				1. 適用範圍
-				<br>
-				<br>
+				{% if LANGUAGE_CODE == 'en-us' %}
+					1. Scope
+					<br>
+					<br>
+					1.1. This Non-disclosure Agreement applies to alliance partner members and event-specific applied members who can upload or access Non-public Licensed data and their relationship to the protection of personal information and sensitive species ecological information on the TBIA portal. However, if such data has already been publicly disclosed by the contributing partners on public websites or other platforms available to all for review without restrictions, then data that has been proactively made public is not subject to the regulation of this Non-disclosure Agreement.
+					<br>
+					<br>
+					1.2. To access Non-public Licensed data hosted on the TBIA portal, the accessible accounts must specifically sign this Non-disclosure Agreement to gain permission to access relevant data.
+					<br>
+					<br>
+					1.3. The management unit of the TBIA alliance may, when necessary, request related documents for confirmation of identity or representation from the individual themselves or their representative partner groups for the verification and signing of the relevant agreement.
+					<br>
+					<br>
+					
+					2. Commitments of Access Account Holders 
+					<br>
+					<br>
+					2.1. Individuals who have signed the Non-disclosure Agreement and their representative partner groups, as well as individual members with event-specific applications, commit to exercising due care in safeguarding Non-public Licensed data hosted on TBIA. They shall not forward, publish, or disclose the data in its original state to any third party who does not have TBIA partner status in any way.
+					<br>
+					<br>
+					2.2. Access account holders for Non-public Licensed data may search and browse the data in its entirety or within the permitted scope. If there is a need for factual referencing or other processing or usage of the data, there should be a legitimate reason. The data required should be limited within the necessary scope, and appropriate safeguards against misuse should be taken.
+					<br>
+					<br>
+					2.3. The need for factual referencing or other processing or usage of the data should involve data de-identification and filtering processes by users to ensure that sensitive species' detailed geographic information is unidentifiable and that there will be no negative impact on conservation efforts.
+					<br>
+					<br>
+					2.4. Those who process and take advantage of the data should bear relevant legal responsibilities, including civil, criminal, and administrative liabilities, to the maximum extent permitted by law. This includes broad public relations and media responsibilities.
+					<br>
+					<br>
+					2.5. Access account holders should delete Non-public Licensed data that has been accessed and stored during the validity period of the account after discontinuing participation in TBIA alliance contributions and collaborations unless otherwise permitted by alliance members through additional meetings. If necessary, they should provide a declaration of deletion to the TBIA maintenance team.
+					<br>
+					<br>
+					
+					3. Non-disclosure Agreement Amendment
+					<br>
+					<br>
+					3.1. TBIA will revise this policy from time to time to meet the updated requirements for personal data and species conservation efforts.
+					<br>
+					<br>
+					3.2. After revisions to the Non-disclosure Agreement, active notifications will be provided to the members through the contact email provided in their accounts. The notified parties should confirm the updated representation of the Non-disclosure Agreement within fifteen working days after receiving the notification. Once the updated representation is sent back to the TBIA maintenance team, the access account shall be duly activated. If a representation is not sent back within fifteen working days and there is no reasonable reason for delay, the maintenance team may, on behalf of the TBIA alliance, temporarily suspend or permanently terminate the member's account and access status to Non-public Licensed data. This notification will have the same effect on event-specific members who have applied for access based on non-partner memberships.
+					<br>
+					<br>
+					
+					4. Miscellaneous
+					<br>
+					<br>
+					4.1. This Non-disclosure Agreement remains in effect after access account holders discontinue their access status.
+					<br>
+					<br>
+					4.2. This Non-disclosure Agreement does not involve any management of patents, trademarks, trade secrets, and other intellectual property rights. If commercial use of research results is considered, it should be conducted in accordance with the regulations of the respective relevant laws, in order to obtain legal permission or consent from the original source.
+					<br>
+					<br>
+					4.3. If disputes arise concerning this Non-disclosure Agreement, the parties should negotiate in good faith. In the case of unresolved negotiations, the laws of the Republic of China (Taiwan) shall be the governing law, and the Taiwan Taipei District Court shall be the court of first instance with jurisdiction.
+					<br>
+					<br>
+					4.4. If there is a risk of external litigation or judicial disputes arising from this Non-disclosure Agreement, the knowing party should reasonably inform the other party when it becomes aware of relevant matters and has a duty to cooperate in subsequent legal evidence-related matters.
+					<br>
+					<br>
+					4.5. This agreement is established and effective by electronic document recording, and the signing party should cooperate with the TBIA maintenance team and the platform's technical instructions to complete the relevant registration to ensure that the content is fully presented and can be retrieved for inspection in the future. This agreement becomes effective for both parties when representations of the agreement are submitted.
+				
+				{% else %}
+					1. 適用範圍
+					<br>
+					<br>
 
-				1.1. 本處所述之保密協議，適用於聯盟貢獻夥伴及個案申請會員，就TBIA 入口網站上傳、近用非公眾授權資料時，所涉及有關個人資料及敏感物種生態資訊之保護。然若該等資料已經貢獻夥伴，自行公開於不限定資格皆可瀏覽之公眾網站或其他平台，則後續該已被主動公開之資料，不適用本保密協議之拘束。
-				<br>
-				<br>
-				1.2. TBIA入口網站上託載之非公眾授權資料，近用帳號應具體簽訂本保密協助，方得開啟權限近用相關資料。
-				<br>
-				<br>
-				1.3. TBIA聯盟之管理單位，必要時得請帳戶開啟之當事人本人，或其代表之夥伴單位，提出相關人別或代表權確認之相關文件，以利相關協議之核實與簽訂。
-				<br>
-				<br>
+					1.1. 本處所述之保密協議，適用於聯盟貢獻夥伴及個案申請會員，就TBIA 入口網站上傳、近用非公眾授權資料時，所涉及有關個人資料及敏感物種生態資訊之保護。然若該等資料已經貢獻夥伴，自行公開於不限定資格皆可瀏覽之公眾網站或其他平台，則後續該已被主動公開之資料，不適用本保密協議之拘束。
+					<br>
+					<br>
+					1.2. TBIA入口網站上託載之非公眾授權資料，近用帳號應具體簽訂本保密協助，方得開啟權限近用相關資料。
+					<br>
+					<br>
+					1.3. TBIA聯盟之管理單位，必要時得請帳戶開啟之當事人本人，或其代表之夥伴單位，提出相關人別或代表權確認之相關文件，以利相關協議之核實與簽訂。
+					<br>
+					<br>
 
-				2. 近用帳戶承諾事項
-				<br>
-				<br>
-				
-				2.1. 簽訂保密協議之當事人以及其代表之夥伴單位，以及個案申請會員，於此承諾採善良管理人之注意保管義務，對於TBIA上託載之非公眾授權資料，不得再行原狀態轉傳、發布，或以任何方式，揭露其原始狀態予不具TBIA夥伴地位之第三人。
-				<br>
-				<br>
-				2.2. 非公眾授權資料之近用人，得就非公眾授權資料整體或被容許範圍進行搜尋及瀏覽。該等資料若有個案引用或其他流通處理或利用之需求，應有正當理由，就所需範圍之資料進行取量，並採取後續利用上之必要防弊行為。
-				<br>
-				<br>
-				2.3. 該等資料之個案引用或其他流通處理或利用之需求，須經使用者進行資料去識別化與濾除處理，以達無從識別敏感物種詳細地理資訊，並對其保育工作不會產生負面影響之程度。
-				<br>
-				<br>
-				2.4. 該等資料之處理與利用者，應由利用人自負相關法律責任，包括民事、刑事、行政，於法律容許的最大範圍內，並應包括最寬泛之公關傳媒責任。
-				<br>
-				<br>
-				2.5. 近用人於停止TBIA聯盟貢獻與協作參與後，除經聯盟成員額外會議允許外，應將近用帳戶有效期間接觸並保管之非公眾授權資料進行刪除，並於必要時，提供確認刪除聲明予TBIA維運團隊。
-				<br>
-				<br>
-				
-				3. 保密協議之修正與更新
-				<br>
-				<br>
-				
-				3.1. TBIA 將不定時修訂本項政策，以符合個人資料與物種保育舉措之更新需求。
-				<br>
-				<br>
-				3.2. 保密協議經修訂後，將透過會員帳號的聯繫電郵主動通知，受通知者應於收受通知的十五個工作日後，進行保密協議內容准認之更新表示，於更新表示回傳TBIA維運團隊後產生向後效力。若怠於十五個工作日期間未能回傳表示，亦無正常延期理由，維運團隊當得代表TBIA聯盟，暫時性中止或終局停止該會員帳號，對非公眾授權資料之接近使用地位；此一中止或停止帳號之通知效力，對個案申請式之非夥伴會員亦作相同處理。
-				<br>
-				<br>
-				
-				4. 其他事項
-				<br>
-				<br>
-				
-				4.1. 本保密協議於近用人近用狀態停止後，持續有效。
-				<br>
-				<br>
-				4.2. 本保密協議不涉及專利、商標、營業秘密及其他智慧財產權相關法益之處理，若涉及研究成果商用地位之申請及延申利用，應依各專責法律之規範，取得原出處之合法授權或同意。
-				<br>
-				<br>
-				4.3. 本保密協議涉有爭議，當事人間應秉誠實信用原則協商處理，於協商未解時，應以中華民國法律為準據法，並指定臺灣臺北地方法院為第一審管轄法院。
-				<br>
-				<br>
-				4.4. 若因本保密協議而產生外部訴訟或司法爭議之風險，當事人一方知有相關事狀時，應以合理方法告知他造當事人，並於後續司法證明相關事務上，擔負必要的協力義務。
-				<br>
-				<br>
-				4.5. 本協議採電子文件紀錄方式為之，締立者應配合TBIA維運團隊及平台之技術指示完成相關登錄，以達內容完整呈現，並可於日後取出供查驗之標準，兩造協議方成立且生效。
+					2. 近用帳戶承諾事項
+					<br>
+					<br>
+					
+					2.1. 簽訂保密協議之當事人以及其代表之夥伴單位，以及個案申請會員，於此承諾採善良管理人之注意保管義務，對於TBIA上託載之非公眾授權資料，不得再行原狀態轉傳、發布，或以任何方式，揭露其原始狀態予不具TBIA夥伴地位之第三人。
+					<br>
+					<br>
+					2.2. 非公眾授權資料之近用人，得就非公眾授權資料整體或被容許範圍進行搜尋及瀏覽。該等資料若有個案引用或其他流通處理或利用之需求，應有正當理由，就所需範圍之資料進行取量，並採取後續利用上之必要防弊行為。
+					<br>
+					<br>
+					2.3. 該等資料之個案引用或其他流通處理或利用之需求，須經使用者進行資料去識別化與濾除處理，以達無從識別敏感物種詳細地理資訊，並對其保育工作不會產生負面影響之程度。
+					<br>
+					<br>
+					2.4. 該等資料之處理與利用者，應由利用人自負相關法律責任，包括民事、刑事、行政，於法律容許的最大範圍內，並應包括最寬泛之公關傳媒責任。
+					<br>
+					<br>
+					2.5. 近用人於停止TBIA聯盟貢獻與協作參與後，除經聯盟成員額外會議允許外，應將近用帳戶有效期間接觸並保管之非公眾授權資料進行刪除，並於必要時，提供確認刪除聲明予TBIA維運團隊。
+					<br>
+					<br>
+					
+					3. 保密協議之修正與更新
+					<br>
+					<br>
+					
+					3.1. TBIA 將不定時修訂本項政策，以符合個人資料與物種保育舉措之更新需求。
+					<br>
+					<br>
+					3.2. 保密協議經修訂後，將透過會員帳號的聯繫電郵主動通知，受通知者應於收受通知的十五個工作日後，進行保密協議內容准認之更新表示，於更新表示回傳TBIA維運團隊後產生向後效力。若怠於十五個工作日期間未能回傳表示，亦無正常延期理由，維運團隊當得代表TBIA聯盟，暫時性中止或終局停止該會員帳號，對非公眾授權資料之接近使用地位；此一中止或停止帳號之通知效力，對個案申請式之非夥伴會員亦作相同處理。
+					<br>
+					<br>
+					
+					4. 其他事項
+					<br>
+					<br>
+					
+					4.1. 本保密協議於近用人近用狀態停止後，持續有效。
+					<br>
+					<br>
+					4.2. 本保密協議不涉及專利、商標、營業秘密及其他智慧財產權相關法益之處理，若涉及研究成果商用地位之申請及延申利用，應依各專責法律之規範，取得原出處之合法授權或同意。
+					<br>
+					<br>
+					4.3. 本保密協議涉有爭議，當事人間應秉誠實信用原則協商處理，於協商未解時，應以中華民國法律為準據法，並指定臺灣臺北地方法院為第一審管轄法院。
+					<br>
+					<br>
+					4.4. 若因本保密協議而產生外部訴訟或司法爭議之風險，當事人一方知有相關事狀時，應以合理方法告知他造當事人，並於後續司法證明相關事務上，擔負必要的協力義務。
+					<br>
+					<br>
+					4.5. 本協議採電子文件紀錄方式為之，締立者應配合TBIA維運團隊及平台之技術指示完成相關登錄，以達內容完整呈現，並可於日後取出供查驗之標準，兩造協議方成立且生效。
+				{% endif %}
 				<br>
 								
 			</div>

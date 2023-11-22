@@ -1,7 +1,7 @@
 {% extends 'base.html' %} 
 {% load static %}
 {% load i18n %}
-{% block title %}申請表單｜{% endblock %}
+{% block title %}{% trans '申請單次使用去模糊化敏感資料' %}｜{% endblock %}
 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/pages/application.css' %}" />
@@ -24,7 +24,7 @@
 		<div class="w_border10_box application_form marb_30">
 			<div class="form_top">
 				<div class="apply_date">
-					{% trans '申請時間' %}：{{ today }}
+					{% trans '申請時間' %}{% trans '：' %}{{ today }}
 				</div>
 				<div class="path_inf">
 					<p>{% trans '申請資料搜尋條件' %}</p>

@@ -32,7 +32,6 @@
     {% block style %}{% endblock style %}
   </head>
   <body>
-  <input type="hidden" name="unexpected-error-alert" value="{% trans '發生未知錯誤！請聯絡管理員' %}">
   <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
   <input type="hidden" name="lang" value="{{ LANGUAGE_CODE }}">
 
@@ -468,7 +467,7 @@
         </div>
       </div>
       <div class="copy d-flex-ai-c-jc-c">
-        <a target="_blank" href="{% url 'terms' %}">{% trans '使用條款' %}</a> | <a target="_blank" href="{% url 'policy' %}">{% trans '隱私權政策' %}</a>
+        <a href="{% url 'terms' %}">{% trans '使用條款' %}</a> | <a href="{% url 'policy' %}">{% trans '隱私權政策' %}</a>
       </div>
       <div class="copy">
         <h6>Copyright © TBIA {% trans '臺灣生物多樣性資訊聯盟' %}</h6>

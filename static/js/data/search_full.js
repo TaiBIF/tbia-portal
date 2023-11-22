@@ -60,7 +60,7 @@ function getDist(taxonID) {
       if (xhr.status == 504) {
         alert(gettext('要求連線逾時'))
       } else {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
       }
       console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -111,7 +111,7 @@ function getDist(taxonID) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -151,7 +151,7 @@ function getDist(taxonID) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -207,7 +207,7 @@ function getDist(taxonID) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -247,7 +247,7 @@ function getDist(taxonID) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -602,7 +602,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
         <div class="result_inf_top">
           <button class="cate_btn popupField" data-record_type="${record_type}">${gettext('欄位選項')} +</button>
           <div class="d-flex">
-            <p class="datenum mr-10px">${gettext('資料筆數')}：${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+            <p class="datenum mr-10px">${gettext('資料筆數')}${gettext('：')}${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
             <div class="rightdow">
               <button class="dow_btn downloadData" data-query="${response.search_str}" data-count="${limit}">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -873,7 +873,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       if (xhr.status == 504) {
         alert(gettext('要求連線逾時'))
       } else {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
       }
       console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -949,7 +949,7 @@ function focusCards(record_type, key, go_back) {
             let matched = '';
             for (let ii = 0; ii < x.matched.length; ii++) {
               if (!(['中文名', '學名', '中文別名', '同物異名'].includes(x.matched[ii]['matched_col']))) {
-                matched += `<p>${gettext(x.matched[ii]['matched_col'])}：${x.matched[ii]['matched_value']}</p>`
+                matched += `<p>${gettext(x.matched[ii]['matched_col'])}${gettext('：')}${x.matched[ii]['matched_value']}</p>`
               }
             }
 
@@ -1010,14 +1010,14 @@ function focusCards(record_type, key, go_back) {
             html = `	<li>							
               <div class="flex_top">
                 <div class="${left_text_class}">
-                  <p>${gettext('中⽂名')}：${x.common_name_c}</p>
-                  <p>${gettext('學名')}：${x.formatted_name}</p>
-                  <p>${gettext('中文別名')}：${x.alternative_name_c}</p>
-                  <p>${gettext('同物異名')}：${x.synonyms}</p>
-                  <p>${gettext('分類階層')}：${x.taxonRank}</p>
+                  <p>${gettext('中⽂名')}${gettext('：')}${x.common_name_c}</p>
+                  <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
+                  <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
+                  <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
+                  <p>${gettext('分類階層')}${gettext('：')}${x.taxonRank}</p>
                   ${matched}
-                  <p>${gettext('出現記錄筆數')}：${x.occ_count}</p>
-                  <p>${gettext('自然史典藏筆數')}：${x.col_count}</p>
+                  <p>${gettext('出現記錄筆數')}${gettext('：')}${x.occ_count}</p>
+                  <p>${gettext('自然史典藏筆數')}${gettext('：')}${x.col_count}</p>
                 </div>
                 <div class="${right_img_class}">
                   <div class="imgbox">
@@ -1097,7 +1097,7 @@ function focusCards(record_type, key, go_back) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1138,7 +1138,7 @@ function focusCards(record_type, key, go_back) {
 
             for (let ii = 0; ii < x.matched.length; ii++) {
               if (!(['中文名', '學名', '鑑定層級'].includes(x.matched[ii]['matched_col']))) {
-                matched += `<p>${gettext(x.matched[ii]['matched_col'])}：${x.matched[ii]['matched_value']}</p>`
+                matched += `<p>${gettext(x.matched[ii]['matched_col'])}${gettext('：')}${x.matched[ii]['matched_value']}</p>`
               }
             }
 
@@ -1167,9 +1167,9 @@ function focusCards(record_type, key, go_back) {
                 data-sort="asc">
                 <div class="num">${x.count}</div>
                 <div class="num_bottom"></div>
-                <p>${gettext('中文名')}：${x.common_name_c}</p>
-                <p>${gettext('學名')}：${x.val}</p>
-                <p>${gettext('鑑定層級')}：${x.taxonRank}</p>
+                <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
+                <p>${gettext('學名')}${gettext('：')}${x.val}</p>
+                <p>${gettext('鑑定層級')}${gettext('：')}${x.taxonRank}</p>
                 ${matched}
               </li>`)
           }
@@ -1208,7 +1208,7 @@ function focusCards(record_type, key, go_back) {
           if (xhr.status == 504) {
             alert(gettext('要求連線逾時'))
           } else {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
           }
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1299,7 +1299,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
       if (xhr.status == 504) {
         alert(gettext('要求連線逾時'))
       } else {
-        alert($('input[name=unexpected-error-alert]').val())
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
       }
       console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1360,7 +1360,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           let matched = '';
           for (let ii = 0; ii < x.matched.length; ii++) {
             if (!(['中文名', '學名', '中文別名', '同物異名'].includes(x.matched[ii]['matched_col']))) {
-              matched += `<p>${gettext(x.matched[ii]['matched_col'])}：${x.matched[ii]['matched_value']}</p>`
+              matched += `<p>${gettext(x.matched[ii]['matched_col'])}${gettext('：')}${x.matched[ii]['matched_value']}</p>`
             }
           }
 
@@ -1420,14 +1420,14 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           html = `<li>							
           <div class="flex_top">
           <div class="${left_text_class}">
-            <p>${gettext('中⽂名')}：${x.common_name_c}</p>
-            <p>${gettext('學名')}：${x.formatted_name}</p>
-            <p>${gettext('中文別名')}：${x.alternative_name_c}</p>
-            <p>${gettext('同物異名')}：${x.synonyms}</p>
-            <p>${gettext('分類階層')}：${x.taxonRank}</p>
+            <p>${gettext('中⽂名')}${gettext('：')}${x.common_name_c}</p>
+            <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
+            <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
+            <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
+            <p>${gettext('分類階層')}${gettext('：')}${x.taxonRank}</p>
             ${matched}
-            <p>${gettext('出現記錄筆數')}：${x.occ_count}</p>
-            <p>${gettext('自然史典藏筆數')}：${x.col_count}</p>
+            <p>${gettext('出現記錄筆數')}${gettext('：')}${x.occ_count}</p>
+            <p>${gettext('自然史典藏筆數')}${gettext('：')}${x.col_count}</p>
           </div>
           <div class="${right_img_class}">
             <div class="imgbox">
@@ -1477,7 +1477,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
-          alert($('input[name=unexpected-error-alert]').val())
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1516,7 +1516,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
 
           for (let ii = 0; ii < x.matched.length; ii++) {
             if (!(['中文名', '學名', '鑑定層級'].includes(x.matched[ii]['matched_col']))) {
-              matched += `<p>${gettext(x.matched[ii]['matched_col'])}：${x.matched[ii]['matched_value']}</p>`
+              matched += `<p>${gettext(x.matched[ii]['matched_col'])}${gettext('：')}${x.matched[ii]['matched_value']}</p>`
             }
           }
 
@@ -1545,9 +1545,9 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             data-sort="asc">
           <div class="num">${x.count}</div>
           <div class="num_bottom"></div>
-          <p>${gettext('中文名')}：${x.common_name_c}</p>
-          <p>${gettext('學名')}：${x.val}</p>
-          <p>${gettext('鑑定層級')}：${x.taxonRank}</p>
+          <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
+          <p>${gettext('學名')}${gettext('：')}${x.val}</p>
+          <p>${gettext('鑑定層級')}${gettext('：')}${x.taxonRank}</p>
           ${matched}
         </li>` )
         }
@@ -1563,7 +1563,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
-          alert($('input[name=unexpected-error-alert]').val())
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1620,7 +1620,7 @@ function downloadData(search_str, total_count) {
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
-          alert($('input[name=unexpected-error-alert]').val())
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)

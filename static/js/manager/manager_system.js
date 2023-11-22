@@ -115,7 +115,7 @@ $(document).ready(function () {
                 });
             })
             .fail(function (xhr, status, errorThrown) {
-                alert($('input[name=unexpected-error-alert]').val())
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
     }

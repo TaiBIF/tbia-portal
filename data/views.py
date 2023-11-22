@@ -1599,9 +1599,6 @@ def change_dataset(request):
     results = []
     if holder := request.GET.getlist('holder'):    
         for h in holder:
-            # if DatasetKey.objects.filter(rights_holder=h).exists():
-            # for k in holders.keys():
-            #     if holders[k] == h:
             response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
             d_list = response.json()['facet_counts']['facet_fields']['datasetName']
             dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
@@ -1610,9 +1607,6 @@ def change_dataset(request):
                     results = get_dataset_list(record_type='col',rights_holder=h,dataset_list=dataset_list)
                 else:
                     results = get_dataset_list(rights_holder=h,dataset_list=dataset_list)
-                #     obj = DatasetKey.objects.filter(record_type='col',rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
-                # else:
-                #     obj = DatasetKey.objects.filter(rights_holder=h,deprecated=False,name__in=dataset_list).distinct('name')
             for d in results:
                 ds += [{'value': d[0], 'text': d[1]}]
     else:
@@ -1625,10 +1619,6 @@ def change_dataset(request):
             else:
                 results = get_dataset_list(dataset_list=dataset_list)
 
-        # if request.GET.get('record_type') == 'col':
-        #     obj = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list).distinct('name')
-        # else:
-        #     obj = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
         for d in results:
             ds += [{'value': d[0], 'text': d[1]}]
     return HttpResponse(json.dumps(ds), content_type='application/json')

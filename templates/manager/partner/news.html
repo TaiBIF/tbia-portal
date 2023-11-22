@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %} 
 {% load i18n %}
-{% block title %}單位後台｜{% endblock %}
+{% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -25,7 +25,7 @@
 {% csrf_token %}
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 單位後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '單位後台' %}</p>
     </div>
 </div>
  
@@ -137,7 +137,7 @@
                 <div class="box-title"><div class="dottt"></div>審核狀態</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 news_table">
-                        <tr>
+                        <tr class="news_table_header">
                             <td class="w-5p"></td>
                             <td class="w-20p">標題</td>
                             <td class="w-12p">類別</td>

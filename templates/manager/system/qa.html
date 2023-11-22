@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %} 
 {% load i18n %}
-{% block title %}系統管理後台｜{% endblock %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block head %}
 {% endblock head %}
@@ -15,7 +15,7 @@
 <input type="hidden" name="menu" value="{{ menu }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
@@ -169,7 +169,7 @@
                 <div class="box-title"><div class="dottt"></div>QA列表</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 qa_table">
-                        <tr>
+                        <tr class="qa_table_header">
                             <td class="w-20p">類別</td>
                             <td class="w-10p">排序</td>
                             <td class="w-50p">問題</td>

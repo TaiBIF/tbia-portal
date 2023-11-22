@@ -30,12 +30,10 @@ function changePage(page, menu) {
     url: `/change_manager_page?page=${page}&menu=${menu}`,
     type: 'GET',
     success: function (response) {
-      // 修改表格內容
 
-      $(`.${menu}_table`).html(`
-            ${response.header}
-            ${response.data}
-            `)
+      // 保留表格 header 修改表格內容
+      $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
+      $(`.${menu}_table`).append(`${response.data}`)
 
       $(`.${menu}_table`).parent().next('.page_number').remove()
 

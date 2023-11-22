@@ -151,25 +151,10 @@ def change_manager_page(request):
                 content = '<div class="noti-dottt"></div>' + content
             data.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 
                         'content': content})
-        response['header'] = """
-                        <tr>
-                    <td>日期</td>
-                    <td>內容</td>
-                </tr>"""
 
         total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
 
     elif menu == 'download_taxon':
-        response['header'] = """
-                        <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">搜尋條件</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
-                        </tr>
-                """
         # taxon = []
         now = datetime.now()
         now = now.replace(tzinfo=pytz.timezone('UTC'))
@@ -216,18 +201,6 @@ def change_manager_page(request):
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
     elif menu == 'sensitive':
-        response['header'] = """
-                        <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-15p">搜尋條件</td>
-                            <td class="w-15p">審查意見</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
-                        </tr>
-        """
-
         now = datetime.now()
         now = now.replace(tzinfo=pytz.timezone('UTC'))
 
@@ -283,16 +256,6 @@ def change_manager_page(request):
             })
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
     elif menu == 'download':
-        response['header'] = """
-                        <tr>
-                            <td class="w-5p">下載編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">檔案產生日期</td>
-                            <td class="w-20p">搜尋條件</td>
-                            <td class="w-5p">狀態</td>
-                            <td class="w-5p">檔案連結</td>
-                        </tr>
-        """
         now = datetime.now()
         now = now.replace(tzinfo=pytz.timezone('UTC'))
 
@@ -363,15 +326,6 @@ def change_manager_page(request):
 
     elif menu == 'feedback':
         if request.GET.get('from') == 'partner':
-            response['header'] = """<tr>
-                            <td>編號</td>
-                            <td>時間</td>
-                            <td>email</td>
-                            <td>類型</td>
-                            <td>內容</td>
-                            <td class="w-15p">已回覆</td>
-                        </tr> 
-            """
             for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
@@ -395,17 +349,6 @@ def change_manager_page(request):
 
             total_page = math.ceil(Feedback.objects.filter(partner_id=request.user.partner.id).count() / 10)
         else:
-            response['header'] = """
-                        <tr>
-                            <td>編號</td>
-                            <td>單位</td>
-                            <td>時間</td>
-                            <td>email</td>
-                            <td>類型</td>
-                            <td>內容</td>
-                            <td>已回覆</td>
-                        </tr> 
-            """
             for f in Feedback.objects.all().order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
@@ -442,15 +385,6 @@ def change_manager_page(request):
             total_page = math.ceil(Feedback.objects.all().count() / 10)
 
     elif menu == 'sensitive_track':
-        response['header'] = '''
-                        <tr>
-                            <td class="w-5p">申請編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">申請時間</td>
-                            <td class="w-15p">搜尋條件</td>
-                            <td class="w-15p">審查意見</td>
-                            <td class="w-5p">狀態</td>
-                        </tr>'''
 
         for s in SensitiveDataResponse.objects.exclude(is_transferred=True, partner_id__isnull=True).order_by('-id')[offset:offset+10]:
         # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
@@ -501,13 +435,6 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
 
     elif menu == 'sensitive_apply':
-        response['header'] = """<tr>
-                            <td class="w-10p">編號</td>
-                            <td class="w-30p">申請時間</td>
-                            <td class="w-40p">搜尋條件</td>
-                            <td class="w-10p">狀態</td>
-                            <td class="w-10p"></td>
-                        </tr> """
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
@@ -596,15 +523,6 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
     elif menu == 'account':
         if request.GET.get('from') == 'partner':
-            response['header'] = '''
-                        <tr>
-                            <td class="w-8p">編號</td>
-                            <td class="w-25p">姓名</td>
-                            <td class="w-20p">權限</td>
-                            <td class="w-15p">狀態</td>
-                            <td class="w-15p"></td>
-                        </tr> 
-            '''
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
                 if a.is_partner_admin:
@@ -631,16 +549,6 @@ def change_manager_page(request):
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
         else:
-            response['header'] = '''
-                        <tr>
-                            <td class="w-8p">編號</td>
-                            <td class="w-25p">姓名</td>
-                            <td class="w-20p">單位</td>
-                            <td class="w-20p">權限</td>
-                            <td class="w-15p">狀態</td>
-                            <td class="w-15p"></td>
-                        </tr> 
-            '''
             for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
                     partner_title = a.partner.select_title 
@@ -673,17 +581,6 @@ def change_manager_page(request):
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
     elif menu == 'news_apply':
-        response['header'] = '''
-                        <tr>
-                            <td class="w-8p">編號</td>
-                            <td class="w-18p">標題</td>
-                            <td class="w-8p">類別</td>
-                            <td class="w-20p">單位</td>
-                            <td class="w-15p">申請者</td>
-                            <td class="w-15p">最近修改</td>
-                            <td class="w-8p">狀態</td>
-                            <td class="w-8p"></td>
-                        </tr>'''
                         
         for n in News.objects.all().order_by('-id')[offset:offset+10]:
             if n.partner:
@@ -708,17 +605,6 @@ def change_manager_page(request):
             })
         total_page = math.ceil(News.objects.all().count() / 10)
     elif menu == 'news':
-        response['header'] = '''
-                        <tr>
-                            <td class="w-5p"></td>
-                            <td class="w-20p">標題</td>
-                            <td class="w-12p">類別</td>
-                            <td class="w-15p">申請者</td>
-                            <td class="w-15p">最近修改</td>
-                            <td class="w-12p">狀態</td>
-                            <td class="w-12p"></td> 
-                        </tr>
-        ''' 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
             news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-id')
@@ -749,16 +635,6 @@ def change_manager_page(request):
                 'a': a
             })
     elif menu == 'resource':
-        response['header'] = """
-                        <tr>
-                            <td class="w-18p">標題</td>
-                            <td class="w-18p">類型</td>
-                            <td class="w-20p">檔名</td>
-                            <td class="w-15p">最近修改</td>
-                            <td class="w-8p"></td> 
-                            <td class="w-8p"></td> 
-                        </tr>
-        """
         for r in Resource.objects.all().order_by('-id')[offset:offset+10]:
             url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
@@ -772,15 +648,6 @@ def change_manager_page(request):
 
         total_page = math.ceil(Resource.objects.all().count() / 10)
     elif menu == 'qa':
-        response['header'] = """
-                        <tr>
-                            <td class="w-20p">類別</td>
-                            <td class="w-10p">排序</td>
-                            <td class="w-50p">問題</td>
-                            <td class="w-10p"></td> 
-                            <td class="w-10p"></td> 
-                        </tr>
-        """
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
                 'type': q.get_type_display(),
@@ -833,7 +700,7 @@ def manager(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
             if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
                 expired_date = r.modified + timedelta(days=365)
-                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
+                date += f'<br><span class="expired-notice">*資料下載連結將於 {expired_date.year}-{expired_date.month}-{expired_date.day} 後失效</span>'
         else:
             date = ''
         query = ''

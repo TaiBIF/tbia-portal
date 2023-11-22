@@ -3,7 +3,7 @@ from conf.settings import env
 SOLR_PREFIX = env('SOLR_PREFIX')
 
 occ_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 
-              'sourceVernacularName', 'originalScientificName', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 
+              'sourceVernacularName', 'originalScientificName', 'kingdom', 'phylum', 'class', 'order', 
               'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
               'rightsHolder', 'sensitiveCategory', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license', 'eventDate']
 
@@ -31,7 +31,7 @@ for f in occ_fields:
 
 
 col_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 
-              'sourceVernacularName', 'originalScientificName', 'rightsHolder', 'sensitiveCategory', 'taxonRank', 
+              'sourceVernacularName', 'originalScientificName', 'rightsHolder', 'sensitiveCategory',
               'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license', 'kingdom', 'phylum', 
               'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'eventDate']
 

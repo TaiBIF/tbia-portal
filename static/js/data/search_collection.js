@@ -286,7 +286,7 @@ map.on('zoomend', function zoomendEvent(ev) {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -310,7 +310,7 @@ map.on('zoomend', function zoomendEvent(ev) {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -344,7 +344,7 @@ map.on('dragend', function zoomendEvent(ev) {
                         if (xhr.status == 504) {
                             alert(gettext('要求連線逾時'))
                         } else {
-                            alert($('input[name=unexpected-error-alert]').val())
+                            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -368,7 +368,7 @@ map.on('dragend', function zoomendEvent(ev) {
                         if (xhr.status == 504) {
                             alert(gettext('要求連線逾時'))
                         } else {
-                            alert($('input[name=unexpected-error-alert]').val())
+                            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -552,7 +552,7 @@ $(function () {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -843,7 +843,7 @@ function setTable(response, queryString, from, orderby, sort) {
         </div>
         </div>
         <div class="rightmore">
-        <p class="datenum">${gettext('資料筆數')} ： ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+        <p class="datenum">${gettext('資料筆數')} ${gettext('：')} ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
         <button class="dw downloadData" data-query="${queryString}" data-count="${response.count}">${gettext('資料下載')}</button>
         <button class="dw downloadTaxon" data-query="${queryString}">${gettext('名錄下載')}</button>
         <a href="/qa?qa_id=14" target="_blank" class="qmark"></a>
@@ -970,13 +970,13 @@ function setTable(response, queryString, from, orderby, sort) {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
         } else {
-            alert('請先登入')
+            alert(gettext('請先登入'))
         }
     })
 
@@ -996,7 +996,7 @@ function setTable(response, queryString, from, orderby, sort) {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1049,7 +1049,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 if (xhr.status == 504) {
                     alert(gettext('要求連線逾時'))
                 } else {
-                    alert($('input[name=unexpected-error-alert]').val())
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                 }
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
@@ -1244,7 +1244,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     if (xhr.status == 504) {
                         alert(gettext('要求連線逾時'))
                     } else {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     }
                     $(".loading_area").addClass('d-none');

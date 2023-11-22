@@ -97,7 +97,7 @@ function showRequest(query_id, query, sdr_id) {
 
         })
         .fail(function (xhr, status, errorThrown) {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
 
@@ -108,11 +108,10 @@ function changePage(page, menu) {
         url: `/change_manager_page?page=${page}&menu=${menu}&from=partner`,
         type: 'GET',
         success: function (response) {
-            // 修改表格內容
-            $(`.${menu}_table`).html(`
-                ${response.header}
-                ${response.data}`)
 
+            // 保留表格 header 修改表格內容
+            $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
+            $(`.${menu}_table`).append(`${response.data}`)
 
             $('.showRequest').off('click')
             $('.showRequest').on('click', function () {
@@ -140,7 +139,7 @@ function changePage(page, menu) {
                         window.location.reload()
                     })
                     .fail(function (xhr, status, errorThrown) {
-                        alert($('input[name=unexpected-error-alert]').val())
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                     })
@@ -237,7 +236,7 @@ $(document).ready(function () {
                 window.location.reload()
             })
             .fail(function (xhr, status, errorThrown) {
-                alert($('input[name=unexpected-error-alert]').val())
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -279,7 +278,7 @@ $(document).ready(function () {
                     }
                 })
                 .fail(function (xhr, status, errorThrown) {
-                    alert($('input[name=unexpected-error-alert]').val())
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -334,7 +333,7 @@ $(document).ready(function () {
                 window.location.reload()
             })
             .fail(function (xhr, status, errorThrown) {
-                alert($('input[name=unexpected-error-alert]').val())
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
 
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -383,7 +382,7 @@ function update_user_status(current_id) {
             }
         })
         .fail(function (xhr, status, errorThrown) {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })

@@ -6,10 +6,9 @@ function changePage(page, menu) {
         type: 'GET',
         success: function (response) {
 
-            // 修改表格內容
-            $(`.${menu}_table`).html(`
-                ${response.header}
-                ${response.data}`)
+            // 保留表格 header 修改表格內容
+            $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
+            $(`.${menu}_table`).append(`${response.data}`)
 
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
@@ -78,7 +77,7 @@ function withdrawRequest(user_id) {
             }
         })
         .fail(function (xhr, status, errorThrown) {
-            alert($('input[name=unexpected-error-alert]').val())
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
 
@@ -133,7 +132,7 @@ $(document).ready(function () {
                     }
                 })
                 .fail(function (xhr, status, errorThrown) {
-                    alert($('input[name=unexpected-error-alert]').val())
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
 
@@ -187,7 +186,7 @@ $(document).ready(function () {
                     }
                 })
                 .fail(function (xhr, status, errorThrown) {
-                    alert($('input[name=unexpected-error-alert]').val())
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
         }

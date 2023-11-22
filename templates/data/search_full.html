@@ -107,12 +107,6 @@
           </button>
         </form>
       </div>
-      <!-- 
-      <div style="display: flex">
-        <p style="vertical-align: middle; line-height: 24px">搜尋"苦苓"="楝"</p> 
-        <img style="padding-left: 5px; cursor: pointer" onclick='window.open("{% url "qa" %}")' src="{% static 'image/quesmark.svg' %}" />
-      </div>
-      --> 
     </div>
     <div class="rightbox_select">
       <p>{% trans '想找到更精準的資料嗎？' %}<br />{% trans '試試進階搜尋' %}</p>
@@ -255,19 +249,19 @@
                   {% else %}
                   <div class="lefttxt2">
                   {% endif %}
-										<p>{% trans '中⽂名' %}：{{ i.common_name_c }}</p>
-										<p>{% trans '學名' %}：{{ i.formatted_name }}</p>
-										<p>{% trans '中文別名' %}：{{ i.alternative_name_c }}</p>
-										<p>{% trans '同物異名' %}：{{  i.synonyms }}</p>
-										<p>{% trans '分類階層' %}：{{ i.taxonRank }}</p>
+										<p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c }}</p>
+										<p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name }}</p>
+										<p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c }}</p>
+										<p>{% trans '同物異名' %}{% trans '：' %}{{  i.synonyms }}</p>
+										<p>{% trans '分類階層' %}{% trans '：' %}{{ i.taxonRank }}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                      <p>{% trans ii.matched_col %}：{{ ii.matched_value }}</p>
+                      <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value }}</p>
                       {% endif %}    
                     {%  endfor %}
-										<p>{% trans '出現記錄筆數' %}：{{ i.occ_count|intcomma }}</p>
-										<p>{% trans '自然史典藏筆數' %}：{{ i.col_count|intcomma }}</p>
+										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma }}</p>
+										<p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma }}</p>
 									</div>
                   {% if i.images %}
 									<div class="right_img">
@@ -361,12 +355,12 @@
                   data-sort="asc">  
                 <div class="num">{{ i.count }}</div>
                 <div class="num_bottom"></div>
-                <p>{% trans '中文名' %}：{{ i.common_name_c|safe }}</p>
-                <p>{% trans '學名' %}：{{ i.val|safe }}</p>
-                <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
+                <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+                <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+                <p>{% trans '鑑定層級' %}{% trans '：' %}{{ i.taxonRank }}</p>
                 {% for ii in i.matched %}
                   {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                    <p>{% trans ii.matched_col %}：{{ ii.matched_value|safe }}
+                    <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}
                       <!--
                       {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
                         {{ ii.matched_value|safe }}
@@ -427,12 +421,12 @@
                 data-sort="asc">
               <div class="num">{{ i.count }}</div>
               <div class="num_bottom"></div>
-              <p>{% trans '中文名' %}：{{ i.common_name_c|safe }}</p>
-              <p>{% trans '學名' %}：{{ i.val|safe }}</p>
-              <p>{% trans '鑑定層級' %}：{{ i.taxonRank }}</p>
+              <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+              <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+              <p>{% trans '鑑定層級' %}{% trans '：' %}{{ i.taxonRank }}</p>
               {% for ii in i.matched %}
                 {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                  <p>{% trans ii.matched_col %}：{{ ii.matched_value|safe }}
+                  <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}
                     <!--
                     {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
                       {{ ii.matched_value|safe }}

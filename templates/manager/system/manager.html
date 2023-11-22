@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %} 
 {% load i18n %}
-{% block title %}系統管理後台｜{% endblock %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_system.css' %}" />
@@ -21,7 +21,7 @@
 
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
