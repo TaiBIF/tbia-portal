@@ -6,15 +6,14 @@ function changePage(page, menu) {
         type: 'GET',
         success: function (response) {
 
-            console.log(response)
-
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
 
-            $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
+            $(`.${menu}_table`).parent().next('.page_number').remove()
+
             //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
             $(`.${menu}_table`).parent().after(
                 `<div class="page_number">
@@ -87,7 +86,11 @@ function withdrawRequest(user_id) {
 
 $(document).ready(function () {
 
+    //起始
     changePage(1, 'notification')
+    changePage(1, 'download')
+    changePage(1, 'download_taxon')
+    changePage(1, 'sensitive')
 
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");
@@ -109,9 +112,9 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    $('.changePage').on('click', function () {
-        changePage($(this).data('page'), $(this).data('type'))
-    })
+    // $('.changePage').on('click', function () {
+    //     changePage($(this).data('page'), $(this).data('type'))
+    // })
 
     $(`.rd_click[data-type=${$('input[name=menu]').val()}]`).parent().addClass('now')
     $(`.rightbox_content.${$('input[name=menu]').val()}`).removeClass('d-none')

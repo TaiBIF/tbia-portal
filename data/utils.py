@@ -21,6 +21,8 @@ import json
 import re
 from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
+from django.utils import timezone, translation
+from django.utils.translation import gettext
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -450,15 +452,16 @@ sensitive_cols = ['standardRawLatitude',
 
 
 # 整理搜尋條件
-def create_query_display(search_dict,sq_id):
-    # TODO 這邊要active translation
+def create_query_display(search_dict,lang=None):
+    if lang:
+        translation.activate(lang)
     query = ''
     if search_dict.get('record_type') == 'occ':
-        query += '<b>類別</b>：物種出現紀錄'
+        query += f'<b>{gettext("類別")}</b>{gettext("：")}{gettext("物種出現紀錄")}'
         map_dict = map_occurrence
     else:
         map_dict = map_collection
-        query += '<b>類別</b>：自然史典藏'
+        query += f'<b>{gettext("類別")}</b>{gettext("：")}{gettext("自然史典藏")}'
 
     d_list = []
     r_list = []
@@ -468,9 +471,9 @@ def create_query_display(search_dict,sq_id):
         if k in map_dict.keys():
             if k == 'taxonRank':
                 if search_dict[k] == 'sub':
-                    query += f"<br><b>{map_dict[k]}</b>：種下"
+                    query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext("種下")}'
                 else:
-                    query += f"<br><b>{map_dict[k]}</b>：{map_dict[search_dict[k]]}"
+                    query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
             elif k == 'datasetName':
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
@@ -512,40 +515,44 @@ def create_query_display(search_dict,sq_id):
                     resp = response.json()
                     if data := resp['response']['docs']:
                         data = data[0]
-                        query += f"<br><b>{map_dict[k]}</b>：{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
+                        query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
                 # if Taxon.objects.filter(taxonID=search_dict[k]).exists():
                 #     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
             elif k == 'taxonGroup':
                 if search_dict[k] in taxon_group_map_c.keys():
-                    query += f"<br><b>{map_dict[k]}</b>：{taxon_group_map_c[search_dict[k]]}"
+                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{taxon_group_map_c[search_dict[k]]}"
+            # 需要調整的選單內容
+            elif k in ['basisOfRecord','dataGeneralizations']:
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
             else:
-                query += f"<br><b>{map_dict[k]}</b>：{search_dict[k]}"
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k]}"
         # 地圖搜尋
         elif k == 'geo_type':
             if search_dict[k] == 'polygon':
                 geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
                 if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                    query += f"<br><b>上傳polygon</b>：<a target='_blank' href='/{geojson_path}'>點此下載GeoJSON</a>"
+                    query += f"<br><b>{gettext('上傳polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
             elif search_dict[k] == 'circle':
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
-                    query += f"<br><b>圓中心框選</b>：半徑 {search_dict.get('circle_radius')} KM 中心點經度 {search_dict.get('center_lon')} 中心點緯度 {search_dict.get('center_lat')}" 
+                    query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {search_dict.get('circle_radius')} KM {gettext('中心點經度')} {search_dict.get('center_lon')} {gettext('中心點緯度')} {search_dict.get('center_lat')}" 
             elif search_dict[k] == 'map' and search_dict.get('polygon'):
-                query += f"<br><b>地圖框選</b>：{search_dict.get('polygon')}" 
+                query += f"<br><b>{gettext('地圖框選')}</b>{gettext('：')}{search_dict.get('polygon')}" 
         # 日期
         elif k == 'start_date':
-            query += f"<br><b>起始日期</b>：{search_dict.get('start_date')}" 
+            query += f"<br><b>{gettext('起始日期')}</b>{gettext('：')}{search_dict.get('start_date')}" 
         elif k == 'end_date':
-            query += f"<br><b>結束日期</b>：{search_dict.get('end_date')}" 
+            query += f"<br><b>{gettext('結束日期')}</b>{gettext('：')}{search_dict.get('end_date')}" 
         elif k == 'name':
-            query += f"<br><b>中文名/學名/中文別名</b>：{search_dict.get('name')}" 
+            query += f"<br><b>{gettext('中文名/學名/中文別名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
-            query += f"<br><b>有無影像</b>：{'有' if search_dict.get('has_image') == 'y' else '無'}" 
+            query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') == 'y' else gettext('無影像')}" 
     if r_list:
-        query += f"<br><b>來源資料庫</b>：{'、'.join(r_list)}" 
+        r_list = [gettext(r) for r in r_list]
+        query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
     if d_list:
-        query += f"<br><b>資料集名稱</b>：{'、'.join(d_list)}" 
+        query += f"<br><b>{gettext('資料集名稱')}</b>{gettext('：')}{'、'.join(d_list)}" 
     if l_list:
-        query += f"<br><b>{map_dict['locality']}</b>：{'、'.join(l_list)}" 
+        query += f"<br><b>{gettext(map_dict['locality'])}</b>{gettext('：')}{'、'.join(l_list)}" 
 
     return query
 
@@ -596,8 +603,10 @@ def create_query_a(search_dict):
     return query_a
 
 
-def query_a_href(query, query_a):
-    query += f'''<br><a class="search-again-a" target="_blank" href="{query_a}">再次查詢<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
+def query_a_href(query, query_a, lang=None):
+    if lang:
+        translation.activate(lang)
+    query += f'''<br><a class="search-again-a" target="_blank" href="{query_a}">{gettext('再次查詢')}<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
     return query
 
 

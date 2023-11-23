@@ -135,7 +135,8 @@ def update_feedback(request):
 
 def change_manager_page(request):
     # 這邊和帳號後台相關的要translation active
-    translation.activate(request.GET.get('lang'))
+    lang = request.GET.get('lang')
+    translation.activate(lang)
     page = request.GET.get('page')
     menu = request.GET.get('menu')
     offset = (int(page)-1) * 10
@@ -154,31 +155,31 @@ def change_manager_page(request):
             content = '<p>' + gettext(n.get_type_display()).replace('0000', n.content)+ '</p>'
             if not n.is_read:
                 content = '<div class="noti-dottt"></div>' + content
+                content = f'<div class="d-flex">{content}</div>'
             data.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 
                         'content': content})
 
         total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
 
-    elif menu == 'download_taxon':
-        # taxon = []
+    elif menu == 'download_taxon': # 個人帳號名錄下載
 
         for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[offset:offset+10]:
             if t.modified:
                 date = t.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
-                if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
-                    expired_date = t.modified + timedelta(days=365)
-                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
-
+                if t.status != 'expired':
+                    if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
+                        expired_date = t.modified + timedelta(days=365)
+                        date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
 
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(t.query))
-            query = create_query_display(search_dict,t.id)
+            query = create_query_display(search_dict)
             link = ''
             if t.status == 'pass' and t.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">{gettext("下載")}</a>'
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -198,26 +199,27 @@ def change_manager_page(request):
                 'query_id': t.query_id,
                 'date':  date,
                 'query':   query,
-                'status': t.get_status_display(),
+                'status': gettext(t.get_status_display()),
                 'link': link
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
-    elif menu == 'sensitive':
+    elif menu == 'sensitive': # 個人帳號敏感資料
 
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
             if s.modified:
                 date = s.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
-                if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
-                    expired_date = s.modified + timedelta(days=365)
-                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
+                if s.status != 'expired':
+                    if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
+                        expired_date = s.modified + timedelta(days=365)
+                        date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
 
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
-            query = create_query_display(search_dict,s.id)
+            query = create_query_display(search_dict)
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -240,11 +242,11 @@ def change_manager_page(request):
                     partner_name = sdr.partner.select_title 
                 else:
                     partner_name = 'TBIA聯盟'
-                comment.append(f"""<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else "" }<br><b>審查結果：</b>{sdr.get_status_display()}""")
+                comment.append(f"""<b>{gettext("審查單位")}{gettext("：")}</b>{partner_name}<br><b>{gettext("審查者姓名")}{gettext("：")}</b>{sdr.reviewer_name}<br><b>{gettext("審查意見")}{gettext("：")}</b>{sdr.comment if sdr.comment else "" }<br><b>{gettext("審查結果")}{gettext("：")}</b>{gettext(sdr.get_status_display())}""")
 
             link = ''
             if s.status == 'pass' and s.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
 
             data.append({
                 'id': f'#{s.personal_id}',
@@ -252,19 +254,20 @@ def change_manager_page(request):
                 'date':  date,
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
-                'status': s.get_status_display(),
+                'status': gettext(s.get_status_display()),
                 'link': link
             })
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
-    elif menu == 'download':
+    elif menu == 'download': # 個人帳號資料下載
 
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
             if r.modified:
                 date = r.modified + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
-                if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
-                    expired_date = r.modified + timedelta(days=365)
-                    date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
+                if r.status != 'expired':
+                    if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
+                        expired_date = r.modified + timedelta(days=365)
+                        date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
 
@@ -276,16 +279,16 @@ def change_manager_page(request):
                 search_dict = dict(parse.parse_qsl(search_str))
                 # print(search_dict)
 
-                query += f"<b>關鍵字</b>：{search_dict['keyword']}"
+                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{search_dict['keyword']}"
                 
                 if search_dict.get('record_type') == 'occ':
                     map_dict = map_occurrence
                 else:
                     map_dict = map_collection
                 key = map_dict.get(search_dict['key'])
-                query += f"<br><b>{key}</b>：{search_dict['value']}"
+                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{search_dict['value']}"
                 if search_dict.get('scientific_name'):
-                    query += f"<br><b>學名</b>：{search_dict['scientific_name']}"
+                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{search_dict['scientific_name']}"
                 if 'total_count' in search_dict.keys():
                     search_dict.pop('total_count')
                 query_a = '/search/full?' + parse.urlencode(search_dict)
@@ -293,7 +296,7 @@ def change_manager_page(request):
             else:
             # 進階搜尋
                 search_dict = dict(parse.parse_qsl(r.query))
-                query = create_query_display(search_dict,r.id)
+                query = create_query_display(search_dict, lang)
 
                 if search_dict.get("record_type") == 'col':
                     search_prefix = 'collection'
@@ -308,16 +311,16 @@ def change_manager_page(request):
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">下載</a>'
+                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
 
-            query = query_a_href(query,query_a)
+            query = query_a_href(query,query_a,lang)
             
             data.append({
                 'id': f'#{r.personal_id}',
                 'query_id': r.query_id,
-                'date':  date,
-                'query':   query,
-                'status': r.get_status_display(),
+                'date': date,
+                'query': query,
+                'status': gettext(r.get_status_display()),
                 'link': link,
             })
 
@@ -397,7 +400,7 @@ def change_manager_page(request):
             # 進階搜尋
             # search_dict = dict(parse.parse_qsl(s.query))
             search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
-            query = create_query_display(search_dict,s.id)
+            query = create_query_display(search_dict)
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -444,7 +447,7 @@ def change_manager_page(request):
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
-                    query = create_query_display(search_dict,r.id)
+                    query = create_query_display(search_dict)
                                 
                     if search_dict.get("record_type") == 'col':
                         search_prefix = 'collection'
@@ -479,7 +482,7 @@ def change_manager_page(request):
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
-                    query = create_query_display(search_dict,r.id)
+                    query = create_query_display(search_dict)
                 
                     if search_dict.get("record_type") == 'col':
                         search_prefix = 'collection'
@@ -672,189 +675,10 @@ def change_manager_page(request):
 def manager(request):
     menu = request.GET.get('menu','info')
     partners = Partner.objects.all().order_by('abbreviation','id')
-    # pr = []
-    # if PartnerRequest.objects.filter(user_id=request.user.id,status__in=['pending','pass']).exists():
-    #     pr = PartnerRequest.objects.get(user_id=request.user.id)
-    # notis = Notification.objects.filter(user_id=request.user.id)
-
-    # TODO 統一由js呼叫
-    # notis = []
-    # notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
-    # # results = ""
-    # for n in notifications:
-    #     created = n.created + timedelta(hours=8)
-    #     content = n.get_type_display().replace('0000', n.content)
-    #     notis.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 'id': n.id,
-    #                 'content': content, 'is_read': n.is_read})
-
-    n_total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
-    n_page_list = get_page_list(1, n_total_page)
-    # print(page_list)
-
-    now = datetime.now()
-    now = now.replace(tzinfo=pytz.timezone('UTC'))
-    record = []
-    for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[:10]:
-        if r.modified:
-            date = r.modified + timedelta(hours=8)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
-            if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
-                expired_date = r.modified + timedelta(days=365)
-                date += f'<br><span class="expired-notice">*資料下載連結將於 {expired_date.year}-{expired_date.month}-{expired_date.day} 後失效</span>'
-        else:
-            date = ''
-        query = ''
-        # 整理搜尋條件
-        # 全站搜尋
-        if 'from_full=yes' in r.query:
-            search_str = dict(parse.parse_qsl(r.query)).get('search_str')
-            search_dict = dict(parse.parse_qsl(search_str))
-            query += f"<b>關鍵字</b>：{search_dict['keyword']}"
-            if search_dict.get('record_type') == 'occ':
-                map_dict = map_occurrence
-            else:
-                map_dict = map_collection
-            key = map_dict.get(search_dict['key'])
-            query += f"<br><b>{key}</b>：{search_dict['value']}"
-            query += f"<br><b>學名</b>：{search_dict.get('scientific_name','')}"
-            if 'total_count' in search_dict.keys():
-                search_dict.pop('total_count')
-            query_a = '/search/full?' + parse.urlencode(search_dict)
-
-        else:
-        # 進階搜尋
-            search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict,r.id)
-            if search_dict.get("record_type") == 'col':
-                search_prefix = 'collection'
-            else:
-                search_prefix = 'occurrence'
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-        record.append({
-            'id': r.personal_id,
-            'query_id': r.query_id,
-            'date':  date,
-            'query':  query,
-            'status': r.get_status_display(),
-            'query_a': query_a
-        })
-    r_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
-    r_page_list = get_page_list(1, r_total_page)
-
-    # print(r_total_page, r_page_list)
-    taxon = []
-    for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[:10]:
-        query = ''
-        if t.modified:
-            date = t.modified + timedelta(hours=8)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
-            if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
-                expired_date = t.modified + timedelta(days=365)
-                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
-        else:
-            date = ''
-        # 進階搜尋
-        search_dict = dict(parse.parse_qsl(t.query))
-        query = create_query_display(search_dict,t.id)
-
-        if search_dict.get("record_type") == 'col':
-            search_prefix = 'collection'
-        else:
-            search_prefix = 'occurrence'
-        tmp_a = create_query_a(search_dict)
-        for i in ['locality','datasetName','rightsHolder','total_count']:
-            if i in search_dict.keys():
-                search_dict.pop(i)
-
-        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-        taxon.append({
-            'id': t.personal_id,
-            'query_id': t.query_id,
-            'date': date,
-            'query': query,
-            'status': t.get_status_display(),
-            'query_a': query_a
-        })
-
-    t_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count()/10)
-    t_page_list = get_page_list(1, t_total_page)
-
-    sensitive = []
-
-    for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[:10]:
-        query = ''
-
-        if s.modified:
-            date = s.modified + timedelta(hours=8)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
-            if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
-                expired_date = s.modified + timedelta(days=365)
-                date += f'<br><span class="expired-notice">*資料下載連結將於{expired_date.year}年{expired_date.month}月{expired_date.day}日後失效</span>'
-        else:
-            date = ''
-
-        # 進階搜尋
-        search_dict = dict(parse.parse_qsl(s.query))
-        query = create_query_display(search_dict,s.id)
-
-        if search_dict.get("record_type") == 'col':
-            search_prefix = 'collection'
-        else:
-            search_prefix = 'occurrence'
-        # if 'total_count' in search_dict.keys():
-        #     search_dict.pop('total_count')
-        tmp_a = create_query_a(search_dict)
-        for i in ['locality','datasetName','rightsHolder','total_count']:
-            if i in search_dict.keys():
-                search_dict.pop(i)
-
-        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-    # for sdr in SensitiveDataResponse.objects.filter(query_id__in=SearchQuery.objects.filter(user_id=request.user.id, type='senstive').values('query_id')):
-
-        # 審查意見
-        comment = []
-
-        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-            if sdr.partner:
-                partner_name = sdr.partner.select_title 
-            else:
-                partner_name = 'TBIA聯盟'
-            comment.append(f"""
-            <b>審查單位：</b>{partner_name}
-            <br>
-            <b>審查者姓名：</b>{sdr.reviewer_name}
-            <br>
-            <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
-            <br>
-            <b>審查結果：</b>{sdr.get_status_display()}
-            """)
-
-        sensitive.append({
-            'id': s.personal_id,
-            'query_id': s.query_id,
-            'date':  date,
-            'query':   query,
-            'status': s.get_status_display(),
-            'comment': '<hr>'.join(comment) if comment else '',
-            'query_a': query_a
-        })
-
-    s_total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count()/10)
-    s_page_list = get_page_list(1, s_total_page)
 
     from_google = SocialAccount.objects.filter(user_id=request.user.id).exists()
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, #'notis': notis, 'n_page_list': n_page_list, 'n_total_page': n_total_page,
-    'record': record, 'taxon': taxon, 'sensitive': sensitive, 
-    't_page_list': t_page_list, 't_total_page': t_total_page, 's_page_list': s_page_list, 's_total_page': s_total_page,
-    'r_page_list': r_page_list, 'r_total_page': r_total_page, 'from_google': from_google})
+    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'from_google': from_google})
 
 
 def update_personal_info(request):
@@ -1283,7 +1107,7 @@ def partner_info(request):
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict,r.id)
+            query = create_query_display(search_dict)
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
             else:
@@ -1567,7 +1391,7 @@ def system_info(request):
         if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
             r = SearchQuery.objects.get(query_id=sdr.query_id)
             search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict,r.id)
+            query = create_query_display(search_dict)
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -1610,7 +1434,7 @@ def system_info(request):
         # 進階搜尋
         
         search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
-        query = create_query_display(search_dict,s.id)
+        query = create_query_display(search_dict)
 
         if search_dict.get("record_type") == 'col':
             search_prefix = 'collection'

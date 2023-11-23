@@ -174,59 +174,8 @@
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
-                        {% for r in record %}
-                        <tr>
-                            <td>#{{ r.id }}</td>
-                            <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|safe|default_if_none:'' }}</td>
-                            <td> 
-                                {{ r.query|safe }}
-                                <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
-                                    <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
-                                        <g id="loupe" transform="translate(0 -0.003)">
-                                        <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
-                                            <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path>
-                                        </g>
-                                        </g>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td>{% trans r.status %}</td>
-                            <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/record/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
                     </table>						
                 </div>
-                <div class="page_number">
-					{% if r_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="download">1</a>
-                    <a href="javascript:;" class="pre pt-none">
-                        <span></span>{% trans '上一頁' %}
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in r_page_list %}
-                        {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="download">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="download">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in r_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="download">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next pt-none">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ r_total_page }}" data-type="download">{{ r_total_page }}</a>
-                    {% endif %}
-				</div>
             </div>
         </div>
 
@@ -251,59 +200,8 @@
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
-                        {% for r in taxon %}
-                        <tr>
-                            <td>#{{ r.id }}</td>
-                            <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|safe|default_if_none:'' }}</td>
-                            <td>
-                                {{ r.query|safe }}
-                                <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
-                                    <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
-                                        <g id="loupe" transform="translate(0 -0.003)">
-                                        <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
-                                            <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path>
-                                        </g>
-                                        </g>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td>{% trans r.status %}</td>
-                            <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
                     </table>						
                 </div>
-                <div class="page_number">
-					{% if t_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="download_taxon">1</a>
-                    <a href="javascript:;" class="pre pt-none">
-                        <span></span>{% trans '上一頁' %}
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in t_page_list %}
-                        {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="download_taxon">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="download_taxon">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in t_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="download_taxon">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next pt-none">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ t_total_page }}" data-type="download_taxon">{{ t_total_page }}</a>
-                    {% endif %}
-				</div>
             </div>
         </div>
 
@@ -329,60 +227,8 @@
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
                         </tr>
-                        {% for r in sensitive %}
-                        <tr>
-                            <td>#{{ r.id }}</td>
-                            <td>{{ r.query_id }}</td>
-                            <td>{{ r.date|safe|default_if_none:'' }}</td>
-                            <td>
-                                {{ r.query|safe }}
-                                <br>
-                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">{% trans '再次查詢' %}
-                                    <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
-                                        <g id="loupe" transform="translate(0 -0.003)">
-                                        <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
-                                            <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path>
-                                        </g>
-                                        </g>
-                                    </svg>
-                                </a>
-                            </td>
-                            <td>{{ r.comment|safe }}</td>
-                            <td>{% trans r.status %}</td>
-                            <td>{% if r.status == '完成' and r.status != '過期' %}
-                                <a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{{ r.query_id }}.zip">{% trans '下載' %}</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
                     </table>						
                 </div>
-                <div class="page_number">
-					{% if s_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive">1</a>
-                    <a href="javascript:;" class="pre pt-none">
-                        <span></span>{% trans '上一頁' %}
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in s_page_list %}
-                        {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in s_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next pt-none">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive">{{ s_total_page }}</a>
-                    {% endif %}
-				</div>
             </div>
         </div>
 
@@ -395,50 +241,11 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 notification_table">
                         <tr class="notification_table_header">
-                            <td>{% trans '日期' %}</td>
-                            <td>{% trans '內容' %}</td>
+                            <td class="w-30p">{% trans '日期' %}</td>
+                            <td class="w-70p">{% trans '內容' %}</td>
                         </tr>
-                        {% for n in notis %}
-                        <tr>
-                            <td>
-                                {{ n.created }}
-                            </td>
-                            <td>                                
-                                {% if not n.is_read %}
-                                <div class="noti-dottt"></div>
-                                {% endif %}
-                                <p>{{ n.content }}</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
                     </table>					
                 </div>
-				<div class="page_number">
-					{% if n_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="notification">1</a>
-                    <a href="javascript:;" class="pre pt-none">
-                        <span></span>{% trans '上一頁' %}
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in n_page_list %}
-                        {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="notification">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in n_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="notification">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next pt-none">
-                        {% trans '下一頁' %}<span></span>
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="notification">{{ n_total_page }}</a>
-                    {% endif %}
-				</div>
             </div>
         </div>
         {% else %}

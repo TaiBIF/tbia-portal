@@ -790,6 +790,14 @@ msgstr "Failed"
 msgid "過期"
 msgstr "Expired"
 
+#: manager
+msgid "通過"
+msgstr "Succeeded"
+
+#: manager
+msgid "不通過"
+msgstr "Failed"
+
 #: templates/manager/manager.html:175 templates/manager/manager.html:252
 #: templates/manager/manager.html:330
 msgid "檔案連結"
@@ -836,6 +844,10 @@ msgstr "Download Checklist Field Description Document"
 #: templates/manager/manager.html:328
 msgid "審查意見"
 msgstr "Review Comments"
+
+#: templates/manager/manager.html:328
+msgid "審查結果"
+msgstr "Review Outcome"
 
 #: templates/manager/manager.html:328
 msgid "審查單位"
@@ -1311,6 +1323,10 @@ msgstr "Basis of Record"
 #: templates/data/collection_detail.html:55 templates/pages/index.html:190
 msgid "自然史典藏"
 msgstr "Collection"
+
+#: 
+msgid "關鍵字"
+msgstr "Keyword"
 
 #: templates/data/collection_detail.html:70
 #: templates/data/occurrence_detail.html:71 templates/data/search_full.html:258
