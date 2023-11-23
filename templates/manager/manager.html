@@ -137,7 +137,7 @@
                         <li class="ag-style">
                             <div class="agreebox jc-start">
                                 <input type="checkbox" class="chebox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}>
-                                {% trans '我已閱讀並同意' %}<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager">{% trans '保密協議' %}</a>
+                                {% trans '我已閱讀並同意' %}<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager"> {% trans '保密協議' %}</a>
                             </div>
                         </li>
                         <li>                                

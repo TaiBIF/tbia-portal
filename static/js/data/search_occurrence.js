@@ -899,7 +899,8 @@ function setTable(response, queryString, from, orderby, sort) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
         //this_td.style.cssText = 'display:none';
-        var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
+        // 表格title
+        var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
         a.className = 'orderby';
         a.dataset.orderby = Object.keys(map_dict)[i];
@@ -919,10 +920,15 @@ function setTable(response, queryString, from, orderby, sort) {
         let url_mask = "/occurrence/" + tmp.id.toString();
         tmp_td += `<td><a href=${url_mask} class="more" target="_blank">${gettext('查看')}</a></td>`
         for (let j = 0; j < Object.keys(map_dict).length; j++) {
+
+            // 欄位內容
             tmp_value = tmp[Object.keys(map_dict)[j]];
             if (tmp_value == null) {
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
             } else {
+                if (['basisOfRecord','rightsHolder','dataGeneralizations','taxonRank'].includes(Object.keys(map_dict)[j])){
+                    tmp_value = gettext(tmp_value)
+                }
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
             }
         }

@@ -272,7 +272,7 @@ $(document).ready(function () {
                 dataType: 'json',
             })
                 .done(function (response) {
-                    alert(response.message)
+                    alert(gettext(response.message))
                     if (response.message == '修改完成！') {
                         window.location = '/'
                     }

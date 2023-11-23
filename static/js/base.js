@@ -288,7 +288,7 @@ $(function () {
       dataType: 'json',
     })
       .done(function (response) {
-        alert(response.message)
+        alert(gettext(response.message))
       })
       .fail(function (xhr, status, errorThrown) {
         alert(gettext('發生未知錯誤！請聯絡管理員'))
@@ -459,7 +459,7 @@ function login() {
         if (response.status == 'success') {
           location.reload()
         } else {
-          alert(response.message)
+          alert(gettext(response.message))
         }
       })
       .fail(function (xhr, status, errorThrown) {
@@ -509,7 +509,7 @@ function register() {
           window.location.href = "/register/verification";
 
         } else {
-          alert(response.message)
+          alert(gettext(response.message))
           $('.login_pop').addClass('d-none')
         }
 

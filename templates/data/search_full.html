@@ -244,16 +244,12 @@
               {% for i in taxon.card %}
 							<li>
 								<div class="flex_top">
-                  {% if i.images %}
-									<div class="lefttxt">
-                  {% else %}
-                  <div class="lefttxt2">
-                  {% endif %}
+									<div class="{% if i.images|length > 0 %} lefttxt {% else %} {% endif %}">
 										<p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c }}</p>
 										<p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name }}</p>
 										<p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c }}</p>
 										<p>{% trans '同物異名' %}{% trans '：' %}{{  i.synonyms }}</p>
-										<p>{% trans '分類階層' %}{% trans '：' %}{{ i.taxonRank }}</p>
+										<p>{% trans '分類階層' %}{% trans '：' %}{% trans i.taxonRank %}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
@@ -263,7 +259,7 @@
 										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma }}</p>
 										<p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma }}</p>
 									</div>
-                  {% if i.images %}
+                  {% if i.images|length > 0 %}
 									<div class="right_img">
 										<div class="imgbox">
                       {% if i.images|length > 1 %}
@@ -285,7 +281,6 @@
                   {% else %}
                   <div class="right_img2">
 										<div class="imgbox">
-                        <img class="imgarea">
                     </div>
 									</div>
                   {% endif %}
@@ -296,8 +291,7 @@
                 {% if i.taieol_id %}
                 <div class="btn_area">
                   <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">{% trans '生命大百科介紹' %}</a>
-                  <button class="getDist" 
-                  data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
+                  <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
                 </div>
                 {% else %}
                 <div class="btn_area jc-fe">
@@ -357,7 +351,7 @@
                 <div class="num_bottom"></div>
                 <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
                 <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-                <p>{% trans '鑑定層級' %}{% trans '：' %}{{ i.taxonRank }}</p>
+                <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
                 {% for ii in i.matched %}
                   {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
                     <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}
@@ -423,7 +417,7 @@
               <div class="num_bottom"></div>
               <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
               <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-              <p>{% trans '鑑定層級' %}{% trans '：' %}{{ i.taxonRank }}</p>
+              <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
               {% for ii in i.matched %}
                 {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
                   <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}

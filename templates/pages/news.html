@@ -95,7 +95,7 @@
 						{% else %}
 						<div class="tag yellow">
 						{% endif %}
-						{{ n.get_type_display }}</div>
+						{% trans n.get_type_display %}</div>
 					<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
 					</div>
 					<a href="{% url 'news_detail' n.id %}" class="nstitle"> {{ n.title }} </a>

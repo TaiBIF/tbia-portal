@@ -20,7 +20,7 @@ msgstr ""
 
 #: templates/base.html
 msgid "："
-msgstr ":"
+msgstr ": "
 
 #: templates/base.html:35
 msgid "發生未知錯誤！請聯絡管理員"
@@ -1639,7 +1639,7 @@ msgstr "Birds"
 msgid "哺乳類"
 msgstr "Mammals"
 
-# 分類階層
+# 分類階層下拉選單
 #: 
 msgid "界"
 msgstr "Kingdom"
@@ -1717,3 +1717,411 @@ msgstr "Occurrence"
 msgid "文獻紀錄"
 msgstr "MaterialCitation"
 
+
+# dataGeneralizations
+
+#: 
+msgid "是"
+msgstr "True"
+
+#: 
+msgid "否"
+msgstr "False"
+
+
+# 分類階層 in 資料
+
+#:
+msgid "域"
+msgstr "Domain"
+
+#:
+msgid "總界"
+msgstr "Superkingdom"
+
+#:
+msgid "亞界"
+msgstr "Subkingdom"
+
+#:
+msgid "下界"
+msgstr "Infrakingdom"
+
+#:
+msgid "超部|總部"
+msgstr "Superdivision"
+
+#:
+msgid "部|類"
+msgstr "Division"
+
+#:
+msgid "亞部|亞類"
+msgstr "Subdivision"
+
+#:
+msgid "下部|下類"
+msgstr "Infradivision"
+
+#:
+msgid "小部|小類"
+msgstr "Parvdivision"
+
+#:
+msgid "超門|總門"
+msgstr "Superphylum"
+
+#:
+msgid "亞門"
+msgstr "Subphylum"
+
+#:
+msgid "下門"
+msgstr "Infraphylum"
+
+#:
+msgid "微門"
+msgstr "Microphylum"
+
+#:
+msgid "小門"
+msgstr "Parvphylum"
+
+#:
+msgid "超綱|總綱"
+msgstr "Superclass"
+
+#:
+msgid "亞綱"
+msgstr "Subclass"
+
+#:
+msgid "下綱"
+msgstr "Infraclass"
+
+#:
+msgid "超目|總目"
+msgstr "Superorder"
+
+#:
+msgid "亞目"
+msgstr "Suborder"
+
+#:
+msgid "下目"
+msgstr "Infraorder"
+
+#:
+msgid "超科|總科"
+msgstr "Superfamily"
+
+#:
+msgid "亞科"
+msgstr "Subfamily"
+
+#:
+msgid "族"
+msgstr "Tribe"
+
+#:
+msgid "亞族"
+msgstr "Subtribe"
+
+#:
+msgid "亞屬"
+msgstr "Subgenus"
+
+#:
+msgid "組|節"
+msgstr "Section"
+
+#:
+msgid "亞組|亞節"
+msgstr "Subsection"
+
+#:
+msgid "亞種"
+msgstr "Subspecies"
+
+#:
+msgid "雜交亞種"
+msgstr "Nothosubspecies"
+
+#:
+msgid "變種"
+msgstr "Variety"
+
+#:
+msgid "亞變種"
+msgstr "Subvariety"
+
+#:
+msgid "雜交變種"
+msgstr "Nothovariety"
+
+#:
+msgid "型"
+msgstr "Form"
+
+#:
+msgid "亞型"
+msgstr "Subform"
+
+#:
+msgid "特別品型"
+msgstr "Special-form"
+
+#:
+msgid "種族"
+msgstr "Race"
+
+#:
+msgid "血統"
+msgstr "Stirp"
+
+#:
+msgid "形態型"
+msgstr "Morph"
+
+#:
+msgid "異常個體"
+msgstr "Aberration"
+
+#:
+msgid "雜交組合"
+msgstr "Hybrid-formula"
+
+#:
+msgid "域中文名"
+msgstr "Domain in Chinese"
+    
+
+#:
+msgid "總界中文名"
+msgstr "Superkingdom in Chinese"
+    
+
+#:
+msgid "界中文名"
+msgstr "Kingdom in Chinese"
+    
+
+#:
+msgid "亞界中文名"
+msgstr "Subkingdom in Chinese"
+    
+
+#:
+msgid "下界中文名"
+msgstr "Infrakingdom in Chinese"
+    
+
+#:
+msgid "超部|總部中文名"
+msgstr "Superdivision in Chinese"
+    
+
+#:
+msgid "部|類中文名"
+msgstr "Division in Chinese"
+    
+
+#:
+msgid "亞部|亞類中文名"
+msgstr "Subdivision in Chinese"
+    
+
+#:
+msgid "下部|下類中文名"
+msgstr "Infradivision in Chinese"
+    
+
+#:
+msgid "小部|小類中文名"
+msgstr "Parvdivision in Chinese"
+    
+
+#:
+msgid "超門|總門中文名"
+msgstr "Superphylum in Chinese"
+    
+
+#:
+msgid "門中文名"
+msgstr "Phylum in Chinese"
+    
+
+#:
+msgid "亞門中文名"
+msgstr "Subphylum in Chinese"
+    
+
+#:
+msgid "下門中文名"
+msgstr "Infraphylum in Chinese"
+    
+
+#:
+msgid "微門中文名"
+msgstr "Microphylum in Chinese"
+    
+
+#:
+msgid "小門中文名"
+msgstr "Parvphylum in Chinese"
+    
+
+#:
+msgid "超綱|總綱中文名"
+msgstr "Superclass in Chinese"
+    
+
+#:
+msgid "綱中文名"
+msgstr "Class in Chinese"
+    
+
+#:
+msgid "亞綱中文名"
+msgstr "Subclass in Chinese"
+    
+
+#:
+msgid "下綱中文名"
+msgstr "Infraclass in Chinese"
+    
+
+#:
+msgid "超目|總目中文名"
+msgstr "Superorder in Chinese"
+    
+
+#:
+msgid "目中文名"
+msgstr "Order in Chinese"
+    
+
+#:
+msgid "亞目中文名"
+msgstr "Suborder in Chinese"
+    
+
+#:
+msgid "下目中文名"
+msgstr "Infraorder in Chinese"
+    
+
+#:
+msgid "超科|總科中文名"
+msgstr "Superfamily in Chinese"
+    
+
+#:
+msgid "科中文名"
+msgstr "Family in Chinese"
+    
+
+#:
+msgid "亞科中文名"
+msgstr "Subfamily in Chinese"
+    
+
+#:
+msgid "族中文名"
+msgstr "Tribe in Chinese"
+    
+
+#:
+msgid "亞族中文名"
+msgstr "Subtribe in Chinese"
+    
+
+#:
+msgid "屬中文名"
+msgstr "Genus in Chinese"
+    
+
+#:
+msgid "亞屬中文名"
+msgstr "Subgenus in Chinese"
+    
+
+#:
+msgid "組|節中文名"
+msgstr "Section in Chinese"
+    
+
+#:
+msgid "亞組|亞節中文名"
+msgstr "Subsection in Chinese"
+    
+
+#:
+msgid "種中文名"
+msgstr "Species in Chinese"
+    
+
+#:
+msgid "亞種中文名"
+msgstr "Subspecies in Chinese"
+    
+
+#:
+msgid "雜交亞種中文名"
+msgstr "Nothosubspecies in Chinese"
+    
+
+#:
+msgid "變種中文名"
+msgstr "Variety in Chinese"
+    
+
+#:
+msgid "亞變種中文名"
+msgstr "Subvariety in Chinese"
+    
+
+#:
+msgid "雜交變種中文名"
+msgstr "Nothovariety in Chinese"
+    
+
+#:
+msgid "型中文名"
+msgstr "Form in Chinese"
+    
+
+#:
+msgid "亞型中文名"
+msgstr "Subform in Chinese"
+    
+
+#:
+msgid "特別品型中文名"
+msgstr "Special-form in Chinese"
+    
+
+#:
+msgid "種族中文名"
+msgstr "Race in Chinese"
+    
+
+#:
+msgid "血統中文名"
+msgstr "Stirp in Chinese"
+    
+
+#:
+msgid "形態型中文名"
+msgstr "Morph in Chinese"
+    
+
+#:
+msgid "異常個體中文名"
+msgstr "Aberration in Chinese"
+    
+
+#:
+msgid "雜交組合中文名"
+msgstr "Hybrid-formula in Chinese"
+    

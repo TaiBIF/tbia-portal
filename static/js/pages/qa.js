@@ -65,7 +65,7 @@ function updateQa(page, type) {
     url: '/get_qa_list',
     type: 'POST',
     headers: { 'X-CSRFToken': $csrf_token },
-    data: { 'type': type, 'page': page },
+    data: { 'type': type, 'page': page, 'lang': $lang },
 
     success: function (response, status) {
       if (response.data.length > 0) {

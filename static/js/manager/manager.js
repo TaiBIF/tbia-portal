@@ -2,9 +2,11 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 function changePage(page, menu) {
     $.ajax({
-        url: `/change_manager_page?page=${page}&menu=${menu}`,
+        url: `/change_manager_page?page=${page}&menu=${menu}&lang=${$lang}`,
         type: 'GET',
         success: function (response) {
+
+            console.log(response)
 
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
@@ -85,6 +87,8 @@ function withdrawRequest(user_id) {
 
 $(document).ready(function () {
 
+    changePage(1, 'notification')
+
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");
         $(this).toggleClass("now");
@@ -126,7 +130,7 @@ $(document).ready(function () {
                 dataType: 'json',
             })
                 .done(function (response) {
-                    alert(response.message)
+                    alert(gettext(response.message))
                     if (response.message == '申請已送出') {
                         window.location = '/manager'
                     }

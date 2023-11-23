@@ -633,7 +633,8 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
-        var text = document.createTextNode(map_dict[Object.keys(map_dict)[i]]);
+        // 表格title
+        var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
         a.className = 'orderby';
         a.dataset.orderby = Object.keys(map_dict)[i];
@@ -670,6 +671,9 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
           if (tmp_value == null) {
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
           } else {
+              if (['basisOfRecord','rightsHolder','dataGeneralizations','taxonRank'].includes(Object.keys(map_dict)[j])){
+                tmp_value = gettext(tmp_value)
+            }
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
           }
         }
@@ -1014,7 +1018,7 @@ function focusCards(record_type, key, go_back) {
                   <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
                   <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
                   <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
-                  <p>${gettext('分類階層')}${gettext('：')}${x.taxonRank}</p>
+                  <p>${gettext('分類階層')}${gettext('：')}${gettext(x.taxonRank)}</p>
                   ${matched}
                   <p>${gettext('出現記錄筆數')}${gettext('：')}${x.occ_count}</p>
                   <p>${gettext('自然史典藏筆數')}${gettext('：')}${x.col_count}</p>
@@ -1169,7 +1173,7 @@ function focusCards(record_type, key, go_back) {
                 <div class="num_bottom"></div>
                 <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
                 <p>${gettext('學名')}${gettext('：')}${x.val}</p>
-                <p>${gettext('鑑定層級')}${gettext('：')}${x.taxonRank}</p>
+                <p>${gettext('鑑定層級')}${gettext('：')}${gettext(x.taxonRank)}</p>
                 ${matched}
               </li>`)
           }
@@ -1424,7 +1428,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
             <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
             <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
-            <p>${gettext('分類階層')}${gettext('：')}${x.taxonRank}</p>
+            <p>${gettext('分類階層')}${gettext('：')}${gettext(x.taxonRank)}</p>
             ${matched}
             <p>${gettext('出現記錄筆數')}${gettext('：')}${x.occ_count}</p>
             <p>${gettext('自然史典藏筆數')}${gettext('：')}${x.col_count}</p>
@@ -1547,7 +1551,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           <div class="num_bottom"></div>
           <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
           <p>${gettext('學名')}${gettext('：')}${x.val}</p>
-          <p>${gettext('鑑定層級')}${gettext('：')}${x.taxonRank}</p>
+          <p>${gettext('鑑定層級')}${gettext('：')}${gettext(x.taxonRank)}</p>
           ${matched}
         </li>` )
         }

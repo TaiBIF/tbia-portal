@@ -259,8 +259,8 @@ def qa(request):
 
 
 def get_qa_list(request):
-    # TODO 這邊要translation active
     if request.method == 'POST':
+        translation.activate(request.POST.get('lang'))
         response = {}
         type = request.POST.get('type')
         try:

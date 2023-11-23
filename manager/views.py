@@ -35,7 +35,7 @@ from pages.models import Keyword, Qa
 from ckeditor.fields import RichTextField
 from django import forms
 from django.core.files.storage import FileSystemStorage
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max
 from datetime import datetime, timedelta
@@ -50,6 +50,7 @@ from conf.utils import scheme
 
 import pytz
 
+from django.utils.translation import get_language, gettext
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -133,20 +134,24 @@ def update_feedback(request):
 
 
 def change_manager_page(request):
-    # TODO 這邊和帳號後台相關的要translation active
+    # 這邊和帳號後台相關的要translation active
+    translation.activate(request.GET.get('lang'))
     page = request.GET.get('page')
     menu = request.GET.get('menu')
     offset = (int(page)-1) * 10
     response = {}
     # print(page)
+    now = datetime.now()
+    now = now.replace(tzinfo=pytz.timezone('UTC'))
     data = []
-    if menu == 'notification':
+    if menu == 'notification': # 個人帳號後台通知
         # notis = []
+        
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
         # results = ""
         for n in notifications:
             created = n.created + timedelta(hours=8)
-            content = '<p>' + n.get_type_display().replace('0000', n.content)+ '</p>'
+            content = '<p>' + gettext(n.get_type_display()).replace('0000', n.content)+ '</p>'
             if not n.is_read:
                 content = '<div class="noti-dottt"></div>' + content
             data.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 
@@ -156,8 +161,6 @@ def change_manager_page(request):
 
     elif menu == 'download_taxon':
         # taxon = []
-        now = datetime.now()
-        now = now.replace(tzinfo=pytz.timezone('UTC'))
 
         for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[offset:offset+10]:
             if t.modified:
@@ -201,8 +204,6 @@ def change_manager_page(request):
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
     elif menu == 'sensitive':
-        now = datetime.now()
-        now = now.replace(tzinfo=pytz.timezone('UTC'))
 
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
             if s.modified:
@@ -256,8 +257,6 @@ def change_manager_page(request):
             })
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
     elif menu == 'download':
-        now = datetime.now()
-        now = now.replace(tzinfo=pytz.timezone('UTC'))
 
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
             if r.modified:
@@ -678,14 +677,15 @@ def manager(request):
     #     pr = PartnerRequest.objects.get(user_id=request.user.id)
     # notis = Notification.objects.filter(user_id=request.user.id)
 
-    notis = []
-    notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
-    # results = ""
-    for n in notifications:
-        created = n.created + timedelta(hours=8)
-        content = n.get_type_display().replace('0000', n.content)
-        notis.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 'id': n.id,
-                    'content': content, 'is_read': n.is_read})
+    # TODO 統一由js呼叫
+    # notis = []
+    # notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[:10]
+    # # results = ""
+    # for n in notifications:
+    #     created = n.created + timedelta(hours=8)
+    #     content = n.get_type_display().replace('0000', n.content)
+    #     notis.append({'created': created.strftime('%Y-%m-%d %H:%M:%S'), 'id': n.id,
+    #                 'content': content, 'is_read': n.is_read})
 
     n_total_page = math.ceil(Notification.objects.filter(user_id=request.user.id).count() / 10)
     n_page_list = get_page_list(1, n_total_page)
@@ -851,8 +851,8 @@ def manager(request):
 
     from_google = SocialAccount.objects.filter(user_id=request.user.id).exists()
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'notis': notis,
-    'record': record, 'taxon': taxon, 'sensitive': sensitive, 'n_page_list': n_page_list, 'n_total_page': n_total_page,
+    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, #'notis': notis, 'n_page_list': n_page_list, 'n_total_page': n_total_page,
+    'record': record, 'taxon': taxon, 'sensitive': sensitive, 
     't_page_list': t_page_list, 't_total_page': t_total_page, 's_page_list': s_page_list, 's_total_page': s_total_page,
     'r_page_list': r_page_list, 'r_total_page': r_total_page, 'from_google': from_google})
 
@@ -916,8 +916,8 @@ def get_auth_callback(request):
 
 def send_verification_email(user, request):
     # current_site = get_current_site(request)  # the domain user is on
-    email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
-    email_body = render_to_string('manager/verification.html',{
+    email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 驗證您的帳號 Verify your account'
+    email_body = render_to_string('email/verification.html',{
         'scheme': scheme,
         'user': user,
         'domain': request.get_host(),
@@ -936,8 +936,8 @@ def resend_verification_email(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-            email_subject = '[生物多樣性資料庫共通查詢系統] 驗證您的帳號'
-            email_body = render_to_string('manager/verification.html',{
+            email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 驗證您的帳號 Verify your account'
+            email_body = render_to_string('email/verification.html',{
                 'scheme': scheme,
                 'user': user,
                 'domain': request.get_host(),
@@ -972,7 +972,7 @@ def verify_user(request, uidb64, token):
         login(request, user, backend='manager.views.registerBackend') 
         return redirect(register_success)
 
-    return render(request, 'manager/verification-fail.html', {"user": user})
+    return render(request, 'email/verification-fail.html', {"user": user})
 
 
 
@@ -981,8 +981,8 @@ def send_reset_password(request):
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
             # current_site = get_current_site(request)  # the domain user is on
-            email_subject = '[生物多樣性資料庫共通查詢系統] 重設您的密碼'
-            email_body = render_to_string('manager/verification_reset_password.html',{
+            email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 重設您的密碼 Reset your password'
+            email_body = render_to_string('email/verification_reset_password.html',{
                 'scheme': scheme,
                 'user': user,
                 'domain': request.get_host(),
@@ -1011,7 +1011,7 @@ def verify_reset_password(request, uidb64, token):
         request.session['email'] = user.email
         return redirect(reset_password)
 
-    return render(request, 'manager/verification-fail.html', {"user": user})
+    return render(request, 'email/verification-fail.html', {"user": user})
 
 
 def reset_password(request):
@@ -1849,7 +1849,7 @@ def send_msg(msg):
 
 
 @csrf_exempt
-def send_notification(user_list, content, title):
+def send_notification(user_list, content, title, content_en=None):
     try:
         email_list = []
         email = User.objects.filter(id__in=user_list).values('email')
@@ -1863,10 +1863,23 @@ def send_notification(user_list, content, title):
         <br>
         {content}
         <br>
-        <br>
-        臺灣生物多樣性資訊聯盟
         """
-        subject = '[生物多樣性資料庫共通查詢系統] ' + title
+
+        if content_en:
+            html_content += "<br><br>Hello,<br><br>"
+            html_content += content_en
+            html_content += "<br>"
+
+        signature = """
+                    <br>
+                    臺灣生物多樣性資訊聯盟
+                    <br>
+                    Taiwan Biodiversity Information Alliance
+                    """
+
+        html_content += signature
+
+        subject = '[TBIA 生物多樣性資料庫共通查詢系統] ' + title
 
         msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
         msg.content_subtype = "html"  # Main content is now text/html
