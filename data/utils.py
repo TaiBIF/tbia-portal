@@ -29,19 +29,41 @@ taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synony
 taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID','originalScientificName']
 
 
-basis_dict = {
-    "人為觀測": '("人為觀測" OR "HumanObservation")',
-    "機器觀測": '("機器觀測" OR "MachineObservation")',
-    "保存標本": '("保存標本" OR "PreservedSpecimen")',
-    "材料樣本": '("材料樣本" OR "MaterialSample")',
-    "活體標本": '("活體標本" OR "LivingSpecimen")',
-    "化石標本": '("化石標本" OR "FossilSpecimen")',
-    "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
-    "材料實體": '("材料實體" OR "MaterialEntity")',
-    "分類群": '("分類群" OR "Taxon")',
-    "出現紀錄": '("出現紀錄" OR "Occurrence")',
-    "調查活動": '("調查活動" OR "Event")'
+# basis_dict = {
+#     "人為觀測": '("人為觀測" OR "HumanObservation")',
+#     "機器觀測": '("機器觀測" OR "MachineObservation")',
+#     "保存標本": '("保存標本" OR "PreservedSpecimen")',
+#     "材料樣本": '("材料樣本" OR "MaterialSample")',
+#     "活體標本": '("活體標本" OR "LivingSpecimen")',
+#     "化石標本": '("化石標本" OR "FossilSpecimen")',
+#     "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
+#     "材料實體": '("材料實體" OR "MaterialEntity")',
+#     "分類群": '("分類群" OR "Taxon")',
+#     "出現紀錄": '("出現紀錄" OR "Occurrence")',
+#     "調查活動": '("調查活動" OR "Event")'
+# }
+
+
+name_status_map = {
+    'not-accepted': '的無效名',
+    'misapplied': '的誤用名',
 }
+
+basis_map = {
+    "HumanObservation":"人為觀測",
+    "MachineObservation":"機器觀測",
+    "PreservedSpecimen":"保存標本",
+    "MaterialSample":"材料樣本",
+    "LivingSpecimen":"活體標本",
+    "FossilSpecimen":"化石標本",
+    "MaterialCitation":"文獻紀錄",
+    "MaterialEntity":"材料實體",
+    "Taxon":"分類群",
+    "Occurrence":"出現紀錄",
+    "Event":"調查活動"
+}
+
+
 
 def get_dataset_key(key):
     results = None
@@ -341,27 +363,36 @@ map_occurrence = {
 }
 
 # 抓出collection和occurrence不一樣的地方
-map_collection = map_occurrence
+map_collection = { key: value for (key, value) in map_occurrence.items() }
 map_collection.update({
-    'eventDate': '採集日期', 
-    'date': '採集日期', 
-    'locality': '採集地', 
-    'recordedBy': '採集者', 
-    'recordNumber': '採集號', 
-    'typeStatus': '標本類型', 
-    'preservation': '保存方式', 
+    'eventDate': '採集日期',
+    'date': '採集日期',
+    'locality': '採集地',
+    'recordedBy': '採集者',
+    'recordNumber': '採集號',
+    'typeStatus': '標本類型',
+    'preservation': '保存方式'
 })
 
 
-date_formats = ['%Y/%m/%d','%Y%m%d','%Y-%m-%d','%Y/%m/%d %p %H:%M:%S','%Y-%m-%d %H:%M','%Y-%m-%d %H:%M:%S','%Y/%m/%d %H:%M:%S']
-
+date_formats = ['%Y/%m/%d','%Y%m%d','%Y-%m-%d','%Y/%m/%d %H:%M:%S','%Y-%m-%d %H:%M',
+                '%Y/%m/%d %H:%M','%Y-%m-%d %H:%M:%S','%Y/%m/%d %H:%M:%S',
+                '%Y/%m/%d %p %I:%M:%S', '%Y/%m/%d %H', '%Y-%m-%d %H', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%SZ']
+# 要和datahub同步
 def convert_date(date):
     formatted_date = None
     if date != '' and date is not None:
+        date = str(date)
+        date = date.replace('上午','AM').replace('下午','PM')
         for ff in date_formats:
             try:
                 formatted_date = datetime.strptime(date, ff)
                 return formatted_date
+            except:
+                formatted_date = None
+        if not formatted_date:
+            try:
+                formatted_date = parser.parse(date)
             except:
                 formatted_date = None
         if not formatted_date:
@@ -378,8 +409,6 @@ def convert_date(date):
             except:
                 formatted_date = None
     return formatted_date
-
-
 
 
 download_cols = [
@@ -520,7 +549,7 @@ def create_query_display(search_dict,lang=None):
                 #     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
             elif k == 'taxonGroup':
                 if search_dict[k] in taxon_group_map_c.keys():
-                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{taxon_group_map_c[search_dict[k]]}"
+                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k] if lang == 'en-us' else taxon_group_map_c[search_dict[k]] }"
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
                 query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
@@ -782,8 +811,8 @@ def create_search_query(req_dict, from_request=False):
             query_list += [f'-typeStatus:*']
     
     if val := req_dict.get('basisOfRecord'):
-        if val in basis_dict.keys():
-            query_list += [f'basisOfRecord:{basis_dict[val]}']
+        if val in basis_map.keys():
+            query_list += [f'basisOfRecord:{val}']
 
     # 下拉選單單選
     for i in ['sensitiveCategory', 'taxonRank']: 

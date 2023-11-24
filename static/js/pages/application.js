@@ -108,7 +108,7 @@ function sendRequest() {
             })
                 .done(function (result) {
                     alert(gettext('請求已送出，審核完畢後將以Email通知'))
-                    window.location.href = '/manager?menu=sensitive'
+                    window.location.href = `/${$lang}/manager?menu=sensitive`
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {

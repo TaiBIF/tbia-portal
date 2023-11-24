@@ -243,7 +243,7 @@ $(function () {
     if ((!$('#g-recaptcha-response').val()) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
-      alert($('input[name=feedback-error-alert]').val())
+      alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
     } else {
 
       $.ajax({
@@ -252,7 +252,7 @@ $(function () {
         type: 'POST',
       })
         .done(function (response) {
-          alert($('input[name=feedback-success-alert]').val())
+          alert(gettext('謝謝您的回饋，我們將會儘速回覆'))
 
           $('.feedback-pop').addClass('d-none')
         })
@@ -506,7 +506,7 @@ function register() {
       .done(function (response) {
 
         if (response.status == 'success') {
-          window.location.href = "/register/verification";
+          window.location.href = `/${$lang}/register/verification`;
 
         } else {
           alert(gettext(response.message))

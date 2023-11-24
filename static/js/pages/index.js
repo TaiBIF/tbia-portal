@@ -61,7 +61,7 @@ $(document).ready(function () {
               <div class="cate_dbox">
                 <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
               </div>
-              <a href="/resources/link" class="title" target="_blank">${gettext("國內外各大資料庫及推薦網站連結")}</a>
+              <a href="/${$lang}/resources/link" class="title" target="_blank">${gettext("國內外各大資料庫及推薦網站連結")}</a>
             </div>
             </li> `)
         }
@@ -141,7 +141,7 @@ function updateNews(type, page) {
           $('.news_list').append(
             `
                     <li>
-                      <a href="/news/detail/${d.id}" target="_blank" class="imgbox">
+                      <a href="/${$lang}/news/detail/${d.id}" target="_blank" class="imgbox">
                         <img class="img_area" src="${d.image}">
                       </a>
                       <div class="infbox">
@@ -150,7 +150,7 @@ function updateNews(type, page) {
                             <div class="tag ${d.color}">${gettext(d.type_c)}</div>
                             <p class="date">${d.publish_date}</p>
                           </div>
-                          <a href="/news/detail/${d.id}" target="_blank" class="nstitle">
+                          <a href="/${$lang}/news/detail/${d.id}" target="_blank" class="nstitle">
                             ${d.title}
                           </a>
                         </div>

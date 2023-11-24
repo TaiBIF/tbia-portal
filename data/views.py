@@ -42,27 +42,6 @@ from os.path import exists
 import html
 from django.utils.translation import get_language, gettext
 
-name_status_map = {
-    # 'accepted': 'Accepted',
-    'not-accepted': '的無效名',
-    'misapplied': '的誤用名',
-}
-
-
-basis_map = {
-    "HumanObservation":"人為觀測",
-    "MachineObservation":"機器觀測",
-    "PreservedSpecimen":"保存標本",
-    "MaterialSample":"材料樣本",
-    "LivingSpecimen":"活體標本",
-    "FossilSpecimen":"化石標本",
-    "MaterialCitation":"文獻紀錄",
-    "MaterialEntity":"材料實體",
-    "Taxon":"分類群",
-    "Occurrence":"出現紀錄",
-    "Event":"調查活動"
-}
-
 
 
 # taxon-related fields
@@ -122,12 +101,14 @@ def send_sensitive_request(request):
         # 整理搜尋條件
         search_dict = {}
         for k in request.GET.keys():
-            if tmp_list := request.GET.getlist(k):
-                if len(tmp_list) > 1:
-                    search_dict[k] = tmp_list
-                else:
-                    search_dict[k] = request.GET.get(k)
-        query = create_query_display(search_dict,None)
+            if k != 'lang':
+                if tmp_list := request.GET.getlist(k):
+                    if len(tmp_list) > 1:
+                        search_dict[k] = tmp_list
+                    else:
+                        search_dict[k] = request.GET.get(k)
+        lang = request.GET.get('lang')
+        query = create_query_display(search_dict, lang)
         return render(request, 'pages/application.html', {'query': query})
 
 
@@ -1125,10 +1106,10 @@ def search_occurrence(request):
     # dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
     # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-    basis_list = basis_dict.keys()
+    # basis_list = basis_dict.keys()
         
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_list': basis_list, 'dataset_list': dataset_list})
+        'rank_list': rank_list, 'basis_map': basis_map, 'dataset_list': dataset_list})
 
 
 def occurrence_detail(request, id):
@@ -1711,6 +1692,8 @@ def get_locality_init(request):
 
 
 def get_higher_taxa(request):
+    lang = request.GET.get('lang','zh-hant')
+    translation.activate(lang)
     ds = '[]'
     if keyword_str := request.GET.get('keyword','').strip():
         keyword_str = get_variants(keyword_str)
@@ -1722,25 +1705,22 @@ def get_higher_taxa(request):
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             if len(ds):
-                ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
-                # ds = ds[['text','value']].to_json(orient='records')
+                if lang == 'en-us':
+                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({gettext(name_status_map[x['name_status']])} {x['text']})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+                else:
+                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+
             ds = ds[['text','value']].to_json(orient='records')
-            # else:
-            #     ds = '[]'
     elif taxon_id := request.GET.get('taxon_id',''):
+        # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
             query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
             WHERE "taxonID" = '{taxon_id}' AND name_status = 'accepted'; """
             cursor.execute(query)
-            # print(query)
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             ds = ds[['text','value']].to_json(orient='records')
-            # if len(ds):
-            #     # ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
-            #     ds = ds[['text','value']].to_json(orient='records')
-            # else:
-            #     ds = '[]'
+
 
     return HttpResponse(ds, content_type='application/json')
 

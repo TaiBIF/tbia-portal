@@ -137,24 +137,6 @@ $(document).ready(function () {
 
 })
 
-/* deprecated 
-function getNoTaxonCSV(){
-    $.ajax({
-        url: "/generate_no_taxon_csv",
-        data: {'partner_id': $('input[name=partner_id]').val(), csrfmiddlewaretoken: $csrf_token},
-        type: 'POST',
-        dataType : 'json',
-    })
-    .done(function(response) {
-        alert(response.url)
-    })
-    .fail(function( xhr, status, errorThrown ) {
-        alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-        console.log( 'Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })  
-}
-*/
 
 function updateInfo() {
     // remove all notice first

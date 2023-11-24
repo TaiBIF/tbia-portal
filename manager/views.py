@@ -146,7 +146,6 @@ def change_manager_page(request):
     now = now.replace(tzinfo=pytz.timezone('UTC'))
     data = []
     if menu == 'notification': # 個人帳號後台通知
-        # notis = []
         
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
         # results = ""
@@ -176,7 +175,7 @@ def change_manager_page(request):
 
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(t.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, lang)
             link = ''
             if t.status == 'pass' and t.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">{gettext("下載")}</a>'
@@ -204,6 +203,7 @@ def change_manager_page(request):
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
+    
     elif menu == 'sensitive': # 個人帳號敏感資料
 
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
@@ -219,7 +219,7 @@ def change_manager_page(request):
 
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, lang)
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -258,6 +258,7 @@ def change_manager_page(request):
                 'link': link
             })
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
+    
     elif menu == 'download': # 個人帳號資料下載
 
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
@@ -326,7 +327,7 @@ def change_manager_page(request):
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
 
-    elif menu == 'feedback':
+    elif menu == 'feedback': # 意見回饋 單位帳號 / 系統帳號
         if request.GET.get('from') == 'partner':
             for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 if f.created:
@@ -386,7 +387,7 @@ def change_manager_page(request):
 
             total_page = math.ceil(Feedback.objects.all().count() / 10)
 
-    elif menu == 'sensitive_track':
+    elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
         for s in SensitiveDataResponse.objects.exclude(is_transferred=True, partner_id__isnull=True).order_by('-id')[offset:offset+10]:
         # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
@@ -436,7 +437,7 @@ def change_manager_page(request):
 
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
 
-    elif menu == 'sensitive_apply':
+    elif menu == 'sensitive_apply': # 敏感資料申請 單位後台 / 系統後台
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
@@ -523,7 +524,7 @@ def change_manager_page(request):
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
-    elif menu == 'account':
+    elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
         if request.GET.get('from') == 'partner':
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
@@ -606,7 +607,7 @@ def change_manager_page(request):
                 'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
             })
         total_page = math.ceil(News.objects.all().count() / 10)
-    elif menu == 'news':
+    elif menu == 'news': # 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
             news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-id')

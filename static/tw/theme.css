@@ -5418,7 +5418,6 @@ body {
     min-height: 100px;
     max-height: initial;
     height: initial;
-
     width: 100%;
     overflow: hidden
 }
@@ -7475,13 +7474,13 @@ body {
     text-align: right
 }
 
-@media only screen and (max-width: 767px) {
+/* @media only screen and (max-width: 767px) {
     .result_inf_top p.datenum {
         position: absolute;
         right: 15px;
         top: 30px
     }
-}
+} */
 
 .result_table {
     margin-bottom: 40px

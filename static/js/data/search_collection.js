@@ -385,6 +385,75 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $(function () {
 
+    $('.downloadData').on('click', function () {
+        let queryString = $(this).data('query')
+        let total_count = $(this).data('count')
+        if ($('input[name=is_authenticated]').val() == 'True') {
+            $.ajax({
+                url: "/send_download_request",
+                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&total_count=' + total_count,
+                type: 'POST',
+                dataType: 'json',
+            })
+                .done(function (response) {
+                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    if (xhr.status == 504) {
+                        alert(gettext('要求連線逾時'))
+                    } else {
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+                    }
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+        } else {
+            alert(gettext('請先登入'))
+        }
+    })
+
+    $('.downloadTaxon').on('click', function () {
+        let queryString = $(this).data('query')
+        if ($('input[name=is_authenticated]').val() == 'True') {
+            $.ajax({
+                url: "/send_download_request",
+                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&taxon=yes',
+                type: 'POST',
+                dataType: 'json',
+            })
+                .done(function (result) {
+                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    if (xhr.status == 504) {
+                        alert(gettext('要求連線逾時'))
+                    } else {
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+                    }
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
+        } else {
+            alert(gettext('請先登入'))
+        }
+    })
+
+    $('.downloadSensitive').on('click', function () {
+        let queryString = $(this).data('query')
+        let total_count = $(this).data('count')
+        if ($('input[name=is_authenticated]').val() == 'True') {
+            window.open(`/${$lang}/sensitive_agreement?` + queryString + '&total_count=' + total_count)
+        } else {
+            alert(gettext('請先登入'))
+        }
+    })
+
+    $('.popupField').on('click', function () {
+        $(`.col-choice`).removeClass('d-none')
+        window.not_selected = $(`.col-choice input:not(:checked)`)
+        window.selected = $(`.col-choice input:checked`)
+    })
+
     // $(document).on("keydown", "form", function(event) { 
     //     if(event.key  == 'Enter') {
 
@@ -585,7 +654,7 @@ function inithigherTaxa(what, datasize) {
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");
-        xhr.open('GET', '/get_higher_taxa?taxon_id=' + taxon_id, true);
+        xhr.open('GET', `/get_higher_taxa?taxon_id=${taxon_id}`, true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
@@ -635,7 +704,7 @@ function doSearch(what, datasize) {
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");
-        xhr.open('GET', '/get_higher_taxa?keyword=' + what, true);
+        xhr.open('GET', `/get_higher_taxa?keyword=${what}&lang=${$lang}`, true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
@@ -828,6 +897,16 @@ function setTable(response, queryString, from, orderby, sort) {
     }
 
     // 如果有資料回傳則顯示table
+
+    $('.downloadData').data('query', queryString)
+    $('.downloadData').data('count', response.count)
+    $('.downloadSensitive').data('query', queryString)
+    $('.downloadSensitive').data('count', response.count)
+    $('.downloadTaxon').data('query', queryString)
+    $('.result_inf_top button.dwd').data('query', queryString)
+    $('.result_inf_top_1 select[name="shownumber"]').data('query', queryString)
+    $('.return-num').html(response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","))
+    /*
     $('.search_condition_are').after(`
     <div class="sc_result">
     <div class="result_inf_top">
@@ -846,16 +925,16 @@ function setTable(response, queryString, from, orderby, sort) {
         <p class="datenum">${gettext('資料筆數')} ${gettext('：')} ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
         <button class="dw downloadData" data-query="${queryString}" data-count="${response.count}">${gettext('資料下載')}</button>
         <button class="dw downloadTaxon" data-query="${queryString}">${gettext('名錄下載')}</button>
-        <a href="/qa?qa_id=14" target="_blank" class="qmark"></a>
+        <a href="/${$lang}/qa?qa_id=14" target="_blank" class="qmark"></a>
         <button class="dw downloadSensitive" data-query="${queryString}" data-count="${response.count}">${gettext('申請單次使用去模糊化敏感資料')}</button>
-        <a href="/qa?qa_id=15" target="_blank" class="qmark"></a>
+        <a href="/${$lang}/qa?qa_id=15" target="_blank" class="qmark"></a>
         </div>
     </div>
     <div class="result_table flow-x-auto">
         <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
         </table>						
     </div>
-    </div>`)
+    </div>`)*/
 
     $('select[name=shownumber]').on('change', function () {
         submitSearch(1, 'page', false, $(this).val(), orderby, sort)
@@ -921,7 +1000,7 @@ function setTable(response, queryString, from, orderby, sort) {
             if (tmp_value == null) {
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
             } else {
-                if (['basisOfRecord','taxonRank','rightsHolder','dataGeneralizations'].includes(Object.keys(map_dict)[j])){
+                if (['basisOfRecord','taxonRank','rightsHolder','dataGeneralizations','taxonGroup'].includes(Object.keys(map_dict)[j])){
                     tmp_value = gettext(tmp_value)
                 }
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -958,74 +1037,7 @@ function setTable(response, queryString, from, orderby, sort) {
         //getRecordByURL(queryString,null,response.limit,$(this).data('orderby'),$(this).data('sort'))
     })
 
-    $('.downloadData').on('click', function () {
-        let queryString = $(this).data('query')
-        let total_count = $(this).data('count')
-        if ($('input[name=is_authenticated]').val() == 'True') {
-            $.ajax({
-                url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&total_count=' + total_count,
-                type: 'POST',
-                dataType: 'json',
-            })
-                .done(function (response) {
-                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    if (xhr.status == 504) {
-                        alert(gettext('要求連線逾時'))
-                    } else {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                    }
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
-        } else {
-            alert(gettext('請先登入'))
-        }
-    })
-
-    $('.downloadTaxon').on('click', function () {
-        let queryString = $(this).data('query')
-        if ($('input[name=is_authenticated]').val() == 'True') {
-            $.ajax({
-                url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&taxon=yes',
-                type: 'POST',
-                dataType: 'json',
-            })
-                .done(function (result) {
-                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    if (xhr.status == 504) {
-                        alert(gettext('要求連線逾時'))
-                    } else {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                    }
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
-        } else {
-            alert(gettext('請先登入'))
-        }
-    })
-
-    $('.downloadSensitive').on('click', function () {
-        let queryString = $(this).data('query')
-        let total_count = $(this).data('count')
-        if ($('input[name=is_authenticated]').val() == 'True') {
-            window.open('/sensitive_agreement?' + queryString + '&total_count=' + total_count)
-        } else {
-            alert(gettext('請先登入'))
-        }
-    })
-
-    $('.popupField').on('click', function () {
-        $(`.col-choice`).removeClass('d-none')
-        window.not_selected = $(`.col-choice input:not(:checked)`)
-        window.selected = $(`.col-choice input:checked`)
-    })
 }
 
 // submit search form   
@@ -1139,14 +1151,19 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             })
                 .done(function (response) {
 
+
+                   
                     // clear previous results
-                    $('.sc_result').remove()
+                    //$('.sc_result').remove()
                     //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
                     if (response.count == 0) {
+                        $('.no_data').removeClass('d-none')
                         // TODO 這邊如果有map的圖案要加回來
                         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-                        $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">${gettext('無資料')}</div></div>`)
+                        // $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">${gettext('無資料')}</div></div>`)
                     } else {
+                        $('.no_data').addClass('d-none')
+
                         setTable(response, window.condition, from, orderby, sort)
                         // 判斷是從分頁或搜尋點選
                         if (from == 'search') {
@@ -1240,6 +1257,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         })
 
                     }
+                    $('.sc_result').removeClass('d-none')
                     $(".loading_area").addClass('d-none');
                     $([document.documentElement, document.body]).animate({
                         scrollTop: $(".sc_result").offset().top - 100

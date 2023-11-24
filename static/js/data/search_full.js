@@ -601,7 +601,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
         </div>
         <div class="result_inf_top">
           <button class="cate_btn popupField" data-record_type="${record_type}">${gettext('欄位選項')} +</button>
-          <div class="d-flex">
+          <div class="d-flex-ai-c">
             <p class="datenum mr-10px">${gettext('資料筆數')}${gettext('：')}${limit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
             <div class="rightdow">
               <button class="dow_btn downloadData" data-query="${response.search_str}" data-count="${limit}">
@@ -610,7 +610,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
                 </svg>
                 <p>${gettext('資料下載')}</p>
               </button>
-              <a href="/qa?qa_id=14" target="_blank" class="qmark"></a>
+              <a href="/${$lang}/qa?qa_id=14" target="_blank" class="qmark"></a>
             </div>
           </div>
 
@@ -671,7 +671,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
           if (tmp_value == null) {
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
           } else {
-              if (['basisOfRecord','rightsHolder','dataGeneralizations','taxonRank'].includes(Object.keys(map_dict)[j])){
+              if (['basisOfRecord','rightsHolder','dataGeneralizations','taxonRank','taxonGroup'].includes(Object.keys(map_dict)[j])){
                 tmp_value = gettext(tmp_value)
             }
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -1286,7 +1286,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
         for (let i = 0; i < response.rows.length; i++) {
           let x = response.rows[i]
           $(card_class).append(`
-          <li class="open-news" data-href="/news/detail/${x.id}">
+          <li class="open-news" data-href="/${$lang}/news/detail/${x.id}">
             <div class="nstitle">${x.title}</div>
             <p>${x.content}</p>
           </li>`)

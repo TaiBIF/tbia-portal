@@ -390,7 +390,7 @@ msgstr "TaiCOL does not include or cannot match the taxon"
 #: templates/data/search_collection.html:63
 #: templates/data/search_occurrence.html:65
 msgid "中文名/學名/中文別名"
-msgstr "Chinese Common Name / Scientific Name / Chinese Alternative Name"
+msgstr "Scientific Name / Common Name"
 
 #: templates/data/collection_detail.html:109
 #: templates/data/occurrence_detail.html:110
@@ -425,6 +425,13 @@ msgstr "Occurrence"
 msgid "-- 不限 --"
 msgstr "-- Not restricted --"
 
+#: higherTaxa 下拉選單
+msgid "的無效名"
+msgstr "synonym of"
+
+#: higherTaxa 下拉選單
+msgid "的誤用名"
+msgstr "misapplied to"
 
 #: templates/data/search_collection.html:87
 msgid "一般"
@@ -700,6 +707,10 @@ msgstr "Incorrect current password"
 msgid "修改完成！請重新登入"
 msgstr "Password has been updated! Please login again."
 
+#: manager/views.py
+msgid "重設密碼成功，請重新登入"
+msgstr "Password has been updated! Please login again."
+
 #: templates/manager/manager.html:114
 msgid "申請成為夥伴帳號"
 msgstr "Apply for an Organization Account"
@@ -925,7 +936,7 @@ msgstr "Application date"
 
 #: templates/pages/application.html:30
 msgid "申請資料搜尋條件"
-msgstr "The search criteria for the requested data"
+msgstr "Search criteria"
 
 #: templates/pages/application.html:37
 msgid "為必填欄位"
@@ -2141,3 +2152,5 @@ msgstr "Aberration in Chinese"
 msgid "雜交組合中文名"
 msgstr "Hybrid-formula in Chinese"
     
+
+

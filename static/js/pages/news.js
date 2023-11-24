@@ -92,7 +92,7 @@ function updateNews(type, page) {
         for (let d of response.data) {
           $('.news_list').append(
             `<li>
-                      <a href="/news/detail/${d.id}" class="imgbox">
+                      <a href="/${$lang}/news/detail/${d.id}" class="imgbox">
                         <img class="img_area" src="${d.image}">
                       </a>
                       <div class="infbox">
@@ -101,7 +101,7 @@ function updateNews(type, page) {
                             <div class="tag ${d.color}">${gettext(d.type_c)}</div>
                             <p class="date">${d.publish_date}</p>
                           </div>
-                          <a href="/news/detail/${d.id}" class="nstitle">
+                          <a href="/${$lang}/news/detail/${d.id}" class="nstitle">
                             ${d.title}
                           </a>
                         </div>

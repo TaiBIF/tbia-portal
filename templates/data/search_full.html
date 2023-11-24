@@ -111,7 +111,7 @@
     <div class="rightbox_select">
       <p>{% trans '想找到更精準的資料嗎？' %}<br />{% trans '試試進階搜尋' %}</p>
       <div class="icon_two">
-        <div class="item pointer open-page" data-href="/search/occurrence">
+        <div class="item pointer open-page" data-href="/{{ LANGUAGE_CODE }}/search/occurrence">
           <a>
             <img src="{% static 'image/mapicon.svg' %}" alt="" />
             <span>{% trans '物種出現紀錄查詢' %}</span>
@@ -119,7 +119,7 @@
           <a class="hvmask">{% trans '物種出現紀錄查詢' %}</a>
           <div class="line"></div>
         </div>
-        <div class="item pointer open-page" data-href="/search/collection">
+        <div class="item pointer open-page" data-href="/{{ LANGUAGE_CODE }}/search/collection">
           <a>
             <img src="{% static 'image/libraryicon.svg' %}" alt="" />
             <span>{% trans '⾃然史典藏查詢' %}</span>
@@ -168,7 +168,7 @@
               <div class="maskfor_click rd_click"></div>
               <p>
                 {% trans '物種出現紀錄' %}
-                <a href="/qa?qa_id=7" target="_blank" class="qusemark"></a>
+                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=7" target="_blank" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
@@ -187,7 +187,7 @@
               <div class="maskfor_click rd_click"></div>
               <p>
                 {% trans '⾃然史典藏' %}
-                <a href="/qa?qa_id=8" target="_blank" class="qusemark"></a>
+                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=8" target="_blank" class="qusemark"></a>
               </p>
               <div class="arrd"></div>
             </div>
@@ -245,15 +245,15 @@
 							<li>
 								<div class="flex_top">
 									<div class="{% if i.images|length > 0 %} lefttxt {% else %} {% endif %}">
-										<p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c }}</p>
-										<p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name }}</p>
-										<p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c }}</p>
-										<p>{% trans '同物異名' %}{% trans '：' %}{{  i.synonyms }}</p>
+										<p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+										<p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name|safe }}</p>
+										<p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c|safe }}</p>
+										<p>{% trans '同物異名' %}{% trans '：' %}{{  i.synonyms|safe }}</p>
 										<p>{% trans '分類階層' %}{% trans '：' %}{% trans i.taxonRank %}</p>
                     <!-- 這邊matched_col可能有多個 -->
                     {% for ii in i.matched %}
                       {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                      <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value }}</p>
+                      <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
                       {% endif %}    
                     {%  endfor %}
 										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma }}</p>
@@ -463,7 +463,7 @@
         {% if news.count > 0 %}
         <ul class="card_list_2 news-card">
           {% for i in news.rows %}
-          <li class="open-news" data-href="/news/detail/{{ i.id }}">
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
             <p>{% highlight i.content keyword %}</p>
           </li>
@@ -496,7 +496,7 @@
         {% if event.count > 0 %}
         <ul class="card_list_2 event-card">
           {% for i in event.rows %}
-          <li class="open-news" data-href="/news/detail/{{ i.id }}">
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
             <p>{% highlight i.content keyword %}</p>
           </li>
@@ -529,7 +529,7 @@
         {% if project.count > 0 %}
         <ul class="card_list_2 project-card">
           {% for i in project.rows %}
-          <li class="open-news" data-href="/news/detail/{{ i.id }}">
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
             <p>{% highlight i.content keyword %}</p>
           </li>
