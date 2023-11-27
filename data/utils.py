@@ -1199,10 +1199,16 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
                 result_df['name'] = ''
                 result_df['taxonRank'] = ''
             result_df['val'] = result_df['formatted_name']
-            result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
+            if (is_sub != 'true') or (is_sub == 'true' and key == 'scientificName'):
+                result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
+            if (is_sub != 'true') or (is_sub == 'true' and key == 'common_name_c'):
+                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
+                # result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.replace({np.nan:'', None:''})
-            result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
-            result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
+            # if is_sub == 'true' and key == 'common_name_c':
+            #     result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
+            # if is_sub == 'true' and key == 'formatted_name':
+            #     result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
 
     # get_focus_card 使用
@@ -1365,14 +1371,21 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
         # 處理hightlight
         # taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))
         if 'common_name_c' in taxon_result_df.keys():
-            taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            if (is_sub == 'false') or (is_sub != 'false' and key == 'common_name_c') :
+                taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
         if 'alternative_name_c' in taxon_result_df.keys():
-            taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+            if (is_sub == 'false') or (is_sub != 'false' and key == 'alternative_name_c') :
+                taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
         if 'synonyms' in taxon_result_df.keys():
-            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
+            if (is_sub == 'false') or (is_sub != 'false' and key == 'synonyms') :
+                taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
             taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-        taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
-
+        if (is_sub == 'false') or (is_sub != 'false' and key == 'scientificName') :
+            taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
+        for required_cols in ['common_name_c', 'alternative_name_c', 'synonyms']:
+            if required_cols not in taxon_result_df.keys():
+                taxon_result_df[required_cols] = ''
+        taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
     # 照片
     taxon_result_dict = []
     for tr in taxon_result_df.to_dict('records'):

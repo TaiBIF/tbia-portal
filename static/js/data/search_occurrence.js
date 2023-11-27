@@ -1155,11 +1155,16 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
                     if (response.count == 0) {
+                        $('.result_inf_top').addClass('d-none')
+                        $('.result_inf_top_1').addClass('d-none')
                         $('.no_data').removeClass('d-none')
                         // TODO 這邊如果有map的圖案要加回來
                         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
                         // $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">${gettext('無資料')}</div></div>`)
                     } else {
+                        $('.result_inf_top').removeClass('d-none')
+                        $('.result_inf_top_1').removeClass('d-none')
+
                         $('.no_data').addClass('d-none')
 
                         setTable(response, window.condition, from, orderby, sort)
