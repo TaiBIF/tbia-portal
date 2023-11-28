@@ -115,6 +115,25 @@ def get_dataset_list(dataset_list ,record_type=None, rights_holder=None):
     return results
 
 
+def get_dataset_by_key(key_list):
+    
+    results = []
+    conn = psycopg2.connect(**datahub_db_settings)
+    
+    query = f''' select id, name FROM dataset WHERE "id" IN %s AND deprecated = 'f' 
+            '''
+
+    with conn.cursor() as cursor:
+        cursor.execute(query, (tuple(key_list), ))
+        results = cursor.fetchall()
+        conn.close()
+        
+    return results
+
+
+
+
+
 
 spe_chars = ['+','-', '&','&&', '||', '!','(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/']
 

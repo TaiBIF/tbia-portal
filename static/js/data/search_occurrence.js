@@ -15,31 +15,48 @@ $('#rightsHolder').on('change', function (e) {
     for (r of res) {
         h_str += 'holder=' + r + '&'
     }
+
+    let d_str = '&'
+    if (window.has_par) {
+        for (dd in window.d_list){
+            d_str += 'datasetKey=' + window.d_list[dd] + '&'
+        }
+    }    
+    
     $.ajax({
-        url: "/change_dataset?" + h_str,
+        url: "/change_dataset?" + h_str + d_str,
         dataType: 'json',
     })
-        .done(function (response) {
-            if (response.length > 0) {
-                selectBox2.enable()
-                selectBox2.changeTree(response)
-                if (window.has_par) {
-                    selectBox2.setValue(window.d_list)
-                }
-            } else {
-                selectBox2.disable()
+    .done(function (response) {
+        if (response.length > 0) {
+            selectBox2.enable()
+            selectBox2.changeTree(response)
+            if (window.has_par) {
+                selectBox2.setValue(window.d_list)
             }
-            $(".loading_area").addClass('d-none');
-        })
-        .fail(function () {
-            $(".loading_area").addClass('d-none');
-        })
+        } else {
+            selectBox2.disable()
+        }
+        $(".loading_area").addClass('d-none');
+    })
+    .fail(function () {
+        $(".loading_area").addClass('d-none');
+    })
 })
 
-let selectBox2 = new vanillaSelectBox("#datasetName", {
-    placeHolder: gettext("資料集名稱"), search: true, disableSelectAll: true,
-    translations: { "all": gettext("全部"), "items": gettext(" 個選項"), "clearAll": gettext("重設") }
-});
+
+let selectBox2 = new vanillaSelectBox("#datasetName",
+    {
+        "search": true,
+        placeHolder: gettext("資料集名稱"),
+        "disableSelectAll": true,
+        "remote": {
+            "onSearch": doSearchDataset, // used for search and init
+            "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
+            "onInit": initDataset,
+        },
+        translations: { "all": gettext("全部"), "items": gettext(" 個選項"), "clearAll": gettext("重設") }
+    });
 
 /*
 let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{placeHolder:"敏感層級",search:false, disableSelectAll: true,
@@ -166,7 +183,9 @@ map.on(L.Draw.Event.CREATED, function (e) {
 map.on('zoomend', function zoomendEvent(ev) {
     if (window.grid_100) {
         var currentZoomLevel = ev.target.getZoom()
+        
         $('.loading_area').removeClass('d-none')
+
         if (currentZoomLevel < 5) {
             $('[class^=resultG_]').addClass('d-none')
             if ($('path.resultG_100').length < 1) {
@@ -175,9 +194,11 @@ map.on('zoomend', function zoomendEvent(ev) {
                 }
             }
             $('.resultG_100').removeClass('d-none')
+            $('.loading_area').addClass('d-none')
         } else if (currentZoomLevel < 8) {
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_10').removeClass('d-none')
+            $('.loading_area').addClass('d-none')
         } else if (currentZoomLevel < 12) {
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_5').remove()
@@ -189,6 +210,7 @@ map.on('zoomend', function zoomendEvent(ev) {
             })
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -198,6 +220,7 @@ map.on('zoomend', function zoomendEvent(ev) {
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
                 })
 
             $('.resultG_5').removeClass('d-none')
@@ -213,6 +236,7 @@ map.on('zoomend', function zoomendEvent(ev) {
             })
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -222,11 +246,12 @@ map.on('zoomend', function zoomendEvent(ev) {
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
                 })
 
             $('.resultG_1').removeClass('d-none')
         }
-        $('.loading_area').addClass('d-none')
+        
     }
 });
 
@@ -234,6 +259,7 @@ map.on('zoomend', function zoomendEvent(ev) {
 map.on('dragend', function zoomendEvent(ev) {
     if (window.grid_100) {
         var currentZoomLevel = ev.target.getZoom()
+
         if (currentZoomLevel >= 8) {
             $('.loading_area').removeClass('d-none')
             if (currentZoomLevel < 12) {
@@ -247,6 +273,7 @@ map.on('dragend', function zoomendEvent(ev) {
                 })
                     .done(function (response) {
                         L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                        $('.loading_area').addClass('d-none')
                     })
                     .fail(function (xhr, status, errorThrown) {
                         if (xhr.status == 504) {
@@ -256,6 +283,7 @@ map.on('dragend', function zoomendEvent(ev) {
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                        $('.loading_area').addClass('d-none')
                     })
 
                 $('.resultG_5').removeClass('d-none')
@@ -271,6 +299,7 @@ map.on('dragend', function zoomendEvent(ev) {
                 })
                     .done(function (response) {
                         L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                        $('.loading_area').addClass('d-none')
                     })
                     .fail(function (xhr, status, errorThrown) {
                         if (xhr.status == 504) {
@@ -280,13 +309,14 @@ map.on('dragend', function zoomendEvent(ev) {
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                        $('.loading_area').addClass('d-none')
                     })
 
                 $('.resultG_1').removeClass('d-none')
             }
-            $('.loading_area').addClass('d-none')
+            // $('.loading_area').addClass('d-none')
 
-        }
+        } 
     }
 });
 
@@ -762,6 +792,113 @@ function doSearchLocality(what, datasize) {
     });
 }
 
+function initDataset(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    let urlParams = new URLSearchParams(window.location.search);
+    let keyword_list = urlParams.getAll('datasetName')
+
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET', '/get_dataset_init?datasetName=' + keyword_list.join('&datasetName='), true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+
+
+function doSearchDataset(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    // 要限制來源資料庫
+    let res = selectBox.getResult()
+    let h_str = ''
+    for (r of res) {
+        h_str += '&holder=' + r
+    }
+
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET', '/get_dataset?keyword=' + what + h_str, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+
 
 function changeAction() {
 
@@ -799,6 +936,8 @@ function changeAction() {
     //selectBox10.setValue('')
 
     if (queryString.split('&').length > 1) {
+        window.condition = queryString.substring(1)
+
         // 把條件填入表格
         let entries = urlParams.entries();
         let d_list = Array();
@@ -892,13 +1031,17 @@ function changeAction() {
         } else {
             page = 1
         }
-        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'), urlParams.get('sort'), false)//{
+
+        // 會和資料集有時間差
+        submitSearch(page, 'change', false, urlParams.get('limit'), urlParams.get('orderby'), urlParams.get('sort'), false)
+        
+        //{
     }
 }
 
 function setTable(response, queryString, from, orderby, sort) {
 
-    if (from == 'search') {
+    if (from == 'search' | from == 'change') {
         //drawnItems.clearLayers();
         //$('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
@@ -1109,12 +1252,13 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 }
             })
             window.condition = form.serialize() + map_condition
-        } else {
+        } else if (from == 'page') {
             // 如果是從分頁，要記錄selected columns
             $(`.occ-choice input:checked`).each(function () {
                 selected_col += '&selected_col=' + $(this).attr('id').replace('occ-', '')
             })
         }
+
 
         if (limit == null) {
             limit = 10
@@ -1151,8 +1295,8 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             })
                 .done(function (response) {
                     // clear previous results
-                    // $('.sc_result').remove()
-                    //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+                    $('.record_table tr').remove()
+                    $('.page-inf').remove()
 
                     if (response.count == 0) {
                         $('.result_inf_top').addClass('d-none')
@@ -1170,7 +1314,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         setTable(response, window.condition, from, orderby, sort)
 
                         // 判斷是從分頁或搜尋點選
-                        if (from == 'search') {
+                        if (from == 'search' | from == 'change') {
                             // uncheck all first
                             $(`input[id^="occ-"]`).prop('checked', false)
                             // show selected columns
@@ -1187,6 +1331,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         $('#occ-common_name_c, #occ-scientificName').prop('checked', true);
 
                         // append pagination
+
                         if (response.total_page > 1) {  // 判斷是否有下一頁，有才加分頁按鈕
                             $('.result_table').after(
                                 `<div class="page-inf">

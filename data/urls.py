@@ -3,7 +3,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # page
     path('search/full', views.search_full, name='search_full'),
+    path('search/collection', views.search_collection, name='search_collection'),
+    path('search/occurrence', views.search_occurrence, name='search_occurrence'),
+    path('collection/<str:id>/', views.collection_detail, name='collection_detail'),
+    path('occurrence/<str:id>/', views.occurrence_detail, name='occurrence_detail'),
+
     # path('search/full/result', views.search_full_result, name='search_full_result'),
     # path('search/full/more_results', views.get_more_results, name='get_more_results'),
     path('get_records', views.get_records, name='get_records'),
@@ -17,10 +23,6 @@ urlpatterns = [
     path('get_taxon_dist_init', views.get_taxon_dist_init, name='get_taxon_dist_init'),
     # path('search/full/doc/<result_type>/<keyword>', views.search_full_doc, name='search_full_doc'),
     # path('search/full/record/<record_type>/<keyword>', views.search_full_record, name='search_full_record'),
-    path('search/collection', views.search_collection, name='search_collection'),
-    path('search/occurrence', views.search_occurrence, name='search_occurrence'),
-    path('collection/<str:id>/', views.collection_detail, name='collection_detail'),
-    path('occurrence/<str:id>/', views.occurrence_detail, name='occurrence_detail'),
     path('send_download_request', views.send_download_request, name='send_download_request'),
     path('send_sensitive_request', views.send_sensitive_request, name='send_sensitive_request'),
     path('submit_sensitive_request', views.submit_sensitive_request, name='submit_sensitive_request'),
@@ -37,4 +39,7 @@ urlpatterns = [
     path('get_locality', views.get_locality, name='get_locality'),
     path('get_locality_init', views.get_locality_init, name='get_locality_init'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),
+    path('get_dataset', views.get_dataset, name='get_dataset'),
+    path('get_dataset_init', views.get_dataset_init, name='get_dataset_init'),
+
 ]

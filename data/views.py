@@ -330,7 +330,8 @@ def generate_sensitive_csv(query_id, scheme, host):
 
             query = { "query": "*:*",
                     "offset": 0,
-                    "limit": req_dict.get('total_count'),
+                    # "limit": req_dict.get('total_count'),
+                    "limit": 2140000000,
                     "filter": query_list,
                     "sort":  "scientificName asc",
                     "fields": fl_cols
@@ -507,7 +508,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
     query = { "query": "*:*",
             "offset": 0,
-            "limit": req_dict.get('total_count'),
+            # "limit": req_dict.get('total_count'),
+            "limit": 2140000000,
             "filter": query_list,
             "sort":  "scientificName asc",
             "fields": fl_cols
@@ -738,7 +740,8 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
 
     query = { "query": q,
             "offset": 0,
-            "limit": req_dict.get('total_count'),
+            # "limit": req_dict.get('total_count'),
+            "limit": 2140000000,
             "filter": fq_list,
             "sort":  "scientificName asc",
             "fields": fl_cols,
@@ -1100,16 +1103,17 @@ def search_occurrence(request):
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    if len(dataset_list):
-        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
+    # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    # if len(dataset_list):
+    #     dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
     # dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
     # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     # basis_list = basis_dict.keys()
         
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_map': basis_map, 'dataset_list': dataset_list})
+        'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
+        })
 
 
 def occurrence_detail(request, id):
@@ -1413,6 +1417,7 @@ def get_map_grid(request):
 def get_conditional_records(request):
     if request.method == 'POST':
         req_dict = request.POST
+        print(req_dict)
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
         sort = req_dict.get('sort', 'asc')
@@ -1452,7 +1457,7 @@ def get_conditional_records(request):
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_query = { "query": "*:*",
                 "offset": offset,
-                "limit": limit,
+                "limit": limit, # TODO 這邊應該不用limit?
                 "filter": map_query_list,
                 "sort":  orderby + ' ' + sort,
                 }
@@ -1612,9 +1617,14 @@ def get_conditional_records(request):
 def change_dataset(request):
     ds = []
     results = []
-    if holder := request.GET.getlist('holder'):    
+    if datasetKey := request.GET.getlist('datasetKey'):
+        datasetKey = [int(d) for d in datasetKey]
+        results = get_dataset_by_key(key_list=datasetKey)
+        for d in results:
+            ds += [{'value': d[0], 'text': d[1]}]
+    elif holder := request.GET.getlist('holder'):
         for h in holder:
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
             d_list = response.json()['facet_counts']['facet_fields']['datasetName']
             dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
             if len(dataset_list):
@@ -1625,7 +1635,7 @@ def change_dataset(request):
             for d in results:
                 ds += [{'value': d[0], 'text': d[1]}]
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
         d_list = response.json()['facet_counts']['facet_fields']['datasetName']
         dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
         if len(dataset_list):
@@ -1636,6 +1646,7 @@ def change_dataset(request):
 
         for d in results:
             ds += [{'value': d[0], 'text': d[1]}]
+
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
@@ -1688,6 +1699,57 @@ def get_locality_init(request):
     for l in l_list:
         ds.append({'text': l, 'value': l})
 
+    return HttpResponse(json.dumps(ds), content_type='application/json')
+
+def get_dataset_init(request):
+    keyword = request.GET.getlist('datasetName')
+
+    if request.GET.get('record_type') == 'col':
+        record_type = '&fq=recordType:col'
+    else:
+        record_type = ''
+
+    ds = []
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0{record_type}')
+    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    if len(dataset_list):
+        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
+
+        for l in dataset_list:
+            ds.append({'text': l[1], 'value': l[0]})
+
+    return HttpResponse(json.dumps(ds), content_type='application/json')
+
+def get_dataset(request):
+    # datasetlist = request.GET.getlist('datasetName')
+    keyword = request.GET.get('keyword')
+    rights_holder = request.GET.getlist('holder')
+    h_str = ''
+    if len(rights_holder) > 1:
+        rights_holder = ' OR '.join(rights_holder)
+        h_str = f'&fq=rightsHolder:({rights_holder})'
+    elif len(rights_holder) == 1:
+        h_str = f'&fq=rightsHolder:"{rights_holder[0]}"'
+    # for r in rights_hoder:
+    #     h_str += 
+    # righs_hoder = [f"  "]
+    # righs_hoder_str = ' OR '
+    # &fq=rightsHolder:{h}
+    if request.GET.get('record_type') == 'col':
+        record_type = '&fq=recordType:col'
+    else:
+        record_type = ''
+
+    ds = []
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=datasetName:/.*{keyword}.*/{h_str}&rows=0{record_type}')
+    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+    if len(dataset_list):
+        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
+
+        for l in dataset_list:
+            ds.append({'text': l[1], 'value': l[0]})
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 

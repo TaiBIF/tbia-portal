@@ -13040,7 +13040,8 @@ body {
 
 @media only screen and (max-width: 999px) {
     .api-editer .gray-box {
-        overflow: auto
+        overflow: auto;
+        font-size: 14px;
     }
 }
 

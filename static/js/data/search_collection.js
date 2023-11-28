@@ -14,8 +14,16 @@ $('#rightsHolder').on('change', function (e) {
     for (r of res) {
         h_str += 'holder=' + r + '&'
     }
+
+    let d_str = '&'
+    if (window.has_par) {
+        for (dd in window.d_list){
+            d_str += 'datasetKey=' + window.d_list[dd] + '&'
+        }
+    }    
+
     $.ajax({
-        url: "/change_dataset?" + h_str,
+        url: "/change_dataset?record_type=col&" + h_str + d_str,
         dataType: 'json',
     })
         .done(function (response) {
@@ -35,13 +43,19 @@ $('#rightsHolder').on('change', function (e) {
         })
 })
 
+
 let selectBox2 = new vanillaSelectBox("#datasetName",
     {
+        "search": true,
         placeHolder: gettext("資料集名稱"),
-        search: true, disableSelectAll: true,
+        "disableSelectAll": true,
+        "remote": {
+            "onSearch": doSearchDataset, // used for search and init
+            "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
+            "onInit": initDataset,
+        },
         translations: { "all": gettext("全部"), "items": gettext(" 個選項"), "clearAll": gettext("重設") }
     });
-
 /*
 let selectBox3 = new vanillaSelectBox("#sensitiveCategory",{placeHolder:"敏感層級",search:false, disableSelectAll: true,
 });*/
@@ -183,6 +197,7 @@ function initLocality(what, datasize) {
     });
 }
 
+
 function getWKTMap(grid) {
     let div = grid / 100;
     var neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
@@ -267,9 +282,13 @@ map.on('zoomend', function zoomendEvent(ev) {
                 }
             }
             $('.resultG_100').removeClass('d-none')
+            $('.loading_area').addClass('d-none')
+
         } else if (currentZoomLevel < 8) {
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_10').removeClass('d-none')
+            $('.loading_area').addClass('d-none')
+
         } else if (currentZoomLevel < 12) {
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_5').remove()
@@ -281,6 +300,8 @@ map.on('zoomend', function zoomendEvent(ev) {
             })
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
+
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -290,6 +311,8 @@ map.on('zoomend', function zoomendEvent(ev) {
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
+
                 })
 
             $('.resultG_5').removeClass('d-none')
@@ -305,6 +328,8 @@ map.on('zoomend', function zoomendEvent(ev) {
             })
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
+
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -314,11 +339,12 @@ map.on('zoomend', function zoomendEvent(ev) {
 
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
+
                 })
 
             $('.resultG_1').removeClass('d-none')
         }
-        $('.loading_area').addClass('d-none')
     }
 });
 
@@ -339,6 +365,8 @@ map.on('dragend', function zoomendEvent(ev) {
                 })
                     .done(function (response) {
                         L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                        $('.loading_area').addClass('d-none')
+
                     })
                     .fail(function (xhr, status, errorThrown) {
                         if (xhr.status == 504) {
@@ -348,6 +376,8 @@ map.on('dragend', function zoomendEvent(ev) {
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                        $('.loading_area').addClass('d-none')
+
                     })
 
                 $('.resultG_5').removeClass('d-none')
@@ -363,6 +393,8 @@ map.on('dragend', function zoomendEvent(ev) {
                 })
                     .done(function (response) {
                         L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                        $('.loading_area').addClass('d-none')
+
                     })
                     .fail(function (xhr, status, errorThrown) {
                         if (xhr.status == 504) {
@@ -372,16 +404,124 @@ map.on('dragend', function zoomendEvent(ev) {
 
                         }
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                        $('.loading_area').addClass('d-none')
+
                     })
 
                 $('.resultG_1').removeClass('d-none')
             }
-            $('.loading_area').addClass('d-none')
 
         }
     }
 });
 
+
+function initDataset(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    let urlParams = new URLSearchParams(window.location.search);
+    let keyword_list = urlParams.getAll('datasetName')
+
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET', '/get_dataset_init?record_type=col&datasetName=' + keyword_list.join('&datasetName='), true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+
+
+function doSearchDataset(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
+    // 要限制來源資料庫
+    let res = selectBox.getResult()
+    let h_str = ''
+    for (r of res) {
+        h_str += '&holder=' + r
+    }
+
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET', '/get_dataset?record_type=col&keyword=' + what + h_str, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+
+                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
+                    data = data.slice(0, datasize);
+                    data = data.map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        }
+                    });
+                } else {
+                    data = data.filter(function (x) {
+                        let name = x[textProperty].toLowerCase();
+                        what = what.toLowerCase();
+                        if (name.slice(what).search(getVariants(what)) != -1)
+                            return {
+                                value: x[valueProperty],
+                                text: x[textProperty]
+                            }
+                    });
+                }
+                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
+                resolve(data);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
 
 $(function () {
 
@@ -750,8 +890,6 @@ function doSearch(what, datasize) {
 
 function changeAction() {
 
-    console.log('changeAction')
-
     $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
 
     $('.vsb-main button').css('border', '').css('background', '')
@@ -787,6 +925,8 @@ function changeAction() {
     //selectBox10.setValue('')
 
     if (queryString.split('&').length > 1) {
+        window.condition = queryString.substring(1)
+
         // 把條件填入表格
         let entries = urlParams.entries();
 
@@ -880,14 +1020,14 @@ function changeAction() {
         } else {
             page = 1
         }
-        submitSearch(page, 'search', false, urlParams.get('limit'), urlParams.get('orderby'), urlParams.get('sort'), false)//{
+        submitSearch(page, 'change', false, urlParams.get('limit'), urlParams.get('orderby'), urlParams.get('sort'), false)//{
 
     }
 }
 
 function setTable(response, queryString, from, orderby, sort) {
     // 把之前的清掉
-    if (from == 'search') {
+    if (from == 'search' | from == 'change') {
         //drawnItems.clearLayers();
         //$('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
@@ -906,35 +1046,6 @@ function setTable(response, queryString, from, orderby, sort) {
     $('.result_inf_top button.dwd').data('query', queryString)
     $('.result_inf_top_1 select[name="shownumber"]').data('query', queryString)
     $('.return-num').html(response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","))
-    /*
-    $('.search_condition_are').after(`
-    <div class="sc_result">
-    <div class="result_inf_top">
-        <div class="d-flex-ai-c res_flex">
-        <button class="cate_btn mr-20px popupField">${gettext('欄位選項')} +</button>
-        <div class="w-200px per_page">${gettext('每頁顯示')}
-            <select name="shownumber" data-query='${queryString}'>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            </select>${gettext(' 筆')}
-        </div>
-        </div>
-        <div class="rightmore">
-        <p class="datenum">${gettext('資料筆數')} ${gettext('：')} ${response.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-        <button class="dw downloadData" data-query="${queryString}" data-count="${response.count}">${gettext('資料下載')}</button>
-        <button class="dw downloadTaxon" data-query="${queryString}">${gettext('名錄下載')}</button>
-        <a href="/${$lang}/qa?qa_id=14" target="_blank" class="qmark"></a>
-        <button class="dw downloadSensitive" data-query="${queryString}" data-count="${response.count}">${gettext('申請單次使用去模糊化敏感資料')}</button>
-        <a href="/${$lang}/qa?qa_id=15" target="_blank" class="qmark"></a>
-        </div>
-    </div>
-    <div class="result_table flow-x-auto">
-        <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
-        </table>						
-    </div>
-    </div>`)*/
 
     $('select[name=shownumber]').on('change', function () {
         submitSearch(1, 'page', false, $(this).val(), orderby, sort)
@@ -1111,7 +1222,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 }
             })
             window.condition = form.serialize() + map_condition
-        } else {
+        } else if (from == 'page') {
             // 如果是從分頁，要記錄selected columns
             $(`.col-choice input:checked`).each(function () {
                 selected_col += '&selected_col=' + $(this).attr('id').replace('col-', '')
@@ -1149,13 +1260,11 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (response) {
-
-
-                   
+                .done(function (response) {                   
                     // clear previous results
-                    //$('.sc_result').remove()
-                    //$('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+                    $('.record_table tr').remove()
+                    $('.page-inf').remove()
+
                     if (response.count == 0) {
                         $('.result_inf_top').addClass('d-none')
                         $('.result_inf_top_1').addClass('d-none')
