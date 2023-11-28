@@ -1,14 +1,11 @@
 from django.shortcuts import render, redirect
 from conf.settings import STATIC_ROOT, MEDIA_ROOT, SOLR_PREFIX
 from conf.utils import scheme
-from data.solr_query import col_facets, occ_facets, taxon_all_facets
 from pages.models import Resource, News
 from django.db.models import Q, Max
 from django.db import connection
 
 from data.utils import *
-# from manager.utils import holders
-# from data.taicol import taicol
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -43,10 +40,6 @@ import html
 from django.utils.translation import get_language, gettext
 
 
-
-# taxon-related fields
-taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
-taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID', 'originalScientificName']
 
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
@@ -471,7 +464,7 @@ def send_download_request(request):
         return JsonResponse({"status": 'success'}, safe=False)
 
 
-# 這邊是for進階搜尋 全站搜尋要先另外寫
+# 進階搜尋資料下載
 def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
@@ -547,7 +540,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 # facet.pivot=taxonID,scientificName
 
-
+# 進階搜尋名錄下載
 def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
@@ -659,8 +652,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     send_notification([user_id],content,'下載名錄已完成通知 Your TBIA checklist download is ready', content_en=content_en)
 
 
-    # return csv file
-
+# 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
@@ -714,7 +706,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list.append(f'scientificName:{scientific_name}')
 
     req_dict = dict(req_dict)
-    print(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
     for nq in not_query:
         if nq in req_dict.keys():
@@ -726,7 +717,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
 
-    # TODO 全站搜尋的搜尋要加上'page','from','taxon','selected_col'
     query_string = parse.urlencode(req_dict)
 
     sq = SearchQuery.objects.create(
@@ -805,7 +795,6 @@ def get_records(request): # 全站搜尋
         else:
             sort = 'asc'
 
-
         # only facet selected field
         fq_list = []
         query_list = []
@@ -869,86 +858,8 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        for i in docs.index:
-            row = docs.iloc[i]
-            if f_name := row.get('formatted_name'):
-                docs.loc[i , 'scientificName'] = f_name
-            # date
-            # if date := row.get('standardDate'):
-            #     # date = date[0].replace('T', ' ').replace('Z','')
-            #     docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
-            # else:
-            #     if row.get('eventDate'):
-            #         docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
-            if date := row.get('standardDate'):
-                date = date[0].split('T')[0]
-                docs.loc[i , 'eventDate'] = date
-            else:
-                if row.get('eventDate'):
-                    docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
-
-            # 經緯度
-            user_id = request.user.id if request.user.id else 0
-            if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-                if lat := row.get('standardRawLatitude'):
-                    docs.loc[i , 'lat'] = lat[0]
-                else:
-                    if row.get('verbatimRawLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
-
-                if lon := row.get('standardRawLongitude'):
-                    docs.loc[i , 'lon'] = lon[0]
-                else:
-                    if row.get('verbatimRawLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
-            else:
-                if lat := row.get('standardLatitude'):
-                    docs.loc[i , 'lat'] = lat[0]
-                else:
-                    if row.get('verbatimLatitude'):
-                        docs.loc[i , 'lat'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
-
-                if lon := row.get('standardLongitude'):
-                    docs.loc[i , 'lon'] = lon[0]
-                else:
-                    if row.get('verbatimLongitude'):
-                        docs.loc[i , 'lon'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
-            # 數量
-            if quantity := row.get('standardOrganismQuantity'):
-                quantity = str(quantity[0])
-                if quantity.endswith('.0'):
-                    quantity = quantity[:-2]
-                docs.loc[i , 'organismQuantity'] = quantity
-            else:
-                if row.get('organismQuantity'):
-                    docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
-            
-            # 分類階層
-            if row.get('taxonRank', ''):
-                docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
-
-            # 座標是否有模糊化
-            if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-                docs.loc[i , 'dataGeneralizations'] = '是'
-            elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-                docs.loc[i , 'dataGeneralizations'] = '否'
-            else:
-                pass
-
-            # 紀錄類型
-            if row.get('basisOfRecord',''):
-                if row.get('basisOfRecord') in basis_map.keys():
-                    docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
-
-        docs = docs.replace({np.nan: ''})
-        docs = docs.replace({'nan': ''})
-
-        if 'synonyms' in docs.keys():
-            docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-        if 'misapplied' in docs.keys():
-            docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
-
-        docs = docs.to_dict('records')
+        user_id = request.user.id if request.user.id else 0
+        rows = create_data_table(docs, user_id, obv_str)
 
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
@@ -966,7 +877,7 @@ def get_records(request): # 全站搜尋
             'title': title,
             'orderby': orderby,
             'sort': sort,
-            'rows' : docs,
+            'rows' : rows,
             'current_page' : current_page,
             'total_page' : total_page,
             'selected_col': selected_col,
@@ -1083,17 +994,10 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    if len(dataset_list):
-        dataset_list = get_dataset_list(record_type='col',dataset_list=dataset_list)
-    # dataset_list = DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
-
-    # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'dataset_list': dataset_list})
+        'rank_list': rank_list})
     
 
 def search_occurrence(request):
@@ -1101,15 +1005,7 @@ def search_occurrence(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    # if len(dataset_list):
-    #     dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
-    # dataset_list = DatasetKey.objects.filter(deprecated=False,name__in=dataset_list).distinct('name')
-    # sensitive_list = ['輕度', '重度', '縣市', '座標不開放', '分類群不開放', '無']
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-    # basis_list = basis_dict.keys()
         
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
@@ -1117,276 +1013,17 @@ def search_occurrence(request):
 
 
 def occurrence_detail(request, id):
-    logo = ''
-    query = {
-            'query': "*:*",
-            'limit': 1,
-            'filter': f"id:{id}",
-            }
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
-    row = pd.DataFrame(response.json()['response']['docs'])
-    row = row.replace({np.nan: '', 'nan': ''})
-    row = row.to_dict('records')
-    row = row[0]
 
-    if row.get('taxonRank', ''):
-        row.update({'taxonRank': map_occurrence[row['taxonRank']]})
-
-    am = []
-    if ams := row.get('associatedMedia'):
-        ams = ams.split(';')
-        if row.get('mediaLicense'):
-            mls = row.get('mediaLicense').split(';')
-            if len(mls) == 1:
-                for a in ams:
-                    am.append({'img': a, 'license': row.get('mediaLicense')})
-            else:
-                img_len = len(ams)
-                for i in range(img_len):
-                    am.append({'img': ams[i], 'license': mls[i]})
-        else:
-            for a in ams:
-                am.append({'img': a, 'license': ''})
-    row.update({'associatedMedia': am})
-
-    if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-        row.update({'dataGeneralizations': '是'})
-    elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-        row.update({'dataGeneralizations': '否'})
-    else:
-        pass
-
-    # date
-    if date := row.get('standardDate'):
-        # date = date[0].replace('T', ' ').replace('Z','')
-        date = date[0].split('T')[0]
-    else:
-        date = None
-    row.update({'date': date})
-
-    # 經緯度
     user_id = request.user.id if request.user.id else 0
-    if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-        lat = None
-        if lat := row.get('standardRawLatitude'):
-            if -90 <= lat[0] and lat[0] <= 90:        
-                lat = lat[0]
-            else:
-                lat = None
-        row.update({'lat': lat})
-        lon = None
-        if lon := row.get('standardRawLongitude'):
-            if -180 <= lon[0] and lon[0] <= 180:             
-                lon = lon[0]
-            else:
-                lon = None
-        row.update({'lon': lon})
-    else:
-        lat = None
-        if lat := row.get('standardLatitude'):
-            if -90 <= lat[0] and lat[0] <= 90:        
-                lat = lat[0]
-            else:
-                lat = None
-        row.update({'lat': lat})
-
-        lon = None
-        if lon := row.get('standardLongitude'):
-            if -180 <= lon[0] and lon[0] <= 180:             
-                lon = lon[0]
-            else:
-                lon = None
-        row.update({'lon': lon})
-
-    # 數量
-    if quantity := row.get('standardOrganismQuantity'):
-        # quantity = int(quantity[0])
-        quantity = str(quantity[0])
-        if quantity.endswith('.0'):
-            quantity = quantity[:-2]
-    else:
-        quantity = None
-    row.update({'quantity': quantity})
-
-    # taxon
-    path_str = ''
-    path = []
-    path_taxon_id = None
-    if row.get('taxonID'):
-        path_taxon_id = row.get('taxonID')
-    # elif row.get('parentTaxonID'):
-    #     path_taxon_id = row.get('parentTaxonID')
-    if path_taxon_id:
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}')
-        data = response.json()
-        t_rank = data['response']['docs'][0]
-        for r in rank_list:
-            if t_rank.get(r):
-                if t_rank.get(f"formatted_{r}"):
-                    current_str = t_rank.get(f"formatted_{r}")
-                else:
-                    current_str = t_rank.get(r)
-                if t_rank.get(f"{r}_c"):
-                    current_str += ' ' + t_rank.get(f"{r}_c")
-                path.append(current_str)
-
-    path_str = ' > '.join(path)
-
-    # logo
-    if group := row.get('group'):
-        if logo := Partner.objects.filter(group=group).values('logo'):
-            # info = info[0]
-            # for i in info['info']:
-            #     if i.get('subtitle') == row.get('rightsHolder'):
-            logo = logo[0]['logo']
-
-    # references
-    if not row.get('references'):
-        if Partner.objects.filter(group=group).values('info').exists():
-            row['references'] = Partner.objects.get(group=group).info[0]['link']
-
-    modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
-    row.update({'modified': modified})
+    row, path_str, logo = create_data_detail(id, user_id, 'occ')
 
     return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
 def collection_detail(request, id):
-    path_str = ''
-    logo = ''
-    query = {
-        'query': "*:*",
-        'limit': 1,
-        'filter': f"id:{id}",
-        }
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
 
-    row = pd.DataFrame(response.json()['response']['docs'])
-    row = row.replace({np.nan: '', 'nan': ''})
-    row = row.to_dict('records')
-    row = row[0]
-    if row.get('recordType') == ['col']:
-
-        am = []
-        if ams := row.get('associatedMedia'):
-            # print(am)
-            ams = ams.split(';')
-            if row.get('mediaLicense'):
-                mls = row.get('mediaLicense').split(';')
-                if len(mls) == 1:
-                    for a in ams:
-                        am.append({'img': a, 'license': row.get('mediaLicense')})
-                else:
-                    img_len = len(ams)
-                    for i in range(img_len):
-                        am.append({'img': ams[i], 'license': mls[i]})
-            else:
-                for a in ams:
-                    am.append({'img': a, 'license': ''})
-
-        row.update({'associatedMedia': am})
-
-        if row.get('taxonRank', ''):
-            row.update({'taxonRank': map_collection[row['taxonRank']]})
-
-        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-            row.update({'dataGeneralizations': '是'})
-        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-            row.update({'dataGeneralizations': '否'})
-        else:
-            pass
-
-        # date
-        if date := row.get('standardDate'):
-            # date = date[0].replace('T', ' ').replace('Z','')
-            date = date[0].split('T')[0]
-        else:
-            date = None
-        row.update({'date': date})
-
-        # 經緯度
-
-        # 如果是夥伴單位直接給原始
-        user_id = request.user.id if request.user.id else 0
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-            lat = None
-            if lat := row.get('standardRawLatitude'):
-                if -90 <= lat[0] and lat[0] <= 90:        
-                    lat = lat[0]
-                else:
-                    lat = None
-            row.update({'lat': lat})
-            lon = None
-            if lon := row.get('standardRawLongitude'):
-                if -180 <= lon[0] and lon[0] <= 180:             
-                    lon = lon[0]
-                else:
-                    lon = None
-            row.update({'lon': lon})
-        else:
-            lat = None
-            if lat := row.get('standardLatitude'):
-                if -90 <= lat[0] and lat[0] <= 90:        
-                    lat = lat[0]
-                else:
-                    lat = None
-            row.update({'lat': lat})
-
-            lon = None
-            if lon := row.get('standardLongitude'):
-                if -180 <= lon[0] and lon[0] <= 180:             
-                    lon = lon[0]
-                else:
-                    lon = None
-            row.update({'lon': lon})
-
-        # 數量
-        if quantity := row.get('standardOrganismQuantity'):
-            # quantity = int(quantity[0])
-            quantity = str(quantity[0])
-            if quantity.endswith('.0'):
-                quantity = quantity[:-2]
-        else:
-            quantity = None
-        row.update({'quantity': quantity})
-
-        # taxon
-        path_str = ''
-        path = []
-        path_taxon_id = None
-        if row.get('taxonID'):
-            path_taxon_id = row.get('taxonID')
-        # elif row.get('parentTaxonID'):
-        #     path_taxon_id = row.get('parentTaxonID')
-        if path_taxon_id:
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}')
-            data = response.json()
-            t_rank = data['response']['docs'][0]
-            for r in rank_list:
-                if t_rank.get(r):
-                    if t_rank.get(f"formatted_{r}"):
-                        current_str = t_rank.get(f"formatted_{r}")
-                    else:
-                        current_str = t_rank.get(r)
-                    if t_rank.get(f"{r}_c"):
-                        current_str += ' ' + t_rank.get(f"{r}_c")
-                    path.append(current_str)
-
-        path_str = ' > '.join(path)
-
-        # logo
-        if group := row.get('group'):
-            if logo := Partner.objects.filter(group=group).values('logo'):
-                # info = info[0]
-                # for i in info['info']:
-                #     if i.get('subtitle') == row.get('rightsHolder'):
-                logo = logo[0]['logo']
-
-        modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
-        row.update({'modified': modified})
-
-    else:
-        row = []
+    user_id = request.user.id if request.user.id else 0
+    row, path_str, logo = create_data_detail(id, user_id, 'col')
 
     return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
@@ -1417,11 +1054,9 @@ def get_map_grid(request):
 def get_conditional_records(request):
     if request.method == 'POST':
         req_dict = request.POST
-        print(req_dict)
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
         sort = req_dict.get('sort', 'asc')
-
 
         # selected columns
         if req_dict.getlist('selected_col'):
@@ -1507,96 +1142,16 @@ def get_conditional_records(request):
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        for i in docs.index:
-            row = docs.iloc[i]
-            if row.get('scientificName') and row.get('formatted_name'):
-                docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
-            # TODO 加上formatted synonyms & misapplied
-            # date
-            if date := row.get('standardDate'):
-                date = date[0].split('T')[0]
-                docs.loc[i , 'eventDate'] = date
-            else:
-                if row.get('eventDate'):
-                    docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
-            #     # date = date[0].replace('T', ' ').replace('Z','')
-            #     # 如果是國家公園，原本調查的時間是區段
-            #     if row.get('rightsHolder') == '臺灣國家公園生物多樣性資料庫':
-            #         docs.loc[i , 'eventDate'] = date[0].split('T')[0] # 只取日期
-            #     else:
-            #         docs.loc[i , 'eventDate'] = date[0].replace('T', ' ').replace('Z','')
-            # else:
-                # if row.get('eventDate'):
-                #     docs.loc[i , 'eventDate'] = '---<br><small class="color-silver">[原始紀錄日期]' + docs.loc[i , 'eventDate'] + '</small>'
-            # 經緯度
-            # 如果是夥伴單位直接給原始
-            user_id = request.user.id if request.user.id else 0
-            if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-                if lat := row.get('standardRawLatitude'):
-                    docs.loc[i , 'verbatimRawLatitude'] = lat[0]
-                else:
-                    if row.get('verbatimRawLatitude'):
-                        docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+        user_id = request.user.id if request.user.id else 0
 
-                if lon := row.get('standardRawLongitude'):
-                    docs.loc[i , 'verbatimRawLongitude'] = lon[0]
-                else:
-                    if row.get('verbatimRawLongitude'):
-                        docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
-            else:
-                if lat := row.get('standardLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = lat[0]
-                else:
-                    if row.get('verbatimLatitude'):
-                        docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
-
-                if lon := row.get('standardLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = lon[0]
-                else:
-                    if row.get('verbatimLongitude'):
-                        docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
-            # 數量
-            if quantity := row.get('standardOrganismQuantity'):
-                quantity = str(quantity[0])
-                if quantity.endswith('.0'):
-                    quantity = quantity[:-2]
-                docs.loc[i , 'organismQuantity'] = quantity
-            else:
-                if row.get('organismQuantity'):
-                    docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
-            
-            # 分類階層
-            if row.get('taxonRank', ''):
-                docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
-
-            # 座標是否有模糊化
-            if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-                docs.loc[i , 'dataGeneralizations'] = '是'
-            elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-                docs.loc[i , 'dataGeneralizations'] = '否'
-            else:
-                pass
-
-            # 紀錄類型
-            if row.get('basisOfRecord',''):
-                if row.get('basisOfRecord') in basis_map.keys():
-                    docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
-
-        docs = docs.replace({np.nan: ''})
-        docs = docs.replace({'nan': ''})
-        if 'synonyms' in docs.keys():
-            docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-        if 'misapplied' in docs.keys():
-            docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
-        
-        docs = docs.to_dict('records')
+        rows = create_data_table(docs, user_id, obv_str)
 
         current_page = offset / limit + 1
         total_page = math.ceil(count / limit)
         page_list = get_page_list(current_page, total_page)
 
         response = {
-            'rows' : docs,
+            'rows' : rows,
             'count': count,
             'page_list': page_list,
             'current_page' : current_page,

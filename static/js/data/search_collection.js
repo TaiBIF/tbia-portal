@@ -1280,7 +1280,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
 
                         setTable(response, window.condition, from, orderby, sort)
                         // 判斷是從分頁或搜尋點選
-                        if (from == 'search') {
+                        if (from == 'search' | from == 'change') {
                             // uncheck all first
                             $(`input[id^="col-"]`).prop('checked', false)
                             // show selected columns

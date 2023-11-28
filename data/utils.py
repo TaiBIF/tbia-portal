@@ -23,6 +23,7 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
+from manager.models import User, Partner
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -1120,6 +1121,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
     result_df = pd.DataFrame(result)
     res_c = 0
     result_dict_all = []
+
     
     if len(result_df):
         for t in result_df.val.unique():
@@ -1131,8 +1133,9 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
                     matched = []
                     for ii in rows.index:
                         match_val = result_df.loc[ii].matched_value
-                        if result_df.loc[ii].matched_col in ['synonyms','misapplied']:
-                            match_val = (', ').join(match_val.split(','))
+                        # 改成後面一起處理
+                        # if result_df.loc[ii].matched_col in ['synonyms','misapplied']: 
+                        #     match_val = (', ').join(match_val.split(','))
                         matched.append({'key': result_df.loc[ii].matched_col, 
                                         'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                         'matched_value_ori': match_val,
@@ -1190,7 +1193,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
         else:
             result_df = pd.DataFrame(result_dict_all[:9])
 
-        taicol = []
+        taicol = pd.DataFrame()
         if len(result_df):
             taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
             # print(taxon_ids)
@@ -1199,7 +1202,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
                 resp = response.json()
                 if data := resp['response']['docs']:
                     taicol = pd.DataFrame(data)
-                    used_cols = ['common_name_c','formatted_name','id','scientificName','taxonRank']
+                    used_cols = ['common_name_c','formatted_name','id','scientificName','taxonRank', 'formatted_misapplied', 'formatted_synonyms']
                     taicol = taicol[[u for u in used_cols if u in taicol.keys()]]
                     for u in used_cols:
                         if u not in taicol.keys():
@@ -1211,6 +1214,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
                 result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
                 result_df = result_df.replace({np.nan:'', None:''})
                 result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x] if x else x)
+                # 如果match_col是synonyms & misapplied 要修改
             else:
                 result_df['common_name_c'] = ''
                 result_df['formatted_name'] = ''
@@ -1240,10 +1244,28 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
         item_class = None
         card_class = None
 
+    data = []
+
+    for rr in result_df.to_dict('records'):
+        matches = rr.get('matched')
+        new_matches = []
+        for mm in matches:
+            tmp_m = mm
+            if mm.get('key') in ['synonyms', 'misapplied']:
+                if f"formatted_{mm.get('key')}" in taicol.keys():
+                    new_value = taicol[taicol.taxonID==rr.get('taxonID')][f"formatted_{mm.get('key')}"].values[0]
+                    if new_value:
+                        new_value = (', ').join(new_value.split(','))
+                        new_value = highlight(new_value, keyword, 1)
+                    tmp_m.update({'matched_value': new_value})
+            new_matches.append(tmp_m)
+        rr.update({'matched': new_matches})
+        data += [rr]
+
     response = {
         'total_count': total_count, # 總數
         'menu_rows': menu_rows, # 側邊欄
-        'data': result_df.to_dict('records'), # 卡片
+        'data': data, # 卡片
         'has_more': has_more,
         'reach_end': True if offset >= 27 else False,
         # get_focus_card 使用
@@ -1312,8 +1334,9 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
     total_count = data['numFound']
     if total_count:
         taicol = pd.DataFrame(data['docs'])
-        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank'] if c in taicol.keys()]
+        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
         taicol = taicol[taicol_cols]
+        taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
     taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
 
     # 側邊欄
@@ -1345,7 +1368,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
     taxon_result_dict_all = []
 
     if len(taxon_result_df):
-        for tt in taxon_result_df.val.unique():
+        for tt in taxon_result_df.val.unique(): ## tt = taxonID
             rows = []
             if len(taxon_result_df[(taxon_result_df.val==tt)]):
                 # tt_c += 1
@@ -1353,9 +1376,14 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
                 matched = []
                 for ii in rows.index:
                     match_val = taxon_result_df.loc[ii].matched_value
-                    if taxon_result_df.loc[ii].matched_col in ['synonyms','misapplied']:
-                        match_val = (', ').join(match_val.split(','))
-                    matched.append({'key': taxon_result_df.loc[ii].matched_col, 'matched_col': map_collection[taxon_result_df.loc[ii].matched_col], 'matched_value': match_val})
+                    match_col = taxon_result_df.loc[ii].matched_col
+                    if match_col in ['synonyms','misapplied']:
+                        if f'formatted_{match_col}' in taicol.keys():
+                            if len(taicol[taicol.taxonID==tt]):
+                                match_val = taicol.loc[taicol.taxonID==tt][f'formatted_{match_col}'].values[0]
+                        if match_val:
+                            match_val = (', ').join(match_val.split(','))
+                    matched.append({'key': match_col, 'matched_col': map_collection[match_col], 'matched_value': match_val})
                 taxon_result_dict_all.append({
                     'val': tt,
                     'matched': matched,
@@ -1365,12 +1393,13 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
     taxon_result_df = pd.DataFrame(taxon_result_dict_all[:4])
 
     if len(taxon_result_df):
-        taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
         taxon_result_df = pd.merge(taxon_result_df,taicol,left_on='val',right_on='taxonID', how='left')
         taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
         taxon_result_df['taxonRank'] = taxon_result_df['taxonRank'].apply(lambda x: map_occurrence[x] if x else x)
         taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
         if 'synonyms' in taxon_result_df.keys():
+            if 'formatted_synonyms' in taxon_result_df.keys():
+                taxon_result_df['synonyms'] = taxon_result_df['formatted_synonyms']
             taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
         taxon_result_df['col_count'] = 0 
         taxon_result_df['occ_count'] = 0 
@@ -1389,6 +1418,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
         
         # 處理hightlight
         # taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))
+        # TODO 這邊應該可以簡化
         if 'common_name_c' in taxon_result_df.keys():
             if (is_sub == 'false') or (is_sub != 'false' and key == 'common_name_c') :
                 taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
@@ -1491,3 +1521,234 @@ def get_map_response(map_query, grid_list):
                     map_geojson[f'grid_{grid}']['features'] += tmp
     
     return map_geojson
+
+
+# occurrence & collection detail頁面整理
+def create_data_detail(id, user_id, record_type):
+
+    path_str = ''
+    logo = ''
+
+    query = {
+        'query': "*:*",
+        'limit': 1,
+        'filter': f"id:{id}",
+        }
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+    row = pd.DataFrame(response.json()['response']['docs'])
+    row = row.replace({np.nan: '', 'nan': ''})
+    row = row.to_dict('records')
+    row = row[0]
+
+    if (record_type == 'col' and row.get('recordType') == ['col']) or record_type == 'occ':
+        if row.get('taxonRank', ''):
+            row.update({'taxonRank': map_occurrence[row['taxonRank']]})
+
+        am = []
+        if ams := row.get('associatedMedia'):
+            ams = ams.split(';')
+            if row.get('mediaLicense'):
+                mls = row.get('mediaLicense').split(';')
+                if len(mls) == 1:
+                    for a in ams:
+                        am.append({'img': a, 'license': row.get('mediaLicense')})
+                else:
+                    img_len = len(ams)
+                    for i in range(img_len):
+                        am.append({'img': ams[i], 'license': mls[i]})
+            else:
+                for a in ams:
+                    am.append({'img': a, 'license': ''})
+        row.update({'associatedMedia': am})
+
+        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+            row.update({'dataGeneralizations': '是'})
+        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+            row.update({'dataGeneralizations': '否'})
+        else:
+            pass
+
+        # date
+        if date := row.get('standardDate'):
+            # date = date[0].replace('T', ' ').replace('Z','')
+            date = date[0].split('T')[0]
+        else:
+            date = None
+        row.update({'date': date})
+
+        # 經緯度
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+            lat = None
+            if lat := row.get('standardRawLatitude'):
+                if -90 <= lat[0] and lat[0] <= 90:        
+                    lat = lat[0]
+                else:
+                    lat = None
+            row.update({'lat': lat})
+            lon = None
+            if lon := row.get('standardRawLongitude'):
+                if -180 <= lon[0] and lon[0] <= 180:             
+                    lon = lon[0]
+                else:
+                    lon = None
+            row.update({'lon': lon})
+        else:
+            lat = None
+            if lat := row.get('standardLatitude'):
+                if -90 <= lat[0] and lat[0] <= 90:        
+                    lat = lat[0]
+                else:
+                    lat = None
+            row.update({'lat': lat})
+
+            lon = None
+            if lon := row.get('standardLongitude'):
+                if -180 <= lon[0] and lon[0] <= 180:             
+                    lon = lon[0]
+                else:
+                    lon = None
+            row.update({'lon': lon})
+
+        # 數量
+        if quantity := row.get('standardOrganismQuantity'):
+            # quantity = int(quantity[0])
+            quantity = str(quantity[0])
+            if quantity.endswith('.0'):
+                quantity = quantity[:-2]
+        else:
+            quantity = None
+        row.update({'quantity': quantity})
+
+        # taxon
+        path = []
+        path_taxon_id = None
+        if row.get('taxonID'):
+            path_taxon_id = row.get('taxonID')
+        # elif row.get('parentTaxonID'):
+        #     path_taxon_id = row.get('parentTaxonID')
+        if path_taxon_id:
+            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}')
+            data = response.json()
+            t_rank = data['response']['docs'][0]
+            for r in rank_list:
+                if t_rank.get(r):
+                    if t_rank.get(f"formatted_{r}"):
+                        current_str = t_rank.get(f"formatted_{r}")
+                    else:
+                        current_str = t_rank.get(r)
+                    if t_rank.get(f"{r}_c"):
+                        current_str += ' ' + t_rank.get(f"{r}_c")
+                    path.append(current_str)
+
+        path_str = ' > '.join(path)
+
+        # logo
+        if group := row.get('group'):
+            if logo := Partner.objects.filter(group=group).values('logo'):
+                logo = logo[0]['logo']
+
+        # references
+        if not row.get('references'):
+            if Partner.objects.filter(group=group).values('info').exists():
+                row['references'] = Partner.objects.get(group=group).info[0]['link']
+
+        modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
+        row.update({'modified': modified})
+    else:
+        row = [] # 如果不是自然史典藏，在自然史典藏頁面不顯示
+    return row, path_str, logo
+
+
+# 進階搜尋 / 全站搜尋 表格整理
+def create_data_table(docs, user_id, obv_str):
+    rows = []
+    for i in docs.index:
+        row = docs.iloc[i]
+        if row.get('scientificName') and row.get('formatted_name'):
+            docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
+
+        # if row.get('misapplied') and row.get('formatted_misapplied'):
+        #     docs.loc[i, 'misapplied'] = docs.loc[i, 'formatted_misapplied']
+
+        # if row.get('synonyms') and row.get('formatted_synonyms'):
+        #     docs.loc[i, 'synonyms'] = docs.loc[i, 'formatted_synonyms']
+
+        # date
+        if date := row.get('standardDate'):
+            date = date[0].split('T')[0]
+            docs.loc[i , 'eventDate'] = date
+        else:
+            if row.get('eventDate'):
+                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + docs.loc[i , 'eventDate'] + '</small>'
+
+        # 經緯度
+        # 如果是夥伴單位直接給原始
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+            if lat := row.get('standardRawLatitude'):
+                docs.loc[i , 'verbatimRawLatitude'] = lat[0]
+            else:
+                if row.get('verbatimRawLatitude'):
+                    docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+
+            if lon := row.get('standardRawLongitude'):
+                docs.loc[i , 'verbatimRawLongitude'] = lon[0]
+            else:
+                if row.get('verbatimRawLongitude'):
+                    docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+        else:
+            if lat := row.get('standardLatitude'):
+                docs.loc[i , 'verbatimLatitude'] = lat[0]
+            else:
+                if row.get('verbatimLatitude'):
+                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimLatitude'] + '</small>'
+
+            if lon := row.get('standardLongitude'):
+                docs.loc[i , 'verbatimLongitude'] = lon[0]
+            else:
+                if row.get('verbatimLongitude'):
+                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimLongitude'] + '</small>'
+        # 數量
+        if quantity := row.get('standardOrganismQuantity'):
+            quantity = str(quantity[0])
+            if quantity.endswith('.0'):
+                quantity = quantity[:-2]
+            docs.loc[i , 'organismQuantity'] = quantity
+        else:
+            if row.get('organismQuantity'):
+                docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + docs.loc[i , 'organismQuantity'] + '</small>'
+        
+        # 分類階層
+        if row.get('taxonRank', ''):
+            docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
+
+        # 座標是否有模糊化
+        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
+            docs.loc[i , 'dataGeneralizations'] = '是'
+        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
+            docs.loc[i , 'dataGeneralizations'] = '否'
+        else:
+            pass
+
+        # 紀錄類型
+        if row.get('basisOfRecord',''):
+            if row.get('basisOfRecord') in basis_map.keys():
+                docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
+
+    docs = docs.replace({np.nan: ''})
+    docs = docs.replace({'nan': ''})
+
+    # if 'synonyms' in docs.keys():
+    #     docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+    # if 'misapplied' in docs.keys():
+    #     docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
+    
+    if 'formatted_synonyms' in docs.keys():
+        docs['synonyms'] = docs['formatted_synonyms']
+        docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+    if 'misapplied' in docs.keys():
+        docs['misapplied'] = docs['formatted_misapplied']
+        docs['misapplied'] = docs['formatted_misapplied'].apply(lambda x: ', '.join(x.split(',')))
+
+    rows = docs.to_dict('records')
+
+    return rows
