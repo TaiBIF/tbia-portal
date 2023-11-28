@@ -77,6 +77,9 @@
 				<div class="marb_20">
 					{% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence" target="_blank">/api/v1/occurrence</a>
 				</div>
+				<div class="marb_20">
+					{% trans '本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。' %}
+				</div>
 				<div class="green_title">
 					<div class="line_mark"></div>
 					<h4>{% trans '查詢參數說明' %}</h4>
@@ -149,7 +152,7 @@
 						<tr>
 							<td>polygon</td>
 							<td>string</td>
-							<td>{% trans '取得指定多邊形座標範圍內物種出現紀錄資料' %}</td>
+							<td>{% trans '取得指定多邊形座標範圍內物種出現紀錄資料，僅支援WKT格式' %}</td>
 							<td><a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a></td>
 						</tr>
 						<tr>
@@ -452,7 +455,7 @@
 							<td>match_higher_taxon</td>
 							<td>{% trans '是否對應到上階層' %}</td>
 							<td>boolean</td>
-							<td>{% trans '若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，match_higer_taxon標示true，最高比對到科。若也無法對應到上階層，則標示false' %}</td>
+							<td>{% trans '若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higer_taxon標示true，反之為false' %}</td>
 						</tr>
 						<tr>
 							<td>scientificName</td>

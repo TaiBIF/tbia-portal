@@ -2288,7 +2288,7 @@ msgstr "List records by taxon ID"
 
 #:
 msgid "是否為自然史典藏資料，是=true，否=false"
-msgstr ""
+msgstr "List records by if the record is a natural history collection. Yes = true, No = false."
 
 #:
 msgid "取得指定來源資料庫 / 典藏單位的物種出現紀錄資料"
@@ -2312,15 +2312,15 @@ msgstr "List records by modified date (TBIA portal). Supports range queries."
 
 #:
 msgid "取得指定四邊形座標範圍內物種出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}"
-msgstr ""
+msgstr "List records by a bounding box. Specified by={max longitude},{max latitude},{min longitude},{min latitude}."
 
 #:
-msgid "取得指定多邊形座標範圍內物種出現紀錄資料"
-msgstr ""
+msgid "取得指定多邊形座標範圍內物種出現紀錄資料，僅支援WKT格式"
+msgstr "List records by a polygon. Only WKT format is supported."
 
 #:
 msgid "取得指定圓形座標範圍內物種出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里"
-msgstr ""
+msgstr "List records by a circle. Specified by={longitude of centre},{latitude of centre},{radius in KM}."
 
 #:
 msgid "限制型API金鑰"
@@ -2367,7 +2367,7 @@ msgid "影像URL"
 msgstr "Associated Media"
 
 #:
-msgid "觀察記錄日期 / 採集日期"
+msgid "紀錄日期 / 採集日期"
 msgstr "Event Date"
 
 #:
@@ -2428,10 +2428,18 @@ msgid "原始資料提供之物種代碼，可能為舊TaiCOL namecode"
 msgstr "Scientific Name ID provieded by original data. Could be TaiCOL namecode."
 
 #:
-msgid "若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，match_higer_taxon標示true，最高比對到科。若也無法對應到上階層，則標示false"
-msgstr ""
+msgid "若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higer_taxon標示true，反之為false"
+msgstr "If the taxon ID of the record is matched to its higher taxon. Yes = true, No = false."
 
 
 #:
 msgid "區間查詢請用半形逗號分隔起迄時間"
 msgstr "Range queries are given as a single parameter value by concatenating start date and end date with a comma."
+
+#:
+msgid "新版TaiCOL物種編號"
+msgstr "TaiCOL Taxon ID"
+
+#:
+msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
+msgstr "Some information provided by this service are blurred. You need to use restricted API for non-blurred data. Restricted API are currently open to TBIA partners only."
