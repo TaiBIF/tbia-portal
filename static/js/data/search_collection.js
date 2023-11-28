@@ -527,11 +527,11 @@ $(function () {
 
     $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
-        let total_count = $(this).data('count')
+        // let total_count = $(this).data('count')
         if ($('input[name=is_authenticated]').val() == 'True') {
             $.ajax({
                 url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&total_count=' + total_count,
+                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token , // + '&total_count=' + total_count,
                 type: 'POST',
                 dataType: 'json',
             })
@@ -580,9 +580,9 @@ $(function () {
 
     $('.downloadSensitive').on('click', function () {
         let queryString = $(this).data('query')
-        let total_count = $(this).data('count')
+        // let total_count = $(this).data('count')
         if ($('input[name=is_authenticated]').val() == 'True') {
-            window.open(`/${$lang}/sensitive_agreement?` + queryString + '&total_count=' + total_count)
+            window.open(`/${$lang}/sensitive_agreement?` + queryString )//+ '&total_count=' + total_count)
         } else {
             alert(gettext('請先登入'))
         }

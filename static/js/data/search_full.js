@@ -1610,7 +1610,7 @@ function downloadData(search_str, total_count) {
       url: "/send_download_request",
       data: {
         search_str: search_str,
-        total_count: total_count,
+        // total_count: total_count,
         csrfmiddlewaretoken: $csrf_token,
         from_full: 'yes',
       },
