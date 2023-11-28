@@ -459,3 +459,8 @@ margin-bottom: 5px !important;
 .g-recaptcha-style {
     margin-bottom: 30px;
 }
+
+.mb-30px {
+    margin-bottom: 30px !important;
+}
+

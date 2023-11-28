@@ -1228,7 +1228,7 @@ msgstr "Failed!  Please check if the GeoJSON is invalid or the file exceeds maxi
 #: static/js/data/search_occurrence.js:852
 # 結果表格
 msgid " 筆"
-msgstr "records per page"
+msgstr " records per page"
 
 #: static/js/data/search_collection.js:846
 #: static/js/data/search_occurrence.js:856
@@ -2153,4 +2153,285 @@ msgid "雜交組合中文名"
 msgstr "Hybrid-formula in Chinese"
     
 
+# API
 
+#:
+msgid "更新紀錄"
+msgstr "Update History"
+
+#:
+msgid "API說明文件"
+msgstr "API Documentation"
+    
+#:
+msgid "格式及共同參數說明"
+msgstr "Common operations"
+
+
+#:
+msgid "臺灣生物多樣性資訊聯盟 (Taiwan Biodiversity Information Alliance, TBIA) API使用說明，點選標題可錨點至該項："
+msgstr "Description of TBIA API. Click title to each section:"
+    
+
+#:
+msgid "物種出現紀錄 - occurrence API"
+msgstr "occurrence API"
+
+
+#:
+msgid "參數"
+msgstr "Parameter"
+
+#:
+msgid "名稱"
+msgstr "Name"
+
+#:
+msgid "型值"
+msgstr "Type"
+
+#:
+msgid "說明"
+msgstr "Description"
+
+#:
+msgid "備註"
+msgstr "Note"
+
+
+#:
+msgid "服務網址"
+msgstr "Resource URL"
+
+#:
+msgid "查詢參數說明"
+msgstr "Query Parameters Explained"
+
+#:
+msgid "回傳欄位說明"
+msgstr "Return Data Explained"
+
+
+
+#:
+msgid "複合查詢"
+msgstr "Combined Query"
+
+#:
+msgid "範例網址"
+msgstr "Example"
+
+#:
+msgid "分頁參數說明"
+msgstr "Pagination"
+
+#:
+msgid "回傳格式"
+msgstr "Response"
+
+
+#:
+msgid "回傳狀態(status)代碼說明"
+msgstr "Status"
+
+
+#:
+msgid "代碼(code)"
+msgstr "Code"
+
+
+#:
+msgid "輸入的請求成功"
+msgstr "OK"
+
+
+#:
+msgid "輸入的請求無效"
+msgstr "Bad Request"
+
+
+#:
+msgid "網址錯誤或資源不存在"
+msgstr "Not Found"
+
+#:
+msgid "後端伺服器錯誤"
+msgstr "Internal Server Error"
+
+
+#:
+msgid "因應效能考量，每次API請求至多回傳300筆資料，您可以透過分頁參數取得全部資料。"
+msgstr "Due to performance considerations, each request can return up to 300 records. You can obtain all records through pagination parameters."
+
+
+#:
+msgid "指定回傳起始編號。預設為0"
+msgstr "Determines the offset for the search results. By default offset is 0."
+
+
+#:
+msgid "限制回傳筆數。預設20筆，上限300"
+msgstr "Controls the number of results in the page. By default limit is 20. The limit can be a maximum of 300 for a single request."
+
+#:
+msgid "各查詢參數均可做聯集與交集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。"
+msgstr "Each query parameter can be used for union and intersection queries. When multiple values ​​are queried using the same parameter at the same time, the union will be taken; when different parameters are queried at the same time, the intersection will be taken."
+
+
+#:
+msgid "使用本網站之入口網ID取得指定的出現紀錄資料"
+msgstr "Get record by TBIA ID"
+
+#:
+msgid "取得指定物種編號的物種資料"
+msgstr "List records by taxon ID"
+
+#:
+msgid "是否為自然史典藏資料，是=true，否=false"
+msgstr ""
+
+#:
+msgid "取得指定來源資料庫 / 典藏單位的物種出現紀錄資料"
+msgstr "List records by rights holder"
+
+#:
+msgid "取得指定資料集的物種出現紀錄資料"
+msgstr "List records by dataset name"
+
+#:
+msgid "紀錄日期，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List records by even date. Supports range queries."
+
+#:
+msgid "資料建立日期，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List records by created date (TBIA portal). Supports range queries."
+
+#:
+msgid "資料更新日期，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List records by modified date (TBIA portal). Supports range queries."
+
+#:
+msgid "取得指定四邊形座標範圍內物種出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}"
+msgstr ""
+
+#:
+msgid "取得指定多邊形座標範圍內物種出現紀錄資料"
+msgstr ""
+
+#:
+msgid "取得指定圓形座標範圍內物種出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里"
+msgstr ""
+
+#:
+msgid "限制型API金鑰"
+msgstr "Restricted API Key"
+
+#:
+msgid "入口網ID"
+msgstr "TBIA ID"
+
+#:
+msgid "入口網資料建立時間"
+msgstr "Created Date (TBIA Portal)"
+
+#:
+msgid "入口網資料修改時間"
+msgstr "Modified Date (TBIA Portal)"
+
+#:
+msgid "標準化日期"
+msgstr "Standardized Event Date"
+
+#:
+msgid "標準化緯度"
+msgstr "Standardized Latitude"
+
+#:
+msgid "標準化經度"
+msgstr "Standardized Non-blurred Longitude"
+
+#:
+msgid "標準化未模糊化緯度"
+msgstr "Standardized Non-blurred Latitude"
+
+#:
+msgid "標準化未模糊化經度"
+msgstr "Standardized Non-blurred Longitude"
+
+#:
+msgid "標準化數量"
+msgstr "Standardized Organization Quantity"
+
+#:
+msgid "影像URL"
+msgstr "Associated Media"
+
+#:
+msgid "觀察記錄日期 / 採集日期"
+msgstr "Event Date"
+
+#:
+msgid "出現地 / 採集地"
+msgstr "Locality"
+
+
+#:
+msgid "記錄者 / 採集者"
+msgstr "Recorded By"
+
+#:
+msgid "原資料庫網頁URL"
+msgstr "References"
+
+#:
+msgid "來源資料庫 / 典藏單位"
+msgstr "Rights Holder"
+
+#:
+msgid "來源資料庫資料建立時間"
+msgstr "Created Date (Rights Holder)"
+
+#:
+msgid "來源資料庫資料修改時間"
+msgstr "Modified Date (Rights Holder)"
+
+#:
+msgid "未模糊化緯度"
+msgstr "Non-blurred Latitude"
+
+#:
+msgid "未模糊化經度"
+msgstr "Non-blurred Longitude"
+
+#:
+msgid "物種代碼"
+msgstr "Scientific Name ID (from Rights Holder)"
+
+#:
+msgid "是否對應到上階層"
+msgstr "If Matches Higher Taxon"
+
+#:
+msgid "學名作者"
+msgstr "Name Author"
+
+#:
+msgid "需透過限制型API取得"
+msgstr "Obtained by restricted API"
+
+#:
+msgid "多值以分號;分隔"
+msgstr "Values are separated by semicolon"
+
+#:
+msgid "原始資料提供之物種代碼，可能為舊TaiCOL namecode"
+msgstr "Scientific Name ID provieded by original data. Could be TaiCOL namecode."
+
+#:
+msgid "若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，match_higer_taxon標示true，最高比對到科。若也無法對應到上階層，則標示false"
+msgstr ""
+
+
+#:
+msgid "區間查詢請用半形逗號分隔起迄時間"
+msgstr "Range queries are given as a single parameter value by concatenating start date and end date with a comma."

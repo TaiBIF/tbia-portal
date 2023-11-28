@@ -1,48 +1,804 @@
 {% extends 'base.html' %} 
 {% load static %} 
 {% load i18n %}
-{% block head %}
-{% endblock head %}
+{% load tags %}
+
 {% block title %}API｜{% endblock %}
-{% block style %}
-<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
-<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
-<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
-<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
-<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
-<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/resources_link.css' %}" />
-{% endblock style %}
+
+
 {% block body %}
-<div class="path">
-	<div class="main_1240">
-		<a href="{% url 'index' %}" class="home"></a> <span>></span>
-		<p>進階搜尋</p>
-		<span>></span>
-		<p>API</p>
+
+
+
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="#" class="home"></a> <span>></span> <p>{% trans 'API說明文件' %}</p>
+	</div>
+</div>
+ 
+ <div class="minh_content">
+	<div class="nbn_title">
+		<h2>{% trans 'API說明文件' %}</h2>
+	</div>
+	<div class="main_1240"> 
+		<div class="w_border10_box api-editer">
+			<div class="titlebox_line">
+				<div class="title">
+					<h2>TBIA API - V1</h2>
+					<div class="line"></div>
+				</div>
+			</div>
+			<p class="marb_20">
+			{% trans '臺灣生物多樣性資訊聯盟 (Taiwan Biodiversity Information Alliance, TBIA) API使用說明，點選標題可錨點至該項：' %}
+			</p>
+			{% comment %} <div class="green_title2">
+				<div class="cir_mark"></div>
+				<h4>本服務計有 1 項 API，並提供格式及共同參數說明。</h4>
+			</div> {% endcomment %}
+			{% comment %} <p class="col_blue marb_20">
+				點選標題可錨點至該項
+			</p> {% endcomment %}
+			<div class="green_borbox marb_40">
+				<ul class="li_style1">
+					<li>
+						<div class="dot"></div>
+						<a href="#occurrence-area">
+							{% trans '物種出現紀錄 - occurrence API' %}
+						</a>
+					</li>
+					{% comment %} <li>
+						<div class="dot"></div>
+						<a href="#">
+							物種 API：https://api.taicol.tw/v2/taxon
+						</a>
+					</li>
+					<li>
+						<div class="dot"></div>
+						<a href="#">
+							新舊學名編碼對照 API：https://api.taicol.tw/v2/namecode
+						</a>
+					</li> {% endcomment %}
+					<li>
+						<div class="dot"></div>
+						<a href="#common-area">
+							{% trans '格式及共同參數說明' %}
+						</a>
+					</li>
+				</ul>
+			</div>
+			{% comment %} <div class="marb_20">
+			* 點選標題可錨點至該項
+			</div> {% endcomment %}
+
+			<div class="item_one" id="occurrence-area">
+				<div class="sec_title">
+					<h3>{% trans '物種出現紀錄 - occurrence API' %}</h3>
+				</div>
+				<div class="marb_20">
+					{% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence" target="_blank">/api/v1/occurrence</a>
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '查詢參數說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2 marb_20" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '型值' %}</td>
+							<td>{% trans '說明' %}</td>
+							<td>{% trans '範例網址' %}</td>
+						</tr>
+						<tr>
+							<td>id</td>
+							<td>string</td>
+							<td>{% trans '使用本網站之入口網ID取得指定的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?id=647971ad3edb61008319050b" target="_blank">/api/v1/occurrence?id=647971ad3edb61008319050b</a></td>
+						</tr>
+						<tr>
+							<td>taxonID</td>
+							<td>string</td>
+							<td>{% trans '取得指定物種編號的物種資料' %}</td>
+							<td><a href="/api/v1/occurrence?taxonID=t0052516" target="_blank">/api/v1/occurrence?taxonID=t0052516</a></td>
+						</tr>
+						<tr>
+							<td>isCollection</td>
+							<td>boolean</td>
+							<td>{% trans '是否為自然史典藏資料，是=true，否=false' %}</td>
+							<td><a href="/api/v1/occurrence?isCollection=true" target="_blank">/api/v1/occurrence?isCollection=true</a></td>
+						</tr>
+						<tr>
+							<td>rightsHolder</td>
+							<td>string</td>
+							<td>{% trans  '取得指定來源資料庫 / 典藏單位的物種出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a></td>
+						</tr>
+						<tr>
+							<td>datasetName</td>
+							<td>string</td>
+							<td>{% trans '取得指定資料集的物種出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）" target="_blank">/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）</a></td>
+						</tr>
+						<tr>
+							<td>eventDate</td>
+							<td>date</td>
+							<td>{% trans '紀錄日期，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
+							<td><a href="/api/v1/occurrence?eventDate=2021-10-21" target="_blank">/api/v1/occurrence?eventDate=2021-10-21</a>
+								{% comment %} <br>
+								<a href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a> {% endcomment %}
+							</td>
+						</tr>
+						<tr>
+							<td>created</td>
+							<td>date</td>
+							<td>{% trans '資料建立日期，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
+							<td><a href="/api/v1/occurrence?created=2023-05-09" target="_blank">/api/v1/occurrence?created=2023-05-09</a></td>
+						</tr>
+						<tr>
+							<td>modified</td>
+							<td>date</td>
+							<td>{% trans '資料更新日期，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
+							<td><a href="/api/v1/occurrence?modified=2023-05-09" target="_blank">/api/v1/occurrence?modified=2023-05-09</a></td>
+						</tr>
+						<tr>
+							<td>boundedBy</td>
+							<td>string</td>
+							<td>{% trans '取得指定四邊形座標範圍內物種出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}</td>
+							<td><a href="/api/v1/occurrence?boundedBy=122,24,121,23" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23</a></td>
+						</tr>
+						<tr>
+							<td>polygon</td>
+							<td>string</td>
+							<td>{% trans '取得指定多邊形座標範圍內物種出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a></td>
+						</tr>
+						<tr>
+							<td>circle</td>
+							<td>string</td>
+							<td>{% trans '取得指定圓形座標範圍內物種出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里' %}</td>
+							<td><a href="/api/v1/occurrence?circle=122.51,24.9,10" target="_blank">/api/v1/occurrence?circle=122.51,24.9,10</a></td>
+						</tr>
+						<tr>
+							<td>apikey</td>
+							<td>string</td>
+							<td>{% trans '限制型API金鑰' %}</td>
+							<td><a href="/api/v1/occurrence?circle={yourAPIkey}" target="_blank">/api/v1/occurrence?circle={yourAPIkey}</a></td>
+						</tr>
+					</table>
+					*{% trans '區間查詢請用半形逗號分隔起迄時間' %}
+					<br>
+					{% trans '範例網址' %}{% trans '：' %}
+					<a class="col_blue" href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a>
+
+				</div>
+
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '回傳欄位說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '名稱' %}</td>
+							<td>{% trans '型值' %}</td>
+							<td>{% trans '備註' %}</td>
+						</tr>
+						<tr>
+							<td>id</td>
+							<td>{% trans '入口網ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>created</td>
+							<td>{% trans '入口網資料建立時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>modified</td>
+							<td>{% trans '入口網資料修改時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>standardDate</td>
+							<td>{% trans '標準化日期' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>standardLatitude</td>
+							<td>{% trans '標準化緯度' %}</td>
+							<td>float</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>standardLongitude</td>
+							<td>{% trans '標準化經度' %}</td>
+							<td>float</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>standardRawLatitude</td>
+							<td>{% trans '標準化未模糊化緯度' %}</td>
+							<td>float</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>standardRawLongitude</td>
+							<td>{% trans '標準化未模糊化經度' %}</td>
+							<td>float</td>
+							<td>{% trans '需透過限制型API取得' %}</td>
+						</tr>
+						<tr>
+							<td>standardOrganismQuantity</td>
+							<td>{% trans '標準化數量' %}</td>
+							<td>float</td>
+							<td>{% trans '需透過限制型API取得' %}</td>
+						</tr>
+						<tr>
+							<td>associatedMedia</td>
+							<td>{% trans '影像URL' %}</td>
+							<td>string</td>
+							<td>{% trans '多值以分號;分隔' %}</td>
+						</tr>
+						<tr>
+							<td>basisOfRecord</td>
+							<td>{% trans '紀錄類型' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>catalogNumber</td>
+							<td>{% trans '館藏號' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>coordinatePrecision</td>
+							<td>{% trans '座標模糊化程度' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>coordinateUncertaintyInMeters</td>
+							<td>{% trans '座標誤差' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>dataGeneralizations</td>
+							<td>{% trans '座標是否有模糊化' %}</td>
+							<td>boolean</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>datasetName</td>
+							<td>{% trans  '資料集名稱' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>eventDate</td>
+							<td>{% trans '紀錄日期 / 採集日期' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>license</td>
+							<td>{% trans '授權狀況' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>locality</td>
+							<td>{% trans '出現地 / 採集地' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>mediaLicense</td>
+							<td>{% trans '影像授權' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>occurrenceID</td>
+							<td>occurrenceID</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>organismQuantity</td>
+							<td>{% trans '數量' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>organismQuantityType</td>
+							<td>{% trans '數量單位' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>originalScientificName</td>
+							<td>{% trans '原始紀錄物種' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>preservation</td>
+							<td>{% trans '保存方式' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>recordedBy</td>
+							<td>{% trans '記錄者 / 採集者' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>recordNumber</td>
+							<td>{% trans '採集號' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>references</td>
+							<td>{% trans '原資料庫網頁URL' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>resourceContacts</td>
+							<td>{% trans '資料集聯絡人' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>rightsHolder</td>
+							<td>{% trans '來源資料庫 / 典藏單位' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sensitiveCategory</td>
+							<td>{% trans '敏感層級' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceCreated</td>
+							<td>{% trans '來源資料庫資料建立時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceModified</td>
+							<td>{% trans '來源資料庫資料修改時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceScientificName</td>
+							<td>{% trans '來源資料庫使用學名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceVernacularName</td>
+							<td>{% trans '來源資料庫使用中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>typeStatus</td>
+							<td>{% trans '標本類型' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>verbatimCoordinateSystem</td>
+							<td>{% trans '座標系統' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>verbatimLatitude</td>
+							<td>{% trans '緯度' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>verbatimLongitude</td>
+							<td>{% trans '經度' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>verbatimRawLatitude</td>
+							<td>{% trans '未模糊化緯度' %}</td>
+							<td>string</td>
+							<td>{% trans '需透過限制型API取得' %}</td>
+						</tr>
+						<tr>
+							<td>verbatimRawLongitude</td>
+							<td>{% trans '未模糊化經度' %}</td>
+							<td>string</td>
+							<td>{% trans '需透過限制型API取得' %}</td>
+						</tr>
+						<tr>
+							<td>verbatimSRS</td>
+							<td>{% trans '空間參考系統' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>scientificNameID</td>
+							<td>{% trans '物種代碼' %}</td>
+							<td>string</td>
+							<td>{% trans '原始資料提供之物種代碼，可能為舊TaiCOL namecode' %}</td>
+						</tr>
+						<tr>
+							<td>taxonID</td>
+							<td>{% trans '物種編號' %}</td>
+							<td>string</td>
+							<td>{% trans '新版TaiCOL物種編號' %}</td>
+						</tr>
+						<tr>
+							<td>match_higher_taxon</td>
+							<td>{% trans '是否對應到上階層' %}</td>
+							<td>boolean</td>
+							<td>{% trans '若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，match_higer_taxon標示true，最高比對到科。若也無法對應到上階層，則標示false' %}</td>
+						</tr>
+						<tr>
+							<td>scientificName</td>
+							<td>{% trans '學名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>name_author</td>
+							<td>{% trans '學名作者' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>taxonRank</td>
+							<td>{% trans '鑑定層級' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>common_name_c</td>
+							<td>{% trans '中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>alternative_name_c</td>
+							<td>{% trans '中文別名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>synonyms</td>
+							<td>{% trans '同物異名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>misapplied</td>
+							<td>{% trans '誤用名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>kingdom</td>
+							<td>{% trans '界' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>kingdom_c</td>
+							<td>{% trans '界中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>phylum</td>
+							<td>{% trans '門' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>phylum_c</td>
+							<td>{% trans '門中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>class</td>
+							<td>{% trans '綱' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>class_c</td>
+							<td>{% trans '綱中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>order</td>
+							<td>{% trans '目' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>order_c</td>
+							<td>{% trans '目中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>family</td>
+							<td>{% trans '科' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>family_c</td>
+							<td>{% trans '科中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>genus</td>
+							<td>{% trans '屬' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>genus_c</td>
+							<td>{% trans '屬中文名' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="item_one" id="common-area">
+				<div class="sec_title mb-30px">
+					<h3>{% trans '格式及共同參數說明' %}</h3>
+				</div>
+				{% comment %} <div class="col_blue marb_20"> {% endcomment %}
+					{% comment %} 本API回傳格式為JSON。 <br>
+					各參數可用「&」相互組合，但可能因性質而異。 {% endcomment %}
+				{% comment %} </div> {% endcomment %}
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '複合查詢' %}{% trans '：' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					{% trans '各查詢參數均可做聯集與交集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。' %}
+					<br>
+					{% trans '範例網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF</a>
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '分頁參數說明' %}{% trans '：' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '說明' %}</td>
+							<td>{% trans '範例網址' %}</td>
+						</tr>
+						<tr>
+							<td>limit</td>
+							<td>{% trans '限制回傳筆數。預設20筆，上限300' %}</td>
+							<td><a href="/api/v1/occurrence?limit=300" target="_blank">/api/v1/occurrence?limit=300</a></td>
+						</tr>
+						<tr>
+							<td>offset</td>
+							<td>{% trans "指定回傳起始編號。預設為0" %}</td>
+							<td><a href="/api/v1/occurrence?offset=20" target="_blank">/api/v1/occurrence?offset=20</a></td>
+						</tr>
+					</table>
+				<br>
+				*{% trans "因應效能考量，每次API請求至多回傳300筆資料，您可以透過分頁參數取得全部資料。" %}
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '回傳狀態(status)代碼說明' %}{% trans '：' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '代碼(code)' %}</td>
+							{% comment %} <td>訊息(message)</td> {% endcomment %}
+							<td>{% trans '說明' %}</td>
+						</tr>
+						<tr>
+							<td>200</td>
+							{% comment %} <td>Success</td> {% endcomment %}
+							<td>{% trans '輸入的請求成功' %}</td>
+						</tr>
+						<tr>
+							<td>400</td>
+							{% comment %} <td>請求無效</td> {% endcomment %}
+							<td>{% trans '輸入的請求無效' %}</td>
+						</tr>
+						<tr>
+							<td>404</td>
+							{% comment %} <td>找不到</td> {% endcomment %}
+							<td>{% trans '網址錯誤或資源不存在' %}</td>
+						</tr>
+						<tr>
+							<td>500</td>
+							{% comment %} <td>伺服器錯誤</td> {% endcomment %}
+							<td>{% trans '後端伺服器錯誤' %}</td>
+						</tr>
+
+					</table>
+				</div>
+
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '回傳格式' %}{% trans '：' %}</h4>
+				</div>
+
+				<div class="gray-box">
+				
+					
+<pre><code>{
+	"status": {
+		"code": 200,
+		"message": "Success"
+	},
+	"meta": {
+		"total": 6657360,
+		"limit": 20,
+		"offset": 0
+	},
+	"data":[
+	{
+		"basisOfRecord": "保存標本",
+		"created": "2023-05-30",
+		"dataGeneralizations": false,
+		"datasetName": "NMNH Extant Specimen Records (USNM, US)",
+		"license": "CC0",
+		"modified": "2023-09-04",
+		"occurrenceID": "1321793052",
+		"organismQuantity": "1.0",
+		"originalScientificName": "Aaptos sp.",
+		"recordedBy": "K. Erickson",
+		"references": "https://www.gbif.org/occurrence/1321793052",
+		"resourceContacts": "Thomas Orrell",
+		"rightsHolder": "GBIF",
+		"sensitiveCategory": "無",
+		"sourceModified": "2023-04-18",
+		"sourceScientificName": "Aaptos",
+		"sourceVernacularName": "疏海綿屬",
+		"standardOrganismQuantity": 1.0,
+		"taxonID": "t0009202",
+		"id": "64760e132eeb20004955a5bd",
+		"scientificName": "Aaptos",
+		"name_author": "Gray, 1867",
+		"common_name_c": "疏海綿屬",
+		"kingdom": "Animalia",
+		"kingdom_c": "動物界",
+		"phylum": "Porifera",
+		"phylum_c": "海綿動物門",
+		"class": "Demospongiae",
+		"class_c": "尋常海綿綱",
+		"taxonRank": "genus",
+		"order": "Hadromerida",
+		"order_c": "韌海綿目",
+		"family": "Suberitidae",
+		"family_c": "皮海綿科",
+		"eventDate": null,
+		"scientificNameID": null,
+		"standardDate": null,
+		"synonyms": null,
+		"genus": null,
+		"genus_c": null,
+		"locality": null,
+		"sourceCreated": null,
+		"standardLongitude": null,
+		"verbatimCoordinateSystem": null,
+		"verbatimLatitude": null,
+		"verbatimLongitude": null,
+		"verbatimSRS": null
+	},
+	......
+	]
+}</code></pre>
+
+
+				</div>
+
+			</div>
+			<div class="item_one">
+				<div class="sec_title">
+					<h3>{% trans '使用條款' %}</h3>
+				</div>
+				<div class="marb_20">
+					{% if LANGUAGE_CODE == 'en-us' %}
+						The API provided by this website adopts the same <a class="col_blue" target="_blank" href="/terms">terms of use</a> as this website.
+					{% else %}
+						本網站提供之API採與本網站相同之<a class="col_blue" target="_blank" href="/terms">使用條款</a>
+					{% endif %}
+				</div>
+
+			</div>
+			<div class="item_one">
+				<div class="sec_title">
+					<h3>{% trans '更新紀錄' %}</h3>
+				</div>
+				<ul class="li_style2">
+					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2023-12-12 ｜ V1{% if LANGUAGE_CODE == 'en-us' %} release note{% else %}公告{% endif %}</h3>
+						</div>
+					</li>
+					{% comment %} <li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2023-04-19 ｜ taxon API：增加 status, new_taxon_id 等2個回傳欄位</h3>
+						</div>
+					</li>
+					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2023-07-21 ｜ 增加錨點、文資法稀有植物參數、修正連結</h3>
+						</div>
+					</li>
+					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2023-07-21 ｜ 更新項目</h3>
+						</div>
+						<ul class="li_style3">
+							<li>
+								<div class="flexbox">
+									<div class="line">-</div>
+									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
+								</div>
+							</li>
+							<li>
+								<div class="flexbox">
+									<div class="line">-</div>
+									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
+								</div>
+							</li>
+							<li>
+								<div class="flexbox">
+									<div class="line">-</div>
+									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
+								</div>
+							</li>
+							<li>
+								<div class="flexbox">
+									<div class="line">-</div>
+									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
+								</div>
+							</li>
+
+						</ul>
+					</li> {% endcomment %}
+				</ul>
+			</div>
+		</div>
 	</div>
 </div>
 
-<div class="in_bn resource_bn">
-	<div class="title">
-		<h2>API</h2>
-		{% comment %} <h3>Resources</h3> {% endcomment %}
-	</div>
-</div>
-<div class="container_area">
-	<div class="main_1240"> 
-		<div class="w_bgr10 news_de">
-			<div class="nstitlebox">
-				<h3>Open API version 1.0</h3>
-			</div>
-			<div class="editor">
-				<p class="link-editor">
-					API服務類型
-					<br>
-					觀測紀錄查詢 occurrence
-				</p>
-			</div>
-		</div> 
-	</div>
-</div>
+
+
 {% endblock body %}

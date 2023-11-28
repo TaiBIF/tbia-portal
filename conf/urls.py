@@ -43,7 +43,8 @@ urlpatterns += i18n_patterns(
     path("i18n/", include("django.conf.urls.i18n")),
     path('', include('pages.urls')),
     path('', include('data.urls')),
-    path('', include('manager.urls'))
+    path('', include('manager.urls')),
+    path('', include('api.urls')),
 )
 
 handler404 = "pages.views.page_not_found_view"
