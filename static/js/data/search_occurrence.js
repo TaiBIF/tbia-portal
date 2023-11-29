@@ -8,7 +8,7 @@ let selectBox = new vanillaSelectBox("#rightsHolder", {
 
 // set value 之後再加event 不然會被洗掉
 $('#rightsHolder').on('change', function (e) {
-    $(".loading_area").removeClass('d-none');
+    // $(".loading_area").removeClass('d-none');
     e.preventDefault()
     let res = selectBox.getResult()
     let h_str = ''
@@ -37,10 +37,10 @@ $('#rightsHolder').on('change', function (e) {
         } else {
             selectBox2.disable()
         }
-        $(".loading_area").addClass('d-none');
+        // $(".loading_area").addClass('d-none');
     })
     .fail(function () {
-        $(".loading_area").addClass('d-none');
+        // $(".loading_area").addClass('d-none');
     })
 })
 
