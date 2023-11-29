@@ -2303,11 +2303,11 @@ msgid "紀錄日期，日期格式：yyyy-mm-dd。支援區間查詢"
 msgstr "List records by even date. Supports range queries."
 
 #:
-msgid "資料建立日期，日期格式：yyyy-mm-dd。支援區間查詢"
+msgid "資料建立時間，日期格式：yyyy-mm-dd。支援區間查詢"
 msgstr "List records by created date (TBIA portal). Supports range queries."
 
 #:
-msgid "資料更新日期，日期格式：yyyy-mm-dd。支援區間查詢"
+msgid "資料更新時間，日期格式：yyyy-mm-dd。支援區間查詢"
 msgstr "List records by modified date (TBIA portal). Supports range queries."
 
 #:
