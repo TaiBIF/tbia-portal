@@ -1337,7 +1337,7 @@ def update_tbia_about(request):
 
 
 def system_news(request):
-    menu = request.GET.get('menu','list')
+    menu = request.GET.get('menu','news_apply')
     # if current_a:
     #     form.fields["content"].initial = current_a.content
     # news_list = News.objects.all().order_by('-id')[:10].annotate(
