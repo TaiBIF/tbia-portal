@@ -1058,17 +1058,20 @@ function setTable(response, queryString, from, orderby, sort) {
 
     if (!response.has_sensitive) {
         $('button.downloadSensitive').prop('disabled', true);
-        $('button.downloadSensitive').removeClass('downloadSensitive dw').addClass('dwd')
-    }
-    if (!response.has_species) {
-        $('button.downloadTaxon').prop('disabled', true);
-        $('button.downloadTaxon').removeClass('downloadTaxon dw').addClass('dwd')
+        $('button.downloadSensitive').addClass('dwd').removeClass('dw')
+    } else {
+        $('button.downloadSensitive').prop('disabled', false);
+        $('button.downloadSensitive').addClass('dw').removeClass('dwd')
     }
 
     if (!response.has_species) {
         $('button.downloadTaxon').prop('disabled', true);
-        $('button.downloadTaxon').removeClass('downloadTaxon dw').addClass('dwd')
+        $('button.downloadTaxon').addClass('dwd').removeClass('dw')
+    } else {
+        $('button.downloadTaxon').prop('disabled', false);
+        $('button.downloadTaxon').addClass('dw').removeClass('dwd')
     }
+    
 
     // table title
     var table_title = document.createElement("tr");
@@ -1260,7 +1263,10 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (response) {                   
+                .done(function (response) {                
+
+                    console.log(response)
+                    
                     // clear previous results
                     $('.record_table tr').remove()
                     $('.page-inf').remove()

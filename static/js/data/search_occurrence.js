@@ -1070,15 +1070,24 @@ function setTable(response, queryString, from, orderby, sort) {
 
     // 如果有敏感資料才有申請按鈕
 
+    // console.log(response.has_sensitive)
+
     if (!response.has_sensitive) {
         $('button.downloadSensitive').prop('disabled', true);
-        $('button.downloadSensitive').removeClass('downloadSensitive dw').addClass('dwd')
-    }
-    if (!response.has_species) {
-        $('button.downloadTaxon').prop('disabled', true);
-        $('button.downloadTaxon').removeClass('downloadTaxon dw').addClass('dwd')
+        $('button.downloadSensitive').addClass('dwd').removeClass('dw')
+    } else {
+        $('button.downloadSensitive').prop('disabled', false);
+        $('button.downloadSensitive').addClass('dw').removeClass('dwd')
     }
 
+    if (!response.has_species) {
+        $('button.downloadTaxon').prop('disabled', true);
+        $('button.downloadTaxon').addClass('dwd').removeClass('dw')
+    } else {
+        $('button.downloadTaxon').prop('disabled', false);
+        $('button.downloadTaxon').addClass('dw').removeClass('dwd')
+    }
+    
     // table title
     var table_title = document.createElement("tr");
     table_title.classList.add('table_title');
