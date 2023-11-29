@@ -13,6 +13,11 @@
 {% block style %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}" />
 {% endblock style %}
+
+
+{% block title %}{% trans '最新消息' %}｜{% endblock %}
+
+
 {% block body %}
 {% csrf_token %}
 <input type="hidden" name="news_type" value="{{ type }}">
