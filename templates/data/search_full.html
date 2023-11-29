@@ -140,7 +140,7 @@
       <div class="mb_scroll">
         <ul class="item_list">
           <li class="now li-all">
-            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
+            <a class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
               <p>{% trans '所有結果' %}</p>
               <div class="arr"></div>
             </a>
@@ -154,9 +154,9 @@
               <div class="arrd"></div>
             </div>
             <div class="spe_menu second_menu">
-              <a id="facet_spe_all" class="focusComponent" href="javascript:;" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma }})</a>
+              <a id="facet_spe_all" class="focusComponent" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma }})</a>
               {% for i in taxon.rows %} 
-              <a id="facet_taxon_{{ i.key }}" class="focusCards" href="javascript:;" 
+              <a id="facet_taxon_{{ i.key }}" class="focusCards" 
               data-record_type="taxon"
               data-key="{{ i.key }}"
               data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
@@ -173,9 +173,9 @@
               <div class="arrd"></div>
             </div>
             <div class="occ_menu second_menu">
-              <a id="facet_occ_all" class="focusComponent" href="javascript:;" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma }})</a>
+              <a id="facet_occ_all" class="focusComponent" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma }})</a>
               {% for i in occurrence.rows %} 
-              <a id="facet_occ_{{ i.key }}" class="focusCards" href="javascript:;" 
+              <a id="facet_occ_{{ i.key }}" class="focusCards" 
               data-record_type="occ"
               data-key="{{ i.key }}"
               data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
@@ -192,9 +192,9 @@
               <div class="arrd"></div>
             </div>
             <div class="col_menu second_menu">
-              <a id="facet_col_all" class="focusComponent" href="javascript:;" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma }})</a>
+              <a id="facet_col_all" class="focusComponent" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma }})</a>
               {% for i in collection.rows %} 
-                <a id="facet_col_{{ i.key }}" class="focusCards" href="javascript:;"
+                <a id="facet_col_{{ i.key }}" class="focusCards"
                 data-record_type="col"
                 data-key="{{ i.key }}"
                 data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
@@ -203,25 +203,25 @@
           </li>
 
           <li class="li-item_news">
-            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
+            <a class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
               <p>{% trans '新聞公告' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_event">
-            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
+            <a class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
               <p>{% trans '活動訊息' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_project">
-            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
+            <a class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
               <p>{% trans '計畫徵求' %}</p>
               <div class="arr"></div>
             </a>
           </li>
           <li class="li-item_resource">
-            <a href="javascript:;" class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
+            <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>{% trans '開放資料相關資源' %}</p>
               <div class="arr"></div>
             </a>
@@ -307,7 +307,7 @@
             {% endif %}
             <!--超過4個才有更多按鈕-->
             {% if taxon.more %}
-            <a href="javascript:;" class="more taxon_more getMoreCards" 
+            <a class="more taxon_more getMoreCards" 
               data-card_class=".taxon-card" 
               data-offset_value="#taxon_offset"
               data-more_type=".taxon_more" 
@@ -373,7 +373,7 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
-        <a href="javascript:;" class="more occ_more getMoreCards" 
+        <a class="more occ_more getMoreCards" 
           data-card_class=".occ-card" 
           data-offset_value="#occ_offset"
           data-more_type=".occ_more" 
@@ -439,7 +439,7 @@
         {% endif %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
-        <a href="javascript:;" class="more col_more getMoreCards" 
+        <a class="more col_more getMoreCards" 
           data-card_class=".col-card" 
           data-offset_value="#col_offset"
           data-more_type=".col_more" 
@@ -475,7 +475,7 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if news.count > 6 %}
-        <a href="javascript:;" class="more more_news getMoreDocs" 
+        <a class="more more_news getMoreDocs" 
           data-doc_type="news"
           data-offset_value="#news_offset"
           data-more_class=".more_news"
@@ -508,7 +508,7 @@
         {% endif %}
         <!--超過6個才有更多按鈕-->
         {% if event.count > 6 %}
-        <a href="javascript:;" class="more more_event getMoreDocs" 
+        <a class="more more_event getMoreDocs" 
           data-doc_type="event"
           data-offset_value="#event_offset"
           data-more_class=".more_event"
@@ -541,7 +541,7 @@
         {% endif %} 
         {% if project.count > 6 %}
         <!--超過6個才有更多按鈕-->
-        <a href="javascript:;" class="more more_project getMoreDocs" 
+        <a class="more more_project getMoreDocs" 
           data-doc_type="project"
           data-offset_value="#project_offset"
           data-more_class=".more_project"
@@ -568,7 +568,7 @@
                 <div class="cate_dbox">
                 <div class="date">{{ i.date }}</div>
                 </div>
-                <a href="javascript:;" class="title ">{% highlight i.title keyword %}</a>
+                <a class="title ">{% highlight i.title keyword %}</a>
               </div>
             </li>
             {% else %}
@@ -589,7 +589,7 @@
         <div class="no_data w-100p">{% trans '無資料' %}</div>
         {% endif %} 
         {% if resource.count > 6 %}
-        <a href="javascript:;" class="more more_resource getMoreDocs" 
+        <a class="more more_resource getMoreDocs" 
           data-doc_type="resource"
           data-offset_value="#resource_offset"
           data-more_class=".more_resource"

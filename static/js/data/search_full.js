@@ -742,10 +742,10 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       if (response.total_page > 1) {  // 判斷是否有下一頁，有才加分頁按鈕
         $('.result_table').after(
           `<div class="page_number">
-              <a href="javascript:;" class="pre">
+              <a class="pre">
                 <span></span>
               </a>
-              <a href="javascript:;" class="next">
+              <a class="next">
                 <span></span>
               </a>
             </div>`)
@@ -754,7 +754,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       let html = ''
       for (let i = 0; i < response.page_list.length; i++) {
         if (response.page_list[i] == response.current_page) {
-          html += `<a href="javascript:;" class="num now getRecords"
+          html += `<a class="num now getRecords"
             data-record_type="${record_type}"
             data-key="${key}"
             data-value="${value}"
@@ -767,7 +767,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
             data-sort="${response.sort}">
             ${response.page_list[i]}</a>  `;
         } else {
-          html += `<a href="javascript:;" class="num getRecords"
+          html += `<a class="num getRecords"
             data-record_type="${record_type}"
             data-key="${key}"
             data-value="${value}"
@@ -814,7 +814,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
 
       // 如果有前面的page list, 加上...
       if (response.current_page > 5) {
-        $('.pre').after(`<a href="javascript:;" class="num getRecords bd-0" 
+        $('.pre').after(`<a class="num getRecords bd-0" 
             data-record_type="${record_type}"
             data-key="${key}"
             data-value="${value}"
@@ -830,7 +830,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       // 如果有後面的page list, 加上...
       if (response.page_list[response.page_list.length - 1] < response.total_page) {
         if (response.current_page + 5 > response.total_page) {
-          $('.next').before(`<a href="javascript:;" class="num getRecords bd-0" 
+          $('.next').before(`<a class="num getRecords bd-0" 
             data-record_type="${record_type}"
             data-key="${key}"
             data-value="${value}"
@@ -843,7 +843,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
             data-sort="${response.sort}"
             >...</a> `)
         } else {
-          $('.next').before(`<a href="javascript:;" class="num getRecords bd-0" 
+          $('.next').before(`<a class="num getRecords bd-0" 
             data-record_type="${record_type}"
             data-key="${key}"
             data-value="${value}"
@@ -1076,7 +1076,7 @@ function focusCards(record_type, key, go_back) {
           // append 更多結果 button if more than 4 cards
           if (response.has_more == true) {
             $(`.${response.card_class}`).after(`
-                <a href="javascript:;" class="more ${record_type}_${key}_more getMoreCards"
+                <a class="more ${record_type}_${key}_more getMoreCards"
                 data-card_class=".${response.card_class}"
                 data-offset_value="#${record_type}_${key}_offset"
                 data-more_type=".${record_type}_${key}_more" 
@@ -1187,7 +1187,7 @@ function focusCards(record_type, key, go_back) {
           // append 更多結果 button if more than 9 cards
           if (response.has_more == true) {
             $(`.${response.card_class}`).after(`
-              <a href="javascript:;" class="more ${record_type}_${key}_more getMoreCards"
+              <a class="more ${record_type}_${key}_more getMoreCards"
               data-card_class=".${response.card_class}" 
               data-offset_value="#${record_type}_${key}_offset"
               data-more_type=".${record_type}_${key}_more" 
@@ -1256,7 +1256,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
               <div class="cate_dbox">
                 <div class="date">${response.rows[i].date}</div>
               </div>
-              <a href="javascript:;" class="title ">${response.rows[i].title}</a>
+              <a class="title ">${response.rows[i].title}</a>
             </div>
           </li>`)
           } else {

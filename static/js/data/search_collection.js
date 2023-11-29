@@ -1300,10 +1300,10 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                             $('.result_table').after(
                                 `<div class="page-inf">
                             <div class="page_number">
-                            <a href="javascript:;" class="pre">
+                            <a class="pre">
                                 <span></span>
                             </a>
-                            <a href="javascript:;" class="next">
+                            <a class="next">
                                 <span></span>
                             </a>
                             </div>
@@ -1321,9 +1321,9 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         let html = ''
                         for (let i = 0; i < response.page_list.length; i++) {
                             if (response.page_list[i] == response.current_page) {
-                                html += `<a href="javascript:;" class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+                                html += `<a class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
                             } else {
-                                html += `<a href="javascript:;" class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                                html += `<a class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
                             }
                         }
                         $('.pre').after(html)
@@ -1343,14 +1343,14 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
 
                         // 如果有前面的page list, 加上...
                         if (response.current_page > 5) {
-                            $('.pre').after(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page - 5}" data-from="page">...</a> `)
+                            $('.pre').after(`<a class="num bd-0 submitSearch" data-page="${response.current_page - 5}" data-from="page">...</a> `)
                         }
                         // 如果有後面的page list, 加上...
                         if (response.page_list[response.page_list.length - 1] < response.total_page) {
                             if (response.current_page + 5 > response.total_page) {
-                                $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
+                                $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
                             } else {
-                                $('.next').before(`<a href="javascript:;" class="num bd-0 submitSearch" data-page="${response.current_page + 5}" data-from="page">...</a>`)
+                                $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.current_page + 5}" data-from="page">...</a>`)
                             }
                         }
 

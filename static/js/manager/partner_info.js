@@ -113,101 +113,112 @@ function changePage(page, menu) {
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
 
-            $('.showRequest').off('click')
-            $('.showRequest').on('click', function () {
-                let query_id = $(this).data('query_id');
-                let query = $(this).data('query');
-                let sdr_id = $(this).data('sdr_id');
-                showRequest(query_id, query, sdr_id)
-            })
-
-
-            $('.updateFeedback').off('click')
-            $('.updateFeedback').on('click', function () {
-                let current_id = $(this).data('fid');
-                $.ajax({
-                    url: "/update_feedback",
-                    data: {
-                        'current_id': current_id,
-                        'csrfmiddlewaretoken': $csrf_token,
-                    },
-                    type: 'POST',
-                    dataType: 'json',
-                })
-                    .done(function (response) {
-                        alert('修改完成')
-                        window.location.reload()
-                    })
-                    .fail(function (xhr, status, errorThrown) {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                    })
-            })
-
             // 修改頁碼
             $(`.${menu}_table`).parent().next('.page_number').remove()
             //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $(`.${menu}_table`).parent().after(
-                `<div class="page_number">
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-                    <a href="javascript:;" class="pre"><span></span>上一頁</a>  
-                    <a href="javascript:;" class="next">下一頁<span></span></a>
-                    <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                </div>`)
-            //}		
 
-            if (menu == 'sensitive_apply') {
-                s_menu = 'sensitive'
-            } else {
-                s_menu = menu
-            }
+            if (response.total_page > 0){
 
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page) {
-                    html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                $(`.${menu}_table`).parent().after(
+                    `<div class="page_number">
+                        <a class="num changePage" data-page="1" data-type="${menu}">1</a>
+                        <a class="pre"><span></span>上一頁</a>  
+                        <a class="next">下一頁<span></span></a>
+                        <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
+                    </div>`)
+                //}		
+
+                // if (menu == 'sensitive_apply') {
+                //     menu = 'sensitive'
+                // } else {
+                //     menu = menu
+                // }
+
+                // let menu = 'sensitive_apply'
+
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page) {
+                        html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += ` <a class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                    }
                 }
+
+                $(`.${menu} .item .page_number a.pre`).after(html)
+
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page) {
+                    $(`.${menu} .item .page_number a.next`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.next`).data('page', response.current_page + 1);
+                    $(`.${menu} .item .page_number a.next`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+                }
+
+                // 如果有上一頁，改掉prev的onclick
+                if (response.current_page - 1 > 0) {
+                    $(`.${menu} .item .page_number a.pre`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.pre`).data('page', response.current_page - 1);
+                    $(`.${menu} .item .page_number a.pre`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
+                }
+
+                $('.changePage').off('click')
+                $('.changePage').on('click', function () {
+                    changePage($(this).data('page'), $(this).data('type'))
+                })
+
+                $('.save_btn').off('click')
+                $('.save_btn').on('click', function () {
+                    update_user_status($(this).data('id'))
+                })
+
+
+                
+                $('.showRequest').off('click')
+                $('.showRequest').on('click', function () {
+                    let query_id = $(this).data('query_id');
+                    let query = $(this).data('query');
+                    let sdr_id = $(this).data('sdr_id');
+                    showRequest(query_id, query, sdr_id)
+                })
+
+
+                $('.updateFeedback').off('click')
+                $('.updateFeedback').on('click', function () {
+                    let current_id = $(this).data('fid');
+                    $.ajax({
+                        url: "/update_feedback",
+                        data: {
+                            'current_id': current_id,
+                            'csrfmiddlewaretoken': $csrf_token,
+                        },
+                        type: 'POST',
+                        dataType: 'json',
+                    })
+                        .done(function (response) {
+                            alert('修改完成')
+                            window.location.reload()
+                        })
+                        .fail(function (xhr, status, errorThrown) {
+                            alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+                            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                        })
+                })
             }
-
-            $(`.${s_menu} .item .page_number a.pre`).after(html)
-
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page) {
-                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page + 1);
-                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
-            }
-
-            // 如果有上一頁，改掉prev的onclick
-            if (response.current_page - 1 > 0) {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page - 1);
-                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
-            }
-
-            $('.changePage').off('click')
-            $('.changePage').on('click', function () {
-                changePage($(this).data('page'), $(this).data('type'))
-            })
-
-            $('.save_btn').off('click')
-            $('.save_btn').on('click', function () {
-                update_user_status($(this).data('id'))
-            })
-
         }
     });
 
 }
 
 $(document).ready(function () {
+
+    // 起始頁面
+    changePage(1, 'account')
+    changePage(1, 'sensitive_apply')
 
     $('.changeMenu').on('click', function () {
         let menu = $(this).data('menu');

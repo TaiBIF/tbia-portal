@@ -76,7 +76,7 @@ $(document).ready(function () {
                   <div class="cate_dbox">
                     <div class="date">${response.rows[i].date}</div>
                   </div>
-                  <a href="javascript:;" class="title ">${gettext(response.rows[i].title)}</a>
+                  <a class="title ">${gettext(response.rows[i].title)}</a>
                 </div>
               </li>`)
 

@@ -37,7 +37,7 @@
 					</div>
 					<h2>{{ i.title }}</h2>
 					<h3  {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %}>
-						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} href="javascript:;" {% endif %}>{{ i.subtitle }}
+						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>{{ i.subtitle }}
 							{% if i.link %} <i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i> {% endif %}
 						</a> 
 					</h3>
@@ -55,7 +55,7 @@
 						<img src="/static/image/partner/{{ i.image }}" >
 					</div>
 					<!--<a href="{{ i.link }}" class="linkto" target="_blank">-->
-					<a href="javascript:;" data-partner_id="{{ i.id }}" class="linkto contact_partner">
+					<a data-partner_id="{{ i.id }}" class="linkto contact_partner">
 						{% trans '聯絡我們' %}
 					</a>
 				</div>

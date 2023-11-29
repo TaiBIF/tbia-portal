@@ -72,12 +72,15 @@ function deleteResource(resource_id) {
         headers: { 'X-CSRFToken': $csrf_token },
         success: function (response) {
             alert('刪除成功')
-            window.location = '/manager/system/resource?menu=list';
+            window.location = '/manager/system/resource?menu=resource';
         }
     })
 }
 
 $(document).ready(function () {
+
+    // 起始頁面
+    changePage(1, 'resource')
 
 
     $('.submitLink').on('click', function () {
@@ -168,7 +171,7 @@ $(document).ready(function () {
                 data: { 'url': $('#saveForm input[name=url]').val(), 'type': $('#saveForm select[name=resource_type]').find(":selected").val(), 'resource_id': $('#saveForm input[name=resource_id]').val(), 'title': $('#saveForm input[name=title]').val() },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
-                    window.location = '/manager/system/resource?menu=list';
+                    window.location = '/manager/system/resource?menu=resource';
                 }
             })
 
@@ -216,59 +219,61 @@ function changePage(page, menu) {
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
-            //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $(`.${menu}_table`).parent().after(
-                `<div class="page_number">
-                <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-                <a href="javascript:;" class="pre"><span></span>上一頁</a>  
-                <a href="javascript:;" class="next">下一頁<span></span></a>
-                <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                </div>`)
-            //}		
+            if (response.total_page > 0){
+                //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                $(`.${menu}_table`).parent().after(
+                    `<div class="page_number">
+                    <a class="num changePage" data-page="1" data-type="${menu}">1</a>
+                    <a class="pre"><span></span>上一頁</a>  
+                    <a class="next">下一頁<span></span></a>
+                    <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
+                    </div>`)
+                //}		
 
-            let s_menu = ''
-            if (menu == 'resource') {
-                s_menu = 'list'
-            }
+                // let menu = ''
+                // if (menu == 'resource') {
+                //     menu = 'list'
+                // }
 
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page) {
-                    html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page) {
+                        html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += ` <a class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                    }
                 }
+
+                $(`.${menu} .item .page_number a.pre`).after(html)
+
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page) {
+                    $(`.${menu} .item .page_number a.next`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.next`).data('page', response.current_page + 1);
+                    $(`.${menu} .item .page_number a.next`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+                }
+
+                // 如果有上一頁，改掉prev的onclick
+                if (response.current_page - 1 > 0) {
+                    $(`.${menu} .item .page_number a.pre`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.pre`).data('page', response.current_page - 1);
+                    $(`.${menu} .item .page_number a.pre`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
+                }
+
+                $('.changePage').off('click')
+                $('.changePage').on('click', function () {
+                    changePage($(this).data('page'), $(this).data('type'))
+                })
+
+                $('.delete_resource').off('click')
+                $('.delete_resource').on('click', function () {
+                    deleteResource($(this).data('resource_id'))
+                })
             }
-
-            $(`.${s_menu} .item .page_number a.pre`).after(html)
-
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page) {
-                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page + 1);
-                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
-            }
-
-            // 如果有上一頁，改掉prev的onclick
-            if (response.current_page - 1 > 0) {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page - 1);
-                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
-            }
-
-            $('.changePage').off('click')
-            $('.changePage').on('click', function () {
-                changePage($(this).data('page'), $(this).data('type'))
-            })
-
-            $('.delete_resource').off('click')
-            $('.delete_resource').on('click', function () {
-                deleteResource($(this).data('resource_id'))
-            })
         }
     });
 

@@ -646,7 +646,7 @@ def change_manager_page(request):
                 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
                 'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
+                'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
 
         total_page = math.ceil(Resource.objects.all().count() / 10)
@@ -657,7 +657,7 @@ def change_manager_page(request):
                 'order': q.order,
                 'question': q.question,
                 'edit': f'<a class="manager_btn" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
-                'delete': f'<a href="javascript:;" class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
+                'delete': f'<a class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
             })
 
         total_page = math.ceil(Qa.objects.all().count() / 10)
@@ -1036,34 +1036,34 @@ def withdraw_partner_request(request):
 
 
 def partner_news(request):
-    menu = request.GET.get('menu','list')
+    # menu = request.GET.get('menu','')
+    menu = request.GET.get('menu','news')
     form = NewsForm()
     n = []
     if news_id := request.GET.get('news_id'):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
-    if not request.user.is_anonymous:
-        current_user = request.user
-        if current_user.is_partner_admin:
-            # 如果是單位管理者 -> 回傳所有
-            news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-id')
-        else:
-            # 如果是單位帳號 -> 只回傳自己申請的
-            news_list = News.objects.filter(user_id=current_user).order_by('-id')
-        n_total_page = math.ceil(news_list.count()/10)
-        n_page_list = get_page_list(1, n_total_page)
+    # if not request.user.is_anonymous:
+    #     current_user = request.user
+    #     if current_user.is_partner_admin:
+    #         # 如果是單位管理者 -> 回傳所有
+    #         news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-id')
+    #     else:
+    #         # 如果是單位帳號 -> 只回傳自己申請的
+    #         news_list = News.objects.filter(user_id=current_user).order_by('-id')
+    #     n_total_page = math.ceil(news_list.count()/10)
+    #     n_page_list = get_page_list(1, n_total_page)
 
-        news_list = news_list[:10]
-        news_list.annotate(
-                modified_8=ExpressionWrapper(
-                    F('modified') + timedelta(hours=8),
-                    output_field=DateTimeField()
-                ))
+    #     news_list = news_list[:10]
+    #     news_list.annotate(
+    #             modified_8=ExpressionWrapper(
+    #                 F('modified') + timedelta(hours=8),
+    #                 output_field=DateTimeField()
+    #             ))
 
-
-    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n, 'news_list': news_list,
-                'n_total_page': n_total_page, 'n_page_list': n_page_list})
+    return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n })
+          #   'news_list': news_list, 'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def partner_info(request):
@@ -1072,69 +1072,72 @@ def partner_info(request):
     info = []
     partner_members = []
     # pr = []
-    if not request.user.is_anonymous:
-        current_user = request.user
-        if current_user.partner:
-            # TODO 這邊會有問題
-            partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
-            partner_admin = [p[0] for p in partner_admin]
-            partner_admin = ','.join(partner_admin)
-            # info
-            info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
-            # 單位帳號管理，統一由partner request判斷，但還要加partner_admin進去
-            # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
+    # if not request.user.is_anonymous:
+    #     current_user = request.user
+    #     if current_user.partner:
+    #         # TODO 這邊會有問題
+    #         partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
+    #         partner_admin = [p[0] for p in partner_admin]
+    #         partner_admin = ','.join(partner_admin)
+    #         # info
+    #         info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
+    #         # 單位帳號管理，統一由partner request判斷，但還要加partner_admin進去
+    #         # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
 
-            partner_members = User.objects.filter(partner_id=current_user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=current_user.id)
+    #         partner_members = User.objects.filter(partner_id=current_user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=current_user.id)
             
-            a_total_page = math.ceil(partner_members.count() / 10)
-            a_page_list = get_page_list(1, a_total_page)
+    #         a_total_page = math.ceil(partner_members.count() / 10)
+    #         a_page_list = get_page_list(1, a_total_page)
 
-            status_choice = User._meta.get_field('status').choices[:-1]
-            feedback = Feedback.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10].annotate(
-                created_8=ExpressionWrapper(
-                    F('created') + timedelta(hours=8),
-                    output_field=DateTimeField()
-                ))
-            f_total_page = math.ceil(Feedback.objects.filter(partner_id=current_user.partner.id).count() / 10)
-            f_page_list = get_page_list(1, f_total_page)
+    #         status_choice = User._meta.get_field('status').choices[:-1]
+    #         feedback = Feedback.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10].annotate(
+    #             created_8=ExpressionWrapper(
+    #                 F('created') + timedelta(hours=8),
+    #                 output_field=DateTimeField()
+    #             ))
+    #         f_total_page = math.ceil(Feedback.objects.filter(partner_id=current_user.partner.id).count() / 10)
+    #         f_page_list = get_page_list(1, f_total_page)
 
-    sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10]:
-        created = sdr.created + timedelta(hours=8)
-        due = check_due(created.date(),14)
-        created = created.strftime('%Y-%m-%d %H:%M:%S')
+    # sensitive = []
+    # for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10]:
+    #     created = sdr.created + timedelta(hours=8)
+    #     due = check_due(created.date(),14)
+    #     created = created.strftime('%Y-%m-%d %H:%M:%S')
 
-        # 整理搜尋條件
-        if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
-            r = SearchQuery.objects.get(query_id=sdr.query_id)
-            search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict)
-            if search_dict.get("record_type") == 'col':
-                search_prefix = 'collection'
-            else:
-                search_prefix = 'occurrence'
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+    #     # 整理搜尋條件
+    #     if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+    #         r = SearchQuery.objects.get(query_id=sdr.query_id)
+    #         search_dict = dict(parse.parse_qsl(r.query))
+    #         query = create_query_display(search_dict)
+    #         if search_dict.get("record_type") == 'col':
+    #             search_prefix = 'collection'
+    #         else:
+    #             search_prefix = 'occurrence'
+    #         tmp_a = create_query_a(search_dict)
+    #         for i in ['locality','datasetName','rightsHolder','total_count']:
+    #             if i in search_dict.keys():
+    #                 search_dict.pop(i)
+    #         query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-        sensitive.append({
-            'id': sdr.id,
-            'query_id': r.query_id,
-            'created':  created,
-            'query':   query,
-            'query_a':   query_a,
-            'status': sdr.get_status_display(),
-            'due': due
-        })
-    s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
-    s_page_list = get_page_list(1, s_total_page)
+    #     sensitive.append({
+    #         'id': sdr.id,
+    #         'query_id': r.query_id,
+    #         'created':  created,
+    #         'query':   query,
+    #         'query_a':   query_a,
+    #         'status': sdr.get_status_display(),
+    #         'due': due
+    #     })
+    # s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
+    # s_page_list = get_page_list(1, s_total_page)
 
-    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info, 'feedback': feedback,
-                                    'menu': menu, 'partner_members': partner_members, 'status_choice': status_choice, 'sensitive': sensitive,
-                                    'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list,
-                                    'a_total_page': a_total_page, 'a_page_list': a_page_list})
+    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info,
+                                    'menu': menu, 'partner_members': partner_members, })
+                                    
+                                    # , 'feedback': feedback,
+                                    # 'status_choice': status_choice, 'sensitive': sensitive,
+                                    # 'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list,
+                                    # 'a_total_page': a_total_page, 'a_page_list': a_page_list})
 
 
 def get_request_detail(request):
@@ -1337,13 +1340,13 @@ def system_news(request):
     menu = request.GET.get('menu','list')
     # if current_a:
     #     form.fields["content"].initial = current_a.content
-    news_list = News.objects.all().order_by('-id')[:10].annotate(
-                modified_8=ExpressionWrapper(
-                    F('modified') + timedelta(hours=8),
-                    output_field=DateTimeField()
-                ))
-    n_total_page = math.ceil(News.objects.all().count()/10)
-    n_page_list = get_page_list(1, n_total_page)
+    # news_list = News.objects.all().order_by('-id')[:10].annotate(
+    #             modified_8=ExpressionWrapper(
+    #                 F('modified') + timedelta(hours=8),
+    #                 output_field=DateTimeField()
+    #             ))
+    # n_total_page = math.ceil(News.objects.all().count()/10)
+    # n_page_list = get_page_list(1, n_total_page)
 
     status_list = News.status.field.choices
     n = []
@@ -1352,8 +1355,8 @@ def system_news(request):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
-    return render(request, 'manager/system/news.html', {'form':form, 'menu': menu, 'news_list': news_list, 'status_list': status_list, 'n': n,
-    'n_total_page': n_total_page, 'n_page_list': n_page_list})
+    return render(request, 'manager/system/news.html', {'form':form, 'menu': menu, 'status_list': status_list, 'n': n })
+    # 'news_list': news_list, 'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def system_info(request):
@@ -1365,136 +1368,137 @@ def system_info(request):
     content = About.objects.all().first().content
     content_en = About.objects.all().first().content_en
     menu = request.GET.get('menu','info')
-    partner_members = User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[:10]
 
-    a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
-    a_page_list = get_page_list(1, a_total_page)
+    # partner_members = User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[:10]
+
+    # a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
+    # a_page_list = get_page_list(1, a_total_page)
 
 
-    status_choice = User._meta.get_field('status').choices[:-1]
-    feedback = Feedback.objects.all().order_by('-id')[:10].annotate(
-        created_8=ExpressionWrapper(
-            F('created') + timedelta(hours=8),
-            output_field=DateTimeField()
-        ))
-    f_total_page = math.ceil(Feedback.objects.all().count() / 10)
-    f_page_list = get_page_list(1, f_total_page)
+    # status_choice = User._meta.get_field('status').choices[:-1]
+    # feedback = Feedback.objects.all().order_by('-id')[:10].annotate(
+    #     created_8=ExpressionWrapper(
+    #         F('created') + timedelta(hours=8),
+    #         output_field=DateTimeField()
+    #     ))
+    # f_total_page = math.ceil(Feedback.objects.all().count() / 10)
+    # f_page_list = get_page_list(1, f_total_page)
 
-    sensitive = []
-    for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[:10]:
-        created = sdr.created + timedelta(hours=8)
-        if sdr.is_transferred:
-            due = check_due(created.date(),14)
-        else:
-            due = check_due(created.date(),7)
-        created = created.strftime('%Y-%m-%d %H:%M:%S')
-        # 整理搜尋條件
-        if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
-            r = SearchQuery.objects.get(query_id=sdr.query_id)
-            search_dict = dict(parse.parse_qsl(r.query))
-            query = create_query_display(search_dict)
+    # sensitive = []
+    # for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[:10]:
+    #     created = sdr.created + timedelta(hours=8)
+    #     if sdr.is_transferred:
+    #         due = check_due(created.date(),14)
+    #     else:
+    #         due = check_due(created.date(),7)
+    #     created = created.strftime('%Y-%m-%d %H:%M:%S')
+    #     # 整理搜尋條件
+    #     if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
+    #         r = SearchQuery.objects.get(query_id=sdr.query_id)
+    #         search_dict = dict(parse.parse_qsl(r.query))
+    #         query = create_query_display(search_dict)
 
-            if search_dict.get("record_type") == 'col':
-                search_prefix = 'collection'
-            else:
-                search_prefix = 'occurrence'
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
+    #         if search_dict.get("record_type") == 'col':
+    #             search_prefix = 'collection'
+    #         else:
+    #             search_prefix = 'occurrence'
+    #         tmp_a = create_query_a(search_dict)
+    #         for i in ['locality','datasetName','rightsHolder','total_count']:
+    #             if i in search_dict.keys():
+    #                 search_dict.pop(i)
 
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+    #         query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-        sensitive.append({
-            'id': sdr.id,
-            'query_id': r.query_id,
-            'created':  created,
-            'query':   query,
-            'query_a':   query_a,
-            'status': sdr.get_status_display(),
-            'is_transferred': sdr.is_transferred,
-            'due': due,
-        })
+    #     sensitive.append({
+    #         'id': sdr.id,
+    #         'query_id': r.query_id,
+    #         'created':  created,
+    #         'query':   query,
+    #         'query_a':   query_a,
+    #         'status': sdr.get_status_display(),
+    #         'is_transferred': sdr.is_transferred,
+    #         'due': due,
+    #     })
 
-    s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count()/10)
-    s_page_list = get_page_list(1, s_total_page)
+    # s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count()/10)
+    # s_page_list = get_page_list(1, s_total_page)
 
     # print(len(sensitive),s_total_page,s_page_list)
 
-    sensitive_track = []
-    for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[:10]:
-    # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
-        if s.created:
-            date = s.created + timedelta(hours=8)
-            due = check_due(date.date(), 14)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            date = ''
-            due = ''
+    # sensitive_track = []
+    # for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[:10]:
+    # # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
+    #     if s.created:
+    #         date = s.created + timedelta(hours=8)
+    #         due = check_due(date.date(), 14)
+    #         date = date.strftime('%Y-%m-%d %H:%M:%S')
+    #     else:
+    #         date = ''
+    #         due = ''
 
-        # 進階搜尋
+    #     # 進階搜尋
         
-        search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
-        query = create_query_display(search_dict)
+    #     search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
+    #     query = create_query_display(search_dict)
 
-        if search_dict.get("record_type") == 'col':
-            search_prefix = 'collection'
-        else:
-            search_prefix = 'occurrence'
-        tmp_a = create_query_a(search_dict)
-        for i in ['locality','datasetName','rightsHolder','total_count']:
-            if i in search_dict.keys():
-                search_dict.pop(i)
+    #     if search_dict.get("record_type") == 'col':
+    #         search_prefix = 'collection'
+    #     else:
+    #         search_prefix = 'occurrence'
+    #     tmp_a = create_query_a(search_dict)
+    #     for i in ['locality','datasetName','rightsHolder','total_count']:
+    #         if i in search_dict.keys():
+    #             search_dict.pop(i)
 
-        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+    #     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-        # 審查意見
-        comment = []
+    #     # 審查意見
+    #     comment = []
 
-        for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-            if sdr.partner:
-                partner_name = sdr.partner.select_title 
-            else:
-                partner_name = 'TBIA聯盟'
-            comment.append(f"""
-            <b>審查單位：</b>{partner_name}
-            <br>
-            <b>審查者姓名：</b>{sdr.reviewer_name}
-            <br>
-            <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
-            <br>
-            <b>審查結果：</b>{sdr.get_status_display()}
-            """)
+    #     for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+    #         if sdr.partner:
+    #             partner_name = sdr.partner.select_title 
+    #         else:
+    #             partner_name = 'TBIA聯盟'
+    #         comment.append(f"""
+    #         <b>審查單位：</b>{partner_name}
+    #         <br>
+    #         <b>審查者姓名：</b>{sdr.reviewer_name}
+    #         <br>
+    #         <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+    #         <br>
+    #         <b>審查結果：</b>{sdr.get_status_display()}
+    #         """)
 
-        sensitive_track.append({
-            'id': s.id,
-            'query_id': s.query_id,
-            'date':  date,
-            'query':   query,
-            'query_a':   query_a,
-            'status': s.get_status_display(),
-            'comment': '<hr>'.join(comment) if comment else '',
-            'due': due
-        })
+    #     sensitive_track.append({
+    #         'id': s.id,
+    #         'query_id': s.query_id,
+    #         'date':  date,
+    #         'query':   query,
+    #         'query_a':   query_a,
+    #         'status': s.get_status_display(),
+    #         'comment': '<hr>'.join(comment) if comment else '',
+    #         'due': due
+    #     })
 
-    sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
-    sr_page_list = get_page_list(1, sr_total_page)
+    # sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
+    # sr_page_list = get_page_list(1, sr_total_page)
 
-    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'content_en': content_en, 
-                        'system_admin': system_admin, 'partner_members': partner_members,
-                        'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track,
-                        'f_page_list': f_page_list, 'f_total_page': f_total_page, 'sr_page_list': sr_page_list, 'sr_total_page': sr_total_page,
-                        's_page_list': s_page_list, 's_total_page': s_total_page,'a_page_list': a_page_list, 'a_total_page': a_total_page,})
+    return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'content_en': content_en, 'system_admin': system_admin })
+                        # 'partner_members': partner_members,
+                        # 'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track,
+                        # 'f_page_list': f_page_list, 'f_total_page': f_total_page, 'sr_page_list': sr_page_list, 'sr_total_page': sr_total_page,
+                        # 's_page_list': s_page_list, 's_total_page': s_total_page,'a_page_list': a_page_list, 'a_total_page': a_total_page,})
 
 
 def system_resource(request):
-    menu = request.GET.get('menu','list')
+    menu = request.GET.get('menu','resource')
 
-    resource_list = []
-    for r in Resource.objects.all().order_by('-id')[:10]:
-        resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
-    r_total_page = math.ceil(Resource.objects.all().count()/10)
-    r_page_list = get_page_list(1, r_total_page)
+    # resource_list = []
+    # for r in Resource.objects.all().order_by('-id')[:10]:
+    #     resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
+    # r_total_page = math.ceil(Resource.objects.all().count()/10)
+    # r_page_list = get_page_list(1, r_total_page)
     type_choice = Resource._meta.get_field('type').choices
 
     current_r = []
@@ -1513,8 +1517,8 @@ def system_resource(request):
     # if Link.objects.all().first():
     #     n = Link.objects.all().first()
 
-    return render(request, 'manager/system/resource.html', {'menu': menu, 'resource_list': resource_list,
-    'r_total_page': r_total_page, 'r_page_list': r_page_list, 'type_choice': type_choice, 'current_r': current_r})
+    return render(request, 'manager/system/resource.html', {'menu': menu, 'type_choice': type_choice, 'current_r': current_r })
+    # resource_list': resource_list, 'r_total_page': r_total_page, 'r_page_list': r_page_list})
 
 
 def system_keyword(request):
@@ -1864,22 +1868,21 @@ def get_link_content(request):
 
 
 def system_qa(request):
-    menu = request.GET.get('menu', 'list')
-    qa_list = Qa.objects.all().order_by('order')[:10]
-    q_total_page = math.ceil(Qa.objects.all().count()/10)
-    q_page_list = get_page_list(1, q_total_page)
+    menu = request.GET.get('menu', 'qa')
+    # qa_list = Qa.objects.all().order_by('order')[:10]
+    # q_total_page = math.ceil(Qa.objects.all().count()/10)
+    # q_page_list = get_page_list(1, q_total_page)
     type_choice = Qa._meta.get_field('type').choices
     current_q = []
     if request.GET.get('qa_id'):
         if Qa.objects.filter(id=request.GET.get('qa_id')).exists():
             current_q = Qa.objects.get(id=request.GET.get('qa_id'))
 
-    return render(request, 'manager/system/qa.html', {'qa_list': qa_list, 'type_choice': type_choice,
-    'q_total_page': q_total_page, 'q_page_list': q_page_list, 'menu': menu, 'current_q': current_q})
+    return render(request, 'manager/system/qa.html', {'menu': menu, 'type_choice': type_choice, 'current_q': current_q})
+    # 'q_total_page': q_total_page, 'q_page_list': q_page_list, 'qa_list': qa_list, })
 
 
 def submit_qa(request):
-    print(request.POST)
     if request.method == 'POST':
         if request.POST.get('qa_id'):
             qa_id = int(request.POST.get('qa_id'))

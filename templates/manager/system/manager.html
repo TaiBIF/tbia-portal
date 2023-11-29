@@ -55,7 +55,7 @@
                             <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
                             <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
                             <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
@@ -69,7 +69,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li>
@@ -82,7 +82,7 @@
                           </div>
                           <div class="col_menu second_menu">
                               <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
-                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                              <a href="{% url 'system_resource' %}?menu=resource">資源列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -95,7 +95,7 @@
                           </div>
                           <div class="col_menu second_menu">
                             <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                           </div>                    
                     </li>
                     <li>

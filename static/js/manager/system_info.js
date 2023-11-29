@@ -39,78 +39,80 @@ function changePage(page, menu) {
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
-            //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $(`.${menu}_table`).parent().after(
-                `<div class="page_number">
-                <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-                <a href="javascript:;" class="pre"><span></span>上一頁</a>  
-                <a href="javascript:;" class="next">下一頁<span></span></a>
-                <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-                </div>`)
-            //}		
 
-            if (menu == 'sensitive_apply') {
-                s_menu = 'sensitive'
-            } else {
-                s_menu = menu
-            }
+            if (response.total_page > 0){
+                //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+                $(`.${menu}_table`).parent().after(
+                    `<div class="page_number">
+                    <a class="num changePage" data-page="1" data-type="${menu}">1</a>
+                    <a class="pre"><span></span>上一頁</a>  
+                    <a class="next">下一頁<span></span></a>
+                    <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
+                    </div>`)
+                //}		
+
+                // if (menu == 'sensitive_apply') {
+                //     menu = 'sensitive'
+                // } else {
+                //     menu = menu
+                // }
 
 
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page) {
-                    html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page) {
+                        html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += ` <a class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                    }
                 }
+
+                $(`.${menu} .item .page_number a.pre`).after(html)
+
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page) {
+                    $(`.${menu} .item .page_number a.next`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.next`).data('page', response.current_page + 1);
+                    $(`.${menu} .item .page_number a.next`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+                }
+
+                // 如果有上一頁，改掉prev的onclick
+                if (response.current_page - 1 > 0) {
+                    $(`.${menu} .item .page_number a.pre`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.pre`).data('page', response.current_page - 1);
+                    $(`.${menu} .item .page_number a.pre`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
+                }
+
+                $('.changePage').off('click')
+                $('.changePage').on('click', function () {
+                    changePage($(this).data('page'), $(this).data('type'))
+                })
+
+                $('.saveStatus').off('click')
+                $('.saveStatus').on('click', function () {
+                    let current_id = $(this).data('pmid')
+                    saveStatus(current_id)
+                })
+
+                $('.showRequest').off('click')
+                $('.showRequest').on('click', function () {
+                    let query_id = $(this).data('query_id')
+                    let query = $(this).data('query')
+                    let sdr_id = $(this).data('sdr_id')
+                    let is_transferred = $(this).data('is_transferred')
+                    showRequest(query_id, query, sdr_id, is_transferred)
+                })
+
+                $('.updateFeedback').off('click')
+                $('.updateFeedback').on('click', function () {
+                    let current_id = $(this).data('fid')
+                    updateFeedback(current_id)
+                })
             }
-
-            $(`.${s_menu} .item .page_number a.pre`).after(html)
-
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page) {
-                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page + 1);
-                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
-            }
-
-            // 如果有上一頁，改掉prev的onclick
-            if (response.current_page - 1 > 0) {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page - 1);
-                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
-            }
-
-            $('.changePage').off('click')
-            $('.changePage').on('click', function () {
-                changePage($(this).data('page'), $(this).data('type'))
-            })
-
-            $('.saveStatus').off('click')
-            $('.saveStatus').on('click', function () {
-                let current_id = $(this).data('pmid')
-                saveStatus(current_id)
-            })
-
-            $('.showRequest').off('click')
-            $('.showRequest').on('click', function () {
-                let query_id = $(this).data('query_id')
-                let query = $(this).data('query')
-                let sdr_id = $(this).data('sdr_id')
-                let is_transferred = $(this).data('is_transferred')
-                showRequest(query_id, query, sdr_id, is_transferred)
-            })
-
-            $('.updateFeedback').off('click')
-            $('.updateFeedback').on('click', function () {
-                let current_id = $(this).data('fid')
-                updateFeedback(current_id)
-            })
-
         }
     });
 
@@ -119,6 +121,13 @@ function changePage(page, menu) {
 
 
 $(document).ready(function () {
+
+    // 起始頁面
+    changePage(1, 'feedback')
+    changePage(1, 'account')
+    changePage(1, 'sensitive_apply')
+    changePage(1, 'sensitive_track')
+
     $(`a.${$('input[name=menu]').val()}`).addClass('now')
     $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();
 

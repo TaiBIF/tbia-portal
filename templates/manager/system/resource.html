@@ -58,7 +58,7 @@
                             <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
                             <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
                             <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
@@ -72,7 +72,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li class="now">
@@ -84,8 +84,8 @@
                             <div class="arrd"></div>
                           </div>
                           <div class="col_menu second_menu">
-                            <a class="edit changeMenu" data-menu="edit" href="javascript:;">資源發布</a>
-                            <a class="list changeMenu" data-menu="list" href="javascript:;">資源列表</a>
+                            <a class="edit changeMenu" data-menu="edit">資源發布</a>
+                            <a class="resource changeMenu" data-menu="resource">資源列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -98,7 +98,7 @@
                           </div>
                           <div class="col_menu second_menu">
                             <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                           </div>                    
                     </li> 
                     <li>
@@ -166,7 +166,7 @@
         </div>
 
 
-        <div class="rightbox_content list d-none">
+        <div class="rightbox_content resource d-none">
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>資源列表</div>
                 <div class="d-flex-jc-e">
@@ -182,44 +182,8 @@
                             <td class="w-8p"></td> 
                             <td class="w-8p"></td> 
                         </tr>
-                        {% for r in resource_list %}
-                        <tr>
-                            <td>{{ r.title }}</td>
-                            <td>{{ r.type }}</a></td>
-                            <td><a href="/media/resources/{{ r.filename }}" target="_blank">{{ r.filename }}</a></td>
-                            <td>{{ r.modified|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
-                            <td><a class="manager_btn" href="{% url 'system_resource' %}?menu=edit&resource_id={{ r.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td><a href="javascript:;" class="delete_resource del_btn" data-resource_id='{{ r.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                        </tr>
-                        {% endfor %}
                     </table>						
                 </div>
-                <div class="page_number">
-					{% if r_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="resource">1</a>
-                    <a href="javascript:;" class="pre pt-none">
-                        <span></span>上一頁
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in r_page_list %}
-                        {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="resource">{{ p }}</a>
-                        {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="resource">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in r_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="resource">
-                        下一頁<span></span>
-                    </a>
-                    {% else %}
-                    <a href="javascript:;" class="next pt-none">
-                        下一頁<span></span>
-                    </a>
-                    {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ r_total_page }}" data-type="resource">{{ r_total_page }}</a>
-                    {% endif %}
-				</div>
             </div>
         </div>
 
@@ -232,10 +196,9 @@
                             {% csrf_token %}
                             <li>   
                                 <div id="editor">{{ form.content }}</div>         
-                                {% comment %} {{ form }} {% endcomment %}
                             </li>
                         </form>
-                            <li ><button class="read_btn submitLink">儲存</button></li>
+                        <li ><button class="read_btn submitLink">儲存</button></li>
                     </ul>
             </div>
         </div>

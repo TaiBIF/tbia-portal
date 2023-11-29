@@ -36,13 +36,16 @@ function delete_qa(qa_id) {
         headers: { 'X-CSRFToken': $csrf_token },
         success: function (response) {
             alert('刪除成功')
-            window.location = '/manager/system/qa?menu=list';
+            window.location = '/manager/system/qa?menu=qa';
         }
     })
 }
 
 
 $(document).ready(function () {
+
+    // 起始
+    changePage(1, 'qa')
 
     $('.changeMenu').on('click', function () {
         let menu = $(this).data('menu');
@@ -58,9 +61,9 @@ $(document).ready(function () {
         changeURL(menu)
     })
 
-    $('.changePage').on('click', function () {
-        changePage($(this).data('page'), $(this).data('type'))
-    })
+    // $('.changePage').on('click', function () {
+    //     changePage($(this).data('page'), $(this).data('type'))
+    // })
 
 
     $('.delete_qa').on('click', function () {
@@ -97,7 +100,7 @@ $(document).ready(function () {
                 },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
-                    window.location = '/manager/system/qa?menu=list';
+                    window.location = '/manager/system/qa?menu=qa';
                 }
             })
 
@@ -145,59 +148,55 @@ function changePage(page, menu) {
 
             // 修改頁碼
             //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-            $(`.${menu}_table`).parent().after(
-                `<div class="page_number">
-            <a href="javascript:;" class="num changePage" data-page="1" data-type="${menu}">1</a>
-            <a href="javascript:;" class="pre"><span></span>上一頁</a>  
-            <a href="javascript:;" class="next">下一頁<span></span></a>
-            <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
-            </div>`)
-            //}		
 
-            let s_menu = ''
-            if (menu == 'qa') {
-                s_menu = 'list'
-            }
+            if (response.total_page > 0){
+                $(`.${menu}_table`).parent().after(
+                    `<div class="page_number">
+                <a  class="num changePage" data-page="1" data-type="${menu}">1</a>
+                <a  class="pre"><span></span>上一頁</a>  
+                <a  class="next">下一頁<span></span></a>
+                <a  class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
+                </div>`)
 
-
-            let html = ''
-            for (let i = 0; i < response.page_list.length; i++) {
-                if (response.page_list[i] == response.current_page) {
-                    html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
-                } else {
-                    html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                let html = ''
+                for (let i = 0; i < response.page_list.length; i++) {
+                    if (response.page_list[i] == response.current_page) {
+                        html += ` <a  class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
+                    } else {
+                        html += ` <a  class="num changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `
+                    }
                 }
+
+                $(`.${menu} .item .page_number a.pre`).after(html)
+
+                // 如果有下一頁，改掉next的onclick
+                if (response.current_page < response.total_page) {
+                    $(`.${menu} .item .page_number a.next`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.next`).data('page', response.current_page + 1);
+                    $(`.${menu} .item .page_number a.next`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.next`).addClass('pt-none')
+                }
+
+                // 如果有上一頁，改掉prev的onclick
+                if (response.current_page - 1 > 0) {
+                    $(`.${menu} .item .page_number a.pre`).addClass('changePage');
+                    $(`.${menu} .item .page_number a.pre`).data('page', response.current_page - 1);
+                    $(`.${menu} .item .page_number a.pre`).data('type', menu);
+                } else {
+                    $(`.${menu} .item .page_number a.pre`).addClass('pt-none')
+                }
+
+                $('.changePage').off('click')
+                $('.changePage').on('click', function () {
+                    changePage($(this).data('page'), $(this).data('type'))
+                })
+
+                $('.delete_qa').off('click')
+                $('.delete_qa').on('click', function () {
+                    delete_qa($(this).data('qa_id'))
+                })
             }
-
-            $(`.${s_menu} .item .page_number a.pre`).after(html)
-
-            // 如果有下一頁，改掉next的onclick
-            if (response.current_page < response.total_page) {
-                $(`.${s_menu} .item .page_number a.next`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.next`).data('page', response.current_page + 1);
-                $(`.${s_menu} .item .page_number a.next`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.next`).addClass('pt-none')
-            }
-
-            // 如果有上一頁，改掉prev的onclick
-            if (response.current_page - 1 > 0) {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('changePage');
-                $(`.${s_menu} .item .page_number a.pre`).data('page', response.current_page - 1);
-                $(`.${s_menu} .item .page_number a.pre`).data('type', menu);
-            } else {
-                $(`.${s_menu} .item .page_number a.pre`).addClass('pt-none')
-            }
-
-            $('.changePage').off('click')
-            $('.changePage').on('click', function () {
-                changePage($(this).data('page'), $(this).data('type'))
-            })
-
-            $('.delete_qa').off('click')
-            $('.delete_qa').on('click', function () {
-                delete_qa($(this).data('qa_id'))
-            })
         }
     });
 

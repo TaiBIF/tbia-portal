@@ -138,7 +138,7 @@ function updateResource(type, page) {
               <div class="cate_dbox">
                 <div class="date">${response.rows[i].date}</div>
               </div>
-              <a href="javascript:;" class="title ">${gettext(response.rows[i].title)}</a>
+              <a class="title ">${gettext(response.rows[i].title)}</a>
             </div>
           </li>`)
           } else {
@@ -162,10 +162,10 @@ function updateResource(type, page) {
       //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
       $(`.page_number`).append(
         `
-            <a href="javascript:;" class="num changePage" data-page="1" data-type="${type}">1</a>
-            <a href="javascript:;" class="pre"><span></span>${gettext('上一頁')}</a>  
-            <a href="javascript:;" class="next">${gettext('下一頁')}<span></span></a>
-            <a href="javascript:;" class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
+            <a class="num changePage" data-page="1" data-type="${type}">1</a>
+            <a class="pre"><span></span>${gettext('上一頁')}</a>  
+            <a class="next">${gettext('下一頁')}<span></span></a>
+            <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
         `)
       //}		
 
@@ -173,9 +173,9 @@ function updateResource(type, page) {
       let html = ''
       for (let i = 0; i < response.page_list.length; i++) {
         if (response.page_list[i] == response.current_page) {
-          html += ` <a href="javascript:;" class="num now changePage" data-page="${response.page_list[i]}" data-type="${type}">${response.page_list[i]}</a>  `;
+          html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${type}">${response.page_list[i]}</a>  `;
         } else {
-          html += ` <a href="javascript:;" class="num changePage" data-page="${response.page_list[i]}" data-type="${type}">${response.page_list[i]}</a>  `
+          html += ` <a class="num changePage" data-page="${response.page_list[i]}" data-type="${type}">${response.page_list[i]}</a>  `
         }
       }
 

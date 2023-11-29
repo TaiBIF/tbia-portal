@@ -63,7 +63,7 @@
                             {% if user.is_partner_admin %}
                             <a href="{% url 'partner_info' %}?menu=account">單位帳號管理</a>
                             {% endif %}
-                            <a href="{% url 'partner_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'partner_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <!--<a href="{% url 'partner_info' %}?menu=feedback">意見回饋紀錄</a>-->
                         </div>
                     </li>
@@ -77,7 +77,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'partner_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'partner_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'partner_news' %}?menu=news">審核狀態</a>
                         </div>
                     </li>
                 </ul>
