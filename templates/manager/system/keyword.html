@@ -115,7 +115,7 @@
                             <li>中文關鍵字{{ forloop.counter }}</li>
                             <li><input type="text" name="keyword_{{ forloop.counter }}" value="{{ k }}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
+                                    {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                     <p>必填欄位</p>
                                 </div>
                             </li>
@@ -124,7 +124,7 @@
                             <li>英文關鍵字{{ forloop.counter }}</li>
                             <li><input type="text" name="keyword_en_{{ forloop.counter }}" value="{{ k }}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
+                                    {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                     <p>必填欄位</p>
                                 </div>
                             </li>

@@ -99,7 +99,7 @@
                         <li>
                             <input type="text" name="title" value="{{ n.title }}">
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>
@@ -122,7 +122,7 @@
                         <li>            
                             <div id="editor">{{ form.content }}</div>
                             <div class="noticbox editor-content d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>

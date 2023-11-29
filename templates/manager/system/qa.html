@@ -127,7 +127,7 @@
                         <li>
                             <textarea name="question" placeholder="">{{ current_q.question }}</textarea>
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>
@@ -143,7 +143,7 @@
                         <li>
                             <textarea name="answer" placeholder="">{{ current_q.answer }}</textarea>
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>

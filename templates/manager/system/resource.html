@@ -123,7 +123,7 @@
                         <li>
                             <input type="text" name="title" value="{{ current_r.title }}">
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>
@@ -154,7 +154,7 @@
                             </span>
                         </li>
                         <li><div class="noticbox d-none" id="file_error">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>發布前請先上傳檔案</p>
                             </div>                            
                         </li>

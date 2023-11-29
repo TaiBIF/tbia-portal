@@ -81,7 +81,7 @@
                             <li>{% trans '姓名' %}</li>
                             <li><input type="text" name="name" value="{{ user.name }}" >
                                 <div class="noticbox d-none">
-                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
                                     <p>{% trans '必填欄位' %}</p>
                                 </div>
                             </li>
@@ -89,19 +89,19 @@
                             <li>{% trans '密碼變更' %}</li>
                             <li><input type="password" name="now_password" placeholder="{% trans '現在的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
                                     <p>{% trans '請輸入6~10位英文或數字' %}</p>
                                 </div>
                             </li>
                             <li><input type="password" name="new_password" placeholder="{% trans '新的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
                                     <p>{% trans '請輸入6~10位英文或數字' %}</p>
                                 </div>              
                             </li>
                             <li><input type="password" name="re_password" placeholder="{% trans '再次確認新的密碼' %}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">{% trans '錯誤' %}</div>
+                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
                                     <p>{% trans '兩次密碼輸入不同' %}</p>
                                 </div>              
                             </li>
