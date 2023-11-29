@@ -19,7 +19,7 @@ urlpatterns = [
     # 取得頁面資料
     path('get_qa_list', views.get_qa_list, name='get_qa_list'),
     path('get_news_list', views.get_news_list, name='get_news_list'),
-    path('get_resources', views.get_resources, name='get_resources'),
+    path('get_resource_list', views.get_resource_list, name='get_resource_list'),
     path('get_current_notif', views.get_current_notif, name='get_current_notif'),
     # 取得異體字
     path('get_variants', views.get_variants, name='get_variants'),

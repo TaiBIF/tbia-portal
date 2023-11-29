@@ -1,9 +1,12 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $(function () {
-  $('.changePage').on('click', function () {
-    changePage($(this).data('page'), $(this).data('type'))
-  })
+  // 起始頁面
+  updateNews('all', 1) 
+
+  // $('.changePage').on('click', function () {
+  //   changePage($(this).data('page'), $(this).data('type'))
+  // })
 
   let start_date_picker = new AirDatepicker('#start_date',
     { locale: date_locale });
@@ -31,10 +34,14 @@ $(function () {
     updateNews($(this).data('type'), 1)
   })
 
+  // 起始類別
   if ($('input[name=news_type]').val() != '') {
     $(`.news_tab_in .li-news-${$('input[name=news_type]').val()}`).addClass('now')
+    updateNews($('input[name=news_type]').val(), 1) 
+
   } else {
     $(`.news_tab_in .li-news-all`).addClass('now')
+    updateNews('all', 1) 
   }
 
   $('.date_select .search_btn').on('click', function () {
@@ -66,7 +73,6 @@ function changePage(page, type) {
 
 
 function updateNews(type, page) {
-  $('.page_number').html('')
   $('.news_tab_in li').removeClass('now')
   $(`.li-news-${type}`).addClass('now')
 
@@ -87,6 +93,9 @@ function updateNews(type, page) {
     headers: { 'X-CSRFToken': $csrf_token },
     data: query,
     success: function (response, status) {
+      
+      $('.page_number').remove()
+
       if (response.data.length > 0) {
         $('.news_list').html('')
         for (let d of response.data) {
@@ -109,8 +118,8 @@ function updateNews(type, page) {
                     </li>`)
         }
 
-        $('.news-list ul').after(`<div class="page_number"></div>`)
-        //$('.page_number').remove()
+        
+        $('ul.news_list').after(`<div class="page_number"></div>`)
 
         // 修改頁碼
         //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕

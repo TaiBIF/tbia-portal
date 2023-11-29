@@ -64,23 +64,23 @@
 		<div class="tab_scromb">
 			<!--目前位置給class>now-->
 			<ul class="news_tab_in">
-				<li id="all" class="now">
+				<li class="now li-resource-all updateResource" data-type="all">
 					<p>{% trans '所有資源' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="strategy">
+				<li class="li-resource-strategy updateResource" data-type="strategy">
 					<p>{% trans 'TBIA 策略文件' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="guide">
+				<li class="li-resource-guide updateResource" data-type="guide">
 					<p>{% trans '開放資料指引' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="tool">
+				<li class="li-resource-tool updateResource" data-type="tool">
 					<p>{% trans '參考文件/工具' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="tutorial">
+				<li class="li-resource-tutorial updateResource" data-type="tutorial">
 					<p>{% trans '教學文件' %}</p>
 					<div class="arr"></div>
 				</li>
@@ -126,94 +126,7 @@
 			</li>
 		</ul>
 		<ul class="edu_list two_set"> 
-			{% if resource|length > 0 %}
-				{% for i in resource %}
-					{% if i.extension == 'pop' %}
-					<li class="show_tech">
-						<div class="item">
-							<div class="cate_dbox">
-							<div class="date">{{ i.date }}</div>
-							</div>
-							<a href="javascript:;" class="title ">{% trans i.title %}</a>
-							<!--
-							<a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
-							<a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-							-->
-						</div>
-					</li>
-
-					{% else %}
-					<li>
-						<div class="item">
-							<div class="cate_dbox">
-							<div class="cate {{ i.cate|lower }}">{{ i.extension }}</div>
-							<div class="date">{{ i.date }}</div>
-							</div>
-							<a href="/media/{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
-							<a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-						</div>
-					</li>
-					{% endif %}
-				{% endfor %}
-			{% else %}
-				<li>
-					<div class="item">
-						<a class="title">{% trans '無資料' %}</a>
-					</div>
-				</li>
-			{% endif %}
 		</ul> 
-
-
-		<div class="page_number">
-			{% comment %} {% if page_list|length > 1 %} {% endcomment %}
-				<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
-				{% if current_page|add:'-1' in page_list %}
-				<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-					<span></span>{% trans '上一頁' %}
-				</a>
-				{% else %}
-				<a href="javascript:;" class="pre pt-none">
-					<span></span>{% trans '上一頁' %}
-				</a>
-				{% endif %}
-				<!--目前頁面給 now-->
-				{% for p in page_list %}
-					{% if p == current_page %}
-						<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-					{% else %}
-						<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-					{% endif %}
-				{% endfor %}
-				{% if current_page|add:1 in page_list %}
-				<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
-					{% trans '下一頁' %}<span></span>
-				</a>
-				{% else %}
-				<a href="javascript:;" class="next pt-none">
-					{% trans '下一頁' %}<span></span>
-				</a>
-				{% endif %}
-				<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
-			{% comment %} {% endif %} {% endcomment %}
-		</div>
-	
-		<!--
-		<div class="page_number">
-		 {% if total_page > 1 %} 
-			<a class="num">1</a>
-			<a class="pre">
-				<span></span>上一頁
-			</a>
-			<a class="num now">1</a>
-			<a href="javascript:" class="num changePage" data-page="2" data-type="resource">2</a>
-			<a href="javascript:" class="next changePage" data-page="2" data-type="resource">
-				下一頁<span></span>
-			</a>
-			<a href="javascript:" class="num changePage" data-page="{{ total_page }}" data-type="resource">{{ total_page }}</a>
-		 {% endif %} 
-		</div>-->
-
 	</div>
 </div>
 {% endblock body %}

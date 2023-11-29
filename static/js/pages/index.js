@@ -39,7 +39,7 @@ $(document).ready(function () {
     let li_element = $(this)
     let type = this.id
     $.ajax({
-      url: "/get_resources",
+      url: "/get_resource_list",
       data: {
         type: type,
         csrfmiddlewaretoken: $csrf_token,

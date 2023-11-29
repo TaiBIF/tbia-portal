@@ -75,73 +75,7 @@
 			</ul>
 		</div>
 		<ul class="news_list">
-			{% if news_list|length > 0 %}
-			{% for n in news_list %}
-			<li>
-				<a href="{% url 'news_detail' n.id %}" class="imgbox">
-					{% if n.image %}
-					<img class="img_area" src="/media/news/{{ n.image }}">
-					{% else %}
-					<img class="img_area" src="/static/image/news_ub_img.jpg">
-					{% endif %}
-				</a>
-				<div class="infbox">
-				<div class="center_box">
-					<div class="tag_date">
-						{% if n.type == 'news' %}
-						<div class="tag green">
-						{% elif n.type == 'project' %}
-						<div class="tag red">
-						{% else %}
-						<div class="tag yellow">
-						{% endif %}
-						{% trans n.get_type_display %}</div>
-					<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
-					</div>
-					<a href="{% url 'news_detail' n.id %}" class="nstitle"> {{ n.title }} </a>
-				</div>
-				</div>
-			</li>
-			{% endfor %}
-			{% else %}
-			<li>{% trans '無資料' %}</li>
-			{% endif %}
-
 		</ul>
-
-		<!--目前位置給class>now-->
-		<div class="page_number">
-		{% comment %} {% if page_list|length > 1 %} {% endcomment %}
-			<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
-			{% if current_page|add:'-1' in page_list %}
-			<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-				<span></span>{% trans '上一頁' %}
-			</a>
-			{% else %}
-			<a href="javascript:;" class="pre pt-none">
-				<span></span>{% trans '上一頁' %}
-			</a>
-			{% endif %}
-			<!--目前頁面給 now-->
-			{% for p in page_list %}
-				{% if p == current_page %}
-					<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-				{% else %}
-					<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-				{% endif %}
-			{% endfor %}
-			{% if current_page|add:1 in page_list %}
-			<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
-				{% trans '下一頁' %}<span></span>
-			</a>
-			{% else %}
-			<a href="javascript:;" class="next pt-none">
-				{% trans '下一頁' %}<span></span>
-			</a>
-			{% endif %}
-			<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
-		{% comment %} {% endif %} {% endcomment %}
-		</div>
 	</div>
 </div>
 {% endblock body %}	

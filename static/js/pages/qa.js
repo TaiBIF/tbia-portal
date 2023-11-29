@@ -1,5 +1,20 @@
 $(function () {
 
+  // 起始頁面
+  
+
+        // 起始
+        // if (from_hash == true){
+  let urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('qa_id')) {
+    // window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
+    updateQa(1, '1', urlParams.get('qa_id'))
+    
+  } else {
+    updateQa(1, '2')
+  }
+        // }
+
   $('.qa_list ul li').on('click', function () {
     if ($(this).hasClass('now')) {
       $(this).removeClass('now')
@@ -43,21 +58,15 @@ $(function () {
     $('#btn-group-qa_type button span.title').addClass('color-white')
   })
 
-
-  let urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('qa_id')) {
-    window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
-  }
   //let menu = urlParams.get('qa_id')
 })
 
 
-function updateQa(page, type) {
+function updateQa(page, type, qa_id) {
 
 
   $('select[name=qa_type]').val(type)
 
-  $('.page_number').html('')
   $('.qa_top_item .tabb li').removeClass('now')
   $(`.qa_top_item .tabb li.qa_${type}`).addClass('now')
 
@@ -68,12 +77,13 @@ function updateQa(page, type) {
     data: { 'type': type, 'page': page, 'lang': $lang },
 
     success: function (response, status) {
+
       if (response.data.length > 0) {
         $('.qa_list ul').html('')
         for (let q of response.data) {
           $('.qa_list ul').append(
             `
-              <li>
+              <li data-qa_id="${ q.id }" id="qa_hash_${ q.id }">
               <div class="questieon">
                 <div class="mark_title">Q</div>
                 <p>${q.question}</p>
@@ -87,6 +97,13 @@ function updateQa(page, type) {
           `)
         }
 
+        // 起始
+        if (qa_id != undefined){
+            $(`#qa_hash_${qa_id}`).addClass('now')
+            window.location = window.location.href + '#qa_hash_' + qa_id
+        }
+      
+
         $('.show_tech').off('click')
         $('.show_tech').on('click', function () {
           // 每次打開都放第一張
@@ -96,7 +113,6 @@ function updateQa(page, type) {
           $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png")
           $('.tech-pop').removeClass('d-none')
         })
-        
 
         $('.qa_list ul li').off('click')
         $('.qa_list ul li').on('click', function () {

@@ -137,18 +137,8 @@ def error_view(request):
 
 
 def news(request):
-    if type := request.GET.get('type'):
-        news = News.objects.filter(status='pass',type=type)
-    else:
-        type = 'all'
-        news = News.objects.filter(status='pass')
-    news_list = news.order_by('-publish_date')[:10]
-    current_page = 0 / 10 + 1
-    total_page = math.ceil(news.count() / 10)
-    page_list = get_page_list(current_page,total_page)
-
-    return render(request, 'pages/news.html', {'news_list': news_list, 'page_list': page_list,
-           'total_page': total_page, 'current_page': current_page, 'type': type})
+    type = request.GET.get('type', 'all')
+    return render(request, 'pages/news.html', {'type': type})
 
 
 def news_detail(request, news_id):
@@ -228,34 +218,9 @@ def get_resource_cate(extension):
 
 def qa(request):
     qa_options = [{'type': 2, 'value': '網頁內容'}, {'type': 1, 'value': '網頁操作'},{'type': 3, 'value': '聯盟相關'},]
-    limit = 10
-    index = 1
     type = request.GET.get('type', 2)
-    qa_id = request.GET.get('qa_id')
-    active_qa = None
-
-    # if type := request.GET.get('type', 2):
-    # if type:
-    if qa_id:
-        if Qa.objects.filter(id=qa_id).exists():
-            qa_obj = Qa.objects.get(id=qa_id)
-            index = Qa.objects.filter(order__lt = qa_obj.order, type = qa_obj.type).count()
-            type = qa_obj.type
-            active_qa = qa_obj.id
-    # else:
-    #     index = 0
-    # else:
-    #     qa_list = Qa.objects.filter(type=2).order_by('order')
-
-    current_page = math.ceil(index / limit)
-    offset = limit * (current_page-1)
-    qa_list = Qa.objects.filter(type=type).order_by('order')
-    total_page = math.ceil(qa_list.count()/limit)
-    page_list = get_page_list(current_page, total_page)
-    qa_list = qa_list[offset:offset+limit]
     
-    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'qa_list': qa_list, 'type': type, 'total_page': total_page,
-                                             'page_list': page_list, 'current_page': current_page, 'active_qa': active_qa})
+    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'type': type})
 
 
 def get_qa_list(request):
@@ -279,7 +244,7 @@ def get_qa_list(request):
         for q in qa[offset:offset+limit]:
             ques = q.question_en if get_language() == 'en-us' and q.question_en else q.question
             ans = q.answer_en if get_language() == 'en-us' and q.answer_en else q.answer
-            qa_list.append({'question': ques, 'answer': ans})
+            qa_list.append({'question': ques, 'answer': ans, 'id': q.id})
         response['data'] = qa_list
         response['page_list'] = page_list
         response['current_page'] = current_page
@@ -341,7 +306,7 @@ def index(request):
                                                 'count_collection': count_collection, 'news_list': news_list})
 
 
-def get_resources(request):
+def get_resource_list(request):
     type = request.POST.get('type')
     if type == 'all':
         resource = Resource.objects.order_by('-modified')
@@ -423,27 +388,8 @@ def partner(request, abbr):
 
 
 def resources(request):
-    if type := request.GET.get('type'):
-        resource = Resource.objects.filter(type=type).order_by('-modified')
-    else:
-        type = 'all'
-        resource = Resource.objects.order_by('-modified')
-    resource_rows = []
-    resource_count = resource.count()
-    has_more = True if resource_count > 12 else False
-    total_page = math.ceil(resource_count / 12)
-    current_page = 1
-    page_list = get_page_list(current_page,total_page)
-    for x in resource[:12]:
-        modified = x.modified + timedelta(hours=8)
-        resource_rows.append({
-            'cate': get_resource_cate(x.extension),
-            'title': x.title,
-            'extension': x.extension,
-            'url': x.url,
-            'date': modified.strftime("%Y.%m.%d")})
-    return render(request, 'pages/resources.html', {'resource': resource_rows, 'has_more': has_more,
-            'total_page': total_page, 'type': type, 'page_list': page_list, 'current_page': current_page})
+    type = request.GET.get('type', 'all')
+    return render(request, 'pages/resources.html', {'type': type})
 
 
 def resources_link(request):
