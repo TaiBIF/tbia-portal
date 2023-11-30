@@ -274,7 +274,7 @@ CSP_IMG_SRC = ("'self'","*","data: *")
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
-CSP_FORM_ACTION = ("'self'","https://accounts.google.com/") 
+CSP_FORM_ACTION = ("'self'","*") 
 CSP_FRAME_ANCESTORS = ("'self'") 
 CSP_FONT_SRC = ("'self'",
 "https://fonts.googleapis.com/",
