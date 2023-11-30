@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
-{% load static %} 
-{% block title %}系統管理後台｜{% endblock %}
+{% load static %}
+{% load i18n %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block style %}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/system_news.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}" />
 {% endblock style %}
 
 {% block head %}
@@ -23,7 +24,7 @@
 {% csrf_token %}
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
@@ -57,7 +58,7 @@
                             <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
                             <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
                             <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
@@ -70,8 +71,8 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="edit changeMenu" href="javascript:;" data-menu="edit">消息發布</a>
-                            <a class="list changeMenu" href="javascript:;" data-menu="list">審核狀態</a>
+                            <a class="edit changeMenu" data-menu="edit">消息發布</a>
+                            <a class="news_apply changeMenu" data-menu="news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li>
@@ -84,7 +85,7 @@
                           </div>
                           <div class="col_menu second_menu">
                               <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
-                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                              <a href="{% url 'system_resource' %}?menu=resource">資源列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -97,7 +98,7 @@
                           </div>
                           <div class="col_menu second_menu">
                             <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                           </div>                    
                     </li> 
                     <li>
@@ -118,6 +119,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="news_id" value="{{ n.id }}">
                             <input type="hidden" name="from_system" value="yes">
+                            <li class="upload-warning"><p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
                             <li>審核狀態</li>
                             <li>
                                 <select name="status">
@@ -134,7 +136,7 @@
                             <li>
                                 <input type="text" name="title" value="{{ n.title }}">
                                 <div class="noticbox d-none">
-                                    <div class="in1">錯誤</div>
+                                    {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                     <p>必填欄位</p>
                                 </div>
                             </li>
@@ -158,7 +160,7 @@
                                 <div id="editor">{{ form.content }}</div>
                                 {% comment %} {{ form.as_p }} {% endcomment %}
                                 <div class="noticbox editor-content d-none">
-                                    <div class="in1">錯誤</div>
+                                    {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                     <p>必填欄位</p>
                                 </div>
                             </li>
@@ -168,12 +170,12 @@
             </div>
         </div>
 
-        <div class="rightbox_content list d-none">
+        <div class="rightbox_content news_apply d-none">
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>審核狀態</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 news_apply_table">
-                        <tr>
+                        <tr class="news_apply_table_header">
                             <td class="w-8p">編號</td>
                             <td class="w-18p">標題</td>
                             <td class="w-8p">類別</td>
@@ -183,7 +185,7 @@
                             <td class="w-8p">狀態</td>
                             <td class="w-8p"></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
-                        {% for n in news_list %}
+                        {% comment %} {% for n in news_list %}
                         <tr>
                             <td>#{{ n.id }}</td>
                             <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
@@ -206,35 +208,35 @@
                             </td>
                             <td><a class="manager_btn" href="{% url 'system_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if n_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="news_apply">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a class="num changePage" data-page="1" data-type="news_apply">1</a>
+                    <a class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in n_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
+                            <a class="num now changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
+                            <a class="num changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in n_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="news_apply">
+                    <a class="next changePage" data-page="2" data-type="news_apply">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ n_total_page }}" data-type="news_apply">{{ n_total_page }}</a>
+                    <a class="num changePage" data-page="{{ n_total_page }}" data-type="news_apply">{{ n_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>
         {% else %}
@@ -248,5 +250,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/system_news.js' %}"></script>
+  <script src="{% static 'js/manager/system_news.js' %}"></script>
   {% endblock script %}

@@ -1,14 +1,17 @@
 from django.http import request, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from pages.models import *
-from utils.solr_query import SolrQuery
+from conf.settings import SOLR_PREFIX
 from manager.models import Partner, About
 import json
 import math
 from data.utils import get_page_list
-from django.utils import timezone
+from django.utils import timezone, translation
 from conf.utils import notif_map
 from datetime import datetime, timedelta
+from django.utils.translation import get_language, gettext
+import requests
+from pages.templatetags.tags import var_df, var_df_2
 
 news_type_map = {
     'news':'green',
@@ -23,7 +26,28 @@ news_type_c_map = {
 
 }
 
+
+
+# 從js呼叫API
+def get_variants(request):
+  if request.method == 'GET':
+    string = request.GET.get('string')
+    new_string = ''
+    # 單個異體字
+    for s in string:    
+      if len(var_df[var_df['char']==s]):
+        new_string += var_df[var_df['char']==s].pattern.values[0]
+      else:
+        new_string += s
+    # 兩個異體字
+    for i in var_df_2.index:
+      char = var_df_2.loc[i, 'char']
+      if char in new_string:
+        new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
+    return JsonResponse({'new_string': new_string}, safe=False) 
+
 def get_current_notif(request):
+    translation.activate(request.GET.get('lang'))
     count = 0
     results = []
     if not request.user.is_anonymous:  
@@ -56,25 +80,27 @@ def get_current_notif(request):
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
+            # print(gettext(n.get_type_display()))
             results += f"""
                         <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}
                         <div class="txtcont">
                         <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                        <p>{n.get_type_display().replace('0000', n.content)}</p>
+                        <p>{ gettext(n.get_type_display()).replace('0000',n.content)}</p>
                         </div>
                     </li>
                     """
         if not results:
-            results = """
+            results = f"""
                         <li>
                         <div class="txtcont">
                         <p class="date"></p>
-                        <p>暫無通知</p>
+                        <p>{gettext('暫無通知')}</p>
                         </div>
                     </li>
                     """        
     return JsonResponse({'count': count, 'notif': results}, safe=False) 
+
 
 def policy(request):
     return render(request, 'pages/policy.html')
@@ -111,18 +137,8 @@ def error_view(request):
 
 
 def news(request):
-    if type := request.GET.get('type'):
-        news = News.objects.filter(status='pass',type=type)
-    else:
-        type = 'all'
-        news = News.objects.filter(status='pass')
-    news_list = news.order_by('-publish_date')[:10]
-    current_page = 0 / 10 + 1
-    total_page = math.ceil(news.count() / 10)
-    page_list = get_page_list(current_page,total_page)
-
-    return render(request, 'pages/news.html', {'news_list': news_list, 'page_list': page_list,
-           'total_page': total_page, 'current_page': current_page, 'type': type})
+    type = request.GET.get('type', 'all')
+    return render(request, 'pages/news.html', {'type': type})
 
 
 def news_detail(request, news_id):
@@ -202,38 +218,14 @@ def get_resource_cate(extension):
 
 def qa(request):
     qa_options = [{'type': 2, 'value': '網頁內容'}, {'type': 1, 'value': '網頁操作'},{'type': 3, 'value': '聯盟相關'},]
-    limit = 10
-    index = 1
     type = request.GET.get('type', 2)
-    qa_id = request.GET.get('qa_id')
-    active_qa = None
-
-    # if type := request.GET.get('type', 2):
-    # if type:
-    if qa_id:
-        if Qa.objects.filter(id=qa_id).exists():
-            qa_obj = Qa.objects.get(id=qa_id)
-            index = Qa.objects.filter(order__lt = qa_obj.order, type = qa_obj.type).count()
-            type = qa_obj.type
-            active_qa = qa_obj.id
-    # else:
-    #     index = 0
-    # else:
-    #     qa_list = Qa.objects.filter(type=2).order_by('order')
-
-    current_page = math.ceil(index / limit)
-    offset = limit * (current_page-1)
-    qa_list = Qa.objects.filter(type=type).order_by('order')
-    total_page = math.ceil(qa_list.count()/limit)
-    page_list = get_page_list(current_page, total_page)
-    qa_list = qa_list[offset:offset+limit]
     
-    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'qa_list': qa_list, 'type': type, 'total_page': total_page,
-                                             'page_list': page_list, 'current_page': current_page, 'active_qa': active_qa})
+    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'type': type})
 
 
 def get_qa_list(request):
     if request.method == 'POST':
+        translation.activate(request.POST.get('lang'))
         response = {}
         type = request.POST.get('type')
         try:
@@ -250,7 +242,9 @@ def get_qa_list(request):
 
         qa_list = []
         for q in qa[offset:offset+limit]:
-            qa_list.append({'question': q.question, 'answer': q.answer})
+            ques = q.question_en if get_language() == 'en-us' and q.question_en else q.question
+            ans = q.answer_en if get_language() == 'en-us' and q.answer_en else q.answer
+            qa_list.append({'question': ques, 'answer': ans, 'id': q.id})
         response['data'] = qa_list
         response['page_list'] = page_list
         response['current_page'] = current_page
@@ -261,19 +255,22 @@ def get_qa_list(request):
 
 def index(request):
     # recommended keyword
-    keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
+    keywords = Keyword.objects.filter(lang=get_language()).order_by('order').values_list('keyword', flat=True)
 
     # count of data
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '*:*'),('rows', 0)]
-    req = solr.request(query_list)
-    count_occurrence = req['solr_response']['response']['numFound']
+
+    count_occurrence = 0
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    if response.status_code == 200:
+        count_occurrence = response.json()['response']['numFound']
+
     count_occurrence = "{:,}".format(count_occurrence)
 
-    solr = SolrQuery('tbia_records')
-    query_list = [('q', '*:*'),('rows', 0), ('fq','recordType:col')]
-    req = solr.request(query_list)
-    count_collection = req['solr_response']['response']['numFound']
+    count_collection = 0
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0&fq=recordType:col')
+    if response.status_code == 200:
+        count_collection = response.json()['response']['numFound']
+
     count_collection = "{:,}".format(count_collection)
 
     # resource
@@ -309,7 +306,7 @@ def index(request):
                                                 'count_collection': count_collection, 'news_list': news_list})
 
 
-def get_resources(request):
+def get_resource_list(request):
     type = request.POST.get('type')
     if type == 'all':
         resource = Resource.objects.order_by('-modified')
@@ -356,8 +353,15 @@ def get_resources(request):
 
 
 def about(request):
-    content = About.objects.all().first().content
-    return render(request, 'pages/about.html',{'content': content})
+    if get_language() == 'en-us':
+        content = About.objects.all().first().content_en
+    else:
+        content = About.objects.all().first().content
+    
+    url = None
+    if Resource.objects.filter(title='臺灣生物多樣性資訊聯盟章程').exists():
+        url = Resource.objects.get(title='臺灣生物多樣性資訊聯盟章程').url
+    return render(request, 'pages/about.html',{'url': url, 'content': content})
 
 
 def agreement(request):
@@ -384,27 +388,8 @@ def partner(request, abbr):
 
 
 def resources(request):
-    if type := request.GET.get('type'):
-        resource = Resource.objects.filter(type=type).order_by('-modified')
-    else:
-        type = 'all'
-        resource = Resource.objects.order_by('-modified')
-    resource_rows = []
-    resource_count = resource.count()
-    has_more = True if resource_count > 12 else False
-    total_page = math.ceil(resource_count / 12)
-    current_page = 1
-    page_list = get_page_list(current_page,total_page)
-    for x in resource[:12]:
-        modified = x.modified + timedelta(hours=8)
-        resource_rows.append({
-            'cate': get_resource_cate(x.extension),
-            'title': x.title,
-            'extension': x.extension,
-            'url': x.url,
-            'date': modified.strftime("%Y.%m.%d")})
-    return render(request, 'pages/resources.html', {'resource': resource_rows, 'has_more': has_more,
-            'total_page': total_page, 'type': type, 'page_list': page_list, 'current_page': current_page})
+    type = request.GET.get('type', 'all')
+    return render(request, 'pages/resources.html', {'type': type})
 
 
 def resources_link(request):

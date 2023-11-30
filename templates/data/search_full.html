@@ -1,0 +1,891 @@
+{% extends 'base.html' %} 
+{% load tags %} 
+{% load static %}
+{% load i18n %}
+{% load humanize %}
+{% block title %}{% trans '全站搜尋' %}｜{% endblock %}
+
+{% block head %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+{% endblock head %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}" />
+{% endblock style %}
+
+{% block body %}
+{% csrf_token %}
+
+
+<div class="popbg tech-pop d-none">
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+			<div class="arl" data-index="10"></div>
+			<div class="arr" data-index="2"></div>
+				<!--目前的加上now 
+			<div class="dot_area">
+				<div class="dot"></div>
+				<div class="dot now"></div>
+				<div class="dot"></div>
+			</div>-->
+			<div class="techbox">
+				<div class="tech_pic">
+					<!--565*340或者兩倍大小1130*680-->
+					<img src="/static/image/tutorial/pic1.png">
+				</div>
+				<!--盡量不要超過三行-->
+				<p class="text_tec"></p>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="popbg taxon-pop d-none" >
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+      <div class="techbox taxon-pic">
+			</div>
+		</div>
+	</div>
+</div>
+
+
+		<!--資料分布圖彈出視窗-->
+		<div class="popbg pic_pop d-none">
+			<div class="ovhy">
+				<div class="wbox_center">
+					<div class="xx">
+
+					</div>
+					<div class="map_img">
+						<div class="imgbox">
+							<!--800*500 or 1600*1000 用background-image替換連結-->
+							<div class="img"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<div class="path">
+  <div class="main_1240">
+    <a href="{% url 'index' %}" class="home"></a> <span>></span>
+    <p>{% trans '全站搜尋結果' %}</p>
+  </div>
+</div>
+
+<div class="nbn_title">
+  <h2>{% trans '全站搜尋結果' %}</h2>
+</div>
+<div class="main_1240">
+  <div class="searchbar_top">
+    <div class="left_search">
+      <div class="input_item">
+        <form id="fullForm" action="{% url 'search_full' %}">
+          <p class="d-none keyword-p">{{ keyword }}</p>
+          <input id="keyword_input" type="text" name="keyword" placeholder="{% trans '請輸入關鍵字' %}" value="{{ keyword }}"/>
+          <button id="fullSubmit">
+            <img src="{% static 'image/search_icon.svg' %}" alt="" />
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="rightbox_select">
+      <p>{% trans '想找到更精準的資料嗎？' %}<br />{% trans '試試進階搜尋' %}</p>
+      <div class="icon_two">
+        <div class="item pointer open-page" data-href="/{{ LANGUAGE_CODE }}/search/occurrence">
+          <a>
+            <img src="{% static 'image/mapicon.svg' %}" alt="" />
+            <span>{% trans '物種出現紀錄查詢' %}</span>
+          </a>
+          <a class="hvmask">{% trans '物種出現紀錄查詢' %}</a>
+          <div class="line"></div>
+        </div>
+        <div class="item pointer open-page" data-href="/{{ LANGUAGE_CODE }}/search/collection">
+          <a>
+            <img src="{% static 'image/libraryicon.svg' %}" alt="" />
+            <span>{% trans '⾃然史典藏查詢' %}</span>
+          </a>
+          <a class="hvmask">{% trans '⾃然史典藏查詢' %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two_cont_area">
+    <div class="left_menu mbmove">
+      <!--手機用的按鈕-->
+      <div class="mb_fixed_btn">
+        <p>{% trans '類<br />別<br />篩<br />選' %}</p>
+        <span>{% trans '關閉' %}</span>
+      </div>
+      <div class="mb_scroll">
+        <ul class="item_list">
+          <li class="now li-all">
+            <a class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
+              <p>{% trans '所有結果' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
+          <li class="li-item_spe">
+            <div class="big_link">
+              <div class="maskfor_click rd_click"></div>
+              <p>
+                {% trans '物種' %}
+              </p>
+              <div class="arrd"></div>
+            </div>
+            <div class="spe_menu second_menu">
+              <a id="facet_spe_all" class="focusComponent" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma }})</a>
+              {% for i in taxon.rows %} 
+              <a id="facet_taxon_{{ i.key }}" class="focusCards" 
+              data-record_type="taxon"
+              data-key="{{ i.key }}"
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+              {% endfor %}
+            </div>
+          </li>
+          <li class="li-item_occ">
+            <div class="big_link">
+              <div class="maskfor_click rd_click"></div>
+              <p>
+                {% trans '物種出現紀錄' %}
+                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=7" target="_blank" class="qusemark"></a>
+              </p>
+              <div class="arrd"></div>
+            </div>
+            <div class="occ_menu second_menu">
+              <a id="facet_occ_all" class="focusComponent" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma }})</a>
+              {% for i in occurrence.rows %} 
+              <a id="facet_occ_{{ i.key }}" class="focusCards" 
+              data-record_type="occ"
+              data-key="{{ i.key }}"
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+              {% endfor %}
+            </div>
+          </li>
+          <li class="li-item_col">
+            <div class="big_link">
+              <div class="maskfor_click rd_click"></div>
+              <p>
+                {% trans '⾃然史典藏' %}
+                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=8" target="_blank" class="qusemark"></a>
+              </p>
+              <div class="arrd"></div>
+            </div>
+            <div class="col_menu second_menu">
+              <a id="facet_col_all" class="focusComponent" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma }})</a>
+              {% for i in collection.rows %} 
+                <a id="facet_col_{{ i.key }}" class="focusCards"
+                data-record_type="col"
+                data-key="{{ i.key }}"
+                data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+              {% endfor %}
+            </div>
+          </li>
+
+          <li class="li-item_news">
+            <a class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
+              <p>{% trans '新聞公告' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
+          <li class="li-item_event">
+            <a class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
+              <p>{% trans '活動訊息' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
+          <li class="li-item_project">
+            <a class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
+              <p>{% trans '計畫徵求' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
+          <li class="li-item_resource">
+            <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
+              <p>{% trans '開放資料相關資源' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rightbox_content">
+      <!----- 所有結果 內容欄 ----->
+					<div class="item item_spe"  id="item_spe">
+						<div class="titlebox_line">
+							<div class="title">
+								<p>{% trans '物種' %} ({{ taxon.count|intcomma }})</p>
+								<div class="line"></div>
+							</div>
+						</div>
+            {% if taxon.count > 0 %}
+						<ul class="card_list_2 species_list taxon-card">
+              {% for i in taxon.card %}
+							<li>
+								<div class="flex_top">
+									<div class="{% if i.images|length > 0 %} lefttxt {% else %} {% endif %}">
+										<p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+										<p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name|safe }}</p>
+										<p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c|safe }}</p>
+										<p>{% trans '同物異名' %}{% trans '：' %}{{  i.synonyms|safe }}</p>
+										<p>{% trans '分類階層' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+                    <!-- 這邊matched_col可能有多個 -->
+                    {% for ii in i.matched %}
+                      {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
+                      <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
+                      {% endif %}    
+                    {%  endfor %}
+										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma }}</p>
+										<p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma }}</p>
+									</div>
+                  {% if i.images|length > 0 %}
+									<div class="right_img">
+										<div class="imgbox">
+                      {% if i.images|length > 1 %}
+                      <div class="arr-left plusSlides" data-index="-1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card">
+                      </div>
+                      <div class="arr-right plusSlides" data-index="+1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card">
+                      </div>
+                      {% endif %}
+                      {% for ii in i.images %}
+                      <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
+                        <div class="img-container">
+                          <img class="imgarea" src="{{ ii.src }}">
+                          <p class="bottom-right">{{ ii.author }}</p>
+                        </div>
+                      </div>  
+                      {% endfor %}
+                    </div>
+									</div>
+                  {% else %}
+                  <div class="right_img2">
+										<div class="imgbox">
+                    </div>
+									</div>
+                  {% endif %}
+								</div>
+
+                {% comment %} justify-content: center {% endcomment %}
+
+                {% if i.taieol_id %}
+                <div class="btn_area">
+                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">{% trans '生命大百科介紹' %}</a>
+                  <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
+                </div>
+                {% else %}
+                <div class="btn_area jc-fe">
+                  <button class="getDist" 
+                  data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
+                </div>
+                {% endif %}
+							</li>
+              {% endfor %}
+						</ul>
+            {% else %}
+            <div class="no_data">{% trans '無資料' %}</div>
+            {% endif %}
+            <!--超過4個才有更多按鈕-->
+            {% if taxon.more %}
+            <a class="more taxon_more getMoreCards" 
+              data-card_class=".taxon-card" 
+              data-offset_value="#taxon_offset"
+              data-more_type=".taxon_more" 
+              data-is_sub="false"> {% trans '更多結果' %} </a>
+            <input type="hidden" id="taxon_offset" value="4">
+            <div class="no_data taxon_more_end d-none"> 
+              {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
+            </div>    
+            {% endif %}
+					</div>
+
+
+      <!----- 物種出現紀錄 ----->
+      <div class="item item_occ" id="item_occ">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '物種出現紀錄' %} ({{ occurrence.count|intcomma }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if occurrence.count > 0 %}
+          <ul class="card_list_1 occ-card">
+            {% for i in occurrence.card %}
+              <li class="getRecords" 
+                  data-record_type="occ"
+                  {% if i.match_type == 'taxon-related' and i.val != '' %}
+                  data-key="taxonID"
+                  data-value="{{ i.taxonID }}"
+                  {% else %}
+                  data-key="{{ i.matched.0.key }}"
+                  data-value="{{ i.matched.0.matched_value_ori }}"
+                  {% endif %}
+                  data-scientific_name="{{ i.name }}"
+                  data-limit="{{ i.count }}"
+                  data-page="1"
+                  data-from="card"
+                  data-go_back="false"
+                  data-orderby="scientificName"
+                  data-sort="asc">  
+                <div class="num">{{ i.count }}</div>
+                <div class="num_bottom"></div>
+                <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+                <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+                <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+                {% for ii in i.matched %}
+                  {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
+                    <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}
+                      <!--
+                      {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
+                        {{ ii.matched_value|safe }}
+                      {% else %}
+                        {{ ii.matched_value|safe }}
+                      {% endif %}-->
+                    </p>
+                  {% endif %}    
+                {%  endfor %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %}
+        <!--超過9個才有更多按鈕-->
+        {% if occurrence.more %}
+        <a class="more occ_more getMoreCards" 
+          data-card_class=".occ-card" 
+          data-offset_value="#occ_offset"
+          data-more_type=".occ_more" 
+          data-is_sub="false"> {% trans '更多結果' %} </a>
+        <input type="hidden" id="occ_offset" value="9">
+        <div class="no_data occ_more_end d-none"> 
+          {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
+        </div>
+        {% endif %}
+      </div>
+
+
+      <!----- 自然史典藏 ----->
+      <div class="item item_col" id="item_col">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '⾃然史典藏' %} ({{ collection.count|intcomma }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if collection.count > 0 %}
+          <ul class="card_list_1 col-card">
+            {% for i in collection.card %}
+            <li class="getRecords" 
+                data-record_type="col"
+                {% if i.match_type == 'taxon-related' and i.val != '' %}
+                data-key="taxonID"
+                data-value="{{ i.taxonID }}"
+                {% else %}
+                data-key="{{ i.matched.0.key }}"
+                data-value="{{ i.matched.0.matched_value_ori }}"
+                {% endif %}
+                data-scientific_name="{{ i.name }}"
+                data-limit="{{ i.count }}"
+                data-page="1"
+                data-from="card"
+                data-go_back="false"
+                data-orderby="scientificName"
+                data-sort="asc">
+              <div class="num">{{ i.count }}</div>
+              <div class="num_bottom"></div>
+              <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+              <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+              <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+              {% for ii in i.matched %}
+                {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
+                  <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}
+                    <!--
+                    {% if i.match_type == 'taxon-related' or ii.matched_col == '來源資料庫使用學名' or ii.matched_col == '來源資料庫使用中文名' %}
+                      {{ ii.matched_value|safe }}
+                    {% else %}
+                      {{ ii.matched_value|safe }}
+                    {% endif %}-->
+                  </p>
+                {% endif %}    
+              {%  endfor %}
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %}
+        <!--超過9個才有更多按鈕-->
+        {% if collection.more %}
+        <a class="more col_more getMoreCards" 
+          data-card_class=".col-card" 
+          data-offset_value="#col_offset"
+          data-more_type=".col_more" 
+          data-is_sub="false"> {% trans '更多結果' %} </a>
+        <input type="hidden" id="col_offset" value="9">
+        <div class="no_data col_more_end d-none"> 
+          {% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}
+        </div>
+        {% endif %}
+      </div>
+
+
+      <!-- 新聞公告 -->
+      <div class="item item_news" id="item_news">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '新聞公告' %} ({{ news.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if news.count > 0 %}
+        <ul class="card_list_2 news-card">
+          {% for i in news.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %}
+        <!--超過6個才有更多按鈕-->
+        {% if news.count > 6 %}
+        <a class="more more_news getMoreDocs" 
+          data-doc_type="news"
+          data-offset_value="#news_offset"
+          data-more_class=".more_news"
+          data-card_class=".news-card"> {% trans '更多結果' %} </a>
+        <input type="hidden" id="news_offset" value="6">
+        {% endif %}
+      </div>
+
+
+      <!-- 活動訊息 -->
+      <div class="item item_event" id="item_event">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '活動訊息' %} ({{ event.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if event.count > 0 %}
+        <ul class="card_list_2 event-card">
+          {% for i in event.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %}
+        <!--超過6個才有更多按鈕-->
+        {% if event.count > 6 %}
+        <a class="more more_event getMoreDocs" 
+          data-doc_type="event"
+          data-offset_value="#event_offset"
+          data-more_class=".more_event"
+          data-card_class=".event-card"> {% trans '更多結果' %} </a>
+        <input type="hidden" id="event_offset" value="6">
+        {% endif %}
+      </div>
+
+
+      <!----- 計畫徵求 ----->
+      <div class="item item_project" id="item_project">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '計畫徵求' %} ({{ project.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if project.count > 0 %}
+        <ul class="card_list_2 project-card">
+          {% for i in project.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %} 
+        {% if project.count > 6 %}
+        <!--超過6個才有更多按鈕-->
+        <a class="more more_project getMoreDocs" 
+          data-doc_type="project"
+          data-offset_value="#project_offset"
+          data-more_class=".more_project"
+          data-card_class=".project-card">{% trans '更多結果' %} </a>
+        <input type="hidden" id="project_offset" value="6">
+        {% endif %}
+      </div>
+
+
+      <!----- 開放資料相關資源 ----->
+      <div class="item item_resource" id="item_resource">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '開放資料相關資源' %} ({{ resource.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        <ul class="edu_list three_set resource-card">
+          {% if resource.count > 0 %} 
+            {% for i in resource.rows %}
+            {% if i.extension == 'pop' %}
+            <li class="show_tech">
+              <div class="item items h-100p">
+                <div class="cate_dbox">
+                <div class="date">{{ i.date }}</div>
+                </div>
+                <a class="title ">{% highlight i.title keyword %}</a>
+              </div>
+            </li>
+            {% else %}
+            <li>
+              <div class="item items h-100p">
+                <div class="cate_dbox">
+                  <div class="cate pdf">{{ i.extension }}</div>
+                  <div class="date">{{ i.date }}</div>
+                </div>
+                <a href="/media/{{ i.url }}" class="title" target="_blank"> {% highlight i.title keyword %} </a>
+                <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
+              </div>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="no_data w-100p">{% trans '無資料' %}</div>
+        {% endif %} 
+        {% if resource.count > 6 %}
+        <a class="more more_resource getMoreDocs" 
+          data-doc_type="resource"
+          data-offset_value="#resource_offset"
+          data-more_class=".more_resource"
+          data-card_class=".resource-card"> {% trans '更多結果' %} </a>
+        <input type="hidden" id="resource_offset" value="6">
+        {% endif %}
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<!-- 自然史典藏欄位選擇 -->
+<div class="popbg col-choice d-none">
+	<div class="ovhy">
+		<div class="wbox_center choice-flow">
+			<div class="xx">
+			</div>
+			<div class="catetitle">
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll" data-type=".col-choice">{% trans '全選' %}</button>
+				<button class="selt resetAll" data-type=".col-choice">{% trans '重設' %}</button>
+			</div>
+			<ul class="catalist">
+				<li>
+					<input type="checkbox" class="chebox" id="col-common_name_c" checked>
+					<p>{% trans '中文名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-scientificName" checked>
+					<p>{% trans '學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-alternative_name_c" checked>
+					<p>{% trans '中文別名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-synonyms">
+					<p>{% trans '同物異名' %}</p>
+				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="col-misapplied">
+					<p>{% trans '誤用名' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="col-sourceScientificName">
+					<p>{% trans '來源資料庫使用學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-sourceVernacularName">
+					<p>{% trans '來源資料庫使用中文名' %}</p>
+				</li>	
+				<li>
+					<input type="checkbox" class="chebox" id="col-rightsHolder" checked>
+					<p>{% trans '來源資料庫' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-taxonID">
+					<p>{% trans 'TaiCOL物種編號' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-collectionID">
+					<p>{% trans '館藏號' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-taxonRank">
+					<p>{% trans '鑑定層級' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-sensitiveCategory">
+					<p>{% trans '敏感層級' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-typeStatus">
+					<p>{% trans '標本類型' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-preservation">
+					<p>{% trans '保存方式' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-eventDate">
+					<p>{% trans '採集日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-locality">
+					<p>{% trans '採集地' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-recordedBy" checked>
+					<p>{% trans '採集者' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-recordNumber">
+					<p>{% trans '採集號' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-organismQuantity">
+					<p>{% trans '數量' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="col-organismQuantityType">
+					<p>{% trans '數量單位' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-verbatimLongitude">
+					<p>{% trans '經度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-verbatimLatitude">
+					<p>{% trans '緯度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-verbatimCoordinateSystem">
+					<p>{% trans '座標系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-verbatimSRS">
+					<p>{% trans '空間參考系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-coordinateUncertaintyInMeters">
+					<p>{% trans '座標誤差' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-dataGeneralizations">
+					<p>{% trans '座標是否有模糊化' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-coordinatePrecision">
+					<p>{% trans '座標模糊化程度' %}</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="col-datasetName">
+					<p>{% trans '資料集名稱' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-resourceContacts">
+					<p>{% trans '資料集聯絡人' %}</p>
+				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="col-license">
+					<p>{% trans '授權狀況' %}</p>
+				</li>
+			</ul>
+			<button class="send_bt sendSelected" data-type="col">{% trans '確認' %}</button>
+		</div>
+	</div>
+</div>
+
+<!-- 物種出現紀錄欄位選擇 -->
+<div class="popbg occ-choice d-none">
+	<div class="ovhy">
+		<div class="wbox_center choice-flow">
+			<div class="xx">
+			</div>
+			<div class="catetitle">
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll" data-type=".occ-choice">{% trans '全選' %}</button>
+				<button class="selt resetAll" data-type=".occ-choice">{% trans '重設' %}</button>
+			</div>
+			<ul class="catalist">
+				<li>
+					<input type="checkbox" class="chebox" id="occ-common_name_c" checked>
+					<p>{% trans '中文名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-scientificName" checked>
+					<p>{% trans '學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-alternative_name_c" checked>
+					<p>{% trans '中文別名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-synonyms">
+					<p>{% trans '同物異名' %}</p>
+				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="occ-misapplied">
+					<p>{% trans '誤用名' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
+					<p>{% trans '來源資料庫使用學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
+					<p>{% trans '來源資料庫使用中文名' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-taxonRank">
+					<p>{% trans '鑑定層級' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
+					<p>{% trans '敏感層級' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-rightsHolder" checked>
+					<p>{% trans '來源資料庫' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-taxonID">
+					<p>{% trans 'TaiCOL物種編號' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<p>{% trans '紀錄日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-locality">
+					<p>{% trans '出現地' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantity">
+					<p>{% trans '數量' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
+					<p>{% trans '數量單位' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-recordedBy" checked>
+					<p>{% trans '記錄者' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
+					<p>{% trans '經度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
+					<p>{% trans '緯度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
+					<p>{% trans '空間參考系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
+					<p>{% trans '座標系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
+					<p>{% trans '座標誤差' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
+					<p>{% trans '座標是否有模糊化' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
+					<p>{% trans '座標模糊化程度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
+					<p>{% trans '紀錄類型' %}</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="occ-datasetName">
+					<p>{% trans '資料集名稱' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
+					<p>{% trans '資料集聯絡人' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-license">
+					<p>{% trans '授權狀況' %}</p>
+				</li>
+			</ul>
+			<button class="send_bt sendSelected" data-type="occ">{% trans '確認' %}</button>
+		</div>
+	</div>
+</div>
+
+
+<div class="popbg taxon-dist d-none">
+	<div class="ovhy taxon-dist">
+		<div class="wbox_center">
+			<div class="xx taxon-dist">
+			</div>
+			<div class="titlegreen">
+				{% trans '資料分布圖' %}
+			</div>
+      <div id="map-box">
+        {% comment %} <p id="taxon_name"><p> {% endcomment %}
+        <div id="map"></div>
+      </div>
+		</div>
+	</div>
+</div>
+{% endblock body %} 
+
+{% block script %}
+<script src="{% static 'js/tutorial.js' %}"></script>
+<script src="{% static 'js/data/search_full.js' %}"></script>
+{% endblock script %}

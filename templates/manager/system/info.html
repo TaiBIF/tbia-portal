@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %} 
-{% block title %}系統管理後台｜{% endblock %}
+{% load i18n %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block head %}
 <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -10,7 +11,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/system_info.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}" />
 {% endblock style %}
 
 
@@ -19,7 +20,7 @@
 <input type="hidden" name="menu" value="{{ menu }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
@@ -50,11 +51,11 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="info changeMenu" href="javascript:;" data-menu="info">修改TBIA資訊</a>
-                            <a class="account changeMenu" href="javascript:;" data-menu="account">帳號管理</a>
-                            <a class="feedback changeMenu" href="javascript:;" data-menu="feedback">意見回饋紀錄</a>
-                            <a class="sensitive changeMenu" href="javascript:;" data-menu="sensitive">單次使用去模糊化敏感資料申請</a>
-                            <a class="sensitive_track changeMenu" href="javascript:;" data-menu="sensitive_track">敏感資料申請審核追蹤</a>
+                            <a class="info changeMenu" data-menu="info">修改TBIA資訊</a>
+                            <a class="account changeMenu" data-menu="account">帳號管理</a>
+                            <a class="feedback changeMenu" data-menu="feedback">意見回饋紀錄</a>
+                            <a class="sensitive_apply changeMenu" data-menu="sensitive_apply">單次使用去模糊化敏感資料申請</a>
+                            <a class="sensitive_track changeMenu" data-menu="sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
                     <li>
@@ -67,7 +68,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li>
@@ -80,7 +81,7 @@
                           </div>
                           <div class="col_menu second_menu">
                               <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
-                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                              <a href="{% url 'system_resource' %}?menu=resource">資源列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -93,7 +94,7 @@
                           </div>
                           <div class="col_menu second_menu">
                             <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                           </div>                    
                     </li> 
                     <li>
@@ -111,7 +112,7 @@
                 <div class="box-title "><div class="dottt"></div>帳號管理</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 account_table">
-                        <tr>
+                        <tr class="account_table_header">
                             <td class="w-8p">編號</td>
                             <td class="w-25p">姓名</td>
                             <td class="w-20p">單位</td>
@@ -119,7 +120,7 @@
                             <td class="w-15p">狀態</td>
                             <td class="w-15p"></td>
                         </tr> 
-                        {% for pm in partner_members %}
+                        {% comment %} {% for pm in partner_members %}
                         <tr>
                             <td>#{{ pm.id }}</td>
                             <td>{{ pm.name }} ({{ pm.email }})</td>
@@ -148,35 +149,35 @@
                             </td>
                             <td><button class="manager_btn save_btn saveStatus" data-pmid="{{ pm.id }}">儲存</button></td>
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if a_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="account">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a class="num changePage" data-page="1" data-type="account">1</a>
+                    <a class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in a_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
+                            <a class="num now changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
+                            <a class="num changePage" data-page="{{ p }}" data-type="account">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in a_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="account">
+                    <a class="next changePage" data-page="2" data-type="account">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ a_total_page }}" data-type="account">{{ a_total_page }}</a>
+                    <a class="num changePage" data-page="{{ a_total_page }}" data-type="account">{{ a_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>
 
@@ -192,7 +193,14 @@
                         <li>TBIA簡介</li>
                         <li><textarea name="about_content">{{ content }}</textarea>
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                        <li>TBIA英文簡介</li>
+                        <li><textarea name="about_content_en">{{ content_en }}</textarea>
+                            <div class="noticbox d-none">
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>
@@ -207,7 +215,7 @@
                 <div class="box-title "><div class="dottt"></div>意見回饋紀錄</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 feedback_table">
-                        <tr>
+                        <tr class="feedback_table_header">
                             <td class="w-10p">編號</td>
                             <td class="w-20p">單位</td>
                             <td class="w-10p">時間</td>
@@ -216,7 +224,7 @@
                             <td class="w-30p">內容</td>
                             <td class="w-20p">已回覆</td>
                         </tr> 
-                        {% for f in feedback %}
+                        {% comment %} {% for f in feedback %}
                         <tr>
                             <td>#{{ f.id }}</td>
                             <td>
@@ -238,55 +246,67 @@
                                 {% endif %}
                             </td>
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if f_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="feedback">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a class="num changePage" data-page="1" data-type="feedback">1</a>
+                    <a class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in f_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
+                            <a class="num now changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
+                            <a class="num changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in f_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="feedback">
+                    <a class="next changePage" data-page="2" data-type="feedback">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ f_total_page }}" data-type="feedback">{{ f_total_page }}</a>
+                    <a class="num changePage" data-page="{{ f_total_page }}" data-type="feedback">{{ f_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>
 
-        <div class="rightbox_content sensitive d-none">
+        <div class="rightbox_content sensitive_apply d-none">
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
-                        <tr>
+                        <tr class="sensitive_apply_table_header">
                             <td class="w-10p">編號</td>
                             <td class="w-30p">申請時間</td>
                             <td class="w-40p">搜尋條件</td>
                             <td class="w-10p">狀態</td>
                             <td class="w-10p"></td>
                         </tr> 
-                        {% for s in sensitive %}
+                        {% comment %} {% for s in sensitive %}
                         <tr>
                             <td>#{{ s.id }}</td>
                             <td>{{ s.created }}<br>審核期限：{{ s.due }} </td>
-                            <td class="a-left">{{ s.query|safe }}</td>
+                            <td class="a-left">
+                                {{ s.query|safe }}
+                                <br>
+                                <a class="search-again-a" target="_blank" href="{{ s.query_a }}">再次查詢
+                                    <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
+                                        <g id="loupe" transform="translate(0 -0.003)">
+                                        <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
+                                            <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path>
+                                        </g>
+                                        </g>
+                                    </svg>
+                                </a>
+                            </td>
                             <td>
                                 {% if s.is_transferred %}
                                     已轉交單位審核
@@ -300,35 +320,35 @@
                                 data-sdr_id="{{ s.id }}"
                                 data-is_transferred="{{ s.is_transferred }}">查看</a></td>
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if s_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive_apply">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a class="num changePage" data-page="1" data-type="sensitive_apply">1</a>
+                    <a class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in s_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
+                            <a class="num now changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
+                            <a class="num changePage" data-page="{{ p }}" data-type="sensitive_apply">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in s_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive_apply">
+                    <a class="next changePage" data-page="2" data-type="sensitive_apply">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive_apply">{{ s_total_page }}</a>
+                    <a class="num changePage" data-page="{{ s_total_page }}" data-type="sensitive_apply">{{ s_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>        
         <div class="rightbox_content sensitive_track d-none">
@@ -336,7 +356,7 @@
                 <div class="box-title "><div class="dottt"></div>敏感資料申請審核追蹤</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_track_table">
-                        <tr>
+                        <tr class="sensitive_track_table_header">
                             <td class="w-5p">申請編號</td>
                             <td class="w-10p">檔案編號</td>
                             <td class="w-10p">申請時間</td>
@@ -344,44 +364,56 @@
                             <td class="w-15p">審查意見</td>
                             <td class="w-5p">狀態</td>
                         </tr>
-                        {% for r in sensitive_track %}
+                        {% comment %} {% for r in sensitive_track %}
                         <tr>
                             <td>#{{ r.id }}</td>
                             <td>{{ r.query_id }}</td>
                             <td>{{ r.date|default_if_none:'' }}<br>審核期限：{{ r.due }}</td>
-                            <td>{{ r.query|safe }}</td>
+                            <td>
+                                {{ r.query|safe }}
+                                <br>
+                                <a class="search-again-a" target="_blank" href="{{ r.query_a }}">再次查詢
+                                    <svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
+                                        <g id="loupe" transform="translate(0 -0.003)">
+                                        <g id="Group_13" data-name="Group 13" transform="translate(0 0.003)">
+                                            <path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path>
+                                        </g>
+                                        </g>
+                                    </svg>
+                                </a>
+                            </td>
                             <td>{{ r.comment|safe }}</td>
                             <td>{{ r.status }}</td>
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if sr_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="sensitive_track">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a class="num changePage" data-page="1" data-type="sensitive_track">1</a>
+                    <a class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in sr_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
+                            <a class="num now changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
+                            <a class="num changePage" data-page="{{ p }}" data-type="sensitive_track">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in sr_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="sensitive_track">
+                    <a class="next changePage" data-page="2" data-type="sensitive_track">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ sr_total_page }}" data-type="sensitive_track">{{ sr_total_page }}</a>
+                    <a class="num changePage" data-page="{{ sr_total_page }}" data-type="sensitive_track">{{ sr_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>        
         {% else %}
@@ -528,5 +560,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/system_info.js' %}"></script>
+<script src="{% static 'js/manager/system_info.js' %}"></script>
 {% endblock script %}

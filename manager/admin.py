@@ -16,7 +16,12 @@ class CustomUserAdmin(UserAdmin):
 
 
 
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'select_title')
+
+
+
 admin.site.register(User, CustomUserAdmin)
 admin.site.unregister(Group)
-admin.site.register(Partner)
+admin.site.register(Partner, PartnerAdmin)
 admin.site.register(About)

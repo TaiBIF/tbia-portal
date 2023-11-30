@@ -1,0 +1,20 @@
+{% autoescape off %}
+
+{{ user.name }}，您好：
+
+感謝您申請TBIA帳號，請點擊下方連結進行驗證：
+
+{{ scheme }}://{{ domain }}{% url 'verify' uidb64=uid token=token %}
+
+
+Hello {{ user.name }},
+
+Thank you for applying for a TBIA account. Please click the link below for verification:
+
+{{ scheme }}://{{ domain }}{% url 'verify' uidb64=uid token=token %}
+
+
+臺灣生物多樣性資訊聯盟 
+Taiwan Biodiversity Information Alliance
+
+{% endautoescape %}

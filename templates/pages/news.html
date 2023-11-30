@@ -1,24 +1,35 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load i18n %}
 {% block head %}
-<link href="/static/air-datepicker/dist/air-datepicker.css" rel="stylesheet" />
-<script src="/static/air-datepicker/dist/air-datepicker.js" ></script>
+<link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
+<script src="/static/datepicker/air-datepicker.js" ></script>
+{% if LANGUAGE_CODE == 'en-us' %}
+<script src="/static/datepicker/en.js" ></script>
+{% else %}
+<script src="/static/datepicker/zh.js" ></script>
+{% endif %}
 {% endblock head %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/news.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}" />
 {% endblock style %}
+
+
+{% block title %}{% trans '最新消息' %}｜{% endblock %}
+
+
 {% block body %}
 {% csrf_token %}
 <input type="hidden" name="news_type" value="{{ type }}">
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>最新消息</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '最新消息' %}</p>
 	</div>
 </div>
 <div class="in_bn news_bn">
 	<div class="title">
-		<h2>最新消息</h2>
-		<h3>NEWS</h3>
+		<h2>{% trans '最新消息' %}</h2>
+		{% comment %} <h3>NEWS</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
@@ -27,26 +38,26 @@
 			<!--目前位置給class>now-->
 			<ul class="news_tab_in">
 				<li class="li-news-all updateNews" data-type="all">
-					<p>所有消息</p>
+					<p>{% trans '所有消息' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-news updateNews" data-type="news">
-					<p>新聞公告</p>
+					<p>{% trans '新聞公告' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-event updateNews" data-type="event">
-					<p>活動訊息</p>
+					<p>{% trans '活動訊息' %}</p>
 					<div class="arr"></div>
 				</li>
 				<li class="li-news-project updateNews" data-type="project">
-					<p>計畫徵求</p>
+					<p>{% trans '計畫徵求' %}</p>
 					<div class="arr"></div>
 				</li>
 			</ul> 
 		</div>
 
 		<div class="date_select">
-			<p>篩選</p>
+			<p>{% trans '篩選' %}</p>
 			<div class="input_item"> 
 				<input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
 				<a class="dateicon show_start"></a>		
@@ -56,7 +67,7 @@
 				<input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
 				<a class="dateicon show_end"></a>		
 			</div>				
-			<button class="search_btn">送出</button>
+			<button class="search_btn">{% trans '送出' %}</button>
 		</div>
 		<div class="already_selected" data-filter="no">
 			<ul class="d-none">
@@ -69,77 +80,11 @@
 			</ul>
 		</div>
 		<ul class="news_list">
-			{% if news_list|length > 0 %}
-			{% for n in news_list %}
-			<li>
-				<a href="{% url 'news_detail' n.id %}" class="imgbox">
-					{% if n.image %}
-					<img class="img_area" src="/media/news/{{ n.image }}">
-					{% else %}
-					<img class="img_area" src="/static/image/news_ub_img.jpg">
-					{% endif %}
-				</a>
-				<div class="infbox">
-				<div class="center_box">
-					<div class="tag_date">
-						{% if n.type == 'news' %}
-						<div class="tag green">
-						{% elif n.type == 'project' %}
-						<div class="tag red">
-						{% else %}
-						<div class="tag yellow">
-						{% endif %}
-						{{ n.get_type_display }}</div>
-					<p class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</p>
-					</div>
-					<a href="{% url 'news_detail' n.id %}" class="nstitle"> {{ n.title }} </a>
-				</div>
-				</div>
-			</li>
-			{% endfor %}
-			{% else %}
-			<li>無資料</li>
-			{% endif %}
-
 		</ul>
-
-		<!--目前位置給class>now-->
-		<div class="page_number">
-		{% comment %} {% if page_list|length > 1 %} {% endcomment %}
-			<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
-			{% if current_page|add:'-1' in page_list %}
-			<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-				<span></span>上一頁
-			</a>
-			{% else %}
-			<a href="javascript:;" class="pre pt-none">
-				<span></span>上一頁
-			</a>
-			{% endif %}
-			<!--目前頁面給 now-->
-			{% for p in page_list %}
-				{% if p == current_page %}
-					<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-				{% else %}
-					<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-				{% endif %}
-			{% endfor %}
-			{% if current_page|add:1 in page_list %}
-			<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
-				下一頁<span></span>
-			</a>
-			{% else %}
-			<a href="javascript:;" class="next pt-none">
-				下一頁<span></span>
-			</a>
-			{% endif %}
-			<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
-		{% comment %} {% endif %} {% endcomment %}
-		</div>
 	</div>
 </div>
 {% endblock body %}	
 
 {% block script %}
-<script src="{% static 'js/news.js' %}"></script>
+<script src="{% static 'js/pages/news.js' %}"></script>
 {% endblock script %}

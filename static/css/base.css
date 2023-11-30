@@ -1,3 +1,7 @@
+a {
+    cursor: pointer;
+}
+
 .box-radius-10px {
     border-bottom-right-radius: 10px
 }
@@ -139,6 +143,10 @@ input {
     display: block !important;
 }
 
+.d-flex {
+    display: flex
+}
+
 .d-flex-jc-sb {
     display: flex; 
     justify-content: space-between;
@@ -210,8 +218,24 @@ input {
     width: 40% !important;
 }
 
+.w-45p {
+    width: 45% !important;
+}
+
+.w-48p {
+    width: 48% !important;
+}
+
 .w-50p {
     width: 50% !important;
+}
+
+.w-70p {
+    width: 70% !important;
+}
+
+.w-80p {
+    width: 80% !important;
 }
 
 .w-85p {
@@ -376,7 +400,7 @@ input {
     padding: 5px 0;
     border-radius: 20px;
     font-size: 16px;
-    width: 60px;
+    min-width: 60px;
     display: block;
     margin: auto;
 }
@@ -439,3 +463,8 @@ margin-bottom: 5px !important;
 .g-recaptcha-style {
     margin-bottom: 30px;
 }
+
+.mb-30px {
+    margin-bottom: 30px !important;
+}
+

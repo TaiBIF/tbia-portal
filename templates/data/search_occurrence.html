@@ -1,0 +1,437 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% load i18n %}
+{% block head %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<!--
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+-->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+
+<link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
+<script src="/static/datepicker/air-datepicker.js" ></script>
+{% if LANGUAGE_CODE == 'en-us' %}
+<script src="/static/datepicker/en.js" ></script>
+{% else %}
+<script src="/static/datepicker/zh.js" ></script>
+{% endif %}
+{% endblock head %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}" />
+{% endblock style %}
+
+{% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
+
+{% block body %}
+{% csrf_token %}
+<div class="path">
+  <div class="main_1240">
+    <a href="{% url 'index' %}" class="home"></a> <span>></span>
+    <p>{% trans '進階搜尋' %}</p>
+    <span>></span>
+    <p>{% trans '物種出現紀錄查詢' %}</p>
+  </div>
+</div>
+
+<div class="nbn_title">
+  <h2>{% trans '物種出現紀錄查詢' %}</h2>
+</div>
+
+<div class="container_area">
+  <div class="main_1240">
+    <div class="search_condition_are">
+      <form id="searchForm">
+        <input type="hidden" name="record_type" value="occ">
+        <input type="hidden" name="geojson_id" value="">
+        <div class="secboxtop2">
+          <div class="leftbox">
+            <div class="two_input">
+              <div class="input_item">
+                <input type="text" name="name" placeholder="{% trans '中文名/學名/中文別名' %}" />
+              </div>
+              <div class="input_item">
+                <input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" />
+              </div>                
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select id="taxonGroup" name="taxonGroup">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  <option value="Insects">{% trans '昆蟲' %}</option>
+                  <option value="Fishes">{% trans '魚類' %}</option>
+                  <option value="Reptiles">{% trans '爬蟲類' %}</option>
+                  <option value="Fungi">{% trans '真菌(含地衣)' %}</option>
+                  <option value="Plants">{% trans '植物' %}</option>
+                  <option value="Birds">{% trans '鳥類' %}</option>
+                  <option value="Mammals">{% trans '哺乳類' %}</option>
+                </select>  
+              </div>  
+              <!--<div class="input_item">
+                
+                <select name="sensitiveCategory" id="sensitiveCategory" required>
+                  <option value="">-- 不限 --</option>
+                </select>
+              </div>-->
+              <div class="input_item">
+                <select name="taxonRank" id="taxonRank">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  {% for i in rank_list %}
+                  <option value="{{ i.1 }}">{% trans i.0 %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item input-100">
+                <select id="higherTaxa" name="higherTaxa">
+                </select>  
+              </div>  
+            </div>            
+            <div class="two_input">
+              <div class="input_item">
+                <select name="rightsHolder" id="rightsHolder" multiple size="1">
+                  {% for i in holder_list %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input_item">
+                <select name="has_image" id="has_image">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  <option value="y">{% trans '有影像' %}</option>
+                  <option value="n">{% trans '無影像' %}</option>
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="line_cneter">~</div>
+              <div class="input_item">
+                <input name="start_date" class="form-control" id="start_date" type="text" placeholder="{% trans '起始日期' %}（YYYY-MM-DD）" />
+                <a class="dateicon show_start"></a>
+              </div>
+              <div class="input_item">
+                <input name="end_date" id="end_date" type="text" placeholder="{% trans '結束日期' %}（YYYY-MM-DD）" value="" />
+                <span class="dateicon show_end"></span>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select id="locality" name="locality" multiple size="1">
+                </select>
+              </div>
+              <div class="input_item">
+                <input name="organismQuantity" type="number" placeholder="{% trans '數量' %}" min="0" />
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <input name="recordedBy" type="text" placeholder="{% trans '記錄者' %}" />
+              </div>
+              <div class="input_item">
+                <select name="basisOfRecord" id="basisOfRecord">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  {% for  key, value in basis_map.items  %}
+                  <option value="{{ key }}">{% trans value %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select name="datasetName" id="datasetName" multiple size="1">
+                </select>
+              </div>
+              <div class="input_item">
+                <input name="resourceContacts" type="text" placeholder="{% trans '資料集聯絡人' %}" />
+              </div>
+            </div>
+          </div>
+          <div class="rightbox">
+            <div class="title_area">
+              <h3>{% trans '空間查詢' %}</h3>
+              <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=13" class="qmark" target="_blank"></a>
+            </div>
+            <div class="btn_area">
+              <label class="btnupload">
+                <p class="mapGeo" data-type="map" >{% trans '地圖框選' %}</p>
+              </label>
+              <label class="btnupload">
+                <p class="circleGeo" data-type="circle">{% trans '圓中心框選' %}</p>
+              </label>
+              <label class="btnupload">
+                <p class="popupGeo" data-type="polygon">{% trans '上傳Polygon' %}</p>
+              </label>
+              <label class="btnupload">
+                <p class="clearGeo">{% trans '重設' %}</p>
+              </label>
+            </div>
+            <div class="map_img">
+              <div class="imgbox">
+                <div id="map" class="img"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </form>
+        <div class="d-flex-ai-c-jc-c ">
+          <div class="search_area_btns d-flex-ai-c">
+            <button class="search_btn submitSearch" data-page="1" data-from="search" data-new_click="true">{% trans '搜尋' %}</button>
+            <button class="clear_btn resetSearch">{% trans '清除搜尋條件' %}</button>
+          </div>
+        </div>
+    </div>
+
+    <div class="sc_result d-none">
+
+      <div class="result_inf_top">
+        <button class="cate_btn popupField">{% trans '欄位選項' %} +</button>
+        <div class="rightmore">
+        <button class="dw downloadData" data-query="" data-count="">{% trans '資料下載' %}</button>
+        <button class="dw downloadTaxon" data-query="">{% trans '名錄下載' %}</button>
+        <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=14" target="_blank" class="qmark"></a>
+        <button class="dw downloadSensitive" data-query="" data-count="">{% trans '申請單次使用去模糊化敏感資料' %}</button>
+        <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=15" target="_blank" class="qmark"></a>
+        </div>
+      </div>
+      <div class="d-flex-jc-sb result_inf_top_1">
+        <div class="per_page">{% trans '每頁顯示' %}
+          <select name="shownumber" data-query="">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          </select>{% trans ' 筆' %}
+        </div>
+        <p class="datenum">{% trans "資料筆數" %}{% trans '：' %}<span class="return-num"></span></p>
+      </div>
+  
+      <div class="result_table flow-x-auto">
+        <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+        </table>						
+      </div>
+  
+      <div class="no_data d-none">{% trans '無資料' %}</div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- 物種出現紀錄欄位選擇 -->
+<div class="popbg occ-choice d-none">
+	<div class="ovhy choice-ovhy">
+		<div class="wbox_center choice-flow">
+			<div class="xx choice-xx">
+			</div>
+			<div class="catetitle">
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll">{% trans '全選' %}</button>
+				<button class="selt resetAll">{% trans '重設' %}</button>
+			</div>
+			<ul class="catalist">
+				<li>
+					<input type="checkbox" class="chebox" id="occ-common_name_c">
+					<p>{% trans '中文名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-scientificName">
+					<p>{% trans '學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-alternative_name_c">
+					<p>{% trans '中文別名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-synonyms">
+					<p>{% trans '同物異名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-misapplied">
+					<p>{% trans '誤用名' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
+					<p>{% trans '來源資料庫使用學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
+					<p>{% trans '來源資料庫使用中文名' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-taxonRank">
+					<p>{% trans '鑑定層級' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
+					<p>{% trans '敏感層級' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-rightsHolder">
+					<p>{% trans '來源資料庫' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-taxonID">
+					<p>{% trans 'TaiCOL物種編號' %}</p>
+				</li>
+
+				<li>
+					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<p>{% trans '紀錄日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-locality">
+					<p>{% trans '出現地' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantity">
+					<p>{% trans '數量' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
+					<p>{% trans '數量單位' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-recordedBy">
+					<p>{% trans '記錄者' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
+					<p>{% trans '經度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
+					<p>{% trans '緯度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
+					<p>{% trans '空間參考系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
+					<p>{% trans '座標系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
+					<p>{% trans '座標誤差' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
+					<p>{% trans '座標是否有模糊化' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
+					<p>{% trans '座標模糊化程度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
+					<p>{% trans '紀錄類型' %}</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="occ-datasetName">
+					<p>{% trans '資料集名稱' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
+					<p>{% trans '資料集聯絡人' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-license">
+					<p>{% trans '授權狀況' %}</p>
+				</li>
+			</ul>
+			<button class="send_bt sendSelected">{% trans '確認' %}</button>
+		</div>
+	</div>
+</div>
+
+
+<!--空間查詢popbox-->
+<div class="popbg geojson_popup d-none">
+	<div class="ovhy">
+		<div class="wbox_center">
+			<div class="xx">
+			</div>
+			<div class="titlegreen">
+				{% trans '上傳Polygon' %}
+			</div>
+			<p class="shortxt">
+      {% trans '請以GeoJSON格式貼上欲查詢的Polygon' %}{% trans '：' %}
+			</p>
+			<div class="from_area h-100p">
+				<div class="txt_area">
+					<textarea id="geojson_textarea" class="h-300px"></textarea>
+				</div>
+				<p class="shortxt note-text">
+				*{% trans '上限2.5 MB' %}
+				</p>
+				<p class="shortxt text-right">
+					{% if LANGUAGE_CODE == 'en-us' %}
+						You can use <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> to convert KML or shapefile into GeoJSON.
+					{% else %}
+						可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
+					{% endif %}
+				</p>
+				<button class="send geojson_send">{% trans '確認送出' %}</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--圓中心查詢popbox-->
+<div class="popbg circle_popup d-none">
+	<div class="ovhy">
+		<div class="wbox_center mh-380px">
+			<div class="xx">
+			</div>
+			<div class="titlegreen">
+				 {% trans '圓中心框選' %}
+			</div>
+			<div class="from_area h-100p">
+				<div class="txt_area mt-5p">
+          <div class="circle-select">
+            <p>{% trans '半徑' %}</p>
+            <select name="circle_radius" id="circle_radius">
+              <option value="1">1KM</option>
+              <option value="2">2KM</option>
+              <option value="5">5KM</option>
+              <option value="10">10KM</option>
+              <option value="25">25KM</option>
+              <option value="50">50KM</option>
+            </select>
+          </div>
+          <div class="circle-select">
+            <p>{% trans '中心點經度' %}</p>
+            <input name="center_lon" type="text">
+          </div>
+          <div class="circle-select">
+            <p>{% trans '中心點緯度' %}</p>
+            <input name="center_lat" type="text">
+          </div>
+				</div>
+				<button class="send circle_send mt-5p">{% trans '確認送出' %}</button>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/wicket.js' %}"></script>
+<script src="{% static 'js/wicket-leaflet.js' %}"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}"></script>
+{% endblock script %}

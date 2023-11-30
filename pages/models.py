@@ -7,8 +7,13 @@ from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Keyword(models.Model):
+    lang_choice = [
+        ('en-us', '英文'),
+        ('zh-hant', '中文'),
+    ]
     keyword = models.TextField( blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
+    lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True)
     # created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
@@ -130,7 +135,9 @@ class Qa(models.Model):
         (3,'聯盟相關'),]
     type = models.IntegerField(choices=type_choice,blank=True, null=True)
     question = TextField(null=True, blank=True)
+    question_en = TextField(null=True, blank=True)
     answer = TextField(null=True, blank=True)
+    answer_en = TextField(null=True, blank=True)
     order = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = 'qa'

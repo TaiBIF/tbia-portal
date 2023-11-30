@@ -9,7 +9,7 @@ notif_map = {
     4: '/manager?menu=sensitive',
     6: '/manager',
     7: '/manager/system/news?menu=list',
-    8: '/manager/partner/news?menu=list'
+    8: '/manager/partner/news?menu=news'
   }
 
 from conf.settings import env

@@ -1,8 +1,9 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load i18n %}
 {% block head %}
 {% endblock head %}
-{% block title %}開放資料相關資源｜{% endblock %}
+{% block title %}{% trans '開放資料相關資源' %}｜{% endblock %}
 {% block style %}
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
@@ -10,25 +11,25 @@
 <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/resources_link.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/resources_link.css' %}" />
 {% endblock style %}
 {% block body %}
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>開放資料相關資源</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '開放資料相關資源' %}</p>
 	</div>
 </div>
 <div class="in_bn resource_bn">
 	<div class="title">
-		<h2>開放資料相關資源</h2>
-		<h3>Resources</h3>
+		<h2>{% trans '開放資料相關資源' %}</h2>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
 	<div class="main_1240"> 
 		<div class="w_bgr10 news_de">
 			<div class="nstitlebox">
-				<h3>國內外各大資料庫及推薦網站連結</h3>
+				<h3>{% trans '國內外各大資料庫及推薦網站連結' %}</h3>
 			</div>
 			<div class="partner_area partner_area_custom">
 					<div class="itembox">
@@ -41,18 +42,19 @@
 									<img src="/static/image/GBIF-2015.png">
 								</div>
 								<h2></h2><h3><a href="https://www.gbif.org" class="linkto" target="_blank">全球生物多樣性資訊機構 <i class="fa-solid fa-arrow-up-right-from-square icon-size-20"></i> </a></h3>
-								<p>全球生物多樣性資訊機構，簡稱 GBIF，是一個由全球政府資助而成立的跨國合作網絡及研究基礎建設，成立宗旨在於提供大眾無論何時、何地均能公開且自由存取的、各種地球上的生物資料。
-									位於哥本哈根的GBIF祕書處負責統整機構的運作，以參與國、合作組織作為節點(Node)，各節點收集的資料以共同標準、開源格式提供給全球的資料中心，使得這些包含記錄地點、時間的生物資訊得以公開分享。這些生物資訊來源不一，有自 18 至 19 世紀時期博物館的標本典藏，到近年來業餘自然學家們發布附有地理標記的手機拍攝照片。
-									GBIF以達爾文核心集（Darwin Core）標準格式彙整所有不同來源的資料，形成 GBIF.org 上億萬筆的物種出現記錄資料索引的基礎。彙整的資料在創用 CC 授權條款下，供科學家、研究人員及民眾公開自由存取，可運用於同儕審查論文發表及政策文件中，研究運用的主題涵蓋氣候變遷的衝擊、外來入侵害蟲的擴散、保育與保護區的優先順序、食品安全及人類健康等。</p>
+								<p>
+									{% if LANGUAGE_CODE == 'en-us' %}
+									The Global Biodiversity Information Facility (GBIF), is an international network and data infrastructure funded by the world's governments and aimed at providing anyone, anywhere, open access to data about all types of life on Earth. Coordinated through its Secretariat in Copenhagen, the GBIF network of participating countries and organizations, working through the participant nodes, provides data-holding institutions around the world with common standards, best practices and open-source tools enabling them to share information about where and when species have been recorded. This knowledge derives from many different kinds of sources, including everything from museum specimens collected in the 18th and 19th century to DNA barcodes and smartphone photos recorded in recent days and weeks. The network draws these diverse data sources together through the use of data standards, including Darwin Core, which forms the basis for the bulk of GBIF.org's index of hundreds of millions of species occurrence records. Publishers provide open access to their datasets using machine-readable Creative Commons licence designations, allowing scientists, researchers and others to apply the data in peer-reviewed publications, along with other reports, analyses and policy documents. The topics include the impacts of climate change, the spread of invasive species, the prioritization of conservation and protected areas, food security, and human health.
+									{% else %}
+									全球生物多樣性資訊機構，簡稱 GBIF，是一個由全球政府資助而成立的跨國合作網絡及研究基礎建設，成立宗旨在於提供大眾無論何時、何地均能公開且自由存取的、各種地球上的生物資料。 位於哥本哈根的GBIF祕書處負責統整機構的運作，以參與國、合作組織作為節點(Node)，各節點收集的資料以共同標準、開源格式提供給全球的資料中心，使得這些包含記錄地點、時間的生物資訊得以公開分享。這些生物資訊來源不一，有自 18 至 19 世紀時期博物館的標本典藏、DNA資料，到近年來業餘自然學家們發布附有地理標記的手機拍攝照片。 GBIF以達爾文核心集（Darwin Core）標準格式彙整所有不同來源的資料，形成 GBIF.org 上億萬筆的物種出現記錄資料索引的基礎。彙整的資料在創用 CC 授權條款下，供科學家、研究人員及民眾公開自由存取，可運用於同儕審查論文發表、報告、分析及政策文件中，研究運用的主題涵蓋氣候變遷的衝擊、外來入侵害蟲的擴散、保育與保護區的優先順序、食品安全及人類健康等。
+									{% endif %}
+								</p>
+
 							</div>
 							<div class="rightbox">
 								<div class="pic">
 									<img src="/static/image/GBIF-cover.png" >
 								</div>
-								<!--
-								<a href="https://www.gbif.org" class="linkto" target="_blank">
-									聯絡我們
-								</a>-->
 							</div>
 						</div>
 					</div>
@@ -77,7 +79,7 @@
 					</div>
 			</div>
 			<div class="editor">
-				<p class="link-editor">網站連結</p>
+				<p class="link-editor">{% trans '網站連結' %}</p>
 				{{ n.content|safe }}
 			</div>
 		</div> 

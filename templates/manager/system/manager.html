@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load static %} 
-{% block title %}系統管理後台｜{% endblock %}
+{% load i18n %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager_system.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_system.css' %}" />
 {% endblock style %}
 
 {% block head %}
@@ -20,7 +21,7 @@
 
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
@@ -54,7 +55,7 @@
                             <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
                             <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
                             <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
@@ -68,7 +69,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li>
@@ -81,7 +82,7 @@
                           </div>
                           <div class="col_menu second_menu">
                               <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
-                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                              <a href="{% url 'system_resource' %}?menu=resource">資源列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -94,7 +95,7 @@
                           </div>
                           <div class="col_menu second_menu">
                             <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=list">QA列表</a>
+                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                           </div>                    
                     </li>
                     <li>
@@ -148,5 +149,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager_system.js' %}"></script>
+  <script src="{% static 'js/manager/manager_system.js' %}"></script>
   {% endblock script %}

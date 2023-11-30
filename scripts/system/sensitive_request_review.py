@@ -1,4 +1,4 @@
-from manager.models import User, SensitiveDataResponse
+from manager.models import User, SensitiveDataResponse, Workday
 from pages.models import Notification
 from django.db import connection
 from datetime import datetime, tzinfo,timedelta
@@ -10,6 +10,7 @@ import threading
 import glob
 import os
 from conf.settings import env
+from django.db.models import Max
 
 web_mode = env('ENV')
 if web_mode == 'stag':
@@ -29,41 +30,31 @@ else:
 
 
 today = datetime.today() + timedelta(hours=8)
-
-folder = '/tbia-volumes/bucket/calendar'
-extension = 'csv'
-os.chdir(folder)
-files = glob.glob('calendar_*.{}'.format(extension))
-
-c_cal = pd.DataFrame(columns=['西元日期','星期','是否放假','備註'])
-for f in files:
-    tmp_f = pd.read_csv(f'/tbia-volumes/bucket/calendar/{f}')
-    c_cal = c_cal.append(tmp_f, ignore_index=True)
-
-
-c_cal = c_cal.sort_values('西元日期').reset_index(drop=True)
+today = today.date()
 
 # 系統管理員負責的
 query = """
-select sdr.id, to_char(sdr.created AT TIME ZONE 'Asia/Taipei', 'YYYYMMDD'), sdr.query_id from manager_sensitivedataresponse sdr
-where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is null;
+select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
+    where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is null;
 """
-
 with connection.cursor() as cursor:
     cursor.execute(query)
     data = cursor.fetchall()
 
+max_day = Workday.objects.all().aggregate(Max('date'))['date__max']
+
 for d in data:
     # 找到當日的row
     c = 0
-    row_i = c_cal[c_cal.西元日期 == int(d[1])].index[0]
+    # row_i = c_cal[c_cal.西元日期 == int(d[1])].index[0]
+    row_date = d[1]
     while c < 7:
-        row_i += 1
-        if not row_i > c_cal.index.max():
-            if c_cal.iloc[row_i].是否放假 == 0:
-                due = c_cal.iloc[row_i]
+        row_date += timedelta(days=1)
+        if not row_date > max_day:
+            if Workday.objects.get(date=row_date).is_dayoff == 0:
+                due = row_date
                 c += 1
-    if today.strftime('%Y%m%d') >= str(due.西元日期):
+    if today >= due:
         sdr_id = d[0]
         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
@@ -81,7 +72,7 @@ for d in data:
 
 # 夥伴單位負責的
 query = """
-select sdr.id, to_char(sdr.created AT TIME ZONE 'Asia/Taipei', 'YYYYMMDD'), sdr.query_id from manager_sensitivedataresponse sdr
+select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
 where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
 """
 
@@ -92,14 +83,14 @@ with connection.cursor() as cursor:
 for d in data:
     # 找到當日的row
     c = 0
-    row_i = c_cal[c_cal.西元日期 == int(d[1])].index[0]
-    while c < 14:
-        row_i += 1
-        if not row_i > c_cal.index.max():
-            if c_cal.iloc[row_i].是否放假 == 0:
-                due = c_cal.iloc[row_i]
+    row_date = d[1]
+    while c < 7:
+        row_date += timedelta(days=1)
+        if not row_date > max_day:
+            if Workday.objects.get(date=row_date).is_dayoff == 0:
+                due = row_date
                 c += 1
-    if today.strftime('%Y%m%d') >= str(due.西元日期):
+    if today >= due:
         sdr_id = d[0]
         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
             sdr = SensitiveDataResponse.objects.get(id=sdr_id)

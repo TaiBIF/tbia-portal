@@ -1,111 +1,194 @@
 {% extends 'base.html' %} 
 {% load static %}
-{% block title %}使用條款｜{% endblock %}
+{% load i18n %}
+{% block title %}{% trans '使用條款' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/terms.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/terms.css' %}" />
 {% endblock style %}
 
 {% block body %}
 <div class="path"> 
 <div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>使用條款</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '使用條款' %}</p>
 	</div>
 </div>
 <div class="minh_content">
 	<div class="nbn_title">
-		<h2>使用條款</h2>
+		<h2>{% trans '使用條款' %}</h2>
 	</div>
 	<div class="main_1240"> 
 		<div class="w_border10_box agree_arae marb_30">
 			<div class="scrollbox">
-				更新日期：2022/10/20
+				{% trans '更新日期' %}：2022/10/20
 				<br>
 				<br>
-				1. 適用範圍
-				<br>
-				<br>
+				{% if LANGUAGE_CODE == 'en-us' %}
+					1. Scope
+					<br>
+					<br>
+					1.1. This portal is managed and maintained by the TBIA Secretariat. The accessible data and materials provided on the website are published under the licenses or dedications either designated by contributing partners or stipulated by legitimate third parties that are compliant and compatible with the General Public License Policy of TBIA. The ownership of the data and materials is attributed to the original contributing partners or third-party rights holders.
+					<br>
+					<br>
+					1.2. The copyright policy on this page applies to the utilization and licensing relationships regarding copyrighted materials when you are engaged in activities on the TBIA portal. Different standards might be applied based on the levels between partner member accounts, non-partner member accounts, and event-specific member accounts.
+					<br>
+					<br>
+					1.3. The continued use of TBIA portal services by users is considered an express agreement by the individual or their representing partner group to abide by the following terms of use, including compliance with usage behavior and technical requirements, as well as the updates of these terms.
+					<br>
+					<br>				
+					2. Data Licensing and Sharing Method
+					<br>
+					<br>
+					2.1. All data published on the TBIA portal is provided in two models: General Public Licensing data and Non-public Licensing data. The complete field version of relevant data is set as Non-public Licensing data by default, and the simplified field version of that is published at the same time in the General Public Licensing data model. Non-public Licensing data, in its complete field version, may be legally used in subsequent specific contexts after meeting necessary requirements. And if users undertake field reduction, de-identification, and other refinement work, they may hence distribute that refined data in a manner consistent with the simplified field version's General Public Licensing or dedication model when the simplified field version is not originally provided at all.
+					<br>
+					<br>
+					2.2. General Public Licensing data refers to data provided to the public without discrimination. Basically, it is comprised of the standard field version and simplified geographic coordinate information for relevant data, as designated by contributing partner groups upon submission. It is provided for use through one of the following four options of General Public Licensing or dedication methods:
+					<br>
+					<br>
+						<ol>
+							<li>CC0 (Public Domain Dedication): Through the adoption of the Public Domain Dedication, contributors declare the waiver of their copyrights to the work to the fullest extent allowed by law, enabling the public to use the work freely without restrictions. This is the most permissive method of material provision.</li>
+							<li>OGDL-Taiwan (Taiwan Open Government Data License): This license grants users a perpetual, worldwide, non-exclusive, irrevocable, royalty-free copyright permission to reproduce, distribute, publicly transmit, publicly broadcast, publicly recite, publicly present, publicly perform, compile, adapt to the data provided for any purpose, including but not limited to making all kinds of derivative works, either as products or services. Users may also further sub-license the work to others through multiple tiers in the same way; however, users should also make an explicit notice or statement as attribution requested by the data providers. The license is compatible with the Creative Commons Attribution License 4.0 International (CC-BY-4.0). This means that when the data is utilized in compliance with CC-BY-4.0 subsequently, users automatically satisfy the conditions of the OGDL-Taiwan thereafter.</li>
+							<li>CC-BY (Creative Commons Attribution): This license permits users to reproduce, distribute, transmit, and modify the work (including for commercial use) as long as they attribute the work in the manner specified by the contributor. Users may use the data and related materials in any context, including for commercial purposes, but they shall always provide attribution to the contributor's name, pseudonym, or other designated attribution information. Users can also create new works using the data and materials provided by the contributor.</li>
+							<li>CC-BY-NC (Creative Commons Attribution-NonCommercial): This license allows users to reproduce, distribute, transmit, and modify the work, but the use based on commercial purposes is not permitted. Users must provide attribution as specified by the contributor.</li>
+						</ol>
+					<br>
+					2.3. General Public Licensing data, whether under CC0, OGDL-Taiwan, CC-BY, or CC-BY-NC, can be used in commercial or non-commercial scenarios, perpetually and worldwide, for reproduction, modification, compilation, public transmission, and any other utilization that requires copyright permission under the law. Such copyright license or dedication will not be revoked in the future, and users shall not need a written offer or other license certification in formality. The data and materials can also be distributed on other hosting platforms for public broadcasting, including but not limited to citation or re-publishing on other websites that provide public transmission to the public. For data provided under OGDL-Taiwan, CC-BY, or CC-BY-NC licenses, users must attribute the contributor's name and the original source when using the data, while data provided under the CC0 dedication does not require any attribution obligation. However, for academic ethics and research integrity, it is recommended that users, if feasible, follow the specific instructions of the original data providers to perform the attribution, or apply one of the following English or Chinese formats for the attribution when annotating the contributor's name and the original source of relevant data and materials:
+					<br>
+					<br>
+						<ol>
+							<li>[Title of the Dataset or Database], [Contributor’s Attribution (collector, Liaison and Affiliation Organization) @ TBIA, under [CC0 / CC-BY / OGDL-Taiwan / CC-BY-NC].</li>
+							<li>[資料集或資料庫名稱]，[貢獻者顯名資訊(採集者、聯絡人、夥伴會員之機構或單位名稱)]@TBIA，[CC0 / CC-BY / OGDL-Taiwan / CC-BY-NC].</li>
+						</ol>
+					<br>
+					2.4. The General Public Licensing terms and Public Domain Dedications adopted on this portal are not generally specified in versions, unless the partner group or the original legitimate third-party provider who contributed the data specifies otherwise. It means that when providing the data under the aforementioned General Public Licensing or dedication methods, users can choose any version of licensing terms and dedications published by the Creative Commons organization or its corresponding license steward, such as the Taiwan Government for the OGDL-Taiwan. For example, when the data is published under the CC-BY on this portal, users can usually choose to use it either under CC-BY-3.0 TW or CC-BY-4.0 licensing terms, and if there are updates to these licensing terms or dedication versions in the future, users can also adopt the updated licensing and dedication method with the same licensing elements.
+					<br>
+					<br>
+					2.5. This website respects the independent judgment and interpretation of data or material contributors and users regarding the scope of the CC non-commercial element, without any intent to expand, limit, or lead such interpretation. However, for the avoidance of doubt, unless otherwise specified by the partner group or the original legitimate third-party provider, the circulation of government publications or similar items, the selling price of which does not exceed the overall cost of printing, production, and distribution, or the electronic format of that is made available free of charge to the public, shall be considered as non-commercial uses. Even if it includes suggested retail prices due to the inclusion of ISBN or other publication numbers. It is also noted that there may be different interpretations and gray areas regarding the non-commercial element among different perspectives. In case of legal disputes, this portal will assert the legal position of an internet service provider, not participating in any physical litigation proceedings initiated by either party.
+					<br>
+					<br>
+					2.6. Non-public Licensing data refers to the complete field version and detailed geographic coordinate information of relevant data provided to designated members. It can be accessed by partner member accounts for comprehensive searching and browsing or by non-partner member accounts for event-specific title searching and retrieval with subsequent application for case-based usage. The conditions for the subsequent use of such data are as follows:
+					<br>
+					<br>
+						<ol>
+							<li>Signing a Non-disclosure Agreement: Permission can be granted after signing a TBIA Non-disclosure Agreement.</li>
+							<li>Based on the public interest or academic research purposes: The processing or utilization of Non-public Licensing data should be for the public interest and performed under statistical or academic research purposes.</li>
+							<li>Valid de-identification and bearing of responsibility: Subsequent use and disclosure of such data should be carried out in accordance with legal requirements. Users are recommended to de-identify and filter the data to prevent the sensitive species' precise geographic information from being identifiable and having a negative impact on conservation efforts. If there are any unlawful or improper aspects to the subsequent use, the data processors and users should bear the related legal responsibility.</li>
+						</ol>
+					<br>
+					2.7. After processors perform field reduction, de-identification, or similar work on Non-public licensing data, the outcome can be subsequently circulated under the same public licensing or dedication models that match the simplified field version of that data. The citation regulations, attribution recommendations, license term updates, and non-commercial scope interpretations mentioned above apply in such scenarios as well. When data has been processed and is further circulated, the processor can be credited as the author of the derivative data. However, if there are any unlawful or improper aspects to the derived status and subsequent use of the processed data, the data processors and users should bear the corresponding legal responsibility.
+					<br>
+					<br>
+					2.8. Non-public Licensing data can be accessed by partner member accounts for comprehensive searching and browsing or by non-partner accounts for event-specific title searching and retrieval with subsequent application for case-based usage. If the partner members or non-partner members take responsibility for the data processing and further utilization, such as performing field reduction of data to achieve the purposes of strengthening the protection of sensitive species' ecological information, the processed outcome shall be able to be exploited lawfully. When the processor assumes responsibility for the processing and using of relevant data, there is no need for additional permission required from the original attributing partner group of that data for the subsequent use.
+					<br>
+					<br>				
+					3. Miscellaneous
+					<br>
+					<br>
+					3.1. Except for utilization through Application Program Interfaces (APIs) and its related regulations initiated by this portal, the services of this website are intended for use by natural persons only. Various types and frequencies of mechanical automation operations are prohibited. When traffic monitoring and management programs detect abnormal resource consumption within the website system and can reasonably estimate that it results from automated data or material retrieval, this portal may interrupt or terminate the subsequent use of the related account.
+					<br>
+					<br>
+					3.2. This portal does not bear the responsibility of permanent maintenance and declaration for contributed data and materials. Moreover, in the case of General Public Licensing data involving sensitive biodiversity data and similar situations, where the data and materials contain information that may harm species or cause other environmental damage, this portal may request the contributing partner group to appropriately obscure the General Public Licensing data and perform the re-uploading of it. Alternatively, this task may be performed with the assistance of the platform in obscuring and filtering efforts, or in reclassifying it as Non-public Licensing data.
+					<br>
+					<br>
+					3.3. This portal provides data and material download functions on certain pages. Regarding the preservation of downloaded data and materials, the portal strives to maintain them in full, but data and materials may be lost due to other factors such as natural disasters, system errors, etc. The portal and the maintenance unit bear no responsibility for such losses. To avoid such losses, contributing partner groups and users should keep backup copies of data and materials available for themselves.
+					<br>
+					<br>
+					3.4. This portal does not monitor the contributions of data and materials uploaded by users in progress or in surveillance. However, if such data or materials are subsequently reported by third parties as illegal or inappropriate, the portal may remove the relevant disputed data or materials after notifying the original contributing partner groups. In cases where disputed data and materials involve violations of the rights of others, legal violations, or the inclusion of inappropriate information such as public insults or personal attacks, the portal may remove the relevant data and materials immediately without prior notice to the original contributing group.
+					<br>
+					<br>
+					3.5. The scope of the license provided by the TBIA portal applies only to copyright and related rights protection in the data provided and does not cover other intellectual property rights, including but not limited to patents, trademarks, and the provision of organization logos or business marks.
+					<br>
+					<br>
+					3.6. Users of the data and materials provided by the TBIA website, whether protected by copyright or not, may not maliciously alter their relevant information. If the information displayed after editing or modification differs from the original and causes damage to the legal rights of TBIA contributing partner groups or others, the users shall bear civil and criminal legal liability themselves.
+					<br>
+					<br>
+					3.7. This portal does not guarantee the correctness and fitness of the data and materials provided, including both General Public Licensing data and Non-public Licensing data. In addition, if users suffer damage or loss, or make third parties suffer damage or loss while using General Public Licensing data provided free of charge through the portal, except as otherwise required by law, this portal and its maintenance unit assert the highest degree of disclaimer allowed by law, in accordance with the relevant General Public Licensing terms or public domain dedication declarations, and do not assume any compensation or indemnification responsibility.				
+				{% else %}
+					1. 適用範圍
+					<br>
+					<br>
 
-				1.1. 本入口網站由TBIA秘書處責付組織負責維運。本站得被搜尋近用的資料與素材，依貢獻夥伴單位提交時指定，或依合法第三方處轉存與本站公眾授權資料方式相容之授權或聲明方式發布，其資料與素材相關權利之歸屬，歸原貢獻夥伴單位或第三方權利人所有。
-				<br>
-				<br>
-				1.2. 本頁面的著作權政策，適用於您於 TBIA 入口網站活動時，所涉及之著作授權與被授權關係，依夥伴成員帳號、非夥伴成員帳號，及個案申請會員帳號而適用不同的處理標準。
-				<br>
-				<br>
-				1.3. 使用者繼續使用 TBIA 入口網站服務之作為，視為當事人本人或代表其夥伴單位，明示同意下述之使用條款，包括使用行為之拘束與技術規範之遵守，以及本使用條款之更新適用。
-				<br>
-				<br>
+					1.1. 本入口網站由TBIA秘書處責付組織負責維運。本站得被搜尋近用的資料與素材，依貢獻夥伴單位提交時指定，或依合法第三方處轉存與本站公眾授權資料方式相容之授權或聲明方式發布，其資料與素材相關權利之歸屬，歸原貢獻夥伴單位或第三方權利人所有。
+					<br>
+					<br>
+					1.2. 本頁面的著作權政策，適用於您於 TBIA 入口網站活動時，所涉及之著作授權與被授權關係，依夥伴成員帳號、非夥伴成員帳號，及個案申請會員帳號而適用不同的處理標準。
+					<br>
+					<br>
+					1.3. 使用者繼續使用 TBIA 入口網站服務之作為，視為當事人本人或代表其夥伴單位，明示同意下述之使用條款，包括使用行為之拘束與技術規範之遵守，以及本使用條款之更新適用。
+					<br>
+					<br>
 
-				2. 資料的授權與分享方式
-				<br>
-				<br>
+					2. 資料的授權與分享方式
+					<br>
+					<br>
 
-				2.1. TBIA 入口網站刊載之所有資料，採公眾授權資料及非公眾授權資料兩種模式提供。相關資料之完整欄位版本，預設為非公眾授權資料，其簡化欄位版本，方採公眾授權資料模式發布，完整欄位之非公眾授權資料，於滿足必要條件後，得於後續個案情境被依法使用，而若使用者一併實踐欄位刪減、去識別化等工作後，亦得依其簡化欄位版本一致之公眾授權或聲明模式向後流通。
-				<br>
-				<br>
-				2.2. 公眾授權資料指相關資料之標準欄位版本、簡化範圍的地理座標資訊，對不限定對象之公眾進行提供之資料，依貢獻夥伴單位提交時之指定，採下列四擇一之公眾授權或聲明方式提供使用，包括：
-				<br>
-				<br>
-					<ol>
-						<li>CC0(公眾領域貢獻宣告)：透過採用公眾領域貢獻宣告，貢獻者將於符合法律規定的最大範圍內，宣告拋棄其對著作擁有之權利，以使公眾能不受限制地自由使用該著作，這是使用幅度最寬鬆的素材提供方式。</li>
-						<li>OGDL-Taiwan(政府資料開放授權條款)：本授權條款允許使用者不限目的、時間及地域、非專屬、不可撤回、免授權金進行利用，利用之方式包括重製、散布、公開傳輸、公開播送、公開口述、公開上映、公開演出、編輯、改作，包括但不限於開發各種產品或服務型態之衍生物，並得再轉授權他人為前列之利用。然利用時，應依資料提供者之指示，進行顯名聲明之標示。本條款與CC-BY-4.0相容，使用者後續以CC-BY-4.0規定之方式利用此等資料，視為符合政府資料開放授權條款之規定。</li>
-						<li>CC-BY(CC授權-姓名標示)：本授權條款允許使用者重製、散布、傳輸以及修改著作(包括商業性利用)，惟使用時必須按照貢獻者所指定的方式，表彰其姓名。說明：使用者可以把資料及其相關素材用在任何地方，包括營利用途的使用，但不論任何方式的使用，都必須同步標示貢獻者的姓名、筆名，或其他指定的顯名資訊；使用者也可以使用貢獻者提供的資料及素材產出新的作品。</li>
-						<li>CC-BY-NC(CC授權-姓名標示-非商業性)：本授權條款允許使用者重製、散布、傳輸以及修改著作，但不得為商業目的之使用。使用時必須按照貢獻者指定的方式表彰其姓名。</li>
-					</ol>
-				<br>
-				2.3. 公眾授權資料依CC0、OGDL-Taiwan、CC-BY、或CC-BY-NC，使用者得於商業目的或非商業目的上，不限時間、地域，對所提供之資料進行重製、改作、編輯、公開傳輸，或為其他依法需取得著作授權方可行之的利用。此一授權或宣告行為不會嗣後撤回，使用者亦毋須取得書面或其他方式授權，相關資料與素材亦得依所擇定之授權或聲明方式，經重製、散布，轉至其他託管平台進行公開演播模式之使用，包括但不限於轉引或轉載至其他向公眾提供公開傳輸的網站平台提供利用。依OGDL-Taiwan、CC-BY、CC-BY-NC授權方式提供者，後續使用時必須註明貢獻者姓名及原始出處，採CC0聲明方式提供者，該公眾領域貢獻宣告並不要求任何顯名義務，然基於學術倫理及科研考據之立場，仍建議使用者於可行狀況，依資料原出處夥伴之指示，或採下列中英文擇一之格式，註解相關資料及素材之貢獻者姓名及原始出處：
-				<br>
-				<br>
-					<ol>
-						<li>[資料集或資料庫名稱]，[貢獻者顯名資訊(採集者、聯絡人、夥伴會員之機構或單位名稱)]@TBIA，[CC-BY / OGDL-Taiwan / CC-BY-NC / CC0]。</li>
-						<li>[Title of the Dataset or Database], [Contributor’s Attribution(collector, Liaison and Affiliation Organization) @ TBIA, under [CC-BY / OGDL-Taiwan / CC-BY-NC / CC0].</li>
-					</ol>
-				<br>
-				2.4. 本入口網站所採用之公眾授權條款及公眾領域貢獻宣告未指定版本，除非貢獻該等資料之夥伴單位或原合法第三方提供者，另作限定版本之其他指示。意即採前列之公眾授權或聲明方式提供使用時，使用者得自行選擇任何 Creative Commons 組織及中華民國政府發布之授權條款及貢獻宣告版本進行適用，以CC-BY為例，使用者得任擇CC-BY-3.0 TW或CC-BY-4.0授權條款進行利用，若未來CC授權條款或貢獻宣告版本再有更新，使用者亦得採行具同樣授權元素，更新的授權方式進行利用。
-				<br>
-				<br>
-				2.5. 本網站對於CC非商業性元素之限制範圍，尊重資料或素材貢獻者及使用者之獨立判斷與自主解釋，並無任何擴大、限縮，或引導之解釋意向。然為避免疑義，除非貢獻該等資料之夥伴單位或原合法第三方提供者另作其他指示，未逾印刷、產製、發送整體成本之政府出版品或其也相類之刊物發表，即使因設置ISBN或其他出版編號而設有建議售價，然發送時僅就成本填補資費進行收取，或其電子格式係採無償免費方式供公眾下載時，視為非商業性之利用。另提醒非商業性元素於不同立場間，或存有寬嚴不一的認定標準與灰色地帶，倘發生司法爭議，本入口網站當主張法律上網路服務提供者之免責地位，不參與任何一方發動之實體訴訟程序。
-				<br>
-				<br>
-				2.6. 非公眾授權資料指相關資料之完整欄位版本、詳細範圍的地理座標資訊，對限定對象之會員進行提供之資料，其得供夥伴會員帳號進行整體搜尋及瀏覽，或得供個案申請式的非夥伴會員帳號，進行標題搜尋及檢索後提出個案接近使用之申請。該等資料之後續利用條件為：
-				<br>
-				<br>
-					<ol>
-						<li>簽訂保密協議：先行完備TBIA保密協議之簽訂方得開啟權限。</li>
-						<li>基於公共利益或學術研究之目的：非公眾授權資料之處理或利用，應基於公共利益為統計或學術研究之目的。</li>
-						<li>善盡去識別化工作並自負相關責任：該等資料之後續個案利用及揭露，應依法律規定而行，並建議須經使用者進行資料去識別化與濾除處理，以達無從識別敏感物種精細地理資訊，以避免對其保育工作產生負面影響之程度。後續利用若有違法與失當之處，資料之處理與利用者，應自負相關法律責任。</li>
-					</ol>
-				<br>
-				2.7. 非公眾授權資料得經使用者實踐欄位刪減、去識別化等工作後，續採與其簡化欄位版本一致之公眾授權或聲明模式向後流通，前列之轉引規範、顯名標示建議、授權條款版本更新，以及非商業性範圍之解釋一併於此適用。此時經處理再向外流通之整理資料，得將處理者列改作人，然整理狀態及後續利用若有違法與失當之處，資料之處理與利用者，亦應擔負相關法律責任。
-				<br>
-				<br>
-				2.8. 非公眾授權資料得供夥伴會員帳號進行整體搜尋及瀏覽，或得供個案申請式的非夥伴會員帳號，進行標題搜尋及檢索後提出個案接近使用之申請。其後應由夥伴會員或非夥伴個案申請會員自負其責後，進行前述刪減欄位後的適法應用，以強化敏感物種生態資訊之保護目的。處理者就相關資料處理自負其責時，後續使用毋須另行洽商該資料集原始歸屬夥伴單位之額外同意。
-				<br>
-				<br>
+					2.1. TBIA 入口網站刊載之所有資料，採公眾授權資料及非公眾授權資料兩種模式提供。相關資料之完整欄位版本，預設為非公眾授權資料，其簡化欄位版本，方採公眾授權資料模式發布，完整欄位之非公眾授權資料，於滿足必要條件後，得於後續個案情境被依法使用，而若使用者一併實踐欄位刪減、去識別化等工作後，亦得依其簡化欄位版本一致之公眾授權或聲明模式向後流通。
+					<br>
+					<br>
+					2.2. 公眾授權資料指相關資料之標準欄位版本、簡化範圍的地理座標資訊，對不限定對象之公眾進行提供之資料，依貢獻夥伴單位提交時之指定，採下列四擇一之公眾授權或聲明方式提供使用，包括：
+					<br>
+					<br>
+						<ol>
+							<li>CC0(公眾領域貢獻宣告)：透過採用公眾領域貢獻宣告，貢獻者將於符合法律規定的最大範圍內，宣告拋棄其對著作擁有之權利，以使公眾能不受限制地自由使用該著作，這是使用幅度最寬鬆的素材提供方式。</li>
+							<li>OGDL-Taiwan(政府資料開放授權條款)：本授權條款允許使用者不限目的、時間及地域、非專屬、不可撤回、免授權金進行利用，利用之方式包括重製、散布、公開傳輸、公開播送、公開口述、公開上映、公開演出、編輯、改作，包括但不限於開發各種產品或服務型態之衍生物，並得再轉授權他人為前列之利用。然利用時，應依資料提供者之指示，進行顯名聲明之標示。本條款與CC-BY-4.0相容，使用者後續以CC-BY-4.0規定之方式利用此等資料，視為符合政府資料開放授權條款之規定。</li>
+							<li>CC-BY(CC授權-姓名標示)：本授權條款允許使用者重製、散布、傳輸以及修改著作(包括商業性利用)，惟使用時必須按照貢獻者所指定的方式，表彰其姓名。說明：使用者可以把資料及其相關素材用在任何地方，包括營利用途的使用，但不論任何方式的使用，都必須同步標示貢獻者的姓名、筆名，或其他指定的顯名資訊；使用者也可以使用貢獻者提供的資料及素材產出新的作品。</li>
+							<li>CC-BY-NC(CC授權-姓名標示-非商業性)：本授權條款允許使用者重製、散布、傳輸以及修改著作，但不得為商業目的之使用。使用時必須按照貢獻者指定的方式表彰其姓名。</li>
+						</ol>
+					<br>
+					2.3. 公眾授權資料依CC0、OGDL-Taiwan、CC-BY、或CC-BY-NC，使用者得於商業目的或非商業目的上，不限時間、地域，對所提供之資料進行重製、改作、編輯、公開傳輸，或為其他依法需取得著作授權方可行之的利用。此一授權或宣告行為不會嗣後撤回，使用者亦毋須取得書面或其他方式授權，相關資料與素材亦得依所擇定之授權或聲明方式，經重製、散布，轉至其他託管平台進行公開演播模式之使用，包括但不限於轉引或轉載至其他向公眾提供公開傳輸的網站平台提供利用。依OGDL-Taiwan、CC-BY、CC-BY-NC授權方式提供者，後續使用時必須註明貢獻者姓名及原始出處，採CC0聲明方式提供者，該公眾領域貢獻宣告並不要求任何顯名義務，然基於學術倫理及科研考據之立場，仍建議使用者於可行狀況，依資料原出處夥伴之指示，或採下列中英文擇一之格式，註解相關資料及素材之貢獻者姓名及原始出處：
+					<br>
+					<br>
+						<ol>
+							<li>[資料集或資料庫名稱]，[貢獻者顯名資訊(採集者、聯絡人、夥伴會員之機構或單位名稱)]@TBIA，[CC-BY / OGDL-Taiwan / CC-BY-NC / CC0]。</li>
+							<li>[Title of the Dataset or Database], [Contributor’s Attribution(collector, Liaison and Affiliation Organization) @ TBIA, under [CC-BY / OGDL-Taiwan / CC-BY-NC / CC0].</li>
+						</ol>
+					<br>
+					2.4. 本入口網站所採用之公眾授權條款及公眾領域貢獻宣告未指定版本，除非貢獻該等資料之夥伴單位或原合法第三方提供者，另作限定版本之其他指示。意即採前列之公眾授權或聲明方式提供使用時，使用者得自行選擇任何 Creative Commons 組織及中華民國政府發布之授權條款及貢獻宣告版本進行適用，以CC-BY為例，使用者得任擇CC-BY-3.0 TW或CC-BY-4.0授權條款進行利用，若未來CC授權條款或貢獻宣告版本再有更新，使用者亦得採行具同樣授權元素，更新的授權方式進行利用。
+					<br>
+					<br>
+					2.5. 本網站對於CC非商業性元素之限制範圍，尊重資料或素材貢獻者及使用者之獨立判斷與自主解釋，並無任何擴大、限縮，或引導之解釋意向。然為避免疑義，除非貢獻該等資料之夥伴單位或原合法第三方提供者另作其他指示，未逾印刷、產製、發送整體成本之政府出版品或其也相類之刊物發表，即使因設置ISBN或其他出版編號而設有建議售價，然發送時僅就成本填補資費進行收取，或其電子格式係採無償免費方式供公眾下載時，視為非商業性之利用。另提醒非商業性元素於不同立場間，或存有寬嚴不一的認定標準與灰色地帶，倘發生司法爭議，本入口網站當主張法律上網路服務提供者之免責地位，不參與任何一方發動之實體訴訟程序。
+					<br>
+					<br>
+					2.6. 非公眾授權資料指相關資料之完整欄位版本、詳細範圍的地理座標資訊，對限定對象之會員進行提供之資料，其得供夥伴會員帳號進行整體搜尋及瀏覽，或得供個案申請式的非夥伴會員帳號，進行標題搜尋及檢索後提出個案接近使用之申請。該等資料之後續利用條件為：
+					<br>
+					<br>
+						<ol>
+							<li>簽訂保密協議：先行完備TBIA保密協議之簽訂方得開啟權限。</li>
+							<li>基於公共利益或學術研究之目的：非公眾授權資料之處理或利用，應基於公共利益為統計或學術研究之目的。</li>
+							<li>善盡去識別化工作並自負相關責任：該等資料之後續個案利用及揭露，應依法律規定而行，並建議須經使用者進行資料去識別化與濾除處理，以達無從識別敏感物種精細地理資訊，以避免對其保育工作產生負面影響之程度。後續利用若有違法與失當之處，資料之處理與利用者，應自負相關法律責任。</li>
+						</ol>
+					<br>
+					2.7. 非公眾授權資料得經使用者實踐欄位刪減、去識別化等工作後，續採與其簡化欄位版本一致之公眾授權或聲明模式向後流通，前列之轉引規範、顯名標示建議、授權條款版本更新，以及非商業性範圍之解釋一併於此適用。此時經處理再向外流通之整理資料，得將處理者列改作人，然整理狀態及後續利用若有違法與失當之處，資料之處理與利用者，亦應擔負相關法律責任。
+					<br>
+					<br>
+					2.8. 非公眾授權資料得供夥伴會員帳號進行整體搜尋及瀏覽，或得供個案申請式的非夥伴會員帳號，進行標題搜尋及檢索後提出個案接近使用之申請。其後應由夥伴會員或非夥伴個案申請會員自負其責後，進行前述刪減欄位後的適法應用，以強化敏感物種生態資訊之保護目的。處理者就相關資料處理自負其責時，後續使用毋須另行洽商該資料集原始歸屬夥伴單位之額外同意。
+					<br>
+					<br>
 
-				3. 相關事項說明
-				<br>
-				<br>
+					3. 相關事項說明
+					<br>
+					<br>
 
-				3.1. 除依照本入口網站主動提供或應申請提供之資料介接 API 及其使用規範者外，本網站相關服務僅提供自然人使用，禁止其他各種型態或頻率之機械自動化操作。當流量監控管理程式，發現網站系統資源有不正常耗用，並可合理推估其為機械自動化資料或素材捉取行為所致時，本入口網站將可能中斷或終止對該帳號之後續使用服務。
-				<br>
-				<br>
-				3.2. 本入口網站對提交之貢獻資料與素材，不負永久露出的維護責任；除此之外，當公眾授權資料涉及生物多樣性敏感資料及相近狀況，該資料與素材內含的物種資訊可能造成物種受害，或其他相關環境損害時，本入口網站得要求貢獻夥伴單位對該公眾授權資料進行適當遮蔽之後再次上傳，或由本平台協助進行遮蔽濾除，或將其改置分類至非公眾授權資料項下。
-				<br>
-				<br>
-				3.3. 本入口網站於部分頁面提供資料及素材下載功能。關於下載資料與素材之保存，入口網站會力求完整維護，惟資料與素材可能因其他因素，如天災、系統錯誤等，而滅失，入口網站與維運單位不對前述滅失負任何責任。為避免前述滅失，貢獻夥伴單位及使用者應自行保留得供下載資料與素材之複本。
-				<br>
-				<br>
-				3.4. 本入口網站不會對使用者上傳的貢獻資料與素材進行個案監督，然若該等資料或素材事後為第三方提報檢舉為不合法或不適當，入口網站得於合理通知原貢獻夥伴單位之後，移除相關爭議資料或素材，然當爭議資料與素材涉及侵害他人權利、違反法令、或有公然污辱、謾罵等人身攻擊等不適當資訊嵌入的狀況，本網站得不待通知原貢獻單位，立即移除相關資料與素材。
-				<br>
-				<br>
-				3.5. TBIA 入口網站授權範圍，僅及於提供資料之著作權及其相關權利保護之範圍，不及於其他智慧財產權利，包括但不限於專利、商標、及機關標誌或商號圖示之提供。
-				<br>
-				<br>
-				3.6. 使用 TBIA 網站提供之各項資料與素材，不論其受著作權利保護與否，使用者不得惡意變更其相關資訊，若編輯、改作後所展示之資訊與原不符，而造成TBIA貢獻夥伴單位或他人法定權益之損害，使用者須自負民事、刑事上之法律責任。
-				<br>
-				<br>
-				3.7. 本入口網站並不擔保所提供資料與素材之正確性及合用性，包括公眾授權資料及非公眾授權資料。除此之外，使用者利用入口網站無償提供之公眾授權資料，受有損害或損失，或致第三人受有損害或損失，除法令另有規定外，本網站及其維運單位，依所準據之公眾授權條款或公眾領域貢獻宣告之免責聲明，主張法律容許限度下最高的免責範圍，不負任何賠償或補償之責。
+					3.1. 除依照本入口網站主動提供或應申請提供之資料介接 API 及其使用規範者外，本網站相關服務僅提供自然人使用，禁止其他各種型態或頻率之機械自動化操作。當流量監控管理程式，發現網站系統資源有不正常耗用，並可合理推估其為機械自動化資料或素材捉取行為所致時，本入口網站將可能中斷或終止對該帳號之後續使用服務。
+					<br>
+					<br>
+					3.2. 本入口網站對提交之貢獻資料與素材，不負永久露出的維護責任；除此之外，當公眾授權資料涉及生物多樣性敏感資料及相近狀況，該資料與素材內含的物種資訊可能造成物種受害，或其他相關環境損害時，本入口網站得要求貢獻夥伴單位對該公眾授權資料進行適當遮蔽之後再次上傳，或由本平台協助進行遮蔽濾除，或將其改置分類至非公眾授權資料項下。
+					<br>
+					<br>
+					3.3. 本入口網站於部分頁面提供資料及素材下載功能。關於下載資料與素材之保存，入口網站會力求完整維護，惟資料與素材可能因其他因素，如天災、系統錯誤等，而滅失，入口網站與維運單位不對前述滅失負任何責任。為避免前述滅失，貢獻夥伴單位及使用者應自行保留得供下載資料與素材之複本。
+					<br>
+					<br>
+					3.4. 本入口網站不會對使用者上傳的貢獻資料與素材進行個案監督，然若該等資料或素材事後為第三方提報檢舉為不合法或不適當，入口網站得於合理通知原貢獻夥伴單位之後，移除相關爭議資料或素材，然當爭議資料與素材涉及侵害他人權利、違反法令、或有公然污辱、謾罵等人身攻擊等不適當資訊嵌入的狀況，本網站得不待通知原貢獻單位，立即移除相關資料與素材。
+					<br>
+					<br>
+					3.5. TBIA 入口網站授權範圍，僅及於提供資料之著作權及其相關權利保護之範圍，不及於其他智慧財產權利，包括但不限於專利、商標、及機關標誌或商號圖示之提供。
+					<br>
+					<br>
+					3.6. 使用 TBIA 網站提供之各項資料與素材，不論其受著作權利保護與否，使用者不得惡意變更其相關資訊，若編輯、改作後所展示之資訊與原不符，而造成TBIA貢獻夥伴單位或他人法定權益之損害，使用者須自負民事、刑事上之法律責任。
+					<br>
+					<br>
+					3.7. 本入口網站並不擔保所提供資料與素材之正確性及合用性，包括公眾授權資料及非公眾授權資料。除此之外，使用者利用入口網站無償提供之公眾授權資料，受有損害或損失，或致第三人受有損害或損失，除法令另有規定外，本網站及其維運單位，依所準據之公眾授權條款或公眾領域貢獻宣告之免責聲明，主張法律容許限度下最高的免責範圍，不負任何賠償或補償之責。
+				{% endif %}
 				<br>
 				<br>
 

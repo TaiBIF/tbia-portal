@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% load static %} 
-{% block title %}系統管理後台｜{% endblock %}
+{% load i18n %}
+{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block head %}
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/system_qa.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_qa.css' %}" />
 {% endblock style %}
 
 {% block body %}
@@ -14,7 +15,7 @@
 <input type="hidden" name="menu" value="{{ menu }}">
 <div class="path"> 
     <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> 系統管理後台</p>
+        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
     </div>
 </div>
  
@@ -48,7 +49,7 @@
                             <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
                             <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
                             <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive">單次使用去模糊化敏感資料申請</a>
+                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
                             <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
                         </div>
                     </li>
@@ -62,7 +63,7 @@
                         </div>
                         <div class="col_menu second_menu">
                             <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=list">審核狀態</a>
+                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
                         </div>
                     </li>
                     <li>
@@ -75,7 +76,7 @@
                           </div>
                           <div class="col_menu second_menu">
                               <a href="{% url 'system_resource' %}?menu=edit">資源發布</a>
-                              <a href="{% url 'system_resource' %}?menu=list">資源列表</a>
+                              <a href="{% url 'system_resource' %}?menu=resource">資源列表</a>
                           </div>                    
                     </li>
                     <li class="now">
@@ -87,8 +88,8 @@
                             <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="edit changeMenu" data-menu="edit" href="javascript:;">QA編輯</a>
-                            <a class="list changeMenu" data-menu="list" href="javascript:;">QA列表</a>
+                            <a class="edit changeMenu" data-menu="edit" >QA編輯</a>
+                            <a class="qa changeMenu" data-menu="qa" >QA列表</a>
                         </div>                    
                     </li>                      
                     <li>
@@ -126,17 +127,33 @@
                         <li>
                             <textarea name="question" placeholder="">{{ current_q.question }}</textarea>
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
+                        </li>
+                        <li>問題（英文）</li>
+                        <li>
+                            <textarea name="question_en" placeholder="">{{ current_q.question_en|default_if_none:'' }}</textarea>
+                            {% comment %} <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div> {% endcomment %}
                         </li>
                         <li>答案</li>
                         <li>
                             <textarea name="answer" placeholder="">{{ current_q.answer }}</textarea>
                             <div class="noticbox d-none">
-                                <div class="in1">錯誤</div>
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
+                        </li>
+                        <li>答案（英文）</li>
+                        <li>
+                            <textarea name="answer_en" placeholder="">{{ current_q.answer_en|default_if_none:'' }}</textarea>
+                            {% comment %} <div class="noticbox d-none">
+                                <div class="in1">錯誤</div>
+                                <p>必填欄位</p>
+                            </div> {% endcomment %}
                         </li>
                     </form>
                     <li class="mt-20px">   
@@ -147,55 +164,55 @@
         </div>
 
 
-        <div class="rightbox_content list d-none">
+        <div class="rightbox_content qa d-none">
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>QA列表</div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 qa_table">
-                        <tr>
+                        <tr class="qa_table_header">
                             <td class="w-20p">類別</td>
                             <td class="w-10p">排序</td>
                             <td class="w-50p">問題</td>
                             <td class="w-10p"></td> 
                             <td class="w-10p"></td> 
                         </tr>
-                        {% for q in qa_list %}
+                        {% comment %} {% for q in qa_list %}
                         <tr>
                             <td>{{ q.get_type_display }}</td>
                             <td>{{ q.order }}</a></td>
                             <td>{{ q.question }}</a></td>
                             <td><a class="manager_btn" href="{% url 'system_qa' %}?menu=edit&qa_id={{ q.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td><a href="javascript:;" class="delete_qa del_btn" data-qa_id='{{ q.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td><a  class="delete_qa del_btn" data-qa_id='{{ q.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                <div class="page_number">
+                {% comment %} <div class="page_number">
 					{% if q_page_list|length > 1 %}
-                    <a href="javascript:;" class="num changePage" data-page="1" data-type="qa">1</a>
-                    <a href="javascript:;" class="pre pt-none">
+                    <a  class="num changePage" data-page="1" data-type="qa">1</a>
+                    <a  class="pre pt-none">
                         <span></span>上一頁
                     </a>
                     <!--目前頁面給 now-->
                     {% for p in q_page_list %}
                         {% if p == 1 %}
-                            <a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
+                            <a  class="num now changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
                         {% else %}
-                            <a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
+                            <a  class="num changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                     {% if 2 in q_page_list %}
-                    <a href="javascript:;" class="next changePage" data-page="2" data-type="qa">
+                    <a  class="next changePage" data-page="2" data-type="qa">
                         下一頁<span></span>
                     </a>
                     {% else %}
-                    <a href="javascript:;" class="next pt-none">
+                    <a  class="next pt-none">
                         下一頁<span></span>
                     </a>
                     {% endif %}
-                    <a href="javascript:;" class="num changePage" data-page="{{ q_total_page }}" data-type="qa">{{ q_total_page }}</a>
+                    <a  class="num changePage" data-page="{{ q_total_page }}" data-type="qa">{{ q_total_page }}</a>
                     {% endif %}
-				</div>
+				</div> {% endcomment %}
             </div>
         </div>
         {% else %}
@@ -209,5 +226,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/system_qa.js' %}"></script>
+  <script src="{% static 'js/manager/system_qa.js' %}"></script>
   {% endblock script %}

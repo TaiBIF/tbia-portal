@@ -1,0 +1,246 @@
+{% extends 'base.html' %} 
+
+{% load static %} 
+{% load i18n %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+{% endblock head %}
+
+{% block title %}{% trans '物種出現紀錄' %}｜{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}" />
+{% endblock style %}
+
+{% block body %}
+<input type="hidden" name="lat" value="{{ row.lat }}">
+<input type="hidden" name="lon" value="{{ row.lon }}">
+
+<div class="popbg taxon-pop d-none" >
+	<div class="ovhy">
+		<div class="wbox_center index_tech">
+			<div class="xx">
+			</div>
+      <div class="techbox taxon-pic">
+        {% if row.associatedMedia|length > 1 %}
+        <div class="arr-left plusSlides">
+        </div>
+        <div class="arr-right plusSlides">
+        </div>
+        {% endif %}
+        <div class="picbox">
+        </div>  
+      </div>
+		</div>
+	</div>
+</div>
+
+<div class="path">
+  <div class="main_1240">
+    <a href="{% url 'index' %}" class="home"></a> <span>></span>
+    <p>{% trans '物種出現紀錄' %}</p>
+  </div>
+</div>
+
+<div class="nbn_title">
+  <h2>{% trans '物種出現紀錄' %}</h2>
+</div>
+<div class="container_area">
+  <div class="main_1240">
+    <div class="sc_de_top">
+      <div class="left_area">
+        <div class="cont_padbox">
+          <div class="logo_area">
+            {% if logo and row.references %}
+            <img src="/static/image/partner/{{ logo }}" data-ref="{{ row.references }}" class="pointer open-ref">
+            {% elif logo %}
+            <img src="/static/image/partner/{{ logo }}" >
+            {% endif %}
+          </div>
+          <h2>{% trans '中⽂名' %}{% trans '：' %}{{ row.common_name_c }}</h2>
+          <h2>{% trans '學名' %}{% trans '：' %}{{ row.formatted_name|safe }}</h2>
+          <div class="flex_inf">
+            <div class="short">
+              <p>{% trans '來源資料庫使⽤中⽂名' %}{% trans '：' %}{{ row.sourceVernacularName }}</p>
+              <p>{% trans '來源資料庫使⽤學名' %}{% trans '：' %}{{ row.sourceScientificName|safe }}</p>
+              {% if not row.sourceScientificName and not row.sourceVernacularName %}
+              <p><small class="color-silver">[{% trans '原始紀錄物種' %}] {{ row.originalScientificName }}</small></p>
+              {% endif %}
+            </div>
+            {% if row.taxonID %}
+            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}{% trans '：' %}{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+            {% else %}
+            <div class="yellow-btn">{% trans '臺灣物種名錄未收錄或無法對應' %}</div>
+            {% endif %}
+          </div>
+          {% if path_str %}
+          <div class="rank_path">
+            {{ path_str|safe }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% if row.associatedMedia|length > 0 %}
+      <input type="hidden" name="has_media" value="t">
+      <div class="right_area">
+        <div class="imgbox">        
+          {% if row.associatedMedia|length > 1 %}
+            <div class="arr-left">
+            </div>
+            <div class="arr-right">
+            </div>
+          {% endif %}
+          {% for am in row.associatedMedia %}
+          <div class="picbox mySlides fade">
+            <div class="img-container">
+              <img class="imgarea" src="{{ am.img }}">
+              <p class="bottom-right">{% trans '影像授權' %}{% trans '：' %}{% if am.license %}{{ am.license }}{% else %}{% trans '無' %}{% endif %}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="right_area">
+        <div class="no-imgbox">    
+          <p>{% trans '無照片' %}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="sc_de_main">
+      <div class="left_area">
+        <div class="whcont">
+          <ul class="inforall">
+            <li>
+              <h3>{% trans '敏感層級' %}{% trans '：' %}</h3>
+              <p>{{ row.sensitiveCategory }}</p>
+            </li>
+            <li>
+              <h3>{% trans '記錄者' %}{% trans '：' %}</h3>
+              <p>{{ row.recordedBy }}</p>
+            </li>
+            <li>
+              <h3>{% trans '鑑定層級' %}{% trans '：' %}</h3>
+              <p>{% trans row.taxonRank %}</p>
+            </li>
+            <li>
+              <h3>{% trans '紀錄日期' %}{% trans '：' %}</h3>
+              {% if row.date != None and row.eventDate != row.date %}
+              <p>{{ row.date }}<br><small class="color-silver">[{% trans '原始紀錄日期' %}] {{ row.eventDate }}</small></p>
+              {% elif row.date != None and row.eventDate == row.date %}
+              <p>{{ row.date }}</p>
+              {% elif row.date == None and row.eventDate != None %}
+              <p>---<br><small class="color-silver">[{% trans '原始紀錄日期' %}] {{ row.eventDate }}</small></p>
+              {% else %}
+              <p></p>
+              {% endif %}
+            </li>
+            <li>
+              <h3>{% trans '數量' %}{% trans '：' %}</h3>
+              {% if row.quantity != None %}
+              <p>{{ row.quantity }}</p>
+              {% elif row.quantity == None and row.organismQuantity != None %}
+              <p>---<br><small class="color-silver">[{% trans '原始紀錄數量' %}]{{ row.organismQuantity }}</small></p>
+              {% else %}
+              <p></p>
+              {% endif %}
+            </li>
+            <li>
+              <h3>{% trans '數量單位' %}{% trans '：' %}</h3>
+              <p>{{ row.organismQuantityType }}</p>
+            </li>
+            <li>
+              <h3>{% trans '出現地' %}{% trans '：' %}</h3>
+              <p>{{ row.locality }}</p>
+            </li>            
+            <li>
+              <h3>{% trans '授權狀況' %}{% trans '：' %}</h3>
+              <p>{{ row.license }}</p>
+            </li>
+            <li>
+              <h3>{% trans '資料集名稱' %}{% trans '：' %}</h3>
+              <p>{{ row.datasetName }}</p>
+            </li>
+            <li>
+              <h3>{% trans '資料集聯絡⼈' %}{% trans '：' %}</h3>
+              <p>{{ row.resourceContacts }}</p>
+            </li>          
+            <li>
+              <h3>{% trans '資料最後更新時間' %}{% trans '：' %}</h3>
+              <p>{{ row.modified }}</p>
+            </li>
+          </ul>
+          {% if row.references != '' and  row.references != None %}
+          <a href="{{ row.references }}" target="_blank" class="from_data pointer">{% trans '來源資料庫' %}{% trans '：' %}{{ row.rightsHolder }} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+          {% else %}
+          <a class="from_data">{% trans '來源資料庫' %}{% trans '：' %}{{ row.rightsHolder }}</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="right_area">
+        <div class="map_img">
+          <div class="imgbox">
+            <!--435*390 or 870*780 用background-image替換連結-->
+            <!--<div class="img"></div>-->
+            <div id="map" class="img"></div>
+          </div>
+        </div>
+        <ul class="inforall">
+          <li>
+            <h3>{% trans '經度' %}{% trans '：' %}</h3>
+            {% if row.lon != None %}
+            <p>{{ row.lon }}</p>
+            {% elif row.lon == None and row.verbatimLongitude != None %}
+            <p>---<br><small class="color-silver">[{% trans '原始紀錄經度' %}]{{ row.verbatimLongitude }}</small></p>
+            {% else %}
+            <p></p>
+            {% endif %}
+          </li>
+          <li>
+            <h3>{% trans '座標誤差' %}{% trans '：' %}</h3>
+            <p>{{ row.coordinateUncertaintyInMeters }}</p>
+          </li>
+          <li>
+            <h3>{% trans '緯度' %}{% trans '：' %}</h3>
+            {% if row.lat != None %}
+            <p>{{ row.lat }}</p>
+            {% elif row.lat == None and row.verbatimLatitude != None %}
+            <p>---<br><small class="color-silver">[{% trans '原始紀錄緯度' %}]{{ row.verbatimLatitude }}</small></p>
+            {% else %}
+            <p></p>
+            {% endif %}
+          </li>
+          <li>
+            <h3>{% trans '座標是否有模糊化' %}{% trans '：' %}</h3>
+            <p>{{ row.dataGeneralizations }}</p>
+          </li>
+          <li>
+            <h3>{% trans '座標系統' %}{% trans '：' %}</h3>
+            <p>{{ row.verbatimCoordinateSystem }}</p>
+          </li>
+          <li>
+            <h3>{% trans '座標模糊化程度' %}{% trans '：' %}</h3>
+            <p>{{ row.coordinatePrecision }}</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/data/occurrence_detail.js' %}"></script>
+{% endblock script %}

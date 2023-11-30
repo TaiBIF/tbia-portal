@@ -1,12 +1,18 @@
 {% extends 'base.html' %} 
 {% load static %} 
+{% load i18n %}
 {% block head %}
-<link href="/static/air-datepicker/dist/air-datepicker.css" rel="stylesheet" />
-<script src="/static/air-datepicker/dist/air-datepicker.js" ></script>
+<link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
+<script src="/static/datepicker/air-datepicker.js" ></script>
+{% if LANGUAGE_CODE == 'en-us' %}
+<script src="/static/datepicker/en.js" ></script>
+{% else %}
+<script src="/static/datepicker/zh.js" ></script>
+{% endif %}
 {% endblock head %}
-{% block title %}開放資料相關資源｜{% endblock %}
+{% block title %}{% trans '開放資料相關資源' %}｜{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/resources.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/resources.css' %}" />
 {% endblock style %}
 {% block body %}
 {% csrf_token %}
@@ -33,11 +39,7 @@
 					<img src="/static/image/tutorial/pic1.png">
 				</div>
 				<!--盡量不要超過三行-->
-				<p class="text_tec">
-					歡迎使用「生物多樣性資料庫共通查詢系統」！
-					<br>
-					如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。
-				</p>
+				<p class="text_tec"></p>
 			</div>
 		</div>
 	</div>
@@ -48,13 +50,13 @@
 <input type="hidden" name="resource_type" value="{{ type }}">
 <div class="path"> 
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>開放資料相關資源</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '開放資料相關資源' %}</p>
 	</div>
 </div>
 <div class="in_bn resource_bn">
 	<div class="title">
-		<h2>開放資料相關資源</h2>
-		<h3>Resources</h3>
+		<h2>{% trans '開放資料相關資源' %}</h2>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
@@ -62,31 +64,31 @@
 		<div class="tab_scromb">
 			<!--目前位置給class>now-->
 			<ul class="news_tab_in">
-				<li id="all" class="now">
-					<p>所有資源</p>
+				<li class="now li-resource-all updateResource" data-type="all">
+					<p>{% trans '所有資源' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="strategy">
-					<p>TBIA 策略文件</p>
+				<li class="li-resource-strategy updateResource" data-type="strategy">
+					<p>{% trans 'TBIA 策略文件' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="guide">
-					<p>開放資料指引</p>
+				<li class="li-resource-guide updateResource" data-type="guide">
+					<p>{% trans '開放資料指引' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="tool">
-					<p>參考文件/工具</p>
+				<li class="li-resource-tool updateResource" data-type="tool">
+					<p>{% trans '參考文件/工具' %}</p>
 					<div class="arr"></div>
 				</li>
-				<li id="tutorial">
-					<p>教學文件</p>
+				<li class="li-resource-tutorial updateResource" data-type="tutorial">
+					<p>{% trans '教學文件' %}</p>
 					<div class="arr"></div>
 				</li>
 			</ul> 
 		</div>
 
 		<div class="date_select">
-			<p>篩選</p>
+			<p>{% trans '篩選' %}</p>
 			<div class="input_item"> 
                 <input name="start_date" id="start_date" type="text" value="{% now 'Y-m-d' %}" />
                 <a class="dateicon show_start"></a>
@@ -96,7 +98,7 @@
                 <input name="end_date" id="end_date" type="text" value="{% now 'Y-m-d' %}" />
                 <a class="dateicon show_end"></a>
 			</div>
-			<button class="search_btn">送出</button>
+			<button class="search_btn">{% trans '送出' %}</button>
 		</div>
 		<div class="already_selected" data-filter="no">
 			<ul class="d-none">
@@ -117,105 +119,19 @@
 				<div class="infbox">
 					<div class="center_box">
 						<a href="{% url 'resources_link' %}" target="_blank" class="nstitle">
-							國內外各大資料庫及推薦網站連結
+							{% trans '國內外各大資料庫及推薦網站連結' %}
 						</a>
 					</div>
 				</div>
 			</li>
 		</ul>
 		<ul class="edu_list two_set"> 
-			{% if resource|length > 0 %}
-				{% for i in resource %}
-					{% if i.extension == 'pop' %}
-					<li class="show_tech">
-						<div class="item">
-							<div class="cate_dbox">
-							<div class="date">{{ i.date }}</div>
-							</div>
-							<a href="javascript:;" class="title ">{{ i.title }}</a>
-							<!--
-							<a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
-							<a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-							-->
-						</div>
-					</li>
-
-					{% else %}
-					<li>
-						<div class="item">
-							<div class="cate_dbox">
-							<div class="cate {{ i.cate|lower }}">{{ i.extension }}</div>
-							<div class="date">{{ i.date }}</div>
-							</div>
-							<a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
-							<a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-						</div>
-					</li>
-					{% endif %}
-				{% endfor %}
-			{% else %}
-				<li>
-					<div class="item">
-						<a class="title">無資料</a>
-					</div>
-				</li>
-			{% endif %}
 		</ul> 
-
-
-		<div class="page_number">
-			{% comment %} {% if page_list|length > 1 %} {% endcomment %}
-				<a href="javascript:;" class="num changePage" data-page="1" data-type="{{ type }}">1</a>
-				{% if current_page|add:'-1' in page_list %}
-				<a href="javascript:;" class="pre changePage" data-page="{{ current_page|add:'-1' }}" data-type="{{ type }}">
-					<span></span>上一頁
-				</a>
-				{% else %}
-				<a href="javascript:;" class="pre pt-none">
-					<span></span>上一頁
-				</a>
-				{% endif %}
-				<!--目前頁面給 now-->
-				{% for p in page_list %}
-					{% if p == current_page %}
-						<a href="javascript:;" class="num now changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-					{% else %}
-						<a href="javascript:;" class="num changePage" data-page="{{ p }}" data-type="{{ type }}">{{ p }}</a>
-					{% endif %}
-				{% endfor %}
-				{% if current_page|add:1 in page_list %}
-				<a href="javascript:;" class="next changePage" data-page="{{ current_page|add:1 }}" data-type="{{ type }}">
-					下一頁<span></span>
-				</a>
-				{% else %}
-				<a href="javascript:;" class="next pt-none">
-					下一頁<span></span>
-				</a>
-				{% endif %}
-				<a href="javascript:;" class="num changePage" data-page="{{ total_page }}" data-type="{{ type }}">{{ total_page }}</a>
-			{% comment %} {% endif %} {% endcomment %}
-		</div>
-	
-		<!--
-		<div class="page_number">
-		 {% if total_page > 1 %} 
-			<a class="num">1</a>
-			<a class="pre">
-				<span></span>上一頁
-			</a>
-			<a class="num now">1</a>
-			<a href="javascript:" class="num changePage" data-page="2" data-type="resource">2</a>
-			<a href="javascript:" class="next changePage" data-page="2" data-type="resource">
-				下一頁<span></span>
-			</a>
-			<a href="javascript:" class="num changePage" data-page="{{ total_page }}" data-type="resource">{{ total_page }}</a>
-		 {% endif %} 
-		</div>-->
-
 	</div>
 </div>
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/resources.js' %}"></script>
+<script src="{% static 'js/tutorial.js' %}"></script>
+<script src="{% static 'js/pages/resources.js' %}"></script>
 {% endblock script %}

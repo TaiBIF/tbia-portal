@@ -1,0 +1,31 @@
+.news_de .editor img {
+    display: block; 
+    margin: auto;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-bottom: 20px
+    }
+
+.news_de .editor ul, .news_de .editor ol {
+    padding-left: 40px
+}
+
+.nstitlebox p {
+    text-align:right;
+}
+
+
+.editor a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #417991;
+}
+
+.editor a:hover {
+    color: #76A578;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}

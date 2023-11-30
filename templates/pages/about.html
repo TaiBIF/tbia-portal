@@ -1,15 +1,16 @@
 {% extends 'base.html' %} 
 {% load static %}
+{% load i18n %}
 {% load tags %}
-{% block title %}關於TBIA｜{% endblock %}
+{% block title %}{% trans '關於TBIA' %}｜{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/about.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/about.css' %}" />
 {% endblock style %}
 {% block body %}
 	<div class="path">
 		<div class="main_1240">
 			<a href="{% url 'index' %}" class="home"></a> <span>></span>
-			<p>關於TBIA</p>
+			<p>{% trans '關於TBIA' %}</p>
 		</div>
 	</div>
 	<div class="about_bn">
@@ -18,25 +19,30 @@
 				<div class="bgcolor"></div>
 				<div class="bg_pattern"></div>
 				<div class="bird">
-					<img src="{% static 'image/bird_right.svg' %}" alt="關於TBIA">
+					<img src="{% static 'image/bird_right.svg' %}" alt="{% trans '關於TBIA' %}">
 				</div>
 			</div>
 		</div>
 		<div class="main_1240">
 			<div class="abtitlebox" id="about">
-				<h2>關於TBIA</h2>
-				<p>ABOUT</p>
+				<h2>{% trans '關於TBIA' %}</h2>
+				{% comment %} <p>ABOUT</p> {% endcomment %}
 			</div>
 			<div class="w_bg">
 				<div class="leftbox">
-					<h3>TBIA 臺灣生物多樣性資訊聯盟</h3>
-					<p class="marb_40">
+					<h3>{% if LANGUAGE_CODE != 'en-us' %}TBIA {% endif %}{% trans '臺灣生物多樣性資訊聯盟' %}</h3>
+					<p class="marb_40 content-area">
 						{{ content }}
 					</p>
-					<a target="_blank" href="https://github.com/TBIA/MOU-public-documents" class="linktogithub">
+					<div class="d-flex-jc-sb">
+					<a target="_blank" href="https://github.com/TBIA/MOU-public-documents" class="linktogithub w-48p ">
 						<img src="{% static 'image/github.svg' %}" alt="TBIA GitHub">
-						<span>TBIA GitHub</span>
+						<span class="ml-10px">TBIA GitHub</span>
 					</a>
+					<a target="_blank" href="/media/{{ url }}" class="linktogithub w-48p ">
+						<span>{% trans '聯盟章程' %}</span>
+					</a>
+					</div>
 				</div>
 				<div class="rightbox">
 					<div class="imgbox">
@@ -60,7 +66,7 @@
 	</div>
 	<div class="about_part" id="partner">
 		<div class="title">
-			<h3 id="partnertag" name="partnertag">夥伴單位</h3>
+			<h3 id="partnertag" name="partnertag">{% trans '夥伴單位' %}</h3>
 		</div>
 		<div class="main_1240">
 			<ul class="part_list">

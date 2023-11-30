@@ -3,12 +3,45 @@ from django.utils.safestring import mark_safe
 import re
 from datetime import timedelta
 
-from data.utils import get_variants
+# from data.utils import get_variants
 from pages.models import Notification
 from manager.models import User
 from conf.utils import notif_map
+from django.utils.translation import get_language, gettext
+import pandas as pd
+from data.models import Variant
 
 register = template.Library()
+
+
+
+
+# 產生javascript使用的dict
+# dict(zip(var_df.char, var_df.pattern))
+# dict(zip(var_df_2.char, var_df_2.pattern))
+
+
+var_df = pd.DataFrame(Variant.objects.filter(char_len=1).values('char','pattern'))
+var_df['idx'] = var_df.groupby(['pattern']).ngroup()
+
+var_df_2 = pd.DataFrame(Variant.objects.filter(char_len=2).values('char','pattern'))
+
+# 先對一個字再對兩個字
+
+def get_variants(string):
+  new_string = ''
+  # 單個異體字
+  for s in string:    
+    if len(var_df[var_df['char']==s]):
+      new_string += var_df[var_df['char']==s].pattern.values[0]
+    else:
+      new_string += s
+  # 兩個異體字
+  for i in var_df_2.index:
+    char = var_df_2.loc[i, 'char']
+    if char in new_string:
+      new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
+  return new_string
 
 
 @register.simple_tag
@@ -57,16 +90,16 @@ def get_notif(user_id):
                   {is_read}
                   <div class="txtcont">
                     <p class="date">{created_8.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                    <p>{n.get_type_display().replace('0000', n.content)}</p>
+                    <p>{gettext(n.get_type_display()).replace('0000', n.content)}</p>
                   </div>
                 </li>
               """
     if not results:
-        results = """
+        results = f"""
                     <li>
                     <div class="txtcont">
                       <p class="date"></p>
-                      <p>暫無通知</p>
+                      <p>{gettext('暫無通知')}</p>
                     </div>
                   </li>
                 """

@@ -44,30 +44,14 @@ https://github.com/PhilippeMarcMeyer/vanillaSelectBox
 */
 
 
-let var_dict = {
-    '刺': '[刺刺]', '刺': '[刺刺]', '葉': '[葉葉]', '葉': '[葉葉]',
-    '鈎': '[鈎鉤]', '鉤': '[鈎鉤]', '臺': '[臺台]', '台': '[臺台]', '螺': '[螺螺]', '螺': '[螺螺]', '羣': '[群羣]', '群': '[群羣]', '峯': '[峯峰]', '峰': '[峯峰]', '曬': '[晒曬]', '晒': '[晒曬]', '裏': '[裏裡]', '裡': '[裏裡]', '薦': '[荐薦]', '荐': '[荐薦]', '艷': '[豔艷]', '豔': '[豔艷]', '粧': '[妝粧]', '妝': '[妝粧]', '濕': '[溼濕]', '溼': '[溼濕]', '樑': '[梁樑]', '梁': '[梁樑]', '秘': '[祕秘]', '祕': '[祕秘]', '污': '[汙污]', '汙': '[汙污]', '册': '[冊册]', '冊': '[冊册]', '唇': '[脣唇]', '脣': '[脣唇]', '朶': '[朵朶]', '朵': '[朵朶]', '鷄': '[雞鷄]', '雞': '[雞鷄]', '猫': '[貓猫]', '貓': '[貓猫]', '踪': '[蹤踪]', '蹤': '[蹤踪]', '恒': '[恆恒]', '恆': '[恆恒]', '獾': '[貛獾]', '貛': '[貛獾]', '万': '[萬万]', '萬': '[萬万]', '两': '[兩两]', '兩': '[兩两]', '椮': '[槮椮]', '槮': '[槮椮]', '体': '[體体]', '體': '[體体]', '鳗': '[鰻鳗]', '鰻': '[鰻鳗]', '蝨': '[虱蝨]', '虱': '[虱蝨]', '鲹': '[鰺鲹]', '鰺': '[鰺鯵]', '鳞': '[鱗鳞]', '鱗': '[鱗鳞]', '鳊': '[鯿鳊]', '鯿': '[鯿鳊]', '鯵': '[鰺鯵]', '鲨': '[鯊鲨]', '鯊': '[鯊鲨]', '鹮': '[䴉鹮]', '䴉': '[䴉鹮]', '鴴': '(行鳥|鴴)', '鵐': '(鵐|巫鳥)', '䱵': '(䱵|魚翁)', '䲗': '(䲗|魚銜)', '䱀': '(䱀|魚央)', '䳭': '(䳭|即鳥)', '鱼': '[魚鱼]', '魚': '[魚鱼]', '鹨': '[鷚鹨]', '鷚': '[鷚鹨]', '蓟': '[薊蓟]', '薊': '[薊蓟]', '黒': '[黑黒]', '黑': '[黑黒]', '隠': '[隱隠]', '隱': '[隱隠]', '黄': '[黃黄]', '黃': '[黃黄]', '囓': '[嚙囓]', '嚙': '[嚙囓]', '莨': '[茛莨]', '茛': '[茛莨]', '霉': '[黴霉]', '黴': '[黴霉]', '莓': '[苺莓]', '苺': '[苺莓]', '藥': '[葯藥]', '葯': '[葯藥]', '菫': '[堇菫]', '堇': '[堇菫]',}
-let var2_dict = {'行鳥': '(行鳥|鴴)', '蝦虎': '[鰕蝦]虎', '鰕虎': '[鰕蝦]虎', '巫鳥': '(鵐|巫鳥)', '魚翁': '(䱵|魚翁)', '魚銜': '(䲗|魚銜)', '魚央': '(䱀|魚央)', '游蛇': '[遊游]蛇', '遊蛇': '[遊游]蛇', '即鳥': '(䳭|即鳥)', '椿象': '[蝽椿]象', '蝽象': '[蝽椿]象'}
-
 function getVariants(text){
-    let new_string = '';
-    // 單個異體字
-    for (t of text){
-        if (Object.keys(var_dict).indexOf(t) != -1) {
-            new_string += var_dict[t]
-        } else {
-            new_string += t
-        }
-    } 
-
-    // 兩個異體字
-    for (k of Object.keys(var2_dict)){
-        if (new_string.includes(k)){
-            new_string = new_string.replace(k, var2_dict[k]);
-        }
-    }
-
-    return new_string
+    $.ajax({
+        url: `/get_variants?string=${text}`,
+        type: 'GET',
+        success: function (resp) {
+            return resp['new_string']
+         }
+    })
 }
 
 function escapeRegExp(text) {
@@ -322,11 +306,11 @@ function vanillaSelectBox(domSelector, options) {
         if (self.userOptions.stayOpen) {
             this.button = document.createElement("div");
         } else {
-            this.button = document.createElement("button");
-            if(this.keepInlineStyles) {
-                var cssList = self.getCssArray(".vsb-main button");
-                this.button.setAttribute("style", cssList);
-            }
+            this.button = document.createElement("button");            
+            // if(this.keepInlineStyles) {
+            //     var cssList = self.getCssArray(".vsb-main button");
+            //     this.button.setAttribute("style", cssList);
+            // }
         }
         this.button.style.maxWidth = this.userOptions.maxWidth + "px";
         if (this.userOptions.minWidth !== -1) {
@@ -558,8 +542,75 @@ function vanillaSelectBox(domSelector, options) {
         }
         self.listElements = self.drop.querySelectorAll("li:not(.grouped-option)");
         if (self.search) {
+
+            self.inputBox.addEventListener("compositionend", function(e){
+                // 注音輸入完成才搜尋
+                let searchValue = e.target.value.toUpperCase();
+                let searchValueLength = searchValue.length;
+                let nrFound = 0;
+                let nrChecked = 0;
+                let selectAll = null;
+                if (self.isSearchRemote) {
+                    if (searchValueLength == 0) {
+                        self.remoteSearchIntegrate(null);
+                    } else if (searchValueLength >= 1) {
+                        self.onSearch(searchValue)
+                            .then(function (data) {
+                                self.remoteSearchIntegrate(data);
+                            });
+                        e.stopPropagation()
+                        e.preventDefault();
+                    }
+                } else {
+                    if (searchValueLength < 1) {
+                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                            if (x.getAttribute('data-value') === 'all') {
+                                selectAll = x;
+                            } else {
+                                x.classList.remove("hidden-search");
+                                nrFound++;
+                                nrChecked += x.classList.contains('active');
+                            }
+                        });
+                    } else {
+                        Array.prototype.slice.call(self.listElements).forEach(function (x) {
+                            if (x.getAttribute('data-value') !== 'all') {
+                                let text = x.getAttribute("data-text").toUpperCase();
+                                if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
+                                    x.classList.add("hidden-search");
+                                } else {
+                                    nrFound++;
+                                    x.classList.remove("hidden-search");
+                                    nrChecked += x.classList.contains('active');
+                                }
+                            } else {
+                                selectAll = x;
+                            }
+                        });
+                    }
+                    if (selectAll) {
+                        if (nrFound === 0) {
+                            selectAll.classList.add('disabled');
+                        } else {
+                            selectAll.classList.remove('disabled');
+                        }
+                        if (nrChecked !== nrFound) {
+                            selectAll.classList.remove("active");
+                            selectAll.innerText = self.userOptions.translations.selectAll;
+                            selectAll.setAttribute('data-selected', 'false')
+                        } else {
+                            selectAll.classList.add("active");
+                            selectAll.innerText = self.userOptions.translations.clearAll;
+                            selectAll.setAttribute('data-selected', 'true')
+                        }
+                    }
+                }
+                
+            })
+
             self.inputBox.addEventListener("keyup", function (e) {
-                if ( !e.isComposing ){ // 注音輸入完成才搜尋
+                if ( !e.isComposing ){ 
+                    // 注音輸入完成才搜尋
                     let searchValue = e.target.value.toUpperCase();
                     let searchValueLength = searchValue.length;
                     let nrFound = 0;
@@ -622,6 +673,8 @@ function vanillaSelectBox(domSelector, options) {
                     }
                 }
             }); 
+
+
         }
 
         if (self.userOptions.stayOpen) {
@@ -655,6 +708,7 @@ function vanillaSelectBox(domSelector, options) {
                                         self.ul.prepend(self.listElements[i])
                                     }
                                 }
+
                                 var para = document.createElement("p");
                                 self.ul.prepend(para);
                                 para.style.fontSize = "12px";
@@ -818,7 +872,7 @@ function vanillaSelectBox(domSelector, options) {
             }
             e.preventDefault();
             e.stopPropagation();
-            if (self.userOptions.placeHolder != "" && (self.title.textContent == "--重設--"|self.title.textContent == "--不限--"|self.title.textContent == "")) {
+            if (self.userOptions.placeHolder != "" && (self.title.textContent == "-- 重設 --"|self.title.textContent == "-- 不限 --"|self.title.textContent == "-- Reset --"|self.title.textContent == "-- Not restricted --"|self.title.textContent == "")) {
                 self.title.textContent = self.userOptions.placeHolder;
             }
         });
@@ -913,10 +967,10 @@ vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
             if (!dc_value.includes(dd['value'])){
                 final_data = final_data.concat(dd)
             }
-            
         }
         
-        data = final_data.concat(dataChecked);
+        //data = final_data.concat(dataChecked);
+        data = dataChecked.concat(final_data);
         self.remoteSearchIntegrateIt(data);
     }
 }
