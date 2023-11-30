@@ -34,6 +34,10 @@ ENV TZ=Asia/Taipei
 
 WORKDIR /code
 
+# Python packages
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Package
 COPY requirements requirements
