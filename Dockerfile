@@ -42,7 +42,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Package
 COPY requirements requirements
 RUN pip install --upgrade pip
-RUN pip install --no-cache --user -r requirements/base.txt
+RUN pip install --no-cache-dir -r requirements/base.txt
 
 
 # # Install Poetry
