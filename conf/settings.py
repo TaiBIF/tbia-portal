@@ -73,7 +73,7 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 1 # oauth
-SOCIALACCOUNT_LOGIN_ON_GET=True
+# SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # ACCOUNT_ADAPTER = 'conf.users.adapter.MyAccountAdapter'
@@ -274,7 +274,7 @@ CSP_IMG_SRC = ("'self'","*","data: *")
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
-CSP_FORM_ACTION = ("'self'","https://accounts.google.com/") 
+CSP_FORM_ACTION = ("'self'","*") 
 CSP_FRAME_ANCESTORS = ("'self'") 
 CSP_FONT_SRC = ("'self'",
 "https://fonts.googleapis.com/",
