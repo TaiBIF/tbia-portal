@@ -267,6 +267,7 @@ $(function () {
   })
 
   $('.google_login').on('click', function () {
+
     let next_url = window.location.pathname;
 
     if ('URLSearchParams' in window) {
@@ -274,7 +275,9 @@ $(function () {
       next_url = window.location.pathname + '?' + searchParams.toString();
     }
 
-    window.location.href = "/accounts/google/login/?next=/login/google/callback?next2=" + encodeURIComponent(next_url);
+
+    $('#googleForm').attr('action', "/accounts/google/login/?next="+ "/login/google/callback?next2=" + encodeURIComponent(next_url))
+    $('#googleForm').submit()
 
   })
 

@@ -73,7 +73,7 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 1 # oauth
-SOCIALACCOUNT_LOGIN_ON_GET=True
+# SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # ACCOUNT_ADAPTER = 'conf.users.adapter.MyAccountAdapter'
@@ -261,7 +261,7 @@ CSRF_TRUSTED_ORIGINS = ['http://dev.tbiadata.tw','https://tbiadata.tw']
 # Content Security Policy 
 CSP_DEFAULT_SRC = ("'self'",) 
 CSP_FRAME_SRC = ("'self'","https://www.google.com/","https://www.youtube.com/") 
-CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/","https://analytics.google.com/","https://stats.g.doubleclick.net/") 
+CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/","https://analytics.google.com/","https://stats.g.doubleclick.net/","https://accounts.google.com/o/oauth2/auth") 
 CSP_STYLE_SRC = ["'self'",
     "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
     "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
@@ -274,7 +274,7 @@ CSP_IMG_SRC = ("'self'","*","data: *")
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
-CSP_FORM_ACTION = ("'self'") 
+CSP_FORM_ACTION = ("'self'","https://accounts.google.com/o/oauth2/auth") 
 CSP_FRAME_ANCESTORS = ("'self'") 
 CSP_FONT_SRC = ("'self'",
 "https://fonts.googleapis.com/",
