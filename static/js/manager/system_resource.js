@@ -149,7 +149,7 @@ $(document).ready(function () {
         })
     })
 
-    // TODO 還要確認有沒有上傳檔案 filename統一改成帶有resources/的檔名
+    // 要確認有沒有上傳檔案 filename統一改成帶有resources/的檔名
     $('#publish').on('click', function () {
         let checked = true;
 

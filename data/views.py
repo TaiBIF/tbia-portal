@@ -1094,7 +1094,7 @@ def get_conditional_records(request):
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_query = { "query": "*:*",
                 "offset": offset,
-                "limit": limit, # TODO 這邊應該不用limit?
+                "limit": 0,
                 "filter": map_query_list,
                 "sort":  orderby + ' ' + sort,
                 }

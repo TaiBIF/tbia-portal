@@ -164,23 +164,23 @@ class About(models.Model):
     content_en = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
-
-class MatchLog(models.Model):
-    occurrenceID = models.CharField(max_length=1000, blank=True, db_index=True)
-    tbiaID = models.CharField(max_length=50, blank=True, db_index=True)
-    group = models.CharField(max_length=50, blank=True, db_index=True)
-    sourceScientificName = models.CharField(max_length=1000, blank=True, null=True)
-    is_matched = models.BooleanField()
-    taxonID = models.CharField(max_length=20, blank=True, null=True)
-    parentTaxonID = models.CharField(max_length=20, blank=True, null=True)
-    match_stage = models.CharField(max_length=5, blank=True, null=True)
-    stage_1 = models.CharField(max_length=20, blank=True, null=True)
-    stage_2 = models.CharField(max_length=20, blank=True, null=True)
-    stage_3 = models.CharField(max_length=20, blank=True, null=True)
-    stage_4 = models.CharField(max_length=20, blank=True, null=True)
-    stage_5 = models.CharField(max_length=20, blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(null=True, blank=True)
+# deprecated
+# class MatchLog(models.Model):
+#     occurrenceID = models.CharField(max_length=1000, blank=True, db_index=True)
+#     tbiaID = models.CharField(max_length=50, blank=True, db_index=True)
+#     group = models.CharField(max_length=50, blank=True, db_index=True)
+#     sourceScientificName = models.CharField(max_length=1000, blank=True, null=True)
+#     is_matched = models.BooleanField()
+#     taxonID = models.CharField(max_length=20, blank=True, null=True)
+#     parentTaxonID = models.CharField(max_length=20, blank=True, null=True)
+#     match_stage = models.CharField(max_length=5, blank=True, null=True)
+#     stage_1 = models.CharField(max_length=20, blank=True, null=True)
+#     stage_2 = models.CharField(max_length=20, blank=True, null=True)
+#     stage_3 = models.CharField(max_length=20, blank=True, null=True)
+#     stage_4 = models.CharField(max_length=20, blank=True, null=True)
+#     stage_5 = models.CharField(max_length=20, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(null=True, blank=True)
 
 
 # 工作日

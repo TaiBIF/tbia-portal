@@ -994,36 +994,6 @@ def update_partner_info(request):
         
         return JsonResponse(response, safe=False)
 
-
-# deprecated  這邊改成再比對的時候就先產生好
-# def generate_no_taxon_csv(p_name,scheme,host,update):
-#     CSV_MEDIA_FOLDER = 'match_log'
-#     csv_folder = os.path.join(settings.MEDIA_ROOT, CSV_MEDIA_FOLDER)
-#     filename = f'{p_name}_match_log.csv'
-#     csv_file_path = os.path.join(csv_folder, filename)
-#     # solr_url = f"{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&wt=csv&fq=group:{p_name}&start=0&rows=2000000000&fl=occurrenceID,rightsHolder"
-#     # occurrenceID	id	sourceScientificName	taxonID	parentTaxonID	taxonRank	scientificName	match_stage	stage_1	stage_2	stage_3	stage_4	stage_5	is_matched
-#     downloadURL = scheme+"://"+host+settings.MEDIA_URL+os.path.join(CSV_MEDIA_FOLDER, filename)
-#     if update or not os.path.exists(csv_file_path): # 指定要更新或沒有檔案才執行
-#         sql = """
-#         copy (
-#             SELECT mm."tbiaID", mm."occurrenceID", mm."sourceScientificName", mm."taxonID",
-#             mm."parentTaxonID", mm.is_matched, dt."scientificName", dt."taxonRank",
-#             mm.match_stage, mm.stage_1, mm.stage_2, mm.stage_3, mm.stage_4, mm.stage_5
-#             FROM manager_matchlog mm
-#             LEFT JOIN data_taxon dt ON mm."taxonID" = dt."taxonID"
-#             WHERE mm."group" = '{}'
-#         ) to stdout with delimiter ',' csv header;
-#         """.format(p_name)
-#         with connection.cursor() as cursor:
-#             with open(f'/tbia-volumes/media/match_log/{p_name}_match_log.csv', 'w+') as fp:
-#                 cursor.copy_expert(sql, fp)
-#         # commands = f'curl "{solr_url}"  > {csv_file_path} '
-#         # process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#     return downloadURL
-#     # curl "http://localhost:8888/solr/collection1/select?q=*%3A*&wt=cvs&start=0&rows=2000000000&fl=id,title" > full-output-of-my-solr-index.csv
-
-
 def update_keywords(request):
     if request.method == 'POST':
         for i in range(3):
@@ -1065,7 +1035,6 @@ def withdraw_partner_request(request):
 
 
 def partner_news(request):
-    # menu = request.GET.get('menu','')
     menu = request.GET.get('menu','news')
     form = NewsForm()
     n = []
@@ -1073,100 +1042,26 @@ def partner_news(request):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
-    # if not request.user.is_anonymous:
-    #     current_user = request.user
-    #     if current_user.is_partner_admin:
-    #         # 如果是單位管理者 -> 回傳所有
-    #         news_list = News.objects.filter(partner_id=current_user.partner_id).order_by('-id')
-    #     else:
-    #         # 如果是單位帳號 -> 只回傳自己申請的
-    #         news_list = News.objects.filter(user_id=current_user).order_by('-id')
-    #     n_total_page = math.ceil(news_list.count()/10)
-    #     n_page_list = get_page_list(1, n_total_page)
-
-    #     news_list = news_list[:10]
-    #     news_list.annotate(
-    #             modified_8=ExpressionWrapper(
-    #                 F('modified') + timedelta(hours=8),
-    #                 output_field=DateTimeField()
-    #             ))
 
     return render(request, 'manager/partner/news.html', {'form':form, 'menu': menu, 'n': n })
-          #   'news_list': news_list, 'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def partner_info(request):
     menu = request.GET.get('menu','info')
     partner_admin = ''
     info = []
-    partner_members = []
-    # pr = []
-    # if not request.user.is_anonymous:
-    #     current_user = request.user
-    #     if current_user.partner:
-    #         # TODO 這邊會有問題
-    #         partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
-    #         partner_admin = [p[0] for p in partner_admin]
-    #         partner_admin = ','.join(partner_admin)
-    #         # info
-    #         info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
-    #         # 單位帳號管理，統一由partner request判斷，但還要加partner_admin進去
-    #         # pr = PartnerRequest.objects.filter(partner_id=current_user.partner.id)
 
-    #         partner_members = User.objects.filter(partner_id=current_user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=current_user.id)
-            
-    #         a_total_page = math.ceil(partner_members.count() / 10)
-    #         a_page_list = get_page_list(1, a_total_page)
+    if not request.user.is_anonymous:
+        current_user = request.user
+        if current_user.partner:
+            if User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).exists():
+                partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
+                partner_admin = [p[0] for p in partner_admin]
+                partner_admin = ','.join(partner_admin)
+            # info
+            info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
 
-    #         status_choice = User._meta.get_field('status').choices[:-1]
-    #         feedback = Feedback.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10].annotate(
-    #             created_8=ExpressionWrapper(
-    #                 F('created') + timedelta(hours=8),
-    #                 output_field=DateTimeField()
-    #             ))
-    #         f_total_page = math.ceil(Feedback.objects.filter(partner_id=current_user.partner.id).count() / 10)
-    #         f_page_list = get_page_list(1, f_total_page)
-
-    # sensitive = []
-    # for sdr in SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).order_by('-id')[:10]:
-    #     created = sdr.created + timedelta(hours=8)
-    #     due = check_due(created.date(),14)
-    #     created = created.strftime('%Y-%m-%d %H:%M:%S')
-
-    #     # 整理搜尋條件
-    #     if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
-    #         r = SearchQuery.objects.get(query_id=sdr.query_id)
-    #         search_dict = dict(parse.parse_qsl(r.query))
-    #         query = create_query_display(search_dict)
-    #         if search_dict.get("record_type") == 'col':
-    #             search_prefix = 'collection'
-    #         else:
-    #             search_prefix = 'occurrence'
-    #         tmp_a = create_query_a(search_dict)
-    #         for i in ['locality','datasetName','rightsHolder','total_count']:
-    #             if i in search_dict.keys():
-    #                 search_dict.pop(i)
-    #         query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-    #     sensitive.append({
-    #         'id': sdr.id,
-    #         'query_id': r.query_id,
-    #         'created':  created,
-    #         'query':   query,
-    #         'query_a':   query_a,
-    #         'status': sdr.get_status_display(),
-    #         'due': due
-    #     })
-    # s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=current_user.partner.id).count()/10)
-    # s_page_list = get_page_list(1, s_total_page)
-
-    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin,  'info': info,
-                                    'menu': menu, 'partner_members': partner_members, })
-                                    
-                                    # , 'feedback': feedback,
-                                    # 'status_choice': status_choice, 'sensitive': sensitive,
-                                    # 'f_total_page': f_total_page, 'f_page_list': f_page_list, 's_total_page':s_total_page, 's_page_list': s_page_list,
-                                    # 'a_total_page': a_total_page, 'a_page_list': a_page_list})
+    return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin, 'info': info, 'menu': menu,})
 
 
 def get_request_detail(request):
@@ -1256,28 +1151,17 @@ def get_partner_stat(request):
 
 
 def manager_system(request):
-    # keywords = Keyword.objects.all().order_by('order').values_list('keyword', flat=True)
     no_taxon = 0
     has_taxon = 0
     partner_admin = ''
-    # data_total = []
     if not request.user.is_anonymous:
-        # 資料筆數 - 改成用單位?
-        # url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
-        # data = requests.get(url).json()
-        # if data['responseHeader']['status'] == 0:
-        #     facets = data['facet_counts']['facet_fields']['rightsHolder']
-        #     for r in range(0,len(facets),2):
-        #         data_total.append({'name': facets[r],'y': facets[r+1]})
         # TaiCOL對應狀況
-
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
         if response.status_code == 200:
             no_taxon = response.json()['response']['numFound']
-
         has_taxon = total_count - no_taxon
         match_logs = []
         for p in Partner.objects.all():
@@ -1285,8 +1169,7 @@ def manager_system(request):
                 if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
                     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.title} - {pp['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                            # 'data_total':data_total,'keywords': keywords,
-                                                             'match_logs': match_logs})
+                                                          'match_logs': match_logs})
 
 
 def get_system_stat(request):
@@ -1363,25 +1246,16 @@ def update_tbia_about(request):
 
 def system_news(request):
     menu = request.GET.get('menu','news_apply')
-    # if current_a:
-    #     form.fields["content"].initial = current_a.content
-    # news_list = News.objects.all().order_by('-id')[:10].annotate(
-    #             modified_8=ExpressionWrapper(
-    #                 F('modified') + timedelta(hours=8),
-    #                 output_field=DateTimeField()
-    #             ))
-    # n_total_page = math.ceil(News.objects.all().count()/10)
-    # n_page_list = get_page_list(1, n_total_page)
 
     status_list = News.status.field.choices
     n = []
     form = NewsForm()
-    if news_id:= request.GET.get('news_id'):
+    if news_id := request.GET.get('news_id'):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             form.fields["content"].initial = n.content
+
     return render(request, 'manager/system/news.html', {'form':form, 'menu': menu, 'status_list': status_list, 'n': n })
-    # 'news_list': news_list, 'n_total_page': n_total_page, 'n_page_list': n_page_list})
 
 
 def system_info(request):
@@ -1395,20 +1269,11 @@ def system_info(request):
     menu = request.GET.get('menu','info')
 
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'content_en': content_en, 'system_admin': system_admin })
-                        # 'partner_members': partner_members,
-                        # 'status_choice': status_choice, 'feedback': feedback, 'sensitive': sensitive, 'sensitive_track': sensitive_track,
-                        # 'f_page_list': f_page_list, 'f_total_page': f_total_page, 'sr_page_list': sr_page_list, 'sr_total_page': sr_total_page,
-                        # 's_page_list': s_page_list, 's_total_page': s_total_page,'a_page_list': a_page_list, 'a_total_page': a_total_page,})
 
 
 def system_resource(request):
     menu = request.GET.get('menu','resource')
 
-    # resource_list = []
-    # for r in Resource.objects.all().order_by('-id')[:10]:
-    #     resource_list.append({'type': r.get_type_display(),'id': r.id, 'modified': r.modified, 'title': r.title, 'filename': r.url.split('resources/')[1] if 'resources/' in r.url else r.url })
-    # r_total_page = math.ceil(Resource.objects.all().count()/10)
-    # r_page_list = get_page_list(1, r_total_page)
     type_choice = Resource._meta.get_field('type').choices
 
     current_r = []
@@ -1420,15 +1285,7 @@ def system_resource(request):
             else:
                 current_r.filename =  current_r.url
 
-    # form = LinkForm()
-    # n = []
-    # if n := Link.objects.all().first():
-    #     form.fields["content"].initial = n.content
-    # if Link.objects.all().first():
-    #     n = Link.objects.all().first()
-
     return render(request, 'manager/system/resource.html', {'menu': menu, 'type_choice': type_choice, 'current_r': current_r })
-    # resource_list': resource_list, 'r_total_page': r_total_page, 'r_page_list': r_page_list})
 
 
 def system_keyword(request):
@@ -1696,7 +1553,6 @@ def submit_resource(request):
         else:
             resource_id = 0
 
-        # TODO 可以改成create or update ?
         if Resource.objects.filter(id=resource_id).exists():
             Resource.objects.filter(id=resource_id).update(
                 type = request.POST.get('type'),
