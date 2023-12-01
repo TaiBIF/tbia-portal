@@ -112,7 +112,7 @@
               <div class="input_item">
                 <select name="rightsHolder" id="rightsHolder" multiple size="1">
                   {% for i in holder_list %}
-                  <option value="{{ i }}">{{ i }}</option>
+                  <option value="{{ i }}">{% trans i %}</option>
                   {% endfor %}
                 </select>
               </div>

@@ -40,15 +40,19 @@ class UserManager(BaseUserManager):
 
 
 class Partner(models.Model):
-    breadtitle = models.CharField(max_length=100, null=True, blank=True)
+    # breadtitle = models.CharField(max_length=100, null=True, blank=True)
+    # breadtitle_en = models.CharField(max_length=100, null=True, blank=True)
     abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁
     group = models.CharField(max_length=100, null=True, blank=True) # 後台group
     select_title = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁(同個MOU簽署單位) 但後台是分開的 在前台顯示需區分
+    select_title_en = models.CharField(max_length=100, null=True, blank=True)
     title = models.CharField(max_length=100, null=True, blank=True)
+    title_en = models.CharField(max_length=100, null=True, blank=True)
     logo = models.TextField(null=True, blank=True)
     info = models.JSONField(null=True, blank=True) 
     # ['id', 'link', 'image', 'subtitle', 'description', 'dbname', 'color'] 
     # 'subtitle' 在夥伴頁面上呈現的資料庫名稱
+    # 'subtitle_en' 在夥伴頁面上呈現的英文資料庫名稱
     # 'dbname' 在進階搜尋下拉選單對應的資料庫名稱，在資料內同樣也存這個名字 (=rightsHolder)
     # 'color' 後台圓餅圖使用的顏色
     index_order = models.IntegerField(null=True, blank=True) # 在首頁的順序

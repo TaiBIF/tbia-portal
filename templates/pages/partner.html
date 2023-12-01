@@ -15,7 +15,7 @@
 {% block body %}
 <div class="path">
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#partnertag">{% trans '夥伴單位' %}</a><span>></span> <p>{{ breadtitle }}</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#partnertag">{% trans '夥伴單位' %}</a><span>></span> <p>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</p>
 	</div>
 </div>
 <div class="in_bn about_bn">
@@ -35,15 +35,20 @@
 					<div class="logo_area">
 						<img src="/static/image/partner/{{ i.logo }}" >
 					</div>
-					<h2>{{ i.title }}</h2>
+					<h2>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</h2>
 					<h3  {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %}>
-						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>{{ i.subtitle }}
+						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>
+							{% if LANGUAGE_CODE == 'en-us' and i.subtitle_en != None %}
+								{{ i.subtitle_en }}
+							{% else %}
+								{{ i.subtitle }}
+							{% endif %}
 							{% if i.link %} <i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i> {% endif %}
 						</a> 
 					</h3>
 					{% if i.subtitle == '生物多樣性研究博物館' %}
 					<h3>
-						<a target="_blank" href="https://hast.biodiv.tw/">植物標本資料庫
+						<a target="_blank" href="https://hast.biodiv.tw/">{% if LANGUAGE_CODE == 'en-us' %}HAST{% else %}植物標本資料庫{% endif %}
 							<i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i>
 						</a> 
 					</h3>

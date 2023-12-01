@@ -550,6 +550,7 @@ def create_query_display(search_dict,lang=None):
                         r_list.append(search_dict[k])
                 else:
                     r_list = list(search_dict[k])
+                r_list = [gettext(r) for r in r_list]
             elif k == 'locality':
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):

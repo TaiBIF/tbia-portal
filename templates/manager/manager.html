@@ -61,7 +61,7 @@
                         </a>
                     </li>
                     <li>
-                        <a class="big_link rd_click" data-type="sensitive">
+                        <a class="big_link rd_click mr-15px" data-type="sensitive">
                             <p>{% trans '單次使用去模糊化敏感資料' %}</p>
                             <div class="arr"></div>
                         </a>
@@ -117,18 +117,14 @@
                         <li>
                             <form id="partnerForm">
                                 {% csrf_token %}
-                                {% if user.status == 'pending' or user.status == 'pass' %}
-                                <select id="partner-select" name="partner_id" disabled>
-                                {% else %} 
-                                <select id="partner-select" name="partner_id">
-                                {% endif %}
+                                <select id="partner-select" name="partner_id" {% if user.status == 'pending' or user.status == 'pass' %}disabled{% endif %}>
                                 {% for p in partners %} 
-                                    {% if p.id == user.partner_id %}
-                                    <option value='{{ p.id }}' selected>
-                                    {% else %}
-                                    <option value='{{ p.id }}'>
-                                    {% endif %}
-                                    {{ p.select_title }}
+                                    <option value='{{ p.id }}' {% if p.id == user.partner_id %}selected{% endif %}>
+                                        {% if LANGUAGE_CODE == 'en-us' %}
+                                            {{ p.select_title_en }}
+                                        {% else %}
+                                            {{ p.select_title }}
+                                        {% endif %}
                                     </option>
                                 {% endfor %}
                                 </select>

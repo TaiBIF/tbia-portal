@@ -73,10 +73,14 @@
           <div class="select_twobox"> 
             <select name="partner_id" id="feedback_partner" placeholder="{% trans '請選擇回饋對象' %}">
               <option value="">{% trans '-- 重設 --' %}</option>
-              <option value="0">TBIA聯盟</option>
+              <option value="0">{% if LANGUAGE_CODE == 'en-us' %}Taiwan Biodiversity Information Alliance{% else %}TBIA 臺灣生物多樣性資訊聯盟{% endif %}</option>
               {% for p in partners %} 
                 <option value='{{ p.id }}'>
-                  {{ p.select_title }}
+                  {% if LANGUAGE_CODE == 'en-us' and p.select_title_en %}
+                    {{ p.select_title_en }}
+                  {% else %}
+                    {{ p.select_title }}
+                  {% endif %}
                 </option>
               {% endfor %}
             </select>

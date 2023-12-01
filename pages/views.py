@@ -379,12 +379,12 @@ def partner(request, abbr):
     pt = Partner.objects.filter(abbreviation=abbr).order_by('id')
     for p in pt:
         for pi in p.info:
-            pi['title'] = p.title
+            # pi['title'] = p.title
             pi.update({'id': p.id})
             pi.update({'logo': p.logo})
             rows += [pi]
-    breadtitle = Partner.objects.filter(abbreviation=abbr).first().breadtitle
-    return render(request, 'pages/partner.html', {'rows': rows, 'breadtitle': breadtitle})
+    partner = Partner.objects.filter(abbreviation=abbr)
+    return render(request, 'pages/partner.html', {'rows': rows, 'partner': partner})
 
 
 def resources(request):
