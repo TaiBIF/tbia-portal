@@ -9,10 +9,10 @@ $(function () {
   // })
 
   let start_date_picker = new AirDatepicker('#start_date',
-    { locale: date_locale });
+    { locale: date_locale, dateFormat: 'yyyy-MM-dd' });
 
   let end_date_picker = new AirDatepicker('#end_date',
-    { locale: date_locale });
+    { locale: date_locale, dateFormat: 'yyyy-MM-dd' });
 
   $('.show_start').on('click', function () {
     if (start_date_picker.visible) {

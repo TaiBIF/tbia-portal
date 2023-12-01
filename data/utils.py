@@ -920,6 +920,23 @@ def create_search_query(req_dict, from_request=False):
             query_list += [f'standardDate:[{start_date} TO {end_date}]']
         except:
             pass
+    elif req_dict.get('start_date'):
+        try: 
+            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
+            query_list += [f'standardDate:[{start_date} TO *]']
+        except:
+            pass
+    elif req_dict.get('end_date'):
+        try: 
+            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
+            end_date = end_date.isoformat() + 'Z'
+            end_date = end_date.replace('00:00:00','23:59:59')
+            query_list += [f'standardDate:[* TO {end_date}]']
+        except:
+            pass
+
+
+
 
     # 地圖框選
     if from_request:
