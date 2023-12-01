@@ -1504,14 +1504,6 @@ def get_map_response(map_query, grid_list):
 
     map_geojson = {}
 
-
-    # map_query = {"query": "*:*",
-    #         "offset": 0,
-    #         "limit": 0,
-    #         "filter": query_list}
-    
-    # map的排除數量為0的資料
-
     facet_str = ''
     for g in grid_list:    
         map_geojson[f'grid_{g}'] = {"type":"FeatureCollection","features":[]}
@@ -1662,8 +1654,11 @@ def create_data_detail(id, user_id, record_type):
 
         # logo
         if group := row.get('group'):
-            if logo := Partner.objects.filter(group=group).values('logo'):
+            if group == 'gbif':
+                logo = 'GBIF-2015.png'
+            elif logo := Partner.objects.filter(group=group).values('logo'):
                 logo = logo[0]['logo']
+                logo = 'partner/' + logo
 
         # references
         if not row.get('references'):

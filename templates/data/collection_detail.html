@@ -61,10 +61,8 @@
       <div class="left_area">
         <div class="cont_padbox">
           <div class="logo_area">
-            {% if logo and row.references %}
-            <img src="/static/image/partner/{{ logo }}" data-ref="{{ row.references }}" class="pointer open-ref">
-            {% elif logo %}
-            <img src="/static/image/partner/{{ logo }}" >
+            {% if logo %}
+            <img src="/static/image/{{ logo }}" {% if row.references %}data-ref="{{ row.references }}" class="pointer open-ref" {% endif %}>
             {% endif %}
           </div>
           <h2>{% trans '中⽂名' %}{% trans '：' %}{{ row.common_name_c }}</h2>
