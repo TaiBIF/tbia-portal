@@ -383,7 +383,7 @@ def partner(request, abbr):
             pi.update({'id': p.id})
             pi.update({'logo': p.logo})
             rows += [pi]
-    partner = Partner.objects.filter(abbreviation=abbr)
+    partner = Partner.objects.filter(abbreviation=abbr).first()
     return render(request, 'pages/partner.html', {'rows': rows, 'partner': partner})
 
 
