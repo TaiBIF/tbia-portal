@@ -1069,11 +1069,7 @@ msgstr ""
 msgid ""
 "歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議"
 "您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。"
-msgstr ""
-"Welcome to the &quot;Biodiversity Database Portal System&quot;! If this "
-"is your first time using this system, we recommend that you utilize the "
-"keyword search feature on the homepage to find the information you are "
-"looking for."
+msgstr "Welcome to the &quot;Biodiversity Database Portal System&quot;!<br>If this is your first time using this system, we recommend that you utilize the keyword search feature on the homepage or the magnifying glass icon at the top of the webpage to find the information you are looking for."
 
 msgid ""
 "關鍵字查詢結果頁面的左側選單除了呈現結果的分類外，也可以針對您所查詢的關鍵"
@@ -2443,3 +2439,63 @@ msgstr "TaiCOL Taxon ID"
 #:
 msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
 msgstr "Some information provided by this service are blurred. You need to use restricted API for non-blurred data. Restricted API are currently open to TBIA partners only."
+
+
+#:
+msgid "全球生物多樣性資訊機構"
+msgstr "GBIF"
+
+#:
+msgid "臺灣物種名錄"
+msgstr "Catalogue of Life in Taiwan"
+
+
+# 來源資料庫
+
+#:
+msgid "台灣生物多樣性網絡 TBN"
+msgstr "Taiwan Biodiversity Network, TBN"
+
+#:
+msgid "生態調查資料庫系統"
+msgstr "Biodiversity Database"
+
+#:
+msgid "濕地環境資料庫"
+msgstr "Taiwan Wetland Database"
+
+#:
+msgid "中央研究院生物多樣性中心植物標本資料庫"
+msgstr ""
+
+#:
+msgid "林業試驗所植物標本資料庫"
+msgstr "Herbarium of Taiwan Forestry Research Institiute"
+
+#:
+msgid "國立臺灣博物館典藏"
+msgstr "Biological Collection of National Taiwan Museum"
+
+#:
+msgid "臺灣生物多樣性資訊機構 TaiBIF"
+msgstr "Taiwan Biodiversity Information Facility, TaiBIF"
+
+#:
+msgid "林業試驗所昆蟲標本館"
+msgstr "Forest Arthropod Collection of Taiwan"
+
+#:
+msgid "河川環境資料庫"
+msgstr "River Environment Database"
+
+#:
+msgid "海洋保育資料倉儲系統"
+msgstr "Marine Ecology And Environment Data Warehouse"
+
+#:
+msgid "臺灣國家公園生物多樣性資料庫"
+msgstr "National Parks of Taiwan Biodiversity Database"
+
+#:
+msgid "自然科學博物館"
+msgstr "National Museum of Natural Science"

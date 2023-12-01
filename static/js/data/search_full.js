@@ -671,7 +671,8 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
           if (tmp_value == null) {
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
           } else {
-              if (['basisOfRecord','rightsHolder','dataGeneralizations','taxonRank','taxonGroup'].includes(Object.keys(map_dict)[j])){
+            // 'basisOfRecord','rightsHolder' 因為有在關鍵字查詢中 所以不翻譯
+              if (['dataGeneralizations','taxonRank','taxonGroup'].includes(Object.keys(map_dict)[j])){
                 tmp_value = gettext(tmp_value)
             }
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`

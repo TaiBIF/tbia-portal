@@ -306,3 +306,7 @@ span.expired-notice {
 .search-again-a:hover {
     color: #E2A460;
 }
+
+.mr-15px {
+    margin-right: 15px
+}

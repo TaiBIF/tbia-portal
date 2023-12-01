@@ -239,9 +239,15 @@ def change_manager_page(request):
 
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
                 if sdr.partner:
-                    partner_name = sdr.partner.select_title 
+                    if lang == 'en-us':
+                        partner_name = sdr.partner.select_title_en
+                    else:
+                        partner_name = sdr.partner.select_title 
                 else:
-                    partner_name = 'TBIA聯盟'
+                    if lang == 'en-us':
+                        partner_name = 'Taiwan Biodiversity Information Alliance'
+                    else:
+                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
                 comment.append(f"""<b>{gettext("審查單位")}{gettext("：")}</b>{partner_name}<br><b>{gettext("審查者姓名")}{gettext("：")}</b>{sdr.reviewer_name}<br><b>{gettext("審查意見")}{gettext("：")}</b>{sdr.comment if sdr.comment else "" }<br><b>{gettext("審查結果")}{gettext("：")}</b>{gettext(sdr.get_status_display())}""")
 
             link = ''
@@ -359,10 +365,21 @@ def change_manager_page(request):
                 else:
                     date = ''
 
+                # if f.partner:
+                #     partner_title = f.partner.select_title
+                # else:
+                #     partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
+
                 if f.partner:
-                    partner_title = f.partner.select_title
+                    if lang == 'en-us':
+                        partner_title = f.partner.select_title_en
+                    else:
+                        partner_title = f.partner.select_title 
                 else:
-                    partner_title = 'TBIA聯盟'
+                    if lang == 'en-us':
+                        partner_title = 'Taiwan Biodiversity Information Alliance'
+                    else:
+                        partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
 
                 if f.partner:
                     if f.is_replied:
@@ -420,10 +437,22 @@ def change_manager_page(request):
             comment = []
 
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+                # if sdr.partner:
+                #     partner_name = sdr.partner.select_title 
+                # else:
+                #     partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+
                 if sdr.partner:
-                    partner_name = sdr.partner.select_title 
+                    if lang == 'en-us':
+                        partner_name = sdr.partner.select_title_en
+                    else:
+                        partner_name = sdr.partner.select_title 
                 else:
-                    partner_name = 'TBIA聯盟'
+                    if lang == 'en-us':
+                        partner_name = 'Taiwan Biodiversity Information Alliance'
+                    else:
+                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    
                 comment.append(f"<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審查結果：</b>{sdr.get_status_display()}")
 
             data.append({
@@ -1161,8 +1190,6 @@ def manager_partner(request):
         if current_user.partner:
             # for p in current_user.partner:
             for pp in current_user.partner.info:
-                # if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
-                #     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
                 if exists(os.path.join('/tbia-volumes/media/match_log',f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip')):
                     download_url.append({'url': os.path.join('/media/match_log', f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip'), 'name': pp['subtitle']})
             # download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
@@ -1255,10 +1282,8 @@ def manager_system(request):
         match_logs = []
         for p in Partner.objects.all():
             for pp in p.info:
-                # print(f"{p.breadtitle} - {pp['subtitle']}")
-                # print(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip')
                 if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
-                    match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.breadtitle} - {pp['subtitle']}"})
+                    match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.title} - {pp['subtitle']}"})
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
                                                             # 'data_total':data_total,'keywords': keywords,
                                                              'match_logs': match_logs})
@@ -1368,121 +1393,6 @@ def system_info(request):
     content = About.objects.all().first().content
     content_en = About.objects.all().first().content_en
     menu = request.GET.get('menu','info')
-
-    # partner_members = User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[:10]
-
-    # a_total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count()/10)
-    # a_page_list = get_page_list(1, a_total_page)
-
-
-    # status_choice = User._meta.get_field('status').choices[:-1]
-    # feedback = Feedback.objects.all().order_by('-id')[:10].annotate(
-    #     created_8=ExpressionWrapper(
-    #         F('created') + timedelta(hours=8),
-    #         output_field=DateTimeField()
-    #     ))
-    # f_total_page = math.ceil(Feedback.objects.all().count() / 10)
-    # f_page_list = get_page_list(1, f_total_page)
-
-    # sensitive = []
-    # for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[:10]:
-    #     created = sdr.created + timedelta(hours=8)
-    #     if sdr.is_transferred:
-    #         due = check_due(created.date(),14)
-    #     else:
-    #         due = check_due(created.date(),7)
-    #     created = created.strftime('%Y-%m-%d %H:%M:%S')
-    #     # 整理搜尋條件
-    #     if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
-    #         r = SearchQuery.objects.get(query_id=sdr.query_id)
-    #         search_dict = dict(parse.parse_qsl(r.query))
-    #         query = create_query_display(search_dict)
-
-    #         if search_dict.get("record_type") == 'col':
-    #             search_prefix = 'collection'
-    #         else:
-    #             search_prefix = 'occurrence'
-    #         tmp_a = create_query_a(search_dict)
-    #         for i in ['locality','datasetName','rightsHolder','total_count']:
-    #             if i in search_dict.keys():
-    #                 search_dict.pop(i)
-
-    #         query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-    #     sensitive.append({
-    #         'id': sdr.id,
-    #         'query_id': r.query_id,
-    #         'created':  created,
-    #         'query':   query,
-    #         'query_a':   query_a,
-    #         'status': sdr.get_status_display(),
-    #         'is_transferred': sdr.is_transferred,
-    #         'due': due,
-    #     })
-
-    # s_total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count()/10)
-    # s_page_list = get_page_list(1, s_total_page)
-
-    # print(len(sensitive),s_total_page,s_page_list)
-
-    # sensitive_track = []
-    # for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).order_by('-id')[:10]:
-    # # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).order_by('-id')[:10]:
-    #     if s.created:
-    #         date = s.created + timedelta(hours=8)
-    #         due = check_due(date.date(), 14)
-    #         date = date.strftime('%Y-%m-%d %H:%M:%S')
-    #     else:
-    #         date = ''
-    #         due = ''
-
-    #     # 進階搜尋
-        
-    #     search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
-    #     query = create_query_display(search_dict)
-
-    #     if search_dict.get("record_type") == 'col':
-    #         search_prefix = 'collection'
-    #     else:
-    #         search_prefix = 'occurrence'
-    #     tmp_a = create_query_a(search_dict)
-    #     for i in ['locality','datasetName','rightsHolder','total_count']:
-    #         if i in search_dict.keys():
-    #             search_dict.pop(i)
-
-    #     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-    #     # 審查意見
-    #     comment = []
-
-    #     for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-    #         if sdr.partner:
-    #             partner_name = sdr.partner.select_title 
-    #         else:
-    #             partner_name = 'TBIA聯盟'
-    #         comment.append(f"""
-    #         <b>審查單位：</b>{partner_name}
-    #         <br>
-    #         <b>審查者姓名：</b>{sdr.reviewer_name}
-    #         <br>
-    #         <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
-    #         <br>
-    #         <b>審查結果：</b>{sdr.get_status_display()}
-    #         """)
-
-    #     sensitive_track.append({
-    #         'id': s.id,
-    #         'query_id': s.query_id,
-    #         'date':  date,
-    #         'query':   query,
-    #         'query_a':   query_a,
-    #         'status': s.get_status_display(),
-    #         'comment': '<hr>'.join(comment) if comment else '',
-    #         'due': due
-    #     })
-
-    # sr_total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count()/10)
-    # sr_page_list = get_page_list(1, sr_total_page)
 
     return render(request, 'manager/system/info.html', {'menu': menu, 'content': content, 'content_en': content_en, 'system_admin': system_admin })
                         # 'partner_members': partner_members,

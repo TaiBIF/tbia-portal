@@ -73,14 +73,18 @@
 				{% for p in index_partners %}
 				<li>
 					<a href="{% url 'partner' p.abbreviation %}" class="cirimg">
-						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.breadtitle }}" width="150px">
+						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
 					</a>
 					<a href="{% url 'partner' p.abbreviation %}" class="titleline">
-						{% if p.abbreviation == 'brcas' %}
+						{% comment %} {% if p.abbreviation == 'brcas' %}
 						中央研究院<br>生物多樣性研究中心
+						{% else %} {% endcomment %}
+						{% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
+							{{ p.title_en }}
 						{% else %}
-						{{ p.breadtitle }}
+							{{ p.title }}
 						{% endif %}
+						{% comment %} {% endif %} {% endcomment %}
 					</a>
 				</li>
 				{% endfor %}

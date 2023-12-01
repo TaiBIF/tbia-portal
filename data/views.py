@@ -383,8 +383,10 @@ def generate_sensitive_csv(query_id, scheme, host):
             for sdr in SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True, partner_id__isnull=True):
                 if sdr.partner:
                     partner_name = sdr.partner.select_title 
+                    partner_name_en = sdr.partner.select_title_en
                 else:
-                    partner_name = 'TBIA聯盟'
+                    partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    partner_name_en = 'Taiwan Biodiversity Information Alliance'
                 comment.append(
                 f"""
                 <b>審查單位：</b>{partner_name}
@@ -398,7 +400,7 @@ def generate_sensitive_csv(query_id, scheme, host):
 
                 comment_en.append(
                 f"""
-                <b>Reviewing Agency:</b> {partner_name}
+                <b>Reviewing Agency:</b> {partner_name_en}
                 <br>
                 <b>Reviewer:</b> {sdr.reviewer_name}
                 <br>
@@ -1143,6 +1145,11 @@ def get_conditional_records(request):
         docs = docs.replace({'nan': ''})
 
         user_id = request.user.id if request.user.id else 0
+
+        # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
+        if user_id:
+            if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+                has_sensitive = False
 
         rows = create_data_table(docs, user_id, obv_str)
 
