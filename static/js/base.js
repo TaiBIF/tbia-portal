@@ -95,9 +95,6 @@ var CaptchaCallback = function () {
       'theme': jQuery(el).attr('data-theme'),
       'size': jQuery(el).attr('data-size'),
       //'tabindex' : jQuery(el).attr('data-tabindex'),
-      'callback': jQuery(el).attr('data-callback'),
-      'expired-callback': jQuery(el).attr('data-expired-callback'),
-      'error-callback': jQuery(el).attr('data-error-callback')
     });
   });
 };
@@ -240,7 +237,7 @@ $(function () {
   $('.feedback-pop .send').on('click', function () {
 
 
-    if ((!$('#g-recaptcha-response').val()) | (!$('#feedback_form select[name=partner_id]').val()) |
+    if ((!$('#feedback_form #g-recaptcha-response').val()) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
       alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
@@ -440,8 +437,9 @@ function login() {
     checked = false
   }
 
-  if ($('#g-recaptcha-response').val() == '') { // check email
-    $('.g-recaptcha').next('.noticbox').removeClass('d-none')
+
+  if ($('#loginForm #g-recaptcha-response').val() == '') { // check email
+    $('#loginForm .g-recaptcha').next('.noticbox').removeClass('d-none')
     checked = false
   }
 

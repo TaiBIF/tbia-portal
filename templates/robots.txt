@@ -39,14 +39,16 @@ Disallow: /media
 
 # Paths 
 Disallow: /admin
-Disallow: /search/occurrence
-Disallow: /search/collection
-Disallow: /search/full
+Disallow: /api*
+Disallow: /manager*
+Disallow: /search/occurrence?*
+Disallow: /search/collection?*
+Disallow: /search/full?*
 
-Disallow: /en-us/search/occurrence
-Disallow: /en-us/search/collection
-Disallow: /en-us/search/full
-Disallow: /zh-hant/search/occurrence
-Disallow: /zh-hant/search/collection
-Disallow: /zh-hant/search/full
+Disallow: /en-us/search/occurrence?*
+Disallow: /en-us/search/collection?*
+Disallow: /en-us/search/full?*
+Disallow: /zh-hant/search/occurrence?*
+Disallow: /zh-hant/search/collection?*
+Disallow: /zh-hant/search/full?*
 

@@ -76,7 +76,8 @@ SITE_ID = 1 # oauth
 # SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
-# ACCOUNT_ADAPTER = 'conf.users.adapter.MyAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'conf.adapter.MySocialAccountAdapter'
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

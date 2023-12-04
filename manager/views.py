@@ -706,7 +706,7 @@ def manager(request):
     menu = request.GET.get('menu','info')
     partners = Partner.objects.all().order_by('abbreviation','id')
 
-    from_google = SocialAccount.objects.filter(user_id=request.user.id).exists()
+    from_google = User.objects.filter(id=request.user.id, register_method='google').exists()
 
     return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'from_google': from_google})
 
@@ -763,6 +763,7 @@ def get_auth_callback(request):
                 first_name = data.get('given_name'),
                 is_email_verified = True,
                 is_active = True,
+                register_method = 'google',
             )
             new_user.save()
             return redirect('register_success')
@@ -903,7 +904,7 @@ def register(request):
             response = {'status':'fail', 'message': '此信箱已註冊過，請直接登入'}
         else:
             if not User.objects.filter(email=email).exists():
-                user = User.objects.create_user(email=email, name=name, password=password, is_email_verified=False, is_active=False)
+                user = User.objects.create_user(email=email, name=name, password=password, is_email_verified=False, is_active=False, register_method='portal')
                 user.username = email
                 user.save()
             else:
