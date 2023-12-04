@@ -15,6 +15,7 @@ class UserManager(BaseUserManager):
             name=kwargs['name'],
             is_email_verified=kwargs['is_email_verified'],
             is_active=kwargs['is_active'],
+            register_method=kwargs['register_method'],
         )
         user.set_password(kwargs['password'])
         user.save(using=self._db)
@@ -70,6 +71,7 @@ class User(AbstractUser):
     # is_superuser = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=True)
     first_login = models.BooleanField(default=True)
+    register_method = models.CharField(max_length=20, blank=True) # portal, google
 
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
     
