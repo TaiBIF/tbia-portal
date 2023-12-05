@@ -101,6 +101,14 @@ var CaptchaCallback = function () {
 
 $(function () {
 
+  $('.top_search_full_button').on('click', function(){
+    if ($('.top_search_full_keyword').val().length > 2000) {
+      alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
+    } else {
+      window.location = `/${$lang}/search/full?keyword=${$('.top_search_full_keyword').val()}`
+    }
+  })
+
 
   $('.language-item').on('click', function (event) {
     $('input[name=language]').val(event.target.getAttribute("value"))

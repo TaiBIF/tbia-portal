@@ -1232,9 +1232,13 @@ def get_locality(request):
     else:
         record_type = ''
 
+
+    locality_str = f'locality:"{keyword}"^5 OR locality:/{keyword}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{keyword}.*/^1 OR locality:/.*{keyword_reg}.*/'
+
+    print(locality_str)
     ds = []
     if keyword_reg:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.čp=OR&q=*%3A*&fq=locality:/.*{keyword_reg}.*/{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*&fq={locality_str}{record_type}&rows=0')
     else:
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
     l_list = response.json()['facet_counts']['facet_fields']['locality']
@@ -1269,7 +1273,7 @@ def get_locality_init(request):
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 def get_dataset_init(request):
-    keyword = request.GET.getlist('datasetName')
+    # keyword = request.GET.getlist('datasetName')
 
     if request.GET.get('record_type') == 'col':
         record_type = '&fq=recordType:col'
@@ -1289,6 +1293,9 @@ def get_dataset_init(request):
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 def get_dataset(request):
+
+    # TODO 改用資料庫 ?
+
     # datasetlist = request.GET.getlist('datasetName')
     keyword = request.GET.get('keyword')
     rights_holder = request.GET.getlist('holder')
@@ -1308,8 +1315,14 @@ def get_dataset(request):
     else:
         record_type = ''
 
+    keyword_reg = ''
+    for j in keyword:
+        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = get_variants(keyword_reg)
+    # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
+    dataset_str = f'datasetName:"{keyword}"^5 OR datasetName:/{keyword}.*/^4 OR datasetName:/{keyword_reg}/^3 OR datasetName:/{keyword_reg}.*/^2 OR datasetName:/.*{keyword}.*/^1 OR datasetName:/.*{keyword_reg}.*/'
     ds = []
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=datasetName:/.*{keyword}.*/{h_str}&rows=0{record_type}')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q={dataset_str}{h_str}&rows=0{record_type}')
     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
     if len(dataset_list):
@@ -1360,7 +1373,7 @@ def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')
 
-    if keyword:
+    if keyword and len(keyword) < 2000:
         ## collection
 
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)

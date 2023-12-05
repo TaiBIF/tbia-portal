@@ -186,28 +186,28 @@ function changePage(page, menu) {
                 })
 
 
-                $('.updateFeedback').off('click')
-                $('.updateFeedback').on('click', function () {
-                    let current_id = $(this).data('fid');
-                    $.ajax({
-                        url: "/update_feedback",
-                        data: {
-                            'current_id': current_id,
-                            'csrfmiddlewaretoken': $csrf_token,
-                        },
-                        type: 'POST',
-                        dataType: 'json',
-                    })
-                        .done(function (response) {
-                            alert('修改完成')
-                            window.location.reload()
-                        })
-                        .fail(function (xhr, status, errorThrown) {
-                            alert(gettext('發生未知錯誤！請聯絡管理員'))
+                // $('.updateFeedback').off('click')
+                // $('.updateFeedback').on('click', function () {
+                //     let current_id = $(this).data('fid');
+                //     $.ajax({
+                //         url: "/update_feedback",
+                //         data: {
+                //             'current_id': current_id,
+                //             'csrfmiddlewaretoken': $csrf_token,
+                //         },
+                //         type: 'POST',
+                //         dataType: 'json',
+                //     })
+                //         .done(function (response) {
+                //             alert('修改完成')
+                //             window.location.reload()
+                //         })
+                //         .fail(function (xhr, status, errorThrown) {
+                //             alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                        })
-                })
+                //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                //         })
+                // })
             }
         }
     });
@@ -231,27 +231,27 @@ $(document).ready(function () {
         $('.submit-check').addClass('d-none')
     })
 
-    $('.updateFeedback').on('click', function () {
-        let current_id = $(this).data('fid');
-        $.ajax({
-            url: "/update_feedback",
-            data: {
-                'current_id': current_id,
-                'csrfmiddlewaretoken': $csrf_token,
-            },
-            type: 'POST',
-            dataType: 'json',
-        })
-            .done(function (response) {
-                alert('修改完成')
-                window.location.reload()
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
+    // $('.updateFeedback').on('click', function () {
+    //     let current_id = $(this).data('fid');
+    //     $.ajax({
+    //         url: "/update_feedback",
+    //         data: {
+    //             'current_id': current_id,
+    //             'csrfmiddlewaretoken': $csrf_token,
+    //         },
+    //         type: 'POST',
+    //         dataType: 'json',
+    //     })
+    //         .done(function (response) {
+    //             alert('修改完成')
+    //             window.location.reload()
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
-    })
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    // })
 
 
 

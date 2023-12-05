@@ -853,6 +853,8 @@ function doSearchDataset(what, datasize) {
         h_str += '&holder=' + r
     }
 
+    console.log(what)
+
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");

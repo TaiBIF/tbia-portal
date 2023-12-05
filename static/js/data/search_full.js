@@ -270,34 +270,40 @@ function changeAction() {
   let queryString = window.location.search;
   let urlParams = new URLSearchParams(queryString);
 
-  // 如果只有keyword, show全部elements
-  if ((queryString.split('&').length == 1) && (queryString.startsWith('?keyword='))) {
-    $('.rightbox_content .item').removeClass('d-none')
-    $('.rightbox_content .subitem').addClass('d-none')
+  if (queryString.length > 2000) {
 
-    // 結果列表移除
-    $('.record_title').remove()
-    $('.result_inf_top').remove()
-    $('.result_table').remove()
-    $('.page_number').remove()
+      alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
+  
+    } else {
+    // 如果只有keyword, show全部elements
+    if ((queryString.split('&').length == 1) && (queryString.startsWith('?keyword='))) {
+      $('.rightbox_content .item').removeClass('d-none')
+      $('.rightbox_content .subitem').addClass('d-none')
 
-  }
+      // 結果列表移除
+      $('.record_title').remove()
+      $('.result_inf_top').remove()
+      $('.result_table').remove()
+      $('.page_number').remove()
 
-  if (urlParams.get('item_class')) {
-    focusComponent(urlParams.get('item_class'), true)
-  }
-  if (urlParams.get('focus_card')) {
-    focusCards(urlParams.get('record_type'), urlParams.get('key'), true)
-  } else if (urlParams.get('get_record')) {
-    //先移除掉原本的
-    $('.item_list li').removeClass('now')
-    $('.second_menu a').removeClass('now')
-    //加上現在的
-    $(`.li-item_${urlParams.get('record_type')}`).addClass('now')
-    $(`#facet_${urlParams.get('record_type')}_${urlParams.get('key')}`).addClass('now')
-    getRecords(urlParams.get('record_type'), urlParams.get('key'), urlParams.get('value'), urlParams.get('scientific_name'),
-      urlParams.get('limit'), urlParams.get('page'), urlParams.get('from'), true,
-      urlParams.get('orderby'), urlParams.get('sort'))
+    }
+
+    if (urlParams.get('item_class')) {
+      focusComponent(urlParams.get('item_class'), true)
+    }
+    if (urlParams.get('focus_card')) {
+      focusCards(urlParams.get('record_type'), urlParams.get('key'), true)
+    } else if (urlParams.get('get_record')) {
+      //先移除掉原本的
+      $('.item_list li').removeClass('now')
+      $('.second_menu a').removeClass('now')
+      //加上現在的
+      $(`.li-item_${urlParams.get('record_type')}`).addClass('now')
+      $(`#facet_${urlParams.get('record_type')}_${urlParams.get('key')}`).addClass('now')
+      getRecords(urlParams.get('record_type'), urlParams.get('key'), urlParams.get('value'), urlParams.get('scientific_name'),
+        urlParams.get('limit'), urlParams.get('page'), urlParams.get('from'), true,
+        urlParams.get('orderby'), urlParams.get('sort'))
+    }
   }
 
 }
