@@ -1703,16 +1703,16 @@ def create_data_table(docs, user_id, obv_str):
         # 如果是夥伴單位直接給原始
         if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
             if lat := row.get('standardRawLatitude'):
-                docs.loc[i , 'verbatimRawLatitude'] = lat[0]
+                docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
                 if row.get('verbatimRawLatitude'):
-                    docs.loc[i , 'verbatimRawLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
+                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + docs.loc[i , 'verbatimRawLatitude'] + '</small>'
 
             if lon := row.get('standardRawLongitude'):
-                docs.loc[i , 'verbatimRawLongitude'] = lon[0]
+                docs.loc[i , 'verbatimLongitude'] = lon[0]
             else:
                 if row.get('verbatimRawLongitude'):
-                    docs.loc[i , 'verbatimRawLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
+                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + docs.loc[i , 'verbatimRawLongitude'] + '</small>'
         else:
             if lat := row.get('standardLatitude'):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]

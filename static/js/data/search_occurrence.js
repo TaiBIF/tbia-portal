@@ -853,7 +853,7 @@ function doSearchDataset(what, datasize) {
         h_str += '&holder=' + r
     }
 
-    console.log(what)
+    // console.log(what)
 
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
