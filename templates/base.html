@@ -352,10 +352,10 @@
           </svg>
         </button>
         <div class="searchbox">
-          <form action="{% url 'search_full' %}" method="GET">
+          {% comment %} <form action="{% url 'search_full' %}" method="GET"> {% endcomment %}
             <div class="wbox">
-              <input type="text" placeholder="{% trans '請輸入關鍵字' %}" name="keyword">
-              <button class="mb-btn">
+              <input type="text" placeholder="{% trans '請輸入關鍵字' %}" class="top_search_full_keyword" name="keyword">
+              <button class="mb-btn top_search_full_button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
                   <g id="loupe" transform="translate(0.038 0.035)">
                     <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
@@ -365,7 +365,7 @@
                 </svg>
               </button>
             </div>
-          </form>
+          {% comment %} </form> {% endcomment %}
         </div>
       </div>
         <div class="feedback showFeedback"></div>

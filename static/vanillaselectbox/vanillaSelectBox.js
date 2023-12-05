@@ -372,12 +372,15 @@ function vanillaSelectBox(domSelector, options) {
             this.inputBox = document.createElement("input");
             this.searchZone.appendChild(this.inputBox);
             this.inputBox.setAttribute("type", "text");
+            this.inputBox.setAttribute("placeholder", gettext("輸入關鍵字查看更多選項"));
             this.inputBox.setAttribute("id", "search_" + this.rootToken);
             if (this.maxOptionWidth < Infinity) {
                 this.searchZone.style.maxWidth = self.maxOptionWidth + 30 + "px";
                 this.inputBox.style.maxWidth = self.maxOptionWidth + 30 + "px";
 
             }
+
+            this.inputBox.padding = '10px'
             
             var para = document.createElement("p");
             this.ul.appendChild(para);
@@ -545,7 +548,8 @@ function vanillaSelectBox(domSelector, options) {
 
             self.inputBox.addEventListener("compositionend", function(e){
                 // 注音輸入完成才搜尋
-                let searchValue = e.target.value.toUpperCase();
+                let searchValue = e.target.value;
+                // let searchValue = e.target.value.toUpperCase();
                 let searchValueLength = searchValue.length;
                 let nrFound = 0;
                 let nrChecked = 0;
@@ -575,7 +579,8 @@ function vanillaSelectBox(domSelector, options) {
                     } else {
                         Array.prototype.slice.call(self.listElements).forEach(function (x) {
                             if (x.getAttribute('data-value') !== 'all') {
-                                let text = x.getAttribute("data-text").toUpperCase();
+                                // let text = x.getAttribute("data-text").toUpperCase();
+                                let text = x.getAttribute("data-text");
                                 if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
                                     x.classList.add("hidden-search");
                                 } else {
@@ -611,7 +616,8 @@ function vanillaSelectBox(domSelector, options) {
             self.inputBox.addEventListener("keyup", function (e) {
                 if ( !e.isComposing ){ 
                     // 注音輸入完成才搜尋
-                    let searchValue = e.target.value.toUpperCase();
+                    // let searchValue = e.target.value.toUpperCase();
+                    let searchValue = e.target.value;
                     let searchValueLength = searchValue.length;
                     let nrFound = 0;
                     let nrChecked = 0;
@@ -641,7 +647,8 @@ function vanillaSelectBox(domSelector, options) {
                         } else {
                             Array.prototype.slice.call(self.listElements).forEach(function (x) {
                                 if (x.getAttribute('data-value') !== 'all') {
-                                    let text = x.getAttribute("data-text").toUpperCase();
+                                    // let text = x.getAttribute("data-text").toUpperCase();
+                                    let text = x.getAttribute("data-text");
                                     if (text.slice(searchValue).search(getVariants(escapeRegExp(searchValue))) === -1 && x.getAttribute('data-value') !== 'all') {
                                         x.classList.add("hidden-search");
                                     } else {

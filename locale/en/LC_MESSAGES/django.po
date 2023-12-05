@@ -399,8 +399,8 @@ msgstr "Currently Not available"
 
 #: templates/data/collection_detail.html:118
 #: templates/data/occurrence_detail.html:119
-msgid "無照片"
-msgstr "No Image"
+msgid "無照片或照片未提供授權"
+msgstr "No Image or Image not Provided with Authorization"
 
 #: templates/data/collection_detail.html:194
 #: templates/data/occurrence_detail.html:183
@@ -2499,7 +2499,10 @@ msgstr "National Parks of Taiwan Biodiversity Database"
 msgid "自然科學博物館"
 msgstr "National Museum of Natural Science"
 
-
 #:
 msgid "您的權限不足"
 msgstr "Permission denied."
+
+#:
+msgid "輸入關鍵字查看更多選項"
+msgstr "Type to see more options"

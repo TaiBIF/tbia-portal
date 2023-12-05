@@ -334,6 +334,7 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
 
     elif menu == 'feedback': # 意見回饋 單位帳號 / 系統帳號
+        # 暫時沒有使用
         if request.GET.get('from') == 'partner':
             for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 if f.created:
@@ -381,16 +382,16 @@ def change_manager_page(request):
                     else:
                         partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
 
-                if f.partner:
-                    if f.is_replied:
-                        a = '是'
-                    else:
-                        a = '否'
+                # if f.partner:
+                #     if f.is_replied:
+                #         a = '是'
+                #     else:
+                #         a = '否'
+                # else:
+                if f.is_replied:
+                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
                 else:
-                    if f.is_replied:
-                        a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
-                    else:
-                        a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
