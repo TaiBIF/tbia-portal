@@ -927,7 +927,8 @@ function focusCards(record_type, key, go_back) {
           record_type: record_type,
           keyword: $('input[name=keyword]').val(),
           csrfmiddlewaretoken: $csrf_token,
-          key: key
+          key: key,
+          lang: $lang
         },
         type: 'POST',
         dataType: 'json',
@@ -1116,7 +1117,8 @@ function focusCards(record_type, key, go_back) {
           record_type: record_type,
           keyword: $('input[name=keyword]').val(),
           csrfmiddlewaretoken: $csrf_token,
-          key: key
+          key: key,
+          lang: $lang,
         },
         type: 'POST',
         dataType: 'json',
@@ -1334,6 +1336,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         csrfmiddlewaretoken: $csrf_token,
         offset: offset,
         is_sub: is_sub,
+        lang: $lang,
       },
       type: 'POST',
       dataType: 'json',
@@ -1497,6 +1500,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         csrfmiddlewaretoken: $csrf_token,
         offset: offset,
         is_sub: is_sub,
+        lang: $lang,
       },
       type: 'POST',
       dataType: 'json',

@@ -2498,3 +2498,8 @@ msgstr "National Parks of Taiwan Biodiversity Database"
 #:
 msgid "自然科學博物館"
 msgstr "National Museum of Natural Science"
+
+
+#:
+msgid "您的權限不足"
+msgstr "Permission denied."

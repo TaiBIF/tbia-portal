@@ -1009,7 +1009,9 @@ def create_search_query(req_dict, from_request=False):
 
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
-def get_search_full_cards(keyword, card_class, is_sub, offset, key):
+def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None):
+    if lang:
+        translation.activate(lang)
 
     keyword = keyword.strip()
 
@@ -1061,13 +1063,13 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
         facet_list = col_facets
         map_dict = map_collection
         record_type = 'col'
-        title_prefix = '自然史典藏 > '
+        title_prefix = f'{gettext("自然史典藏")} > '
     else: # taxon 跟 occ 都算在這裡
         facet_list = occ_facets
         map_dict = map_occurrence
         query.pop('filter', None)
         record_type = 'occ'
-        title_prefix = '物種出現紀錄 > '
+        title_prefix = f'{gettext("物種出現紀錄")} > '
 
     if not enable_query_date:
         if 'eventDate' in facet_list['facet'].keys():
@@ -1254,7 +1256,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
 
     # get_focus_card 使用
     if key:
-        title = f"{title_prefix}{map_dict[key]}"
+        title = f"{title_prefix}{gettext(map_dict[key])}"
         item_class = f"item_{record_type}_{key}"
         card_class = f"{record_type}-{key}-card"
     else:
@@ -1297,7 +1299,10 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key):
 
 
 # 全站搜尋 物種
-def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
+def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
+    if lang:
+        translation.activate(lang)
+
     taxon_result_dict = []
     # keyword = request.POST.get('keyword', '')
     # card_class = request.POST.get('card_class', '')
@@ -1477,7 +1482,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset):
     map_dict = map_occurrence # occ或col沒有差別
 
     if key:
-        title = f"物種 > {map_dict[key]}"
+        title = f"{gettext('物種')} > {gettext(map_dict[key])}"
         item_class = f"item_taxon_{key}"
         card_class = f"taxon-{key}-card"
     else:

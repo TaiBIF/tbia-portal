@@ -942,9 +942,10 @@ def get_focus_cards(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
+        lang = request.POST.get('lang', 'zh-hant')
 
         response = get_search_full_cards(keyword=keyword, card_class=f".{record_type}-{key}-card",
-                              is_sub='true', offset=0, key=key)
+                              is_sub='true', offset=0, key=key, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -954,9 +955,10 @@ def get_focus_cards_taxon(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
-        
+        lang = request.POST.get('lang', 'zh-hant')
+
         response = get_search_full_cards_taxon(keyword=keyword, card_class=f"{record_type}-{key}-card", is_sub='true', 
-                                               offset=0)
+                                               offset=0, lang=lang)
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
@@ -966,8 +968,9 @@ def get_more_cards_taxon(request):
         card_class = request.POST.get('card_class', '')
         is_sub = request.POST.get('is_sub', '')
         offset = request.POST.get('offset', '')
+        lang = request.POST.get('lang', 'zh-hant')
 
-        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset)
+        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -985,7 +988,9 @@ def get_more_cards(request):
         else:
             key = None
 
-        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key)
+        lang = request.POST.get('lang', 'zh-hant')
+
+        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -1352,7 +1357,7 @@ def get_higher_taxa(request):
 
 
 def search_full(request):
-    s = time.time()
+    # s = time.time()
     keyword = request.GET.get('keyword', '')
 
     if keyword:
@@ -1364,9 +1369,9 @@ def search_full(request):
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        print('b', time.time()-s)
+        # print('b', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## occurrence
 
@@ -1376,9 +1381,9 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        print('d', time.time()-s)
+        # print('d', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## taxon
 
@@ -1388,9 +1393,9 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        print('e', time.time()-s)
+        # print('e', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         keyword = keyword.strip()
 
