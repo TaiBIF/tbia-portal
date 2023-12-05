@@ -1067,8 +1067,7 @@ msgstr ""
 "The result for the organization account application is: 0000."
 
 msgid ""
-"歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議"
-"您可以利用首頁的關鍵字查詢功能，搜尋任何您想得到的內容。"
+"歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能或網頁最上方的放大鏡功能，搜尋任何您想得到的內容。"
 msgstr "Welcome to the &quot;Biodiversity Database Portal System&quot;!<br>If this is your first time using this system, we recommend that you utilize the keyword search feature on the homepage or the magnifying glass icon at the top of the webpage to find the information you are looking for."
 
 msgid ""
@@ -2466,7 +2465,7 @@ msgstr "Taiwan Wetland Database"
 
 #:
 msgid "中央研究院生物多樣性中心植物標本資料庫"
-msgstr ""
+msgstr "Herbarium (HAST)"
 
 #:
 msgid "林業試驗所植物標本資料庫"
