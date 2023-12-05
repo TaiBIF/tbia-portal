@@ -54,7 +54,7 @@ window.onpopstate = function (e) {
         url: `/get_link_content`,
         type: 'GET',
         success: function (response) {
-            console.log(response)
+            // console.log(response)
             quill.pasteHTML(response.content);
         }
     });

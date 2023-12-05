@@ -1571,7 +1571,7 @@ vanillaSelectBox.prototype.enable = function () {
 }
 
 vanillaSelectBox.prototype.showOptions = function () {
-    console.log(this.userOptions);
+    // console.log(this.userOptions);
 }
 // Polyfills for IE
 if (!('remove' in Element.prototype)) {

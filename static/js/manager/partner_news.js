@@ -66,7 +66,7 @@ function changePage(page, menu) {
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
-          console.log(response.page_list[i])
+          // console.log(response.page_list[i])
           if (response.page_list[i] == response.current_page) {
             html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
           } else {

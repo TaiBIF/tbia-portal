@@ -452,7 +452,7 @@ $(document).ready(function () {
 
   // 如果按上下一頁
   window.onpopstate = function (event) {
-    console.log(history)
+    // console.log(history)
     changeAction();
   };
 

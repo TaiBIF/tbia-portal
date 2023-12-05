@@ -1156,7 +1156,7 @@ function setTable(response, queryString, from, orderby, sort) {
 
 // submit search form   
 function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
-    console.log('submitSearch')
+    // console.log('submitSearch')
 
     if (push_state == null) { push_state = true }
 
@@ -1265,7 +1265,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             })
                 .done(function (response) {                
 
-                    console.log(response)
+                    // console.log(response)
                     
                     // clear previous results
                     $('.record_table tr').remove()
