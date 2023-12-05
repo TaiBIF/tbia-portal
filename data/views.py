@@ -942,9 +942,10 @@ def get_focus_cards(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
+        lang = request.POST.get('lang', 'zh-hant')
 
         response = get_search_full_cards(keyword=keyword, card_class=f".{record_type}-{key}-card",
-                              is_sub='true', offset=0, key=key)
+                              is_sub='true', offset=0, key=key, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -954,9 +955,10 @@ def get_focus_cards_taxon(request):
         keyword = request.POST.get('keyword', '')
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
-        
+        lang = request.POST.get('lang', 'zh-hant')
+
         response = get_search_full_cards_taxon(keyword=keyword, card_class=f"{record_type}-{key}-card", is_sub='true', 
-                                               offset=0)
+                                               offset=0, lang=lang)
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
@@ -966,8 +968,9 @@ def get_more_cards_taxon(request):
         card_class = request.POST.get('card_class', '')
         is_sub = request.POST.get('is_sub', '')
         offset = request.POST.get('offset', '')
+        lang = request.POST.get('lang', 'zh-hant')
 
-        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset)
+        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -985,7 +988,9 @@ def get_more_cards(request):
         else:
             key = None
 
-        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key)
+        lang = request.POST.get('lang', 'zh-hant')
+
+        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key, lang=lang)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -1320,19 +1325,21 @@ def get_higher_taxa(request):
     translation.activate(lang)
     ds = '[]'
     if keyword_str := request.GET.get('keyword','').strip():
+
         keyword_str = get_variants(keyword_str)
+        # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
             query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '%{keyword_str}%' LIMIT 10 """
+            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '{keyword_str}%' LIMIT 10 """
             cursor.execute(query)
-            # print(query)
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
-            if len(ds):
-                if lang == 'en-us':
-                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({gettext(name_status_map[x['name_status']])} {x['text']})" if x['name_status'] != 'accepted' else x['text'], axis=1)
-                else:
-                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+
+        if len(ds):
+            if lang == 'en-us':
+                ds['text'] = ds.apply(lambda x: x['name'] + f" ({gettext(name_status_map[x['name_status']])} {x['text']})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+            else:
+                ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
 
             ds = ds[['text','value']].to_json(orient='records')
     elif taxon_id := request.GET.get('taxon_id',''):
@@ -1350,7 +1357,7 @@ def get_higher_taxa(request):
 
 
 def search_full(request):
-    s = time.time()
+    # s = time.time()
     keyword = request.GET.get('keyword', '')
 
     if keyword:
@@ -1362,9 +1369,9 @@ def search_full(request):
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        print('b', time.time()-s)
+        # print('b', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## occurrence
 
@@ -1374,9 +1381,9 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        print('d', time.time()-s)
+        # print('d', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## taxon
 
@@ -1386,9 +1393,9 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        print('e', time.time()-s)
+        # print('e', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         keyword = keyword.strip()
 
