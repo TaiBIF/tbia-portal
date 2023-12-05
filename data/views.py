@@ -1320,19 +1320,21 @@ def get_higher_taxa(request):
     translation.activate(lang)
     ds = '[]'
     if keyword_str := request.GET.get('keyword','').strip():
+
         keyword_str = get_variants(keyword_str)
+        # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
             query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '%{keyword_str}%' LIMIT 10 """
+            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '{keyword_str}%' LIMIT 10 """
             cursor.execute(query)
-            # print(query)
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
-            if len(ds):
-                if lang == 'en-us':
-                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({gettext(name_status_map[x['name_status']])} {x['text']})" if x['name_status'] != 'accepted' else x['text'], axis=1)
-                else:
-                    ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+
+        if len(ds):
+            if lang == 'en-us':
+                ds['text'] = ds.apply(lambda x: x['name'] + f" ({gettext(name_status_map[x['name_status']])} {x['text']})" if x['name_status'] != 'accepted' else x['text'], axis=1)
+            else:
+                ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
 
             ds = ds[['text','value']].to_json(orient='records')
     elif taxon_id := request.GET.get('taxon_id',''):
