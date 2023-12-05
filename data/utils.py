@@ -1682,6 +1682,7 @@ def create_data_table(docs, user_id, obv_str):
     rows = []
 
     for i in docs.index:
+        docs = docs.replace({np.nan:None})
         row = docs.iloc[i]
         if row.get('scientificName') and row.get('formatted_name'):
             docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
