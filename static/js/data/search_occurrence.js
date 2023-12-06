@@ -13,11 +13,12 @@ $('#rightsHolder').on('change', function (e) {
     let res = selectBox.getResult()
     let h_str = ''
     for (r of res) {
-        h_str += 'holder=' + r + '&'
+        h_str += '&holder=' + r 
     }
 
-    let d_str = '&'
+    let d_str = ''
     if (window.has_par) {
+        d_str = '&'
         for (dd in window.d_list){
             d_str += 'datasetKey=' + window.d_list[dd] + '&'
         }
@@ -801,7 +802,7 @@ function initDataset(what, datasize) {
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");
-        xhr.open('GET', '/get_dataset_init?datasetName=' + keyword_list.join('&datasetName='), true);
+        xhr.open('GET', '/change_dataset', true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
