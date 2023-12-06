@@ -40,7 +40,7 @@ $(function () {
   });
 
   $('.mobile_tab .vsb-main button').css('border', '').css('background', '')
-  $('.mobile_tab span.caret').addClass('d-none')
+  // $('.mobile_tab span.caret').addClass('d-none')
 
   $('.mobile_tab .vsb-main button').on('click', function () {
     if ($(this).next('.mobile_tab .vsb-menu').css('visibility') == 'visible') {

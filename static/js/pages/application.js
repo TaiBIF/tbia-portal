@@ -41,7 +41,7 @@ $(function () {
     });
 
     $('#appilcationForm .vsb-main button').css('border', '').css('background', '')
-    $('#appilcationForm span.caret').addClass('d-none')
+    // $('#appilcationForm span.caret').addClass('d-none')
 
     $('#appilcationForm .vsb-main button').on('click', function () {
         if ($(this).next('#appilcationForm .vsb-menu').css('visibility') == 'visible') {

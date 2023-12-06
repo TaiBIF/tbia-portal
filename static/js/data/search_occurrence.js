@@ -908,7 +908,7 @@ function changeAction() {
     $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
 
     $('.vsb-main button').css('border', '').css('background', '')
-    $('span.caret').addClass('d-none')
+    // $('span.caret').addClass('d-none')
 
     /*
     $('.vsb-main button').on('click',function(e){
