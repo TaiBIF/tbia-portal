@@ -172,10 +172,12 @@ taxon_group_map_c = {
 }
 
 
-def convert_grid_to_coor(grid_x, grid_y, list_x, list_y):
-  center_x = (list_x[grid_x] + list_x[grid_x+1])/2
-  center_y = (list_y[grid_y] + list_y[grid_y+1])/2
-  return center_x, center_y
+# def convert_grid_to_coor(grid_x, grid_y, grid):
+#     list_x = np.arange(-180, 180+grid, grid)
+#     list_y = np.arange(-90, 90+grid, grid)
+#     center_x = (list_x[grid_x] + list_x[grid_x+1])/2
+#     center_y = (list_y[grid_y] + list_y[grid_y+1])/2
+#     return center_x, center_y
 
 def convert_coor_to_grid(x, y, grid):
     list_x = np.arange(-180, 180+grid, grid)
@@ -1516,6 +1518,7 @@ def get_map_response(map_query, grid_list):
     
     map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
     
+    # TODO 這邊要修改成 夥伴單位顯示 grid_* , 非夥伴單位顯示 grid_*_blurred
     data_c = {}
     for grid in grid_list:
         data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']

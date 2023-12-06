@@ -27,7 +27,7 @@ urlpatterns = [
     path('get_locality', views.get_locality, name='get_locality'),
     path('get_locality_init', views.get_locality_init, name='get_locality_init'),
     path('get_dataset', views.get_dataset, name='get_dataset'),
-    path('get_dataset_init', views.get_dataset_init, name='get_dataset_init'),
+    # path('get_dataset_init', views.get_dataset_init, name='get_dataset_init'),
     # 進階搜尋 取得結果
     path('get_conditional_records', views.get_conditional_records, name='get_conditional_records'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),

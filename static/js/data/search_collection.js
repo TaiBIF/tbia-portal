@@ -419,13 +419,13 @@ map.on('dragend', function zoomendEvent(ev) {
 function initDataset(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
-    let urlParams = new URLSearchParams(window.location.search);
-    let keyword_list = urlParams.getAll('datasetName')
+    // let urlParams = new URLSearchParams(window.location.search);
+    // let keyword_list = urlParams.getAll('datasetName')
 
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");
-        xhr.open('GET', '/get_dataset_init?record_type=col&datasetName=' + keyword_list.join('&datasetName='), true);
+        xhr.open('GET', '/change_dataset?record_type=col', true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);

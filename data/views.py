@@ -1000,7 +1000,6 @@ def search_collection(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
@@ -1184,35 +1183,53 @@ def get_conditional_records(request):
 def change_dataset(request):
     ds = []
     results = []
+
+    record_type = ''
+    if request.GET.get('record_type') == 'col':
+        record_type = '&fq=record_type:col'
+
+
     if datasetKey := request.GET.getlist('datasetKey'):
         datasetKey = [int(d) for d in datasetKey]
         results = get_dataset_by_key(key_list=datasetKey)
         for d in results:
             ds += [{'value': d[0], 'text': d[1]}]
-    elif holder := request.GET.getlist('holder'):
+    elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
-            d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-            dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-            if len(dataset_list):
-                if request.GET.get('record_type') == 'col':
-                    results = get_dataset_list(record_type='col',rights_holder=h,dataset_list=dataset_list)
-                else:
-                    results = get_dataset_list(rights_holder=h,dataset_list=dataset_list)
-            for d in results:
-                ds += [{'value': d[0], 'text': d[1]}]
+            response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=rights_holder:"{h}"&fq=deprecated:false')
+            d_list = response.json()['response']['docs']
+            # solr內的id和datahub的postgres互通
+            for l in d_list:
+                ds.append({'text': l['name'], 'value': l['id']})
+            # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
+            # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+            # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+            # if len(dataset_list):
+            #     if request.GET.get('record_type') == 'col':
+            #         results = get_dataset_list(record_type='col',rights_holder=h,dataset_list=dataset_list)
+            #     else:
+            #         results = get_dataset_list(rights_holder=h,dataset_list=dataset_list)
+            # for d in results:
+            #     ds += [{'value': d[0], 'text': d[1]}]
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
-        d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-        dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-        if len(dataset_list):
-            if request.GET.get('record_type') == 'col':
-                results = get_dataset_list(record_type='col',dataset_list=dataset_list)
-            else:
-                results = get_dataset_list(dataset_list=dataset_list)
+        # 起始
+        response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
+        d_list = response.json()['response']['docs']
+        # solr內的id和datahub的postgres互通
+        for l in d_list:
+            ds.append({'text': l['name'], 'value': l['id']})
 
-        for d in results:
-            ds += [{'value': d[0], 'text': d[1]}]
+        # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
+        # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+        # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+        # if len(dataset_list):
+        #     if request.GET.get('record_type') == 'col':
+        #         results = get_dataset_list(record_type='col',dataset_list=dataset_list)
+        #     else:
+        #         results = get_dataset_list(dataset_list=dataset_list)
+
+        # for d in results:
+        #     ds += [{'value': d[0], 'text': d[1]}]
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1227,33 +1244,31 @@ def get_locality(request):
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_reg = get_variants(keyword_reg)
 
+    record_type = ''
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=recordType:col'
-    else:
-        record_type = ''
-
+        record_type = '&fq=record_type:col'
 
     locality_str = f'locality:"{keyword}"^5 OR locality:/{keyword}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{keyword}.*/^1 OR locality:/.*{keyword_reg}.*/'
 
-    print(locality_str)
     ds = []
     if keyword_reg:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*&fq={locality_str}{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q={locality_str}{record_type}&rows=20')
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
-    l_list = response.json()['facet_counts']['facet_fields']['locality']
-    l_list = [l_list[x] for x in range(0, len(l_list),2)]
-    for l in l_list:
-        ds.append({'text': l, 'value': l})
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q={record_type}&rows=20')
 
+    l_list = response.json()['response']['docs']
+    # solr內的id和datahub的postgres互通
+    for l in l_list:
+        ds.append({'text': l['locality'], 'value': l['locality']})
+    
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
-
+# 有帶出現地參數進去的時候
 def get_locality_init(request):
     keyword = request.GET.getlist('locality')
 
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=recordType:col'
+        record_type = '&fq=record_type:col'
     else:
         record_type = ''
 
@@ -1261,9 +1276,9 @@ def get_locality_init(request):
     keyword = [f'"{k}"' for k in keyword if k ]
     if keyword:
         f_str = ' OR '.join(keyword)
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?facet.field=locality&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
     else:
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=locality&facet.mincount=1&facet.limit=10&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?facet.field=locality&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
 
     l_list = response.json()['facet_counts']['facet_fields']['locality']
     l_list = [l_list[x] for x in range(0, len(l_list),2)]
@@ -1272,29 +1287,28 @@ def get_locality_init(request):
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
-def get_dataset_init(request):
-    # keyword = request.GET.getlist('datasetName')
+# 併到change_dataset中
+# def get_dataset_init(request):
 
-    if request.GET.get('record_type') == 'col':
-        record_type = '&fq=recordType:col'
-    else:
-        record_type = ''
+#     record_type = ''
+#     if request.GET.get('record_type') == 'col':
+#         record_type = '&fq=recordType:col'
+#     else:
+#         record_type = ''
 
-    ds = []
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0{record_type}')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    if len(dataset_list):
-        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
+#     ds = []
+#     response = requests.get(f'{SOLR_PREFIX}dataset/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0{record_type}')
+#     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
+#     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
+#     if len(dataset_list):
+#         dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
 
-        for l in dataset_list:
-            ds.append({'text': l[1], 'value': l[0]})
+#         for l in dataset_list:
+#             ds.append({'text': l[1], 'value': l[0]})
 
-    return HttpResponse(json.dumps(ds), content_type='application/json')
+#     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 def get_dataset(request):
-
-    # TODO 改用資料庫 ?
 
     # datasetlist = request.GET.getlist('datasetName')
     keyword = request.GET.get('keyword')
@@ -1302,34 +1316,27 @@ def get_dataset(request):
     h_str = ''
     if len(rights_holder) > 1:
         rights_holder = ' OR '.join(rights_holder)
-        h_str = f'&fq=rightsHolder:({rights_holder})'
+        h_str = f'&fq=rights_holder:({rights_holder})'
     elif len(rights_holder) == 1:
-        h_str = f'&fq=rightsHolder:"{rights_holder[0]}"'
-    # for r in rights_hoder:
-    #     h_str += 
-    # righs_hoder = [f"  "]
-    # righs_hoder_str = ' OR '
-    # &fq=rightsHolder:{h}
+        h_str = f'&fq=rights_holder:"{rights_holder[0]}"'
+
+    record_type = ''
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=recordType:col'
-    else:
-        record_type = ''
+        record_type = '&fq=record_type:col'
 
     keyword_reg = ''
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_reg = get_variants(keyword_reg)
-    # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
-    dataset_str = f'datasetName:"{keyword}"^5 OR datasetName:/{keyword}.*/^4 OR datasetName:/{keyword_reg}/^3 OR datasetName:/{keyword_reg}.*/^2 OR datasetName:/.*{keyword}.*/^1 OR datasetName:/.*{keyword_reg}.*/'
-    ds = []
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q={dataset_str}{h_str}&rows=0{record_type}')
-    d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-    dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-    if len(dataset_list):
-        dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
 
-        for l in dataset_list:
-            ds.append({'text': l[1], 'value': l[0]})
+    # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
+    dataset_str = f'name:"{keyword}"^5 OR name:/{keyword}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{keyword}.*/^1 OR name:/.*{keyword_reg}.*/'
+    ds = []
+    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q={dataset_str}{h_str}&rows=20{record_type}&fq=deprecated:false')
+    d_list = response.json()['response']['docs']
+    # solr內的id和datahub的postgres互通
+    for l in d_list:
+        ds.append({'text': l['name'], 'value': l['id']})
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
