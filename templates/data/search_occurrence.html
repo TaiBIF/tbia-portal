@@ -98,13 +98,13 @@
             </div>
             <div class="two_input">
               <div class="input_item input-100">
-                <select id="higherTaxa" name="higherTaxa">
+                <select id="higherTaxa" name="higherTaxa" class="d-none">
                 </select>  
               </div>  
             </div>            
             <div class="two_input">
               <div class="input_item">
-                <select name="rightsHolder" id="rightsHolder" multiple size="1">
+                <select name="rightsHolder" id="rightsHolder" multiple size="1" class="d-none">>
                   {% for i in holder_list %}
                   <option value="{{ i }}">{% trans i %}</option>
                   {% endfor %}
@@ -131,7 +131,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select id="locality" name="locality" multiple size="1">
+                <select id="locality" name="locality" multiple size="1" class="d-none">>
                 </select>
               </div>
               <div class="input_item">
@@ -153,7 +153,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="datasetName" id="datasetName" multiple size="1">
+                <select name="datasetName" id="datasetName" multiple size="1" class="d-none">>
                 </select>
               </div>
               <div class="input_item">

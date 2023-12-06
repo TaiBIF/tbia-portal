@@ -129,7 +129,7 @@ function vanillaSelectBox(domSelector, options) {
         buttonItemsSeparator : ","
     }
     this.keepInlineStyles = true;
-    this.keepInlineCaretStyles = true;
+    // this.keepInlineCaretStyles = true;
     if (options) {
         if(options.itemsSeparator!= undefined){
             this.userOptions.buttonItemsSeparator = options.itemsSeparator;
@@ -198,9 +198,9 @@ function vanillaSelectBox(domSelector, options) {
         if(options.keepInlineStyles != undefined ) {
             this.keepInlineStyles = options.keepInlineStyles;
         }
-        if(options.keepInlineCaretStyles != undefined ) {
-            this.keepInlineCaretStyles = options.keepInlineCaretStyles;
-        }
+        // if(options.keepInlineCaretStyles != undefined ) {
+        //     this.keepInlineCaretStyles = options.keepInlineCaretStyles;
+        // }
         
     }
 
@@ -321,22 +321,22 @@ function vanillaSelectBox(domSelector, options) {
         this.title = document.createElement("span");
         this.button.appendChild(this.title);
         this.title.classList.add("title");
-        let caret = document.createElement("span");
-        this.button.appendChild(caret);
+        // let caret = document.createElement("span");
+        // this.button.appendChild(caret);
 
-        caret.classList.add("caret");
-        if(this.keepInlineCaretStyles) {
-            caret.style.position = "absolute";
-            caret.style.right = "8px";
-            caret.style.marginTop = "8px";
-        }
+        // caret.classList.add("caret");
+        // if(this.keepInlineCaretStyles) {
+        //     caret.style.position = "absolute";
+        //     caret.style.right = "8px";
+        //     caret.style.marginTop = "8px";
+        // }
 
-        if (self.userOptions.stayOpen) {
-            caret.style.display = "none";
-            this.title.style.paddingLeft = "20px";
-            this.title.style.fontStyle = "italic";
-            this.title.style.verticalAlign = "20%";
-        }
+        // if (self.userOptions.stayOpen) {
+        //     caret.style.display = "none";
+        //     this.title.style.paddingLeft = "20px";
+        //     this.title.style.fontStyle = "italic";
+        //     this.title.style.verticalAlign = "20%";
+        // }
 
         this.drop = document.createElement("div");
         this.main.appendChild(this.drop);

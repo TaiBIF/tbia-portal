@@ -130,7 +130,7 @@ $(function () {
   });
 
 
-  $('span.caret').addClass('d-none')
+  // $('span.caret').addClass('d-none')
 
   /*
   $('.vsb-main button').on('click',function(){
