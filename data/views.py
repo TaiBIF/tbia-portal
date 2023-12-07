@@ -1276,14 +1276,13 @@ def get_locality_init(request):
     keyword = [f'"{k}"' for k in keyword if k ]
     if keyword:
         f_str = ' OR '.join(keyword)
-        response = requests.get(f'{SOLR_PREFIX}locality/select?facet.field=locality&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=20')
     else:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?facet.field=locality&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*{record_type}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20')
 
-    l_list = response.json()['facet_counts']['facet_fields']['locality']
-    l_list = [l_list[x] for x in range(0, len(l_list),2)]
+    l_list = response.json()['response']['docs']
     for l in l_list:
-        ds.append({'text': l, 'value': l})
+        ds.append({'text': l['locality'], 'value': l['locality']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
