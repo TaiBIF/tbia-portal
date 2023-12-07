@@ -594,15 +594,10 @@ $(function () {
         window.selected = $(`.col-choice input:checked`)
     })
 
-    // $(document).on("keydown", "form", function(event) { 
-    //     if(event.key  == 'Enter') {
-
-    //         if ($('.popbg').length == $('.popbg.d-none').length && $('.vsb-menu[style*="visibility: visible"]').length == 0 ){
-    //             $('.search_condition_are .submitSearch').trigger('click')
-    //         }
-    //     } 
-    //     return event.key != "Enter";
-    // });
+    $('#searchForm').on('submit', function(event) { 
+        event.preventDefault()
+        $('.search_condition_are .submitSearch').trigger('click')
+    });
 
     $('.resetSearch').on('click', function () {
         $('.clearGeo').trigger('click')

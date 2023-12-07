@@ -114,9 +114,9 @@
       <p>{% trans '生物多樣性資料庫共通查詢系統' %}</p>
       <h2>{% trans '臺灣生物多樣性開放資料任意門' %}</h2>
       <div class="input_set">
-          {% comment %} <form id="search_full_form" action="{% url 'search_full' %}" method="GET"> {% endcomment %}
+          <form id="search_full_form" action="{% url 'search_full' %}" method="GET">
             <input placeholder="{% trans '請輸入關鍵字' %}" type="text" class="search_full_keyword" name="keyword" />
-          {% comment %} </form> {% endcomment %}
+          </form>
           <button class="search_full_button">
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
               <g id="loupe" transform="translate(0 -0.003)">
