@@ -407,6 +407,10 @@ function showSlides(n, taxonID, cardclass) {
 
 $(document).ready(function () {
 
+  $('#fullSubmit').on('click', function(){
+    $('#fullForm').submit()
+  })
+
 
   $('#fullForm').on('submit', function(event){
     event.preventDefault()

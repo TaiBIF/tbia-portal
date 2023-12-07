@@ -3,6 +3,9 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $(document).ready(function () {
 
+  $('.search_full_button').on('click', function(){
+    $('#search_full_form').submit()
+  })
 
   $('#search_full_form').on('submit', function(event){
     event.preventDefault()
