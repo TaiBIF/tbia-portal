@@ -1012,7 +1012,7 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-        
+
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
         })
@@ -1342,9 +1342,9 @@ def get_dataset(request):
 def get_higher_taxa(request):
     lang = request.GET.get('lang','zh-hant')
     translation.activate(lang)
+    taxon_id = request.GET.get('taxon_id','')
     ds = '[]'
     if keyword_str := request.GET.get('keyword','').strip():
-
         keyword_str = get_variants(keyword_str)
         # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
@@ -1361,7 +1361,7 @@ def get_higher_taxa(request):
                 ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
 
             ds = ds[['text','value']].to_json(orient='records')
-    elif taxon_id := request.GET.get('taxon_id',''):
+    elif taxon_id and taxon_id != 'null':
         # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
             query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
@@ -1369,8 +1369,19 @@ def get_higher_taxa(request):
             cursor.execute(query)
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
-            ds = ds[['text','value']].to_json(orient='records')
+            ds['has_taxonID'] = True
+            ds = ds[['text','value','has_taxonID']].to_json(orient='records')
+    else:
+        default_taxon = ('t0005214','t0004179','t0004102','t0003149','t0005573','t0005890','t0004034','t0005763','t0002476','t0004051')
 
+        with connection.cursor() as cursor:
+            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE "taxonID" IN {str(default_taxon)} AND name_status = 'accepted'; """
+            cursor.execute(query)
+            results = cursor.fetchall()
+            ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
+            ds = ds[['text','value']].to_json(orient='records')
+        
 
     return HttpResponse(ds, content_type='application/json')
 
