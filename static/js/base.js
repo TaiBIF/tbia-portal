@@ -71,7 +71,7 @@ function getCurrentNotif() {
     }
   });
   if ($('input[name=is_authenticated]').val() == 'True') {
-    setTimeout(getCurrentNotif, 5000);
+    setTimeout(getCurrentNotif, 60000);
   }
 }
 

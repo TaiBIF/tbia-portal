@@ -43,6 +43,17 @@ function getDist(taxonID) {
 
   map.setView([23.5, 121.2], 7)
 
+  // function getWKTMap() {
+  //   // console.log(map)
+  //   var neLat = map.getBounds().getNorthEast()['lat'] 
+  //   var neLng = map.getBounds().getNorthEast()['lng']
+  //   var swLat = map.getBounds().getSouthWest()['lat']
+  //   var swLng = map.getBounds().getSouthWest()['lng'] 
+  
+  //   return swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+  // }
+  
+  
 
   $.ajax({
     url: "/get_taxon_dist_init",
@@ -82,25 +93,33 @@ function getDist(taxonID) {
 
     } else if (currentZoomLevel < 12) {
 
-      div = 5 / 100;
-      neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
+      // div = 5 / 100;
+      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
+      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
+      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
+      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
 
-      wkt_map = "POLYGON((" +
-        swLng + " " + swLat + "," +
-        swLng + " " + neLat + "," +
-        neLng + " " + neLat + "," +
-        neLng + " " + swLat + "," +
-        swLng + " " + swLat +
-        "))";
+      // wkt_map = "POLYGON((" +
+      //   swLng + " " + swLat + "," +
+      //   swLng + " " + neLat + "," +
+      //   neLng + " " + neLat + "," +
+      //   neLng + " " + swLat + "," +
+      //   swLng + " " + swLat +
+      //   "))";
+
+      var neLat = map.getBounds().getNorthEast()['lat'] 
+      var neLng = map.getBounds().getNorthEast()['lng']
+      var swLat = map.getBounds().getSouthWest()['lat']
+      var swLng = map.getBounds().getSouthWest()['lng'] 
+    
+      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+  
 
       $('[class^=resultG_]').addClass('d-none')
       $('.resultG_5').remove()
       $.ajax({
         url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
       })
@@ -121,26 +140,32 @@ function getDist(taxonID) {
 
     } else {
 
-      div = 1 / 100;
-      neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
+      // div = 1 / 100;
+      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
+      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
+      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
+      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
 
-      wkt_map = "POLYGON((" +
-        swLng + " " + swLat + "," +
-        swLng + " " + neLat + "," +
-        neLng + " " + neLat + "," +
-        neLng + " " + swLat + "," +
-        swLng + " " + swLat +
-        "))";
-
+      // wkt_map = "POLYGON((" +
+      //   swLng + " " + swLat + "," +
+      //   swLng + " " + neLat + "," +
+      //   neLng + " " + neLat + "," +
+      //   neLng + " " + swLat + "," +
+      //   swLng + " " + swLat +
+      //   "))";
+      var neLat = map.getBounds().getNorthEast()['lat'] 
+      var neLng = map.getBounds().getNorthEast()['lng']
+      var swLat = map.getBounds().getSouthWest()['lat']
+      var swLng = map.getBounds().getSouthWest()['lng'] 
+    
+      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+  
       $('[class^=resultG_]').addClass('d-none')
       $('.resultG_1').remove()
 
       $.ajax({
         url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
       })
@@ -178,25 +203,32 @@ function getDist(taxonID) {
 
     } else if (currentZoomLevel < 12) {
 
-      div = 5 / 100;
-      neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
+      // div = 5 / 100;
+      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
+      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
+      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
+      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
 
-      wkt_map = "POLYGON((" +
-        swLng + " " + swLat + "," +
-        swLng + " " + neLat + "," +
-        neLng + " " + neLat + "," +
-        neLng + " " + swLat + "," +
-        swLng + " " + swLat +
-        "))";
+      // wkt_map = "POLYGON((" +
+      //   swLng + " " + swLat + "," +
+      //   swLng + " " + neLat + "," +
+      //   neLng + " " + neLat + "," +
+      //   neLng + " " + swLat + "," +
+      //   swLng + " " + swLat +
+      //   "))";
 
+      var neLat = map.getBounds().getNorthEast()['lat'] 
+      var neLng = map.getBounds().getNorthEast()['lng']
+      var swLat = map.getBounds().getSouthWest()['lat']
+      var swLng = map.getBounds().getSouthWest()['lng'] 
+    
+      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+  
       $('[class^=resultG_]').addClass('d-none')
       $('.resultG_5').remove()
       $.ajax({
         url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
       })
@@ -217,26 +249,34 @@ function getDist(taxonID) {
 
     } else {
 
-      div = 1 / 100;
-      neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
+      // div = 1 / 100;
+      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
+      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
+      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
+      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
 
-      wkt_map = "POLYGON((" +
-        swLng + " " + swLat + "," +
-        swLng + " " + neLat + "," +
-        neLng + " " + neLat + "," +
-        neLng + " " + swLat + "," +
-        swLng + " " + swLat +
-        "))";
+      // wkt_map = "POLYGON((" +
+      //   swLng + " " + swLat + "," +
+      //   swLng + " " + neLat + "," +
+      //   neLng + " " + neLat + "," +
+      //   neLng + " " + swLat + "," +
+      //   swLng + " " + swLat +
+      //   "))";
+
+      var neLat = map.getBounds().getNorthEast()['lat'] 
+      var neLng = map.getBounds().getNorthEast()['lng']
+      var swLat = map.getBounds().getSouthWest()['lat']
+      var swLng = map.getBounds().getSouthWest()['lng'] 
+    
+      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+  
 
       $('[class^=resultG_]').addClass('d-none')
       $('.resultG_1').remove()
 
       $.ajax({
         url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + wkt_map + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
       })

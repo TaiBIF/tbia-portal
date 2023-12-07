@@ -775,7 +775,7 @@ taxon_cols = [
 # datasetName, rightsHolder, locality, polygon
 # , generate_download_csv, generate_species_csv(v), get_map_grid(v), get_conditional_records(v)
 
-def create_search_query(req_dict, from_request=False):
+def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     query_list = []
 
@@ -937,22 +937,28 @@ def create_search_query(req_dict, from_request=False):
         except:
             pass
 
-
-
+    # TODO 這邊可能會有敏感資料的問題
 
     # 地圖框選
     if from_request:
         if g_list := req_dict.getlist('polygon'): 
             try:
                 mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['location_rpt: "Within(%s)"' % mp]
+                if get_raw_map:
+                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                else:
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
+                
             except:
                 pass
     else:
         if g_list := req_dict.get('polygon'):
             try:
                 mp = MultiPolygon(map(wkt.loads, g_list))
-                query_list += ['location_rpt: "Within(%s)"' % mp]
+                if get_raw_map:
+                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                else:
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
             except:
                 pass
 
@@ -965,7 +971,10 @@ def create_search_query(req_dict, from_request=False):
                 g_list = []
                 for i in geo_df.to_wkt()['geometry']:
                     g_list += ['"Within(%s)"' % i]
-                query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
+                if get_raw_map:
+                    query_list += [ f"location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
+                else:
+                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
         except:
             pass
 
@@ -1507,21 +1516,35 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     return response
 
 
-def get_map_response(map_query, grid_list):
+def if_raw_map(user_id):
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        return True
+    else:
+        return False
+
+
+def get_map_response(map_query, grid_list, get_raw_map):
 
     map_geojson = {}
 
+    #  這邊要修改成 夥伴單位顯示 grid_* , 非夥伴單位顯示 grid_*_blurred
+
     facet_str = ''
-    for g in grid_list:    
+    for g in grid_list:
         map_geojson[f'grid_{g}'] = {"type":"FeatureCollection","features":[]}
-        facet_str += f'&facet.field=grid_{g}'
-    
+        if get_raw_map:
+            facet_str += f'&facet.field=grid_{g}'
+        else:
+            facet_str += f'&facet.field=grid_{g}_blurred'
+            
     map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
     
-    # TODO 這邊要修改成 夥伴單位顯示 grid_* , 非夥伴單位顯示 grid_*_blurred
     data_c = {}
     for grid in grid_list:
-        data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+        if get_raw_map:
+            data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+        else:
+            data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}_blurred']
         for i in range(0, len(data_c), 2):
             if len(data_c[i].split('_')) > 1:
                 current_grid_x = int(data_c[i].split('_')[0])

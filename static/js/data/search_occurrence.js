@@ -111,20 +111,13 @@ let selectBox10 = new vanillaSelectBox("#locality",
     });
 
 
-function getWKTMap(grid) {
-    let div = grid / 100;
-    var neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-    var neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-    var swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-    var swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
+function getWKTMap() {
+    var neLat = map.getBounds().getNorthEast()['lat'] 
+    var neLng = map.getBounds().getNorthEast()['lng']
+    var swLat = map.getBounds().getSouthWest()['lat']
+    var swLng = map.getBounds().getSouthWest()['lng'] 
 
-    return "POLYGON((" +
-        swLng + " " + swLat + "," +
-        swLng + " " + neLat + "," +
-        neLng + " " + neLat + "," +
-        neLng + " " + swLat + "," +
-        swLng + " " + swLat +
-        "))";
+    return swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
 }
 
 function getColor(d) {
@@ -205,7 +198,7 @@ map.on('zoomend', function zoomendEvent(ev) {
             $('.resultG_5').remove()
             $.ajax({
                 url: "/get_map_grid",
-                data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token,
+                data: window.condition + '&grid=5&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
                 type: 'POST',
                 dataType: 'json',
             })
@@ -231,7 +224,7 @@ map.on('zoomend', function zoomendEvent(ev) {
 
             $.ajax({
                 url: "/get_map_grid",
-                data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token,
+                data: window.condition + '&grid=1&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
                 type: 'POST',
                 dataType: 'json',
             })
@@ -268,7 +261,7 @@ map.on('dragend', function zoomendEvent(ev) {
                 $('.resultG_5').remove()
                 $.ajax({
                     url: "/get_map_grid",
-                    data: window.condition + '&grid=5&map_bound=' + getWKTMap(5) + '&csrfmiddlewaretoken=' + $csrf_token,
+                    data: window.condition + '&grid=5&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
                     type: 'POST',
                     dataType: 'json',
                 })
@@ -294,7 +287,7 @@ map.on('dragend', function zoomendEvent(ev) {
 
                 $.ajax({
                     url: "/get_map_grid",
-                    data: window.condition + '&grid=1&map_bound=' + getWKTMap(1) + '&csrfmiddlewaretoken=' + $csrf_token,
+                    data: window.condition + '&grid=1&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
                     type: 'POST',
                     dataType: 'json',
                 })
