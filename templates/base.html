@@ -268,14 +268,14 @@
                   <input name="next" type="hidden" value="{{ redirect_to }}" />
                   <input name="language" type="hidden"/>
                 </form>
-                <a class="s_title language-item" value="zh-hant">
+                <span class="s_title language-item" data-value="zh-hant">
                   <p>繁體中文</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>
-                <a class="s_title language-item" value="en-us">
+                </span>
+                <span class="s_title language-item" data-value="en-us">
                   <p>English</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>
+                </span>
               </div>
             </li>    
           </ul>
@@ -372,8 +372,8 @@
         <div class="languagebox">
           <div class="slimenu">
             <ul>
-              <li class="language-item" value="zh-hant">繁體中文</li>
-              <li class="language-item" value="en-us">English</li>
+              <li class="language-item" data-value="zh-hant">繁體中文</li>
+              <li class="language-item" data-value="en-us">English</li>
             </ul>
           </div>
         </div>
