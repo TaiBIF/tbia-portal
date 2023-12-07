@@ -326,6 +326,11 @@ map.on('dragend', function zoomendEvent(ev) {
 
 $(function () {
 
+    $('#searchForm').on('submit', function(event) { 
+        event.preventDefault()
+        $('.search_condition_are .submitSearch').trigger('click')
+    });
+
     $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
         // let total_count = $(this).data('count')

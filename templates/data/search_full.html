@@ -99,13 +99,13 @@
   <div class="searchbar_top">
     <div class="left_search">
       <div class="input_item">
-        <form id="fullForm" action="{% url 'search_full' %}">
           <p class="d-none keyword-p">{{ keyword }}</p>
+        <form id="fullForm" action="{% url 'search_full' %}">
           <input id="keyword_input" type="text" name="keyword" placeholder="{% trans '請輸入關鍵字' %}" value="{{ keyword }}"/>
+        </form>
           <button id="fullSubmit">
             <img src="{% static 'image/search_icon.svg' %}" alt="" />
           </button>
-        </form>
       </div>
     </div>
     <div class="rightbox_select">

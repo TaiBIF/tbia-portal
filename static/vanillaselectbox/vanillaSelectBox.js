@@ -613,10 +613,9 @@ function vanillaSelectBox(domSelector, options) {
                 
             })
 
+            // 非注音的輸入
             self.inputBox.addEventListener("keyup", function (e) {
                 if ( !e.isComposing ){ 
-                    // 注音輸入完成才搜尋
-                    // let searchValue = e.target.value.toUpperCase();
                     let searchValue = e.target.value;
                     let searchValueLength = searchValue.length;
                     let nrFound = 0;

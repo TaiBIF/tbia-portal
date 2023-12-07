@@ -368,6 +368,18 @@ function showSlides(n, taxonID, cardclass) {
 $(document).ready(function () {
 
 
+  $('#fullForm').on('submit', function(event){
+    event.preventDefault()
+
+    if ($('#fullForm input[name=keyword]').val().length > 2000) {
+      alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
+    } else {
+      window.location = `/${$lang}/search/full?keyword=${$('#fullForm input[name=keyword]').val()}`
+    }
+
+  })
+
+
   $('.imgarea').on('click', function () {
     $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
     $('.taxon-pop').removeClass('d-none')

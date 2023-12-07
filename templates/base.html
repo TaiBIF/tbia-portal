@@ -336,11 +336,7 @@
           </li>
         </ul>
       </div>
-      {% if user.is_authenticated %}
-      <div class="right_btn2 login_done">
-      {% else %}
-      <div class="right_btn2">
-      {% endif %}
+      <div class="right_btn2 {% if user.is_authenticated %} login_done {% endif %}" >
       <div class="top-search">
         <button class="top-toggle-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
@@ -352,9 +348,10 @@
           </svg>
         </button>
         <div class="searchbox">
-          {% comment %} <form action="{% url 'search_full' %}" method="GET"> {% endcomment %}
             <div class="wbox">
+          <form id="search_full_form_top" action="{% url 'search_full' %}" method="GET">
               <input type="text" placeholder="{% trans '請輸入關鍵字' %}" class="top_search_full_keyword" name="keyword">
+          </form>
               <button class="mb-btn top_search_full_button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
                   <g id="loupe" transform="translate(0.038 0.035)">
@@ -365,7 +362,6 @@
                 </svg>
               </button>
             </div>
-          {% comment %} </form> {% endcomment %}
         </div>
       </div>
         <div class="feedback showFeedback"></div>
