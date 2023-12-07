@@ -816,6 +816,7 @@ def get_records(request): # 全站搜尋
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
+        user_id = request.user.id if request.user.id else 0
 
         if request.POST.get('orderby'):
             orderby =  orderby = request.POST.get('orderby')
@@ -871,14 +872,29 @@ def get_records(request): # 全站搜尋
         if scientific_name and scientific_name != 'undefined':
             fq_list.append(f'scientificName:"{scientific_name}"')
 
-        solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+        if orderby == 'eventDate':
+            solr_orderby = 'standardDate' + ' ' + sort
+        elif orderby == 'organismQuantity':
+            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
+        elif orderby == 'verbatimLatitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLatitude' + ' ' + sort
+        elif orderby == 'verbatimLongitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLongitude' + ' ' + sort
+        else:
+            solr_orderby = orderby + ' ' + sort
 
         query = {
             "query": q,
             "filter": fq_list,
             "limit": 10,
             "offset": offset,
-            "sort":  solr_orderby + ' ' + sort
+            "sort":  solr_orderby
             }
         
         if not fq_list:
@@ -891,7 +907,6 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        user_id = request.user.id if request.user.id else 0
         rows = create_data_table(docs, user_id, obv_str)
 
         current_page = offset / 10 + 1
@@ -1136,7 +1151,24 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+        # solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+        if orderby == 'eventDate':
+            solr_orderby = 'standardDate' + ' ' + sort
+        elif orderby == 'organismQuantity':
+            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
+        elif orderby == 'verbatimLatitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLatitude' + ' ' + sort
+        elif orderby == 'verbatimLongitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLongitude' + ' ' + sort
+        else:
+            solr_orderby = orderby + ' ' + sort
+
 
         page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
@@ -1145,7 +1177,7 @@ def get_conditional_records(request):
                 "offset": offset,
                 "limit": limit,
                 "filter": query_list,
-                "sort":  solr_orderby + ' ' + sort,
+                "sort":  solr_orderby
                 }
         
         map_query_list = query_list + ['-standardOrganismQuantity:0']
@@ -1153,7 +1185,6 @@ def get_conditional_records(request):
                 "offset": offset,
                 "limit": 0,
                 "filter": map_query_list,
-                # "sort":  orderby + ' ' + sort,
                 }
         
         # 確認是否有敏感資料
