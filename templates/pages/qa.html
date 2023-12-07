@@ -4,7 +4,7 @@
 {% block title %}{% trans '常見Q&A' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/qa.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/qa.css' %}?v1" />
 {% endblock style %}
 
 {% block body %}
@@ -74,6 +74,6 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/tutorial.js' %}"></script>
-<script src="{% static 'js/pages/qa.js' %}"></script>
+<script src="{% static 'js/tutorial.js' %}?v1"></script>
+<script src="{% static 'js/pages/qa.js' %}?v1"></script>
 {% endblock script %}

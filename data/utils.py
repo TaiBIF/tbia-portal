@@ -937,7 +937,6 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         except:
             pass
 
-    print(query_list)
 
     #  要處理敏感資料
 

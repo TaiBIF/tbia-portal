@@ -20,7 +20,7 @@
 {% block title %}{% trans '物種出現紀錄' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}?v1" />
 {% endblock style %}
 
 {% block body %}
@@ -240,5 +240,5 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/data/occurrence_detail.js' %}"></script>
+<script src="{% static 'js/data/occurrence_detail.js' %}?v1"></script>
 {% endblock script %}

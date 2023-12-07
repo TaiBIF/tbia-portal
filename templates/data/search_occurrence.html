@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v1" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -433,5 +433,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v1"></script>
 {% endblock script %}

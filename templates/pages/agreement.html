@@ -3,7 +3,7 @@
 {% load i18n %}
 {% block title %}{% trans '保密協議' %}｜{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/agreement.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/agreement.css' %}?v1" />
 {% endblock style %}
 
 {% block body %}
@@ -168,5 +168,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/pages/agreement.js' %}"></script>
+<script src="{% static 'js/pages/agreement.js' %}?v1"></script>
 {% endblock script %}
