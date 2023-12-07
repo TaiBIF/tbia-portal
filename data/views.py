@@ -62,7 +62,10 @@ def get_taxon_dist_init(request):
             "limit": 0,
             "filter": query_list}
     
-    map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100])
+    user_id = request.user.id if request.user.id else 0
+
+    
+    map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100], get_raw_map=if_raw_map(user_id))
 
     return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
@@ -71,15 +74,38 @@ def get_taxon_dist_init(request):
 def get_taxon_dist(request):
     taxon_id = request.POST.get('taxonID')
     grid = int(request.POST.get('grid'))
-    mp = MultiPolygon(map(wkt.loads, request.POST.getlist('map_bound')))
-    query_list = ['{!field f=location_rpt}Within(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+
+    user_id = request.user.id if request.user.id else 0
+    
+    get_raw_map = if_raw_map(user_id)
+
+
+    user_id = request.user.id if request.user.id else 0
+    get_raw_map =  if_raw_map(user_id)
+    if get_raw_map:
+        query_list = [f"location_rpt:[{request.POST.get('map_bound')}] OR raw_location_rpt:[{request.POST.get('map_bound')}]"]
+        query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
+    else:
+        query_list = [f"location_rpt:[{request.POST.get('map_bound')}]"]
+
+
+    # if get_raw_map:
+    #     q = '{!field f=location_rpt}Within(%s)'  % mp
+    #     query_list = [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0', '{!field f=raw_location_rpt}Within(%s)'  % mp]
+    # else:
+    #     q = "*:*"
+    #     query_list = ['{!field f=location_rpt}Within(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+
+    # print(q)
+
+    # {!field f=location_rpt}Within(MULTIPOLYGON (((121.14205932617189 23.83157428735658, 121.14205932617189 24.95691524106633, 122.72695922851564 24.95691524106633, 122.72695922851564 23.83157428735658, 121.14205932617189 23.83157428735658))))
 
     map_query = {"query": "*:*",
             "offset": 0,
             "limit": 0,
             "filter": query_list}
     
-    map_geojson = get_map_response(map_query=map_query, grid_list=[grid])
+    map_geojson = get_map_response(map_query=map_query, grid_list=[grid], get_raw_map=get_raw_map)
     map_geojson = map_geojson[f'grid_{grid}']
     
     return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
@@ -149,7 +175,7 @@ def submit_sensitive_request(request):
         # 抓出所有單位
         if request.POST.get('type') == '0':
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False)
+            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
             query = { "query": "raw_location_rpt:[* TO *]",
                         "offset": 0,
@@ -240,7 +266,7 @@ def transfer_sensitive_response(request):
             sq = SearchQuery.objects.get(query_id=query_id)
             req_dict = dict(parse.parse_qsl(sq.query))
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False)
+            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
             query = { "query": "*:*",
                     "offset": 0,
@@ -312,7 +338,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             fl_cols = download_cols + sensitive_cols
             # 先取得筆數，export to csv
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False)
+            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
             # 排除掉不同意的單位
             if group:
@@ -475,7 +501,9 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     else:
         fl_cols = download_cols
 
-    query_list = create_search_query(req_dict=req_dict, from_request=True)
+    get_raw_map = if_raw_map(user_id)
+
+    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
@@ -546,7 +574,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
-    query_list = create_search_query(req_dict=req_dict, from_request=True)
+    get_raw_map = if_raw_map(user_id)
+    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
     not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
@@ -787,6 +816,7 @@ def get_records(request): # 全站搜尋
         scientific_name = request.POST.get('scientific_name', '')
         limit = int(request.POST.get('limit', -1))
         page = int(request.POST.get('page', 1))
+        user_id = request.user.id if request.user.id else 0
 
         if request.POST.get('orderby'):
             orderby =  orderby = request.POST.get('orderby')
@@ -842,12 +872,29 @@ def get_records(request): # 全站搜尋
         if scientific_name and scientific_name != 'undefined':
             fq_list.append(f'scientificName:"{scientific_name}"')
 
+        if orderby == 'eventDate':
+            solr_orderby = 'standardDate' + ' ' + sort
+        elif orderby == 'organismQuantity':
+            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
+        elif orderby == 'verbatimLatitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLatitude' + ' ' + sort
+        elif orderby == 'verbatimLongitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLongitude' + ' ' + sort
+        else:
+            solr_orderby = orderby + ' ' + sort
+
         query = {
             "query": q,
             "filter": fq_list,
             "limit": 10,
             "offset": offset,
-            "sort":  orderby + ' ' + sort
+            "sort":  solr_orderby
             }
         
         if not fq_list:
@@ -860,7 +907,6 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        user_id = request.user.id if request.user.id else 0
         rows = create_data_table(docs, user_id, obv_str)
 
         current_page = offset / 10 + 1
@@ -1040,19 +1086,34 @@ def get_map_grid(request):
         req_dict = request.POST
         grid = int(req_dict.get('grid'))
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True)
+    
+        # mp = MultiPolygon(map(wkt.loads, req_dict.getlist('map_bound')))
+        # query_list += ['{!field f=location_rpt}Within(%s)' % mp]
+        user_id = request.user.id if request.user.id else 0
+        get_raw_map =  if_raw_map(user_id)
 
-        mp = MultiPolygon(map(wkt.loads, req_dict.getlist('map_bound')))
-        query_list += ['{!field f=location_rpt}Within(%s)' % mp]
+        # print('get_raw_map', get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+
+        # print(query_list)
+
+        if get_raw_map:
+            query_list += [f"location_rpt:[{req_dict.get('map_bound')}] OR raw_location_rpt:[{req_dict.get('map_bound')}] "]
+        else:
+            query_list += [f"location_rpt:[{req_dict.get('map_bound')}]"]
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_query = { "query": "*:*",
                 "limit": 0,
                 "filter": map_query_list,
                 }
+        
+        print(map_query_list)
 
-        map_geojson = get_map_response(map_query=map_query, grid_list=[grid])
+        map_geojson = get_map_response(map_query=map_query, grid_list=[grid], get_raw_map=get_raw_map)
         map_geojson = map_geojson[f'grid_{grid}']
+
+        print(map_geojson)
 
         return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 
@@ -1062,7 +1123,11 @@ def get_conditional_records(request):
         req_dict = request.POST
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
+        # if orderby == 'eventDate':
+        #     orderby = 'standardDate'
         sort = req_dict.get('sort', 'asc')
+        user_id = request.user.id if request.user.id else 0
+        get_raw_map = if_raw_map(user_id)
 
         # selected columns
         if req_dict.getlist('selected_col'):
@@ -1074,7 +1139,7 @@ def get_conditional_records(request):
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True)
+        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
         record_type = req_dict.get('record_type')
 
@@ -1086,28 +1151,47 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
+        # solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+        if orderby == 'eventDate':
+            solr_orderby = 'standardDate' + ' ' + sort
+        elif orderby == 'organismQuantity':
+            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
+        elif orderby == 'verbatimLatitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLatitude' + ' ' + sort
+        elif orderby == 'verbatimLongitude':
+            if if_raw_map(user_id):
+                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
+            else:
+                solr_orderby = 'standardLongitude' + ' ' + sort
+        else:
+            solr_orderby = orderby + ' ' + sort
+
+
         page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
+
         query = { "query": "*:*",
                 "offset": offset,
                 "limit": limit,
                 "filter": query_list,
-                "sort":  orderby + ' ' + sort,
+                "sort":  solr_orderby
                 }
-            
+        
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_query = { "query": "*:*",
                 "offset": offset,
                 "limit": 0,
                 "filter": map_query_list,
-                "sort":  orderby + ' ' + sort,
                 }
         
         # 確認是否有敏感資料
-        query2 = { "query": "*:*",
+        query2 = { "query": "raw_location_rpt:*",
                 "offset": 0,
                 "limit": 0,
-                "filter": ["raw_location_rpt:[* TO *]"] + query_list,
+                "filter": query_list,
                 }
         
         # 確認是否有物種名錄
@@ -1126,10 +1210,11 @@ def get_conditional_records(request):
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
 
         # 新搜尋的才重新query地圖資訊
+        
         map_geojson = {}
         if req_dict.get('from') not in ['page','orderby']:
             # map的排除數量為0的資料
-            map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100])
+            map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100], get_raw_map=if_raw_map(user_id))
         count = response.json()['response']['numFound']
 
         response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
@@ -1148,7 +1233,6 @@ def get_conditional_records(request):
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        user_id = request.user.id if request.user.id else 0
 
         # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
         if user_id:

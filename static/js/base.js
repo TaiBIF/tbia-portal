@@ -71,7 +71,7 @@ function getCurrentNotif() {
     }
   });
   if ($('input[name=is_authenticated]').val() == 'True') {
-    setTimeout(getCurrentNotif, 5000);
+    setTimeout(getCurrentNotif, 60000);
   }
 }
 
@@ -100,6 +100,10 @@ var CaptchaCallback = function () {
 };
 
 $(function () {
+
+  $('.top_search_full_button').on('click', function(){
+    $('#search_full_form_top').submit()
+  })
 
   $('#search_full_form_top').on('submit', function(event){
     event.preventDefault()
