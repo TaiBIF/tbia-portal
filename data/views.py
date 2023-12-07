@@ -871,12 +871,14 @@ def get_records(request): # 全站搜尋
         if scientific_name and scientific_name != 'undefined':
             fq_list.append(f'scientificName:"{scientific_name}"')
 
+        solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+
         query = {
             "query": q,
             "filter": fq_list,
             "limit": 10,
             "offset": offset,
-            "sort":  orderby + ' ' + sort
+            "sort":  solr_orderby + ' ' + sort
             }
         
         if not fq_list:
@@ -1106,6 +1108,8 @@ def get_conditional_records(request):
         req_dict = request.POST
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
+        # if orderby == 'eventDate':
+        #     orderby = 'standardDate'
         sort = req_dict.get('sort', 'asc')
         user_id = request.user.id if request.user.id else 0
         get_raw_map = if_raw_map(user_id)
@@ -1132,13 +1136,16 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
+        solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+
         page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
+
         query = { "query": "*:*",
                 "offset": offset,
                 "limit": limit,
                 "filter": query_list,
-                "sort":  orderby + ' ' + sort,
+                "sort":  solr_orderby + ' ' + sort,
                 }
         
         map_query_list = query_list + ['-standardOrganismQuantity:0']
@@ -1146,7 +1153,7 @@ def get_conditional_records(request):
                 "offset": offset,
                 "limit": 0,
                 "filter": map_query_list,
-                "sort":  orderby + ' ' + sort,
+                # "sort":  orderby + ' ' + sort,
                 }
         
         # 確認是否有敏感資料
@@ -1155,7 +1162,6 @@ def get_conditional_records(request):
                 "limit": 0,
                 "filter": query_list,
                 }
-        print(query_list)
         
         # 確認是否有物種名錄
         query3 = { "query": "*:*",

@@ -937,7 +937,9 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         except:
             pass
 
-    # TODO 這邊可能會有敏感資料的問題
+    print(query_list)
+
+    #  要處理敏感資料
 
     # 地圖框選
     if from_request:
