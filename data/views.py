@@ -1108,12 +1108,10 @@ def get_map_grid(request):
                 "filter": map_query_list,
                 }
         
-        print(map_query_list)
 
         map_geojson = get_map_response(map_query=map_query, grid_list=[grid], get_raw_map=get_raw_map)
         map_geojson = map_geojson[f'grid_{grid}']
 
-        print(map_geojson)
 
         return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
 

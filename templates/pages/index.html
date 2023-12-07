@@ -4,7 +4,7 @@
 {% load tags %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}?v1" />
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -384,6 +384,6 @@
 
 {% endblock body %} 
 {% block script %}
-<script src="{% static 'js/tutorial.js' %}"></script>
-<script src="{% static 'js/pages/index.js' %}"></script>
+<script src="{% static 'js/tutorial.js' %}?v1"></script>
+<script src="{% static 'js/pages/index.js' %}?v1"></script>
 {% endblock script %}

@@ -11,7 +11,7 @@
 {% endif %}
 {% endblock head %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}?v1" />
 {% endblock style %}
 
 
@@ -86,5 +86,5 @@
 {% endblock body %}	
 
 {% block script %}
-<script src="{% static 'js/pages/news.js' %}"></script>
+<script src="{% static 'js/pages/news.js' %}?v1"></script>
 {% endblock script %}

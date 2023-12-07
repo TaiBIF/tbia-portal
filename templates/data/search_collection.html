@@ -29,7 +29,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v1" />
 {% endblock style %}
 
 
@@ -446,5 +446,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v1"></script>
 {% endblock %}

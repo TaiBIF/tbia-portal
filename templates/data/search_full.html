@@ -22,7 +22,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v1" />
 {% endblock style %}
 
 {% block body %}
@@ -885,6 +885,6 @@
 {% endblock body %} 
 
 {% block script %}
-<script src="{% static 'js/tutorial.js' %}"></script>
-<script src="{% static 'js/data/search_full.js' %}"></script>
+<script src="{% static 'js/tutorial.js' %}?v1"></script>
+<script src="{% static 'js/data/search_full.js' %}?v1"></script>
 {% endblock script %}
