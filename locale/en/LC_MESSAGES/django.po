@@ -1030,6 +1030,10 @@ msgstr "All"
 msgid "生物多樣性資料庫共通查詢系統教學說明"
 msgstr "Teaching Guidance of the Biodiversity Database Portal System"
 
+#: templates/pages/index.html
+msgid "生物多樣性資料庫共通查詢系統"
+msgstr "Biodiversity Database Portal System"
+
 #: templates/pages/index.html:309 templates/pages/resources_link.html:33
 msgid "國內外各大資料庫及推薦網站連結"
 msgstr "Recommended databases & websites"

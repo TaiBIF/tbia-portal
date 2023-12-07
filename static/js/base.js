@@ -111,7 +111,8 @@ $(function () {
 
 
   $('.language-item').on('click', function (event) {
-    $('input[name=language]').val(event.target.getAttribute("value"))
+    $('input[name=language]').val($(this).data('value'))
+    console.log( $('input[name=language]').val())
     $('#language-selected').submit()
   });
 

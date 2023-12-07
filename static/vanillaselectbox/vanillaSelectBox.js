@@ -255,7 +255,7 @@ function vanillaSelectBox(domSelector, options) {
                     self.buildSelect(data);
                     self.createTree();
                     if (self.domSelector=='#higherTaxa'){
-                        if (data.length>1){
+                        if (data.length==2){ // 不限 + 指定taxonID
                             self.setValue(data[1]['value'])
                             window.higherTaxaInit = true
                         } else {
