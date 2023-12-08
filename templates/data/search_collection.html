@@ -29,7 +29,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v2" />
 {% endblock style %}
 
 
@@ -59,7 +59,7 @@
           <div class="leftbox">
             <div class="two_input">
               <div class="input_item">
-                <input type="text" name="name" placeholder="{% trans '中文名/學名/中文別名' %}" value=""/>
+                <input  class="{% if LANGUAGE_CODE == 'en-us' %} name_input {% endif %}" type="text" name="name" placeholder="{% trans '學名/中文名/中文別名/同物異名/誤用名' %}" value=""/>
               </div>
             </div>
             <div class="two_input">

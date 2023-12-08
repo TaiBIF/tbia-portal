@@ -142,6 +142,9 @@ msgstr "Advanced Search"
 msgid "物種出現紀錄查詢"
 msgstr "Search Occurrence"
 
+msgid "物種出現紀錄<br>查詢"
+msgstr "Search Occurrence"
+
 #: templates/base.html:200 templates/base.html:434
 #: templates/data/search_collection.html:37
 #: templates/data/search_collection.html:45
@@ -389,8 +392,8 @@ msgstr "TaiCOL does not include or cannot match the taxon"
 
 #: templates/data/search_collection.html:63
 #: templates/data/search_occurrence.html:65
-msgid "中文名/學名/中文別名"
-msgstr "Scientific Name / Common Name"
+msgid "學名/中文名/中文別名/同物異名/誤用名"
+msgstr "Scientific Name / Common Name / Synonym / Misapplied Name"
 
 #: templates/data/collection_detail.html:109
 #: templates/data/occurrence_detail.html:110
