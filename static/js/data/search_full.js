@@ -93,20 +93,6 @@ function getDist(taxonID) {
 
     } else if (currentZoomLevel < 12) {
 
-      // div = 5 / 100;
-      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
-
-      // wkt_map = "POLYGON((" +
-      //   swLng + " " + swLat + "," +
-      //   swLng + " " + neLat + "," +
-      //   neLng + " " + neLat + "," +
-      //   neLng + " " + swLat + "," +
-      //   swLng + " " + swLat +
-      //   "))";
-
       var neLat = map.getBounds().getNorthEast()['lat'] 
       var neLng = map.getBounds().getNorthEast()['lng']
       var swLat = map.getBounds().getSouthWest()['lat']
@@ -140,19 +126,6 @@ function getDist(taxonID) {
 
     } else {
 
-      // div = 1 / 100;
-      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
-
-      // wkt_map = "POLYGON((" +
-      //   swLng + " " + swLat + "," +
-      //   swLng + " " + neLat + "," +
-      //   neLng + " " + neLat + "," +
-      //   neLng + " " + swLat + "," +
-      //   swLng + " " + swLat +
-      //   "))";
       var neLat = map.getBounds().getNorthEast()['lat'] 
       var neLng = map.getBounds().getNorthEast()['lng']
       var swLat = map.getBounds().getSouthWest()['lat']
@@ -203,20 +176,6 @@ function getDist(taxonID) {
 
     } else if (currentZoomLevel < 12) {
 
-      // div = 5 / 100;
-      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
-
-      // wkt_map = "POLYGON((" +
-      //   swLng + " " + swLat + "," +
-      //   swLng + " " + neLat + "," +
-      //   neLng + " " + neLat + "," +
-      //   neLng + " " + swLat + "," +
-      //   swLng + " " + swLat +
-      //   "))";
-
       var neLat = map.getBounds().getNorthEast()['lat'] 
       var neLng = map.getBounds().getNorthEast()['lng']
       var swLat = map.getBounds().getSouthWest()['lat']
@@ -248,20 +207,6 @@ function getDist(taxonID) {
       $('.resultG_5').removeClass('d-none')
 
     } else {
-
-      // div = 1 / 100;
-      // neLat = map.getBounds().getNorthEast()['lat'] + div * 5;
-      // neLng = map.getBounds().getNorthEast()['lng'] + div * 5;
-      // swLat = map.getBounds().getSouthWest()['lat'] - div * 5;
-      // swLng = map.getBounds().getSouthWest()['lng'] - div * 5;
-
-      // wkt_map = "POLYGON((" +
-      //   swLng + " " + swLat + "," +
-      //   swLng + " " + neLat + "," +
-      //   neLng + " " + neLat + "," +
-      //   neLng + " " + swLat + "," +
-      //   swLng + " " + swLat +
-      //   "))";
 
       var neLat = map.getBounds().getNorthEast()['lat'] 
       var neLng = map.getBounds().getNorthEast()['lng']
@@ -1314,14 +1259,25 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
         for (let i = 0; i < response.rows.length; i++) {
           let x = response.rows[i]
 
-          if (response.rows[i].extension == 'pop') {
+          if (x.extension == 'pop') {
             $('.edu_list').append(`
           <li class="show_tech">
             <div class="item items h-100p">
               <div class="cate_dbox">
-                <div class="date">${response.rows[i].date}</div>
+                <div class="date">${x.date}</div>
               </div>
-              <a class="title ">${response.rows[i].title}</a>
+              <a class="title ">${x.title}</a>
+            </div>
+          </li>`)
+          } else if (x.cate == 'link'){
+            $('.edu_list').append(`
+          <li>
+            <div class="item">
+            <div class="cate_dbox">
+              <div class="cate ${x.cate}">${x.extension}</div>
+              <div class="date">${x.date}</div>
+            </div>
+            <a href="${x.url}" class="title" target="_blank">${gettext(x.title)}</a>
             </div>
           </li>`)
           } else {

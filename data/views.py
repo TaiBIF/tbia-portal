@@ -72,6 +72,7 @@ def get_taxon_dist_init(request):
 
 # 全站搜尋資料分布圖
 def get_taxon_dist(request):
+
     taxon_id = request.POST.get('taxonID')
     grid = int(request.POST.get('grid'))
 
@@ -87,18 +88,9 @@ def get_taxon_dist(request):
         query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
     else:
         query_list = [f"location_rpt:[{request.POST.get('map_bound')}]"]
-
-
-    # if get_raw_map:
-    #     q = '{!field f=location_rpt}Within(%s)'  % mp
-    #     query_list = [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0', '{!field f=raw_location_rpt}Within(%s)'  % mp]
-    # else:
-    #     q = "*:*"
-    #     query_list = ['{!field f=location_rpt}Within(%s)' % mp, f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+        query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
 
     # print(q)
-
-    # {!field f=location_rpt}Within(MULTIPOLYGON (((121.14205932617189 23.83157428735658, 121.14205932617189 24.95691524106633, 122.72695922851564 24.95691524106633, 122.72695922851564 23.83157428735658, 121.14205932617189 23.83157428735658))))
 
     map_query = {"query": "*:*",
             "offset": 0,
@@ -959,6 +951,7 @@ def get_more_docs(request):
                 rows.append({
                     'title': highlight(x.title,keyword),
                     'extension': x.extension,
+                    'cate': get_resource_cate(x.extension),
                     'url': x.url,
                     'date': x.modified.strftime("%Y.%m.%d")
                 })
@@ -1086,16 +1079,10 @@ def get_map_grid(request):
         req_dict = request.POST
         grid = int(req_dict.get('grid'))
 
-    
-        # mp = MultiPolygon(map(wkt.loads, req_dict.getlist('map_bound')))
-        # query_list += ['{!field f=location_rpt}Within(%s)' % mp]
         user_id = request.user.id if request.user.id else 0
         get_raw_map =  if_raw_map(user_id)
 
-        # print('get_raw_map', get_raw_map)
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
-
-        # print(query_list)
 
         if get_raw_map:
             query_list += [f"location_rpt:[{req_dict.get('map_bound')}] OR raw_location_rpt:[{req_dict.get('map_bound')}] "]
@@ -1469,7 +1456,7 @@ def get_higher_taxa(request):
 
 
 def search_full(request):
-    # s = time.time()
+    s = time.time()
     keyword = request.GET.get('keyword', '')
 
     if keyword and len(keyword) < 2000:
@@ -1481,9 +1468,9 @@ def search_full(request):
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        # print('b', time.time()-s)
+        print('b', time.time()-s)
 
-        # s = time.time()
+        s = time.time()
 
         ## occurrence
 
@@ -1493,9 +1480,9 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        # print('d', time.time()-s)
+        print('d', time.time()-s)
 
-        # s = time.time()
+        s = time.time()
 
         ## taxon
 
@@ -1505,7 +1492,7 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        # print('e', time.time()-s)
+        print('e', time.time()-s)
 
         # s = time.time()
 
@@ -1553,6 +1540,7 @@ def search_full(request):
             resource_rows.append({
                 'title': x.title,
                 'extension': x.extension,
+                'cate': get_resource_cate(x.extension),
                 'url': x.url,
                 'date': x.modified.strftime("%Y.%m.%d")
             })

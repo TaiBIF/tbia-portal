@@ -3180,6 +3180,10 @@ body {
     background: #3B86C0
 }
 
+.edu_list li .cate_dbox .cate.link {
+    background: #EAD065
+}
+
 .edu_list li .cate_dbox .cate.other {
     background: #888
 }
