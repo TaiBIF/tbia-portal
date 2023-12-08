@@ -1342,7 +1342,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
             $('.index_tech .text_tec').html($tutorial[1])
             $('.index_tech .arl').data('index', 10)
             $('.index_tech .arr').data('index', 2)
-            $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png")
+            $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png?v1")
             $('.tech-pop').removeClass('d-none')
           })
 

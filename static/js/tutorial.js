@@ -20,7 +20,7 @@ $('.show_tech').on('click', function () {
   $('.index_tech .text_tec').html($tutorial[1])
   $('.index_tech .arl').data('index', 10)
   $('.index_tech .arr').data('index', 2)
-  $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png")
+  $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png?v1")
   $('.tech-pop').removeClass('d-none')
 })
 
@@ -55,7 +55,7 @@ $('.index_tech .arl').on('click', function () {
   }
 
   $('.index_tech .text_tec').html($tutorial[index])
-  $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
+  $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png?v1`)
 })
 
 
@@ -75,5 +75,5 @@ $('.index_tech .arr').on('click', function () {
   }
 
   $('.index_tech .text_tec').html($tutorial[index])
-  $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png`)
+  $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png?v1`)
 })
