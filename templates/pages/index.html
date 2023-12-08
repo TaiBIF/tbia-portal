@@ -328,8 +328,12 @@
                 <div class="cate {{ i.cate }}">{{ i.extension }}</div>
                 <div class="date">{{ i.date }}</div>
               </div>
+              {% if i.cate == 'link' %}
+              <a href="{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
+              {% else %}
               <a href="/media/{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
               <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
+              {% endif %}
             </div>
           </li>
           {% endif %}
@@ -385,5 +389,5 @@
 {% endblock body %} 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/index.js' %}?v1"></script>
+<script src="{% static 'js/pages/index.js' %}?v2"></script>
 {% endblock script %}

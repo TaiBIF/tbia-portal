@@ -5,7 +5,7 @@ from conf.settings import SOLR_PREFIX
 from manager.models import Partner, About
 import json
 import math
-from data.utils import get_page_list
+from data.utils import get_page_list, get_resource_cate
 from django.utils import timezone, translation
 from conf.utils import notif_map
 from datetime import datetime, timedelta
@@ -203,17 +203,6 @@ def get_news_list(request):
         response['total_page'] = total_page
 
         return JsonResponse(response, safe=False)
-
-
-
-def get_resource_cate(extension):
-    if extension.lower() in ['docx','csv','json','xlsx', 'xls']:
-        cate = 'doc'
-    elif extension.lower() in ['ppt','doc','pdf','xml']:
-        cate = extension.lower()
-    else:
-        cate = 'other'
-    return cate
 
 
 def qa(request):

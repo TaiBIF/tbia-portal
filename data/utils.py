@@ -1799,3 +1799,14 @@ def create_data_table(docs, user_id, obv_str):
     rows = docs.to_dict('records')
 
     return rows
+
+
+
+def get_resource_cate(extension):
+    if extension.lower() in ['docx','csv','json','xlsx', 'xls']:
+        cate = 'doc'
+    elif extension.lower() in ['ppt','doc','pdf','xml', 'link']:
+        cate = extension.lower()
+    else:
+        cate = 'other'
+    return cate

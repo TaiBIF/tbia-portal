@@ -141,6 +141,17 @@ function updateResource(type, page) {
               <a class="title ">${gettext(response.rows[i].title)}</a>
             </div>
           </li>`)
+          } else if (response.rows[i].cate == 'link'){
+            $('.edu_list').append(`
+          <li>
+            <div class="item">
+            <div class="cate_dbox">
+              <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+              <div class="date">${response.rows[i].date}</div>
+            </div>
+            <a href="${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
+            </div>
+          </li>`)
           } else {
             $('.edu_list').append(`
           <li>
