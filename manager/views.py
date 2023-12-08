@@ -628,7 +628,7 @@ def change_manager_page(request):
 
             data.append({
                 'id': f'#{n.id}',
-                'a': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
                 'partner_title': partner_title,
                 'user': n.user.name if n.user else '',
@@ -660,7 +660,7 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{n.id}",
-                'title': f'<a target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
                 'user': n.user.name if n.user else '',
                 'modified': modified,

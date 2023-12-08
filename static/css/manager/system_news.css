@@ -1,3 +1,20 @@
+.search-again-a path {
+    fill: #76A578;
+}
+
+.search-again-a:hover path {
+    fill: #E2A460;
+}
+
+.search-again-a {
+    color: #76A578;
+}
+
+.search-again-a:hover {
+    color: #E2A460;
+}
+
+
 .two_cont_area {
     margin-bottom: 50px
 }
