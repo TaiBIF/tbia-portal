@@ -595,7 +595,7 @@ def create_query_display(search_dict,lang=None):
         elif k == 'end_date':
             query += f"<br><b>{gettext('結束日期')}</b>{gettext('：')}{search_dict.get('end_date')}" 
         elif k == 'name':
-            query += f"<br><b>{gettext('中文名/學名/中文別名')}</b>{gettext('：')}{search_dict.get('name')}" 
+            query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
             query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') == 'y' else gettext('無影像')}" 
     if r_list:

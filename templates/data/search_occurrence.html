@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v2" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -62,7 +62,7 @@
           <div class="leftbox">
             <div class="two_input">
               <div class="input_item">
-                <input type="text" name="name" placeholder="{% trans '中文名/學名/中文別名' %}" />
+                <input  class="{% if LANGUAGE_CODE == 'en-us' %} name_input {% endif %}" type="text" name="name" placeholder="{% trans '學名/中文名/中文別名/同物異名/誤用名' %}" />
               </div>
               <div class="input_item">
                 <input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" />
