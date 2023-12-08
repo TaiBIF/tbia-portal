@@ -1088,7 +1088,7 @@ def manager_partner(request):
             # for p in current_user.partner:
             for pp in current_user.partner.info:
                 if exists(os.path.join('/tbia-volumes/media/match_log',f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip')):
-                    download_url.append({'url': os.path.join('/media/match_log', f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip'), 'name': pp['subtitle']})
+                    download_url.append({'url': f'/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip', 'name': pp['subtitle']})
             # download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
             partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
             partner_admin = [p[0] for p in partner_admin]
