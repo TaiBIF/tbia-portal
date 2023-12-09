@@ -63,7 +63,6 @@ def get_taxon_dist_init(request):
             "filter": query_list}
     
     user_id = request.user.id if request.user.id else 0
-
     
     map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100], get_raw_map=if_raw_map(user_id))
 
@@ -83,14 +82,15 @@ def get_taxon_dist(request):
 
     user_id = request.user.id if request.user.id else 0
     get_raw_map =  if_raw_map(user_id)
+
+    map_bound = check_map_bound(request.POST.get('map_bound'))
+    
     if get_raw_map:
-        query_list = [f"location_rpt:[{request.POST.get('map_bound')}] OR raw_location_rpt:[{request.POST.get('map_bound')}]"]
+        query_list = [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
         query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
     else:
-        query_list = [f"location_rpt:[{request.POST.get('map_bound')}]"]
+        query_list = [f"location_rpt:{map_bound}"]
         query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
-
-    # print(q)
 
     map_query = {"query": "*:*",
             "offset": 0,
@@ -126,7 +126,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from']
+        not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -498,7 +498,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -570,7 +570,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -729,7 +729,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list.append(f'scientificName:{scientific_name}')
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col']
+    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -1083,20 +1083,37 @@ def get_map_grid(request):
         get_raw_map =  if_raw_map(user_id)
 
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
-
-        if get_raw_map:
-            query_list += [f"location_rpt:[{req_dict.get('map_bound')}] OR raw_location_rpt:[{req_dict.get('map_bound')}] "]
-        else:
-            query_list += [f"location_rpt:[{req_dict.get('map_bound')}]"]
-
         map_query_list = query_list + ['-standardOrganismQuantity:0']
-        map_query = { "query": "*:*",
-                "limit": 0,
-                "filter": map_query_list,
-                }
+        map_bound = check_map_bound(req_dict.get('map_bound'))
         
+        if get_raw_map:
+            facet_grid = f'grid_{grid}'
+            map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
+        else:
+            facet_grid = f'grid_{grid}_blurred'
+            map_query_list += [f"location_rpt:{map_bound}"]
 
-        map_geojson = get_map_response(map_query=map_query, grid_list=[grid], get_raw_map=get_raw_map)
+        query = { "query": "*:*",
+                "filter": query_list,
+                "facet": {
+                        facet_grid: {
+                            'field': facet_grid,
+                            'mincount': 1,
+                            "type": "terms",
+                            "limit": -1,
+                            'domain': { 'query': "*:*", 'filter': map_query_list}
+                        },
+                }
+        }
+
+        if not query_list:
+            query.pop('filter')
+
+        query_req = json.dumps(query)
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+        resp = response.json()
+
+        map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=grid)
         map_geojson = map_geojson[f'grid_{grid}']
 
 
@@ -1142,12 +1159,12 @@ def get_conditional_records(request):
         elif orderby == 'organismQuantity':
             solr_orderby =  'standardOrganismQuantity' + ' ' + sort
         elif orderby == 'verbatimLatitude':
-            if if_raw_map(user_id):
+            if get_raw_map:
                 solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
             else:
                 solr_orderby = 'standardLatitude' + ' ' + sort
         elif orderby == 'verbatimLongitude':
-            if if_raw_map(user_id):
+            if get_raw_map:
                 solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
             else:
                 solr_orderby = 'standardLongitude' + ' ' + sort
@@ -1158,66 +1175,77 @@ def get_conditional_records(request):
         page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
 
+
+        grid = int(req_dict.get('grid', 10))
+
+        map_query_list = query_list + ['-standardOrganismQuantity:0']
+        map_bound = check_map_bound(req_dict.get('map_bound'))
+
+        if get_raw_map:
+            facet_grid = f'grid_{grid}'
+            map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
+        else:
+            facet_grid = f'grid_{grid}_blurred'
+            map_query_list += [f"location_rpt:{map_bound}"]
+
+        
         query = { "query": "*:*",
                 "offset": offset,
                 "limit": limit,
                 "filter": query_list,
-                "sort":  solr_orderby
+                "sort":  solr_orderby,
+                "facet": {
+                        # 確認是否有敏感資料
+                        'has_sensitive': {
+                            "q": "raw_location_rpt:*",
+                            "type": "query",
+                        },
+                        # 確認是否有物種名錄
+                        'has_species': {
+                            "q": "taxonID:*",
+                            "type": "query",
+                        },
+                    }
                 }
         
-        map_query_list = query_list + ['-standardOrganismQuantity:0']
-        map_query = { "query": "*:*",
-                "offset": offset,
-                "limit": 0,
-                "filter": map_query_list,
-                }
-        
-        # 確認是否有敏感資料
-        query2 = { "query": "raw_location_rpt:*",
-                "offset": 0,
-                "limit": 0,
-                "filter": query_list,
-                }
-        
-        # 確認是否有物種名錄
-        query3 = { "query": "*:*",
-                "offset": 0,
-                "limit": 0,
-                "filter": ["taxonID:*"] + query_list,
-                }
         
         if not query_list:
             query.pop('filter')
-            query2.pop('filter')
-            query3.pop('filter')
+
+        map_geojson = {}
+        # 新搜尋的才重新query地圖資訊
+        if req_dict.get('from') not in ['page','orderby']:
+            query['facet'][facet_grid] = {
+                            'field': facet_grid,
+                            'mincount': 1,
+                            "type": "terms",
+                            "limit": -1,
+                            'domain': { 'query': "*:*", 'filter': map_query_list}
+                        }
 
         query_req = json.dumps(query)
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
-
-        # 新搜尋的才重新query地圖資訊
+        resp = response.json()
         
-        map_geojson = {}
-        if req_dict.get('from') not in ['page','orderby']:
-            # map的排除數量為0的資料
-            map_geojson = get_map_response(map_query=map_query, grid_list=[10, 100], get_raw_map=if_raw_map(user_id))
-        count = response.json()['response']['numFound']
-
-        response2 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query2), headers={'content-type': "application/json" })
-        if response2.json()['response']['numFound'] > 0:
+        if resp['facets']['has_sensitive']['count'] > 0:
             has_sensitive = True
         else:
             has_sensitive = False
 
-        response3 = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query3), headers={'content-type': "application/json" })
-        if response3.json()['response']['numFound'] > 0:
+        if resp['facets']['has_species']['count'] > 0:
             has_species = True
         else:
             has_species = False
 
+        if req_dict.get('from') not in ['page','orderby']:
+            data_c = resp['facets'][facet_grid]['buckets']
+            map_geojson = get_map_geojson(data_c=data_c, grid=grid)
+
+        count = resp['response']['numFound']
+
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
-
 
         # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
         if user_id:
@@ -1570,3 +1598,24 @@ def search_full(request):
         }
 
     return render(request, 'data/search_full.html', response)
+
+
+
+def check_map_bound(map_bound):
+
+    map_str = map_bound.split(' TO ')
+    map_min_lat =  float(map_str[0].split(',')[0])
+    map_min_lon = float(map_str[0].split(',')[1])
+    map_max_lat =  float(map_str[1].split(',')[0])
+    map_max_lon =  float(map_str[1].split(',')[1])
+    if map_min_lon < -180 :
+        map_min_lon = -180
+    if map_min_lat < -90:
+        map_min_lat = -90
+    if map_max_lon > -180 :
+        map_max_lon = -180
+    if map_max_lat > 90:
+        map_max_lat = 90
+
+    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
+    return new_map_bound

@@ -268,7 +268,8 @@ CSP_STYLE_SRC = ["'self'",
     "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
     "https://fonts.googleapis.com/",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
-    "https://cdn.quilljs.com/1.3.6/quill.snow.css"
+    "https://cdn.quilljs.com/1.3.6/quill.snow.css",
+    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css"
 ]
 
 CSP_IMG_SRC = ("'self'","*","data: *") 
@@ -304,6 +305,7 @@ CSP_SCRIPT_SRC = ["'self'",
     "https://cdn.quilljs.com/1.3.6/quill.js",
     "https://unpkg.com/terraformer@1.0.7/terraformer.js",
     "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
+    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"
 ]
 
 # <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>

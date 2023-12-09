@@ -189,10 +189,11 @@ def convert_coor_to_grid(x, y, grid):
 def convert_grid_to_square(grid_x, grid_y, grid):
     list_x = np.arange(-180, 180+grid, grid)
     list_y = np.arange(-90, 90+grid, grid)
-    x1 = list_x[grid_x]
-    x2 = list_x[grid_x+1]
-    y1 = list_y[grid_y]
-    y2 = list_y[grid_y+1]
+    x1 = round(list_x[grid_x],4)
+    x2 = round(list_x[grid_x+1],4)
+    y1 = round(list_y[grid_y],4)
+    y2 = round(list_y[grid_y+1],4)
+    # print(list_x[grid_x],list_x[grid_x+1],list_y[grid_y],list_y[grid_y+1])
     # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 
@@ -375,7 +376,7 @@ map_occurrence = {
     'lat': '緯度',
     'verbatimSRS': '空間參考系統',
     'verbatimCoordinateSystem': '座標系統',
-    'coordinateUncertaintyInMeters': '座標誤差',
+    'coordinateUncertaintyInMeters': '座標誤差（公尺）',
     'dataGeneralizations': '座標是否有模糊化',
     'coordinatePrecision': '座標模糊化程度',
     'basisOfRecord': '紀錄類型', 
@@ -1522,13 +1523,38 @@ def if_raw_map(user_id):
         return True
     else:
         return False
+    
+import time
+    
 
+
+def get_map_geojson(data_c, grid):
+
+    map_geojson = {}
+    map_geojson[f'grid_{grid}'] = {"type":"FeatureCollection","features":[]}
+    # data_c = resp['facets'][facet_grid]['buckets']
+    s = time.time()
+    for cc in data_c:
+        if len(cc['val'].split('_')) > 1:
+            current_grid_x = int(cc['val'].split('_')[0])
+            current_grid_y = int(cc['val'].split('_')[1])
+            current_count = cc['count']
+            if current_grid_x > 0 and current_grid_y > 0:
+                borders = convert_grid_to_square(current_grid_x, current_grid_y, grid/100)
+                tmp = [{
+                    "type": "Feature",
+                    "geometry":{"type":"Polygon","coordinates":[borders]},
+                    "properties": {
+                        "counts": current_count
+                    }
+                }]
+                map_geojson[f'grid_{grid}']['features'] += tmp
+    print(time.time()-s)
+    return map_geojson
 
 def get_map_response(map_query, grid_list, get_raw_map):
 
     map_geojson = {}
-
-    #  這邊要修改成 夥伴單位顯示 grid_* , 非夥伴單位顯示 grid_*_blurred
 
     facet_str = ''
     for g in grid_list:
@@ -1539,13 +1565,15 @@ def get_map_response(map_query, grid_list, get_raw_map):
             facet_str += f'&facet.field=grid_{g}_blurred'
             
     map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
-    
+
+
     data_c = {}
     for grid in grid_list:
         if get_raw_map:
-            data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}']
+            facet_grid = f'grid_{grid}'
         else:
-            data_c = map_response.json()['facet_counts']['facet_fields'][f'grid_{grid}_blurred']
+            facet_grid = f'grid_{grid}_blurred'
+        data_c = map_response.json()['facet_counts']['facet_fields'][facet_grid]
         for i in range(0, len(data_c), 2):
             if len(data_c[i].split('_')) > 1:
                 current_grid_x = int(data_c[i].split('_')[0])
@@ -1561,7 +1589,7 @@ def get_map_response(map_query, grid_list, get_raw_map):
                         }
                     }]
                     map_geojson[f'grid_{grid}']['features'] += tmp
-    
+
     return map_geojson
 
 

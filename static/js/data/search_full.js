@@ -1,6 +1,82 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 
+function getWKTMap(map) {
+  var neLat = map.getBounds().getNorthEast()['lat'] 
+  var neLng = map.getBounds().getNorthEast()['lng']
+  var swLat = map.getBounds().getSouthWest()['lat']
+  var swLng = map.getBounds().getSouthWest()['lng'] 
+
+  return Number(swLat).toFixed(2) + ',' + Number(swLng).toFixed(2) + ' TO ' + Number(neLat).toFixed(2)+ ',' + Number(neLng).toFixed(2)
+}
+
+
+function drawMapGrid(currentZoomLevel, map, taxonID){
+  if (currentZoomLevel < 6) {
+
+    $('[class^=resultG_]').addClass('d-none')
+    $('.resultG_100').removeClass('d-none')
+
+  } else if (currentZoomLevel < 9) {
+
+    $('[class^=resultG_]').addClass('d-none')
+    $('.resultG_10').removeClass('d-none')
+
+
+  } else if (currentZoomLevel < 11) {
+
+    $('[class^=resultG_]').addClass('d-none')
+    $('.resultG_5').remove()
+    $.ajax({
+      url: "/get_taxon_dist",
+      data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + getWKTMap(map) + '&csrfmiddlewaretoken=' + $csrf_token,
+      type: 'POST',
+      dataType: 'json',
+    })
+      .done(function (response) {
+        L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+      })
+      .fail(function (xhr, status, errorThrown) {
+        if (xhr.status == 504) {
+          alert(gettext('要求連線逾時'))
+        } else {
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+        }
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+
+    $('.resultG_5').removeClass('d-none')
+
+  } else {
+
+    $('[class^=resultG_]').addClass('d-none')
+    $('.resultG_1').remove()
+
+    $.ajax({
+      url: "/get_taxon_dist",
+      data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + getWKTMap(map) + '&csrfmiddlewaretoken=' + $csrf_token,
+      type: 'POST',
+      dataType: 'json',
+    })
+      .done(function (response) {
+        L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+      })
+      .fail(function (xhr, status, errorThrown) {
+        if (xhr.status == 504) {
+          alert(gettext('要求連線逾時'))
+        } else {
+          alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+        }
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+      })
+
+    $('.resultG_1').removeClass('d-none')
+
+  }
+
+}
 /*
   $('.popbg.taxon-dist').on('hide', function(){
     $("#map-box").html(""); 
@@ -34,7 +110,6 @@ function getDist(taxonID) {
 
   $('.popbg.taxon-dist').removeClass('d-none')
 
-  // $('#taxon_name').html(`${formatted_name} ${common_name_c}`)
 
   let map = L.map('map').setView([23.5, 121.2], 7);
   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -43,17 +118,7 @@ function getDist(taxonID) {
 
   map.setView([23.5, 121.2], 7)
 
-  // function getWKTMap() {
-  //   // console.log(map)
-  //   var neLat = map.getBounds().getNorthEast()['lat'] 
-  //   var neLng = map.getBounds().getNorthEast()['lng']
-  //   var swLat = map.getBounds().getSouthWest()['lat']
-  //   var swLng = map.getBounds().getSouthWest()['lng'] 
-  
-  //   return swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
-  // }
-  
-  
+
 
   $.ajax({
     url: "/get_taxon_dist_init",
@@ -78,169 +143,16 @@ function getDist(taxonID) {
     })
 
   map.on('zoomend', function zoomendEvent(ev) {
+
     var currentZoomLevel = ev.target.getZoom()
+    drawMapGrid(currentZoomLevel, map, taxonID)
 
-    if (currentZoomLevel < 5) {
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_100').removeClass('d-none')
-
-    } else if (currentZoomLevel < 8) {
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_10').removeClass('d-none')
-
-
-    } else if (currentZoomLevel < 12) {
-
-      var neLat = map.getBounds().getNorthEast()['lat'] 
-      var neLng = map.getBounds().getNorthEast()['lng']
-      var swLat = map.getBounds().getSouthWest()['lat']
-      var swLng = map.getBounds().getSouthWest()['lng'] 
-    
-      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
-  
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_5').remove()
-      $.ajax({
-        url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
-        type: 'POST',
-        dataType: 'json',
-      })
-        .done(function (response) {
-          L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
-        })
-        .fail(function (xhr, status, errorThrown) {
-          if (xhr.status == 504) {
-            alert(gettext('要求連線逾時'))
-          } else {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-          }
-          console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-      $('.resultG_5').removeClass('d-none')
-
-    } else {
-
-      var neLat = map.getBounds().getNorthEast()['lat'] 
-      var neLng = map.getBounds().getNorthEast()['lng']
-      var swLat = map.getBounds().getSouthWest()['lat']
-      var swLng = map.getBounds().getSouthWest()['lng'] 
-    
-      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
-  
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_1').remove()
-
-      $.ajax({
-        url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
-        type: 'POST',
-        dataType: 'json',
-      })
-        .done(function (response) {
-          L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
-        })
-        .fail(function (xhr, status, errorThrown) {
-          if (xhr.status == 504) {
-            alert(gettext('要求連線逾時'))
-          } else {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-          }
-          console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-      $('.resultG_1').removeClass('d-none')
-
-    }
   })
 
   map.on('dragend', function zoomendEvent(ev) {
     var currentZoomLevel = ev.target.getZoom()
+    drawMapGrid(currentZoomLevel, map, taxonID)
 
-    if (currentZoomLevel < 5) {
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_100').removeClass('d-none')
-
-    } else if (currentZoomLevel < 8) {
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_10').removeClass('d-none')
-
-
-    } else if (currentZoomLevel < 12) {
-
-      var neLat = map.getBounds().getNorthEast()['lat'] 
-      var neLng = map.getBounds().getNorthEast()['lng']
-      var swLat = map.getBounds().getSouthWest()['lat']
-      var swLng = map.getBounds().getSouthWest()['lng'] 
-    
-      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
-  
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_5').remove()
-      $.ajax({
-        url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=5&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
-        type: 'POST',
-        dataType: 'json',
-      })
-        .done(function (response) {
-          L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
-        })
-        .fail(function (xhr, status, errorThrown) {
-          if (xhr.status == 504) {
-            alert(gettext('要求連線逾時'))
-          } else {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-          }
-          console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-      $('.resultG_5').removeClass('d-none')
-
-    } else {
-
-      var neLat = map.getBounds().getNorthEast()['lat'] 
-      var neLng = map.getBounds().getNorthEast()['lng']
-      var swLat = map.getBounds().getSouthWest()['lat']
-      var swLng = map.getBounds().getSouthWest()['lng'] 
-    
-      map_str =  swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
-  
-
-      $('[class^=resultG_]').addClass('d-none')
-      $('.resultG_1').remove()
-
-      $.ajax({
-        url: "/get_taxon_dist",
-        data: 'taxonID=' + taxonID + '&grid=1&map_bound=' + map_str + '&csrfmiddlewaretoken=' + $csrf_token,
-        type: 'POST',
-        dataType: 'json',
-      })
-        .done(function (response) {
-          L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
-        })
-        .fail(function (xhr, status, errorThrown) {
-          if (xhr.status == 504) {
-            alert(gettext('要求連線逾時'))
-          } else {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-          }
-          console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-
-      $('.resultG_1').removeClass('d-none')
-
-    }
   })
 
 }

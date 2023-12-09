@@ -204,8 +204,9 @@ function getWKTMap() {
     var swLat = map.getBounds().getSouthWest()['lat']
     var swLng = map.getBounds().getSouthWest()['lng'] 
 
-    return swLat + ',' + swLng + ' TO ' + neLat+ ',' + neLng 
+    return Number(swLat).toFixed(2) + ',' + Number(swLng).toFixed(2) + ' TO ' + Number(neLat).toFixed(2)+ ',' + Number(neLng).toFixed(2)
 }
+
 
 function getColor(d) {
     return d > 1000 ? '#C50101' :
@@ -226,7 +227,7 @@ function style(feature) {
     };
 }
 
-let map = L.map('map').setView([23.5, 121.2], 7);
+let map = L.map('map', { gestureHandling: true }).setView([23.5, 121.2], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -263,26 +264,79 @@ map.on(L.Draw.Event.CREATED, function (e) {
 );
 
 map.on('zoomend', function zoomendEvent(ev) {
-    if (window.grid_100) {
+    var currentZoomLevel = ev.target.getZoom()
+    drawMapGrid(currentZoomLevel)
+});
 
-        var currentZoomLevel = ev.target.getZoom()
+
+map.on('dragend', function zoomendEvent(ev) {
+    var currentZoomLevel = ev.target.getZoom()
+    drawMapGrid(currentZoomLevel)
+});
+
+
+function drawMapGrid(currentZoomLevel){
+    if (window.has_map){
         $('.loading_area').removeClass('d-none')
-        if (currentZoomLevel < 5) {
+
+        if (currentZoomLevel < 6) {
+            window.current_grid_level = 100
+            // 這邊也改成後面再算
             $('[class^=resultG_]').addClass('d-none')
-            if ($('path.resultG_100').length < 1) {
-                if (window.grid_100) {
-                    L.geoJSON(window.grid_100, { className: 'resultG_100', style: style }).addTo(map);
-                }
-            }
+            $('.resultG_100').remove()
+            $.ajax({
+                url: "/get_map_grid",
+                data: window.condition + '&grid=100&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
+                type: 'POST',
+                dataType: 'json',
+            })
+                .done(function (response) {
+                    L.geoJSON(response, { className: 'resultG_100', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    if (xhr.status == 504) {
+                        alert(gettext('要求連線逾時'))
+                    } else {
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+                    }
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
+                })
+
             $('.resultG_100').removeClass('d-none')
-            $('.loading_area').addClass('d-none')
 
-        } else if (currentZoomLevel < 8) {
+        } else if (currentZoomLevel < 9) {
+            window.current_grid_level = 10
+            // 這邊也改成後面再算
             $('[class^=resultG_]').addClass('d-none')
-            $('.resultG_10').removeClass('d-none')
-            $('.loading_area').addClass('d-none')
+            $('.resultG_10').remove()
+            $.ajax({
+                url: "/get_map_grid",
+                data: window.condition + '&grid=10&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
+                type: 'POST',
+                dataType: 'json',
+            })
+                .done(function (response) {
+                    L.geoJSON(response, { className: 'resultG_10', style: style }).addTo(map);
+                    $('.loading_area').addClass('d-none')
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    if (xhr.status == 504) {
+                        alert(gettext('要求連線逾時'))
+                    } else {
+                        alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-        } else if (currentZoomLevel < 12) {
+                    }
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.loading_area').addClass('d-none')
+                })
+
+            $('.resultG_10').removeClass('d-none')
+
+        } else if (currentZoomLevel < 11) {
+            window.current_grid_level = 5
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_5').remove()
             $.ajax({
@@ -294,7 +348,6 @@ map.on('zoomend', function zoomendEvent(ev) {
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
                     $('.loading_area').addClass('d-none')
-
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -305,11 +358,12 @@ map.on('zoomend', function zoomendEvent(ev) {
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                     $('.loading_area').addClass('d-none')
-
                 })
 
             $('.resultG_5').removeClass('d-none')
         } else {
+            window.current_grid_level = 1
+
             $('[class^=resultG_]').addClass('d-none')
             $('.resultG_1').remove()
 
@@ -322,7 +376,6 @@ map.on('zoomend', function zoomendEvent(ev) {
                 .done(function (response) {
                     L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
                     $('.loading_area').addClass('d-none')
-
                 })
                 .fail(function (xhr, status, errorThrown) {
                     if (xhr.status == 504) {
@@ -333,80 +386,13 @@ map.on('zoomend', function zoomendEvent(ev) {
                     }
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                     $('.loading_area').addClass('d-none')
-
                 })
 
             $('.resultG_1').removeClass('d-none')
         }
     }
-});
+}
 
-
-map.on('dragend', function zoomendEvent(ev) {
-    if (window.grid_100) {
-        var currentZoomLevel = ev.target.getZoom()
-        if (currentZoomLevel >= 8) {
-            $('.loading_area').removeClass('d-none')
-            if (currentZoomLevel < 12) {
-                $('[class^=resultG_]').addClass('d-none')
-                $('.resultG_5').remove()
-                $.ajax({
-                    url: "/get_map_grid",
-                    data: window.condition + '&grid=5&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
-                    type: 'POST',
-                    dataType: 'json',
-                })
-                    .done(function (response) {
-                        L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
-                        $('.loading_area').addClass('d-none')
-
-                    })
-                    .fail(function (xhr, status, errorThrown) {
-                        if (xhr.status == 504) {
-                            alert(gettext('要求連線逾時'))
-                        } else {
-                            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                        }
-                        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                        $('.loading_area').addClass('d-none')
-
-                    })
-
-                $('.resultG_5').removeClass('d-none')
-            } else {
-                $('[class^=resultG_]').addClass('d-none')
-                $('.resultG_1').remove()
-
-                $.ajax({
-                    url: "/get_map_grid",
-                    data: window.condition + '&grid=1&map_bound=' + getWKTMap() + '&csrfmiddlewaretoken=' + $csrf_token,
-                    type: 'POST',
-                    dataType: 'json',
-                })
-                    .done(function (response) {
-                        L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
-                        $('.loading_area').addClass('d-none')
-
-                    })
-                    .fail(function (xhr, status, errorThrown) {
-                        if (xhr.status == 504) {
-                            alert(gettext('要求連線逾時'))
-                        } else {
-                            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                        }
-                        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                        $('.loading_area').addClass('d-none')
-
-                    })
-
-                $('.resultG_1').removeClass('d-none')
-            }
-
-        }
-    }
-});
 
 
 function initDataset(what, datasize) {
@@ -1019,9 +1005,21 @@ function setTable(response, queryString, from, orderby, sort) {
         //drawnItems.clearLayers();
         //$('.addG, .addC, .addM, .resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+        // TODO 這邊要改成目前的zoom level
+        if (window.current_grid_level == 100) {
+            L.geoJSON(response.map_geojson.grid_100, { className: "resultG_100", style: style }).addTo(map);
+        } else if (window.current_grid_level == undefined | window.current_grid_level == 10){
+            window.current_grid_level = 10
+            L.geoJSON(response.map_geojson.grid_10, { className: "resultG_10", style: style }).addTo(map);
+        } else if (window.current_grid_level == 5) {
+            L.geoJSON(response.map_geojson.grid_5, { className: "resultG_5", style: style }).addTo(map);
+        } else if (window.current_grid_level == 1) {
+            L.geoJSON(response.map_geojson.grid_1, { className: "resultG_1", style: style }).addTo(map);
+        } 
+        // console.log()
+        // L.geoJSON(response.map_geojson.grid_`${window.current_grid_level}`, { className: `resultG_${window.current_grid_level}`, style: style }).addTo(map);
+        // window.grid_100 = response.map_geojson.grid_100
 
-        L.geoJSON(response.map_geojson.grid_10, { className: 'resultG_10', style: style }).addTo(map);
-        window.grid_100 = response.map_geojson.grid_100
     }
 
     // 如果有資料回傳則顯示table
@@ -1247,13 +1245,26 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
 
             $(".loading_area").removeClass('d-none');
 
+            if (map.getZoom() == undefined){
+                window.current_grid_level = 10
+            } else if (map.getZoom() < 6) {
+                window.current_grid_level = 100
+            } else if (map.getZoom() < 9) {
+                window.current_grid_level = 10
+            } else if (map.getZoom() < 11) {
+                window.current_grid_level = 5
+            } else {
+                window.current_grid_level = 1
+            }
+
+            window.has_map = true
+
             $.ajax({
                 url: "/get_conditional_records",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col,
+                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + selected_col + '&map_bound=' + getWKTMap() +'&grid=' + window.current_grid_level,
                 type: 'POST',
                 dataType: 'json',
-            })
-                .done(function (response) {                
+            }).done(function (response) {                
 
                     // console.log(response)
                     
