@@ -1514,7 +1514,7 @@ msgstr "Original Longitude"
 #: templates/data/search_collection.html:317
 #: templates/data/search_full.html:732 templates/data/search_full.html:854
 #: templates/data/search_occurrence.html:299
-msgid "座標誤差"
+msgid "座標誤差（公尺）"
 msgstr "Coordinate Uncertainty in Meters"
 
 #: templates/data/collection_detail.html:232

@@ -19,6 +19,7 @@
 <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+
 {% endblock head %}
 
 {% block style %}
@@ -716,7 +717,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-coordinateUncertaintyInMeters">
-					<p>{% trans '座標誤差' %}</p>
+					<p>{% trans '座標誤差（公尺）' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-dataGeneralizations">
@@ -838,7 +839,7 @@
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
-					<p>{% trans '座標誤差' %}</p>
+					<p>{% trans '座標誤差（公尺）' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
@@ -890,5 +891,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v2"></script>
+<script src="{% static 'js/data/search_full.js' %}?v3"></script>
 {% endblock script %}
