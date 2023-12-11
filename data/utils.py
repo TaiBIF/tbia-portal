@@ -942,47 +942,51 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     #  要處理敏感資料
 
     # 地圖框選
-    if from_request:
-        if g_list := req_dict.getlist('polygon'): 
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                if get_raw_map:
-                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
-                else:
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
-                
-            except:
-                pass
-    else:
-        if g_list := req_dict.get('polygon'):
-            try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
-                if get_raw_map:
-                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
-                else:
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
-            except:
-                pass
+    if req_dict.get('geo_type') == 'map':
+        if from_request:
+            if g_list := req_dict.getlist('polygon'): 
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    if get_raw_map:
+                        query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                    else:
+                        query_list += ['location_rpt: "Within(%s)"' % mp]
+                    
+                except:
+                    pass
+        else:
+            if g_list := req_dict.get('polygon'):
+                try:
+                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    if get_raw_map:
+                        query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                    else:
+                        query_list += ['location_rpt: "Within(%s)"' % mp]
+                except:
+                    pass
 
     # 上傳polygon
-    if g_id := req_dict.get('geojson_id'):
-        try:
-            with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                geojson = json.loads(j.read())
-                geo_df = gpd.GeoDataFrame.from_features(geojson)
-                g_list = []
-                for i in geo_df.to_wkt()['geometry']:
-                    g_list += ['"Within(%s)"' % i]
-                if get_raw_map:
-                    query_list += [ f"location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
-                else:
-                    query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-        except:
-            pass
+    if req_dict.get('geo_type') == 'polygon':
+
+        if g_id := req_dict.get('geojson_id'):
+            try:
+                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                    geojson = json.loads(j.read())
+                    geo_df = gpd.GeoDataFrame.from_features(geojson)
+                    g_list = []
+                    for i in geo_df.to_wkt()['geometry']:
+                        g_list += ['"Within(%s)"' % i]
+                    if get_raw_map:
+                        query_list += [ f"location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
+                    else:
+                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
+            except:
+                pass
 
     # 圓中心框選
-    if circle_radius := req_dict.get('circle_radius'):
-        query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+    if req_dict.get('geo_type') == 'circle':
+        if circle_radius := req_dict.get('circle_radius'):
+            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
 
     # 學名相關
     if val := req_dict.get('name'):
