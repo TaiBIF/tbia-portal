@@ -33,9 +33,31 @@ $(window).on('resize', function () {
 // reloadOnWindowResize();
 
 
+// function checkIfAuthenticated() {
+//   // your function code here
+//   let is_authenticated = false
+//   $.ajax({
+//     url: "/get_is_authenticated",
+//     data: 'csrfmiddlewaretoken=' + $csrf_token,
+//     type: 'POST',
+//     success: function (response) {
+//       is_authenticated = response.is_authenticated
+//       return is_authenticated
+//     },
+//     fail: function () {
+//       return is_authenticated
+//     }
+//   });
+// }
+
+
+
 
 function showLogin() {
-  if ($('input[name=is_authenticated]').val() == 'False') {
+
+  // console.log(checkIfAuthenticated())
+  if ($('input[name=is_authenticated]').val() != 'True') {
+  // if (checkIfAuthenticated()==true) {
     $('.login_pop').removeClass('d-none');
     $('.login_pop .loginbox').addClass('d-none');
     $('.login_pop .login_area').removeClass('d-none')

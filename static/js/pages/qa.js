@@ -100,6 +100,9 @@ function updateQa(page, type, qa_id) {
         if (qa_id != undefined){
             $(`#qa_hash_${qa_id}`).addClass('now')
             window.location = window.location.href + '#qa_hash_' + qa_id
+            $([document.documentElement, document.body]).animate({
+              scrollTop: $('#qa_hash_' + qa_id).offset().top - 80
+          }, 200);
         }
 
         $('.show_tech').off('click')

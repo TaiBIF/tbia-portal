@@ -32,7 +32,6 @@
     {% block style %}{% endblock style %}
   </head>
   <body>
-  <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
   <input type="hidden" name="lang" value="{{ LANGUAGE_CODE }}">
 
   <!--loading-->
@@ -643,7 +642,10 @@
       </div>
     </div>
   </div>
+  {% if user.is_authenticated  %}
+  <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
+  {% endif %}
   </body>
-  <script src="{% static 'js/base.js' %}?v1"></script>
+  <script src="{% static 'js/base.js' %}?v2"></script>
   {% block script %}{% endblock script %}
 </html>
