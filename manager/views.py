@@ -1305,6 +1305,9 @@ def submit_news(request):
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
 
+        # author_use_tbia = None
+        author_use_tbia = request.POST.get('author_use_tbia')
+
         # tmp = {"delta":'{"ops":[]}',"html":""}
         # tmp['html'] = content
         # html = '<ul><li>GBIF</li><li>TaiBIF</li><li>TBN</li></ul><p><img src=\\"/media/news/ntm_logo_j9SJDgw.png\\"></p>"'   
@@ -1331,6 +1334,13 @@ def submit_news(request):
         if News.objects.filter(id=news_id).exists():
             n = News.objects.get(id=news_id)
             ori_status = n.status
+            
+            if request.POST.get('from_system'):
+                if author_use_tbia == 'on':
+                    n.author_use_tbia = True
+                else:
+                    n.author_use_tbia = False
+
             if status == 'pass' and ori_status != 'pass':
                 publish_date = timezone.now() + timedelta(hours=8)
             elif status == 'pass' and ori_status == 'pass':
@@ -1365,6 +1375,7 @@ def submit_news(request):
                 publish_date = timezone.now() + timedelta(hours=8)
             else:
                 publish_date = None
+
 
             if image_name:
                 n = News.objects.create(
