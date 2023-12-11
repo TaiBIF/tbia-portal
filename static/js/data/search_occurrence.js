@@ -873,9 +873,9 @@ function changeAction() {
     $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
     $('.vsb-main button').css('border', '').css('background', '')
 
-    let select_length = $(".search_condition_are select").length;
+    let select_length = $(".search_condition_are select, .circle_popup select").length;
     for (let i = 0; i < select_length; i++) {
-        let tmp_id = $(".search_condition_are select")[i].id;
+        let tmp_id = $(".search_condition_are select, .circle_popup select")[i].id;
 
         $(`#${tmp_id}`).on('change', function () {
             if ($(`#btn-group-${tmp_id} ul li.active`).length > 0) {
