@@ -468,3 +468,7 @@ margin-bottom: 5px !important;
     margin-bottom: 30px !important;
 }
 
+
+form#search_full_form_top {
+    width: 100%;
+}
