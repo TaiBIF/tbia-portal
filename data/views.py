@@ -1224,24 +1224,25 @@ def get_conditional_records(request):
                         }
 
         query_req = json.dumps(query)
+
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
         resp = response.json()
-        
-        if resp['facets']['has_sensitive']['count'] > 0:
-            has_sensitive = True
-        else:
-            has_sensitive = False
-
-        if resp['facets']['has_species']['count'] > 0:
-            has_species = True
-        else:
-            has_species = False
-
-        if req_dict.get('from') not in ['page','orderby']:
-            data_c = resp['facets'][facet_grid]['buckets']
-            map_geojson = get_map_geojson(data_c=data_c, grid=grid)
 
         count = resp['response']['numFound']
+        has_sensitive = False
+        has_species = False
+
+        if count > 0 :
+        
+            if resp['facets']['has_sensitive']['count'] > 0:
+                has_sensitive = True
+
+            if resp['facets']['has_species']['count'] > 0:
+                has_species = True
+
+            if req_dict.get('from') not in ['page','orderby']:
+                data_c = resp['facets'][facet_grid]['buckets']
+                map_geojson = get_map_geojson(data_c=data_c, grid=grid)
 
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
