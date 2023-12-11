@@ -1352,7 +1352,7 @@ def get_locality(request):
     if keyword_reg:
         response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q={locality_str}{record_type}&rows=20')
     else:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q={record_type}&rows=20')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20&sort=locality%20desc&start=10')
 
     l_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
@@ -1376,7 +1376,7 @@ def get_locality_init(request):
         f_str = ' OR '.join(keyword)
         response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=20')
     else:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20')
+        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20&sort=locality%20desc&start=10')
 
     l_list = response.json()['response']['docs']
     for l in l_list:
