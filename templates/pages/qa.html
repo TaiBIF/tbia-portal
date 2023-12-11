@@ -70,10 +70,11 @@
     </div>
   </div>
 </div>
+<input type="hidden" value="{{ qa_page }}" name="qa_page">
 
 {% endblock body %}
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/qa.js' %}?v1"></script>
+<script src="{% static 'js/pages/qa.js' %}?v2"></script>
 {% endblock script %}
