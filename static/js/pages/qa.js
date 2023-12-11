@@ -2,19 +2,18 @@ $(function () {
 
   // 起始頁面
   
-
-        // 起始
-        // if (from_hash == true){
-  let urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('qa_id')) {
-    // window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
-    updateQa(1, '1', urlParams.get('qa_id'))
-    
-  } else {
-    updateQa(1, '2')
-  }
-        // }
-
+  // 起始
+  // if (from_hash == true){
+    let urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('qa_id')) {
+      // window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
+      // 目前有qa_id的都是網頁操作
+      updateQa($('input[name=qa_page]').val(), $('.qa_top_item .tabb li.now').data('type'), urlParams.get('qa_id'))
+    } else {
+      updateQa(1, '2')
+    }
+      // }
+  
   $('.qa_list ul li').on('click', function () {
     if ($(this).hasClass('now')) {
       $(this).removeClass('now')
@@ -102,7 +101,6 @@ function updateQa(page, type, qa_id) {
             $(`#qa_hash_${qa_id}`).addClass('now')
             window.location = window.location.href + '#qa_hash_' + qa_id
         }
-      
 
         $('.show_tech').off('click')
         $('.show_tech').on('click', function () {
@@ -130,11 +128,11 @@ function updateQa(page, type, qa_id) {
         //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
         $(`.page_number`).append(
           `
-                  <a class="num changePage" data-page="1" data-type="${type}">1</a>
-                  <a class="pre"><span></span>${gettext('上一頁')}</a>  
-                  <a class="next">${gettext('下一頁')}<span></span></a>
-                  <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
-              `)
+            <a class="num changePage" data-page="1" data-type="${type}">1</a>
+            <a class="pre"><span></span>${gettext('上一頁')}</a>  
+            <a class="next">${gettext('下一頁')}<span></span></a>
+            <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
+          `)
         //}		
 
 

@@ -35,6 +35,7 @@ class News(models.Model):
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
+    author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
     title = models.CharField(max_length=1000, blank=True, null=True)
     # content = RichTextUploadingField( blank=True, null=True)
     content = RichTextField( blank=True, null=True)

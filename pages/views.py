@@ -208,8 +208,16 @@ def get_news_list(request):
 def qa(request):
     qa_options = [{'type': 2, 'value': '網頁內容'}, {'type': 1, 'value': '網頁操作'},{'type': 3, 'value': '聯盟相關'},]
     type = request.GET.get('type', 2)
-    
-    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'type': type})
+    qa_page = None
+    if qa_id := request.GET.get('qa_id'):
+        # 要先確認是在哪個type的的哪一頁
+        if Qa.objects.filter(id=qa_id).exists():
+            type = Qa.objects.get(id=qa_id).type
+            qa_list = list(Qa.objects.filter(type=type).order_by('order').values_list('id', flat=True))
+            position_index = qa_list.index(int(qa_id)) + 1
+            qa_page = math.ceil(position_index / 10)
+
+    return render(request, 'pages/qa.html', {'qa_options': qa_options, 'type': type, 'qa_page': qa_page})
 
 
 def get_qa_list(request):

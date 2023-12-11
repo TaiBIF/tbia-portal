@@ -8,7 +8,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v3" />
 {% endblock style %}
 
 {% block head %}
@@ -120,6 +120,12 @@
                             <input type="hidden" name="news_id" value="{{ n.id }}">
                             <input type="hidden" name="from_system" value="yes">
                             <li class="upload-warning"><p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
+                            {% if n.partner != None %}
+                            <li>發布單位：{{ n.partner.select_title }}</li>
+                            <li class="check-list"><input type="checkbox" class="chebox" name="author_use_tbia" {% if n.author_use_tbia == True %}checked{% endif %}>
+                                <p>作者顯示為TBIA秘書處 </p>
+                            </li>
+                            {% endif %}
                             <li>審核狀態</li>
                             <li>
                                 <select name="status">
@@ -148,6 +154,7 @@
                                     <option value="project">計畫徵求</option>
                                 </select>
                             </li>
+
                             <li>代表圖片</li>
                             <li><input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg"></li> 
                             {% if n.image != None %}           

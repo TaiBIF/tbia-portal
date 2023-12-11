@@ -39,7 +39,7 @@
 						<h3>{{ n.title }}</h3>
 
 						<p><i class="icon-size fa-solid fa-pen"></i>
-							{% if n.partner %}
+							{% if n.partner and n.author_use_tbia != True %}
 								{% if LANGUAGE_CODE == 'en-us' %}
 									{{ n.partner.select_title_en }}
 								{% else %}
@@ -47,9 +47,9 @@
 								{% endif %}
 							{% else %}
 								{% if LANGUAGE_CODE == 'en-us' %}
-									Taiwan Biodiversity Information Alliance
+									TBIA Secretariat
 								{% else %}
-									TBIA 臺灣生物多樣性資訊聯盟
+									臺灣生物多樣性資訊聯盟秘書處
 								{% endif %}
 							{% endif %}
 						</p>
