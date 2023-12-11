@@ -1497,9 +1497,9 @@ def search_full(request):
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        print('b', time.time()-s)
+        # print('b', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## occurrence
 
@@ -1509,9 +1509,9 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        print('d', time.time()-s)
+        # print('d', time.time()-s)
 
-        s = time.time()
+        # s = time.time()
 
         ## taxon
 
@@ -1521,7 +1521,7 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        print('e', time.time()-s)
+        # print('e', time.time()-s)
 
         # s = time.time()
 

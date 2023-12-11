@@ -1533,7 +1533,7 @@ def get_map_geojson(data_c, grid):
     map_geojson = {}
     map_geojson[f'grid_{grid}'] = {"type":"FeatureCollection","features":[]}
     # data_c = resp['facets'][facet_grid]['buckets']
-    s = time.time()
+    # s = time.time()
     for cc in data_c:
         if len(cc['val'].split('_')) > 1:
             current_grid_x = int(cc['val'].split('_')[0])
@@ -1549,7 +1549,7 @@ def get_map_geojson(data_c, grid):
                     }
                 }]
                 map_geojson[f'grid_{grid}']['features'] += tmp
-    print(time.time()-s)
+    # print(time.time()-s)
     return map_geojson
 
 def get_map_response(map_query, grid_list, get_raw_map):
