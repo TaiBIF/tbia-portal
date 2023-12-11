@@ -5640,7 +5640,7 @@ body {
 @media only screen and (max-width: 767px) {
     .popbg .wbox_center .titlegreen {
         font-size: 26px;
-        margin-bottom: 5px
+        /* margin-bottom: 5px */
     }
 }
 
