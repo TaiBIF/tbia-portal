@@ -1210,7 +1210,8 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
         let selected_col = ''
 
         // 如果是按搜尋或從網址進入，重新給query參數，若是從分頁則不用
-        if (from == 'search' | from == 'change') {
+        // if (from == 'search' | from == 'change') {
+        if (from == 'search') {
             var form = $();
             $('#searchForm input, #searchForm select').each(function () {
 

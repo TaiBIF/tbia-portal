@@ -8,7 +8,7 @@ notif_map = {
     1: '/manager?menu=download',
     4: '/manager?menu=sensitive',
     6: '/manager',
-    7: '/manager/system/news?menu=list',
+    7: '/manager/system/news?menu=news_apply',
     8: '/manager/partner/news?menu=news'
   }
 
