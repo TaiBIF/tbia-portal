@@ -4,13 +4,16 @@ $(function () {
   
   // 起始
   // if (from_hash == true){
+    let current_type = '2';
     let urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('qa_id')) {
+      current_type = $('.qa_top_item .tabb li.now').data('type')
       // window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
       // 目前有qa_id的都是網頁操作
-      updateQa($('input[name=qa_page]').val(), $('.qa_top_item .tabb li.now').data('type'), urlParams.get('qa_id'))
+      updateQa($('input[name=qa_page]').val(), current_type, urlParams.get('qa_id'))
     } else {
-      updateQa(1, '2')
+      current_type = '2'
+      updateQa(1, current_type)
     }
       // }
   
@@ -50,7 +53,7 @@ $(function () {
     }
   })
 
-  selectBox.setValue('2')
+  selectBox.setValue(current_type)
   $('#btn-group-qa_type button span.title').addClass('color-white')
 
   $('#qa_type').on('change', function () {
