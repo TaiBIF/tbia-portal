@@ -3,6 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # 確認是否登入
+    path('get_is_authenticated', views.get_is_authenticated, name='get_is_authenticated'),
     # 後台頁面
     path('manager', views.manager, name='manager'),
     path('manager/partner', views.manager_partner, name='manager_partner'),

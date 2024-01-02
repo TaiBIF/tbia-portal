@@ -688,6 +688,10 @@ $(function () {
     });
 
     $('.circle_send').click(function () {
+        let center_lat = $('input[name=center_lat]').val()
+        let center_lon = $('input[name=center_lon]').val()
+        $('input[name=center_lat]').val(center_lat.trim())
+        $('input[name=center_lon]').val(center_lon.trim())
         // 先把舊的移除
         $('.addC, [class^=resultG_], .addM, .addG').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')) {
@@ -1375,6 +1379,15 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         }
                     }
 
+                    // 加上總頁數
+                    if (response.total_page > 1 && !response.page_list.includes(response.total_page)) {
+                        $('.next').before(`<a class="num ml-5px submitSearch" data-page="${response.total_page}" data-from="page">${response.total_page}</a>`)
+                    }
+
+                    if (response.total_page > 1 && !response.page_list.includes(1)) {
+                        $('.pre').after('<a class="num mr-5px submitSearch" data-page="1" data-from="page">1</a>')
+                    }
+                    
                     if (limit) {
                         $('.page_number a.submitSearch').data('limit', limit)
                     }

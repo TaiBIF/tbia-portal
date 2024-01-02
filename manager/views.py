@@ -82,6 +82,17 @@ class EmailThread(threading.Thread):
         self.email.send()
 
 
+def get_is_authenticated(request):
+    check_if_authenticated = False
+    if not request.user.is_anonymous:  
+        u = request.user
+        if u.is_active:
+            check_if_authenticated = True
+        else:
+            check_if_authenticated = False
+    return JsonResponse({'is_authenticated': check_if_authenticated}, safe=False)
+                
+
 def send_feedback(request):
     if request.method == 'POST':
         # print(request.POST)
@@ -1509,8 +1520,8 @@ def update_user_status(request):
             u = User.objects.get(id=request.POST.get('user_id'))
             partner_id = u.partner_id
             
-            # 要確認是不是單位帳號是不是超過十個人
-            if User.objects.filter(partner_id=partner_id,status='pass').count() > 10:
+            # 要確認是不是單位帳號是不是超過十個人 而且現在是要修改成pass (原本不是pass)
+            if u.status != 'pass' and status == 'pass' and User.objects.filter(partner_id=partner_id,status='pass').count() >= 10:
                 # status 改為pending
                 status = 'pending'
                 exceed_ten = True

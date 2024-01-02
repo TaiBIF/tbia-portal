@@ -24,6 +24,8 @@ from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner
+import time
+
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -159,16 +161,22 @@ taxon_group_map = {
     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
     'Birds' : [{'key': 'class', 'value': 'Aves'}],
     'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
+    'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
+    'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
+    'Others' : [{'key': 'class', 'value': ''}],
 }
 
 taxon_group_map_c = {
     'Insects' : '昆蟲',
     'Fishes' : '魚類',
     'Reptiles' : '爬蟲類',
+    'Amphibians': '兩棲類',
     'Fungi' : '真菌(含地衣)',
     'Plants' : '植物',
     'Birds' : '鳥類',
     'Mammals' : '哺乳類',
+    'Bacteria': '細菌',
+    'Others': '其他',
 }
 
 
@@ -794,8 +802,15 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if val := req_dict.get('taxonGroup'):
         if val in taxon_group_map.keys():
             vv_list = []
-            for vv in taxon_group_map[val]:
-                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+            # 如果是others的話 要排除掉其他的
+            if val == 'Others':
+                for vv in taxon_group_map.keys():
+                    if vv != 'Others':
+                        for vvv in taxon_group_map[vv]:
+                            vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+            else:
+                for vv in taxon_group_map[val]:
+                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
             query_list += [" OR ".join(vv_list)]
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
@@ -1527,9 +1542,6 @@ def if_raw_map(user_id):
         return True
     else:
         return False
-    
-import time
-    
 
 
 def get_map_geojson(data_c, grid):

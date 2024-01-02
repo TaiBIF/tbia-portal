@@ -454,21 +454,23 @@ def save_geojson(request):
         return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
+import shapely
+
 def return_geojson_query(request):
     if request.method == 'POST':
-        # print(request.POST.get('geojson_text'))
         geojson = request.POST.get('geojson_text')
         geojson = gpd.read_file(geojson, driver='GeoJSON')
-        # geojson = geojson.dissolve()
-        # print(geojson)
+        geojson = shapely.force_2d(geojson) # remove z coordinates
 
     # geo_df = gpd.GeoDataFrame.from_features(geojson)
         g_list = []
-        for i in geojson.to_wkt()['geometry']:
-            if str(i).startswith('POLYGON'):
-                g_list += [i]
+        if len(geojson):
+            g_list = geojson.geometry.values[0]
+        # for i in geojson.to_wkt()['geometry']:
+        #     if str(i).startswith('POLYGON'):
+        #         g_list += [i]
         # print(g_list)
-        return JsonResponse({"polygon": g_list}, safe=False)
+        return JsonResponse({"polygon": [str(g_list)]}, safe=False)
 
 def send_download_request(request):
     if request.method == 'POST':
@@ -629,24 +631,28 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                 df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
         if len(df):
             subset_taxon = pd.DataFrame()
+            subset_taxon_list = []
             taxon_ids = [f"id:{d}" for d in df.taxonID.unique()]
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
-            if response.status_code == 200:
-                resp = response.json()
-                if data := resp['response']['docs']:
-                    subset_taxon = pd.DataFrame(data)
-                    used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                                'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-                    subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
-                    for u in used_cols:
-                        if u not in subset_taxon.keys():
-                            subset_taxon[u] = ''
-                    # 整理順序
-                    subset_taxon = subset_taxon[used_cols]
-                    subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
-                    df = df.merge(subset_taxon, how='left')
-                    is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-                    df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
+            for tt in range(0, len(taxon_ids), 20):
+                taxa_query = {'query': " OR ".join(taxon_ids[tt:tt+20]), 'limit': 20}
+                response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(taxa_query), headers={'content-type': "application/json" })
+                if response.status_code == 200:
+                    resp = response.json()
+                    if data := resp['response']['docs']:
+                        subset_taxon_list += data
+            subset_taxon = pd.DataFrame(subset_taxon_list)
+            used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
+                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+            subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
+            for u in used_cols:
+                if u not in subset_taxon.keys():
+                    subset_taxon[u] = ''
+            # 整理順序
+            subset_taxon = subset_taxon[used_cols]
+            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
+            df = df.merge(subset_taxon, how='left')
+            is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+            df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
     csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')

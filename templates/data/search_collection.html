@@ -33,7 +33,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v4" />
 {% endblock style %}
 
 
@@ -73,10 +73,13 @@
 						<option value="Insects">{% trans '昆蟲' %}</option>
 						<option value="Fishes">{% trans '魚類' %}</option>
 						<option value="Reptiles">{% trans '爬蟲類' %}</option>
+						<option value="Amphibians">{% trans '兩棲類' %}</option>
 						<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
 						<option value="Plants">{% trans '植物' %}</option>
 						<option value="Birds">{% trans '鳥類' %}</option>
 						<option value="Mammals">{% trans '哺乳類' %}</option>
+						<option value="Bacteria">{% trans '細菌' %}</option>
+						<option value="Others">{% trans '其他' %}</option>
 					</select>  
 				</div>  
 				<div class="input_item">
@@ -439,8 +442,11 @@
             <p>{% trans '中心點緯度' %}</p>
             <input name="center_lat" type="text">
           </div>
-				</div>
-				<button class="send circle_send mt-5p">{% trans '確認送出' %}</button>
+		  	<p class="shortxt note-text text-right">
+			*{% trans '僅支援十進位經緯度，例如：經度 121.6141 緯度 25.0451' %}
+			</p>
+			</div>
+				<button class="send circle_send">{% trans '確認送出' %}</button>
 			</div>
 		</div>
 	</div>
@@ -450,5 +456,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v6"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v7"></script>
 {% endblock %}
