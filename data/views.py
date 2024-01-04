@@ -1352,7 +1352,7 @@ def get_locality(request):
     if request.GET.get('record_type') == 'col':
         record_type = '&fq=record_type:col'
 
-    locality_str = f'locality:"{keyword}"^5 OR locality:/{keyword}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{keyword}.*/^1 OR locality:/.*{keyword_reg}.*/'
+    locality_str = f'locality:"{keyword}"^5 OR locality:/{escape_solr_query(keyword)}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{escape_solr_query(keyword)}.*/^1 OR locality:/.*{keyword_reg}.*/'
 
     ds = []
     if keyword_reg:
@@ -1433,7 +1433,7 @@ def get_dataset(request):
     keyword_reg = get_variants(keyword_reg)
 
     # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
-    dataset_str = f'name:"{keyword}"^5 OR name:/{keyword}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{keyword}.*/^1 OR name:/.*{keyword_reg}.*/'
+    dataset_str = f'name:"{keyword}"^5 OR name:/{escape_solr_query(keyword)}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{escape_solr_query(keyword)}.*/^1 OR name:/.*{keyword_reg}.*/'
     ds = []
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q={dataset_str}{h_str}&rows=20{record_type}&fq=deprecated:false')
     d_list = response.json()['response']['docs']

@@ -1340,7 +1340,11 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     }
 
                     $('.jumpto').on('click', function () {
-                        submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                        if ( isNaN(parseInt($('input[name=jumpto]').val())) ){
+                            alert(gettext('請輸入有效頁碼'))
+                        } else {
+                            submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                        }
                     })
 
                     let html = ''

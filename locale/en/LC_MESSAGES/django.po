@@ -2530,3 +2530,8 @@ msgstr "Type to see more options"
 #:
 msgid "僅支援十進位經緯度，例如：經度 121.6141 緯度 25.0451"
 msgstr "Only supports coordinates in decimal degrees, for example: longitude 121.6141 latitude 25.0451"
+
+
+#:
+msgid "請輸入有效頁碼"
+msgstr "Please enter a valid page number"
