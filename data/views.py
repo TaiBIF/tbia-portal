@@ -1304,7 +1304,8 @@ def change_dataset(request):
             d_list = response.json()['response']['docs']
             # solr內的id和datahub的postgres互通
             for l in d_list:
-                ds.append({'text': l['name'], 'value': l['id']})
+                if l['name'] not in [d['text'] for d in ds]:
+                    ds.append({'text': l['name'], 'value': l['id']})
             # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
             # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
             # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
@@ -1321,7 +1322,8 @@ def change_dataset(request):
         d_list = response.json()['response']['docs']
         # solr內的id和datahub的postgres互通
         for l in d_list:
-            ds.append({'text': l['name'], 'value': l['id']})
+            if l['name'] not in [d['text'] for d in ds]:
+                ds.append({'text': l['name'], 'value': l['id']})
 
         # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
         # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
@@ -1439,7 +1441,13 @@ def get_dataset(request):
     d_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
     for l in d_list:
-        ds.append({'text': l['name'], 'value': l['id']})
+        if l['name'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['name'], 'value': l['id']})
+    
+    # if len(ds):
+    #     ds = pd.DataFrame(ds)
+    #     ds = ds[ds['text'].drop_duplicates()].to_dict('records')
+
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
