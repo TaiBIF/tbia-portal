@@ -1365,7 +1365,8 @@ def get_locality(request):
     l_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
     for l in l_list:
-        ds.append({'text': l['locality'], 'value': l['locality']})
+        if l['locality'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['locality'], 'value': l['locality']})
     
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1388,7 +1389,8 @@ def get_locality_init(request):
 
     l_list = response.json()['response']['docs']
     for l in l_list:
-        ds.append({'text': l['locality'], 'value': l['locality']})
+        if l['locality'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['locality'], 'value': l['locality']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1613,24 +1615,3 @@ def search_full(request):
         }
 
     return render(request, 'data/search_full.html', response)
-
-
-
-def check_map_bound(map_bound):
-
-    map_str = map_bound.split(' TO ')
-    map_min_lat =  float(map_str[0].split(',')[0])
-    map_min_lon = float(map_str[0].split(',')[1])
-    map_max_lat =  float(map_str[1].split(',')[0])
-    map_max_lon =  float(map_str[1].split(',')[1])
-    if map_min_lon < -180 :
-        map_min_lon = -180
-    if map_min_lat < -90:
-        map_min_lat = -90
-    if map_max_lon > -180 :
-        map_max_lon = -180
-    if map_max_lat > 90:
-        map_max_lat = 90
-
-    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
-    return new_map_bound

@@ -1859,3 +1859,23 @@ def get_resource_cate(extension):
     else:
         cate = 'other'
     return cate
+
+
+def check_map_bound(map_bound):
+
+    map_str = map_bound.split(' TO ')
+    map_min_lat =  float(map_str[0].split(',')[0])
+    map_min_lon = float(map_str[0].split(',')[1])
+    map_max_lat =  float(map_str[1].split(',')[0])
+    map_max_lon =  float(map_str[1].split(',')[1])
+    if map_min_lon < -180 :
+        map_min_lon = -180
+    if map_min_lat < -90:
+        map_min_lat = -90
+    if map_max_lon > -180 :
+        map_max_lon = -180
+    if map_max_lat > 90:
+        map_max_lat = 90
+
+    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
+    return new_map_bound

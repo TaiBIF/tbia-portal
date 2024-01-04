@@ -242,7 +242,18 @@ function style(feature) {
     };
 }
 
-let map = L.map('map', { gestureHandling: true }).setView([23.5, 121.2], 7);
+let map = L.map('map', { gestureHandling: true, minZoom: 2}).setView([23.5, 121.2], 7);
+
+var southWest = L.latLng(-89.98155760646617, -179.9),
+northEast = L.latLng(89.99346179538875, 179.9);
+var bounds = L.latLngBounds(southWest, northEast);
+
+map.setMaxBounds(bounds);
+map.on('drag', function() {
+    map.panInsideBounds(bounds, { animate: false });
+});
+
+
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
