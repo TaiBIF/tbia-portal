@@ -24,6 +24,9 @@ $('#rightsHolder').on('change', function (e) {
         }
     }    
 
+    // dataset的顏色拿掉
+    $('#btn-group-datasetName button span.title').removeClass('black').addClass('color-707070')
+
     $.ajax({
         url: "/change_dataset?" + h_str + d_str,
         dataType: 'json',
