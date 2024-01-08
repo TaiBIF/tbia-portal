@@ -275,7 +275,7 @@ $(document).ready(function () {
     if ($('#fullForm input[name=keyword]').val().length > 2000) {
       alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
     } else {
-      window.location = `/${$lang}/search/full?keyword=${$('#fullForm input[name=keyword]').val()}`
+      window.location = `/${$lang}/search/full?keyword=${$('#fullForm input[name=keyword]').val().replace(/&/g, "%26")}`
     }
 
   })
