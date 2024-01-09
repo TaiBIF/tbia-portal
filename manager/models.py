@@ -107,7 +107,7 @@ class SearchStat(models.Model):
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) # pending, pass, fail 
     query = models.TextField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(null=True, blank=True)
 
 
 

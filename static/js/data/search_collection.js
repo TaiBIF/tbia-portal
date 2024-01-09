@@ -1264,7 +1264,17 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             orderby_str = '&orderby=' + orderby + '&sort=' + sort
         }
 
-        let queryString = window.condition + '&page=' + page + '&from=' + from + '&limit=' + limit + orderby_str
+        // 在這邊要先把過去queryString的page , from , limit拿掉
+        const current_pars = new URLSearchParams(window.condition)
+        
+        current_pars.delete('page')
+        current_pars.delete('from')
+        current_pars.delete('limit')
+        current_pars.delete('orderby')
+        current_pars.delete('sort')
+
+        let queryString = current_pars.toString() + '&page=' + page + '&from=' + from + '&limit=' + limit + orderby_str
+        window.condition = queryString
 
         if (queryString.length > 2000) {
             alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))

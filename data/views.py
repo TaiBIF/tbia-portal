@@ -38,7 +38,7 @@ from os.path import exists
 # from data.models import Namecode, Taxon , DatasetKey
 import html
 from django.utils.translation import get_language, gettext
-
+import shapely
 
 
 def get_geojson(request,id):
@@ -190,7 +190,7 @@ def submit_sensitive_request(request):
                 group = response.json()['facets']['group']['buckets']
                 for g in group:
                     groups.append(g['val'])
-        
+
             for p in Partner.objects.filter(group__in=groups):
                 sdr = SensitiveDataResponse.objects.create(
                     partner = p,
@@ -366,6 +366,10 @@ def generate_sensitive_csv(query_id, scheme, host):
             file_done = True
 
             # 儲存到下載統計
+
+            stat_rightsHolder = create_search_stat(query_list=query_list)
+            sq.stat = stat_rightsHolder
+
             # 要排除掉轉交的情況
             tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
             # if len(tmp) == len(tmp.filter(status='pass')):
@@ -454,7 +458,6 @@ def save_geojson(request):
         return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
-import shapely
 
 def return_geojson_query(request):
     if request.method == 'POST':
@@ -547,6 +550,9 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     process.communicate()
 
     # 儲存到下載統計
+
+    stat_rightsHolder = create_search_stat(query_list=query_list)
+    sq.stat = stat_rightsHolder
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -614,7 +620,6 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                         "limit": -1
                         }
                     }
-
                     }
                 }
             }
@@ -660,6 +665,9 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     df.to_csv(zip_file_path, compression=compression_options, index=False)
 
     # 儲存到下載統計
+
+    stat_rightsHolder = create_search_stat(query_list=query_list)
+    sq.stat = stat_rightsHolder
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -783,6 +791,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     process.communicate()
 
     # 儲存到下載統計
+    
+    stat_rightsHolder = create_search_stat(query_list=fq_list)
+    sq.stat = stat_rightsHolder
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -1181,7 +1192,6 @@ def get_conditional_records(request):
         page = int(req_dict.get('page', 1))
         offset = (page-1)*limit
 
-
         grid = int(req_dict.get('grid', 10))
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
@@ -1194,15 +1204,12 @@ def get_conditional_records(request):
             facet_grid = f'grid_{grid}_blurred'
             map_query_list += [f"location_rpt:{map_bound}"]
 
-        
         query = { "query": "*:*",
                 "offset": offset,
                 "limit": limit,
                 "filter": query_list,
                 "sort":  solr_orderby,
-                "facet": {
-                        # 確認是否有敏感資料
-                        'has_sensitive': {
+                "facet": {'has_sensitive': {
                             "q": "raw_location_rpt:*",
                             "type": "query",
                         },
@@ -1210,11 +1217,10 @@ def get_conditional_records(request):
                         'has_species': {
                             "q": "taxonID:*",
                             "type": "query",
-                        },
+                        }
                     }
                 }
-        
-        
+
         if not query_list:
             query.pop('filter')
 
@@ -1229,10 +1235,22 @@ def get_conditional_records(request):
                             'domain': { 'query': "*:*", 'filter': map_query_list}
                         }
 
+        if req_dict.get('from') == 'search':
+            # query['facet']['stat_rightsHolder'] = {}
+            query['facet']['stat_rightsHolder'] = {
+                'type': 'terms',
+                'field': 'rightsHolder',
+                'mincount': 1,
+                'limit': -1,
+                'allBuckets': False,
+                'numBuckets': False}
+
         query_req = json.dumps(query)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
         resp = response.json()
+
+        # print(resp)
 
         count = resp['response']['numFound']
         has_sensitive = False
@@ -1264,6 +1282,21 @@ def get_conditional_records(request):
         current_page = offset / limit + 1
         total_page = math.ceil(count / limit)
         page_list = get_page_list(current_page, total_page)
+
+        if req_dict.get('from') == 'search':
+            now_dict = dict(req_dict)
+            not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
+            for nq in not_query:
+                if nq in now_dict.keys():
+                    now_dict.pop(nq)
+            for k in now_dict.keys():
+                if len(now_dict[k])==1:
+                    now_dict[k] = now_dict[k][0]
+            query_string = parse.urlencode(now_dict)
+            # 記錄在SearchStat
+            stat_rightsHolder = resp['facets']['stat_rightsHolder']['buckets']
+            stat_rightsHolder.append({'val': 'total', 'count': count})
+            SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
 
         response = {
             'rows' : rows,
@@ -1501,7 +1534,7 @@ def get_higher_taxa(request):
 
 
 def search_full(request):
-    s = time.time()
+    # s = time.time()
     keyword = request.GET.get('keyword', '')
 
     if keyword and len(keyword) < 2000:
@@ -1519,7 +1552,7 @@ def search_full(request):
 
         ## occurrence
 
-        occ_resp = get_search_full_cards(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None)
+        occ_resp = get_search_full_cards(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, is_first_time=True)
         occurrence_rows = occ_resp['menu_rows']
         c_occurrence = occ_resp['total_count']
         occ_cards = occ_resp['data']
