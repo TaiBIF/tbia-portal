@@ -454,3 +454,11 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
+
+.ml-5px {
+    margin-left: 5px;
+}
+
+.mr-5px {
+    margin-right: 5px;
+}

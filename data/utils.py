@@ -24,6 +24,8 @@ from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner
+import time
+
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -159,16 +161,22 @@ taxon_group_map = {
     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
     'Birds' : [{'key': 'class', 'value': 'Aves'}],
     'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
+    'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
+    'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
+    'Others' : [{'key': 'class', 'value': ''}],
 }
 
 taxon_group_map_c = {
     'Insects' : '昆蟲',
     'Fishes' : '魚類',
     'Reptiles' : '爬蟲類',
+    'Amphibians': '兩棲類',
     'Fungi' : '真菌(含地衣)',
     'Plants' : '植物',
     'Birds' : '鳥類',
     'Mammals' : '哺乳類',
+    'Bacteria': '細菌',
+    'Others': '其他',
 }
 
 
@@ -296,12 +304,12 @@ map_occurrence = {
     'nothovariety'	:'雜交變種',
     'form'	:'型',
     'subform'	:'亞型',
-    'special-form'	:'特別品型',
+    'special form'	:'特別品型',
     'race'	:'種族',
     'stirp'	:'血統',
     'morph'	:'形態型',
     'aberration'	:'異常個體',
-    'hybrid-formula'	:'雜交組合',
+    'hybrid formula'	:'雜交組合',
     'domain_c'	:'域中文名',
     'superkingdom_c'	:'總界中文名',
     'kingdom_c'	:'界中文名',
@@ -343,12 +351,12 @@ map_occurrence = {
     'nothovariety_c'	:'雜交變種中文名',
     'form_c'	:'型中文名',
     'subform_c'	:'亞型中文名',
-    'special-form_c'	:'特別品型中文名',
+    'special form_c'	:'特別品型中文名',
     'race_c'	:'種族中文名',
     'stirp_c'	:'血統中文名',
     'morph_c'	:'形態型中文名',
     'aberration_c'	:'異常個體中文名',
-    'hybrid-formula_c'	:'雜交組合中文名',
+    'hybrid formula_c'	:'雜交組合中文名',
     'higherTaxa'	:'較高分類群',
     'taxonGroup'	:'物種類群',
     'scientificName': '學名',
@@ -663,109 +671,109 @@ def query_a_href(query, query_a, lang=None):
     return query
 
 
-
-# taxon-related columns
-taxon_cols = [
-    'domain',
-    'superkingdom',
-    'kingdom',
-    'subkingdom',
-    'infrakingdom',
-    'superdivision',
-    'division',
-    'subdivision',
-    'infradivision',
-    'parvdivision',
-    'superphylum',
-    'phylum',
-    'subphylum',
-    'infraphylum',
-    'microphylum',
-    'parvphylum',
-    'superclass',
-    'class',
-    'subclass',
-    'infraclass',
-    'superorder',
-    'order',
-    'suborder',
-    'infraorder',
-    'superfamily',
-    'family',
-    'subfamily',
-    'tribe',
-    'subtribe',
-    'genus',
-    'subgenus',
-    'section',
-    'subsection',
-    'species',
-    'subspecies',
-    'nothosubspecies',
-    'variety',
-    'subvariety',
-    'nothovariety',
-    'form',
-    'subform',
-    'special-form',
-    'race',
-    'stirp',
-    'morph',
-    'aberration',
-    'hybrid-formula',
-    'domain_c',
-    'superkingdom_c',
-    'kingdom_c',
-    'subkingdom_c',
-    'infrakingdom_c',
-    'superdivision_c',
-    'division_c',
-    'subdivision_c',
-    'infradivision_c',
-    'parvdivision_c',
-    'superphylum_c',
-    'phylum_c',
-    'subphylum_c',
-    'infraphylum_c',
-    'microphylum_c',
-    'parvphylum_c',
-    'superclass_c',
-    'class_c',
-    'subclass_c',
-    'infraclass_c',
-    'superorder_c',
-    'order_c',
-    'suborder_c',
-    'infraorder_c',
-    'superfamily_c',
-    'family_c',
-    'subfamily_c',
-    'tribe_c',
-    'subtribe_c',
-    'genus_c',
-    'subgenus_c',
-    'section_c',
-    'subsection_c',
-    'species_c',
-    'subspecies_c',
-    'nothosubspecies_c',
-    'variety_c',
-    'subvariety_c',
-    'nothovariety_c',
-    'form_c',
-    'subform_c',
-    'special-form_c',
-    'race_c',
-    'stirp_c',
-    'morph_c',
-    'aberration_c',
-    'hybrid-formula_c',
-    'common_name_c', 
-    'scientificName', 
-    'alternative_name_c', 
-    'synonyms',
-    'misapplied'
-]
+# deprecated
+# taxon-related columns 
+# taxon_cols = [
+#     'domain',
+#     'superkingdom',
+#     'kingdom',
+#     'subkingdom',
+#     'infrakingdom',
+#     'superdivision',
+#     'division',
+#     'subdivision',
+#     'infradivision',
+#     'parvdivision',
+#     'superphylum',
+#     'phylum',
+#     'subphylum',
+#     'infraphylum',
+#     'microphylum',
+#     'parvphylum',
+#     'superclass',
+#     'class',
+#     'subclass',
+#     'infraclass',
+#     'superorder',
+#     'order',
+#     'suborder',
+#     'infraorder',
+#     'superfamily',
+#     'family',
+#     'subfamily',
+#     'tribe',
+#     'subtribe',
+#     'genus',
+#     'subgenus',
+#     'section',
+#     'subsection',
+#     'species',
+#     'subspecies',
+#     'nothosubspecies',
+#     'variety',
+#     'subvariety',
+#     'nothovariety',
+#     'form',
+#     'subform',
+#     'special-form',
+#     'race',
+#     'stirp',
+#     'morph',
+#     'aberration',
+#     'hybrid-formula',
+#     'domain_c',
+#     'superkingdom_c',
+#     'kingdom_c',
+#     'subkingdom_c',
+#     'infrakingdom_c',
+#     'superdivision_c',
+#     'division_c',
+#     'subdivision_c',
+#     'infradivision_c',
+#     'parvdivision_c',
+#     'superphylum_c',
+#     'phylum_c',
+#     'subphylum_c',
+#     'infraphylum_c',
+#     'microphylum_c',
+#     'parvphylum_c',
+#     'superclass_c',
+#     'class_c',
+#     'subclass_c',
+#     'infraclass_c',
+#     'superorder_c',
+#     'order_c',
+#     'suborder_c',
+#     'infraorder_c',
+#     'superfamily_c',
+#     'family_c',
+#     'subfamily_c',
+#     'tribe_c',
+#     'subtribe_c',
+#     'genus_c',
+#     'subgenus_c',
+#     'section_c',
+#     'subsection_c',
+#     'species_c',
+#     'subspecies_c',
+#     'nothosubspecies_c',
+#     'variety_c',
+#     'subvariety_c',
+#     'nothovariety_c',
+#     'form_c',
+#     'subform_c',
+#     'special-form_c',
+#     'race_c',
+#     'stirp_c',
+#     'morph_c',
+#     'aberration_c',
+#     'hybrid-formula_c',
+#     'common_name_c', 
+#     'scientificName', 
+#     'alternative_name_c', 
+#     'synonyms',
+#     'misapplied'
+# ]
 
 
 
@@ -794,8 +802,15 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if val := req_dict.get('taxonGroup'):
         if val in taxon_group_map.keys():
             vv_list = []
-            for vv in taxon_group_map[val]:
-                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+            # 如果是others的話 要排除掉其他的
+            if val == 'Others':
+                for vv in taxon_group_map.keys():
+                    if vv != 'Others':
+                        for vvv in taxon_group_map[vv]:
+                            vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+            else:
+                for vv in taxon_group_map[val]:
+                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
             query_list += [" OR ".join(vv_list)]
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
@@ -844,7 +859,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
             elif i == 'taxonRank' and val == 'sub':
-                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR special-form OR race OR stirp OR morph OR aberration)']
+                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
             else:
                 query_list += [f'{i}:{val}']
 
@@ -986,7 +1001,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat'), req_dict.get('center_lon'), int(circle_radius))]
+            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), int(circle_radius))]
 
     # 學名相關
     if val := req_dict.get('name'):
@@ -1527,9 +1542,6 @@ def if_raw_map(user_id):
         return True
     else:
         return False
-    
-import time
-    
 
 
 def get_map_geojson(data_c, grid):
@@ -1798,7 +1810,12 @@ def create_data_table(docs, user_id, obv_str):
         
         # 分類階層
         if row.get('taxonRank', ''):
-            docs.loc[i , 'taxonRank'] = map_collection[row['taxonRank']]
+            now_rank = row.get('taxonRank')
+            # if now_rank == 'hybrid formula':
+            #     now_rank = 'hybrid-formula'
+            # elif now_rank == 'special form':
+            #     now_rank = 'special-form'
+            docs.loc[i , 'taxonRank'] = map_collection[now_rank]
 
         # 座標是否有模糊化
         if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
@@ -1842,3 +1859,23 @@ def get_resource_cate(extension):
     else:
         cate = 'other'
     return cate
+
+
+def check_map_bound(map_bound):
+
+    map_str = map_bound.split(' TO ')
+    map_min_lat =  float(map_str[0].split(',')[0])
+    map_min_lon = float(map_str[0].split(',')[1])
+    map_max_lat =  float(map_str[1].split(',')[0])
+    map_max_lon =  float(map_str[1].split(',')[1])
+    if map_min_lon < -180 :
+        map_min_lon = -180
+    if map_min_lat < -90:
+        map_min_lat = -90
+    if map_max_lon > -180 :
+        map_max_lon = -180
+    if map_max_lat > 90:
+        map_max_lat = 90
+
+    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
+    return new_map_bound

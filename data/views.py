@@ -454,21 +454,23 @@ def save_geojson(request):
         return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
+import shapely
+
 def return_geojson_query(request):
     if request.method == 'POST':
-        # print(request.POST.get('geojson_text'))
         geojson = request.POST.get('geojson_text')
         geojson = gpd.read_file(geojson, driver='GeoJSON')
-        # geojson = geojson.dissolve()
-        # print(geojson)
+        geojson = shapely.force_2d(geojson) # remove z coordinates
 
     # geo_df = gpd.GeoDataFrame.from_features(geojson)
         g_list = []
-        for i in geojson.to_wkt()['geometry']:
-            if str(i).startswith('POLYGON'):
-                g_list += [i]
+        if len(geojson):
+            g_list = geojson.geometry.values[0]
+        # for i in geojson.to_wkt()['geometry']:
+        #     if str(i).startswith('POLYGON'):
+        #         g_list += [i]
         # print(g_list)
-        return JsonResponse({"polygon": g_list}, safe=False)
+        return JsonResponse({"polygon": [str(g_list)]}, safe=False)
 
 def send_download_request(request):
     if request.method == 'POST':
@@ -629,24 +631,28 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                 df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
         if len(df):
             subset_taxon = pd.DataFrame()
+            subset_taxon_list = []
             taxon_ids = [f"id:{d}" for d in df.taxonID.unique()]
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
-            if response.status_code == 200:
-                resp = response.json()
-                if data := resp['response']['docs']:
-                    subset_taxon = pd.DataFrame(data)
-                    used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                                'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-                    subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
-                    for u in used_cols:
-                        if u not in subset_taxon.keys():
-                            subset_taxon[u] = ''
-                    # 整理順序
-                    subset_taxon = subset_taxon[used_cols]
-                    subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
-                    df = df.merge(subset_taxon, how='left')
-                    is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-                    df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
+            for tt in range(0, len(taxon_ids), 20):
+                taxa_query = {'query': " OR ".join(taxon_ids[tt:tt+20]), 'limit': 20}
+                response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(taxa_query), headers={'content-type': "application/json" })
+                if response.status_code == 200:
+                    resp = response.json()
+                    if data := resp['response']['docs']:
+                        subset_taxon_list += data
+            subset_taxon = pd.DataFrame(subset_taxon_list)
+            used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
+                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+            subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
+            for u in used_cols:
+                if u not in subset_taxon.keys():
+                    subset_taxon[u] = ''
+            # 整理順序
+            subset_taxon = subset_taxon[used_cols]
+            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
+            df = df.merge(subset_taxon, how='left')
+            is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+            df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
     csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
@@ -1298,7 +1304,8 @@ def change_dataset(request):
             d_list = response.json()['response']['docs']
             # solr內的id和datahub的postgres互通
             for l in d_list:
-                ds.append({'text': l['name'], 'value': l['id']})
+                if l['name'] not in [d['text'] for d in ds]:
+                    ds.append({'text': l['name'], 'value': l['id']})
             # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
             # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
             # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
@@ -1315,7 +1322,8 @@ def change_dataset(request):
         d_list = response.json()['response']['docs']
         # solr內的id和datahub的postgres互通
         for l in d_list:
-            ds.append({'text': l['name'], 'value': l['id']})
+            if l['name'] not in [d['text'] for d in ds]:
+                ds.append({'text': l['name'], 'value': l['id']})
 
         # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
         # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
@@ -1346,7 +1354,7 @@ def get_locality(request):
     if request.GET.get('record_type') == 'col':
         record_type = '&fq=record_type:col'
 
-    locality_str = f'locality:"{keyword}"^5 OR locality:/{keyword}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{keyword}.*/^1 OR locality:/.*{keyword_reg}.*/'
+    locality_str = f'locality:"{keyword}"^5 OR locality:/{escape_solr_query(keyword)}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{escape_solr_query(keyword)}.*/^1 OR locality:/.*{keyword_reg}.*/'
 
     ds = []
     if keyword_reg:
@@ -1357,7 +1365,8 @@ def get_locality(request):
     l_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
     for l in l_list:
-        ds.append({'text': l['locality'], 'value': l['locality']})
+        if l['locality'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['locality'], 'value': l['locality']})
     
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1380,7 +1389,8 @@ def get_locality_init(request):
 
     l_list = response.json()['response']['docs']
     for l in l_list:
-        ds.append({'text': l['locality'], 'value': l['locality']})
+        if l['locality'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['locality'], 'value': l['locality']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1427,13 +1437,19 @@ def get_dataset(request):
     keyword_reg = get_variants(keyword_reg)
 
     # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
-    dataset_str = f'name:"{keyword}"^5 OR name:/{keyword}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{keyword}.*/^1 OR name:/.*{keyword_reg}.*/'
+    dataset_str = f'name:"{keyword}"^5 OR name:/{escape_solr_query(keyword)}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{escape_solr_query(keyword)}.*/^1 OR name:/.*{keyword_reg}.*/'
     ds = []
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q={dataset_str}{h_str}&rows=20{record_type}&fq=deprecated:false')
     d_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
     for l in d_list:
-        ds.append({'text': l['name'], 'value': l['id']})
+        if l['name'] not in [d['text'] for d in ds]:
+            ds.append({'text': l['name'], 'value': l['id']})
+    
+    # if len(ds):
+    #     ds = pd.DataFrame(ds)
+    #     ds = ds[ds['text'].drop_duplicates()].to_dict('records')
+
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 
@@ -1599,24 +1615,3 @@ def search_full(request):
         }
 
     return render(request, 'data/search_full.html', response)
-
-
-
-def check_map_bound(map_bound):
-
-    map_str = map_bound.split(' TO ')
-    map_min_lat =  float(map_str[0].split(',')[0])
-    map_min_lon = float(map_str[0].split(',')[1])
-    map_max_lat =  float(map_str[1].split(',')[0])
-    map_max_lon =  float(map_str[1].split(',')[1])
-    if map_min_lon < -180 :
-        map_min_lon = -180
-    if map_min_lat < -90:
-        map_min_lat = -90
-    if map_max_lon > -180 :
-        map_max_lon = -180
-    if map_max_lat > 90:
-        map_max_lat = 90
-
-    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
-    return new_map_bound

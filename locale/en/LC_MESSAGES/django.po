@@ -1668,6 +1668,18 @@ msgstr "Birds"
 msgid "哺乳類"
 msgstr "Mammals"
 
+#
+msgid "兩棲類"
+msgstr "Amphibians"
+
+#
+msgid "細菌"
+msgstr "Bacteria"
+
+#
+msgid "其他"
+msgstr "Others"
+
 # 分類階層下拉選單
 #: 
 msgid "界"
@@ -2513,3 +2525,13 @@ msgstr "Permission denied."
 #:
 msgid "輸入關鍵字查看更多選項"
 msgstr "Type to see more options"
+
+
+#:
+msgid "僅支援十進位經緯度，例如：經度 121.6141 緯度 25.0451"
+msgstr "Only supports coordinates in decimal degrees, for example: longitude 121.6141 latitude 25.0451"
+
+
+#:
+msgid "請輸入有效頁碼"
+msgstr "Please enter a valid page number"

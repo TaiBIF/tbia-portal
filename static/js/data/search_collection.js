@@ -24,6 +24,9 @@ $('#rightsHolder').on('change', function (e) {
         }
     }    
 
+    // dataset的顏色拿掉
+    $('#btn-group-datasetName button span.title').removeClass('black').addClass('color-707070')
+
     $.ajax({
         url: "/change_dataset?record_type=col&" + h_str + d_str,
         dataType: 'json',
@@ -239,7 +242,18 @@ function style(feature) {
     };
 }
 
-let map = L.map('map', { gestureHandling: true }).setView([23.5, 121.2], 7);
+let map = L.map('map', { gestureHandling: true, minZoom: 2}).setView([23.5, 121.2], 7);
+
+var southWest = L.latLng(-89.98155760646617, -179.9),
+northEast = L.latLng(89.99346179538875, 179.9);
+var bounds = L.latLngBounds(southWest, northEast);
+
+map.setMaxBounds(bounds);
+map.on('drag', function() {
+    map.panInsideBounds(bounds, { animate: false });
+});
+
+
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -688,6 +702,10 @@ $(function () {
     });
 
     $('.circle_send').click(function () {
+        let center_lat = $('input[name=center_lat]').val()
+        let center_lon = $('input[name=center_lon]').val()
+        $('input[name=center_lat]').val(center_lat.trim())
+        $('input[name=center_lon]').val(center_lon.trim())
         // 先把舊的移除
         $('.addC, [class^=resultG_], .addM, .addG').remove()
         if (($('input[name=center_lat]').val() == '') | ($('input[name=center_lon]').val() == '')) {
@@ -1336,7 +1354,11 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     }
 
                     $('.jumpto').on('click', function () {
-                        submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                        if ( isNaN(parseInt($('input[name=jumpto]').val())) ){
+                            alert(gettext('請輸入有效頁碼'))
+                        } else {
+                            submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                        }
                     })
 
                     let html = ''
@@ -1375,6 +1397,15 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         }
                     }
 
+                    // 加上總頁數
+                    if (response.total_page > 1 && !response.page_list.includes(response.total_page)) {
+                        $('.next').before(`<a class="num ml-5px submitSearch" data-page="${response.total_page}" data-from="page">${response.total_page}</a>`)
+                    }
+
+                    if (response.total_page > 1 && !response.page_list.includes(1)) {
+                        $('.pre').after('<a class="num mr-5px submitSearch" data-page="1" data-from="page">1</a>')
+                    }
+                    
                     if (limit) {
                         $('.page_number a.submitSearch').data('limit', limit)
                     }

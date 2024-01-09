@@ -18,7 +18,7 @@
 {% block title %}{% trans '自然史典藏' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v2" />
 {% endblock style %}
 
 {% block body %}
@@ -243,7 +243,7 @@
             <p>{{ row.verbatimCoordinateSystem }}</p>
           </li>
           <li>
-            <h3>{% trans '座標模糊化程度' %}{% trans '：' %}</h3>
+            <h3 class="pres-flex">{% trans '座標模糊化程度' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=28" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
             <p>{{ row.coordinatePrecision }}</p>
           </li>
         </ul>

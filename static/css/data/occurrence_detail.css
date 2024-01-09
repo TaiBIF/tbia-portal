@@ -151,3 +151,7 @@ max-width: 100%;
         height: auto;
     }
 }
+
+.pres-flex {
+    display: flex;
+}
