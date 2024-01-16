@@ -1247,6 +1247,8 @@ def get_conditional_records(request):
 
         query_req = json.dumps(query)
 
+        # print(query['facet'])
+
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
         resp = response.json()
 
@@ -1294,7 +1296,11 @@ def get_conditional_records(request):
                     now_dict[k] = now_dict[k][0]
             query_string = parse.urlencode(now_dict)
             # 記錄在SearchStat
-            stat_rightsHolder = resp['facets']['stat_rightsHolder']['buckets']
+            stat_rightsHolder = []
+            if 'stat_rightsHolder' in resp['facets'].keys():
+                stat_rightsHolder = resp['facets']['stat_rightsHolder']['buckets']
+            #     stat_rightsHolder.append({'val': 'total', 'count': count})
+            # else:
             stat_rightsHolder.append({'val': 'total', 'count': count})
             SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
 
