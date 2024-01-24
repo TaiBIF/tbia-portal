@@ -155,7 +155,8 @@ def occurrence(request):
                         final_response['status'] = {'code': 400, 'message': f'Invalid circle format'}
                         return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
-                    fq_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (circle[1], circle[0], circle[2])]
+                    # TODO 如果是限制型API要修改成raw_location_rpt
+                    fq_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (circle[1].strip(), circle[0].strip(), circle[2])]
                 else:
                     final_response['status'] = {'code': 400, 'message': f'Invalid circle format'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
@@ -209,8 +210,8 @@ def occurrence(request):
         except:
             limit = 20
 
-        if limit > 300: # 最高為300
-            limit = 300
+        if limit > 1000: # 最高為1000
+            limit = 1000
 
         offset = req.get('offset', 0)
         try:

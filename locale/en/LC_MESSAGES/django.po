@@ -2284,8 +2284,8 @@ msgstr "Determines the offset for the search results. By default offset is 0."
 
 
 #:
-msgid "限制回傳筆數。預設20筆，上限300"
-msgstr "Controls the number of results in the page. By default limit is 20. The limit can be a maximum of 300 for a single request."
+msgid "限制回傳筆數。預設20筆，上限1000"
+msgstr "Controls the number of results in the page. By default limit is 20. The limit can be a maximum of 1000 for a single request."
 
 #:
 msgid "各查詢參數均可做聯集與交集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。"
