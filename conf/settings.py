@@ -272,11 +272,27 @@ CSP_STYLE_SRC = ["'self'",
     "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css"
 ]
 
-CSP_IMG_SRC = ("'self'","*","data: *") 
+# CSP_IMG_SRC = ("'self'","*","data: *") 
+CSP_IMG_SRC = ("'self'",
+               "data: http://www.w3.org/2000/svg",
+               # 地圖
+               "https://a.tile.osm.org/",
+               "https://b.tile.osm.org/",
+               "https://c.tile.osm.org/",
+               "https://www.googletagmanager.com/",
+               "https://cdnjs.cloudflare.com/ajax/libs/leaflet/",
+               "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/",
+               "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
+               # 生命大百科
+               "https://data.taieol.tw/",
+               # 各單位資料    
+               "https://www.tbn.org.tw/", 
+               "https://n2t.net/") 
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
-CSP_FORM_ACTION = ("'self'","*") 
+CSP_FORM_ACTION = ("'self'","https://accounts.google.com/") 
+# CSP_FORM_ACTION = ("'self'","*") 
 CSP_FRAME_ANCESTORS = ("'self'") 
 CSP_FONT_SRC = ("'self'",
 "https://fonts.googleapis.com/",
