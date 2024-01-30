@@ -207,6 +207,8 @@ AUTHENTICATION_BACKENDS = (
     "manager.views.registerBackend"
 )
 
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
 LOGIN_URL = '/login'
 
 SESSION_COOKIE_AGE = 604800 # automatically logout after a week
