@@ -59,6 +59,7 @@
   <div class="main_1240">
     <div class="search_condition_are">
       <form id="searchForm">
+        {% csrf_token %}
         <input type="hidden" name="record_type" value="occ">
         <input type="hidden" name="geojson_id" value="">
         <div class="secboxtop2">

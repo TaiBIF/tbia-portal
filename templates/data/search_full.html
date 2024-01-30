@@ -102,6 +102,7 @@
       <div class="input_item">
           <p class="d-none keyword-p">{{ keyword }}</p>
         <form id="fullForm" action="{% url 'search_full' %}">
+          {% csrf_token %}
           <input id="keyword_input" type="text" name="keyword" placeholder="{% trans '請輸入關鍵字' %}" value="{{ keyword }}"/>
         </form>
           <button id="fullSubmit">

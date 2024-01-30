@@ -37,6 +37,7 @@
 			<p class="notice"><span>*</span>{% trans '為必填欄位' %}</p>
 			<div class="form_box">
 				<form id="appilcationForm">
+				{% csrf_token %}
 				<div class="inpu_3">
 					<div class="input_item">
 						<p>

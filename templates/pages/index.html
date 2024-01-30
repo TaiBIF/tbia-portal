@@ -115,6 +115,7 @@
       <h2>{% trans '臺灣生物多樣性開放資料任意門' %}</h2>
       <div class="input_set">
           <form id="search_full_form" action="{% url 'search_full' %}" method="GET">
+            {% csrf_token %}
             <input placeholder="{% trans '請輸入關鍵字' %}" type="text" class="search_full_keyword" name="keyword" />
           </form>
           <button class="search_full_button">
