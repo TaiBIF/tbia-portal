@@ -243,7 +243,6 @@ def occurrence(request):
                 "fields": fl_cols
                 }
         
-
         # 查詢記錄
         if offset == 0:
             query['facet'] = {}
@@ -296,8 +295,6 @@ def occurrence(request):
 
             df = df.replace({np.nan: None})
 
-        if offset == 0:
-
             now_dict = dict(req)
             # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
             # for nq in not_query:
@@ -308,6 +305,7 @@ def occurrence(request):
                     now_dict[k] = now_dict[k][0]
             query_string = parse.urlencode(now_dict)
             # 記錄在SearchStat
+        if offset == 0:
             stat_rightsHolder = []
             if 'stat_rightsHolder' in response['facets'].keys():
                 stat_rightsHolder = response['facets']['stat_rightsHolder']['buckets']
@@ -315,14 +313,13 @@ def occurrence(request):
             # else:
             stat_rightsHolder.append({'val': 'total', 'count': total})
             # print(stat_rightsHolder)
-            SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
-            obj, created = SearchCount.objects.update_or_create(
-                    search_location='api_occ'
-                )
-            obj.count += 1
-            obj.save()
-            # SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
-
+        SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+        obj, created = SearchCount.objects.update_or_create(
+                search_location='api_occ'
+            )
+        obj.count += 1
+        obj.save()
+        # SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}
