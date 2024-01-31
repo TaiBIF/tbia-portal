@@ -103,12 +103,25 @@ class SearchStat(models.Model):
         ('full', '全站搜尋'),
         ('occ', '物種出現紀錄進階搜尋'),
         ('col', '自然史典藏進階搜尋'),
+        ('api_occ', '物種出現紀錄API'),
     ]
-    search_location = models.CharField(choices=location_choice,max_length=20, blank=True) # pending, pass, fail 
+    search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     query = models.TextField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True)
     created = models.DateTimeField(null=True, blank=True)
 
+
+# 請求次數
+class SearchCount(models.Model):
+    location_choice = [
+        # ('full', '全站搜尋'),
+        # ('occ', '物種出現紀錄進階搜尋'),
+        # ('col', '自然史典藏進階搜尋'),
+        ('api_occ', '物種出現紀錄API'),
+    ]
+    search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
+    count = models.IntegerField(default=0)
+    # created = models.DateTimeField(auto_now_add=True)
 
 
 class SearchQuery(models.Model):

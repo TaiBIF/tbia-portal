@@ -1,18 +1,24 @@
 from django.shortcuts import render
 from django.http import (
-    request,
-    JsonResponse,
-    HttpResponseRedirect,
-    Http404,
+    # request,
+    # JsonResponse,
+    # HttpResponseRedirect,
+    # Http404,
     HttpResponse,
 )
 import json
 from api.models import APIkey
-from data.utils import *
+from data.utils import download_cols, sensitive_cols
 import requests
 from conf.settings import SOLR_PREFIX
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
+import pandas as pd
+from datetime import datetime
+import numpy as np
+from urllib import parse
+from manager.models import SearchStat, SearchCount
+from django.utils import timezone
 
 
 def check_coor(lon,lat):
@@ -219,8 +225,6 @@ def occurrence(request):
         except:
             offset = 0
 
-
-
         # 限制型API
         fl_cols = download_cols
         if apikey := req.get('apikey'):
@@ -231,7 +235,6 @@ def occurrence(request):
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
 
 
-    
         query = { "query": "*:*",
                 "offset": offset,
                 "limit": limit,
@@ -239,12 +242,25 @@ def occurrence(request):
                 "sort":  "scientificName asc",
                 "fields": fl_cols
                 }
+        
+
+        # 查詢記錄
+        if offset == 0:
+            query['facet'] = {}
+            query['facet']['stat_rightsHolder'] = {
+                'type': 'terms',
+                'field': 'rightsHolder',
+                'mincount': 1,
+                'limit': -1,
+                'allBuckets': False,
+                'numBuckets': False}
 
         if not fq_list:
             query.pop('filter')
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         response = response.json()
+
 
         # 整理欄位
 
@@ -279,6 +295,34 @@ def occurrence(request):
                     df[s] = df[s].apply(lambda x: x[0] if x else None)
 
             df = df.replace({np.nan: None})
+
+        if offset == 0:
+
+            now_dict = dict(req)
+            # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
+            # for nq in not_query:
+            #     if nq in now_dict.keys():
+            #         now_dict.pop(nq)
+            for k in now_dict.keys():
+                if len(now_dict[k])==1:
+                    now_dict[k] = now_dict[k][0]
+            query_string = parse.urlencode(now_dict)
+            # 記錄在SearchStat
+            stat_rightsHolder = []
+            if 'stat_rightsHolder' in response['facets'].keys():
+                stat_rightsHolder = response['facets']['stat_rightsHolder']['buckets']
+            #     stat_rightsHolder.append({'val': 'total', 'count': count})
+            # else:
+            stat_rightsHolder.append({'val': 'total', 'count': total})
+            # print(stat_rightsHolder)
+            SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+            obj, created = SearchCount.objects.update_or_create(
+                    search_location='api_occ'
+                )
+            obj.count += 1
+            obj.save()
+            # SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}
