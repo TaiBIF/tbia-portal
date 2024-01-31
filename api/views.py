@@ -313,7 +313,7 @@ def occurrence(request):
             # else:
             stat_rightsHolder.append({'val': 'total', 'count': total})
             # print(stat_rightsHolder)
-        SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+            SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
         obj, created = SearchCount.objects.update_or_create(
                 search_location='api_occ'
             )
