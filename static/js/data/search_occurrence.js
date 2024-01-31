@@ -1273,6 +1273,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
         current_pars.delete('limit')
         current_pars.delete('orderby')
         current_pars.delete('sort')
+        current_pars.delete('csrfmiddlewaretoken')
 
         let queryString = current_pars.toString() + '&page=' + page + '&from=' + from + '&limit=' + limit + orderby_str
         window.condition = queryString
