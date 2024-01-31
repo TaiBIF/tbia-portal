@@ -38,7 +38,7 @@ class News(models.Model):
     author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
     title = models.CharField(max_length=1000, blank=True, null=True)
     # content = RichTextUploadingField( blank=True, null=True)
-    content = RichTextField( blank=True, null=True)
+    content = RichTextField(blank=True, null=True)
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
     # attachments = models.TextField( blank=True, null=True)
@@ -51,7 +51,7 @@ class News(models.Model):
 
 
 class Link(models.Model): # 推薦連結
-    content = RichTextUploadingField( blank=True, null=True)
+    content = RichTextUploadingField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
     class Meta:

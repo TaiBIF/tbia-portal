@@ -281,6 +281,7 @@
                     <button class="accordion fs-16px">申請詳細資訊</button>
                     <div class="form_box panel d-none form-flow fs-14px">
                         <form id="detailForm">
+                        {% csrf_token %}
                         <div class="path_inf">
                             <p>搜尋條件</p>
                             <div class="riginf">
@@ -337,6 +338,7 @@
                         <fieldset disabled >
                         {% endif %}
                         <form id="reviewForm">
+                        {% csrf_token %}
                         <div class="inpu_2">
                             <input type="hidden" name="query_id">
                             <input type="hidden" name="sdr_id">

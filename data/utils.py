@@ -23,8 +23,9 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
-from manager.models import User, Partner
+from manager.models import User, Partner, SearchStat
 import time
+from urllib import parse
 
 
 # taxon-related fields
@@ -1041,7 +1042,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
-def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None):
+def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False):
     if lang:
         translation.activate(lang)
 
@@ -1092,16 +1093,19 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None):
 
 
     if card_class.startswith('.col'):
-        facet_list = col_facets
+        # facet_list = col_facets
         map_dict = map_collection
         record_type = 'col'
         title_prefix = f'{gettext("自然史典藏")} > '
     else: # taxon 跟 occ 都算在這裡
-        facet_list = occ_facets
+        # facet_list = occ_facets
         map_dict = map_occurrence
         query.pop('filter', None)
         record_type = 'occ'
         title_prefix = f'{gettext("物種出現紀錄")} > '
+
+
+    facet_list = create_facet_list(record_type=record_type)
 
     if not enable_query_date:
         if 'eventDate' in facet_list['facet'].keys():
@@ -1128,12 +1132,23 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None):
             else:
                 facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
 
+    if is_first_time:
+        facet_list['facet']['stat_rightsHolder'] = {}
+        facet_list['facet']['stat_rightsHolder'] = {
+            'type': 'terms',
+            'field': 'rightsHolder',
+            'mincount': 1,
+            'limit': -1,
+            'allBuckets': False,
+            'numBuckets': False}
+
     query.update(facet_list)
     query.update({'query': q[:-4]})
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    # print(response.json())
     facets = response.json()['facets']
-    facets.pop('count', None)      
+    facets.pop('count', None)    
 
     total_count = response.json()['response']['numFound']
     menu_rows = [] # 側邊欄
@@ -1143,31 +1158,40 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None):
     # 2023/11/20前 如果是對到高階層的話，存parentTaxonID，會有taxonID是空值，但其實有對到高階層的情況，產生bug
     # 目前全部改存taxonID
 
+
     for i in facets:
         x = facets[i]
-        if x['allBuckets']['count']:
-            menu_rows.append({
-                'title': map_dict[i],
-                'total_count': x['allBuckets']['count'],
-                'key': i
-            })
-        for k in x['buckets']:
-            bucket = k['taxonID']['buckets']
-            # print(bucket)
-            if bucket:
-                if i == 'eventDate':
-                    if f_date := convert_date(k['val']):
-                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+        if i == 'stat_rightsHolder':
+            stat_rightsHolder = x['buckets']
+            stat_rightsHolder.append({'val': 'total', 'count': total_count})
+            # 存進search_stat表中
+            # 只要存occurrence的統計就好
+            query_string = 'keyword=' + keyword
+            SearchStat.objects.create(query=query_string, search_location='full',stat=stat_rightsHolder,created=timezone.now())
+        else:
+            if x['allBuckets']['count']:
+                menu_rows.append({
+                    'title': map_dict[i],
+                    'total_count': x['allBuckets']['count'],
+                    'key': i
+                })
+            for k in x['buckets']:
+                bucket = k['taxonID']['buckets']
+                # print(bucket)
+                if bucket:
+                    if i == 'eventDate':
+                        if f_date := convert_date(k['val']):
+                            f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
+                            for item in bucket:
+                                if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
+                                    result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                    else:
                         for item in bucket:
-                            if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
-                                result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
-                else:
-                    for item in bucket:
-                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
-                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
-            elif not bucket and k['count']:
-                if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
-                    result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+                            if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                                result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                elif not bucket and k['count']:
+                    if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                        result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
 
     # 卡片
     result_df = pd.DataFrame(result)
@@ -1346,7 +1370,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     else:
         key = None
 
-    taxon_facet_list = taxon_all_facets
+    taxon_facet_list = create_taxon_facet_list()
 
     keyword_reg = ''
     keyword = html.unescape(keyword)
@@ -1363,7 +1387,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     keyword_name_reg = get_variants(keyword_name_reg)
     
     if is_sub == 'true':
-        taxon_facet_list = {'facet': {k: v for k, v in taxon_all_facets['facet'].items() if k == key} }
+        taxon_facet_list = {'facet': {k: v for k, v in taxon_facet_list['facet'].items() if k == key} }
 
     taxon_q = ''
 
@@ -1879,3 +1903,36 @@ def check_map_bound(map_bound):
 
     new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
     return new_map_bound
+
+
+
+def create_search_stat(query_list):
+    stat_query = { "query": "*:*",
+            "offset": 0,
+            "limit": 0,
+            "filter": query_list,
+            "facet": {
+                "stat_rightsHolder": {
+                    'type': 'terms',
+                    'field': 'rightsHolder',
+                    'mincount': 1,
+                    'limit': -1,
+                    'allBuckets': False,
+                    'numBuckets': False
+                    }
+              }
+            }
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+
+    total_count = response.json()['response']['numFound']
+
+    stat_rightsHolder = []
+
+    if total_count:
+        stat_rightsHolder = facets['stat_rightsHolder']['buckets']
+
+    stat_rightsHolder.append({'val': 'total', 'count': total_count})
+
+    return stat_rightsHolder
