@@ -295,15 +295,15 @@ def occurrence(request):
 
             df = df.replace({np.nan: None})
 
-            now_dict = dict(req)
-            # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
-            # for nq in not_query:
-            #     if nq in now_dict.keys():
-            #         now_dict.pop(nq)
-            for k in now_dict.keys():
-                if len(now_dict[k])==1:
-                    now_dict[k] = now_dict[k][0]
-            query_string = parse.urlencode(now_dict)
+        now_dict = dict(req)
+        # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
+        # for nq in not_query:
+        #     if nq in now_dict.keys():
+        #         now_dict.pop(nq)
+        for k in now_dict.keys():
+            if len(now_dict[k])==1:
+                now_dict[k] = now_dict[k][0]
+        query_string = parse.urlencode(now_dict)
             # 記錄在SearchStat
         if offset == 0:
             stat_rightsHolder = []
