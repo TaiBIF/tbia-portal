@@ -2274,8 +2274,8 @@ msgstr "Internal Server Error"
 
 
 #:
-msgid "因應效能考量，每次API請求至多回傳300筆資料，您可以透過分頁參數取得全部資料。"
-msgstr "Due to performance considerations, each request can return up to 300 records. You can obtain all records through pagination parameters."
+msgid "因應效能考量，每次API請求至多回傳1000筆資料，您可以透過分頁參數取得全部資料。"
+msgstr "Due to performance considerations, each request can return up to 1000 records. You can obtain all records through pagination parameters."
 
 
 #:
