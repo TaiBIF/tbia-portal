@@ -895,7 +895,7 @@ function focusCards(record_type, key, go_back) {
                   <div class="picbox mySlides fade ${x.taxonID} d-block" data-index="1" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
-                    <p class="bottom-right">${x.images[ii].author}</p>
+                    <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
                   </div>
                 </div>  
                   `
@@ -904,7 +904,7 @@ function focusCards(record_type, key, go_back) {
                   <div class="picbox mySlides fade ${x.taxonID} d-none" data-index="${ii + 1}" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
-                    <p class="bottom-right">${x.images[ii].author}</p>
+                    <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
                   </div>
                 </div>  
                   `
@@ -1319,7 +1319,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             <div class="picbox mySlides fade ${x.taxonID} d-block " data-index="1" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
-              <p class="bottom-right">${x.images[ii].author}</p>
+              <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
             </div>
           </div>  
             `
@@ -1328,7 +1328,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             <div class="picbox mySlides fade ${x.taxonID} d-none " data-index="${ii + 1}" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
-              <p class="bottom-right">${x.images[ii].author}</p>
+              <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
             </div>
           </div>  
             `
