@@ -233,7 +233,7 @@ def occurrence(request):
             else:
                 # fl_cols = download_cols
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
-
+                return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
         query = { "query": "*:*",
                 "offset": offset,

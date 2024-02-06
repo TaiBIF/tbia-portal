@@ -274,7 +274,8 @@
                       <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
                         <div class="img-container">
                           <img class="imgarea" src="{{ ii.src }}">
-                          <p class="bottom-right">{{ ii.author }}</p>
+                          <p class="bottom-right">{{ ii.author }} {{ ii.license }}</p>
+                          {% comment %} <p class="bottom-right">{{ ii.license }}</p> {% endcomment %}
                         </div>
                       </div>  
                       {% endfor %}
@@ -892,5 +893,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v4"></script>
+<script src="{% static 'js/data/search_full.js' %}?v5"></script>
 {% endblock script %}
