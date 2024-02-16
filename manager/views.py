@@ -52,6 +52,7 @@ import pytz
 
 from django.utils.translation import get_language, gettext
 
+
 class NewsForm(forms.ModelForm):
     content = RichTextField()
     class Meta:
@@ -1077,6 +1078,84 @@ def partner_info(request):
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin, 'info': info, 'menu': menu,})
 
 
+
+def download_sensitive_report(request):
+    now = timezone.now() + timedelta(hours=8)
+    now = now.strftime('%Y-%m-%d')
+    df = pd.DataFrame()
+
+    sensitive_response = []
+    if not request.user.is_anonymous:
+        current_user = request.user
+        if request.POST.get('from') == 'partner':
+            if current_user.partner:
+                if User.objects.filter(id=current_user.id, is_partner_admin=True).exists():
+                    sensitive_response = SensitiveDataResponse.objects.filter(partner_id=current_user.partner)
+        elif request.POST.get('from') == 'system':
+            if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
+                sensitive_response = SensitiveDataResponse.objects.filter(partner_id=None)
+        elif request.POST.get('from') == 'track':
+            if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
+                sensitive_response = SensitiveDataResponse.objects.exclude(partner_id=None)
+
+    if len(sensitive_response):
+        # 申請請求
+        sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
+        for s in sensitive_query:
+            # 進階搜尋
+            # search_dict = dict(parse.parse_qsl(s.query))
+            search_dict = dict(parse.parse_qsl(s.query))
+            query = create_query_display(search_dict)
+            query = query.replace('<b>','').replace('</b>','')
+            query = query.replace('<br>','\n')
+
+            if s.modified:
+                date = s.modified + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = ''
+
+            # request
+            detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
+
+            users = []
+            for u in detail.users:
+                users.append(f"姓名：{u.get('user_name')}\n單位：{u.get('user_affiliation')}\n職稱：{u.get('user_job_title')}")
+
+            # response
+            comment = []
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+                if sdr.partner:
+                    partner_name = sdr.partner.select_title 
+                else:
+                    partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+                comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
+
+
+            df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+                                                '搜尋條件': query,
+                                                '狀態': s.get_status_display(),
+                                                '申請人姓名': detail.applicant,
+                                                '聯絡電話': detail.phone,
+                                                '聯絡地址': detail.address,
+                                                '申請人所屬單位': detail.affiliation,
+                                                '計畫類型': detail.get_type_display(),
+                                                '計畫名稱': detail.project_name,
+                                                '委託計畫單位': detail.project_affiliation,
+                                                '計畫摘要': detail.abstract,
+                                                '申請資料使用者': '\n---\n'.join(users),
+                                                '審查意見': '\n---\n'.join(comment),
+                                                # '通過與否': ,
+                                                }])],ignore_index=True)
+
+
+    response = HttpResponse(content_type='application/xlsx')
+    response['Content-Disposition'] = f'attachment; filename="tbia_sensitive_report_{now}.xlsx"'
+    with pd.ExcelWriter(response) as writer:
+        df.to_excel(writer, sheet_name='Sheet1', index=None)
+
+    return response
+
 def get_request_detail(request):
     detail = {}
     review = {}
@@ -1571,7 +1650,10 @@ def submit_resource(request):
         now = timezone.now() + timedelta(hours=8)
         url = request.POST.get('url')
         # url = 'resources/' + filename
-        extension = url.split('.')[-1]
+        if request.POST.get('file_type') == 'link':
+            extension = 'link'
+        else:
+            extension = url.split('.')[-1]
         if request.POST.get('resource_id'):
             resource_id = int(request.POST.get('resource_id'))
         else:
@@ -1582,6 +1664,7 @@ def submit_resource(request):
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
                 url = url,
+                doc_url = request.POST.get('doc_url'),
                 extension = extension,
                 modified = now
             )
@@ -1590,6 +1673,7 @@ def submit_resource(request):
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
                 url = url,
+                doc_url = request.POST.get('doc_url'),
                 extension = extension,
                 created = now,
                 modified = now

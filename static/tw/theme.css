@@ -3164,6 +3164,17 @@ body {
     text-transform: uppercase
 }
 
+/* .edu_list li .cate_dbox .cate-web {
+    height: 25px;
+    border-radius: 12px;
+    padding: 0px 10px;
+    margin-right: 10px;
+    font-size: 14px;
+    color: #FFF;
+    line-height: 25px;
+    text-transform: uppercase
+} */
+
 .edu_list li .cate_dbox .cate.pdf {
     background: #D22F2F
 }
@@ -3186,6 +3197,19 @@ body {
 
 .edu_list li .cate_dbox .cate.other {
     background: #888
+}
+
+.edu_list li .cate_dbox .cate.web {
+    background: silver
+}
+
+.edu_list li .cate_dbox .cate.web a {
+    color: white;
+}
+
+.cate svg {
+    width: 12px;
+    height: 12px;
 }
 
 .edu_list li .cate_dbox .date {

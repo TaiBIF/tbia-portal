@@ -66,4 +66,6 @@ urlpatterns = [
     path('delete_qa', views.delete_qa, name='delete_qa'),
     # 各表格換頁
     path('change_manager_page', views.change_manager_page, name='change_manager_page'),
+    # 敏感資料申請報表
+    path('download_sensitive_report', views.download_sensitive_report, name='download_sensitive_report'),
 ]

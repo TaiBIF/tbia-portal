@@ -69,6 +69,7 @@ class Resource(models.Model):
     title = models.CharField(max_length=100, blank=True, null=True)
     extension = models.CharField(max_length=10, blank=True, null=True)
     url = models.CharField(max_length=1000, blank=True, null=True)
+    doc_url = models.CharField(max_length=1000, blank=True, null=True) # TBIA 文件網站網址
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)

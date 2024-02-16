@@ -78,7 +78,16 @@ $(document).ready(function () {
               </div>
               <a href="/${$lang}/resources/link" class="title" target="_blank">${gettext("國內外各大資料庫及推薦網站連結")}</a>
             </div>
-            </li> `)
+            </li> 
+            <li>
+            <div class="item">
+              <div class="cate_dbox">
+                <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
+              </div>
+              <a href="https://tbia.github.io/docs/" class="title" target="_blank">${gettext("TBIA文件網站")}</a>
+            </div>
+            </li>
+            `)
         }
 
         if (response.rows.length > 0) {
@@ -106,21 +115,23 @@ $(document).ready(function () {
               })
             } else if (response.rows[i].cate == 'link'){
               $('.edu_list').append(`
-            <li>
-              <div class="item">
-              <div class="cate_dbox">
-                <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-                <div class="date">${response.rows[i].date}</div>
-              </div>
-              <a href="${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
-              </div>
-            </li>`)
+              <li>
+                <div class="item">
+                <div class="cate_dbox">
+                  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+      
+                  <div class="date">${response.rows[i].date}</div>
+                </div>
+                <a href="${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
+                </div>
+              </li>`)
             } else {
               $('.edu_list').append(`
               <li>
                 <div class="item">
                   <div class="cate_dbox">
                     <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
+                    ${ response.rows[i].doc_url != null ? `<div class="cate web"><a href="${response.rows[i].doc_url}" target="_blank" >WEB <i class="fa-solid fa-link"></i></a></div>` : '' }      
                     <div class="date">${response.rows[i].date}</div>
                   </div>
                   <a href="/media/${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>

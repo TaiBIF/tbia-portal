@@ -307,7 +307,15 @@
             </div>
             <a href="/{{ LANGUAGE_CODE }}/resources/link" class="title" target="_blank">{% trans '國內外各大資料庫及推薦網站連結' %}</a>
           </div>
-        </li>        
+        </li>
+        <li>
+          <div class="item">
+            <div class="cate_dbox">
+              <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
+            </div>
+            <a href="https://tbia.github.io/docs/" class="title" target="_blank">{% trans 'TBIA文件網站' %}</a>
+          </div>
+        </li>
         {% for i in resource %}
           {% if i.extension == 'pop' %}
           <li class="show_tech">
@@ -327,6 +335,7 @@
             <div class="item">
               <div class="cate_dbox">
                 <div class="cate {{ i.cate }}">{{ i.extension }}</div>
+                {% if i.doc_url  %}<div class="cate web"><a href="{{ i.doc_url }}" target="_blank" >WEB <i class="fa-solid fa-link"></i></a></div>{% endif %}
                 <div class="date">{{ i.date }}</div>
               </div>
               {% if i.cate == 'link' %}
@@ -390,5 +399,5 @@
 {% endblock body %} 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/index.js' %}?v3"></script>
+<script src="{% static 'js/pages/index.js' %}?v4"></script>
 {% endblock script %}

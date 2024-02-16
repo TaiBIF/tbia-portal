@@ -1041,6 +1041,10 @@ msgstr "Biodiversity Database Portal System"
 msgid "國內外各大資料庫及推薦網站連結"
 msgstr "Recommended databases & websites"
 
+#: templates/pages/index.html:309 templates/pages/resources_link.html:33
+msgid "TBIA文件網站"
+msgstr "TBIA Documentations"
+
 #: templates/pages/index.html:342
 msgid "查看更多資源"
 msgstr "See all"

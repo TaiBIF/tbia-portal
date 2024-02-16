@@ -16,7 +16,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}?v2" />
 {% endblock style %}
 
 {% block body %}
@@ -118,15 +118,6 @@
                     <form id="saveForm" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
-                        <li class="upload-warning"><p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
-                        <li>標題</li>
-                        <li>
-                            <input type="text" name="title" value="{{ current_r.title }}">
-                            <div class="noticbox d-none">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
                         <li>類型</li>
                         <li>
                             <select name="resource_type">
@@ -139,13 +130,39 @@
                                 {% endfor %}
                             </select>
                         </li>
-                        <li>檔案</li>                    
-                        <li class="d-flex">
+                        <li>標題</li>
+                        <li>
+                            <input type="text" name="title" value="{{ current_r.title }}">
+                            <div class="noticbox d-none">
+                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                        <li>資源本身為</li>
+                        <li>
+                            <select id="file_type">
+                                {% if current_r.id %}
+                                <option value="file" {% if current_r.extension != "link" %} selected {% endif %}>檔案</option>
+                                <option value="link" {% if current_r.extension == "link" %} selected {% endif %}>連結</option>
+                                {% else %}
+                                <option value="file" selected>檔案</option>
+                                <option value="link">連結</option>
+
+                                {% endif %}
+                            </select>
+                        </li>
+                        <li class="file_field">文件網站連結</li>
+                        <li class="file_field">
+                            <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
+                        </li>
+                        <li class="file_field">檔案</li>        
+                        <li class="upload-warning file_field"><p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
+            
+                        <li class="d-flex file_field">
                             <input id="file" type="file" name="file" class="form-control">
                             <input type="hidden" name="url" value="{{ current_r.url }}">
                         </li>
-                        </form>
-                        <li>
+                        <li class="file_field">
                             <span id="preview" {% if not current_r.url %} class="d-none" {% endif %}>
                                 {% if current_r.url %}
                                     目前檔案：{{ current_r.filename }}
@@ -153,13 +170,21 @@
                                 {% endif %}
                             </span>
                         </li>
+                        <li class="link_field">連結</li>                    
+                        <li class="link_field">
+                            <input type="text" name="url" value="{{ current_r.url }}">
+                            <div class="noticbox d-none" id="link_error">
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
+                        </form>
+
                         <li><div class="noticbox d-none" id="file_error">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>發布前請先上傳檔案</p>
                             </div>                            
                         </li>
-                    <li class="mt-20px"><button class="read_btn" id="save_resource_file">上傳</button>        
-                        <button class="read_btn ml-10px" id="publish">發布</button>           
+                    <li class="mt-20px"><button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>        
+                        <button class="read_btn" id="publish">發布 / 儲存</button>           
                      </li>
                 </ul>
             </div>
@@ -215,5 +240,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/system_resource.js' %}?v1"></script>
+  <script src="{% static 'js/manager/system_resource.js' %}?v2"></script>
   {% endblock script %}
