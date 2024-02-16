@@ -257,7 +257,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 20*1024*1024
 
 
 
-CSRF_TRUSTED_ORIGINS = ['http://dev.tbiadata.tw','https://tbiadata.tw']
+CSRF_TRUSTED_ORIGINS = ['https://dev.tbiadata.tw','https://tbiadata.tw']
 
 
 
