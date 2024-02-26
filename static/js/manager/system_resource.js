@@ -79,6 +79,23 @@ function deleteResource(resource_id) {
 
 $(document).ready(function () {
 
+
+    $('#file_type').on('change', function(){
+
+        $('.noticbox').addClass('d-none')
+
+        if ($(this).find(':selected').val() == 'file') {
+            $('.file_field').removeClass('d-none')
+            $('.link_field').addClass('d-none')
+        } else {
+            $('.file_field').addClass('d-none')
+            $('.link_field').removeClass('d-none')
+
+        }
+    })
+
+    $('#file_type').trigger('change')
+
     // 起始頁面
     changePage(1, 'resource')
 
@@ -96,6 +113,7 @@ $(document).ready(function () {
             $('#saveForm select[name=resource_type]').val('strategy')
             $('#saveForm input[name=file]').val('')
             $('#saveForm input[name=url]').val('')
+            $('#saveForm input[name=doc_url]').val('')
             $('#preview').parent('li').html(`<span id="preview" class="d-none"></span>`)
         }
 
@@ -157,18 +175,38 @@ $(document).ready(function () {
             $('#saveForm input[name=title]').next('.noticbox').removeClass('d-none')
             checked = false
         }
+    if ($('select[id="file_type"]').find(':selected').val() == 'file') {
 
-        if ($('#saveForm input[name=url]').val() == '') {
+        if ($('#saveForm .file_field input[name=url]').val() == '') {
             $('#file_error').removeClass('d-none')
             checked = false
+        } else {
+            url = $('#saveForm .file_field input[name=url]').val()
         }
+
+    } else {
+
+        if ($('#saveForm .link_field input[name=url]').val() == '') {
+            $('#link_error').removeClass('d-none')
+            checked = false
+        } else {
+            url = $('#saveForm .link_field input[name=url]').val()
+        }
+
+    }
+
 
         if (checked) {
 
             $.ajax({
                 type: 'POST',
                 url: "/submit_resource",
-                data: { 'url': $('#saveForm input[name=url]').val(), 'type': $('#saveForm select[name=resource_type]').find(":selected").val(), 'resource_id': $('#saveForm input[name=resource_id]').val(), 'title': $('#saveForm input[name=title]').val() },
+                data: { 'url': url, 
+                        'type': $('#saveForm select[name=resource_type]').find(":selected").val(), 
+                        'resource_id': $('#saveForm input[name=resource_id]').val(), 
+                        'title': $('#saveForm input[name=title]').val(),
+                        'doc_url': $('#saveForm input[name=doc_url]').val(),
+                        'file_type':  $('#saveForm select[id=file_type]').find(":selected").val() },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
                     window.location = '/manager/system/resource?menu=resource';

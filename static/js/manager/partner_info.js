@@ -216,6 +216,10 @@ function changePage(page, menu) {
 
 $(document).ready(function () {
 
+    $('.downloadReport').on('click', function(){
+        $('#downloadReport').submit()
+    })
+
     // 起始頁面
     changePage(1, 'account')
     changePage(1, 'sensitive_apply')
@@ -398,3 +402,5 @@ function update_user_status(current_id) {
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
 }
+
+

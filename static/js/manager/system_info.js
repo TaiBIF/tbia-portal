@@ -122,6 +122,10 @@ function changePage(page, menu) {
 
 $(document).ready(function () {
 
+    $('.downloadReport').on('click', function(){
+        $('#downloadReport').submit()
+    })
+
     // 起始頁面
     changePage(1, 'feedback')
     changePage(1, 'account')

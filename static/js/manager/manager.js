@@ -135,16 +135,16 @@ $(document).ready(function () {
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (response) {
-                    alert(gettext(response.message))
-                    if (response.message == '申請已送出') {
-                        window.location = '/manager'
-                    }
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (response) {
+                alert(gettext(response.message))
+                if (response.message == '申請已送出') {
+                    window.location = '/manager'
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
 
         } else {
             alert(gettext('送出前請閱讀並勾選同意保密協議'))

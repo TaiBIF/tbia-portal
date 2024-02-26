@@ -149,8 +149,8 @@ class SensitiveDataRequest(models.Model):
     # 用query_id和SearchQuery串接
 
     type_choice = [
-        (0, '個人研究計畫'),
-        (1, '委辦工作計畫'),
+        ('0', '個人研究計畫'),
+        ('1', '委辦工作計畫'),
     ]
 
     applicant =  models.CharField(max_length=100, blank=True)

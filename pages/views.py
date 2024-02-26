@@ -273,14 +273,16 @@ def index(request):
     # resource
     resource = Resource.objects.order_by('-modified')
     resource_rows = []
-    for x in resource[:7]:
+    for x in resource[:6]:
         # modified =  x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
             'title': x.title,
             'extension': x.extension,
             'url': x.url,
+            'doc_url': x.doc_url,
             'date': x.modified.strftime("%Y.%m.%d")})
+        
     news = News.objects.filter(status='pass').order_by('-publish_date')[:4]
 
     news_list = []
@@ -328,7 +330,7 @@ def get_resource_list(request):
     req_from = request.POST.get('from') # 首頁或開放資源頁面
     limit = current_page*12 if req_from == 'resource' else 8
     if req_from != 'resource' and type =='all':
-        limit = 7
+        limit = 6
     offset = (current_page-1)*12 if req_from == 'resource' else 0
 
     for x in resource[offset:limit]:
@@ -338,6 +340,7 @@ def get_resource_list(request):
             'title': x.title,
             'extension': x.extension,
             'url': x.url,
+            'doc_url': x.doc_url,
             'date': x.modified.strftime("%Y.%m.%d")})
 
     response = {
