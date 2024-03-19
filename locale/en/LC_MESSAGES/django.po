@@ -174,7 +174,7 @@ msgstr "Event Information"
 #: templates/base.html:220 templates/base.html:316 templates/base.html:441
 #: templates/data/search_full.html:225 templates/data/search_full.html:541
 #: templates/pages/index.html:223 templates/pages/news.html:49
-msgid "計畫徵求"
+msgid "徵求公告"
 msgstr "Call for Project"
 
 #: templates/base.html:227 templates/base.html:321 templates/base.html:444
