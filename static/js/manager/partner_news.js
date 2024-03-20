@@ -191,17 +191,11 @@ $(document).ready(function () {
     changeURL(menu)
   })
 
-  // $('label[for="id_content"]').html('')
-
-  /*
-  var $radios = $('#newsForm input:radio[name=type]');
-  if (($('input[name=n_type]').val()!='')&&($('input[name=n_type]').val()!='None')){
-    $radios.prop('checked', false);
-
-    if($radios.is(':checked') === false) {
-        $radios.filter(`[value=${$('input[name=n_type]').val()}]`).prop('checked', true);
-    }
-  }*/
+    // 類別
+    if ($('input[name=n_type]').val() != ''){
+      $('select[name=type]').val($('input[name=n_type]').val()); 
+      $('select[name=type]').change();
+    } 
 
   $(`a.${$('input[name=menu]').val()}`).addClass('now')
   $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();

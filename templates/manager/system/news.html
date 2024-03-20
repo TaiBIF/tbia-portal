@@ -71,7 +71,7 @@
                           <div class="arrd"></div>
                         </div>
                         <div class="col_menu second_menu">
-                            <a class="edit changeMenu" data-menu="edit">消息發布</a>
+                            <a class="edit" href="{% url 'system_news' %}?menu=edit">消息發布</a>
                             <a class="news_apply changeMenu" data-menu="news_apply">審核狀態</a>
                         </div>
                     </li>
@@ -149,7 +149,7 @@
                             <li>類別</li>
                             <li>
                                 <select name="type">
-                                    <option value="news" checked>新聞公告</option>
+                                    <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
                                     <option value="event">活動訊息</option>
                                     <option value="project">徵求公告</option>
                                 </select>
@@ -257,5 +257,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/system_news.js' %}?v1"></script>
+  <script src="{% static 'js/manager/system_news.js' %}?v2"></script>
   {% endblock script %}
