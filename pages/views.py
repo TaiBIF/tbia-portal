@@ -174,10 +174,10 @@ def get_news_list(request):
         offset = limit*(current_page-1)
         if type != 'all':
             # news = News.objects.filter(type=type).order_by('-publish_date')[:limit]
-            news = News.objects.filter(type=type,status='pass')
+            news = News.objects.filter(type=type,status='pass',lang=request.LANGUAGE_CODE)
         else:
             # news = News.objects.all().order_by('-publish_date')[offset:offset+limit]
-            news = News.objects.filter(status='pass')
+            news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE)
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
         total_page = math.ceil(news.count() / limit)
@@ -251,6 +251,8 @@ def get_qa_list(request):
 
 
 def index(request):
+    # print(request.LANGUAGE_CODE)
+
     # recommended keyword
     keywords = Keyword.objects.filter(lang=get_language()).order_by('order').values_list('keyword', flat=True)
 
@@ -271,9 +273,9 @@ def index(request):
     count_collection = "{:,}".format(count_collection)
 
     # resource
-    resource = Resource.objects.order_by('-modified')
+    resource = Resource.objects.filter(lang=request.LANGUAGE_CODE).order_by('-publish_date')
     resource_rows = []
-    for x in resource[:6]:
+    for x in resource[:5]:
         # modified =  x.modified + timedelta(hours=8)
         resource_rows.append({
             'cate': get_resource_cate(x.extension),
@@ -281,9 +283,9 @@ def index(request):
             'extension': x.extension,
             'url': x.url,
             'doc_url': x.doc_url,
-            'date': x.modified.strftime("%Y.%m.%d")})
+            'date': x.publish_date.strftime("%Y.%m.%d")})
         
-    news = News.objects.filter(status='pass').order_by('-publish_date')[:4]
+    news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE).order_by('-publish_date')[:4]
 
     news_list = []
     for n in news:
@@ -307,14 +309,15 @@ def index(request):
 
 def get_resource_list(request):
     type = request.POST.get('type')
+    lang = request.POST.get('lang', 'zh-hant')
     if type == 'all':
-        resource = Resource.objects.order_by('-modified')
+        resource = Resource.objects.filter(lang=lang).order_by('-publish_date')
     else:
-        resource = Resource.objects.filter(type=type).order_by('-modified')
+        resource = Resource.objects.filter(type=type,lang=lang).order_by('-publish_date')
     
     if request.POST.get('start_date') and request.POST.get('end_date'):
         try:
-            resource = resource.filter(modified__gte=request.POST.get('start_date'),modified__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
+            resource = resource.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
         except:
             response = {
                 'rows': [],
@@ -330,7 +333,7 @@ def get_resource_list(request):
     req_from = request.POST.get('from') # 首頁或開放資源頁面
     limit = current_page*12 if req_from == 'resource' else 8
     if req_from != 'resource' and type =='all':
-        limit = 6
+        limit = 5
     offset = (current_page-1)*12 if req_from == 'resource' else 0
 
     for x in resource[offset:limit]:
@@ -341,7 +344,7 @@ def get_resource_list(request):
             'extension': x.extension,
             'url': x.url,
             'doc_url': x.doc_url,
-            'date': x.modified.strftime("%Y.%m.%d")})
+            'date': x.publish_date.strftime("%Y.%m.%d")})
 
     response = {
         'rows': resource_rows,

@@ -138,6 +138,13 @@
                                     {% endfor %}
                                 </select> 
                             </li>
+                            <li>發布日期</li>
+                            <li>
+                                <input type="date" name="publish_date" value="{% if n.publish_date %}{{ n.publish_date|date:'Y-m-d'  }}{% else %}{% now 'Y-m-d' %}{% endif %}" >
+                                <div class="noticbox d-none">
+                                    <p>必填欄位</p>
+                                </div>
+                            </li>
                             <li>標題</li>
                             <li>
                                 <input type="text" name="title" value="{{ n.title }}">
@@ -146,7 +153,7 @@
                                     <p>必填欄位</p>
                                 </div>
                             </li>
-                            <li>類別</li>
+                            <li>類型</li>
                             <li>
                                 <select name="type">
                                     <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
@@ -154,7 +161,13 @@
                                     <option value="project">徵求公告</option>
                                 </select>
                             </li>
-
+                            <li>語言</li>
+                            <li>
+                                <select name="news_lang">
+                                    <option value="zh-hant" {% if n.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                    <option value="en-us" {% if n.lang == 'en-us' %}selected{% endif %}>英文</option>
+                                </select>
+                            </li>    
                             <li>代表圖片</li>
                             <li><input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg"></li> 
                             {% if n.image != None %}           
@@ -185,65 +198,17 @@
                         <tr class="news_apply_table_header">
                             <td class="w-8p">編號</td>
                             <td class="w-18p">標題</td>
-                            <td class="w-8p">類別</td>
+                            <td class="w-8p">類型</td>
+                            <td class="w-8p">語言</td>
                             <td class="w-20p">單位</td>
                             <td class="w-15p">申請者</td>
+                            <td class="w-15p">發布日期</td>
                             <td class="w-15p">最近修改</td>
                             <td class="w-8p">狀態</td>
                             <td class="w-8p"></td> <!-- 編輯按鈕 / 收回按鈕 -->
                         </tr>
-                        {% comment %} {% for n in news_list %}
-                        <tr>
-                            <td>#{{ n.id }}</td>
-                            <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
-                            <td>{{ n.get_type_display }}</td>
-                            <td>{{ n.partner.select_title|default_if_none:'' }}</td>
-                            <td>{{ n.user.name }}</td>
-                            <td>{{ n.modified_8|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
-                            <td>
-                                {{ n.get_status_display }}
-                                <!--
-                                <select style="width: 100%">
-                                    {% for st in status_list %}
-                                        {% if st.0 == n.status  %}
-                                            <option value="{{ st.0 }}" checked>{{ st.1 }}</option>
-                                        {% else %}
-                                            <option value="{{ st.0 }}">{{ st.1 }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>    -->
-                            </td>
-                            <td><a class="manager_btn" href="{% url 'system_news' %}?menu=edit&news_id={{ n.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                        </tr>
-                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                {% comment %} <div class="page_number">
-					{% if n_page_list|length > 1 %}
-                    <a class="num changePage" data-page="1" data-type="news_apply">1</a>
-                    <a class="pre pt-none">
-                        <span></span>上一頁
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in n_page_list %}
-                        {% if p == 1 %}
-                            <a class="num now changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
-                        {% else %}
-                            <a class="num changePage" data-page="{{ p }}" data-type="news_apply">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in n_page_list %}
-                    <a class="next changePage" data-page="2" data-type="news_apply">
-                        下一頁<span></span>
-                    </a>
-                    {% else %}
-                    <a class="next pt-none">
-                        下一頁<span></span>
-                    </a>
-                    {% endif %}
-                    <a class="num changePage" data-page="{{ n_total_page }}" data-type="news_apply">{{ n_total_page }}</a>
-                    {% endif %}
-				</div> {% endcomment %}
             </div>
         </div>
         {% else %}
@@ -257,5 +222,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/system_news.js' %}?v2"></script>
+  <script src="{% static 'js/manager/system_news.js' %}?v3"></script>
   {% endblock script %}

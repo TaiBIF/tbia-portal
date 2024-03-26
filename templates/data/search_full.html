@@ -564,16 +564,6 @@
         <ul class="edu_list three_set resource-card">
           {% if resource.count > 0 %} 
             {% for i in resource.rows %}
-            {% if i.extension == 'pop' %}
-            <li class="show_tech">
-              <div class="item items h-100p">
-                <div class="cate_dbox">
-                <div class="date">{{ i.date }}</div>
-                </div>
-                <a class="title ">{% highlight i.title keyword %}</a>
-              </div>
-            </li>
-            {% else %}
             <li>
               <div class="item items h-100p">
                 <div class="cate_dbox">
@@ -588,7 +578,6 @@
                 {% endif %}
               </div>
             </li>
-            {% endif %}
             {% endfor %}
         </ul>
         {% else %}
@@ -893,5 +882,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v5"></script>
+<script src="{% static 'js/data/search_full.js' %}?v6"></script>
 {% endblock script %}

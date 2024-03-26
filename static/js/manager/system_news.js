@@ -179,7 +179,7 @@ $(document).ready(function () {
     changeURL(menu)
   })
 
-  // 類別
+  // 類型
   if ($('input[name=n_type]').val() != ''){
     $('select[name=type]').val($('input[name=n_type]').val()); 
     $('select[name=type]').change();
@@ -200,6 +200,11 @@ $(document).ready(function () {
       checked = false
     }
 
+    if ($('#newsForm input[name=publish_date]').val() == '') {
+      $('#newsForm input[name=publish_date]').next('.noticbox').removeClass('d-none')
+      checked = false
+    }
+
     var regex = /(<([^>]+)>)/ig
     check_body = $('.ql-editor').html()
     //hasText = check_body.replace(regex, "");
@@ -212,7 +217,9 @@ $(document).ready(function () {
     if (checked) {
       $('#newsForm').append(`<textarea class="d-none" name="content">${check_body}</textarea>`)
       $('#newsForm').submit()
-    }
+    } else {
+      alert('請檢查內容是否完整！')
+    } 
   })
 
   $(".mb_fixed_btn").on("click", function (event) {

@@ -99,6 +99,11 @@ $(document).ready(function () {
     // 起始頁面
     changePage(1, 'resource')
 
+    // // 語言
+    // if ($('input[name=r_lang]').val() != ''){
+    //     $('select[name=resource_lang]').val($('input[name=r_lang]').val()); 
+    //     $('select[name=resource_lang]').change();
+    // } 
 
     $('.submitLink').on('click', function () {
         $('#linkForm').append(`<textarea class="d-none" name="content">${$('.ql-editor').html()}</textarea>`)
@@ -175,6 +180,13 @@ $(document).ready(function () {
             $('#saveForm input[name=title]').next('.noticbox').removeClass('d-none')
             checked = false
         }
+
+        if ($('#saveForm input[name=publish_date]').val() == '') {
+            $('#saveForm input[name=publish_date]').next('.noticbox').removeClass('d-none')
+            checked = false
+        }
+
+
     if ($('select[id="file_type"]').find(':selected').val() == 'file') {
 
         if ($('#saveForm .file_field input[name=url]').val() == '') {
@@ -203,16 +215,21 @@ $(document).ready(function () {
                 url: "/submit_resource",
                 data: { 'url': url, 
                         'type': $('#saveForm select[name=resource_type]').find(":selected").val(), 
+                        'lang': $('#saveForm select[name=resource_lang]').find(":selected").val(), 
                         'resource_id': $('#saveForm input[name=resource_id]').val(), 
+                        'publish_date': $('#saveForm input[name=publish_date]').val(), 
                         'title': $('#saveForm input[name=title]').val(),
                         'doc_url': $('#saveForm input[name=doc_url]').val(),
-                        'file_type':  $('#saveForm select[id=file_type]').find(":selected").val() },
+                        'file_type':  $('#saveForm select[id=file_type]').find(":selected").val() 
+                    },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
                     window.location = '/manager/system/resource?menu=resource';
                 }
             })
 
+        } else {
+            alert('請檢查內容是否完整！')
         }
     })
 

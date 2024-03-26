@@ -95,6 +95,13 @@
                         <input type="hidden" name="news_id" value="{{ n.id }}">
                         <input type="hidden" name="status" value="pending">
                         <li class="upload-warning"><p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
+                        <li>發布日期</li>
+                        <li>
+                            <input type="date" name="publish_date" value="{% if n.publish_date %}{{ n.publish_date|date:'Y-m-d'  }}{% else %}{% now 'Y-m-d' %}{% endif %}" >
+                            <div class="noticbox d-none">
+                                <p>必填欄位</p>
+                            </div>
+                        </li>
                         <li>標題</li>
                         <li>
                             <input type="text" name="title" value="{{ n.title }}">
@@ -103,7 +110,7 @@
                                 <p>必填欄位</p>
                             </div>
                         </li>
-                        <li>類別</li>
+                        <li>類型</li>
                         <li>
                             <select name="type">
                                 <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
@@ -111,6 +118,13 @@
                                 <option value="project">徵求公告</option>
                             </select>
                         </li>
+                        <li>語言</li>
+                        <li>
+                            <select name="news_lang">
+                                <option value="zh-hant" {% if n.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                <option value="en-us" {% if n.lang == 'en-us' %}selected{% endif %}>英文</option>
+                            </select>
+                        </li>    
                         <li>代表圖片</li>
                         <li><input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg"></li> 
                         {% if n.image != None %}           
@@ -140,8 +154,10 @@
                         <tr class="news_table_header">
                             <td class="w-5p"></td>
                             <td class="w-20p">標題</td>
-                            <td class="w-12p">類別</td>
+                            <td class="w-12p">類型</td>
+                            <td class="w-12p">語言</td>
                             <td class="w-15p">申請者</td>
+                            <td class="w-15p">發布日期</td>
                             <td class="w-15p">最近修改</td>
                             <td class="w-12p">狀態</td>
                             <td class="w-12p"></td> 
@@ -209,5 +225,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/partner_news.js' %}?v2"></script>
+<script src="{% static 'js/manager/partner_news.js' %}?v3"></script>
 {% endblock script %}

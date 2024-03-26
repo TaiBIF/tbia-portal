@@ -34,7 +34,7 @@ $(function () {
     updateNews($(this).data('type'), 1)
   })
 
-  // 起始類別
+  // 起始類型
   if ($('input[name=news_type]').val() != '') {
     $(`.news_tab_in .li-news-${$('input[name=news_type]').val()}`).addClass('now')
     updateNews($('input[name=news_type]').val(), 1) 

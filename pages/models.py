@@ -32,7 +32,12 @@ class News(models.Model):
         ('fail', '不通過'),
         ('withdraw', '撤回'),
     ]
+    lang_choice = [
+        ('en-us', '英文'),
+        ('zh-hant', '中文'),
+    ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
+    lang = models.CharField(max_length=10, choices=lang_choice, default='zh-hant') # en-us, zh-hant
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
@@ -44,7 +49,7 @@ class News(models.Model):
     # attachments = models.TextField( blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
-    publish_date = models.DateTimeField( null=True, blank=True) # 已轉換成UTF+8
+    publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     order = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = 'news'
@@ -65,8 +70,13 @@ class Resource(models.Model):
         ('tool', '參考文件&工具'),
         ('tutorial', '教學文件'),
     ]
+    lang_choice = [
+        ('en-us', '英文'),
+        ('zh-hant', '中文'),
+    ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
     title = models.CharField(max_length=100, blank=True, null=True)
+    lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True) # en-us, zh-hant
     extension = models.CharField(max_length=10, blank=True, null=True)
     url = models.CharField(max_length=1000, blank=True, null=True)
     doc_url = models.CharField(max_length=1000, blank=True, null=True) # TBIA 文件網站網址
@@ -74,6 +84,7 @@ class Resource(models.Model):
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True) # 已經是UTF+8
+    publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     class Meta:
         db_table = 'resource'
 

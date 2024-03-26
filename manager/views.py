@@ -627,23 +627,32 @@ def change_manager_page(request):
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
     elif menu == 'news_apply':
                         
-        for n in News.objects.all().order_by('-id')[offset:offset+10]:
+        for n in News.objects.all().order_by('-modified')[offset:offset+10]:
             if n.partner:
                 partner_title = n.partner.select_title
             else:
                 partner_title = ''
+
             if n.modified:
                 modified = n.modified + timedelta(hours=8)
                 modified = modified.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 modified = ''
 
+            if n.publish_date:
+                publish_date = n.publish_date
+                publish_date = publish_date.strftime('%Y-%m-%d')
+            else:
+                publish_date = ''
+
             data.append({
                 'id': f'#{n.id}',
                 'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
+                'lang': n.get_lang_display(),
                 'partner_title': partner_title,
                 'user': n.user.name if n.user else '',
+                'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
                 'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
@@ -652,10 +661,10 @@ def change_manager_page(request):
     elif menu == 'news': # 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
-            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-id')
+            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-modified')
         else:
             # 如果是單位帳號 -> 只回傳自己申請的
-            news_list = News.objects.filter(user_id=request.user).order_by('-id')
+            news_list = News.objects.filter(user_id=request.user).order_by('-modified')
         total_page = math.ceil(news_list.count()/10)
 
         for n in news_list[offset:offset+10]:
@@ -664,6 +673,12 @@ def change_manager_page(request):
                 modified = modified.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 modified = ''
+
+            if n.publish_date:
+                publish_date = n.publish_date 
+                publish_date = publish_date.strftime('%Y-%m-%d')
+            else:
+                publish_date = ''
             
             if n.status == 'pending':
                 a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回</a>'
@@ -674,23 +689,26 @@ def change_manager_page(request):
                 'id': f"#{n.id}",
                 'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
+                'lang': n.get_lang_display(),
                 'user': n.user.name if n.user else '',
+                'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
                 'a': a
             })
     elif menu == 'resource':
-        for r in Resource.objects.all().order_by('-id')[offset:offset+10]:
-            url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
+        for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
+            # url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
                 'title': r.title,
                 'type': r.get_type_display(),
-                'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
+                'lang': r.get_lang_display(),
+                # 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
+                'publish_date': r.publish_date.strftime('%Y-%m-%d'),
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
                 'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
                 'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
-
         total_page = math.ceil(Resource.objects.all().count() / 10)
     elif menu == 'qa':
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
@@ -1394,6 +1412,8 @@ def submit_news(request):
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
+        publish_date = request.POST.get('publish_date')
+        lang = request.POST.get('news_lang')
 
         # author_use_tbia = None
         author_use_tbia = request.POST.get('author_use_tbia')
@@ -1431,40 +1451,42 @@ def submit_news(request):
                 else:
                     n.author_use_tbia = False
 
-            if status == 'pass' and ori_status != 'pass':
-                publish_date = timezone.now() + timedelta(hours=8)
-            elif status == 'pass' and ori_status == 'pass':
-                publish_date = n.publish_date
-            else:
-                publish_date = None
+            # if status == 'pass' and ori_status != 'pass':
+            #     publish_date = timezone.now() + timedelta(hours=8)
+            # elif status == 'pass' and ori_status == 'pass':
+            #     publish_date = n.publish_date
+            # else:
+            #     publish_date = None
             if n.image and not image_name: # 原本就有的
                 image_name = n.image
             elif image_name:
                 image_name = image.name
+            
             if image_name:
-                n.type = type
-                n.title = title
-                n.content = content
+                # n.type = type
+                # n.title = title
+                # n.content = content
                 n.image = image_name
-                n.status = status
-                n.modified = timezone.now()
-                n.publish_date = publish_date
-                n.save()
+                # n.status = status
+                # n.modified = timezone.now()
+                # n.publish_date = publish_date
+                # n.save()
             else:
-                n.type = type
-                n.title = title
-                n.content = content
                 n.image = None
-                n.status = status
-                n.publish_date = publish_date
-                n.modified = timezone.now()
-                n.save()
+            n.type = type
+            n.title = title
+            n.content = content
+            n.status = status
+            n.publish_date = publish_date
+            n.modified = timezone.now()
+            n.lang = lang
+            n.save()
         else:
             ori_status = 'pending'
-            if status == 'pass':
-                publish_date = timezone.now() + timedelta(hours=8)
-            else:
-                publish_date = None
+            # if status == 'pass':
+            #     publish_date = timezone.now() + timedelta(hours=8)
+            # else:
+            #     publish_date = None
 
 
             if image_name:
@@ -1476,7 +1498,8 @@ def submit_news(request):
                     content = content,
                     image = image.name,
                     status = status,
-                    publish_date = publish_date
+                    publish_date = publish_date,
+                    lang=lang
                 )
             else:
                 n = News.objects.create(
@@ -1486,7 +1509,8 @@ def submit_news(request):
                     title = title,
                     content = content,
                     status = status,
-                    publish_date = publish_date
+                    publish_date = publish_date,
+                    lang=lang
                 )
 
 
@@ -1663,6 +1687,8 @@ def submit_resource(request):
             Resource.objects.filter(id=resource_id).update(
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
+                lang = request.POST.get('lang'),
+                publish_date = request.POST.get('publish_date'),
                 url = url,
                 doc_url = request.POST.get('doc_url'),
                 extension = extension,
@@ -1672,6 +1698,8 @@ def submit_resource(request):
             Resource.objects.create(
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
+                lang = request.POST.get('lang'),
+                publish_date = request.POST.get('publish_date'),
                 url = url,
                 doc_url = request.POST.get('doc_url'),
                 extension = extension,

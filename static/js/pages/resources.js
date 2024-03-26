@@ -1,4 +1,5 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
+var $lang = $('[name="lang"]').attr('value');
 
 $(function () {
 
@@ -47,7 +48,7 @@ $(function () {
 
   // })
 
-   // 起始類別
+   // 起始類型
    if ($('input[name=resource_type]').val() != '') {
     $(`.news_tab_in .li-resource-${$('input[name=resource_type]').val()}`).addClass('now')
     updateResource($('input[name=resource_type]').val(), 1) 
@@ -94,7 +95,8 @@ function updateResource(type, page) {
     query = {
       'type': type,
       'from': 'resource',
-      'get_page': page
+      'get_page': page,
+      'lang':  $lang,
     }
   } else {
     query = {
@@ -102,7 +104,8 @@ function updateResource(type, page) {
       'from': 'resource',
       'start_date': $("#start_date").val(),
       'end_date': $("#end_date").val(),
-      'get_page': page
+      'get_page': page,
+      'lang':  $lang,
     }
   }
 
@@ -131,17 +134,7 @@ function updateResource(type, page) {
       if (response.rows.length > 0) {
         for (let i = 0; i < response.rows.length; i++) {
 
-          if (response.rows[i].extension == 'pop') {
-            $('.edu_list').append(`
-          <li class="show_tech">
-            <div class="item">
-              <div class="cate_dbox">
-                <div class="date">${response.rows[i].date}</div>
-              </div>
-              <a class="title ">${gettext(response.rows[i].title)}</a>
-            </div>
-          </li>`)
-          } else if (response.rows[i].cate == 'link'){
+         if (response.rows[i].cate == 'link'){
             $('.edu_list').append(`
           <li>
             <div class="item">

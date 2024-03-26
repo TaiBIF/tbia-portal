@@ -288,8 +288,10 @@ CSP_IMG_SRC = ("'self'",
                # 生命大百科
                "https://data.taieol.tw/",
                # 各單位資料    
-               "https://www.tbn.org.tw/", 
-               "https://n2t.net/") 
+            #    "https://www.tbn.org.tw/", 
+            #    "https://n2t.net/",
+            #    "https://brmas-media.s3.ap-northeast-1.amazonaws.com/"
+               ) 
 
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
