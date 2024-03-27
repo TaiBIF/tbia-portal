@@ -419,7 +419,7 @@ def change_manager_page(request):
 
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
-        for s in SensitiveDataResponse.objects.exclude(is_transferred=True, partner_id__isnull=True).order_by('-id')[offset:offset+10]:
+        for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
         # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
             if s.created:
                 date = s.created + timedelta(hours=8)
@@ -444,12 +444,13 @@ def change_manager_page(request):
 
             query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
+            a = f'<a class="pointer showRequest manager_btn" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
             query = query_a_href(query,query_a)
 
             # 審查意見
             comment = []
 
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
                 # if sdr.partner:
                 #     partner_name = sdr.partner.select_title 
                 # else:
@@ -475,6 +476,7 @@ def change_manager_page(request):
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': s.get_status_display(),
+                'a': a,
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
@@ -1111,12 +1113,13 @@ def download_sensitive_report(request):
                     sensitive_response = SensitiveDataResponse.objects.filter(partner_id=current_user.partner)
         elif request.POST.get('from') == 'system':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                sensitive_response = SensitiveDataResponse.objects.filter(partner_id=None)
+                sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=True)
         elif request.POST.get('from') == 'track':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                sensitive_response = SensitiveDataResponse.objects.exclude(partner_id=None)
+                sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
 
     if len(sensitive_response):
+
         # 申請請求
         sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
         for s in sensitive_query:

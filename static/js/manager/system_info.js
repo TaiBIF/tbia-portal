@@ -123,7 +123,7 @@ function changePage(page, menu) {
 $(document).ready(function () {
 
     $('.downloadReport').on('click', function(){
-        $('#downloadReport').submit()
+        $(this).children('form').submit()
     })
 
     // 起始頁面
@@ -333,6 +333,13 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
     })
         .done(function (response) {
 
+            // 如果沒有sdr_id的話 只顯示申請詳細資訊
+
+
+            $('.detail-pop .resp-box').removeClass('d-none')
+            $('.detail-pop [class^="send-"]').removeClass('d-none')
+
+
             $('.detail-pop .send-check, .detail-pop .send-transfer').removeClass('d-none')
             $('.detail-pop .send-submitted, .detail-pop .send-transferred').addClass('d-none')
 
@@ -381,24 +388,30 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
                 $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
             }
 
-            // 審查意見
-            if (is_transferred == 'True') {
-                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').addClass('d-none')
-                $('.send-transferred').removeClass('d-none')
-            } else if (response.review.status != 'pending') {
-                $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
-                $('#reviewForm textarea[name=comment]').val(response.review.comment)
-                $('#reviewForm select[name=status]').val(response.review.status)
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
-                $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
-                $('#reviewForm select[name=status]').attr('disabled', 'disabled');
+            if (sdr_id != ''){
 
-                $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').addClass('d-none')
-                $('.detail-pop .send-submitted').removeClass('d-none')
+                // 審查意見
+                if (is_transferred == 'True') {
+                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').addClass('d-none')
+                    $('.send-transferred').removeClass('d-none')
+                } else if (response.review.status != 'pending') {
+                    $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
+                    $('#reviewForm textarea[name=comment]').val(response.review.comment)
+                    $('#reviewForm select[name=status]').val(response.review.status)
+                    $('#reviewForm input[name=reviewer_name]').attr('disabled', 'disabled');
+                    $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
+                    $('#reviewForm select[name=status]').attr('disabled', 'disabled');
+
+                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').addClass('d-none')
+                    $('.detail-pop .send-submitted').removeClass('d-none')
+                } else {
+                    $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
+                    $('#reviewForm textarea[name=comment]').attr('disabled', false);
+                    $('#reviewForm select[name=status]').attr('disabled', false);
+                }
             } else {
-                $('#reviewForm input[name=reviewer_name]').attr('disabled', false);
-                $('#reviewForm textarea[name=comment]').attr('disabled', false);
-                $('#reviewForm select[name=status]').attr('disabled', false);
+                $('.detail-pop .resp-box').addClass('d-none')
+                $('.detail-pop [class^="send-"]').addClass('d-none')
             }
 
         })
