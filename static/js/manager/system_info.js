@@ -334,8 +334,6 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
         .done(function (response) {
 
             // 如果沒有sdr_id的話 只顯示申請詳細資訊
-
-
             $('.detail-pop .resp-box').removeClass('d-none')
             $('.detail-pop [class^="send-"]').removeClass('d-none')
 

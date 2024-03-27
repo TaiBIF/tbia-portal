@@ -419,18 +419,21 @@ def change_manager_page(request):
 
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
-        for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
-        # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
+        
+        for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+        # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
+            date = ''
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                date = ''
+            # else:
+            #     date = ''
 
             # 進階搜尋
             # search_dict = dict(parse.parse_qsl(s.query))
-            search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
+            sq = SearchQuery.objects.get(query_id=s.query_id)
+            search_dict = dict(parse.parse_qsl(sq.query))
             query = create_query_display(search_dict)
 
             if search_dict.get("record_type") == 'col':
@@ -475,7 +478,7 @@ def change_manager_page(request):
                 'date':  date + '<br>審核期限：' + due,
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
-                'status': s.get_status_display(),
+                'status': sq.get_status_display(),
                 'a': a,
             })
 
@@ -520,7 +523,9 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
 
         else:
-            for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
+            # for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
+            for sdr in SensitiveDataResponse.objects.filter(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+
                 created = sdr.created + timedelta(hours=8)
 
                 # 整理搜尋條件
@@ -1119,7 +1124,6 @@ def download_sensitive_report(request):
                 sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
 
     if len(sensitive_response):
-
         # 申請請求
         sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
         for s in sensitive_query:
@@ -1130,11 +1134,8 @@ def download_sensitive_report(request):
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
-            if s.modified:
-                date = s.modified + timedelta(hours=8)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                date = ''
+            date = s.created + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             # request
             detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
@@ -1145,17 +1146,20 @@ def download_sensitive_report(request):
 
             # response
             comment = []
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-                if sdr.partner:
-                    partner_name = sdr.partner.select_title 
+            for sdr in sensitive_response.filter(query_id=s.query_id):
+                if sdr.is_transferred:
+                    comment.append('已轉交單位審核')
                 else:
-                    partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-                comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
+                    if sdr.partner:
+                        partner_name = sdr.partner.select_title 
+                    else:
+                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
 
+            comment_str = '\n---\n'.join(comment)
 
             df = pd.concat([df, pd.DataFrame([{'申請時間': date,
                                                 '搜尋條件': query,
-                                                '狀態': s.get_status_display(),
                                                 '申請人姓名': detail.applicant,
                                                 '聯絡電話': detail.phone,
                                                 '聯絡地址': detail.address,
@@ -1165,8 +1169,9 @@ def download_sensitive_report(request):
                                                 '委託計畫單位': detail.project_affiliation,
                                                 '計畫摘要': detail.abstract,
                                                 '申請資料使用者': '\n---\n'.join(users),
-                                                '審查意見': '\n---\n'.join(comment),
+                                                '審查意見': comment_str,
                                                 # '通過與否': ,
+                                                '檔案狀態': s.get_status_display(),
                                                 }])],ignore_index=True)
 
 
