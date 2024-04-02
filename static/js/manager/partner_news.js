@@ -108,13 +108,11 @@ function changePage(page, menu) {
   Quill.register("modules/imageUploader", ImageUploader);
 
   var toolbarOptions = [
-    [{ 'font': [] }, { 'size': [] }],
+    [{ 'size': [] }],
     ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-    ['direction', { 'align': [] }],
+    [{ 'align': [] }],
     ['link', 'image', 'video'],
-    ['clean']
   ]
 
   var quill = new Quill('#editor', {

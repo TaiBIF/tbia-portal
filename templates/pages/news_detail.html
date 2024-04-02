@@ -9,6 +9,8 @@
 <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 {% endblock style %}
 
 {% block title %}{{ n.title }}｜{% endblock %}
@@ -37,7 +39,6 @@
 							<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
 						</div>
 						<h3>{{ n.title }}</h3>
-
 						<p><i class="icon-size fa-solid fa-pen"></i>
 							{% if n.partner and n.author_use_tbia != True %}
 								{% if LANGUAGE_CODE == 'en-us' %}
@@ -61,8 +62,9 @@
 							<img src="/media/news/{{ n.image }}" >
 						</div>
 						{% endif %}
-
+						<div class=" ql-editor">
 						{{ n.content|safe }}
+						</div>
 					</div>
 				</div> 
 				<!--

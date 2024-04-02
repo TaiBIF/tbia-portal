@@ -31,17 +31,13 @@ window.onpopstate = function (e) {
     //  Quill.register("modules/imageUploader", ImageUploader);
 
     var toolbarOptions = [
-        [{ 'font': [] }, { 'size': [] }],
+        [{ 'size': [] }],
         ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        // [{ 'script': 'super' }, { 'script': 'sub' }],
-        // [{ 'header': '1' }, { 'header': '2' }, 'blockquote', 'code-block' ],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-        ['direction', { 'align': [] }],
-        ['link'],
-        // , 'formula' ],
-        ['clean']
-    ]
+        [{ 'align': [] }],
+        ['link', 'image', 'video'],
+      ]
+    
 
     var quill = new Quill('#editor', {
         theme: 'snow', modules: {
