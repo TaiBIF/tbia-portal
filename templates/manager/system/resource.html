@@ -84,7 +84,7 @@
                             <div class="arrd"></div>
                           </div>
                           <div class="col_menu second_menu">
-                            <a class="edit changeMenu" data-menu="edit">資源發布</a>
+                            <a class="edit" href="{% url 'system_resource' %}?menu=edit" data-menu="edit">資源發布</a>
                             <a class="resource changeMenu" data-menu="resource">資源列表</a>
                           </div>                    
                     </li>
@@ -115,6 +115,7 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>教育資源管理</div>
                 <ul class="edit-list">
+                    {% comment %} <input type="hidden" name="r_lang" value="{{ current_r.lang }}"> {% endcomment %}
                     <form id="saveForm" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
@@ -129,6 +130,20 @@
                                     {% endif %}
                                 {% endfor %}
                             </select>
+                        </li>
+                        <li>語言</li>
+                        <li>
+                            <select name="resource_lang">
+                                <option value="zh-hant" {% if current_r.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                <option value="en-us" {% if current_r.lang == 'en-us' %}selected{% endif %}>英文</option>
+                            </select>
+                        </li>
+                        <li>發布日期</li>
+                        <li>
+                            <input type="date" name="publish_date" value="{% if current_r.publish_date %}{{ current_r.publish_date|date:'Y-m-d'  }}{% else %}{% now 'Y-m-d' %}{% endif %}" >
+                            <div class="noticbox d-none">
+                                <p>必填欄位</p>
+                            </div>
                         </li>
                         <li>標題</li>
                         <li>
@@ -202,7 +217,9 @@
                         <tr class="resource_table_header">
                             <td class="w-18p">標題</td>
                             <td class="w-18p">類型</td>
-                            <td class="w-20p">檔名</td>
+                            <td class="w-10p">語言</td>
+                            {% comment %} <td class="w-20p">檔名</td> {% endcomment %}
+                            <td class="w-15p">發布日期</td>
                             <td class="w-15p">最近修改</td>
                             <td class="w-8p"></td> 
                             <td class="w-8p"></td> 
@@ -240,5 +257,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/system_resource.js' %}?v2"></script>
+  <script src="{% static 'js/manager/system_resource.js' %}?v4"></script>
   {% endblock script %}

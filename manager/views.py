@@ -419,18 +419,21 @@ def change_manager_page(request):
 
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
-        for s in SensitiveDataResponse.objects.exclude(is_transferred=True, partner_id__isnull=True).order_by('-id')[offset:offset+10]:
-        # for s in SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).order_by('-id').values_list('query_id',flat=True))[offset:offset+10]:
+        
+        for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+        # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
+            date = ''
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                date = ''
+            # else:
+            #     date = ''
 
             # 進階搜尋
             # search_dict = dict(parse.parse_qsl(s.query))
-            search_dict = dict(parse.parse_qsl(SearchQuery.objects.get(query_id=s.query_id).query))
+            sq = SearchQuery.objects.get(query_id=s.query_id)
+            search_dict = dict(parse.parse_qsl(sq.query))
             query = create_query_display(search_dict)
 
             if search_dict.get("record_type") == 'col':
@@ -444,12 +447,13 @@ def change_manager_page(request):
 
             query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
+            a = f'<a class="pointer showRequest manager_btn" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
             query = query_a_href(query,query_a)
 
             # 審查意見
             comment = []
 
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
                 # if sdr.partner:
                 #     partner_name = sdr.partner.select_title 
                 # else:
@@ -474,7 +478,8 @@ def change_manager_page(request):
                 'date':  date + '<br>審核期限：' + due,
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
-                'status': s.get_status_display(),
+                'status': sq.get_status_display(),
+                'a': a,
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
@@ -518,7 +523,9 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
 
         else:
-            for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
+            # for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
+            for sdr in SensitiveDataResponse.objects.filter(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+
                 created = sdr.created + timedelta(hours=8)
 
                 # 整理搜尋條件
@@ -627,23 +634,32 @@ def change_manager_page(request):
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
     elif menu == 'news_apply':
                         
-        for n in News.objects.all().order_by('-id')[offset:offset+10]:
+        for n in News.objects.all().order_by('-modified')[offset:offset+10]:
             if n.partner:
                 partner_title = n.partner.select_title
             else:
                 partner_title = ''
+
             if n.modified:
                 modified = n.modified + timedelta(hours=8)
                 modified = modified.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 modified = ''
 
+            if n.publish_date:
+                publish_date = n.publish_date
+                publish_date = publish_date.strftime('%Y-%m-%d')
+            else:
+                publish_date = ''
+
             data.append({
                 'id': f'#{n.id}',
                 'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
+                'lang': n.get_lang_display(),
                 'partner_title': partner_title,
                 'user': n.user.name if n.user else '',
+                'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
                 'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
@@ -652,10 +668,10 @@ def change_manager_page(request):
     elif menu == 'news': # 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
-            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-id')
+            news_list = News.objects.filter(partner_id=request.user.partner_id).order_by('-modified')
         else:
             # 如果是單位帳號 -> 只回傳自己申請的
-            news_list = News.objects.filter(user_id=request.user).order_by('-id')
+            news_list = News.objects.filter(user_id=request.user).order_by('-modified')
         total_page = math.ceil(news_list.count()/10)
 
         for n in news_list[offset:offset+10]:
@@ -664,6 +680,12 @@ def change_manager_page(request):
                 modified = modified.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 modified = ''
+
+            if n.publish_date:
+                publish_date = n.publish_date 
+                publish_date = publish_date.strftime('%Y-%m-%d')
+            else:
+                publish_date = ''
             
             if n.status == 'pending':
                 a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回</a>'
@@ -674,23 +696,26 @@ def change_manager_page(request):
                 'id': f"#{n.id}",
                 'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
+                'lang': n.get_lang_display(),
                 'user': n.user.name if n.user else '',
+                'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
                 'a': a
             })
     elif menu == 'resource':
-        for r in Resource.objects.all().order_by('-id')[offset:offset+10]:
-            url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
+        for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
+            # url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
                 'title': r.title,
                 'type': r.get_type_display(),
-                'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
+                'lang': r.get_lang_display(),
+                # 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
+                'publish_date': r.publish_date.strftime('%Y-%m-%d'),
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
                 'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
                 'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
-
         total_page = math.ceil(Resource.objects.all().count() / 10)
     elif menu == 'qa':
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
@@ -1093,10 +1118,10 @@ def download_sensitive_report(request):
                     sensitive_response = SensitiveDataResponse.objects.filter(partner_id=current_user.partner)
         elif request.POST.get('from') == 'system':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                sensitive_response = SensitiveDataResponse.objects.filter(partner_id=None)
+                sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=True)
         elif request.POST.get('from') == 'track':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                sensitive_response = SensitiveDataResponse.objects.exclude(partner_id=None)
+                sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
 
     if len(sensitive_response):
         # 申請請求
@@ -1109,11 +1134,8 @@ def download_sensitive_report(request):
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
-            if s.modified:
-                date = s.modified + timedelta(hours=8)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                date = ''
+            date = s.created + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             # request
             detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
@@ -1124,17 +1146,20 @@ def download_sensitive_report(request):
 
             # response
             comment = []
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-                if sdr.partner:
-                    partner_name = sdr.partner.select_title 
+            for sdr in sensitive_response.filter(query_id=s.query_id):
+                if sdr.is_transferred:
+                    comment.append('已轉交單位審核')
                 else:
-                    partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-                comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
+                    if sdr.partner:
+                        partner_name = sdr.partner.select_title 
+                    else:
+                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
 
+            comment_str = '\n---\n'.join(comment)
 
             df = pd.concat([df, pd.DataFrame([{'申請時間': date,
                                                 '搜尋條件': query,
-                                                '狀態': s.get_status_display(),
                                                 '申請人姓名': detail.applicant,
                                                 '聯絡電話': detail.phone,
                                                 '聯絡地址': detail.address,
@@ -1144,8 +1169,9 @@ def download_sensitive_report(request):
                                                 '委託計畫單位': detail.project_affiliation,
                                                 '計畫摘要': detail.abstract,
                                                 '申請資料使用者': '\n---\n'.join(users),
-                                                '審查意見': '\n---\n'.join(comment),
+                                                '審查意見': comment_str,
                                                 # '通過與否': ,
+                                                '檔案狀態': s.get_status_display(),
                                                 }])],ignore_index=True)
 
 
@@ -1394,6 +1420,8 @@ def submit_news(request):
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
+        publish_date = request.POST.get('publish_date')
+        lang = request.POST.get('news_lang')
 
         # author_use_tbia = None
         author_use_tbia = request.POST.get('author_use_tbia')
@@ -1431,40 +1459,42 @@ def submit_news(request):
                 else:
                     n.author_use_tbia = False
 
-            if status == 'pass' and ori_status != 'pass':
-                publish_date = timezone.now() + timedelta(hours=8)
-            elif status == 'pass' and ori_status == 'pass':
-                publish_date = n.publish_date
-            else:
-                publish_date = None
+            # if status == 'pass' and ori_status != 'pass':
+            #     publish_date = timezone.now() + timedelta(hours=8)
+            # elif status == 'pass' and ori_status == 'pass':
+            #     publish_date = n.publish_date
+            # else:
+            #     publish_date = None
             if n.image and not image_name: # 原本就有的
                 image_name = n.image
             elif image_name:
                 image_name = image.name
+            
             if image_name:
-                n.type = type
-                n.title = title
-                n.content = content
+                # n.type = type
+                # n.title = title
+                # n.content = content
                 n.image = image_name
-                n.status = status
-                n.modified = timezone.now()
-                n.publish_date = publish_date
-                n.save()
+                # n.status = status
+                # n.modified = timezone.now()
+                # n.publish_date = publish_date
+                # n.save()
             else:
-                n.type = type
-                n.title = title
-                n.content = content
                 n.image = None
-                n.status = status
-                n.publish_date = publish_date
-                n.modified = timezone.now()
-                n.save()
+            n.type = type
+            n.title = title
+            n.content = content
+            n.status = status
+            n.publish_date = publish_date
+            n.modified = timezone.now()
+            n.lang = lang
+            n.save()
         else:
             ori_status = 'pending'
-            if status == 'pass':
-                publish_date = timezone.now() + timedelta(hours=8)
-            else:
-                publish_date = None
+            # if status == 'pass':
+            #     publish_date = timezone.now() + timedelta(hours=8)
+            # else:
+            #     publish_date = None
 
 
             if image_name:
@@ -1476,7 +1506,8 @@ def submit_news(request):
                     content = content,
                     image = image.name,
                     status = status,
-                    publish_date = publish_date
+                    publish_date = publish_date,
+                    lang=lang
                 )
             else:
                 n = News.objects.create(
@@ -1486,7 +1517,8 @@ def submit_news(request):
                     title = title,
                     content = content,
                     status = status,
-                    publish_date = publish_date
+                    publish_date = publish_date,
+                    lang=lang
                 )
 
 
@@ -1663,6 +1695,8 @@ def submit_resource(request):
             Resource.objects.filter(id=resource_id).update(
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
+                lang = request.POST.get('lang'),
+                publish_date = request.POST.get('publish_date'),
                 url = url,
                 doc_url = request.POST.get('doc_url'),
                 extension = extension,
@@ -1672,6 +1706,8 @@ def submit_resource(request):
             Resource.objects.create(
                 type = request.POST.get('type'),
                 title = request.POST.get('title'),
+                lang = request.POST.get('lang'),
+                publish_date = request.POST.get('publish_date'),
                 url = url,
                 doc_url = request.POST.get('doc_url'),
                 extension = extension,

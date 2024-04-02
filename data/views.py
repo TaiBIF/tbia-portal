@@ -39,6 +39,7 @@ from os.path import exists
 import html
 from django.utils.translation import get_language, gettext
 import shapely
+from csp.decorators import csp_update
 
 
 def get_geojson(request,id):
@@ -950,6 +951,7 @@ def get_records(request): # 全站搜尋
 def get_more_docs(request):
     if request.method == 'POST':
         keyword = request.POST.get('keyword', '')
+        lang = request.POST.get('lang', 'zh-hant')
         keyword_reg = ''
         keyword = html.unescape(keyword)
         for j in keyword:    
@@ -963,18 +965,18 @@ def get_more_docs(request):
 
         rows = []
         if doc_type == 'resource':
-            resource = Resource.objects.filter(title__regex=keyword_reg).order_by('-modified')
+            resource = Resource.objects.filter(title__regex=keyword_reg,lang=lang).order_by('-publish_date')
             for x in resource[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
                     'extension': x.extension,
                     'cate': get_resource_cate(x.extension),
                     'url': x.url,
-                    'date': x.modified.strftime("%Y.%m.%d")
+                    'date': x.publish_date.strftime("%Y.%m.%d")
                 })
             has_more = True if resource[offset+6:].count() > 0 else False
         else:
-            news = News.objects.filter(status='pass',type=doc_type).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+            news = News.objects.filter(status='pass',type=doc_type,lang=lang).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
             for x in news[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
@@ -1073,7 +1075,18 @@ def search_occurrence(request):
         'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
         })
 
+def get_media_rule():
+    conn = psycopg2.connect(**datahub_db_settings)
+    query = 'SELECT "media_rule" FROM media_rule'
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        conn.close()
+        results = [r[0] for r in results]
+        return results
 
+
+@csp_update(IMG_SRC=get_media_rule())
 def occurrence_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
@@ -1082,6 +1095,7 @@ def occurrence_detail(request, id):
     return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
+@csp_update(IMG_SRC=get_media_rule())
 def collection_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
@@ -1542,6 +1556,7 @@ def get_higher_taxa(request):
 def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')
+    lang = get_language()
 
     if keyword and len(keyword) < 2000:
         ## collection
@@ -1589,7 +1604,7 @@ def search_full(request):
         keyword_reg = get_variants(keyword_reg)
 
         # news
-        news = News.objects.filter(status='pass',type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        news = News.objects.filter(lang=lang,status='pass',type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_news = news.count()
         news_rows = []
         for x in news[:6]:
@@ -1598,7 +1613,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        event = News.objects.filter(status='pass',type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        event = News.objects.filter(lang=lang,status='pass',type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_event = event.count()
         event_rows = []
         for x in event[:6]:
@@ -1607,7 +1622,7 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
-        project = News.objects.filter(status='pass',type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg))
+        project = News.objects.filter(lang=lang,status='pass',type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_project = project.count()
         project_rows = []
         for x in project[:6]:
@@ -1617,7 +1632,7 @@ def search_full(request):
                 'id': x.id
             })
         # resource
-        resource = Resource.objects.filter(title__regex=keyword_reg).order_by('-modified')
+        resource = Resource.objects.filter(lang=lang,title__regex=keyword_reg).order_by('-publish_date')
         c_resource = resource.count()
         resource_rows = []
         for x in resource[:6]:
@@ -1626,7 +1641,7 @@ def search_full(request):
                 'extension': x.extension,
                 'cate': get_resource_cate(x.extension),
                 'url': x.url,
-                'date': x.modified.strftime("%Y.%m.%d")
+                'date': x.publish_date.strftime("%Y.%m.%d")
             })
         
         # taxon_more = True if taxon_card_len > 4 else False

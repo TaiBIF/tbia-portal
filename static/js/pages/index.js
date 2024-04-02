@@ -57,6 +57,7 @@ $(document).ready(function () {
       url: "/get_resource_list",
       data: {
         type: type,
+        lang: $lang,
         csrfmiddlewaretoken: $csrf_token,
       },
       type: 'POST',
@@ -87,33 +88,22 @@ $(document).ready(function () {
               <a href="https://tbia.github.io/docs/" class="title" target="_blank">${gettext("TBIA文件網站")}</a>
             </div>
             </li>
+            <li class="show_tech">
+            <div class="item">
+              <div class="cate_dbox">
+              <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
+              </div>
+              <a class="title ">${gettext("生物多樣性資料庫共通查詢系統教學說明")}</a>
+            </div>
+          </li>
+  
             `)
         }
 
         if (response.rows.length > 0) {
           for (let i = 0; i < response.rows.length; i++) {
 
-            if (response.rows[i].extension == 'pop') {
-              $('.edu_list').append(`
-              <li class="show_tech">
-                <div class="item">
-                  <div class="cate_dbox">
-                    <div class="date">${response.rows[i].date}</div>
-                  </div>
-                  <a class="title ">${gettext(response.rows[i].title)}</a>
-                </div>
-              </li>`)
-
-              $('.show_tech').off('click')
-              $('.show_tech').on('click', function () {
-                // 每次打開都放第一張
-                $('.index_tech .text_tec').html($tutorial[1])
-                $('.index_tech .arl').data('index', 10)
-                $('.index_tech .arr').data('index', 2)
-                $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png?v1")
-                $('.tech-pop').removeClass('d-none')
-              })
-            } else if (response.rows[i].cate == 'link'){
+           if (response.rows[i].cate == 'link'){
               $('.edu_list').append(`
               <li>
                 <div class="item">

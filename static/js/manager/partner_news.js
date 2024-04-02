@@ -108,13 +108,11 @@ function changePage(page, menu) {
   Quill.register("modules/imageUploader", ImageUploader);
 
   var toolbarOptions = [
-    [{ 'font': [] }, { 'size': [] }],
+    [{ 'size': [] }],
     ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-    ['direction', { 'align': [] }],
+    [{ 'align': [] }],
     ['link', 'image', 'video'],
-    ['clean']
   ]
 
   var quill = new Quill('#editor', {
@@ -191,17 +189,11 @@ $(document).ready(function () {
     changeURL(menu)
   })
 
-  // $('label[for="id_content"]').html('')
-
-  /*
-  var $radios = $('#newsForm input:radio[name=type]');
-  if (($('input[name=n_type]').val()!='')&&($('input[name=n_type]').val()!='None')){
-    $radios.prop('checked', false);
-
-    if($radios.is(':checked') === false) {
-        $radios.filter(`[value=${$('input[name=n_type]').val()}]`).prop('checked', true);
-    }
-  }*/
+    // 類型
+    if ($('input[name=n_type]').val() != ''){
+      $('select[name=type]').val($('input[name=n_type]').val()); 
+      $('select[name=type]').change();
+    } 
 
   $(`a.${$('input[name=menu]').val()}`).addClass('now')
   $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();
@@ -219,6 +211,11 @@ $(document).ready(function () {
       checked = false
     }
 
+    if ($('#newsForm input[name=publish_date]').val() == '') {
+      $('#newsForm input[name=publish_date]').next('.noticbox').removeClass('d-none')
+      checked = false
+    }
+
     var regex = /(<([^>]+)>)/ig
     check_body = $('.ql-editor').html()
     //hasText = check_body.replace(regex, "");
@@ -231,7 +228,9 @@ $(document).ready(function () {
     if (checked) {
       $('#newsForm').append(`<textarea class="d-none" name="content">${check_body}</textarea>`)
       $('#newsForm').submit()
-    }
+    } else {
+      alert('請檢查內容是否完整！')
+    } 
   })
 
 

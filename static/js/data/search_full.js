@@ -1159,6 +1159,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
       doc_type: doc_type,
       keyword: $('input[name=keyword]').val(),
       csrfmiddlewaretoken: $csrf_token,
+      lang: $lang,
       offset: offset,
     },
     type: 'POST',
@@ -1170,18 +1171,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
       if (card_class == '.resource-card') {
         for (let i = 0; i < response.rows.length; i++) {
           let x = response.rows[i]
-
-          if (x.extension == 'pop') {
-            $('.edu_list').append(`
-          <li class="show_tech">
-            <div class="item items h-100p">
-              <div class="cate_dbox">
-                <div class="date">${x.date}</div>
-              </div>
-              <a class="title ">${x.title}</a>
-            </div>
-          </li>`)
-          } else if (x.cate == 'link'){
+           if (x.cate == 'link'){
             $('.edu_list').append(`
           <li>
             <div class="item">

@@ -484,6 +484,7 @@ download_cols = [
 'verbatimSRS',
 'scientificNameID',
 'taxonID',
+'match_higher_taxon',
 # 'parentTaxonID',
 'scientificName',
 'name_author',

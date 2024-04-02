@@ -109,7 +109,7 @@
                     <form id="saveForm" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="qa_id" value="{{ current_q.id }}">
-                        <li>類別</li>
+                        <li>類型</li>
                         <li>
                             <select name="qa_type">
                                 {% for t in type_choice %}
@@ -170,7 +170,7 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 qa_table">
                         <tr class="qa_table_header">
-                            <td class="w-20p">類別</td>
+                            <td class="w-20p">類型</td>
                             <td class="w-10p">排序</td>
                             <td class="w-50p">問題</td>
                             <td class="w-10p"></td> 

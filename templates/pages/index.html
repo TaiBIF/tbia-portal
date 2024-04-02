@@ -219,7 +219,7 @@
         <li class="li-news-all now updateNews" data-type="all">{% trans '所有消息' %}<span></span></li>
         <li class="li-news-news updateNews" data-type="news">{% trans '新聞公告' %}<span></span></li>
         <li class="li-news-event updateNews" data-type="event">{% trans '活動訊息' %}<span></span></li>
-        <li class="li-news-project updateNews" data-type="project">{% trans '計畫徵求' %}<span></span></li>
+        <li class="li-news-project updateNews" data-type="project">{% trans '徵求公告' %}<span></span></li>
       </ul>
       <ul class="news_list">
         {% if news_list|length > 0 %}
@@ -316,21 +316,15 @@
             <a href="https://tbia.github.io/docs/" class="title" target="_blank">{% trans 'TBIA文件網站' %}</a>
           </div>
         </li>
-        {% for i in resource %}
-          {% if i.extension == 'pop' %}
-          <li class="show_tech">
-            <div class="item">
-              <div class="cate_dbox">
-              <div class="date">{{ i.date }}</div>
-              </div>
-              <a class="title ">{% trans i.title %}</a>
-              <!--
-              <a href="/media/{{ i.url }}" class="title" target="_blank">{{ i.title }}</a>
-              <a href="/media/{{ i.url }}" download class="dow_btn"> </a>
-              -->
+        <li class="show_tech">
+          <div class="item">
+            <div class="cate_dbox">
+            <div class="catepin"><i class="fa-solid fa-thumbtack transform315"></i></div>
             </div>
-          </li>
-          {% else %}
+            <a class="title ">{% trans '生物多樣性資料庫共通查詢系統教學說明' %}</a>
+          </div>
+        </li>
+        {% for i in resource %}
           <li>
             <div class="item">
               <div class="cate_dbox">
@@ -346,7 +340,6 @@
               {% endif %}
             </div>
           </li>
-          {% endif %}
         {% endfor %}
       </ul>
       <div class="more_right clearfix">
@@ -399,5 +392,5 @@
 {% endblock body %} 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/index.js' %}?v4"></script>
+<script src="{% static 'js/pages/index.js' %}?v5"></script>
 {% endblock script %}

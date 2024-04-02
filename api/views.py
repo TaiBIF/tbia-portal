@@ -20,6 +20,9 @@ from urllib import parse
 from manager.models import SearchStat, SearchCount
 from django.utils import timezone
 
+from conf.settings import datahub_db_settings
+import psycopg2
+from psycopg2 import sql
 
 def check_coor(lon,lat):
     try:
@@ -327,4 +330,122 @@ def occurrence(request):
         final_response['data'] = df.to_dict('records')
 
     
+    return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+
+
+def dataset(request):
+    final_response = {}
+
+    if request.method == 'GET':
+
+        results = []
+
+        req = request.GET
+
+        limit = req.get('limit', 20)
+
+        try:
+            limit = int(limit)
+        except:
+            limit = 20
+
+        if limit > 1000: # 最高為1000
+            limit = 1000
+
+        offset = req.get('offset', 0)
+        try:
+            offset = int(offset)
+        except:
+            offset = 0
+
+        # 篩選條件
+        
+        # datasetName={string}
+        # sourceDatasetID={string}
+        # tbiaDatasetID={string} (暫不提供)
+        # rightsHolder={string}
+
+        conn = psycopg2.connect(**datahub_db_settings)
+    
+        query_value = []
+        query_pair = []
+        query_identifier = []
+
+
+
+        # union_list = ['taxonID', 'rightsHolder','datasetName']
+        # for u in union_list:
+        #     if values := req.getlist(u):
+        #         values = [f'"{v}"' for v in values]
+        #         fq_list.append(f'{u}: ({(" OR ").join(values)})')
+
+
+        for k in ['datasetName', 'rightsHolder']:
+            tmp_list = []
+            if k == 'rightsHolder':
+                key = 'rights_holder'
+                for kk in req.getlist(k):
+                    tmp_list.append('{} = %s')
+                    query_value.append(kk)
+                    query_identifier.append(key)
+            else:
+                key = 'name'
+                for kk in req.getlist(k):
+                    tmp_list.append('{} like %s')
+                    query_value.append(f'%{kk}%')
+                    query_identifier.append(key)
+            if tmp_list:
+                query_pair.append("(" + ' OR '.join(tmp_list) + ")")
+
+
+
+
+        for k in ['sourceDatasetID']:
+            if req.get(k):
+                query_pair.append('{} = %s')
+                query_value.append(req.get(k))
+                query_identifier.append(k)
+
+
+                
+        query_str = '''select "name" as "datasetName", "rights_holder" as "rightsHolder", "sourceDatasetID", "gbifDatasetID", 
+                        "resourceContacts", "datasetURL", "datasetAuthor", "datasetPublisher",
+                        "datasetLicense", "datasetTaxonGroup", "dateCoverage", "occurrenceCount",
+                        TO_CHAR(created, 'yyyy-mm-dd') as created , TO_CHAR(modified, 'yyyy-mm-dd') as modified
+                        ,  count(*) OVER() AS total
+                        from dataset WHERE deprecated = 'f' 
+                        '''
+
+        if len(query_pair):
+            query_str += ' AND ' + (' AND ').join(query_pair)
+
+        query_str += ' order by id limit %s offset %s'
+
+        
+        query_value.append(limit)
+        query_value.append(offset)
+
+        query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
+
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, query_value )
+            results = cursor.fetchall()
+            conn.close()
+
+        data = []
+        total = 0
+        for row in results:
+            total = dict(row).get('total')
+            row = dict(row)
+            row.pop('total')
+            data.append(row)
+
+
+        final_response['status'] = {'code': 200, 'message': 'Success'}
+        final_response['meta'] = {'total': total, 'limit': limit, 'offset': offset}
+        final_response['data'] = data
+
+
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')

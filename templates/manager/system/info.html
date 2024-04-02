@@ -178,7 +178,7 @@
                 <div class="box-title "><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
                 <div class="d-flex-jc-fe">
                     <a class="dow_btn downloadReport">
-                        <form id="downloadReport" action="{% url 'download_sensitive_report' %}" method="POST">
+                        <form action="{% url 'download_sensitive_report' %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="from" value="system">
                         </form>
@@ -206,7 +206,7 @@
                 <div class="box-title "><div class="dottt"></div>敏感資料申請審核追蹤</div>
                 <div class="d-flex-jc-fe">
                     <a class="dow_btn downloadReport">
-                        <form id="downloadReport" action="{% url 'download_sensitive_report' %}" method="POST">
+                        <form action="{% url 'download_sensitive_report' %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="from" value="track">
                         </form>
@@ -224,7 +224,8 @@
                             <td class="w-10p">申請時間</td>
                             <td class="w-15p">搜尋條件</td>
                             <td class="w-15p">審查意見</td>
-                            <td class="w-5p">狀態</td>
+                            <td class="w-5p">檔案狀態</td>
+                            <td class="w-5p"></td>
                         </tr>
                     </table>
                 </div>
@@ -311,7 +312,7 @@
                             <p class="title">申請資料使用者</p>
                         </div>
                     </div>
-                    <button class="accordion fs-16px">審查意見</button>
+                    <button class="accordion fs-16px resp-box">審查意見</button>
                     <div class="form_box panel d-none form-flow fs-14px">
                         <form id="reviewForm">
                         {% csrf_token %}
@@ -338,8 +339,8 @@
                         </div>
                         </form>
                     </div>                
-                    <button class="send send-check mt-15px">確認送出</button>
-                    <button class="send send-transfer mt-15px">轉交給單位審核</button>
+                    <button class="send-check send mt-15px">確認送出</button>
+                    <button class="send-transfer send mt-15px">轉交給單位審核</button>
                     <button class="send-submitted d-none mt-15px" disabled>審核已完成不得修改</button>
                     <button class="send-transferred d-none mt-15px" disabled>已轉交給單位審核</button>
                 </div>
@@ -376,5 +377,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v2"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v3"></script>
 {% endblock script %}
