@@ -175,7 +175,7 @@ msgstr "Event Information"
 #: templates/data/search_full.html:225 templates/data/search_full.html:541
 #: templates/pages/index.html:223 templates/pages/news.html:49
 msgid "徵求公告"
-msgstr "Call for Project"
+msgstr "Project and Talent Call"
 
 #: templates/base.html:227 templates/base.html:321 templates/base.html:444
 #: templates/data/search_full.html:231 templates/data/search_full.html:574
