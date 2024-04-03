@@ -550,7 +550,7 @@ form#search_full_form_top {
 
     .shortcut-menu-wrapper .btn {
         width: 90px;
-        padding: 0.35rem;
+        /* padding: 0.35rem; */
     }
 
     .shortcut-menu-wrapper .stamp {
