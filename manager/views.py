@@ -1394,7 +1394,7 @@ def get_data_stat(request):
     resp = {}
     if request.GET.get('group'):
         
-        df = pd.DataFrame(data_list, colums=['count','year_month','rights_holder'])
+        df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
         r_list = df.rights_holder.unique()
         r_list.sort() # 確保同一個來源資料庫是同一個顏色
         new_data_list = []
