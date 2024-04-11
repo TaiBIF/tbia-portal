@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout, tokens
-from manager.models import SearchQuery, SensitiveDataRequest, SensitiveDataResponse, User, Partner, About
+from manager.models import *
 from pages.models import Feedback, News, Notification, Resource, Link
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -37,10 +37,10 @@ from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max
+from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max, Sum
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list, create_query_a, query_a_href
+from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c
 from os.path import exists
 import math
 
@@ -1198,6 +1198,9 @@ def manager_partner(request):
     partner_admin = ''
     download_url = []
     info = []
+    stat_year = [*range(2023, timezone.now().year+1)]
+    stat_month = [*range(1, 13, 1)]
+
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
@@ -1211,8 +1214,10 @@ def manager_partner(request):
             partner_admin = ','.join(partner_admin)
             # info
             info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
+            data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
+
     return render(request, 'manager/partner/manager.html',{'partner_admin': partner_admin, 'download_url': download_url,
-                                                            'info': info})
+                                                            'info': info, 'data_year': data_year, 'stat_year': stat_year, 'stat_month': stat_month})
 
 
 def get_partner_stat(request):
@@ -1221,6 +1226,8 @@ def get_partner_stat(request):
     no_taxon = 0
     has_taxon = 0
     data_total = []
+    image_data_total = []
+    taxon_group_stat = []
 
     if partner_id := request.GET.get('partner_id'):
 
@@ -1236,6 +1243,7 @@ def get_partner_stat(request):
                 }
             response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
             no_taxon = response.json()['response']['numFound']
+
             # 資料筆數
             url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&q.op=OR&q=group%3A{group}&rows=0&start=0"
             data = requests.get(url).json()
@@ -1244,26 +1252,52 @@ def get_partner_stat(request):
                 for r in range(0,len(facets),2):
                     p_count += facets[r+1]
                     if facets[r+1] > 0 :
-                        # for pg in partner_map[group]:
-                        #     if pg['dbname'] == facets[r]:
-                        #         p_color = pg['color']
-                        #         break
                         if Partner.objects.filter(group=group).exists():
                             for pp in Partner.objects.get(group=group).info:
                                 if pp['dbname'] == facets[r]:
                                     p_color = pp['color']
                                     break
                             data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+
+            # 影像資料筆數
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
+            image_data = requests.get(url).json()
+            other_image_count = 0
+            if image_data['responseHeader']['status'] == 0:
+                facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
+                for f in facets:
+                    p_group = f.get('value')
+                    for fp in f.get('pivot'):
+                        p_dbname = fp.get('value')
+                        p_count = fp.get('count')
+                        if p_group == group:
+                            if Partner.objects.filter(group=p_group).exists():
+                                for pp in Partner.objects.get(group=p_group).info:
+                                    if pp['dbname'] == p_dbname:
+                                        p_color = pp['color']
+                                        break
+                                image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                        else:
+                            other_image_count += p_count
+            image_data_total.append({'name': '其他單位','y': other_image_count, 'color': '#ddd'})
+
             response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
             if response.status_code == 200:
                 total_count = response.json()['response']['numFound']
                 total_count = total_count - p_count
                 data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
                 has_taxon = p_count - no_taxon
+
+            # 物種類群資料筆數
+            taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
+
+
     response = {
         'data_total': data_total,
         'has_taxon': has_taxon,
-        'no_taxon': no_taxon
+        'no_taxon': no_taxon,
+        'image_data_total': image_data_total,
+        'taxon_group_stat': taxon_group_stat
     }
     return JsonResponse(response, safe=False)
 
@@ -1272,7 +1306,12 @@ def manager_system(request):
     no_taxon = 0
     has_taxon = 0
     partner_admin = ''
+    stat_year = [*range(2023, timezone.now().year+1)]
+    stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
+        holder_list = ['total']
+        for ii in Partner.objects.all().values_list('info', flat=True):
+            holder_list += [iii['dbname'] for iii in ii]
         # TaiCOL對應狀況
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
         if response.status_code == 200:
@@ -1286,8 +1325,130 @@ def manager_system(request):
             for pp in p.info:
                 if os.path.exists(f'/tbia-volumes/media/match_log/{p.group}_{pp["id"]}_match_log.zip'):
                     match_logs.append({'url': f'/media/match_log/{p.group}_{pp["id"]}_match_log.zip','name':f"{p.title} - {pp['subtitle']}"})
+        keyword_year = int(KeywordStat.objects.aggregate(Max('year_month'))['year_month__max'].split('-')[0])
+        keyword_month = int(KeywordStat.objects.aggregate(Max('year_month'))['year_month__max'].split('-')[1])
+        checklist_year = int(ChecklistStat.objects.aggregate(Max('year_month'))['year_month__max'].split('-')[0])
+        data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
+        
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
-                                                          'match_logs': match_logs})
+                                                          'match_logs': match_logs, 'stat_year': stat_year, 'stat_month': stat_month,
+                                                          'keyword_year': keyword_year, 'keyword_month': keyword_month, 'checklist_year': checklist_year,
+                                                          'holder_list': holder_list, 'data_year': data_year})
+
+
+
+def get_keyword_stat(request):
+
+    month = int(request.GET.get('month'))
+    year = int(request.GET.get('year'))
+    year_month = f'{year}-{"{:02d}".format(month)}'
+    keyword_list = list(KeywordStat.objects.filter(year_month=year_month).order_by('-count')[:10].values('keyword','count'))
+
+    return HttpResponse(json.dumps(keyword_list), content_type='application/json')
+
+
+def get_checklist_stat(request):
+
+    year = int(request.GET.get('year'))
+    checklist_list = list(ChecklistStat.objects.filter(year_month__contains=f'{year}-').order_by('year_month').values('count','year_month'))
+    month_list = [*range(1,13)]
+
+    df = pd.DataFrame(checklist_list, columns=['count','year_month'])
+
+
+    for mm in month_list:
+        now_year_month = f'{year}-{"{:02d}".format(mm)}'
+        if not len(df[df.year_month==now_year_month]):
+            df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
+    df = df.reset_index(drop=True)
+
+
+    resp = {}
+    resp['data'] = df.sort_values('year_month')['count'].to_list()
+    resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+    return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+def get_data_stat(request):
+
+    year = int(request.GET.get('year'))
+    rights_holder = request.GET.get('rights_holder')
+    type = request.GET.get('type')
+
+    if rights_holder := request.GET.get('rights_holder'):
+        data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month'))
+    elif group :=  request.GET.get('group'):
+        data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
+
+    # print()
+    colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
+    '#555','#3B86C0','#304237','#C65454','#ccc' ]
+
+
+    if type == 'data':
+        month_list = [1,3,5,7,9,11]
+    else:
+        month_list = [*range(1,13)]
+
+    resp = {}
+    if request.GET.get('group'):
+        
+        df = pd.DataFrame(data_list, colums=['count','year_month','rights_holder'])
+        r_list = df.rights_holder.unique()
+        r_list.sort() # 確保同一個來源資料庫是同一個顏色
+        new_data_list = []
+
+        c = 0
+        for x in r_list:
+            for mm in month_list:
+                now_year_month = f'{year}-{"{:02d}".format(mm)}'
+                if not len(df[(df.rights_holder==x)&(df.year_month==now_year_month)]):
+                    df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'count': 0, 'year_month': now_year_month}])])
+            df = df.reset_index(drop=True)
+            new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
+            c += 1
+
+        resp['data'] = new_data_list
+        resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+    else:
+        df = pd.DataFrame(data_list, columns=['count','year_month'])
+
+
+        for mm in month_list:
+            now_year_month = f'{year}-{"{:02d}".format(mm)}'
+            if not len(df[df.year_month==now_year_month]):
+                df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
+        df = df.reset_index(drop=True)
+
+
+        resp['data'] = df.sort_values('year_month')['count'].to_list()
+        resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+    return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+
+def get_taxon_group_list(request):
+
+    name = request.GET.get('name')
+    selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
+    if selected_name:
+        selected_name = selected_name[0]
+
+    total_count = TaxonStat.objects.get(type='taxon_group', name=selected_name, group='total').count
+    
+    if current_group := request.GET.get('group'):
+        taxon_list = list(TaxonStat.objects.filter(type='taxon_group', name=selected_name, group=current_group).order_by('-count').values('rights_holder','count'))
+    else:
+        taxon_list = list(TaxonStat.objects.filter(type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
+
+    final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'percent': round((t['count'] / total_count)*100, 2) } for t in taxon_list ]
+
+    return HttpResponse(json.dumps(final_list), content_type='application/json')
+
+
 
 
 def get_system_stat(request):
@@ -1295,8 +1456,8 @@ def get_system_stat(request):
     has_taxon = 0
     # partner_admin = ''
     data_total = []
-    # if not request.user.is_anonymous:
-        # 資料筆數 - 改成用單位?
+    image_data_total = []
+    # 資料筆數 - 
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url).json()
     if data['responseHeader']['status'] == 0:
@@ -1312,24 +1473,27 @@ def get_system_stat(request):
                         if pp['dbname'] == p_dbname:
                             p_color = pp['color']
                             break
-                    # for pg in partner_map[p_group]:
-                    #     if pg['dbname'] == p_dbname:
-                    #         p_color = pg['color']
-                    #         break
                     data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
                 elif p_group == 'gbif':
                     data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
-
-            # if data['responseHeader']['status'] == 0:
-            #     facets = data['facet_counts']['facet_fields']['rightsHolder']
-            #     for r in range(0,len(facets),2):
-            #         p_count += facets[r+1]
-            #         if facets[r+1] > 0 :
-            #             for pg in partner_map[group]:
-            #                 if pg['dbname'] == facets[r]:
-            #                     p_color = pg['color']
-            #                     break
-            #             data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+    # 影像資料筆數
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
+    image_data = requests.get(url).json()
+    if image_data['responseHeader']['status'] == 0:
+        facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
+        for f in facets:
+            p_group = f.get('value')
+            for fp in f.get('pivot'):
+                p_dbname = fp.get('value')
+                p_count = fp.get('count')
+                if Partner.objects.filter(group=p_group).exists():
+                    for pp in Partner.objects.get(group=p_group).info:
+                        if pp['dbname'] == p_dbname:
+                            p_color = pp['color']
+                            break
+                    image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                elif p_group == 'gbif':
+                    image_data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
 
 
     # TaiCOL對應狀況
@@ -1341,14 +1505,39 @@ def get_system_stat(request):
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
+    # 物種類群資料筆數
+    taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
+
+    # 各單位前三類群
+    top3_taxon_list = []
+    top3_taxon_group = pd.DataFrame(TaxonStat.objects.filter(type='taxon_group').exclude(rights_holder='total').values('rights_holder','name','count'))
+    for h in top3_taxon_group.rights_holder.unique():
+        data = []
+        for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
+            # data.append({'name': taxon_group_map_c[tt[0]], 'count': tt[1]})
+            data.append(f'{taxon_group_map_c[tt[0]]} ({tt[1]})')
+        top3_taxon_list.append({'rights_holder': h, 'data': ('、').join(data)})
+
+    top5_family_list = []
+    top5_family = pd.DataFrame(TaxonStat.objects.filter(type='family').exclude(rights_holder='total').values('rights_holder','name','count'))
+    for h in top5_family.rights_holder.unique():
+        data = []
+        for tt in top5_family[top5_family.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:5]:
+            # data.append({'name': taxon_group_map_c[tt[0]], 'count': tt[1]})
+            data.append(f'{tt[0]} ({tt[1]})')
+        top5_family_list.append({'rights_holder': h, 'data': ('、').join(data)})
+
     has_taxon = total_count - no_taxon
     response = {
         'data_total': data_total,
         'has_taxon': has_taxon,
-        'no_taxon': no_taxon
+        'no_taxon': no_taxon,
+        'image_data_total': image_data_total,
+        'taxon_group_stat': taxon_group_stat,
+        'top3_taxon_list': top3_taxon_list,
+        'top5_family_list': top5_family_list
     }
     return JsonResponse(response, safe=False)
-
 
 
 def update_tbia_about(request):

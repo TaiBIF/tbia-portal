@@ -68,6 +68,22 @@
     font-size: 16px
 }
 
+.panel-select {
+    width: 25% !important;
+}
+
+
+.panel-select-rightsholder  {
+    width: 40% !important;
+}
+
+@media only screen and (max-width: 767px) {
+    .panel-select {
+        width: 100% !important;
+    }
+}
+
+
 @media only screen and (max-width: 767px) {
     .main_1240 input, .main_1240 select {
         width: 100%;
@@ -142,6 +158,30 @@
     margin-left: 20px
 }
 
+.ml-5px {
+    margin-left: 5px
+}
+
 .fs-16px {
     font-size: 16px;
+}
+
+
+#keyword-stat-list {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.highcharts-figure {
+    height: 300px;
+    margin-top: 20px;
+}
+
+#taxon_group-stat-title {
+    font-weight: bold;
+}
+
+hr {
+    margin-bottom: 20px;
+    border: 0.5px solid lightgrey;
 }

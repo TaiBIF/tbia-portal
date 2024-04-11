@@ -4,7 +4,7 @@
 {% block title %}{% trans '系統管理後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_system.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_system.css' %}?v2" />
 {% endblock style %}
 
 {% block head %}
@@ -109,24 +109,35 @@
         </div>
 
         <div class="rightbox_content dashboard">
-            <div class="item">
-                <div class="box-title">
-                    <div class="dottt"></div>資料筆數
+            <div class="item d-flex-jc-sb">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>資料筆數
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container" class="h-100p"></div>
+                    </div>
                 </div>
-                <figure class="highcharts-figure h-300px">
-                    <div id="container" class="h-100p"></div>
-                </figure>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>影像資料筆數
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-image-stat" class="h-100p"></div>
+                    </div>
+                </div>
             </div>
+            <hr>
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況</div>
                 <div class="d-flex-jc-sb">
                     <div class="w-50p">
-                        <figure class="highcharts-figure h-300px">
+                        <div class="highcharts-figure">
                             <div id="container2" class="h-100p"></div>
-                        </figure>
-                    </div>                    
-                    <div class="w-50p mt-15px ml-20px">
-                        <p>下載各單位學名比對結果清單 <a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank" >(學名比對欄位說明文件)</a></p>
+                        </div>
+                    </div>
+                    <div class="w-50p ml-20px">
+                        <p>下載各來源資料庫學名比對結果清單 <a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank" >(學名比對欄位說明文件)</a></p>
                         <ul class="mt-5px ml-20px fs-16px">
                             {% for i in match_logs %}
                             <li>
@@ -137,6 +148,155 @@
                     </div>
                 </div>
             </div>
+            <hr>
+            <div class="item d-flex-jc-sb">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>物種類群資料筆數
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-taxon_group-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div id="taxon_group-stat-title">👈點擊圓餅圖取得各來源資料庫筆數</div>
+                    <ul id="taxon_group-stat-list" class="mt-5px ml-20px fs-16px">
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb" >
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>資料累積筆數
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="data-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                            <select class="panel-select panel-select-rightsholder ml-20px" name="data-stat-rightsholder">
+                                {% for r in holder_list %}
+                                <option value="{{ r }}" {% if r == 'total' %} selected {% endif %}>{% if r == 'total' %}全部{% else %}{{ r }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-data-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月名錄下載次數
+                    </div>
+                    <select class="panel-select mt-15px" name="checklist-stat-year">
+                        {% for y in stat_year %}
+                        <option value="{{ y }}" {% if y == checklist_year %} selected {% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select> <span class="ml-5px">年</span>
+                    <div class="highcharts-figure">
+                        <div id="container-checklist-stat" class="h-100p"></div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb" >
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月資料查詢筆數
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="search-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                            <select class="panel-select panel-select-rightsholder ml-20px" name="search-stat-rightsholder">
+                                {% for r in holder_list %}
+                                <option value="{{ r }}" {% if r == 'total' %} selected {% endif %}>{% if r == 'total' %}全部{% else %}{{ r }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-search-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月資料下載筆數
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="download-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                            <select class="panel-select panel-select-rightsholder ml-20px" name="download-stat-rightsholder">
+                                {% for r in holder_list %}
+                                <option value="{{ r }}" {% if r == 'total' %} selected {% endif %}>{% if r == 'total' %}全部{% else %}{{ r }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-download-stat" class="h-100p"></div>
+                    </div>
+                </div>            
+            </div>
+            <hr>
+            <div class="item" >
+                <div class="box-title">
+                    <div class="dottt"></div>各來源資料庫前三類群
+                </div>
+                <ul id="rightsholder_taxon_group_top3" class="mt-5px ml-20px fs-16px">
+                </ul>
+            </div>
+            <hr>
+            <div class="item" >
+                <div class="box-title">
+                    <div class="dottt"></div>各來源資料庫前五科名
+                </div>
+                <ul id="rightsholder_family_top5" class="mt-5px ml-20px fs-16px">
+                </ul>
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb" >
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月搜尋關鍵字
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="keyword-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == keyword_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                            <select class="panel-select ml-20px" name="keyword-stat-month">
+                                {% for m in stat_month %}
+                                <option value="{{ m }}" {% if m == keyword_month %} selected {% endif %}>{{ m }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">月</span>
+                        </div>
+                        <ol id="keyword-stat-list">
+                        </ol>
+                    </div>
+                </div>
+                {% comment %} <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>各單位前三類群
+                    </div>
+                    <ul id="rightsholder_taxon_group_top3">
+                    </ul>
+                </div> {% endcomment %}
+            </div>
+
         </div>
         {% else %}
         {% trans '您的權限不足' %}
@@ -149,5 +309,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/manager_system.js' %}?v1"></script>
+  <script src="{% static 'js/manager/manager_system.js' %}?v2"></script>
   {% endblock script %}
