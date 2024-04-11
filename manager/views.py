@@ -1233,6 +1233,7 @@ def get_partner_stat(request):
 
         if Partner.objects.filter(id=partner_id).exists():
             group = Partner.objects.get(id=partner_id).group
+
             f = ['-taxonID:*',f'group:{group}']
             # TaiCOL對應狀況
             query = {
@@ -1258,6 +1259,13 @@ def get_partner_stat(request):
                                     p_color = pp['color']
                                     break
                             data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
+                            
+            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+            if response.status_code == 200:
+                total_count = response.json()['response']['numFound']
+                total_count = total_count - p_count
+                data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
+                has_taxon = p_count - no_taxon
 
             # 影像資料筆數
             url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
@@ -1279,14 +1287,9 @@ def get_partner_stat(request):
                                 image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
                         else:
                             other_image_count += p_count
+
             image_data_total.append({'name': '其他單位','y': other_image_count, 'color': '#ddd'})
 
-            response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
-            if response.status_code == 200:
-                total_count = response.json()['response']['numFound']
-                total_count = total_count - p_count
-                data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
-                has_taxon = p_count - no_taxon
 
             # 物種類群資料筆數
             taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
