@@ -98,11 +98,14 @@ $(document).ready(function () {
                 },
                 plotOptions: {
                     pie: {
-                        size: '100%',
+                        size: '90%',
                         allowPointSelect: true,
                         cursor: 'pointer',
                         dataLabels: {
-                            enabled: false,
+                            padding: 0,
+                            style: {
+                              fontSize: '10px'
+                            }
                         }
                     },
                 },

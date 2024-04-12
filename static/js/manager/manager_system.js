@@ -40,8 +40,6 @@ $(document).ready(function () {
         })
             .done(function (response) {
 
-                console.log(response.taxon_group_stat)
-
                 for (i of response.top3_taxon_list){
                     $('#rightsholder_taxon_group_top3').append(`<li><b>${i['rights_holder']}</b>：${i['data']}</li>`)
                 }
@@ -103,7 +101,7 @@ $(document).ready(function () {
                                 style: {
                                   fontSize: '10px'
                                 }
-                                                      }
+                            }
                         },
                     },
                     series: [{
