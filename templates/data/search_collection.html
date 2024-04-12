@@ -66,6 +66,9 @@
               <div class="input_item">
                 <input  class="{% if LANGUAGE_CODE == 'en-us' %} name_input {% endif %}" type="text" name="name" placeholder="{% trans '學名/中文名/中文別名/同物異名/誤用名' %}" value=""/>
               </div>
+              <div class="input_item">
+                <input type="text" name="catalogNumber" placeholder="{% trans '館藏號' %}" value=""/>
+              </div>
             </div>
             <div class="two_input">
 				<div class="input_item">
@@ -115,7 +118,23 @@
 				  <select id="higherTaxa" name="higherTaxa">
 				  </select>  
 				</div>  
-			</div>              
+			</div>
+			<div class="two_input">
+				<div class="input_item">
+				  <select name="is_endemic" id="is_endemic">
+					<option value="">{% trans '-- 不限 --' %}</option>
+					<option value="y">{% trans '是' %}</option>
+					<option value="n">{% trans '否' %}</option>
+				  </select>
+				</div>
+				<div class="input_item">
+				  <select name="is_protected" id="is_protected">
+					<option value="">{% trans '-- 不限 --' %}</option>
+					<option value="y">{% trans '是' %}</option>
+					<option value="n">{% trans '否' %}</option>
+				  </select>
+				</div>
+			</div>
 			<div class="two_input">
               <div class="input_item">
                 <select name="rightsHolder" id="rightsHolder" multiple size="1">
@@ -457,5 +476,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v10"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v11"></script>
 {% endblock %}

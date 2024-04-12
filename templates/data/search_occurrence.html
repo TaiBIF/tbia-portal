@@ -88,12 +88,6 @@
                   <option value="Others">{% trans '其他' %}</option>
                 </select>  
               </div>  
-              <!--<div class="input_item">
-                
-                <select name="sensitiveCategory" id="sensitiveCategory" required>
-                  <option value="">-- 不限 --</option>
-                </select>
-              </div>-->
               <div class="input_item">
                 <select name="taxonRank" id="taxonRank">
                   <option value="">{% trans '-- 不限 --' %}</option>
@@ -109,6 +103,22 @@
                 </select>  
               </div>  
             </div>            
+            <div class="two_input">
+              <div class="input_item">
+                <select name="is_endemic" id="is_endemic">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  <option value="y">{% trans '是' %}</option>
+                  <option value="n">{% trans '否' %}</option>
+                </select>
+              </div>
+              <div class="input_item">
+                <select name="is_protected" id="is_protected">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  <option value="y">{% trans '是' %}</option>
+                  <option value="n">{% trans '否' %}</option>
+                </select>
+              </div>
+            </div>
             <div class="two_input">
               <div class="input_item">
                 <select name="rightsHolder" id="rightsHolder" multiple size="1" class="d-none">>
@@ -443,5 +453,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v10"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v11"></script>
 {% endblock script %}

@@ -392,6 +392,7 @@ map_occurrence = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
+    'occurrenceID': 'occurrenceID' 
 }
 
 # 抓出collection和occurrence不一樣的地方
@@ -403,7 +404,8 @@ map_collection.update({
     'recordedBy': '採集者',
     'recordNumber': '採集號',
     'typeStatus': '標本類型',
-    'preservation': '保存方式'
+    'preservation': '保存方式',
+    'catalogNumber': '館藏號'
 })
 
 
@@ -609,6 +611,10 @@ def create_query_display(search_dict,lang=None):
             query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
             query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') == 'y' else gettext('無影像')}" 
+        elif k == 'is_protected':
+            query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') == 'y' else gettext('否')}" 
+        elif k == 'is_endemic':
+            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_endemic') == 'y' else gettext('否')}" 
     if r_list:
         r_list = [gettext(r) for r in r_list]
         query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
@@ -797,6 +803,22 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         elif has_image == 'n':
             query_list += ['-associatedMedia:*']
 
+    # 是否為原生種
+    if is_endemic := req_dict.get('is_endemic'):
+        if is_endemic == 'y':
+            query_list += ['is_endemic:true']
+        elif is_endemic == 'n':
+            query_list += ['is_endemic:false']
+
+
+    # 是否為保育類
+    if is_protected := req_dict.get('is_protected'):
+        if is_protected == 'y':
+            query_list += ['protected:*']
+        elif is_protected == 'n':
+            query_list += ['-protected:*']
+
+
     record_type = req_dict.get('record_type')
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
@@ -826,8 +848,10 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
                 keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
 
-    if val := req_dict.get('taxonID'):
-        query_list += [f'taxonID:"{val}"']
+    for i in ['taxonID', 'occurrenceID', 'catalogNumber']:
+        if val := req_dict.get(i):
+            query_list += [f'{i}:"{val}"']
+
 
     # higherTaxa
     # 找到該分類群的階層 & 名稱
