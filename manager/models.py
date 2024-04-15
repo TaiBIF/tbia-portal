@@ -237,7 +237,7 @@ class DataStat(models.Model):
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
     rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
-    count = models.IntegerField(null=True, blank=True)
+    count = models.CharField(max_length=10000, null=True, blank=True)  # 數字太大 改用string
     created = models.DateTimeField(auto_now_add=True)
 
 
