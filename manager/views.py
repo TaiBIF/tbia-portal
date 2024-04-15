@@ -1398,6 +1398,7 @@ def get_data_stat(request):
     if request.GET.get('group'):
         
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
+        df['count'] = df['count'].astype('int')
         r_list = df.rights_holder.unique()
         r_list.sort() # 確保同一個來源資料庫是同一個顏色
         new_data_list = []
@@ -1418,6 +1419,7 @@ def get_data_stat(request):
     else:
         df = pd.DataFrame(data_list, columns=['count','year_month'])
 
+        df['count'] = df['count'].astype('int')
 
         for mm in month_list:
             now_year_month = f'{year}-{"{:02d}".format(mm)}'
