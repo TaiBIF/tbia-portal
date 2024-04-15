@@ -46,6 +46,10 @@ urlpatterns = [
     path('get_partner_stat', views.get_partner_stat, name='get_partner_stat'),
     path('get_system_stat', views.get_system_stat, name='get_system_stat'),
     path('get_request_detail', views.get_request_detail, name='get_request_detail'), 
+    path('get_keyword_stat', views.get_keyword_stat, name='get_keyword_stat'), 
+    path('get_checklist_stat', views.get_checklist_stat, name='get_checklist_stat'), 
+    path('get_data_stat', views.get_data_stat, name='get_data_stat'), 
+    path('get_taxon_group_list', views.get_taxon_group_list, name='get_taxon_group_list'), 
     # link 管理
     path('edit_link', views.edit_link, name='edit_link'),
     path('get_link_content', views.get_link_content, name='get_link_content'),

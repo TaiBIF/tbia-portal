@@ -112,6 +112,16 @@ let selectBox10 = new vanillaSelectBox("#locality",
         translations: { "all": gettext("全部"), "items": gettext(" 個選項"), "clearAll": gettext("重設") }
     });
 
+
+let selectBox11 = new vanillaSelectBox("#is_native", {
+    placeHolder: gettext("是否為原生種"), search: false, disableSelectAll: true,
+});
+
+let selectBox12 = new vanillaSelectBox("#is_protected", {
+    placeHolder: gettext("是否為保育類"), search: false, disableSelectAll: true,
+});
+
+
 function doSearchLocality(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
@@ -616,6 +626,8 @@ $(function () {
         selectBox8.empty()
         selectBox9.empty()
         selectBox10.empty()
+        selectBox11.empty()
+        selectBox12.empty()
     })
 
     $('.sendSelected').on('click', function () {
@@ -933,6 +945,10 @@ function changeAction() {
                 selectBox5.setValue(value)
             } else if (key == 'has_image') {
                 selectBox7.setValue(value)
+            } else if (key == 'is_native') {
+                selectBox11.setValue(value)
+            } else if (key == 'is_protected') {
+                selectBox12.setValue(value)
             } else if (key == 'higherTaxa') {
                 console.log(value)
             } else if (key == 'taxonGroup') {

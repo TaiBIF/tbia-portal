@@ -1345,7 +1345,6 @@ def change_dataset(request):
     if request.GET.get('record_type') == 'col':
         record_type = '&fq=record_type:col'
 
-
     if datasetKey := request.GET.getlist('datasetKey'):
         datasetKey = [int(d) for d in datasetKey]
         results = get_dataset_by_key(key_list=datasetKey)
@@ -1359,16 +1358,6 @@ def change_dataset(request):
             for l in d_list:
                 if l['name'] not in [d['text'] for d in ds]:
                     ds.append({'text': l['name'], 'value': l['id']})
-            # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0&fq=rightsHolder:{h}')
-            # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-            # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-            # if len(dataset_list):
-            #     if request.GET.get('record_type') == 'col':
-            #         results = get_dataset_list(record_type='col',rights_holder=h,dataset_list=dataset_list)
-            #     else:
-            #         results = get_dataset_list(rights_holder=h,dataset_list=dataset_list)
-            # for d in results:
-            #     ds += [{'value': d[0], 'text': d[1]}]
     else:
         # 起始
         response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
@@ -1377,18 +1366,6 @@ def change_dataset(request):
         for l in d_list:
             if l['name'] not in [d['text'] for d in ds]:
                 ds.append({'text': l['name'], 'value': l['id']})
-
-        # response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0')
-        # d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-        # dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-        # if len(dataset_list):
-        #     if request.GET.get('record_type') == 'col':
-        #         results = get_dataset_list(record_type='col',dataset_list=dataset_list)
-        #     else:
-        #         results = get_dataset_list(dataset_list=dataset_list)
-
-        # for d in results:
-        #     ds += [{'value': d[0], 'text': d[1]}]
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 

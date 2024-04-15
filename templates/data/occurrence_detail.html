@@ -72,9 +72,7 @@
             <div class="short">
               <p>{% trans '來源資料庫使⽤中⽂名' %}{% trans '：' %}{{ row.sourceVernacularName }}</p>
               <p>{% trans '來源資料庫使⽤學名' %}{% trans '：' %}{{ row.sourceScientificName|safe }}</p>
-              {% if not row.sourceScientificName and not row.sourceVernacularName %}
-              <p><small class="color-silver">[{% trans '原始紀錄物種' %}] {{ row.originalScientificName }}</small></p>
-              {% endif %}
+              <p>{% trans '原始紀錄物種' %}{% trans '：' %}{{ row.originalScientificName }}</p>
             </div>
             {% if row.taxonID %}
             <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}{% trans '：' %}{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
@@ -121,6 +119,14 @@
       <div class="left_area">
         <div class="whcont">
           <ul class="inforall">
+            <li>
+              <h3>{% trans '入口網ID' %}{% trans '：' %}</h3>
+              <p>{{ row.id }}</p>
+            </li>
+            <li>
+              <h3>{% trans 'occurrenceID' %}{% trans '：' %}</h3>
+              <p>{% trans row.occurrenceID %}</p>
+            </li>
             <li>
               <h3>{% trans '敏感層級' %}{% trans '：' %}</h3>
               <p>{{ row.sensitiveCategory }}</p>

@@ -82,6 +82,10 @@ def occurrence(request):
                     values = [f'"{v}"' for v in values]
                     fq_list.append(f'{u}: ({(" OR ").join(values)})')
 
+            for k in ['occurrenceID', 'catalogNumber']:
+                if req.get(k):
+                    fq_list.append(f'{k}:"{req.get(k)}"')
+
             # eventDate, created, modified
             if eventDate := req.get('eventDate'):
                 date_list = eventDate.split(',')
@@ -246,6 +250,7 @@ def occurrence(request):
                 "fields": fl_cols
                 }
         
+        print(query)
         # 查詢記錄
         if offset == 0:
             query['facet'] = {}
@@ -262,7 +267,6 @@ def occurrence(request):
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         response = response.json()
-
 
         # 整理欄位
 

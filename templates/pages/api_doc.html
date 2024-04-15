@@ -48,14 +48,8 @@
 					</li>
 					{% comment %} <li>
 						<div class="dot"></div>
-						<a href="#">
-							物種 API：https://api.taicol.tw/v2/taxon
-						</a>
-					</li>
-					<li>
-						<div class="dot"></div>
-						<a href="#">
-							新舊學名編碼對照 API：https://api.taicol.tw/v2/namecode
+						<a href="#dataset-area">
+							{% trans '資料集 - dataset API' %}
 						</a>
 					</li> {% endcomment %}
 					<li>
@@ -97,6 +91,18 @@
 							<td>string</td>
 							<td>{% trans '使用本網站之入口網ID取得指定的出現紀錄資料' %}</td>
 							<td><a href="/api/v1/occurrence?id=6540d35818aad00028ecda95" target="_blank">/api/v1/occurrence?id=6540d35818aad00028ecda95</a></td>
+						</tr>
+						<tr>
+							<td>occurrenceID</td>
+							<td>string</td>
+							<td>{% trans '使用來源資料庫 / 典藏單位之物種出現紀錄ID取得指定的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874" target="_blank">/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874</a></td>
+						</tr>
+						<tr>
+							<td>catalogNumber</td>
+							<td>string</td>
+							<td>{% trans '使用來源典藏單位之館藏號取得指定的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?catalogNumber=186874" target="_blank">/api/v1/occurrence?catalogNumber=186874</a></td>
 						</tr>
 						<tr>
 							<td>taxonID</td>
@@ -580,6 +586,75 @@
 					</table>
 				</div>
 			</div>
+			<!--
+			<div class="item_one" id="dataset-area">
+				<div class="sec_title">
+					<h3>{% trans '資料集 - dataset API' %}</h3>
+				</div>
+				<div class="marb_20">
+					{% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/dataset" target="_blank">/api/v1/dataset</a>
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '查詢參數說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2 marb_20" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '型值' %}</td>
+							<td>{% trans '說明' %}</td>
+							<td>{% trans '範例網址' %}</td>
+						</tr>
+						<tr>
+							<td>datasetName</td>
+							<td>string</td>
+							<td>{% trans '以資料集名稱查詢，支援部分查詢' %}</td>
+							<td><a href="/api/v1/occurrence?datasetName=eBird" target="_blank">/api/v1/occurrence?datasetName=eBird</a></td>
+						</tr>
+						<tr>
+							<td>sourceDatasetID</td>
+							<td>string</td>
+							<td>{% trans '以來源資料庫 / 典藏單位提供的資料集編號查詢' %}</td>
+							<td><a href="/api/v1/dataset?sourceDatasetID=0d719d59-070c-496d-a384-e34b82b0ab01" target="_blank">/api/v1/dataset?sourceDatasetID=0d719d59-070c-496d-a384-e34b82b0ab01</a></td>
+						</tr>
+						<tr>
+							<td>rightsHolder</td>
+							<td>string</td>
+							<td>{% trans  '以來源資料庫 / 典藏單位查詢' %}</td>
+							<td><a href="/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a></td>
+						</tr>
+					</table>
+				</div>
+
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '回傳欄位說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '名稱' %}</td>
+							<td>{% trans '型值' %}</td>
+							<td>{% trans '備註' %}</td>
+						</tr>
+						<tr>
+							<td>created</td>
+							<td>{% trans '入口網資料建立時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>modified</td>
+							<td>{% trans '入口網資料修改時間' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			-->
 			<div class="item_one" id="common-area">
 				<div class="sec_title mb-30px">
 					<h3>{% trans '格式及共同參數說明' %}</h3>

@@ -2539,3 +2539,24 @@ msgstr "Only supports coordinates in decimal degrees, for example: longitude 121
 #:
 msgid "請輸入有效頁碼"
 msgstr "Please enter a valid page number"
+
+
+#:
+msgid "使用來源資料庫 / 典藏單位之物種出現紀錄ID取得指定的出現紀錄資料"
+msgstr "Get record by occurrenceID"
+
+
+
+#:
+msgid "使用來源典藏單位之館藏號取得指定的出現紀錄資料"
+msgstr "Get record by catalogNumber"
+
+
+#:
+msgid "是否為原生種"
+msgstr "Native or not"
+
+
+#:
+msgid "是否為保育類"
+msgstr "Protected or not"

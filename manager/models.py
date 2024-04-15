@@ -5,6 +5,8 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 import django
 
 
+# NOTE 資料庫存的時間統一都是 UTC + 0
+
 class UserManager(BaseUserManager):
     def create_user(self, email, **kwargs):
         """
@@ -108,10 +110,10 @@ class SearchStat(models.Model):
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     query = models.TextField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True)
-    created = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
 
-# 請求次數
+# API 請求次數
 class SearchCount(models.Model):
     location_choice = [
         # ('full', '全站搜尋'),
@@ -193,27 +195,54 @@ class About(models.Model):
     content_en = models.TextField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
-# deprecated
-# class MatchLog(models.Model):
-#     occurrenceID = models.CharField(max_length=1000, blank=True, db_index=True)
-#     tbiaID = models.CharField(max_length=50, blank=True, db_index=True)
-#     group = models.CharField(max_length=50, blank=True, db_index=True)
-#     sourceScientificName = models.CharField(max_length=1000, blank=True, null=True)
-#     is_matched = models.BooleanField()
-#     taxonID = models.CharField(max_length=20, blank=True, null=True)
-#     parentTaxonID = models.CharField(max_length=20, blank=True, null=True)
-#     match_stage = models.CharField(max_length=5, blank=True, null=True)
-#     stage_1 = models.CharField(max_length=20, blank=True, null=True)
-#     stage_2 = models.CharField(max_length=20, blank=True, null=True)
-#     stage_3 = models.CharField(max_length=20, blank=True, null=True)
-#     stage_4 = models.CharField(max_length=20, blank=True, null=True)
-#     stage_5 = models.CharField(max_length=20, blank=True, null=True)
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(null=True, blank=True)
-
 
 # 工作日
 class Workday(models.Model):
     # '西元日期','是否放假'
     date = models.DateField(blank=True, null=True)
     is_dayoff = models.BooleanField(default=False)
+
+
+# 每月關鍵字統計
+class KeywordStat(models.Model):
+    keyword = models.TextField(null=True, blank=True)
+    count = models.IntegerField(null=True, blank=True)
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+# 資料 物種類群 / 科別 統計
+class TaxonStat(models.Model):
+    type_choice = [
+        ('taxon_group', '物種類群'),
+        ('family', '科別'),
+    ]
+    type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
+    group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
+    rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    name = models.CharField(max_length=10000, null=True, blank=True)  # 類群名 / 科名
+    count = models.IntegerField(null=True, blank=True)
+    modified = models.DateTimeField(auto_now_add=True)
+
+
+# 資料數量統計 
+class DataStat(models.Model):
+    type_choice = [
+        ('data', '累積資料數量'),
+        ('search', '累積被查詢資料數量'),
+        ('download', '累積被下載資料數量'),
+    ]
+    type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
+    group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
+    rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    count = models.IntegerField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+# 名錄下載統計
+class ChecklistStat(models.Model):
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    count = models.IntegerField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)

@@ -157,3 +157,23 @@
 }
 
 
+
+
+#keyword-stat-list {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.highcharts-figure {
+    height: 300px;
+    margin-top: 20px;
+}
+
+#taxon_group-stat-title {
+    font-weight: bold;
+}
+
+hr {
+    margin-bottom: 20px;
+    border: 0.5px solid lightgrey;
+}
