@@ -112,7 +112,7 @@ let selectBox10 = new vanillaSelectBox("#locality",
         translations: { "all": gettext("全部"), "items": gettext(" 個選項"), "clearAll": gettext("重設") }
     });
 
-let selectBox11 = new vanillaSelectBox("#is_endemic", {
+let selectBox11 = new vanillaSelectBox("#is_native", {
     placeHolder: gettext("是否為原生種"), search: false, disableSelectAll: true,
 });
 
@@ -944,7 +944,7 @@ function changeAction() {
                 selectBox5.setValue(value)
             } else if (key == 'has_image') {
                 selectBox7.setValue(value)
-            } else if (key == 'is_endemic') {
+            } else if (key == 'is_native') {
                 selectBox11.setValue(value)
             } else if (key == 'is_protected') {
                 selectBox12.setValue(value)

@@ -613,8 +613,8 @@ def create_query_display(search_dict,lang=None):
             query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') == 'y' else gettext('無影像')}" 
         elif k == 'is_protected':
             query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') == 'y' else gettext('否')}" 
-        elif k == 'is_endemic':
-            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_endemic') == 'y' else gettext('否')}" 
+        elif k == 'is_native':
+            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_native') == 'y' else gettext('否')}" 
     if r_list:
         r_list = [gettext(r) for r in r_list]
         query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
@@ -804,11 +804,11 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
             query_list += ['-associatedMedia:*']
 
     # 是否為原生種
-    if is_endemic := req_dict.get('is_endemic'):
-        if is_endemic == 'y':
-            query_list += ['is_endemic:true']
-        elif is_endemic == 'n':
-            query_list += ['is_endemic:false']
+    if is_native := req_dict.get('is_native'):
+        if is_native == 'y':
+            query_list += ['alien_type:native']
+        elif is_native == 'n':
+            query_list += ['-alien_type:native']
 
 
     # 是否為保育類

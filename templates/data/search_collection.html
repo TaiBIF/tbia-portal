@@ -121,7 +121,7 @@
 			</div>
 			<div class="two_input">
 				<div class="input_item">
-				  <select name="is_endemic" id="is_endemic">
+				  <select name="is_native" id="is_native">
 					<option value="">{% trans '-- 不限 --' %}</option>
 					<option value="y">{% trans '是' %}</option>
 					<option value="n">{% trans '否' %}</option>
@@ -476,5 +476,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v11"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v12"></script>
 {% endblock %}
