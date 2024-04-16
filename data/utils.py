@@ -156,7 +156,7 @@ def escape_solr_query(string):
 
 taxon_group_map = {
     'Insects' : [{'key': 'class', 'value': 'Insecta'}],
-    'Fishes' : [{'key': 'class', 'value': 'Actinopterygii'},{'key': 'class', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
+    'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
     'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
     'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
