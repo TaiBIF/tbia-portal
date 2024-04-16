@@ -1312,7 +1312,7 @@ def manager_system(request):
     stat_year = [*range(2023, timezone.now().year+1)]
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
-        holder_list = ['total']
+        holder_list = ['total', 'GBIF']
         for ii in Partner.objects.all().values_list('info', flat=True):
             holder_list += [iii['dbname'] for iii in ii]
         # TaiCOL對應狀況
