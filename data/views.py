@@ -1343,7 +1343,8 @@ def change_dataset(request):
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:col'
+        # record_type = '&fq=record_type:col'
+        record_type = '&fq=record_type:/.*col.*/'
 
     if datasetKey := request.GET.getlist('datasetKey'):
         datasetKey = [int(d) for d in datasetKey]
@@ -1459,7 +1460,9 @@ def get_dataset(request):
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:col'
+        # record_type = '&fq=record_type:col'
+        record_type = '&fq=record_type:/.*col.*/'
+
 
     keyword_reg = ''
     for j in keyword:

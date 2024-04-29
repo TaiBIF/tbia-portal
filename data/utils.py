@@ -68,11 +68,10 @@ basis_map = {
 }
 
 
-
 def get_dataset_key(key):
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "name" FROM dataset WHERE id = %s'
+    query = 'SELECT "name" FROM dataset WHERE id = %s' # 不考慮deprecated
     with conn.cursor() as cursor:
         cursor.execute(query, (key,))
         results = cursor.fetchone()
@@ -80,7 +79,8 @@ def get_dataset_key(key):
         if results:
             results = results[0]
     return results
-        
+
+
 def get_species_images(taxon_name_id):
     conn = psycopg2.connect(**datahub_db_settings)
     query = "SELECT taieol_id, images FROM species_images WHERE taxon_name_id = %s"
@@ -90,33 +90,23 @@ def get_species_images(taxon_name_id):
         conn.close()
     return results
 
-# DatasetKey.objects.filter(record_type='col',deprecated=False,name__in=dataset_list)
 
-def get_dataset_list(dataset_list ,record_type=None, rights_holder=None):
-    results = []
-    conn = psycopg2.connect(**datahub_db_settings)
-
-
-    query = f''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f' 
-                {f"AND record_type = '{record_type}'" if record_type else ''}  
-                {f"AND rights_holder = '{rights_holder}'" if rights_holder else ''}  
-            '''
+# deprecated
+# def get_dataset_list(dataset_list ,record_type=None, rights_holder=None):
+#     results = []
+#     conn = psycopg2.connect(**datahub_db_settings)
 
 
-    # if record_type:
-    #     query = '''SELECT id, "name" FROM dataset WHERE "name" IN %s AND record_type = %s AND deprecated = 'f' '''
-    #     with conn.cursor() as cursor:
-    #         cursor.execute(query, (tuple(dataset_list),record_type, ))
-    #         results = cursor.fetchall()
-    #         conn.close()
-    # else:
-    #     query = ''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f'  '''
-    with conn.cursor() as cursor:
-        cursor.execute(query, (tuple(dataset_list), ))
-        results = cursor.fetchall()
-        conn.close()
+#     query = f''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f' 
+#                 {f"AND record_type = '{record_type}'" if record_type else ''}  
+#                 {f"AND rights_holder = '{rights_holder}'" if rights_holder else ''}  
+#             '''
+#     with conn.cursor() as cursor:
+#         cursor.execute(query, (tuple(dataset_list), ))
+#         results = cursor.fetchall()
+#         conn.close()
         
-    return results
+#     return results
 
 
 def get_dataset_by_key(key_list):
@@ -133,9 +123,6 @@ def get_dataset_by_key(key_list):
         conn.close()
         
     return results
-
-
-
 
 
 
