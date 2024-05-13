@@ -998,8 +998,8 @@ msgid "請描述申請用途"
 msgstr "Please describe the purpose of your application"
 
 #: templates/pages/application.html:101
-msgid "申請資料使用者"
-msgstr "User of the requested data"
+msgid "此批申請資料其他使用者"
+msgstr "Other users of the requested data"
 
 #: templates/pages/application.html:104
 msgid "單位"
