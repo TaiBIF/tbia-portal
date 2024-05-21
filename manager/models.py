@@ -159,11 +159,13 @@ class SensitiveDataRequest(models.Model):
     phone =  models.CharField(max_length=100, blank=True)
     address =  models.CharField(max_length=100, blank=True)
     affiliation =  models.CharField(max_length=100, blank=True)
+    job_title =  models.CharField(max_length=100, blank=True)
     project_name =  models.CharField(max_length=1000, blank=True)
     project_affiliation =  models.CharField(max_length=1000, blank=True)
     type = models.CharField(choices=type_choice, max_length=20, blank=True)
     users = models.JSONField(null=True, blank=True) # 資料使用者
     abstract = models.TextField(null=True, blank=True)
+    is_agreed_report = models.BooleanField(default=False) # 是否同意提供研究成果
     # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆
     created = models.DateTimeField(auto_now_add=True) # 申請時間
     query_id = models.CharField(max_length=50, blank=True)

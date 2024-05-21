@@ -4,7 +4,7 @@
 {% block title %}{% trans '申請單次使用去模糊化敏感資料' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/application.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/application.css' %}?v2" />
 {% endblock style %}
 
 {% block body %}
@@ -58,12 +58,18 @@
 						<input name="address" type="text">
 					</div>
 				</div>
-				<div class="inpu_2">
+				<div class="inpu_3">
 					<div class="input_item">
 						<p>
 							<span class="color_red">*</span>{% trans '申請人所屬單位' %}
 						</p>
 						<input name="affiliation" type="text">
+					</div>
+					<div class="input_item">
+						<p>
+							<span class="color_red">*</span>{% trans '申請人職稱' %}
+						</p>
+						<input name="job_title" type="text">
 					</div>
 					<div class="input_item">
 						<p>
@@ -74,7 +80,6 @@
 							<option value="1">{% trans '委辦工作計畫' %}</option>
 						</select>
 					</div>
-
 				</div>
 				<div class="inpu_2">
 					<div class="input_item">
@@ -95,7 +100,7 @@
 					<p>
 						<span class="color_red">*</span>{% trans '計畫摘要' %}
 					</p>
-					<textarea name="abstract" placeholder="{% trans '請描述申請用途' %}"></textarea>
+					<textarea name="abstract" placeholder="{% trans '請詳述研究目標、研究方法、預期成果、為何需要申請敏感資料以及會如何使用敏感資料等內容，我們將以此作為審核依據' %}"></textarea>
 				</div>
 				</form>
 				<div class="apply_peo">
@@ -112,7 +117,17 @@
 				</div>
 			</div>
 		</div>
-
+		<div class="agreebox">
+			<input name="is_agreed_report" type="checkbox" class="chebox">
+			{% if LANGUAGE_CODE == 'en-us' %}
+			<p>I agree to provide a report on the research outcomes to the alliance email address: <a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a>, if there are relevant research results in the future.</p>
+			{% else %}
+			<p>我同意後續若有相關研究成果，將提供一份成果報告檔案至聯盟信箱：<a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a></p>
+			{% endif %}
+		</div>
+		<div class="agreebox">
+			<small>{% trans '是否有提供相關成果將作為往後的單次使用去模糊化敏感資料審核依據' %}</small>
+		</div>
 		<div class="bt_center two">
 			<!--<button>回上一頁</button>-->
 			<button class="sendRequest">{% trans '確認送出' %}</button>
@@ -124,5 +139,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/pages/application.js' %}?v1"></script>
+<script src="{% static 'js/pages/application.js' %}?v2"></script>
 {% endblock script %}

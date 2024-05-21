@@ -354,8 +354,13 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
             $('.detail-pop input[name=phone] ').val(response.detail.phone)
             $('.detail-pop input[name=address] ').val(response.detail.address)
             $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)
+            $('.detail-pop input[name=job_title] ').val(response.detail.job_title)
             $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
             $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+            
+            if (response.detail.is_agreed_report==true){
+                $('.detail-pop input[name=is_agreed_report]').prop('checked', true);
+            }
 
 
             if (response.detail.type == '0') {

@@ -127,7 +127,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['selected_col','applicant','phone','address','affiliation','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound']
+        not_query = ['selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -157,8 +157,10 @@ def submit_sensitive_request(request):
             phone = request.POST.get('phone'),
             address = request.POST.get('address'),
             affiliation = request.POST.get('affiliation'),
+            job_title = request.POST.get('job_title'),
             project_name = request.POST.get('project_name'),
             project_affiliation = request.POST.get('project_affiliation'),
+            is_agreed_report = request.POST.get('is_agreed_report'),
             type = request.POST.get('type'),
             users = json.loads(request.POST.get('users')),
             abstract = request.POST.get('abstract'),

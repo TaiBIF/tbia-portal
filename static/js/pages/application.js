@@ -7,14 +7,13 @@ $(function () {
         sendRequest()
     })
 
-    $('#appilcationForm .inpu_2 .input_item select[name=type]').on('change', function () {
-        if ($('#appilcationForm .inpu_2 .input_item select[name=type]').val() == '1') {
+    $('#appilcationForm .inpu_3 .input_item select[name=type]').on('change', function () {
+        if ($('#appilcationForm .inpu_3 .input_item select[name=type]').val() == '1') {
             $('.p_affli').removeClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('委辦工作計畫名稱')}`)
         } else {
             $('.p_affli').addClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('個人研究計畫名稱')}`)
-
         }
     })
 
@@ -87,7 +86,7 @@ function sendRequest() {
             }
         })
 
-        let cols = ['applicant', 'phone', 'address', 'affiliation', 'project_name']
+        let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name']
         cols.forEach(function (c) {
             if (!$(`#appilcationForm input[name=${c}]`).val()) {
                 checked = false;
@@ -98,10 +97,16 @@ function sendRequest() {
             checked = false;
         }
 
+        let is_agreed_report = 'f';
+
+        if ($('input[name=is_agreed_report]').is(':checked')) {
+            is_agreed_report = 't'
+        } 
+
         if (checked) {
             $.ajax({
                 url: "/submit_sensitive_request",
-                data: $('#appilcationForm').serialize() + '&users=' + JSON.stringify(users) + '&csrfmiddlewaretoken=' + $csrf_token +
+                data: $('#appilcationForm').serialize() + '&is_agreed_report=' + is_agreed_report + '&users=' + JSON.stringify(users) + '&csrfmiddlewaretoken=' + $csrf_token +
                     '&' + window.location.search.substring(1),
                 type: 'POST',
                 dataType: 'json',
