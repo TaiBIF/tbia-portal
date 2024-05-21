@@ -282,10 +282,14 @@
                                 <input name="address" type="text" disabled>
                             </div> 
                         </div>
-                        <div class="inpu_2">
+                        <div class="inpu_3">
                             <div class="input_item">
                                 <p>申請人所屬單位</p>
                                 <input name="affiliation" type="text" disabled>
+                            </div>
+                            <div class="input_item">
+                                <p>申請人職稱</p>
+                                <input name="job_title" type="text" disabled>
                             </div>
                             <div class="input_item">
                                 <p>計畫類型</p>
@@ -307,9 +311,12 @@
                             <p>計畫摘要</p>
                             <textarea name="abstract" disabled></textarea>
                         </div>
+                        <div class="text_area">
+                            <input type="checkbox" name="is_agreed_report" disabled>  是否同意提供研究成果</input>
+                        </div>
                         </form>
                         <div class="apply_peo">
-                            <p class="title">申請資料使用者</p>
+                            <p class="title">此批申請資料其他使用者</p>
                         </div>
                     </div>
                     <button class="accordion fs-16px resp-box">審查意見</button>
@@ -377,5 +384,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v3"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v4"></script>
 {% endblock script %}

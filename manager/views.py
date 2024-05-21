@@ -490,13 +490,11 @@ def change_manager_page(request):
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.date(), 14)
                 created = created.strftime('%Y-%m-%d %H:%M:%S')
-
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
                     search_dict = dict(parse.parse_qsl(r.query))
                     query = create_query_display(search_dict)
-                                
                     if search_dict.get("record_type") == 'col':
                         search_prefix = 'collection'
                     else:
@@ -506,11 +504,8 @@ def change_manager_page(request):
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
                     a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
-                    
                     query = query_a_href(query,query_a)
-
                     data.append({
                         'id': f'#{sdr.id}',
                         #'query_id': r.query_id,
@@ -1164,11 +1159,13 @@ def download_sensitive_report(request):
                                                 '聯絡電話': detail.phone,
                                                 '聯絡地址': detail.address,
                                                 '申請人所屬單位': detail.affiliation,
+                                                '申請人職稱': detail.job_title,
                                                 '計畫類型': detail.get_type_display(),
                                                 '計畫名稱': detail.project_name,
                                                 '委託計畫單位': detail.project_affiliation,
                                                 '計畫摘要': detail.abstract,
-                                                '申請資料使用者': '\n---\n'.join(users),
+                                                '是否同意提供研究成果': detail.is_agreed_report,
+                                                '此批申請資料其他使用者': '\n---\n'.join(users),
                                                 '審查意見': comment_str,
                                                 # '通過與否': ,
                                                 '檔案狀態': s.get_status_display(),
