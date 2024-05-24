@@ -45,6 +45,7 @@ function showRequest(query_id, query, sdr_id) {
             $('.detail-pop').removeClass('d-none')
             $('.detail-pop .riginf').html(query)
             $('.detail-pop input[name=applicant] ').val(response.detail.applicant)
+            $('.detail-pop input[name=applicant_email] ').val(response.detail.applicant_email)
             $('.detail-pop input[name=phone] ').val(response.detail.phone)
             $('.detail-pop input[name=address] ').val(response.detail.address)
             $('.detail-pop input[name=affiliation] ').val(response.detail.affiliation)

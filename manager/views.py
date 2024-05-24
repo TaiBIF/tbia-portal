@@ -1158,6 +1158,7 @@ def download_sensitive_report(request):
                                                 '申請人姓名': detail.applicant,
                                                 '聯絡電話': detail.phone,
                                                 '聯絡地址': detail.address,
+                                                '申請人Email': s.user.email,
                                                 '申請人所屬單位': detail.affiliation,
                                                 '申請人職稱': detail.job_title,
                                                 '計畫類型': detail.get_type_display(),
@@ -1185,6 +1186,7 @@ def get_request_detail(request):
     if query_id := request.GET.get('query_id'):
         if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
+            detail['applicant_email'] = SearchQuery.objects.get(query_id=query_id).user.email
     if sdr_id := request.GET.get('sdr_id'):
         if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
             review = SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).values()[0]

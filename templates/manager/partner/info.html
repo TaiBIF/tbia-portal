@@ -316,6 +316,10 @@
                         </div>
                         <div class="inpu_3">
                             <div class="input_item">
+                                <p>申請人Email</p>
+                                <input name="applicant_email" type="text" disabled>
+                            </div>
+                            <div class="input_item">
                                 <p>申請人所屬單位</p>
                                 <input name="affiliation" type="text" disabled>
                             </div>
@@ -323,12 +327,12 @@
                                 <p>申請人職稱</p>
                                 <input name="job_title" type="text" disabled>
                             </div>
+                        </div>
+                        <div class="inpu_3">
                             <div class="input_item">
                                 <p>計畫類型</p>
                                 <input name="type" type="text" disabled>
                             </div>
-                        </div>
-                        <div class="inpu_2">
                             <div class="input_item">
                                 <p class="project_type">個人研究計畫名稱</p>
                                 <input name="project_name" type="text" disabled>
@@ -405,5 +409,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/partner_info.js' %}?v3"></script>
+<script src="{% static 'js/manager/partner_info.js' %}?v4"></script>
 {% endblock script %}
