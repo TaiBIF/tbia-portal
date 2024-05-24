@@ -85,13 +85,13 @@ function drawMapGrid(currentZoomLevel, map, taxonID){
 
 function getColor(d) {
   return d > 1000 ? '#C50101' :
-    d > 500 ? '#D71414' :
-      d > 200 ? '#E72424' :
-        d > 100 ? '#F73535' :
+          d > 500 ? '#D71414' :
+          d > 200 ? '#E72424' :
+          d > 100 ? '#F73535' :
           d > 50 ? '#FB4C4C' :
-            d > 20 ? '#FB6262' :
-              d > 10 ? '#FC7E7E' :
-                '#FD9696';
+          d > 20 ? '#FB6262' :
+          d > 10 ? '#FC7E7E' :
+                    '#FD9696';
 }
 
 function style(feature) {
