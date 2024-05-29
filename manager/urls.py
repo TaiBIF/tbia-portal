@@ -72,4 +72,6 @@ urlpatterns = [
     path('change_manager_page', views.change_manager_page, name='change_manager_page'),
     # 敏感資料申請報表
     path('download_sensitive_report', views.download_sensitive_report, name='download_sensitive_report'),
+    # # 取得敏感資料相關的夥伴單位
+    # path('get_partial_partner', views.get_partial_partner, name='get_partial_partner'),
 ]

@@ -11,7 +11,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}?v3" />
 {% endblock style %}
 
 
@@ -191,7 +191,8 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
                         <tr class="sensitive_apply_table_header">
-                            <td class="w-10p">編號</td>
+                            <td class="w-10p">申請編號</td>
+                            <td class="w-10p">檔案編號</td>
                             <td class="w-30p">申請時間</td>
                             <td class="w-40p">搜尋條件</td>
                             <td class="w-10p">狀態</td>
@@ -351,7 +352,8 @@
                         </form>
                     </div>                
                     <button class="send-check send mt-15px">確認送出</button>
-                    <button class="send-transfer send mt-15px">轉交給單位審核</button>
+                    <button class="send-partial-transfer send mt-15px">部分轉交給單位審核</button>
+                    <button class="send-transfer send mt-15px">全部轉交給單位審核</button>
                     <button class="send-submitted d-none mt-15px" disabled>審核已完成不得修改</button>
                     <button class="send-transferred d-none mt-15px" disabled>已轉交給單位審核</button>
                 </div>
@@ -379,8 +381,25 @@
 		<div class="informationicon">!</div>
 		<p>送出後無法修改，確認送出？</p>
 		<div class="btn_area">
-			<button class="hide_submit-transfer">取消</button>
-			<button class="transferRequest">確認</button>
+			<button class="">取消</button>
+			<button class="">確認</button>
+		</div>
+	</div>
+</div>
+
+
+<!--確認轉交pop-->
+<div class="messageboxfix partial-pop d-none">
+	<div class="message_box">
+		<div class="informationicon">!</div>
+        請選擇欲轉交的單位：
+        <select class="fs-14px" id="partial-partner-select" name="partial_partner_id">
+        </select>
+        <p class="fs-14px f-italic" id="already_transfer_partners"></p>
+		<p class="fs-16px">送出後無法修改，確認送出？</p>
+		<div class="btn_area">
+			<button class="hide_submit-partial-transfer">取消</button>
+			<button class="partialTransferRequest">確認</button>
 		</div>
 	</div>
 </div>
@@ -388,5 +407,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v5"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v6"></script>
 {% endblock script %}

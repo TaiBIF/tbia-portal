@@ -155,6 +155,10 @@ $(document).ready(function () {
         $('.submit-transfer').addClass('d-none')
     })
 
+    $('.hide_submit-partial-transfer').on('click', function () {
+        $('.partial-pop').addClass('d-none')
+    })
+
     $('.updateInfo').on('click', function () {
         // remove all notice first
         $('.noticbox').addClass('d-none')
@@ -228,6 +232,28 @@ $(document).ready(function () {
             })
     })
 
+
+    $('.partialTransferRequest').on('click', function () {
+        $.ajax({
+            url: "/partial_transfer_sensitive_response",
+            type: 'POST',
+            data: { 'query_id': $('#reviewForm input[name=query_id]').val(), 
+                    'partner_id': $('select[name=partial_partner_id]').find(":selected").val(),
+                    'is_last_one': $('select[name=partial_partner_id] option').length == 1 ? true : false,
+                    csrfmiddlewaretoken: $csrf_token },
+            dataType: 'json'
+        })
+            .done(function (response) {
+                alert('轉交成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+    })
+
     $('.open-page').on('click', function () {
         window.location = $(this).data('href')
     })
@@ -246,6 +272,33 @@ $(document).ready(function () {
 
     $('.send-transfer').on('click', function () {
         $('.submit-transfer').removeClass('d-none')
+    })
+
+
+    $('.send-partial-transfer').on('click', function () {
+
+        // $.ajax({
+        //     url: "/get_partial_partner?query_id" + $('form#reviewForm input[name=query_id]').val(),
+        //     type: 'GET',
+        //     // data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
+        //     // dataType: 'json'
+        // })
+        //     .done(function (response) {
+        //         // alert('送出成功')
+        //         // window.location.reload()
+        //         for (p of response){
+        //             $('#partial-partner-select').html(``)
+        //         }
+
+                $('.partial-pop').removeClass('d-none')
+            // })
+            // .fail(function (xhr, status, errorThrown) {
+            //     alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+            //     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            // })
+
+
     })
 
     $('.send-check').on('click', function () {
@@ -333,6 +386,10 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
     })
         .done(function (response) {
 
+            // console.log(response.partners)
+
+
+
             // 如果沒有sdr_id的話 只顯示申請詳細資訊
             $('.detail-pop .resp-box').removeClass('d-none')
             $('.detail-pop [class^="send-"]').removeClass('d-none')
@@ -340,6 +397,7 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
 
             $('.detail-pop .send-check, .detail-pop .send-transfer').removeClass('d-none')
             $('.detail-pop .send-submitted, .detail-pop .send-transferred').addClass('d-none')
+            $('.detail-pop .send-submitted, .detail-pop .send-partial-transferred').addClass('d-none')
 
             // 要先全部重設
             $("#detailForm").trigger("reset");
@@ -392,11 +450,43 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
                 $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
             }
 
+
+
+
+
+            // partial
+            // 如果完全沒有partner的話 disable 部分轉交的按鈕
+            
+            $('#partial-partner-select').html('')
+
+            if (response.partners.length > 0){
+                
+                for (p of response.partners){
+                    $('#partial-partner-select').append(`<option value="${p.id}">${p.select_title}</option>`)
+                }
+
+                if (response.already_transfer_partners.length > 0){
+                    $('#already_transfer_partners').html(`*已轉交單位：${response.already_transfer_partners.join('、')}`)
+                } else {
+                    $('#already_transfer_partners').html('')
+                }
+
+            } else {
+
+                if (response.has_partial_transferred == true){
+                    $('.send-transferred').removeClass('d-none')
+                    $('.send-partial-transfer').addClass('d-none')
+                }
+
+                
+            }
+
+            
             if (sdr_id != ''){
 
                 // 審查意見
                 if (is_transferred == 'True') {
-                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted').addClass('d-none')
+                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted, .detail-pop .send-partial-transfer').addClass('d-none')
                     $('.send-transferred').removeClass('d-none')
                 } else if (response.review.status != 'pending') {
                     $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
@@ -406,7 +496,7 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
                     $('#reviewForm textarea[name=comment]').attr('disabled', 'disabled');
                     $('#reviewForm select[name=status]').attr('disabled', 'disabled');
 
-                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred').addClass('d-none')
+                    $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-transferred, .detail-pop .send-partial-transfer').addClass('d-none')
                     $('.detail-pop .send-submitted').removeClass('d-none')
                 } else {
                     $('#reviewForm input[name=reviewer_name]').attr('disabled', false);

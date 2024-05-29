@@ -1,14 +1,14 @@
-from manager.models import User, SensitiveDataResponse, Workday
-from pages.models import Notification
+from manager.models import SensitiveDataResponse, Workday
+# from pages.models import Notification
 from django.db import connection
-from datetime import datetime, tzinfo,timedelta
-import pandas as pd
-from os.path import exists
-from manager.views import send_notification
+from datetime import datetime, timedelta
+# import pandas as pd
+# from os.path import exists
+# from manager.views import send_notification
 from data.views import generate_sensitive_csv
 import threading
-import glob
-import os
+# import glob
+# import os
 from conf.settings import env
 from django.db.models import Max
 
@@ -71,9 +71,14 @@ for d in data:
 
 
 # 夥伴單位負責的
+# query = """
+# select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
+# where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
+# """
+
 query = """
 select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
-where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
+where sdr.status = 'pending' and sdr.partner_id is not null;
 """
 
 with connection.cursor() as cursor:

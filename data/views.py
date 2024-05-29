@@ -170,6 +170,8 @@ def submit_sensitive_request(request):
         # 抓出所有單位
         if request.POST.get('type') == '0':
 
+            # 個人研究計畫
+
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
             query = { "query": "raw_location_rpt:[* TO *]",
@@ -305,6 +307,53 @@ def transfer_sensitive_response(request):
     return JsonResponse({"status": 'success'}, safe=False)
 
 
+
+def partial_transfer_sensitive_response(request):
+    if request.method == 'POST':
+        query_id = request.POST.get('query_id')
+        partner_id = request.POST.get('partner_id')
+
+        # for p in Partner.objects.filter(group__in=groups):
+        new_sdr = SensitiveDataResponse.objects.create(
+            partner_id = partner_id,
+            status = 'pending',
+            query_id = query_id,
+            is_partial_transferred = True,
+        )
+
+
+        # 原本秘書處的response要註記有partial transferred
+
+        # 如果已經全部轉交給單位 這邊也要把is_transferred修改
+
+        if SensitiveDataResponse.objects.filter(query_id=query_id, partner_id=None).exists() and SearchQuery.objects.filter(query_id=query_id).exists():
+            sdr = SensitiveDataResponse.objects.get(query_id=query_id, partner_id=None)
+            sdr.is_partial_transferred = True
+
+            if request.POST.get('is_last_one') == 'true':
+                sdr.is_transferred = True
+
+                # 全部相關的都改掉
+                SensitiveDataResponse.objects.filter(query_id=query_id).update(is_transferred=True)
+            
+
+            sdr.save()
+        
+        # 寄送通知給 單位管理員
+        usrs = User.objects.filter(Q(is_partner_admin=True, partner_id=partner_id)) 
+        for u in usrs:
+            nn = Notification.objects.create(
+                type = 3,
+                content = new_sdr.id,
+                user = u
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([u.id],content,'單次使用敏感資料申請通知')
+
+    return JsonResponse({"status": 'success'}, safe=False)
+
+
+
 def generate_sensitive_csv(query_id, scheme, host):
     
     if SearchQuery.objects.filter(query_id=query_id).exists():
@@ -317,13 +366,13 @@ def generate_sensitive_csv(query_id, scheme, host):
         process = None
         file_done = False
 
+        # 這邊就會包含partial_transferred的資料
         if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
         #     group = ['*']
         # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
         #     group = []
         # else:
             # 不給沒通過的
-            # 如果是機關委託計畫的話 則全部都給
             ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
             if ps:
                 ps = [p for p in ps[0]]
@@ -374,7 +423,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             sq.stat = stat_rightsHolder
 
             # 要排除掉轉交的情況
-            tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+            # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
             # if len(tmp) == len(tmp.filter(status='pass')):
             #     sq.status = 'pass'
             # else:
