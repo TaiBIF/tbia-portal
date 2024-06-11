@@ -23,7 +23,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v2" />
 {% endblock style %}
 
 {% block body %}
@@ -68,12 +68,11 @@
 </div>
 
 
-		<!--資料分布圖彈出視窗-->
+		{% comment %} <!--資料分布圖彈出視窗-->
 		<div class="popbg pic_pop d-none">
 			<div class="ovhy">
 				<div class="wbox_center">
 					<div class="xx">
-
 					</div>
 					<div class="map_img">
 						<div class="imgbox">
@@ -83,7 +82,7 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</div> {% endcomment %}
 
 
 <div class="path">
@@ -879,6 +878,20 @@
         {% comment %} <p id="taxon_name"><p> {% endcomment %}
         <div id="map"></div>
       </div>
+
+      <div class="records-legend d-flex legend-fs-15px">
+        {% trans '資料筆數' %}
+      </div>
+      <div class="records-legend d-flex legend-fs-15px">
+        <div class="d-flex"><div class="count-0"></div>>0</div>
+        <div class="d-flex"><div class="count-10"></div>>10</div>
+        <div class="d-flex"><div class="count-20"></div>>20</div>
+        <div class="d-flex"><div class="count-50"></div>>50</div>
+        <div class="d-flex"><div class="count-100"></div>>100</div>
+        <div class="d-flex"><div class="count-200"></div>>200</div>
+        <div class="d-flex"><div class="count-500"></div>>500</div>
+        <div class="d-flex"><div class="count-1000"></div>>1000</div>
+      </div>
 		</div>
 	</div>
 </div>
@@ -886,5 +899,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v6"></script>
+<script src="{% static 'js/data/search_full.js' %}?v7"></script>
 {% endblock script %}

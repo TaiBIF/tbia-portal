@@ -243,11 +243,15 @@ td hr {
 }
 
 .fs-16px {
-    font-size: 16px
+    font-size: 16px !important
 }
 
 .fs-14px {
-    font-size: 14px
+    font-size: 14px !important
+}
+
+.f-italic {
+    font-style: italic;
 }
 
 .search-again-icon {

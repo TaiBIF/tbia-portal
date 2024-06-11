@@ -1,8 +1,8 @@
-from pyexpat import model
-from xml.dom.minidom import Comment
+# from pyexpat import model
+# from xml.dom.minidom import Comment
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-import django
+# import django
 
 
 # NOTE 資料庫存的時間統一都是 UTC + 0
@@ -190,6 +190,7 @@ class SensitiveDataResponse(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(null=True, blank=True)
     is_transferred = models.BooleanField(default=False)
+    is_partial_transferred = models.BooleanField(default=False)
 
 
 class About(models.Model):

@@ -687,3 +687,91 @@ form#search_full_form_top {
 .dropdown-menu.show {
     display: block;
 }
+
+
+/* map legend */
+
+div.count-1000 {
+    border: none;
+    background: #C50101;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-500 {
+    border: none;
+    background: #D71414;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-200 {
+    border: none;
+    background: #E72424;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-100 {
+    border: none;
+    background: #F73535;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-50 {
+    border: none;
+    background: #FB4C4C;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-20 {
+    border: none;
+    background: #FB6262;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-10 {
+    border: none;
+    background: #FC7E7E;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-0 {
+    border: none;
+    background: #FD9696;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+.legend-fs-15px {
+    line-height: 25px;
+    font-size: 15px;
+}

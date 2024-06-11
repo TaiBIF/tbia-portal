@@ -250,7 +250,7 @@ def occurrence(request):
                 "fields": fl_cols
                 }
         
-        print(query)
+        # print(query)
         # 查詢記錄
         if offset == 0:
             query['facet'] = {}

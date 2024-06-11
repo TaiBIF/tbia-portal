@@ -214,6 +214,21 @@
                 <div id="map" class="img"></div>
               </div>
             </div>
+			
+            <div class="records-legend d-none d-flex legend-fs-15px">
+              {% trans '資料筆數' %}
+            </div>
+            <div class="records-legend d-none d-flex legend-fs-15px">
+              <div class="d-flex"><div class="count-0"></div>>0</div>
+              <div class="d-flex"><div class="count-10"></div>>10</div>
+              <div class="d-flex"><div class="count-20"></div>>20</div>
+              <div class="d-flex"><div class="count-50"></div>>50</div>
+              <div class="d-flex"><div class="count-100"></div>>100</div>
+              <div class="d-flex"><div class="count-200"></div>>200</div>
+              <div class="d-flex"><div class="count-500"></div>>500</div>
+              <div class="d-flex"><div class="count-1000"></div>>1000</div>
+            </div>
+
           </div>
         </div>
         </form>
@@ -480,5 +495,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v12"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v13"></script>
 {% endblock %}

@@ -1,3 +1,18 @@
 ol {
     padding-left: 40px
 }
+
+.agree_arae a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #417991;
+}
+
+.agree_arae a:hover {
+    color: #76A578;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}

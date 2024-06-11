@@ -52,6 +52,9 @@ import pytz
 
 from django.utils.translation import get_language, gettext
 
+from data.utils import create_search_query
+
+
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -249,6 +252,8 @@ def change_manager_page(request):
             # 審查意見
             comment = []
 
+
+            # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
                 if sdr.partner:
                     if lang == 'en-us':
@@ -419,8 +424,11 @@ def change_manager_page(request):
 
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
-        
-        for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+        # 需要被顯示出來的 1. 全部轉交給單位審核 2. 個人研究計畫 3. 部分轉交給單位審核 -> 直接用partner_id不是null的去篩選就好
+        # SensitiveDataResponse.objects.filter(partner_id__isnull=False).distinct('query_id').order_by('-query_id')[offset:offset+10]
+
+        # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
+        for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).distinct('query_id').order_by('-query_id')[offset:offset+10]:
         # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
             date = ''
             if s.created:
@@ -453,7 +461,8 @@ def change_manager_page(request):
             # 審查意見
             comment = []
 
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
+            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
+            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id,partner_id__isnull=False):
                 # if sdr.partner:
                 #     partner_name = sdr.partner.select_title 
                 # else:
@@ -508,7 +517,7 @@ def change_manager_page(request):
                     query = query_a_href(query,query_a)
                     data.append({
                         'id': f'#{sdr.id}',
-                        #'query_id': r.query_id,
+                        # 'query_id': sdr.query_id,
                         'created':  created + '<br>審核期限：'+due,
                         'query':   query,
                         'status': sdr.get_status_display(),
@@ -560,7 +569,7 @@ def change_manager_page(request):
                     
                     data.append({
                         'id': f'#{sdr.id}',
-                        #'query_id': r.query_id,
+                        'query_id': sdr.query_id,
                         'created':  date,
                         'query':   query,
                         'status': status,
@@ -1116,7 +1125,8 @@ def download_sensitive_report(request):
                 sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=True)
         elif request.POST.get('from') == 'track':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
+                # sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
+                sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=False)
 
     if len(sensitive_response):
         # 申請請求
@@ -1154,10 +1164,12 @@ def download_sensitive_report(request):
             comment_str = '\n---\n'.join(comment)
 
             df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+                                                '檔案編號': s.query_id,
                                                 '搜尋條件': query,
                                                 '申請人姓名': detail.applicant,
                                                 '聯絡電話': detail.phone,
                                                 '聯絡地址': detail.address,
+                                                '申請人Email': s.user.email,
                                                 '申請人所屬單位': detail.affiliation,
                                                 '申請人職稱': detail.job_title,
                                                 '計畫類型': detail.get_type_display(),
@@ -1179,16 +1191,71 @@ def download_sensitive_report(request):
 
     return response
 
+
 def get_request_detail(request):
     detail = {}
     review = {}
+    partners = []
+    has_partial_transferred = False
+    already_transfer_partners = []
+
     if query_id := request.GET.get('query_id'):
         if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
+            detail['applicant_email'] = SearchQuery.objects.get(query_id=query_id).user.email
+
+
     if sdr_id := request.GET.get('sdr_id'):
         if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
+
             review = SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).values()[0]
-    return JsonResponse({'detail': detail, 'review': review}, safe=False)
+
+        # 列出所有相關的partner
+        # 有可能之前只有存秘書處 這邊要重新query所有的夥伴單位
+
+        sq = SearchQuery.objects.get(query_id=query_id)
+        req_dict = dict(parse.parse_qsl(sq.query))
+
+        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+
+        query = { "query": "*:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "group": {
+                        "type": "terms",
+                        "field": "group",
+                        "limit": -1,
+                        }
+                    }
+                }
+
+        if not query_list:
+            query.pop('filter')
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        group = response.json()['facets']['group']['buckets']
+        groups = []
+        for g in group:
+            groups.append(g['val'])
+
+
+        partners = Partner.objects.filter(group__in=groups).order_by('abbreviation','id')
+
+        # 要排除掉已經轉交過的partners
+        sdrss = SensitiveDataResponse.objects.filter(query_id=query_id,is_partial_transferred=True).exclude(partner_id__isnull=True).values_list('partner_id',flat=True)
+
+        if len(sdrss):
+            has_partial_transferred = True
+
+        already_transfer_partners = [p.select_title for p in partners if p.id in sdrss]
+
+        partners = [{'id': p.id, 'select_title': p.select_title} for p in partners if p.id not in sdrss]
+
+
+    return JsonResponse({'detail': detail, 'review': review, 'partners': partners, 'has_partial_transferred': has_partial_transferred,
+                         'already_transfer_partners': already_transfer_partners}, safe=False)
 
 
 def manager_partner(request):

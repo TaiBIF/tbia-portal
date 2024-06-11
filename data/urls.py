@@ -38,4 +38,5 @@ urlpatterns = [
     path('sensitive_agreement', views.sensitive_agreement, name='sensitive_agreement'),
     path('submit_sensitive_response', views.submit_sensitive_response, name='submit_sensitive_response'),
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
+    path('partial_transfer_sensitive_response', views.partial_transfer_sensitive_response, name='partial_transfer_sensitive_response'),
 ]

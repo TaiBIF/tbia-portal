@@ -13,7 +13,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />  
     <title>{% block title %}{% endblock title %}TBIA</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v4" />
+    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v5" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
@@ -24,7 +24,7 @@
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
     <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
     <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit{% if LANGUAGE_CODE == 'en-us' %}&hl=en{% endif %}" async defer></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v3" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v4" />
     <script src="{% static 'js/GA/ga_head.js' %}"></script>
     <!-- use django template in js -->
     <script src="{% url 'javascript-catalog' %}"></script>
