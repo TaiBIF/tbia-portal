@@ -4278,12 +4278,15 @@ body {
     font-weight: normal;
     font-size: 35px;
     color: #3F5146;
-    margin-bottom: 20px
+    /* margin-bottom: 20px */
+    margin-bottom: 10px;
+    line-height: 35px;
 }
 
 @media only screen and (max-width: 999px) {
     .about_bn .w_bg .leftbox h3 {
-        font-size: 20px
+        font-size: 20px;
+        line-height: 20px;
     }
 }
 
