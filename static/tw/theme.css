@@ -7569,7 +7569,8 @@ body {
     font-size: 16px;
     padding: 10px 10px;
     text-align: center;
-    border-bottom: 1px solid #DDDDDD
+    border-bottom: 1px solid #DDDDDD;
+    white-space: nowrap;
 }
 
 .result_table .table_style1 tr:first-child td {
