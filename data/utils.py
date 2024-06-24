@@ -81,14 +81,24 @@ def get_dataset_key(key):
     return results
 
 
-def get_species_images(taxon_name_id):
+def get_species_images(taxon_id):
     conn = psycopg2.connect(**datahub_db_settings)
-    query = "SELECT taieol_id, images FROM species_images WHERE taxon_name_id = %s"
+    query = "SELECT taieol_id, images FROM species_images WHERE taxon_id = %s"
     with conn.cursor() as cursor:
-        cursor.execute(query, (str(taxon_name_id),))
+        cursor.execute(query, (taxon_id,))
         results = cursor.fetchone()
         conn.close()
     return results
+
+
+# def get_species_images(taxon_name_id):
+#     conn = psycopg2.connect(**datahub_db_settings)
+#     query = "SELECT taieol_id, images FROM species_images WHERE taxon_name_id = %s"
+#     with conn.cursor() as cursor:
+#         cursor.execute(query, (str(taxon_name_id),))
+#         results = cursor.fetchone()
+#         conn.close()
+#     return results
 
 
 # deprecated
@@ -1530,19 +1540,20 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     taxon_result_dict = []
     for tr in taxon_result_df.to_dict('records'):
         tr['images'] = []
-        results = get_species_images(tr['taxon_name_id'])
+        results = get_species_images(tr['taxon_id'])
         if results:
 
             tr['taieol_id'] = results[0]
             # tr['images'] = results[1]
-            tmp_images = []
+            # tmp_images = []
 
-            for rr in results[1]:
-                license_str = rr['license']
-                if license_str:
-                    license_str = 'CC-' + license_str.upper()
-                tmp_images.append({'author': rr['author'], 'src': rr['src'], 'license': license_str})
-            tr['images'] = tmp_images
+            # for rr in results[1]:
+            #     license_str = rr['license']
+            #     if license_str:
+            #         license_str = 'CC-' + license_str.upper()
+            #     tmp_images.append({'author': rr['author'], 'src': rr['src'], 'license': license_str})
+            # tr['images'] = tmp_images
+            tr['images'] = json.loads(results[0])
         # tr['matched'] = []
         # for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
         tmp = []
