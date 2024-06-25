@@ -23,6 +23,8 @@ from django.utils import timezone
 from conf.settings import datahub_db_settings
 import psycopg2
 from psycopg2 import sql
+from data.utils import backgroud_search_stat
+import threading
 
 def check_coor(lon,lat):
     try:
@@ -238,7 +240,6 @@ def occurrence(request):
             if APIkey.objects.filter(key=apikey,status='pass').exists():
                 fl_cols += sensitive_cols
             else:
-                # fl_cols = download_cols
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
@@ -249,18 +250,6 @@ def occurrence(request):
                 "sort":  "scientificName asc",
                 "fields": fl_cols
                 }
-        
-        # print(query)
-        # 查詢記錄
-        if offset == 0:
-            query['facet'] = {}
-            query['facet']['stat_rightsHolder'] = {
-                'type': 'terms',
-                'field': 'rightsHolder',
-                'mincount': 1,
-                'limit': -1,
-                'allBuckets': False,
-                'numBuckets': False}
 
         if not fq_list:
             query.pop('filter')
@@ -303,30 +292,22 @@ def occurrence(request):
             df = df.replace({np.nan: None})
 
         now_dict = dict(req)
-        # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
-        # for nq in not_query:
-        #     if nq in now_dict.keys():
-        #         now_dict.pop(nq)
+
         for k in now_dict.keys():
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
+
         query_string = parse.urlencode(now_dict)
             # 記錄在SearchStat
         if offset == 0:
-            stat_rightsHolder = []
-            if 'stat_rightsHolder' in response['facets'].keys():
-                stat_rightsHolder = response['facets']['stat_rightsHolder']['buckets']
-            #     stat_rightsHolder.append({'val': 'total', 'count': count})
-            # else:
-            stat_rightsHolder.append({'val': 'total', 'count': total})
-            # print(stat_rightsHolder)
-            SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+            task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'api_occ', query_string))
+            task.start()
+
         obj, created = SearchCount.objects.update_or_create(
                 search_location='api_occ'
             )
         obj.count += 1
         obj.save()
-        # SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}

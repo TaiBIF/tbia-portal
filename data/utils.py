@@ -1782,13 +1782,9 @@ def create_search_stat(query_list):
                 }
             }
         }
-
-    # # TODO 這邊如果全站搜尋有調整的話 也要一起跟著改
-    # if from_search_full:
-    #     stat_query['query'] = query_list
-    #     stat_query.pop('filter', None)
-    # else:
-    #     stat_query['filter'] = query_list
+    
+    if not query_list:
+        stat_query.pop('filter', None)
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
