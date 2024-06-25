@@ -285,6 +285,9 @@ $(document).ready(function () {
     $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
     $('.taxon-pop').removeClass('d-none')
 
+    $('.taxon-pop .img-license').removeClass('d-none')
+
+
     $('.arr-left').off('click')
     $('.arr-left').on('click', function () {
       plusSlides(-1, $(this).data('taxonid'), $(this).data('cardclass'))
@@ -895,7 +898,7 @@ function focusCards(record_type, key, go_back) {
                   <div class="picbox mySlides fade ${x.taxonID} d-block" data-index="1" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
-                    <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
+                    <p class="bottom-right">${x.images[ii].author} <span class="d-none img-license">${x.images[ii].license}</span></p>
                   </div>
                 </div>  
                   `
@@ -904,7 +907,7 @@ function focusCards(record_type, key, go_back) {
                   <div class="picbox mySlides fade ${x.taxonID} d-none" data-index="${ii + 1}" data-cardclass="${response.card_class}">
                   <div class="img-container">
                     <img class="imgarea" src="${x.images[ii].src}">
-                    <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
+                    <p class="bottom-right">${x.images[ii].author} <span class="d-none img-license">${x.images[ii].license}</span></p>
                   </div>
                 </div>  
                   `
@@ -1309,7 +1312,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             <div class="picbox mySlides fade ${x.taxonID} d-block " data-index="1" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
-              <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
+              <p class="bottom-right">${x.images[ii].author} <span class="d-none img-license">${x.images[ii].license}</span></p>
             </div>
           </div>  
             `
@@ -1318,7 +1321,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             <div class="picbox mySlides fade ${x.taxonID} d-none " data-index="${ii + 1}" data-cardclass="${card_class.substring(1)}">
             <div class="img-container">
               <img class="imgarea" src="${x.images[ii].src}">
-              <p class="bottom-right">${x.images[ii].author} ${x.images[ii].license}</p>
+              <p class="bottom-right">${x.images[ii].author} <span class="d-none img-license">${x.images[ii].license}</span></p>
             </div>
           </div>  
             `

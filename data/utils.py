@@ -1045,23 +1045,6 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     return query_list
 
 
-# deprecated
-# def taxon_full_filter(value):
-
-#     fields = [t for t in taxon_cols if t not in ['special-form','special-form_c','hybrid-formula','hybrid-formula_c']]
-#     fields.append('specialform')
-#     fields.append('specialform_c')
-#     fields.append('hybridformula')
-#     fields.append('hybridformula_c')
-
-#     queries = [Q(**{f'{f}__icontains': value}) for f in fields]
-
-#     qs = Q()
-#     for query in queries:
-#         qs = qs | query
-        
-#     return Taxon.objects.filter(qs).order_by('scientificName')
-
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
 def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False):
@@ -1540,7 +1523,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     taxon_result_dict = []
     for tr in taxon_result_df.to_dict('records'):
         tr['images'] = []
-        results = get_species_images(tr['taxon_id'])
+        results = get_species_images(tr['taxonID'])
         if results:
 
             tr['taieol_id'] = results[0]
@@ -1553,7 +1536,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
             #         license_str = 'CC-' + license_str.upper()
             #     tmp_images.append({'author': rr['author'], 'src': rr['src'], 'license': license_str})
             # tr['images'] = tmp_images
-            tr['images'] = json.loads(results[0])
+            tr['images'] = results[1]
         # tr['matched'] = []
         # for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
         tmp = []
@@ -1965,6 +1948,14 @@ def create_search_stat(query_list):
     if total_count:
         stat_rightsHolder = facets['stat_rightsHolder']['buckets']
 
+    # print(stat_rightsHolder)
+
     stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
     return stat_rightsHolder
+
+
+def backgroud_search_stat(query_list,record_type,query_string):
+
+    stat_rightsHolder = create_search_stat(query_list=query_list)
+    SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())

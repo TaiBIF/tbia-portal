@@ -23,7 +23,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v3" />
 {% endblock style %}
 
 {% block body %}
@@ -273,8 +273,7 @@
                       <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
                         <div class="img-container">
                           <img class="imgarea" src="{{ ii.src }}">
-                          <p class="bottom-right">{{ ii.author }} {{ ii.license }}</p>
-                          {% comment %} <p class="bottom-right">{{ ii.license }}</p> {% endcomment %}
+                          <p class="bottom-right">{{ ii.author }} <span class="d-none img-license">{{ ii.license }}<span></span>
                         </div>
                       </div>  
                       {% endfor %}
@@ -899,5 +898,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v7"></script>
+<script src="{% static 'js/data/search_full.js' %}?v8"></script>
 {% endblock script %}
