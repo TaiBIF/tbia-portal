@@ -1263,10 +1263,10 @@ def get_conditional_records(request):
         map_bound = check_map_bound(req_dict.get('map_bound'))
 
         if get_raw_map:
-            facet_grid = f'grid_{grid}'
+            # facet_grid = f'grid_{grid}'
             map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
         else:
-            facet_grid = f'grid_{grid}_blurred'
+            # facet_grid = f'grid_{grid}_blurred'
             map_query_list += [f"location_rpt:{map_bound}"]
 
         query = { "query": "*:*",
@@ -1275,47 +1275,33 @@ def get_conditional_records(request):
                 "filter": query_list,
                 "sort":  solr_orderby,
                 "facet": {'has_sensitive': {
-                            "q": "raw_location_rpt:*",
-                            "type": "query",
-                        },
-                        # 確認是否有物種名錄
-                        'has_species': {
-                            "q": "taxonID:*",
-                            "type": "query",
-                        }
-                    }
+                                "q": "exists(raw_location_rpt)",
+                                "type": "query",
+                            },
+                            # 確認是否有物種名錄
+                            'has_species': {
+                                "q": "exists(taxonID)",
+                                "type": "query",
+                            }
+                         }
                 }
 
         if not query_list:
             query.pop('filter')
 
-        map_geojson = {}
-        # 新搜尋的才重新query地圖資訊
-        if req_dict.get('from') not in ['page','orderby']:
-            query['facet'][facet_grid] = {
-                            'field': facet_grid,
-                            'mincount': 1,
-                            "type": "terms",
-                            "limit": -1,
-                            'domain': { 'query': "*:*", 'filter': map_query_list}
-                        }
-
-        if req_dict.get('from') == 'search':
-            # query['facet']['stat_rightsHolder'] = {}
-            query['facet']['stat_rightsHolder'] = {
-                'type': 'terms',
-                'field': 'rightsHolder',
-                'mincount': 1,
-                'limit': -1,
-                'allBuckets': False,
-                'numBuckets': False}
-
+        # map_geojson = {} 
         query_req = json.dumps(query)
 
-        # print(query['facet'])
+        # print(query)
+
+        # s = time.time()
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
         resp = response.json()
+
+        # print(resp)
+
+        # print('get records', time.time()-s)
 
         # print(resp)
 
@@ -1330,10 +1316,6 @@ def get_conditional_records(request):
 
             if resp['facets']['has_species']['count'] > 0:
                 has_species = True
-
-            if req_dict.get('from') not in ['page','orderby']:
-                data_c = resp['facets'][facet_grid]['buckets']
-                map_geojson = get_map_geojson(data_c=data_c, grid=grid)
 
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
@@ -1351,6 +1333,7 @@ def get_conditional_records(request):
         page_list = get_page_list(current_page, total_page)
 
         if req_dict.get('from') == 'search':
+
             now_dict = dict(req_dict)
             not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
             for nq in not_query:
@@ -1360,14 +1343,9 @@ def get_conditional_records(request):
                 if len(now_dict[k])==1:
                     now_dict[k] = now_dict[k][0]
             query_string = parse.urlencode(now_dict)
-            # 記錄在SearchStat
-            stat_rightsHolder = []
-            if 'stat_rightsHolder' in resp['facets'].keys():
-                stat_rightsHolder = resp['facets']['stat_rightsHolder']['buckets']
-            #     stat_rightsHolder.append({'val': 'total', 'count': count})
-            # else:
-            stat_rightsHolder.append({'val': 'total', 'count': count})
-            SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
+
+            task = threading.Thread(target=backgroud_search_stat, args=(query_list,record_type,query_string))
+            task.start()
 
         response = {
             'rows' : rows,
@@ -1376,8 +1354,8 @@ def get_conditional_records(request):
             'current_page' : current_page,
             'total_page' : total_page,
             'selected_col': selected_col,
-            'map_dict': map_dict,
-            'map_geojson': map_geojson,
+            'map_dict': map_dict, # 欄位對應
+            # 'map_geojson': map_geojson,
             'has_sensitive': has_sensitive,
             'has_species': has_species,
             'limit': limit,
@@ -1592,17 +1570,20 @@ def search_full(request):
     if keyword and len(keyword) < 2000:
         ## collection
 
+        s = time.time()
+
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
         collection_rows = col_resp['menu_rows']
         c_collection = col_resp['total_count']
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        # print('b', time.time()-s)
+        # print('a', time.time()-s)
 
-        # s = time.time()
 
         ## occurrence
+
+        # s = time.time()
 
         occ_resp = get_search_full_cards(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, is_first_time=True)
         occurrence_rows = occ_resp['menu_rows']
@@ -1610,11 +1591,12 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        # print('d', time.time()-s)
+        # print('b', time.time()-s)
 
-        # s = time.time()
 
         ## taxon
+
+        # s = time.time()
 
         taxon_resp = get_search_full_cards_taxon(keyword=keyword, card_class=None, is_sub='false', offset=0)
         taxon_rows = taxon_resp['menu_rows']
@@ -1622,7 +1604,7 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        # print('e', time.time()-s)
+        # print('c', time.time()-s)
 
         # s = time.time()
 
@@ -1700,3 +1682,14 @@ def search_full(request):
         }
 
     return render(request, 'data/search_full.html', response)
+
+
+# def backgroup_get_map_response():
+
+#     response = {}
+#     map_geojson = {}
+
+
+#     response['map_geojson'] = map_geojson
+
+#     return HttpResponse(json.dumps(response, default=str), content_type='application/json')

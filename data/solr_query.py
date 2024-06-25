@@ -2,59 +2,13 @@ from conf.settings import env
 
 SOLR_PREFIX = env('SOLR_PREFIX')
 
-occ_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 
-              'sourceVernacularName', 'originalScientificName', 'kingdom', 'phylum', 'class', 'order', 
-              'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
+occ_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName', 
+              'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
               'rightsHolder', 'sensitiveCategory', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license', 'eventDate']
 
-col_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 
-              'sourceVernacularName', 'originalScientificName', 'rightsHolder', 'sensitiveCategory',
-              'locality', 'recordedBy', 'typeStatus', 'preservation', 'datasetName', 'license', 'kingdom', 'phylum', 
-              'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 'eventDate']
-
-
-# occ_facets = {}
-# occ_facets['facet'] = {}
-
-# for f in occ_fields:
-#     occ_facets['facet'][f] = {
-#         'type': 'terms',
-#         'field': f,
-#         'mincount': 1,
-#         'limit': 30,
-#         'allBuckets': True,
-#         'numBuckets': True,
-#         'facet':{
-#             'taxonID':{
-#                 'type': 'terms',
-#                 'field': 'taxonID',
-#                 'limit': 30,
-#                 'numBuckets': True,
-#             },
-#         } 
-#     }
-
-
-# col_facets = {}
-# col_facets['facet'] = {}
-
-# for f in col_fields:
-#     col_facets['facet'][f] = {
-#         'type': 'terms',
-#         'field': f,
-#         'mincount': 1,
-#         'limit': 30,
-#         'allBuckets': True,
-#         'numBuckets': True,
-#         'facet':{
-#             'taxonID':{
-#                 'type': 'terms',
-#                 'field': 'taxonID',
-#                 'limit': 30,
-#                 'numBuckets': True,
-#             },
-#         } 
-#     }
+col_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName', 
+              'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
+              'rightsHolder', 'sensitiveCategory', 'locality', 'recordedBy', 'datasetName', 'license', 'eventDate', 'typeStatus', 'preservation']
 
 
 def create_facet_list(record_type):

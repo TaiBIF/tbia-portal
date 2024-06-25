@@ -26,7 +26,7 @@ from django.utils.translation import gettext
 from manager.models import User, Partner, SearchStat
 import time
 from urllib import parse
-
+import threading
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -124,8 +124,7 @@ def get_dataset_by_key(key_list):
     results = []
     conn = psycopg2.connect(**datahub_db_settings)
     
-    query = f''' select id, name FROM dataset WHERE "id" IN %s AND deprecated = 'f' 
-            '''
+    query = f''' select id, name FROM dataset WHERE "id" IN %s AND deprecated = 'f' '''
 
     with conn.cursor() as cursor:
         cursor.execute(query, (tuple(key_list), ))
@@ -230,14 +229,6 @@ def get_page_list(current_page, total_page, window=5):
     page_list = list(range(list_index*window-(window-1),list_index*window+1))
   return page_list
 
-# from django.core.paginator import Paginator
-
-# def get_page_list(current_page, total_count, data_per_page, window=5):
-#   objects = [r for r in range(1,total_count+1)]
-#   p = Paginator(objects, data_per_page)
-#   page_list = list(p.get_elided_page_range(current_page, on_each_side=int((window-1)/2), on_ends=0))
-#   return page_list
-
 
 def is_alpha(word):
     try:
@@ -246,10 +237,6 @@ def is_alpha(word):
         return False
 
 
-# dup_col = ['scientificName', 'common_name_c', 
-#             'alternative_name_c', 'synonyms', 'misapplied','kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c',
-#             'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',  'sourceScientificName', 'sourceVernacularName']
-
 # 進階搜尋查詢name欄位
 name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName']
 
@@ -257,7 +244,6 @@ def get_key(val, my_dict):
     for key, value in my_dict.items():
          if val == value:
              return key
- 
     return "key doesn't exist"
 
 map_occurrence = {
@@ -676,112 +662,6 @@ def query_a_href(query, query_a, lang=None):
     return query
 
 
-# deprecated
-# taxon-related columns 
-# taxon_cols = [
-#     'domain',
-#     'superkingdom',
-#     'kingdom',
-#     'subkingdom',
-#     'infrakingdom',
-#     'superdivision',
-#     'division',
-#     'subdivision',
-#     'infradivision',
-#     'parvdivision',
-#     'superphylum',
-#     'phylum',
-#     'subphylum',
-#     'infraphylum',
-#     'microphylum',
-#     'parvphylum',
-#     'superclass',
-#     'class',
-#     'subclass',
-#     'infraclass',
-#     'superorder',
-#     'order',
-#     'suborder',
-#     'infraorder',
-#     'superfamily',
-#     'family',
-#     'subfamily',
-#     'tribe',
-#     'subtribe',
-#     'genus',
-#     'subgenus',
-#     'section',
-#     'subsection',
-#     'species',
-#     'subspecies',
-#     'nothosubspecies',
-#     'variety',
-#     'subvariety',
-#     'nothovariety',
-#     'form',
-#     'subform',
-#     'special-form',
-#     'race',
-#     'stirp',
-#     'morph',
-#     'aberration',
-#     'hybrid-formula',
-#     'domain_c',
-#     'superkingdom_c',
-#     'kingdom_c',
-#     'subkingdom_c',
-#     'infrakingdom_c',
-#     'superdivision_c',
-#     'division_c',
-#     'subdivision_c',
-#     'infradivision_c',
-#     'parvdivision_c',
-#     'superphylum_c',
-#     'phylum_c',
-#     'subphylum_c',
-#     'infraphylum_c',
-#     'microphylum_c',
-#     'parvphylum_c',
-#     'superclass_c',
-#     'class_c',
-#     'subclass_c',
-#     'infraclass_c',
-#     'superorder_c',
-#     'order_c',
-#     'suborder_c',
-#     'infraorder_c',
-#     'superfamily_c',
-#     'family_c',
-#     'subfamily_c',
-#     'tribe_c',
-#     'subtribe_c',
-#     'genus_c',
-#     'subgenus_c',
-#     'section_c',
-#     'subsection_c',
-#     'species_c',
-#     'subspecies_c',
-#     'nothosubspecies_c',
-#     'variety_c',
-#     'subvariety_c',
-#     'nothovariety_c',
-#     'form_c',
-#     'subform_c',
-#     'special-form_c',
-#     'race_c',
-#     'stirp_c',
-#     'morph_c',
-#     'aberration_c',
-#     'hybrid-formula_c',
-#     'common_name_c', 
-#     'scientificName', 
-#     'alternative_name_c', 
-#     'synonyms',
-#     'misapplied'
-# ]
-
-
-
 # 已經預先存好的req_dict, getlist改為get
 # generate_sensitive_csv (v), transfer_sensitive_response (v), submit_sensitive_request(v)
 
@@ -1073,14 +953,14 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     else:
         enable_query_date = True
 
+    query_list = []
 
     query = {
-        "query": '',
+        "query": '*:*',
         "limit": 0,
-        "filter": ['recordType:col'],
         "facet": {},
         "sort":  "scientificName asc"
-        }        
+    }
 
     keyword_reg = ''
     q = ''
@@ -1096,19 +976,16 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_name_reg = get_variants(keyword_name_reg)
 
-
     if card_class.startswith('.col'):
-        # facet_list = col_facets
         map_dict = map_collection
         record_type = 'col'
         title_prefix = f'{gettext("自然史典藏")} > '
+        query_list.append('recordType:col')
     else: # taxon 跟 occ 都算在這裡
-        # facet_list = occ_facets
         map_dict = map_occurrence
         query.pop('filter', None)
         record_type = 'occ'
         title_prefix = f'{gettext("物種出現紀錄")} > '
-
 
     facet_list = create_facet_list(record_type=record_type)
 
@@ -1116,10 +993,9 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         if 'eventDate' in facet_list['facet'].keys():
             facet_list['facet'].pop('eventDate')
 
-
+    # 是否為特定facet卡片底下的
     if is_sub == 'true':
         facet_list = {'facet': {k: v for k, v in facet_list['facet'].items() if k == key} }
-
 
     q = ''
 
@@ -1138,24 +1014,24 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
 
     if is_first_time:
-        facet_list['facet']['stat_rightsHolder'] = {}
-        facet_list['facet']['stat_rightsHolder'] = {
-            'type': 'terms',
-            'field': 'rightsHolder',
-            'mincount': 1,
-            'limit': -1,
-            'allBuckets': False,
-            'numBuckets': False}
-
+        # 背景處理stat
+        query_string = 'keyword=' + keyword
+        task = threading.Thread(target=backgroud_search_stat, args=(q[:-4],'full',query_string))
+        task.start()
+    
     query.update(facet_list)
-    query.update({'query': q[:-4]})
+    query_list.append(q[:-4])
+    query['filter'] = query_list
+
+    # s = time.time()
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-    # print(response.json())
     facets = response.json()['facets']
-    facets.pop('count', None)    
-
     total_count = response.json()['response']['numFound']
+    facets.pop('count', None)
+
+    # print('get_resp', time.time()-s)
+
     menu_rows = [] # 側邊欄
     result = [] # 卡片
     has_more = False
@@ -1163,47 +1039,38 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     # 2023/11/20前 如果是對到高階層的話，存parentTaxonID，會有taxonID是空值，但其實有對到高階層的情況，產生bug
     # 目前全部改存taxonID
 
-
     for i in facets:
         x = facets[i]
-        if i == 'stat_rightsHolder':
-            stat_rightsHolder = x['buckets']
-            stat_rightsHolder.append({'val': 'total', 'count': total_count})
-            # 存進search_stat表中
-            # 只要存occurrence的統計就好
-            query_string = 'keyword=' + keyword
-            SearchStat.objects.create(query=query_string, search_location='full',stat=stat_rightsHolder,created=timezone.now())
-        else:
-            if x['allBuckets']['count']:
-                menu_rows.append({
-                    'title': map_dict[i],
-                    'total_count': x['allBuckets']['count'],
-                    'key': i
-                })
-            for k in x['buckets']:
-                bucket = k['taxonID']['buckets']
-                # print(bucket)
-                if bucket:
-                    if i == 'eventDate':
-                        if f_date := convert_date(k['val']):
-                            f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
-                            for item in bucket:
-                                if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
-                                    result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
-                    else:
+        if x['allBuckets']['count']:
+            menu_rows.append({
+                'title': map_dict[i],
+                'total_count': x['allBuckets']['count'],
+                'key': i
+            })
+
+        for k in x['buckets']:
+            bucket = k['taxonID']['buckets']
+            if bucket:
+                if i == 'eventDate':
+                    if f_date := convert_date(k['val']):
+                        f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
                         for item in bucket:
-                            if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
-                                result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
-                elif not bucket and k['count']:
-                    if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
-                        result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+                            if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
+                                result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                else:
+                    for item in bucket:
+                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
+                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+
+            elif not bucket and k['count']:
+                if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
+                    result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
 
     # 卡片
     result_df = pd.DataFrame(result)
     res_c = 0
     result_dict_all = []
 
-    
     if len(result_df):
         for t in result_df.val.unique():
             # 若是taxon-related的算在同一張
@@ -1215,8 +1082,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                     for ii in rows.index:
                         match_val = result_df.loc[ii].matched_value
                         # 改成後面一起處理
-                        # if result_df.loc[ii].matched_col in ['synonyms','misapplied']: 
-                        #     match_val = (', ').join(match_val.split(','))
                         matched.append({'key': result_df.loc[ii].matched_col, 
                                         'matched_col': map_dict[result_df.loc[ii].matched_col], 
                                         'matched_value_ori': match_val,
@@ -1274,17 +1139,16 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         else:
             result_df = pd.DataFrame(result_dict_all[:9])
 
+        # s = time.time()
         taicol = pd.DataFrame()
         if len(result_df):
             taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
-            # print(taxon_ids)
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
+            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms')
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
                     taicol = pd.DataFrame(data)
                     used_cols = ['common_name_c','formatted_name','id','scientificName','taxonRank', 'formatted_misapplied', 'formatted_synonyms']
-                    taicol = taicol[[u for u in used_cols if u in taicol.keys()]]
                     for u in used_cols:
                         if u not in taicol.keys():
                             taicol[u] = ''
@@ -1307,13 +1171,9 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
             if (is_sub != 'true') or (is_sub == 'true' and key == 'common_name_c'):
                 result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
-                # result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.replace({np.nan:'', None:''})
-            # if is_sub == 'true' and key == 'common_name_c':
-            #     result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
-            # if is_sub == 'true' and key == 'formatted_name':
-            #     result_df['formatted_name'] = result_df['formatted_name'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
+        # print('get_taxon', time.time()-s)
 
     # get_focus_card 使用
     if key:
@@ -1365,10 +1225,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         translation.activate(lang)
 
     taxon_result_dict = []
-    # keyword = request.POST.get('keyword', '')
-    # card_class = request.POST.get('card_class', '')
-    # is_sub = request.POST.get('is_sub', '')
-    # offset = request.POST.get('offset', '')
     offset = int(offset) if offset else offset
     if card_class and card_class != '.taxon-card':
         key = card_class.split('-')[1]
@@ -1379,7 +1235,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
 
     keyword_reg = ''
     keyword = html.unescape(keyword)
-    # q = ''
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_reg = get_variants(keyword_reg)
@@ -1409,6 +1264,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     query['limit'] = 4 if offset < 28 else 2
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
+    query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
 
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
@@ -1418,8 +1274,8 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     total_count = data['numFound']
     if total_count:
         taicol = pd.DataFrame(data['docs'])
-        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
-        taicol = taicol[taicol_cols]
+        # taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
+        # taicol = taicol[taicol_cols]
         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
     taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
 
@@ -1525,20 +1381,9 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         tr['images'] = []
         results = get_species_images(tr['taxonID'])
         if results:
-
             tr['taieol_id'] = results[0]
-            # tr['images'] = results[1]
-            # tmp_images = []
-
-            # for rr in results[1]:
-            #     license_str = rr['license']
-            #     if license_str:
-            #         license_str = 'CC-' + license_str.upper()
-            #     tmp_images.append({'author': rr['author'], 'src': rr['src'], 'license': license_str})
-            # tr['images'] = tmp_images
             tr['images'] = results[1]
-        # tr['matched'] = []
-        # for ii in taxon_result_df[taxon_result_df.taxonID==tr['taxonID']].index:
+
         tmp = []
         for ii in tr['matched']:
             match_val = ii['matched_value']
@@ -1560,7 +1405,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         title = None
         item_class = None
         card_class = None
-
 
     response = {
         'title': title,
@@ -1922,6 +1766,7 @@ def check_map_bound(map_bound):
 
 
 def create_search_stat(query_list):
+
     stat_query = { "query": "*:*",
             "offset": 0,
             "limit": 0,
@@ -1934,9 +1779,16 @@ def create_search_stat(query_list):
                     'limit': -1,
                     'allBuckets': False,
                     'numBuckets': False
-                    }
-              }
+                }
             }
+        }
+
+    # # TODO 這邊如果全站搜尋有調整的話 也要一起跟著改
+    # if from_search_full:
+    #     stat_query['query'] = query_list
+    #     stat_query.pop('filter', None)
+    # else:
+    #     stat_query['filter'] = query_list
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
@@ -1947,8 +1799,6 @@ def create_search_stat(query_list):
 
     if total_count:
         stat_rightsHolder = facets['stat_rightsHolder']['buckets']
-
-    # print(stat_rightsHolder)
 
     stat_rightsHolder.append({'val': 'total', 'count': total_count})
 

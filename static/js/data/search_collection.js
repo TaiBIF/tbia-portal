@@ -1033,20 +1033,20 @@ function changeAction() {
 
 function setTable(response, queryString, from, orderby, sort) {
 
-    if (from == 'search' | from == 'change') {
-        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-        // 目前的zoom level
-        if (window.current_grid_level == 100) {
-            L.geoJSON(response.map_geojson.grid_100, { className: "resultG_100", style: style }).addTo(map);
-        } else if (window.current_grid_level == undefined | window.current_grid_level == 10){
-            window.current_grid_level = 10
-            L.geoJSON(response.map_geojson.grid_10, { className: "resultG_10", style: style }).addTo(map);
-        } else if (window.current_grid_level == 5) {
-            L.geoJSON(response.map_geojson.grid_5, { className: "resultG_5", style: style }).addTo(map);
-        } else if (window.current_grid_level == 1) {
-            L.geoJSON(response.map_geojson.grid_1, { className: "resultG_1", style: style }).addTo(map);
-        } 
-    }
+    // if (from == 'search' | from == 'change') {
+    //     $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
+    //     // 目前的zoom level
+    //     if (window.current_grid_level == 100) {
+    //         L.geoJSON(response.map_geojson.grid_100, { className: "resultG_100", style: style }).addTo(map);
+    //     } else if (window.current_grid_level == undefined | window.current_grid_level == 10){
+    //         window.current_grid_level = 10
+    //         L.geoJSON(response.map_geojson.grid_10, { className: "resultG_10", style: style }).addTo(map);
+    //     } else if (window.current_grid_level == 5) {
+    //         L.geoJSON(response.map_geojson.grid_5, { className: "resultG_5", style: style }).addTo(map);
+    //     } else if (window.current_grid_level == 1) {
+    //         L.geoJSON(response.map_geojson.grid_1, { className: "resultG_1", style: style }).addTo(map);
+    //     } 
+    // }
 
     // 如果有資料回傳則顯示table
     $('.downloadData').data('query', queryString)
@@ -1342,6 +1342,10 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     $('.result_inf_top_1').removeClass('d-none')
 
                     $('.no_data').addClass('d-none')
+
+                    if (from != 'page' & from != 'orderby') {
+                        map.fire('dragend')
+                    }
 
                     setTable(response, window.condition, from, orderby, sort)
 
