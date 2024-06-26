@@ -1255,9 +1255,14 @@ def get_conditional_records(request):
 
 
         page = int(req_dict.get('page', 1))
+
         offset = (page-1)*limit
 
-        grid = int(req_dict.get('grid', 10))
+        # 如果offset超過100000 不回傳結果
+        if offset > 100000:
+            return HttpResponse(json.dumps({'message': 'exceed'}, default=str), content_type='application/json')
+
+        # grid = int(req_dict.get('grid', 10))
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))

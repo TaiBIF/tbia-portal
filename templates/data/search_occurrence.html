@@ -35,7 +35,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v4" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -246,7 +246,7 @@
           <option value="20">20</option>
           <option value="50">50</option>
           <option value="100">100</option>
-          </select>{% trans ' 筆' %}
+          </select>{% trans ' 筆' %}{% trans '，共' %} <span class="return-total-page"></span> {% trans '頁' %}
         </div>
         <p class="datenum">{% trans "資料筆數" %}{% trans '：' %}<span class="return-num"></span></p>
       </div>
@@ -471,5 +471,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v14"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v15"></script>
 {% endblock script %}

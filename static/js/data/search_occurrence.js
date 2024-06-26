@@ -8,7 +8,7 @@ let selectBox = new vanillaSelectBox("#rightsHolder", {
 
 // set value 之後再加event 不然會被洗掉
 $('#rightsHolder').on('change', function (e) {
-    // $(".loading_area").removeClass('d-none');
+
     e.preventDefault()
     let res = selectBox.getResult()
     let h_str = ''
@@ -41,11 +41,8 @@ $('#rightsHolder').on('change', function (e) {
         } else {
             selectBox2.disable()
         }
-        // $(".loading_area").addClass('d-none');
     })
-    .fail(function () {
-        // $(".loading_area").addClass('d-none');
-    })
+
 })
 
 
@@ -431,8 +428,6 @@ function drawMapGrid(currentZoomLevel){
 function initDataset(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
-    // let urlParams = new URLSearchParams(window.location.search);
-    // let keyword_list = urlParams.getAll('datasetName')
 
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
@@ -516,7 +511,6 @@ function doSearchDataset(what, datasize) {
                             }
                     });
                 }
-                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
                 resolve(data);
             } else {
                 reject({
@@ -544,26 +538,26 @@ $(function () {
 
     $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
-        // let total_count = $(this).data('count')
+
         if ($('input[name=is_authenticated]').val() == 'True') {
             $.ajax({
                 url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,  // + '&total_count=' + total_count,
+                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (response) {
-                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    if (xhr.status == 504) {
-                        alert(gettext('要求連線逾時'))
-                    } else {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
+            .done(function (response) {
+                alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+            })
+            .fail(function (xhr, status, errorThrown) {
+                if (xhr.status == 504) {
+                    alert(gettext('要求連線逾時'))
+                } else {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                    }
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+                }
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
         } else {
             alert(gettext('請先登入'))
         }
@@ -578,18 +572,18 @@ $(function () {
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (result) {
-                    alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    if (xhr.status == 504) {
-                        alert(gettext('要求連線逾時'))
-                    } else {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
+            .done(function (result) {
+                alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+            })
+            .fail(function (xhr, status, errorThrown) {
+                if (xhr.status == 504) {
+                    alert(gettext('要求連線逾時'))
+                } else {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                    }
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+                }
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
         } else {
             alert(gettext('請先登入'))
         }
@@ -597,9 +591,8 @@ $(function () {
 
     $('.downloadSensitive').on('click', function () {
         let queryString = $(this).data('query')
-        // let total_count = $(this).data('count')
         if ($('input[name=is_authenticated]').val() == 'True') {
-            window.open(`/${$lang}/sensitive_agreement?` + queryString)//+ '&total_count=' + total_count)
+            window.open(`/${$lang}/sensitive_agreement?` + queryString)
         } else {
             alert(gettext('請先登入'))
         }
@@ -760,7 +753,6 @@ $(function () {
             .done(function (response) {
                 $('input[name=geojson_id]').val(response.geojson_id)
                 geoJSON = L.geoJSON(JSON.parse(response.geojson), { className: 'addG' }).addTo(map);
-                // todo 這邊要重設
                 window.has_map = false
                 map.fitBounds(geoJSON.getBounds());
                 $('p.active').removeClass('active')
@@ -985,17 +977,17 @@ function changeAction() {
                         if (urlParams.get('geojson_id') != '') {
 
                             fetch(`/media/geojson/${value}.json`).then((res) => {
-                                    if (res.ok) {
-                                        $('#geojson_textarea').val(JSON.stringify(res.json()))
-                                        $.getJSON(`/media/geojson/${value}.json`, function (ret) {
-                                            let geoJSON = L.geoJSON(ret, { className: 'addG' }).addTo(map);
-                                            map.fitBounds(geoJSON.getBounds());
-                                        });
-                                    } else {
-                                        $(`.btnupload p[data-type=polygon]`).removeClass("active")
-                                    }
-                                });
-                            }
+                                if (res.ok) {
+                                    $('#geojson_textarea').val(JSON.stringify(res.json()))
+                                    $.getJSON(`/media/geojson/${value}.json`, function (ret) {
+                                        let geoJSON = L.geoJSON(ret, { className: 'addG' }).addTo(map);
+                                        map.fitBounds(geoJSON.getBounds());
+                                    });
+                                } else {
+                                    $(`.btnupload p[data-type=polygon]`).removeClass("active")
+                                }
+                            });
+                        }
                     }
                 }
 
@@ -1097,7 +1089,6 @@ function setTable(response, queryString, from, orderby, sort) {
     for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
-        //this_td.style.cssText = 'display:none';
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
@@ -1245,7 +1236,6 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
         let selected_col = ''
 
         // 如果是按搜尋或從網址進入，重新給query參數，若是從分頁則不用
-        // if (from == 'search' | from == 'change') {
         if (from == 'search' ) {
             var form = $();
             $('#searchForm input, #searchForm select').each(function () {
@@ -1325,145 +1315,162 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 dataType: 'json',
             })
             .done(function (response) {
-                // clear previous results
-                $('.record_table tr').remove()
-                $('.page-inf').remove()
 
-                if (response.count == 0) {
-                    $('.records-legend').addClass('d-none')
-                    $('.result_inf_top').addClass('d-none')
-                    $('.result_inf_top_1').addClass('d-none')
-                    $('.no_data').removeClass('d-none')
-                    // TODO 這邊如果有map的圖案要加回來
-                    $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-                    // $('.search_condition_are').after(`<div class="sc_result"><div class="no_data">${gettext('無資料')}</div></div>`)
+                if (response.message == 'exceed'){
+
+                    $(".loading_area").addClass('d-none');
+                    alert(gettext('超過系統可取得的頁數，請嘗試使用結果排序功能或縮小搜尋範圍'))
+
                 } else {
-                    $('.records-legend').removeClass('d-none')
 
-                    $('.result_inf_top').removeClass('d-none')
-                    $('.result_inf_top_1').removeClass('d-none')
+                    // clear previous results
+                    $('.record_table tr').remove()
+                    $('.page-inf').remove()
 
-                    $('.no_data').addClass('d-none')
+                    if (response.count == 0) {
+    
+                        $('.records-legend').addClass('d-none')
+                        $('.result_inf_top').addClass('d-none')
+                        $('.result_inf_top_1').addClass('d-none')
+                        $('.no_data').removeClass('d-none')
+                        $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
-                    if (from != 'page' & from != 'orderby') {
-                        map.fire('dragend')
-                    }
-
-                    setTable(response, window.condition, from, orderby, sort)
-
-                    // 判斷是從分頁或搜尋點選
-                    if (from == 'search' | from == 'change') {
-                        // uncheck all first
-                        $(`input[id^="occ-"]`).prop('checked', false)
-                        // show selected columns
-                        for (let i = 0; i < response.selected_col.length; i++) {
-                            $(`.row-${response.selected_col[i]}`).removeClass('d-none');
-                            $(`#occ-${response.selected_col[i]}`).prop('checked', true);
-                        }
                     } else {
-                        sendSelected()
-                    }
-
-                    // disable checkebox for common_name_c & scientificName
-                    $('#occ-common_name_c, #occ-scientificName').prop('disabled', true);
-                    $('#occ-common_name_c, #occ-scientificName').prop('checked', true);
-
-                    // append pagination
-
-                    if (response.total_page > 1) {  // 判斷是否有下一頁，有才加分頁按鈕
-                        $('.result_table').after(
-                            `<div class="page-inf">
-                                <div class="page_number">
-                                <a class="pre">
-                                    <span></span>
-                                </a>
-                                <a class="next">
-                                    <span></span>
-                                </a>
-                                </div>
-                                <span>
-                                    ${gettext('跳至')}<input name="jumpto" type="number" min="1" step="1" class="page-jump">${gettext('頁')}
-                                    <a class="jumpto pointer">GO</a>  
-                                </span>
-                            </div>`)
-                    }
-
-                    $('.jumpto').on('click', function () {
-                        if ( isNaN(parseInt($('input[name=jumpto]').val())) ){
-                            alert(gettext('請輸入有效頁碼'))
-                        } else {
-                            submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                            
+                        $('.records-legend').removeClass('d-none')
+    
+                        $('.result_inf_top').removeClass('d-none')
+                        $('.result_inf_top_1').removeClass('d-none')
+    
+                        $('.no_data').addClass('d-none')
+    
+                        // 在這步繪製地圖
+                        if (from != 'page' & from != 'orderby') {
+                            map.fire('dragend')
                         }
-                    })
-
-                    let html = ''
-                    for (let i = 0; i < response.page_list.length; i++) {
-                        if (response.page_list[i] == response.current_page) {
-                            html += `<a class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+    
+                        setTable(response, window.condition, from, orderby, sort)
+    
+                        // 判斷是從分頁或搜尋點選
+                        if (from == 'search' | from == 'change') {
+                            // uncheck all first
+                            $(`input[id^="occ-"]`).prop('checked', false)
+                            // show selected columns
+                            for (let i = 0; i < response.selected_col.length; i++) {
+                                $(`.row-${response.selected_col[i]}`).removeClass('d-none');
+                                $(`#occ-${response.selected_col[i]}`).prop('checked', true);
+                            }
                         } else {
-                            html += `<a class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                            sendSelected()
                         }
-                    }
-                    $('.pre').after(html)
-
-                    // 如果有上一頁，改掉pre的onclick
-                    if ((response.current_page - 1) > 0) {
-                        $('.pre').addClass('submitSearch')
-                        $('.pre').data('page', response.current_page - 1)
-                        $('.pre').data('from', 'page')
-                    }
-                    // 如果有下一頁，改掉next的onclick
-                    if (response.current_page < response.total_page) {
-                        $('.next').addClass('submitSearch')
-                        $('.next').data('page', response.current_page + 1)
-                        $('.next').data('from', 'page')
-                    }
-
-                    // 如果有前面的page list, 加上...
-                    if (response.current_page > 5) {
-                        $('.pre').after(`<a class="num bd-0 submitSearch" data-page="${response.current_page - 5}" data-from="page">...</a> `)
-                    }
-                    // 如果有後面的page list, 加上...
-                    if (response.page_list[response.page_list.length - 1] < response.total_page) {
-                        if (response.current_page + 5 > response.total_page) {
-                            $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
-                        } else {
-                            $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.current_page + 5}" data-from="page">...</a>`)
+    
+                        // disable checkebox for common_name_c & scientificName
+                        $('#occ-common_name_c, #occ-scientificName').prop('disabled', true);
+                        $('#occ-common_name_c, #occ-scientificName').prop('checked', true);
+    
+                        // append pagination
+    
+                        if (response.total_page > 1) {  // 判斷是否有下一頁，有才加分頁按鈕
+                            $('.result_table').after(
+                                `<div class="page-inf">
+                                    <div class="page_number">
+                                    <a class="pre">
+                                        <span></span>
+                                    </a>
+                                    <a class="next">
+                                        <span></span>
+                                    </a>
+                                    </div>
+                                </div>`)
                         }
+    
+                        // <span>
+                        //     ${gettext('跳至')}<input name="jumpto" type="number" min="1" step="1" class="page-jump">${gettext('頁')}
+                        //     <a class="jumpto pointer">GO</a>  
+                        // </span>
+    
+                        // $('.jumpto').on('click', function () {
+                        //     if ( isNaN(parseInt($('input[name=jumpto]').val())) ){
+                        //         alert(gettext('請輸入有效頁碼'))
+                        //     } else {
+                        //         submitSearch($('input[name=jumpto]').val(), 'page', false, limit, orderby, sort)
+                        //     }
+                        // })
+    
+                        let html = ''
+                        for (let i = 0; i < response.page_list.length; i++) {
+                            if (response.page_list[i] == response.current_page) {
+                                html += `<a class="num now submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `;
+                            } else {
+                                html += `<a class="num submitSearch" data-page="${response.page_list[i]}" data-from="page">${response.page_list[i]}</a>  `
+                            }
+                        }
+                        $('.pre').after(html)
+    
+                        // 如果有上一頁，改掉pre的onclick
+                        if ((response.current_page - 1) > 0) {
+                            $('.pre').addClass('submitSearch')
+                            $('.pre').data('page', response.current_page - 1)
+                            $('.pre').data('from', 'page')
+                        }
+                        // 如果有下一頁，改掉next的onclick
+                        if (response.current_page < response.total_page) {
+                            $('.next').addClass('submitSearch')
+                            $('.next').data('page', response.current_page + 1)
+                            $('.next').data('from', 'page')
+                        }
+    
+                        // 如果有前面的page list, 加上...
+                        if (response.current_page > 5) {
+                            $('.pre').after(`<a class="num bd-0 submitSearch" data-page="${response.current_page - 5}" data-from="page">...</a> `)
+                        }
+                        // 如果有後面的page list, 加上...
+                        if (response.page_list[response.page_list.length - 1] < response.total_page) {
+                            if (response.current_page + 5 > response.total_page) {
+                                $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.total_page}" data-from="page">...</a> `)
+                            } else {
+                                $('.next').before(`<a class="num bd-0 submitSearch" data-page="${response.current_page + 5}" data-from="page">...</a>`)
+                            }
+                        }
+    
+                        // // 加上總頁數
+                        // if (response.total_page > 1 && !response.page_list.includes(response.total_page)) {
+                        //     $('.next').before(`<a class="num ml-5px submitSearch" data-page="${response.total_page}" data-from="page">${response.total_page}</a>`)
+                        // }
+    
+                        $('.return-total-page').html(response.total_page)
+    
+                        if (response.total_page > 1 && !response.page_list.includes(1)) {
+                            $('.pre').after('<a class="num mr-5px submitSearch" data-page="1" data-from="page">1</a>')
+                        }
+    
+    
+                        if (limit) {
+                            $('.page_number a.submitSearch').data('limit', limit)
+                        }
+    
+                        if (orderby) {
+                            $('.page_number a.submitSearch').data('orderby', orderby)
+                        }
+    
+                        if (sort) {
+                            $('.page_number a.submitSearch').data('sort', sort)
+                        }
+    
+                        $('.page_number a.submitSearch').on('click', function () {
+                            submitSearch($(this).data('page'), $(this).data('from'), false, $(this).data('limit'), $(this).data('orderby'), $(this).data('sort'))
+                        })
+                        
                     }
-
-                    // 加上總頁數
-                    if (response.total_page > 1 && !response.page_list.includes(response.total_page)) {
-                        $('.next').before(`<a class="num ml-5px submitSearch" data-page="${response.total_page}" data-from="page">${response.total_page}</a>`)
-                    }
-
-                    if (response.total_page > 1 && !response.page_list.includes(1)) {
-                        $('.pre').after('<a class="num mr-5px submitSearch" data-page="1" data-from="page">1</a>')
-                    }
-
-
-                    if (limit) {
-                        $('.page_number a.submitSearch').data('limit', limit)
-                    }
-
-                    if (orderby) {
-                        $('.page_number a.submitSearch').data('orderby', orderby)
-                    }
-
-                    if (sort) {
-                        $('.page_number a.submitSearch').data('sort', sort)
-                    }
-
-                    $('.page_number a.submitSearch').on('click', function () {
-                        submitSearch($(this).data('page'), $(this).data('from'), false, $(this).data('limit'), $(this).data('orderby'), $(this).data('sort'))
-                    })
-                    
+    
+                    $('.sc_result').removeClass('d-none')
+                    $(".loading_area").addClass('d-none');
+                    $([document.documentElement, document.body]).animate({
+                        scrollTop: $(".sc_result").offset().top - 80
+                    }, 200);
+    
                 }
-                $('.sc_result').removeClass('d-none')
-                $(".loading_area").addClass('d-none');
-                $([document.documentElement, document.body]).animate({
-                    scrollTop: $(".sc_result").offset().top - 80
-                }, 200);
+
             })
             .fail(function (xhr, status, errorThrown) {
                 if (xhr.status == 504) {

@@ -247,7 +247,7 @@ def occurrence(request):
                 "offset": offset,
                 "limit": limit,
                 "filter": fq_list,
-                "sort":  "scientificName asc",
+                # "sort":  "scientificName asc",
                 "fields": fl_cols
                 }
 
