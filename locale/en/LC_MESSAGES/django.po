@@ -2280,8 +2280,8 @@ msgstr "Internal Server Error"
 
 
 #:
-msgid "因應效能考量，每次API請求至多回傳1000筆資料，您可以透過分頁參數取得全部資料。"
-msgstr "Due to performance considerations, each request can return up to 1000 records. You can obtain all records through pagination parameters."
+msgid "因應效能考量，每次API請求至多回傳1000筆資料，若搜尋的結果大於1000筆，您可以透過回傳的<b>next</b>參數取得下一分頁的網址，並以遞迴方式取得全部資料。"
+msgstr "Due to performance considerations, each request can return a maximum of 1000 records. You can retrieve the URL of the next page using the 'next' parameter returned, and recursively fetch all the data."
 
 
 #:
@@ -2582,4 +2582,9 @@ msgstr "Whether providing relevant results will serve as the basis for reviewing
 #:
 msgid "超過系統可取得的頁數，請嘗試使用結果排序功能或縮小搜尋範圍"
 msgstr "Exceeding the system's accessible page limit, please try using the results sorting feature or narrowing your search scope."
+
+
+#:
+msgid "下載檔案連結將保留三個月"
+msgstr "The download link will be valid for three months."
 

@@ -1057,21 +1057,24 @@ function setTable(response, queryString, from, orderby, sort) {
     // 如果querystring裡面有limit的，修改shownumber
     $("select[name=shownumber]").val(response.limit);
 
-    // 如果有敏感資料才有申請按鈕
-    if (!response.has_sensitive) {
-        $('button.downloadSensitive').prop('disabled', true);
-        $('button.downloadSensitive').addClass('dwd').removeClass('dw')
-    } else {
-        $('button.downloadSensitive').prop('disabled', false);
-        $('button.downloadSensitive').addClass('dw').removeClass('dwd')
-    }
+    // 這邊如果是換頁的話不修改
+    if (from != 'page'){
+        // 如果有敏感資料才有申請按鈕
+        if (!response.has_sensitive) {
+            $('button.downloadSensitive').prop('disabled', true);
+            $('button.downloadSensitive').addClass('dwd').removeClass('dw')
+        } else {
+            $('button.downloadSensitive').prop('disabled', false);
+            $('button.downloadSensitive').addClass('dw').removeClass('dwd')
+        }
 
-    if (!response.has_species) {
-        $('button.downloadTaxon').prop('disabled', true);
-        $('button.downloadTaxon').addClass('dwd').removeClass('dw')
-    } else {
-        $('button.downloadTaxon').prop('disabled', false);
-        $('button.downloadTaxon').addClass('dw').removeClass('dwd')
+        if (!response.has_species) {
+            $('button.downloadTaxon').prop('disabled', true);
+            $('button.downloadTaxon').addClass('dwd').removeClass('dw')
+        } else {
+            $('button.downloadTaxon').prop('disabled', false);
+            $('button.downloadTaxon').addClass('dw').removeClass('dwd')
+        }
     }
 
     // table title

@@ -180,10 +180,10 @@ def change_manager_page(request):
         for t in SearchQuery.objects.filter(user_id=request.user.id,type='taxon').order_by('-id')[offset:offset+10]:
             if t.modified:
                 date = t.modified + timedelta(hours=8)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 if t.status != 'expired':
-                    if now - t.modified > timedelta(days=335) and now < t.modified + timedelta(days=365):
-                        expired_date = t.modified + timedelta(days=365)
+                    if now - t.modified > timedelta(days=31) and now < t.modified + timedelta(days=63):
+                        expired_date = t.modified + timedelta(days=63)
                         date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
@@ -211,8 +211,8 @@ def change_manager_page(request):
             data.append({
                 'id': f"#{t.personal_id}",
                 'query_id': t.query_id,
-                'date':  date,
-                'query':   query,
+                'date': date,
+                'query': query,
                 'status': gettext(t.get_status_display()),
                 'link': link
             })
@@ -224,10 +224,10 @@ def change_manager_page(request):
         for s in SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').order_by('-id')[offset:offset+10]:
             if s.modified:
                 date = s.modified + timedelta(hours=8)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 if s.status != 'expired':
-                    if now - s.modified > timedelta(days=335) and now < s.modified + timedelta(days=365):
-                        expired_date = s.modified + timedelta(days=365)
+                    if now - s.modified > timedelta(days=31) and now < s.modified + timedelta(days=63):
+                        expired_date = s.modified + timedelta(days=63)
                         date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
@@ -240,6 +240,7 @@ def change_manager_page(request):
                 search_prefix = 'collection'
             else:
                 search_prefix = 'occurrence'
+
             tmp_a = create_query_a(search_dict)
             for i in ['locality','datasetName','rightsHolder','total_count']:
                 if i in search_dict.keys():
@@ -251,7 +252,6 @@ def change_manager_page(request):
 
             # 審查意見
             comment = []
-
 
             # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
             for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
@@ -287,10 +287,10 @@ def change_manager_page(request):
         for r in SearchQuery.objects.filter(user_id=request.user.id,type='record').order_by('-id')[offset:offset+10]:
             if r.modified:
                 date = r.modified + timedelta(hours=8)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 if r.status != 'expired':
-                    if now - r.modified > timedelta(days=335) and now < r.modified + timedelta(days=365):
-                        expired_date = r.modified + timedelta(days=365)
+                    if now - r.modified > timedelta(days=31) and now < r.modified + timedelta(days=63):
+                        expired_date = r.modified + timedelta(days=63)
                         date += f'<br><span class="expired-notice">*{gettext("資料下載連結將於")}{expired_date.year}-{expired_date.month}-{expired_date.day}{gettext("後失效")}</span>'
             else:
                 date = ''
@@ -356,7 +356,7 @@ def change_manager_page(request):
             for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+                    date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 else:
                     date = ''
 
@@ -379,7 +379,7 @@ def change_manager_page(request):
             for f in Feedback.objects.all().order_by('-id')[offset:offset+10]:
                 if f.created:
                     date = f.created + timedelta(hours=8)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+                    date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 else:
                     date = ''
 
@@ -434,7 +434,7 @@ def change_manager_page(request):
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
             # else:
             #     date = ''
 
@@ -498,7 +498,7 @@ def change_manager_page(request):
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.date(), 14)
-                created = created.strftime('%Y-%m-%d %H:%M:%S')
+                created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
@@ -553,11 +553,11 @@ def change_manager_page(request):
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
                         due = check_due(created.date(), 14)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     else:
                         status = sdr.get_status_display()
                         due = check_due(created.date(), 7)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     
                     date = created + '<br>審核期限：' + due
                     
@@ -577,6 +577,7 @@ def change_manager_page(request):
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
+
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
         if request.GET.get('from') == 'partner':
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
@@ -636,6 +637,7 @@ def change_manager_page(request):
                 })
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
+
     elif menu == 'news_apply':
                         
         for n in News.objects.all().order_by('-modified')[offset:offset+10]:
@@ -646,7 +648,7 @@ def change_manager_page(request):
 
             if n.modified:
                 modified = n.modified + timedelta(hours=8)
-                modified = modified.strftime('%Y-%m-%d %H:%M:%S')
+                modified = modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
             else:
                 modified = ''
 
@@ -681,7 +683,7 @@ def change_manager_page(request):
         for n in news_list[offset:offset+10]:
             if n.modified:
                 modified = n.modified + timedelta(hours=8)
-                modified = modified.strftime('%Y-%m-%d %H:%M:%S')
+                modified = modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
             else:
                 modified = ''
 
@@ -716,7 +718,7 @@ def change_manager_page(request):
                 'lang': r.get_lang_display(),
                 # 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'publish_date': r.publish_date.strftime('%Y-%m-%d'),
-                'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>'),
                 'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
                 'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })

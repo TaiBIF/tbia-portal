@@ -7,7 +7,6 @@ import numpy as np
 import bisect
 import os
 from os.path import exists
-# from data.models import Taxon #DatasetKey, 
 from conf.settings import datahub_db_settings
 import psycopg2
 from django.db.models import Q
@@ -31,21 +30,6 @@ import threading
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
 taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID','originalScientificName']
-
-
-# basis_dict = {
-#     "人為觀測": '("人為觀測" OR "HumanObservation")',
-#     "機器觀測": '("機器觀測" OR "MachineObservation")',
-#     "保存標本": '("保存標本" OR "PreservedSpecimen")',
-#     "材料樣本": '("材料樣本" OR "MaterialSample")',
-#     "活體標本": '("活體標本" OR "LivingSpecimen")',
-#     "化石標本": '("化石標本" OR "FossilSpecimen")',
-#     "文獻紀錄": '("文獻紀錄" OR "MaterialCitation")',
-#     "材料實體": '("材料實體" OR "MaterialEntity")',
-#     "分類群": '("分類群" OR "Taxon")',
-#     "出現紀錄": '("出現紀錄" OR "Occurrence")',
-#     "調查活動": '("調查活動" OR "Event")'
-# }
 
 
 name_status_map = {
@@ -91,32 +75,6 @@ def get_species_images(taxon_id):
     return results
 
 
-# def get_species_images(taxon_name_id):
-#     conn = psycopg2.connect(**datahub_db_settings)
-#     query = "SELECT taieol_id, images FROM species_images WHERE taxon_name_id = %s"
-#     with conn.cursor() as cursor:
-#         cursor.execute(query, (str(taxon_name_id),))
-#         results = cursor.fetchone()
-#         conn.close()
-#     return results
-
-
-# deprecated
-# def get_dataset_list(dataset_list ,record_type=None, rights_holder=None):
-#     results = []
-#     conn = psycopg2.connect(**datahub_db_settings)
-
-
-#     query = f''' select distinct on ("name") id, name FROM dataset WHERE "name" IN %s AND deprecated = 'f' 
-#                 {f"AND record_type = '{record_type}'" if record_type else ''}  
-#                 {f"AND rights_holder = '{rights_holder}'" if rights_holder else ''}  
-#             '''
-#     with conn.cursor() as cursor:
-#         cursor.execute(query, (tuple(dataset_list), ))
-#         results = cursor.fetchall()
-#         conn.close()
-        
-#     return results
 
 
 def get_dataset_by_key(key_list):
@@ -177,13 +135,6 @@ taxon_group_map_c = {
 }
 
 
-# def convert_grid_to_coor(grid_x, grid_y, grid):
-#     list_x = np.arange(-180, 180+grid, grid)
-#     list_y = np.arange(-90, 90+grid, grid)
-#     center_x = (list_x[grid_x] + list_x[grid_x+1])/2
-#     center_y = (list_y[grid_y] + list_y[grid_y+1])/2
-#     return center_x, center_y
-
 def convert_coor_to_grid(x, y, grid):
     list_x = np.arange(-180, 180+grid, grid)
     list_y = np.arange(-90, 90+grid, grid)
@@ -198,8 +149,6 @@ def convert_grid_to_square(grid_x, grid_y, grid):
     x2 = round(list_x[grid_x+1],4)
     y1 = round(list_y[grid_y],4)
     y2 = round(list_y[grid_y+1],4)
-    # print(list_x[grid_x],list_x[grid_x+1],list_y[grid_y],list_y[grid_y+1])
-    # [[x1,y1],[x1,y2],[x2,y1],[x2,y2]]
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 
 def format_grid(grid_x, grid_y, grid, count):
@@ -527,19 +476,13 @@ def create_query_display(search_dict,lang=None):
                         for d in eval(search_dict[k]):
                             if d_name := get_dataset_key(d):
                                 d_list.append(d_name)
-                            # if DatasetKey.objects.filter(id=d).exists():
-                                # d_list.append(DatasetKey.objects.get(id=d).name)
                     else:
                         if d_name := get_dataset_key(search_dict[k]):
                             d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=search_dict[k]).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=search_dict[k]).name)
                 else:
                     for d in list(search_dict[k]):
                         if d_name := get_dataset_key(d):
                             d_list.append(d_name)
-                        # if DatasetKey.objects.filter(id=d).exists():
-                        #     d_list.append(DatasetKey.objects.get(id=d).name)
             elif k == 'rightsHolder':
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
@@ -1641,12 +1584,6 @@ def create_data_table(docs, user_id, obv_str):
         if row.get('scientificName') and row.get('formatted_name'):
             docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
 
-        # if row.get('misapplied') and row.get('formatted_misapplied'):
-        #     docs.loc[i, 'misapplied'] = docs.loc[i, 'formatted_misapplied']
-
-        # if row.get('synonyms') and row.get('formatted_synonyms'):
-        #     docs.loc[i, 'synonyms'] = docs.loc[i, 'formatted_synonyms']
-
         # date
         if date := row.get('standardDate'):
             date = date[0].split('T')[0]
@@ -1694,10 +1631,6 @@ def create_data_table(docs, user_id, obv_str):
         # 分類階層
         if row.get('taxonRank', ''):
             now_rank = row.get('taxonRank')
-            # if now_rank == 'hybrid formula':
-            #     now_rank = 'hybrid-formula'
-            # elif now_rank == 'special form':
-            #     now_rank = 'special-form'
             docs.loc[i , 'taxonRank'] = map_collection[now_rank]
 
         # 座標是否有模糊化
@@ -1716,10 +1649,6 @@ def create_data_table(docs, user_id, obv_str):
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
 
-    # if 'synonyms' in docs.keys():
-    #     docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-    # if 'misapplied' in docs.keys():
-    #     docs['misapplied'] = docs['misapplied'].apply(lambda x: ', '.join(x.split(',')))
     
     if 'formatted_synonyms' in docs.keys():
         docs['synonyms'] = docs['formatted_synonyms']

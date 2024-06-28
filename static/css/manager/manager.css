@@ -8,7 +8,11 @@
 }
 
 .download_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
+
 }
 
 .download_taxon_table tr:not(:first-child) td:nth-child(2) {
@@ -18,7 +22,10 @@
 }
 
 .download_taxon_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
 }
 
 
@@ -29,11 +36,17 @@
 }
 
 .sensitive_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
 }
 
 .sensitive_table tr:not(:first-child) td:nth-child(5) {
-    text-align: left
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
 }
 
 
@@ -168,6 +181,12 @@ td hr {
 .noticbox p {
     font-size: 14px;
     color: #C65454
+}
+
+.expired-p {
+    font-size: 14px;
+    color: #C65454;
+    line-height: 32px;
 }
 
 span.expired-notice {

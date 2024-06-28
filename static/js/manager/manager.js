@@ -14,8 +14,6 @@ function changePage(page, menu) {
             // 修改頁碼
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
-            //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-
             if (response.total_page > 0){
 
                 $(`.${menu}_table`).parent().after(
@@ -25,7 +23,6 @@ function changePage(page, menu) {
                         <a class="next">${gettext('下一頁')}<span></span></a>
                         <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                         </div>`)
-                //}		
 
                 let html = ''
                 for (let i = 0; i < response.page_list.length; i++) {

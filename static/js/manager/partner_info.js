@@ -53,7 +53,7 @@ function showRequest(query_id, query, sdr_id) {
             $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
             $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
 
-            if (response.detail.is_agreed_report==true){
+            if (response.detail.is_agreed_report == true) {
                 $('.detail-pop input[name=is_agreed_report]').prop('checked', true);
             }
 
@@ -125,7 +125,7 @@ function changePage(page, menu) {
             $(`.${menu}_table`).parent().next('.page_number').remove()
             //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
 
-            if (response.total_page > 0){
+            if (response.total_page > 0) {
 
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
@@ -183,8 +183,6 @@ function changePage(page, menu) {
                     update_user_status($(this).data('id'))
                 })
 
-
-                
                 $('.showRequest').off('click')
                 $('.showRequest').on('click', function () {
                     let query_id = $(this).data('query_id');
@@ -224,7 +222,7 @@ function changePage(page, menu) {
 
 $(document).ready(function () {
 
-    $('.downloadReport').on('click', function(){
+    $('.downloadReport').on('click', function () {
         $('#downloadReport').submit()
     })
 
@@ -351,14 +349,14 @@ $(document).ready(function () {
             data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
             dataType: 'json'
         })
-            .done(function (response) {
-                alert('送出成功')
-                window.location.reload()
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
+        .done(function (response) {
+            alert('送出成功')
+            window.location.reload()
+        })
+        .fail(function (xhr, status, errorThrown) {
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
     })
 
     $('.accordion').on('click', function () {
@@ -366,7 +364,6 @@ $(document).ready(function () {
             $(this).removeClass('active')
             $(this).next('.panel').removeClass('d-block').addClass('d-none')
         } else {
-            // 
             $('.accordion').not(this).removeClass('active')
             $('.accordion').not(this).next('.panel').removeClass('d-block').addClass('d-none')
             $(this).addClass('active')
@@ -395,19 +392,16 @@ function update_user_status(current_id) {
         type: 'POST',
         dataType: 'json',
     })
-        .done(function (response) {
-            if (response['exceed_ten']) {
-                alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
-                location.reload()
-            } else {
-                alert('修改完成')
-            }
-        })
-        .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
+    .done(function (response) {
+        if (response['exceed_ten']) {
+            alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
+            location.reload()
+        } else {
+            alert('修改完成')
+        }
+    })
+    .fail(function (xhr, status, errorThrown) {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
 }
-
-
