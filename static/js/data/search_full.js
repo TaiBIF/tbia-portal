@@ -929,7 +929,7 @@ function focusCards(record_type, key, go_back) {
             let display = '';
 
             if (x.taieol_id) {
-              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('生命大百科介紹')}</a>`
+              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('物種介紹')}</a>`
             } else {
               display = ' jc-fe'
             }
@@ -1343,7 +1343,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           let display = '';
 
           if (x.taieol_id) {
-            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('生命大百科介紹')}</a>`
+            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('物種介紹')}</a>`
           } else {
             display = ' jc-fe'
           }

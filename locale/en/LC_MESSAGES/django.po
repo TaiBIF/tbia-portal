@@ -608,8 +608,8 @@ msgid "自然史典藏筆數"
 msgstr "Number o Collections"
 
 #: templates/data/search_full.html:305
-msgid "生命大百科介紹"
-msgstr "Introduction in TaiEOL"
+msgid "物種介紹"
+msgstr "Species Introduction"
 
 #: templates/data/search_full.html:309 templates/data/search_full.html:316
 #: templates/data/search_full.html:893
