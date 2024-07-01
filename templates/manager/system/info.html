@@ -375,20 +375,20 @@
 </div>
 
 
-<!--確認轉交pop-->
+ <!--全部轉交pop-->
 <div class="messageboxfix submit-transfer d-none">
 	<div class="message_box">
 		<div class="informationicon">!</div>
 		<p>送出後無法修改，確認送出？</p>
 		<div class="btn_area">
-			<button class="">取消</button>
-			<button class="">確認</button>
+			<button class="hide_submit-transfer">取消</button>
+			<button class="transferRequest">確認</button>
 		</div>
 	</div>
-</div>
+</div> 
 
 
-<!--確認轉交pop-->
+<!--部分轉交pop-->
 <div class="messageboxfix partial-pop d-none">
 	<div class="message_box">
 		<div class="informationicon">!</div>
@@ -407,5 +407,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v6"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v7"></script>
 {% endblock script %}

@@ -174,7 +174,7 @@ def submit_sensitive_request(request):
 
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
-            query = { "query": "raw_location_rpt:[* TO *]",
+            query = { "query": "raw_location_rpt:*",
                         "offset": 0,
                         "limit": 0,
                         "filter": query_list,
@@ -265,7 +265,7 @@ def transfer_sensitive_response(request):
 
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
 
-            query = { "query": "*:*",
+            query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
