@@ -1220,7 +1220,7 @@ def get_request_detail(request):
 
         query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
 
-        query = { "query": "*:*",
+        query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -1241,7 +1241,6 @@ def get_request_detail(request):
         groups = []
         for g in group:
             groups.append(g['val'])
-
 
         partners = Partner.objects.filter(group__in=groups).order_by('abbreviation','id')
 
