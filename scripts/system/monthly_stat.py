@@ -38,11 +38,11 @@ for v in stat_df.values[:10]:
     
 sq = SearchQuery.objects.filter(type='taxon', created__contains=current_year_month)
 
-for v in stat_df.values:
-    ChecklistStat.objects.create(
-        year_month = current_year_month,
-        count = len(sq),
-    )
+# for v in stat_df.values:
+ChecklistStat.objects.create(
+    year_month = current_year_month,
+    count = len(sq),
+)
 
 
 # 每月資料被查詢
