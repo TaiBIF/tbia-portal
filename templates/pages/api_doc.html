@@ -688,14 +688,14 @@
 							<td>{% trans '限制回傳筆數。預設20筆，上限1000' %}</td>
 							<td><a href="/api/v1/occurrence?limit=1000" target="_blank">/api/v1/occurrence?limit=1000</a></td>
 						</tr>
-						<tr>
+						{% comment %} <tr>
 							<td>offset</td>
 							<td>{% trans "指定回傳起始編號。預設為0" %}</td>
 							<td><a href="/api/v1/occurrence?offset=20" target="_blank">/api/v1/occurrence?offset=20</a></td>
-						</tr>
+						</tr> {% endcomment %}
 					</table>
 				<br>
-				*{% trans "因應效能考量，每次API請求至多回傳1000筆資料，您可以透過分頁參數取得全部資料。" %}
+				*{% trans "因應效能考量，每次API請求至多回傳1000筆資料，若搜尋的結果大於1000筆，您可以透過回傳的<b>next</b>參數取得下一分頁的網址，並以遞迴方式取得全部資料。" %}
 				</div>
 				<div class="green_title">
 					<div class="line_mark"></div>
@@ -742,68 +742,19 @@
 					
 <pre><code>{
 	"status": {
-		"code": 200,
-		"message": "Success"
+		"code": 回傳狀態代碼,
+		"message": 回傳狀態說明
 	},
 	"meta": {
-		"total": 6657360,
-		"limit": 20,
-		"offset": 0
+		"total": 符合查詢條件全部筆數,
+		"limit": 每頁回傳筆數,
 	},
-	"data":[
-	{
-		"basisOfRecord": "保存標本",
-		"created": "2023-05-30",
-		"dataGeneralizations": false,
-		"datasetName": "NMNH Extant Specimen Records (USNM, US)",
-		"license": "CC0",
-		"modified": "2023-09-04",
-		"occurrenceID": "1321793052",
-		"organismQuantity": "1.0",
-		"originalScientificName": "Aaptos sp.",
-		"recordedBy": "K. Erickson",
-		"references": "https://www.gbif.org/occurrence/1321793052",
-		"resourceContacts": "Thomas Orrell",
-		"rightsHolder": "GBIF",
-		"sensitiveCategory": "無",
-		"sourceModified": "2023-04-18",
-		"sourceScientificName": "Aaptos",
-		"sourceVernacularName": "疏海綿屬",
-		"standardOrganismQuantity": 1.0,
-		"taxonID": "t0009202",
-		"id": "64760e132eeb20004955a5bd",
-		"scientificName": "Aaptos",
-		"name_author": "Gray, 1867",
-		"common_name_c": "疏海綿屬",
-		"kingdom": "Animalia",
-		"kingdom_c": "動物界",
-		"phylum": "Porifera",
-		"phylum_c": "海綿動物門",
-		"class": "Demospongiae",
-		"class_c": "尋常海綿綱",
-		"taxonRank": "genus",
-		"order": "Hadromerida",
-		"order_c": "韌海綿目",
-		"family": "Suberitidae",
-		"family_c": "皮海綿科",
-		"eventDate": null,
-		"scientificNameID": null,
-		"standardDate": null,
-		"synonyms": null,
-		"genus": null,
-		"genus_c": null,
-		"locality": null,
-		"sourceCreated": null,
-		"standardLongitude": null,
-		"verbatimCoordinateSystem": null,
-		"verbatimLatitude": null,
-		"verbatimLongitude": null,
-		"verbatimSRS": null
-	},
-	......
-	]
+	"links": {
+		"self": 本頁網址,
+		"next": 下一分頁網址
+	  },	
+	"data":[結果陣列]
 }</code></pre>
-
 
 				</div>
 
@@ -826,6 +777,12 @@
 					<h3>{% trans '更新紀錄' %}</h3>
 				</div>
 				<ul class="li_style2">
+					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2024-06-27 ｜ {% if LANGUAGE_CODE == 'en-us' %}Modified the pagination parameter.{% else %}修改分頁參數取得方式：棄用offset，改以next參數提供下一分頁網址。{% endif %}</h3>
+						</div>
+					</li>
 					<li>
 						<div class="flexbox">
 							<div class="dot"></div>

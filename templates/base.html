@@ -13,12 +13,12 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />  
     <title>{% block title %}{% endblock title %}TBIA</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v5" />
+    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v7" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
     <link href="/static/vanillaselectbox/vanillaSelectBox.css?v1" rel="stylesheet" />
-    <script src="/static/vanillaselectbox/vanillaSelectBox.js?v1"></script>
+    <script src="/static/vanillaselectbox/vanillaSelectBox.js?v2"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
@@ -105,9 +105,9 @@
               data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
               data-theme="light" 
               data-size="normal"
-              data-callback="verify"
-              data-expired-callback="expired"
-              data-error-callback="error">
+              data-callback="validateCaptcha"
+              data-expired-callback="handleCaptchaExpired"
+              data-error-callback="handleCaptchaExpired">
             </div>
           {% endif %}
           </form>
@@ -527,9 +527,9 @@
                     class="g-recaptcha"
                     data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
                     data-theme="light" data-size="normal"
-                    data-callback="verify"
-                    data-expired-callback="expired"
-                    data-error-callback="error">
+                    data-callback="validateCaptcha"
+                    data-expired-callback="handleCaptchaExpired"
+                    data-error-callback="handleCaptchaExpired">
                     </div>
                     <div class="noticbox d-none">
                       {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
@@ -649,6 +649,6 @@
   <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
   {% endif %}
   </body>
-  <script src="{% static 'js/base.js' %}?v3"></script>
+  <script src="{% static 'js/base.js' %}?v4"></script>
   {% block script %}{% endblock script %}
 </html>

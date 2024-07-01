@@ -5,6 +5,9 @@
 
 .sensitive_apply_table tr:not(:first-child) td:nth-child(3) {
     text-align: left !important;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
 }
 
 .send-submitted {

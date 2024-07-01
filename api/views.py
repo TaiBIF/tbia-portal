@@ -10,7 +10,8 @@ import json
 from api.models import APIkey
 from data.utils import download_cols, sensitive_cols
 import requests
-from conf.settings import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX, datahub_db_settings
+from conf.utils import scheme
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 import pandas as pd
@@ -19,10 +20,11 @@ import numpy as np
 from urllib import parse
 from manager.models import SearchStat, SearchCount
 from django.utils import timezone
-
-from conf.settings import datahub_db_settings
+# from conf.settings import 
 import psycopg2
 from psycopg2 import sql
+from data.utils import backgroud_search_stat
+import threading
 
 def check_coor(lon,lat):
     try:
@@ -226,11 +228,15 @@ def occurrence(request):
         if limit > 1000: # 最高為1000
             limit = 1000
 
-        offset = req.get('offset', 0)
-        try:
-            offset = int(offset)
-        except:
-            offset = 0
+        # if req.get('cursor'):
+        cursor = req.get('cursor', '*')
+        
+
+        # offset = req.get('offset', 0)
+        # try:
+        #     offset = int(offset)
+        # except:
+        #     offset = 0
 
         # 限制型API
         fl_cols = download_cols
@@ -238,35 +244,26 @@ def occurrence(request):
             if APIkey.objects.filter(key=apikey,status='pass').exists():
                 fl_cols += sensitive_cols
             else:
-                # fl_cols = download_cols
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
         query = { "query": "*:*",
-                "offset": offset,
+                # "offset": offset,
+                # "cursorMask": cursor,
+                "params": {"cursorMark": cursor}, 
                 "limit": limit,
                 "filter": fq_list,
-                "sort":  "scientificName asc",
+                "sort":  "id asc",
                 "fields": fl_cols
                 }
-        
-        # print(query)
-        # 查詢記錄
-        if offset == 0:
-            query['facet'] = {}
-            query['facet']['stat_rightsHolder'] = {
-                'type': 'terms',
-                'field': 'rightsHolder',
-                'mincount': 1,
-                'limit': -1,
-                'allBuckets': False,
-                'numBuckets': False}
 
         if not fq_list:
-            query.pop('filter')
+            aaa = query.pop('filter', None)
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         response = response.json()
+
+        next_cursor = response.get('nextCursorMark')
 
         # 整理欄位
 
@@ -303,37 +300,46 @@ def occurrence(request):
             df = df.replace({np.nan: None})
 
         now_dict = dict(req)
-        # not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
-        # for nq in not_query:
-        #     if nq in now_dict.keys():
-        #         now_dict.pop(nq)
+
         for k in now_dict.keys():
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
+
+        aaa = now_dict.pop('cursor', None)
         query_string = parse.urlencode(now_dict)
-            # 記錄在SearchStat
-        if offset == 0:
-            stat_rightsHolder = []
-            if 'stat_rightsHolder' in response['facets'].keys():
-                stat_rightsHolder = response['facets']['stat_rightsHolder']['buckets']
-            #     stat_rightsHolder.append({'val': 'total', 'count': count})
-            # else:
-            stat_rightsHolder.append({'val': 'total', 'count': total})
-            # print(stat_rightsHolder)
-            SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
+
+        next_url = ''
+
+        # 確認還有沒有下一頁
+        if next_cursor != cursor and len(df) == limit:
+            if query_string:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + query_string + '&cursor=' + next_cursor
+            else:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + next_cursor
+
+        if query_string:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + query_string + '&cursor=' + cursor
+        else:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + cursor
+
+        # 記錄在SearchStat
+        # if offset == 0:
+        if cursor == '*':
+            task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'api_occ', query_string))
+            task.start()
+
         obj, created = SearchCount.objects.update_or_create(
                 search_location='api_occ'
             )
         obj.count += 1
         obj.save()
-        # SearchStat.objects.create(query=query_string,search_location='api_occ',stat=stat_rightsHolder,created=timezone.now())
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}
-        final_response['meta'] = {'total': total, 'limit': limit, 'offset': offset}
+        final_response['meta'] = {'total': total, 'limit': limit}
+        final_response['links'] = {'self': now_url, 'next': next_url}
         final_response['data'] = df.to_dict('records')
 
-    
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
@@ -358,11 +364,13 @@ def dataset(request):
         if limit > 1000: # 最高為1000
             limit = 1000
 
-        offset = req.get('offset', 0)
-        try:
-            offset = int(offset)
-        except:
-            offset = 0
+        # offset = req.get('offset', 0)
+        # try:
+        #     offset = int(offset)
+        # except:
+        #     offset = 0
+
+        now_cursor = int(req.get('cursor', 0))
 
         # 篩選條件
         
@@ -376,8 +384,6 @@ def dataset(request):
         query_value = []
         query_pair = []
         query_identifier = []
-
-
 
         # union_list = ['taxonID', 'rightsHolder','datasetName']
         # for u in union_list:
@@ -404,8 +410,6 @@ def dataset(request):
                 query_pair.append("(" + ' OR '.join(tmp_list) + ")")
 
 
-
-
         for k in ['sourceDatasetID']:
             if req.get(k):
                 query_pair.append('{} = %s')
@@ -414,22 +418,24 @@ def dataset(request):
 
 
                 
-        query_str = '''select "name" as "datasetName", "rights_holder" as "rightsHolder", "sourceDatasetID", "gbifDatasetID", 
+        query_str = '''SELECT id, "name" AS "datasetName", "rights_holder" AS "rightsHolder", "sourceDatasetID", "gbifDatasetID", 
                         "resourceContacts", "datasetURL", "datasetAuthor", "datasetPublisher",
                         "datasetLicense", "datasetTaxonGroup", "dateCoverage", "occurrenceCount",
-                        TO_CHAR(created, 'yyyy-mm-dd') as created , TO_CHAR(modified, 'yyyy-mm-dd') as modified
-                        ,  count(*) OVER() AS total
-                        from dataset WHERE deprecated = 'f' 
+                        TO_CHAR(created, 'yyyy-mm-dd') AS created , TO_CHAR(modified, 'yyyy-mm-dd') AS modified,
+                        COUNT(*) OVER() AS total
+                        FROM dataset WHERE deprecated = 'f' 
                         '''
 
         if len(query_pair):
             query_str += ' AND ' + (' AND ').join(query_pair)
 
-        query_str += ' order by id limit %s offset %s'
+        query_str += ' AND id > %s'
 
-        
+        query_value.append(now_cursor)
+
+        query_str += ' ORDER BY id LIMIT %s'
+
         query_value.append(limit)
-        query_value.append(offset)
 
         query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
 
@@ -440,16 +446,46 @@ def dataset(request):
 
         data = []
         total = 0
+        id_list = []
         for row in results:
             total = dict(row).get('total')
+            id_list.append(dict(row).get('id'))
             row = dict(row)
-            row.pop('total')
+            aaa = row.pop('total', None)
+            aaa = row.pop('id', None)
             data.append(row)
 
+        if len(data):
+            next_cursor = max(id_list)
+        else:
+            next_cursor = now_cursor # 代表沒有資料了
+        
+        now_dict = dict(req)
+
+        for k in now_dict.keys():
+            if len(now_dict[k])==1:
+                now_dict[k] = now_dict[k][0]
+
+        aaa = now_dict.pop('cursor', None)
+        query_string = parse.urlencode(now_dict)
+
+        next_url = ''
+
+        # 確認還有沒有下一頁
+        if next_cursor != now_cursor and len(data) == limit:
+            if query_string:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + query_string + '&cursor=' + str(next_cursor)
+            else:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + 'cursor=' + str(next_cursor)
+
+        if query_string:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + query_string + '&cursor=' + str(now_cursor)
+        else:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + '&cursor=' + str(now_cursor)
 
         final_response['status'] = {'code': 200, 'message': 'Success'}
-        final_response['meta'] = {'total': total, 'limit': limit, 'offset': offset}
+        final_response['meta'] = {'total': total, 'limit': limit}
+        final_response['links'] = {'self': now_url, 'next': next_url}
         final_response['data'] = data
-
 
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')

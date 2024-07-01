@@ -396,7 +396,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     # "limit": req_dict.get('total_count'),
                     "limit": 2140000000,
                     "filter": query_list,
-                    "sort":  "scientificName asc",
+                    # "sort":  "scientificName asc",
                     "fields": fl_cols
                     }
 
@@ -583,7 +583,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
             # "limit": req_dict.get('total_count'),
             "limit": 2140000000,
             "filter": query_list,
-            "sort":  "scientificName asc",
+            # "sort":  "scientificName asc",
             "fields": fl_cols
             }
 
@@ -616,9 +616,10 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         user_id = user_id
     )
     content = nn.get_type_display().replace('0000', str(nn.content))
-    content_en = f'The download of records #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/record/{download_id}.zip <br>"
+    content_en = f'The download of records #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/record/{download_id}.zip <br><br>*The download link will be valid for three months. <br>"
     content = content.replace("請至後台查看", "")
-    content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip <br>"
+    content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip"
+    content += f"<br><br>*下載檔案連結將保留三個月<br>"
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 # facet.pivot=taxonID,scientificName
 
@@ -675,8 +676,6 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                     }
                 }
             }
-    # if not query_list:
-    #     query.pop('filter')
 
     df = pd.DataFrame(columns=['taxonID','scientificName'])
 
@@ -685,7 +684,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         data = response.json()['facets']['scientificName']['buckets']
         for d in data:
             if d['taxonID']['buckets']:
-                df = df.append({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val'] },ignore_index=True)
+                df = pd.concat([df, pd.DataFrame({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val']})], ignore_index=True)
         if len(df):
             subset_taxon = pd.DataFrame()
             subset_taxon_list = []
@@ -730,14 +729,12 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         content = sq.personal_id,
         user_id = user_id
     )
-    # content = nn.get_type_display().replace('0000', str(nn.content))
-    # content = content.replace("請至後台查看", f"檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip")
-    # send_notification([user_id],content,'下載名錄已完成通知')
 
     content = nn.get_type_display().replace('0000', str(nn.content))
-    content_en = f'The download of checklist #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/taxon/{download_id}.zip <br>"
+    content_en = f'The download of checklist #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/taxon/{download_id}.zip <br><br>*The download link will be valid for three months. <br>"
     content = content.replace("請至後台查看", "")
-    content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip <br>"
+    content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip"
+    content += f"<br><br>*下載檔案連結將保留三個月<br>"
     send_notification([user_id],content,'下載名錄已完成通知 Your TBIA checklist download is ready', content_en=content_en)
 
 
@@ -822,7 +819,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             # "limit": req_dict.get('total_count'),
             "limit": 2140000000,
             "filter": fq_list,
-            "sort":  "scientificName asc",
+            # "sort":  "scientificName asc",
             "fields": fl_cols,
             }
 
@@ -856,14 +853,12 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         content = sq.personal_id,
         user_id = user_id
     )
-    # content = nn.get_type_display().replace('0000', str(nn.content))
-    # content = content.replace("請至後台查看", f"檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip")
-    # send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready')
 
     content = nn.get_type_display().replace('0000', str(nn.content))
-    content_en = f'The download of records #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/record/{download_id}.zip <br>"
+    content_en = f'The download of records #{str(nn.content)} is ready.<br><br>Download Link: ' + f"{scheme}://{host}/media/download/record/{download_id}.zip <br><br>*The download link will be valid for three months. <br>"
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip <br>"
+    content += f"<br><br>*下載檔案連結將保留三個月<br>"
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 
 
@@ -1235,7 +1230,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
-        # solr_orderby = 'standardDate' if orderby == 'eventDate' else orderby
+
         if orderby == 'eventDate':
             solr_orderby = 'standardDate' + ' ' + sort
         elif orderby == 'organismQuantity':
@@ -1255,94 +1250,73 @@ def get_conditional_records(request):
 
 
         page = int(req_dict.get('page', 1))
+
         offset = (page-1)*limit
 
-        grid = int(req_dict.get('grid', 10))
+        # 如果offset超過100000 不回傳結果
+        if offset > 100000:
+            return HttpResponse(json.dumps({'message': 'exceed'}, default=str), content_type='application/json')
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
 
         if get_raw_map:
-            facet_grid = f'grid_{grid}'
             map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
         else:
-            facet_grid = f'grid_{grid}_blurred'
             map_query_list += [f"location_rpt:{map_bound}"]
 
         query = { "query": "*:*",
-                "offset": offset,
-                "limit": limit,
-                "filter": query_list,
-                "sort":  solr_orderby,
-                "facet": {'has_sensitive': {
-                            "q": "raw_location_rpt:*",
-                            "type": "query",
-                        },
-                        # 確認是否有物種名錄
-                        'has_species': {
-                            "q": "taxonID:*",
-                            "type": "query",
-                        }
-                    }
-                }
+                  "offset": offset,
+                  "limit": limit,
+                  "filter": query_list,
+                  "sort":  solr_orderby,
+                  "facet": {'has_species': 
+                            {
+                                "q": "taxonID:*",
+                                "type": "query",
+                                }
+                            }
+        }
 
         if not query_list:
             query.pop('filter')
 
-        map_geojson = {}
-        # 新搜尋的才重新query地圖資訊
-        if req_dict.get('from') not in ['page','orderby']:
-            query['facet'][facet_grid] = {
-                            'field': facet_grid,
-                            'mincount': 1,
-                            "type": "terms",
-                            "limit": -1,
-                            'domain': { 'query': "*:*", 'filter': map_query_list}
+            # if get_raw_map:
+            #     # 不需要考慮敏感資料
+
+        # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
+        if not get_raw_map:
+            query['facet']['has_sensitive'] =  {
+                            "q": "raw_location_rpt:*",
+                            "type": "query",
                         }
 
-        if req_dict.get('from') == 'search':
-            # query['facet']['stat_rightsHolder'] = {}
-            query['facet']['stat_rightsHolder'] = {
-                'type': 'terms',
-                'field': 'rightsHolder',
-                'mincount': 1,
-                'limit': -1,
-                'allBuckets': False,
-                'numBuckets': False}
+        if req_dict.get('from') == 'page':
+            query.pop('facet')
 
         query_req = json.dumps(query)
-
-        # print(query['facet'])
 
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
         resp = response.json()
 
-        # print(resp)
 
         count = resp['response']['numFound']
         has_sensitive = False
         has_species = False
 
-        if count > 0 :
-        
-            if resp['facets']['has_sensitive']['count'] > 0:
-                has_sensitive = True
+
+        if count > 0 and req_dict.get('from') != 'page':
+
+            if not get_raw_map:
+                if resp['facets']['has_sensitive']['count'] > 0:
+                    has_sensitive = True
 
             if resp['facets']['has_species']['count'] > 0:
                 has_species = True
 
-            if req_dict.get('from') not in ['page','orderby']:
-                data_c = resp['facets'][facet_grid]['buckets']
-                map_geojson = get_map_geojson(data_c=data_c, grid=grid)
-
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
-
-        # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
-        if user_id:
-            if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
-                has_sensitive = False
 
         rows = create_data_table(docs, user_id, obv_str)
 
@@ -1351,6 +1325,8 @@ def get_conditional_records(request):
         page_list = get_page_list(current_page, total_page)
 
         if req_dict.get('from') == 'search':
+            # 搜尋紀錄
+
             now_dict = dict(req_dict)
             not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
             for nq in not_query:
@@ -1360,14 +1336,9 @@ def get_conditional_records(request):
                 if len(now_dict[k])==1:
                     now_dict[k] = now_dict[k][0]
             query_string = parse.urlencode(now_dict)
-            # 記錄在SearchStat
-            stat_rightsHolder = []
-            if 'stat_rightsHolder' in resp['facets'].keys():
-                stat_rightsHolder = resp['facets']['stat_rightsHolder']['buckets']
-            #     stat_rightsHolder.append({'val': 'total', 'count': count})
-            # else:
-            stat_rightsHolder.append({'val': 'total', 'count': count})
-            SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
+
+            task = threading.Thread(target=backgroud_search_stat, args=(query_list,record_type,query_string))
+            task.start()
 
         response = {
             'rows' : rows,
@@ -1376,8 +1347,7 @@ def get_conditional_records(request):
             'current_page' : current_page,
             'total_page' : total_page,
             'selected_col': selected_col,
-            'map_dict': map_dict,
-            'map_geojson': map_geojson,
+            'map_dict': map_dict, # 欄位對應
             'has_sensitive': has_sensitive,
             'has_species': has_species,
             'limit': limit,
@@ -1592,17 +1562,20 @@ def search_full(request):
     if keyword and len(keyword) < 2000:
         ## collection
 
+        s = time.time()
+
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
         collection_rows = col_resp['menu_rows']
         c_collection = col_resp['total_count']
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
-        # print('b', time.time()-s)
+        # print('a', time.time()-s)
 
-        # s = time.time()
 
         ## occurrence
+
+        # s = time.time()
 
         occ_resp = get_search_full_cards(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, is_first_time=True)
         occurrence_rows = occ_resp['menu_rows']
@@ -1610,11 +1583,12 @@ def search_full(request):
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
-        # print('d', time.time()-s)
+        # print('b', time.time()-s)
 
-        # s = time.time()
 
         ## taxon
+
+        # s = time.time()
 
         taxon_resp = get_search_full_cards_taxon(keyword=keyword, card_class=None, is_sub='false', offset=0)
         taxon_rows = taxon_resp['menu_rows']
@@ -1622,7 +1596,7 @@ def search_full(request):
         taxon_cards = taxon_resp['data']
         taxon_more = taxon_resp['has_more']
             
-        # print('e', time.time()-s)
+        # print('c', time.time()-s)
 
         # s = time.time()
 
@@ -1700,3 +1674,5 @@ def search_full(request):
         }
 
     return render(request, 'data/search_full.html', response)
+
+

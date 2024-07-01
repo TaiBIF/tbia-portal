@@ -21,43 +21,10 @@ $(window).on('resize', function () {
   toggleSearchBox();
 });
 
-// function reloadOnWindowResize() {
-//   $(window).on('resize', function() {
-//     if ($(window).width() < 999) {
-//       location.reload(); 
-//     }
-//   });
-// }
-
-// 初始加载时执行一次
-// reloadOnWindowResize();
-
-
-// function checkIfAuthenticated() {
-//   // your function code here
-//   let is_authenticated = false
-//   $.ajax({
-//     url: "/get_is_authenticated",
-//     data: 'csrfmiddlewaretoken=' + $csrf_token,
-//     type: 'POST',
-//     success: function (response) {
-//       is_authenticated = response.is_authenticated
-//       return is_authenticated
-//     },
-//     fail: function () {
-//       return is_authenticated
-//     }
-//   });
-// }
-
-
-
 
 function showLogin() {
 
-  // console.log(checkIfAuthenticated())
   if ($('input[name=is_authenticated]').val() != 'True') {
-  // if (checkIfAuthenticated()==true) {
     $('.login_pop').removeClass('d-none');
     $('.login_pop .loginbox').addClass('d-none');
     $('.login_pop .login_area').removeClass('d-none')
@@ -102,12 +69,19 @@ if ($('input[name=is_authenticated]').val() == 'True') {
 }
 
 
-
 function isOverflown(element) {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
 
+var handleCaptchaExpired = function(){
+  window.has_grecaptcha = false;
+}
+
+
+var validateCaptcha = function(){
+  window.has_grecaptcha = true;
+}
 
 
 var CaptchaCallback = function () {
@@ -116,9 +90,9 @@ var CaptchaCallback = function () {
       'sitekey': jQuery(el).attr('data-sitekey'),
       'theme': jQuery(el).attr('data-theme'),
       'size': jQuery(el).attr('data-size'),
-      //'tabindex' : jQuery(el).attr('data-tabindex'),
     });
   });
+
 };
 
 $(function () {
@@ -159,18 +133,6 @@ $(function () {
     "placeHolder": $('#feedback_type').attr('placeholder'), search: false, disableSelectAll: true,
   });
 
-
-  // $('span.caret').addClass('d-none')
-
-  /*
-  $('.vsb-main button').on('click',function(){
-      if ($(this).next('.vsb-menu').css('visibility')=='visible'){
-          $(this).next('.vsb-menu').addClass('visible')
-      } else {
-          $(this).next('.vsb-menu').css('visibility', '')
-          $(this).next('.vsb-menu').removeClass('visible')
-      }
-  })*/
 
   $('#feedback_partner').on('change', function () {
     if ($('#btn-group-feedback_partner .vsb-menu ul li.active').length > 0) {
@@ -227,23 +189,6 @@ $(function () {
     window.location = $(this).data('href')
   })
 
-  /*
-  $('.updateThisRead').on('click', function(){
-      let n_id = $(this).data('nid')
-      $.ajax({
-      url: `/update_this_read?n_id=${n_id}`,
-      type: 'GET',
-      success: function(response){
-          $(`.message_list li[data-nid=${n_id}] .dottt`).addClass('d-none')
-          if (response.count > 0){
-              $('.num_message').html(response.count)
-          } else {
-              $('.num_message').addClass('d-none')
-          }
-      }
-      });
-  })*/
-
   $('.updateIsRead').on('click', function () {
     $.ajax({
       url: "/update_is_read",
@@ -253,7 +198,6 @@ $(function () {
       }
     });
   })
-
 
 
   $('.showFeedback').on('click', function () {
@@ -275,10 +219,11 @@ $(function () {
   $('.feedback-pop .send').on('click', function () {
 
 
-    if ((!$('#feedback_form #g-recaptcha-response').val()) | (!$('#feedback_form select[name=partner_id]').val()) |
+    if ((!window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
       alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
+      
     } else {
 
       $.ajax({
@@ -310,7 +255,6 @@ $(function () {
       next_url = window.location.pathname + '?' + searchParams.toString();
     }
 
-
     $('#googleForm').attr('action', "/accounts/google/login/?next="+ "/login/google/callback?next2=" + encodeURIComponent(next_url))
     $('#googleForm').submit()
 
@@ -325,15 +269,15 @@ $(function () {
       type: 'POST',
       dataType: 'json',
     })
-      .done(function (response) {
-        alert(gettext(response.message))
-      })
-      .fail(function (xhr, status, errorThrown) {
-        alert(gettext('發生未知錯誤！請聯絡管理員'))
-        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        $('.login_pop').addClass('d-none')
+    .done(function (response) {
+      alert(gettext(response.message))
+    })
+    .fail(function (xhr, status, errorThrown) {
+      alert(gettext('發生未知錯誤！請聯絡管理員'))
+      console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+      $('.login_pop').addClass('d-none')
 
-      })
+    })
   })
 
 
@@ -365,29 +309,7 @@ $(function () {
   });
 });
 
-/*
-// detect event on show / hide
-(function ($) {
-  $.each(['show', 'hide'], function (i, ev) {
-    var el = $.fn[ev];
-    $.fn[ev] = function () {
-      this.trigger(ev);
-      return el.apply(this, arguments);
-    };
-  });
-})(jQuery);
-// loader
-var ajaxLoadTimeout;
-$(document).ajaxStart(function() {
-    ajaxLoadTimeout = setTimeout(function() { 
-        $(".loading_area").removeClass('d-none');
-    }, 1000);
 
-}).ajaxComplete(function() {
-    clearTimeout(ajaxLoadTimeout);
-    $(".loading_area").addClass('d-none');
-});
-*/
 
 
 window.addEventListener('error', function (event) {
@@ -476,7 +398,7 @@ function login() {
   }
 
 
-  if ($('#loginForm #g-recaptcha-response').val() == '') { // check email
+  if (!window.has_grecaptcha) { // check robot
     $('#loginForm .g-recaptcha').next('.noticbox').removeClass('d-none')
     checked = false
   }
