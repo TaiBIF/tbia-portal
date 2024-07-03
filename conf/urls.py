@@ -19,7 +19,7 @@ from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 # from ckeditor_uploader import views as ckeditor_views
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 from django.conf.urls.i18n import i18n_patterns
 from django.views.i18n import JavaScriptCatalog
 

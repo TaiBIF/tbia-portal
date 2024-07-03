@@ -1,59 +1,54 @@
 from django.contrib.auth.backends import ModelBackend
-from django.db import connection
-from django.http import request
+# from django.db import connection
+# from django.http import request
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from conf.decorators import auth_user_should_not_access
-from django.contrib.auth import authenticate, login, logout, tokens
+# from django.contrib.auth.decorators import login_required
+# from conf.decorators import auth_user_should_not_access
+from django.contrib.auth import authenticate, login, logout #, tokens
 from manager.models import *
 from pages.models import Feedback, News, Notification, Resource, Link
 from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.contrib import messages
+# from django.urls import reverse
+# from django.contrib import messages
 from django.core.mail import EmailMessage
-from django.contrib.sites.shortcuts import get_current_site
+# from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeError
+from django.utils.encoding import force_bytes, force_str #, DjangoUnicodeDecodeError
 from manager.utils import generate_token, check_due
 import threading
 from django.http import (
-    request,
+    # request,
     JsonResponse,
-    HttpResponseRedirect,
-    Http404,
+    # HttpResponseRedirect,
+    # Http404,
     HttpResponse,
 )
 import json
 from allauth.socialaccount.models import SocialAccount
 from conf.settings import SOLR_PREFIX
 import requests
-import subprocess
+# import subprocess
 import os
-import time
+# import time
 from pages.models import Keyword, Qa
 from ckeditor.fields import RichTextField
 from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max, Sum
+from django.db.models import Q, Max #, Sum, F, DateTimeField, ExpressionWrapper
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c
+from data.utils import map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, create_search_query#, get_key
 from os.path import exists
 import math
-
 import pandas as pd
 from pathlib import Path
 from conf.utils import scheme
-
 import pytz
-
-from django.utils.translation import get_language, gettext
-
-from data.utils import create_search_query
-
+from django.utils.translation import gettext #, get_language
+# from data.utils import create_search_query
 
 
 class NewsForm(forms.ModelForm):

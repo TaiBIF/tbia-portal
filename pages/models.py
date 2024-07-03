@@ -1,4 +1,3 @@
-from random import choices
 from django.db import models
 from django.db.models.fields import TextField
 from manager.models import User, Partner
@@ -119,25 +118,12 @@ class Notification(models.Model):
         (7,'有新的消息 #0000 發布申請，請至後台審核'),
         (8,'消息 #0000 發布審核已完成，請至後台查看')]
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    # partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    # notified = models.DateField(auto_now_add=True)
     content = models.CharField(max_length=100, null=True, blank=True)
     type = models.IntegerField(null=True, blank=True, choices=type_choice)
     class Meta:
         db_table = 'notification'
-
-
-# class Download(models.Model):
-#     file = models.CharField(max_length=1000, blank=True, null=True)
-#     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-#     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
-#     status = models.CharField(max_length=10, blank=True, null=True)
-#     submitted = models.DateTimeField(auto_now_add=True)
-#     expired = models.DateTimeField()
-#     class Meta:
-#         db_table = 'download'
 
 
 class Qa(models.Model):

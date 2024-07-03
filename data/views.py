@@ -1,18 +1,17 @@
-from django.shortcuts import render, redirect
-from conf.settings import STATIC_ROOT, MEDIA_ROOT, SOLR_PREFIX
+from django.shortcuts import render #, redirect
+from conf.settings import  MEDIA_ROOT, SOLR_PREFIX #STATIC_ROOT,
 from conf.utils import scheme
 from pages.models import Resource, News
 from django.db.models import Q, Max
 from django.db import connection
-
 from data.utils import *
 import pandas as pd
 import numpy as np
 from django.http import (
-    request,
+    # request,
     JsonResponse,
-    HttpResponseRedirect,
-    Http404,
+    # HttpResponseRedirect,
+    # Http404,
     HttpResponse,
 )
 import json
@@ -21,9 +20,9 @@ import math
 import time
 import requests
 import geopandas as gpd
-import shapely.wkt as wkt
-from shapely.geometry import MultiPolygon
-from datetime import datetime, timedelta
+# import shapely.wkt as wkt
+# from shapely.geometry import MultiPolygon
+# from datetime import datetime, timedelta
 import re
 from bson.objectid import ObjectId
 import subprocess
@@ -34,7 +33,7 @@ from pages.models import Notification
 from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
-from os.path import exists
+# from os.path import exists
 # from data.models import Namecode, Taxon , DatasetKey
 import html
 from django.utils.translation import get_language, gettext
@@ -625,7 +624,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         data = response.json()['facets']['scientificName']['buckets']
         for d in data:
             if d['taxonID']['buckets']:
-                df = pd.concat([df, pd.DataFrame({'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val']})], ignore_index=True)
+                df = pd.concat([df, pd.DataFrame([{'taxonID':d['taxonID']['buckets'][0]['val'] ,'scientificName':d['val']}])], ignore_index=True)
         if len(df):
             subset_taxon = pd.DataFrame()
             subset_taxon_list = []

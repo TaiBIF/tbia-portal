@@ -18,8 +18,8 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 from urllib import parse
-from manager.models import SearchStat, SearchCount
-from django.utils import timezone
+from manager.models import SearchCount #, SearchStat
+# from django.utils import timezone
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql

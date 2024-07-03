@@ -1,5 +1,5 @@
-from django.http import request, HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse #request, 
+from django.shortcuts import render#, redirect
 from pages.models import *
 from conf.settings import SOLR_PREFIX
 from manager.models import Partner, About
@@ -13,6 +13,7 @@ from django.utils.translation import get_language, gettext
 import requests
 from pages.templatetags.tags import var_df, var_df_2
 
+
 news_type_map = {
     'news':'green',
     'event': 'yellow',
@@ -25,7 +26,6 @@ news_type_c_map = {
     'project': '徵求公告',
 
 }
-
 
 
 # 從js呼叫API
@@ -45,6 +45,7 @@ def get_variants(request):
       if char in new_string:
         new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
     return JsonResponse({'new_string': new_string}, safe=False) 
+
 
 def get_current_notif(request):
     translation.activate(request.GET.get('lang'))
@@ -251,7 +252,6 @@ def get_qa_list(request):
 
 
 def index(request):
-    # print(request.LANGUAGE_CODE)
 
     # recommended keyword
     keywords = Keyword.objects.filter(lang=get_language()).order_by('order').values_list('keyword', flat=True)
