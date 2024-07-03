@@ -167,68 +167,9 @@ def submit_sensitive_request(request):
             query_id = query_id
         )
 
-        # 抓出所有單位
-        if request.POST.get('type') == '0':
-
-            # 個人研究計畫
-
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
-
-            query = { "query": "raw_location_rpt:*",
-                        "offset": 0,
-                        "limit": 0,
-                        "filter": query_list,
-                        "facet":{  
-                            "group": {
-                                "type": "terms",
-                                "field": "group",
-                                "limit": -1,
-                                }
-                            }
-                    }
-            if not query_list:
-                query.pop('filter')
-
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-            groups = []
-            if  response.json()['facets'].get('group'):
-                group = response.json()['facets']['group']['buckets']
-                for g in group:
-                    groups.append(g['val'])
-
-            for p in Partner.objects.filter(group__in=groups):
-                sdr = SensitiveDataResponse.objects.create(
-                    partner = p,
-                    status = 'pending',
-                    query_id = query_id
-                )       
-                # 寄送通知給系統管理員 & 單位管理員
-                usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
-                for u in usrs:
-                    nn = Notification.objects.create(
-                        type = 3,
-                        content = sdr.id,
-                        user = u
-                    )
-                    content = nn.get_type_display().replace('0000', str(nn.content))
-                    send_notification([u.id],content,'單次使用敏感資料申請通知')
-
-        else:
-            # 委辦工作計畫
-            sdr = SensitiveDataResponse.objects.create(
-                        status = 'pending',
-                        query_id = query_id
-                    )     
-            usrs = User.objects.filter(is_system_admin=True) 
-            for u in usrs:
-                nn = Notification.objects.create(
-                    type = 3,
-                    content = sdr.id,
-                    user = u
-                )
-                content = nn.get_type_display().replace('0000', str(nn.content))
-                send_notification([u.id],content,'單次使用敏感資料申請通知')
-
+        # 以下改成背景處理
+        task = threading.Thread(target=backgroup_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
+        task.start()
         
         return JsonResponse({"status": 'success'}, safe=False)
 
@@ -1675,4 +1616,66 @@ def search_full(request):
 
     return render(request, 'data/search_full.html', response)
 
+
+def backgroup_submit_sensitive_request(project_type, req_dict, query_id):
+    if project_type == '0':
+
+        # 個人研究計畫
+        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+
+        # 抓出所有單位
+        query = { "query": "raw_location_rpt:*",
+                    "offset": 0,
+                    "limit": 0,
+                    "filter": query_list,
+                    "facet":{  
+                        "group": {
+                            "type": "terms",
+                            "field": "group",
+                            "limit": -1,
+                            }
+                        }
+                }
+        if not query_list:
+            query.pop('filter')
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        groups = []
+        if  response.json()['facets'].get('group'):
+            group = response.json()['facets']['group']['buckets']
+            for g in group:
+                groups.append(g['val'])
+
+        for p in Partner.objects.filter(group__in=groups):
+            sdr = SensitiveDataResponse.objects.create(
+                partner = p,
+                status = 'pending',
+                query_id = query_id
+            )       
+            # 寄送通知給系統管理員 & 單位管理員
+            usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
+            for u in usrs:
+                nn = Notification.objects.create(
+                    type = 3,
+                    content = sdr.id,
+                    user = u
+                )
+                content = nn.get_type_display().replace('0000', str(nn.content))
+                send_notification([u.id],content,'單次使用敏感資料申請通知')
+
+    else:
+        # 委辦工作計畫
+        sdr = SensitiveDataResponse.objects.create(
+                    status = 'pending',
+                    query_id = query_id
+                )     
+        usrs = User.objects.filter(is_system_admin=True) 
+        for u in usrs:
+            nn = Notification.objects.create(
+                type = 3,
+                content = sdr.id,
+                user = u
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([u.id],content,'單次使用敏感資料申請通知')
 
