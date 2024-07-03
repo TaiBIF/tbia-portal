@@ -1,59 +1,54 @@
 from django.contrib.auth.backends import ModelBackend
-from django.db import connection
-from django.http import request
+# from django.db import connection
+# from django.http import request
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from conf.decorators import auth_user_should_not_access
-from django.contrib.auth import authenticate, login, logout, tokens
+# from django.contrib.auth.decorators import login_required
+# from conf.decorators import auth_user_should_not_access
+from django.contrib.auth import authenticate, login, logout #, tokens
 from manager.models import *
 from pages.models import Feedback, News, Notification, Resource, Link
 from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.contrib import messages
+# from django.urls import reverse
+# from django.contrib import messages
 from django.core.mail import EmailMessage
-from django.contrib.sites.shortcuts import get_current_site
+# from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeError
+from django.utils.encoding import force_bytes, force_str #, DjangoUnicodeDecodeError
 from manager.utils import generate_token, check_due
 import threading
 from django.http import (
-    request,
+    # request,
     JsonResponse,
-    HttpResponseRedirect,
-    Http404,
+    # HttpResponseRedirect,
+    # Http404,
     HttpResponse,
 )
 import json
 from allauth.socialaccount.models import SocialAccount
 from conf.settings import SOLR_PREFIX
 import requests
-import subprocess
+# import subprocess
 import os
-import time
+# import time
 from pages.models import Keyword, Qa
 from ckeditor.fields import RichTextField
 from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, F, DateTimeField, ExpressionWrapper, Max, Sum
+from django.db.models import Q, Max #, Sum, F, DateTimeField, ExpressionWrapper
 from datetime import datetime, timedelta
 from urllib import parse
-from data.utils import map_collection, map_occurrence, get_key, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c
+from data.utils import map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, create_search_query#, get_key
 from os.path import exists
 import math
-
 import pandas as pd
 from pathlib import Path
 from conf.utils import scheme
-
 import pytz
-
-from django.utils.translation import get_language, gettext
-
-from data.utils import create_search_query
-
+from django.utils.translation import gettext #, get_language
+# from data.utils import create_search_query
 
 
 class NewsForm(forms.ModelForm):
@@ -361,9 +356,9 @@ def change_manager_page(request):
                     date = ''
 
                 if f.is_replied:
-                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                 else:
-                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -406,9 +401,9 @@ def change_manager_page(request):
                 #         a = '否'
                 # else:
                 if f.is_replied:
-                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
+                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
                 else:
-                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
+                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -434,7 +429,7 @@ def change_manager_page(request):
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
-                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                date = date.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
             # else:
             #     date = ''
 
@@ -498,7 +493,7 @@ def change_manager_page(request):
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.date(), 14)
-                created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
@@ -553,11 +548,11 @@ def change_manager_page(request):
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
                         due = check_due(created.date(), 14)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
                     else:
                         status = sdr.get_status_display()
                         due = check_due(created.date(), 7)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
                     
                     date = created + '<br>審核期限：' + due
                     

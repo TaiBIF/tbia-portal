@@ -40,7 +40,6 @@ $(function () {
     });
 
     $('#appilcationForm .vsb-main button').css('border', '').css('background', '')
-    // $('#appilcationForm span.caret').addClass('d-none')
 
     $('#appilcationForm .vsb-main button').on('click', function () {
         if ($(this).next('#appilcationForm .vsb-menu').css('visibility') == 'visible') {
@@ -62,11 +61,10 @@ $(function () {
         }
     })
 
-
 })
 
 function sendRequest() {
-    //alert($('#appilcationForm').serialize())
+
     if ($('input[name=is_authenticated]').val() == 'True') {
 
         let checked = true;
@@ -111,18 +109,18 @@ function sendRequest() {
                 type: 'POST',
                 dataType: 'json',
             })
-                .done(function (result) {
-                    alert(gettext('請求已送出，審核完畢後將以Email通知'))
-                    window.location.href = `/${$lang}/manager?menu=sensitive`
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    if (xhr.status == 504) {
-                        alert(gettext('要求連線逾時'))
-                    } else {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    }
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (result) {
+                alert(gettext('請求已送出，審核完畢後將以Email通知'))
+                window.location.href = `/${$lang}/manager?menu=sensitive`
+            })
+            .fail(function (xhr, status, errorThrown) {
+                if (xhr.status == 504) {
+                    alert(gettext('要求連線逾時'))
+                } else {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+                }
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
         } else {
             alert(gettext('請完整填寫表格'))
         }

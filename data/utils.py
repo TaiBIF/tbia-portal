@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 from dateutil import parser
-from datetime import datetime, timedelta
+from datetime import datetime #, timedelta
 import numpy as np
 import bisect
 import os
@@ -23,8 +23,8 @@ from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner, SearchStat
-import time
-from urllib import parse
+# import time
+# from urllib import parse
 import threading
 
 # taxon-related fields
@@ -36,6 +36,7 @@ name_status_map = {
     'not-accepted': '的無效名',
     'misapplied': '的誤用名',
 }
+
 
 basis_map = {
     "HumanObservation":"人為觀測",
@@ -75,8 +76,6 @@ def get_species_images(taxon_id):
     return results
 
 
-
-
 def get_dataset_by_key(key_list):
     
     results = []
@@ -92,7 +91,6 @@ def get_dataset_by_key(key_list):
     return results
 
 
-
 spe_chars = ['+','-', '&','&&', '||', '!','(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/']
 
 def escape_solr_query(string):
@@ -103,7 +101,6 @@ def escape_solr_query(string):
         else:
             final_string += s
     return final_string
-
 
 
 # x: longtitude, y: latitude
@@ -166,8 +163,6 @@ rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 
             'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 
             'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'nothosubspecies', 
             'variety', 'subvariety', 'nothovariety', 'form', 'subform', 'specialform', 'race', 'stirp', 'morph', 'aberration', 'hybridformula']
-
-
 
 
 def get_page_list(current_page, total_page, window=5):

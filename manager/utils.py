@@ -1,12 +1,12 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
-from manager.models import Partner, Workday
+from manager.models import Workday #Partner, 
 from django.db.models import Max
 
-from datetime import datetime, tzinfo,timedelta
-import pandas as pd
-from os.path import exists
-import os
+from datetime import timedelta #, datetime, tzinfo,
+# import pandas as pd
+# from os.path import exists
+# import os
 
 class TokenGenerator(PasswordResetTokenGenerator):
 
