@@ -361,9 +361,9 @@ def change_manager_page(request):
                     date = ''
 
                 if f.is_replied:
-                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
                 else:
-                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -406,9 +406,9 @@ def change_manager_page(request):
                 #         a = '否'
                 # else:
                 if f.is_replied:
-                    a = f'是<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
+                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
                 else:
-                    a = f'否<button class=" feedback_btn w-95p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
+                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
 
                 data.append({
                     'id': f"#{f.id}",
@@ -434,7 +434,7 @@ def change_manager_page(request):
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
-                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                date = date.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
             # else:
             #     date = ''
 
@@ -498,7 +498,7 @@ def change_manager_page(request):
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.date(), 14)
-                created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
@@ -553,11 +553,11 @@ def change_manager_page(request):
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
                         due = check_due(created.date(), 14)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
                     else:
                         status = sdr.get_status_display()
                         due = check_due(created.date(), 7)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
                     
                     date = created + '<br>審核期限：' + due
                     
