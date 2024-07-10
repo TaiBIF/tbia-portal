@@ -25,8 +25,8 @@ else:
 
 # 從notification裡面去撈每個user最新的request時間
 
-# 系統管理員 如果7天後狀態是pending的話就直接通過
-# 夥伴單位 如果14天後狀態是pending的話就直接通過
+# 系統管理員 如果7天後狀態是pending的話就直接不通過
+# 夥伴單位 如果14天後狀態是pending的話就直接不通過
 
 
 today = datetime.today() + timedelta(hours=8)
@@ -78,7 +78,7 @@ for d in data:
 
 query = """
 select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
-where sdr.status = 'pending' and sdr.partner_id is not null;
+where sdr.partner_id is not null;
 """
 
 with connection.cursor() as cursor:
@@ -89,7 +89,7 @@ for d in data:
     # 找到當日的row
     c = 0
     row_date = d[1]
-    while c < 7:
+    while c < 14:
         row_date += timedelta(days=1)
         if not row_date > max_day:
             if Workday.objects.get(date=row_date).is_dayoff == 0:
