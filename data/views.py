@@ -167,7 +167,7 @@ def submit_sensitive_request(request):
         )
 
         # 以下改成背景處理
-        task = threading.Thread(target=backgroup_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
+        task = threading.Thread(target=backgroud_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
         task.start()
         
         return JsonResponse({"status": 'success'}, safe=False)
@@ -280,7 +280,7 @@ def partial_transfer_sensitive_response(request):
             sdr.save()
         
         # 寄送通知給 單位管理員
-        usrs = User.objects.filter(Q(is_partner_admin=True, partner_id=partner_id)) 
+        usrs = User.objects.filter(Q(is_partner_admin=True, partner_id=partner_id))
         for u in usrs:
             nn = Notification.objects.create(
                 type = 3,
@@ -485,7 +485,7 @@ def send_download_request(request):
 def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -613,7 +613,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                         "limit": -1
                         }
                     }
-                    }
+                }
                 }
             }
 
@@ -680,7 +680,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 
 # 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -1616,7 +1616,7 @@ def search_full(request):
     return render(request, 'data/search_full.html', response)
 
 
-def backgroup_submit_sensitive_request(project_type, req_dict, query_id):
+def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
     if project_type == '0':
 
         # 個人研究計畫

@@ -13,7 +13,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />  
     <title>{% block title %}{% endblock title %}TBIA</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v7" />
+    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v8" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
@@ -182,7 +182,11 @@
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
                 <a href="{% url 'about' %}#partner" class="s_title">
-                  <p>{% trans '夥伴單位' %}</p>
+                  <p>{% trans '正式會員' %}</p>
+                  <img class="arright" src="{% static 'image/next.svg' %}" />
+                </a>
+                <a href="{% url 'about' %}#collaboration" class="s_title">
+                  <p>{% trans '合作夥伴' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
               </div>
@@ -293,7 +297,10 @@
                 <a href="{% url 'about' %}#about" class="s_title">{% trans '聯盟簡介' %}</a>
               </div>
               <div class="item">
-                <a href="{% url 'about' %}#partner" class="s_title">{% trans '夥伴單位' %}</a>
+                <a href="{% url 'about' %}#partner" class="s_title">{% trans '正式會員' %}</a>
+              </div>
+              <div class="item">
+                <a href="{% url 'about' %}#collaboration" class="s_title">{% trans '合作夥伴' %}</a>
               </div>
             </div>
           </li>
@@ -448,7 +455,8 @@
           <li>
             <a href="{% url 'about' %}" class="big_link">{% trans '關於TBIA' %}</a>
             <a href="{% url 'about' %}#about" class="sma_link">{% trans '聯盟簡介' %}</a>
-            <a href="{% url 'about' %}#partner" class="sma_link">{% trans '夥伴單位' %}</a>
+            <a href="{% url 'about' %}#partner" class="sma_link">{% trans '正式會員' %}</a>
+            <a href="{% url 'about' %}#collaboration" class="sma_link">{% trans '合作夥伴' %}</a>
             <a href="{% url 'qa' %}" class="big_link mt-10px">{% trans '常見Q&A' %}</a>
           </li>
         </ul>

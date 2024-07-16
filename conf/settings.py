@@ -120,6 +120,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'pages.custom_context_processor.get_partners',
                 'pages.custom_context_processor.get_index_partners',
+                'pages.custom_context_processor.get_index_collaborates',
                 'pages.custom_context_processor.today'
             ],
         },

@@ -4,7 +4,7 @@
 {% load tags %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}?v2" />
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -383,9 +383,23 @@
       </div>
     </div>
     <div class="main_1240">
-      <h2 class="title"><span></span>{% trans '夥伴單位' %}</h2>
+      <h2 class="title"><span></span>{% trans '正式會員' %}</h2>
       <ul class="index_partner">
         {% for p in index_partners %}
+        <li>
+          <a href="{% url 'partner' p.abbreviation %}">
+            <div class="imgbox">
+              <img src="/static/image/partner/{{ p.logo }}" />
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="main_1240 mt-20px">
+      <h2 class="title title-dark"><span class="span-dark"></span>{% trans '合作夥伴' %}</h2>
+      <ul class="index_partner">
+        {% for p in index_collaborates %}
         <li>
           <a href="{% url 'partner' p.abbreviation %}">
             <div class="imgbox">

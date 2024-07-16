@@ -67,7 +67,7 @@
 	</div>
 	<div class="about_part" id="partner">
 		<div class="title">
-			<h3 id="partnertag" name="partnertag">{% trans '夥伴單位' %}</h3>
+			<h3>{% trans '正式會員' %}</h3>
 		</div>
 		<div class="main_1240">
 			<ul class="part_list">
@@ -77,15 +77,34 @@
 						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
 					</a>
 					<a href="{% url 'partner' p.abbreviation %}" class="titleline">
-						{% comment %} {% if p.abbreviation == 'brcas' %}
-						中央研究院<br>生物多樣性研究中心
-						{% else %} {% endcomment %}
 						{% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
 							{{ p.title_en }}
 						{% else %}
 							{{ p.title }}
 						{% endif %}
-						{% comment %} {% endif %} {% endcomment %}
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div class="about_part" id="collaboration">
+		<div class="title">
+			<h3>{% trans '合作夥伴' %}</h3>
+		</div>
+		<div class="main_1240">
+			<ul class="part_list">
+				{% for p in index_collaborates %}
+				<li>
+					<a href="{% url 'collaboration' p.abbreviation %}" class="cirimg">
+						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
+					</a>
+					<a href="{% url 'collaboration' p.abbreviation %}" class="titleline">
+						{% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
+							{{ p.title_en }}
+						{% else %}
+							{{ p.title }}
+						{% endif %}
 					</a>
 				</li>
 				{% endfor %}

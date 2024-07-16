@@ -574,6 +574,7 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
 
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
+        # 正式會員
         if request.GET.get('from') == 'partner':
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
@@ -600,6 +601,7 @@ def change_manager_page(request):
                 })
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
+        # 系統後台
         else:
             for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
@@ -743,11 +745,10 @@ def change_manager_page(request):
 
 def manager(request):
     menu = request.GET.get('menu','info')
-    partners = Partner.objects.all().order_by('abbreviation','id')
 
     from_google = User.objects.filter(id=request.user.id, register_method='google').exists()
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'from_google': from_google})
+    return render(request, 'manager/manager.html', {'menu': menu, 'from_google': from_google})
 
 
 def update_personal_info(request):
@@ -1094,8 +1095,8 @@ def partner_info(request):
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            if User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).exists():
-                partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
+            if User.objects.filter(Q(partner_id=current_user.partner.id,is_partner_admin=True)).exists():
+                partner_admin = User.objects.filter(Q(partner_id=current_user.partner.id,is_partner_admin=True)).values_list('name')
                 partner_admin = [p[0] for p in partner_admin]
                 partner_admin = ','.join(partner_admin)
             # info
@@ -1896,7 +1897,7 @@ def update_user_status(request):
                     u.is_partner_account = True
                     u.is_partner_admin = False
                     u.is_staff = True
-                else:
+                elif request.POST.get('role') == 'is_partner_admin':
                     u.is_partner_account = False
                     u.is_partner_admin = True
                     u.is_staff = True

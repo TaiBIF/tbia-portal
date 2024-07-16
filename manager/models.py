@@ -59,7 +59,11 @@ class Partner(models.Model):
     # 'dbname' 在進階搜尋下拉選單對應的資料庫名稱，在資料內同樣也存這個名字 (=rightsHolder)
     # 'color' 後台圓餅圖使用的顏色
     index_order = models.IntegerField(null=True, blank=True) # 在首頁的順序
-    # 顯示順序： brcas 1, forest 2, tbri 3, tfri 4, oca 5, nps 6, ntm 7, wra 8
+    # 正式會員顯示順序: brcas 1, forest 2, tbri 3, tfri 4, oca 5, nps 6, ntm 7, wra 8
+    # 合作夥伴顯示順序: 
+
+    is_collaboration = models.BooleanField(default=False) # 是否為合作夥伴
+
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)
     class Meta:
@@ -88,6 +92,9 @@ class User(AbstractUser):
     is_partner_account = models.BooleanField(default=False)
     is_partner_admin = models.BooleanField(default=False)
     is_system_admin = models.BooleanField(default=False)
+    # is_collaboration_account = models.BooleanField(default=False)
+    # is_collaboration_admin = models.BooleanField(default=False)
+
     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
 
     REQUIRED_FIELDS = []

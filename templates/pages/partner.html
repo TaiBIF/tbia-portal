@@ -10,18 +10,17 @@
 <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock head %}
 
-{% block title %}{% trans '夥伴單位' %}｜{% endblock %}
+{% block title %}{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}｜{% endblock %}
 
 {% block body %}
 <div class="path">
 	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#partnertag">{% trans '夥伴單位' %}</a><span>></span> <p>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</p>
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#{% if partner.is_collaboration %}collaboration{% else %}partner{% endif %}">{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}</a><span>></span> <p>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</p>
 	</div>
 </div>
 <div class="in_bn about_bn">
 	<div class="title">
-		<h2>{% trans '夥伴單位' %}</h2>
-		{% comment %} <h3>partner</h3> {% endcomment %}
+		<h2>{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}</h2>
 	</div>
 </div>
 <div class="partner_area">
@@ -59,7 +58,6 @@
 					<div class="pic">
 						<img src="/static/image/partner/{{ i.image }}" >
 					</div>
-					<!--<a href="{{ i.link }}" class="linkto" target="_blank">-->
 					<a data-partner_id="{{ i.id }}" class="linkto contact_partner">
 						{% trans '聯絡我們' %}
 					</a>
