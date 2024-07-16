@@ -185,10 +185,12 @@
                   <p>{% trans '正式會員' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
+                {% if index_collaborates|length > 0 %}
                 <a href="{% url 'about' %}#collaboration" class="s_title">
                   <p>{% trans '合作夥伴' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
+                {% endif %}
               </div>
             </li>
             <li class="rd_mb_two_menu_li">
@@ -299,9 +301,11 @@
               <div class="item">
                 <a href="{% url 'about' %}#partner" class="s_title">{% trans '正式會員' %}</a>
               </div>
+              {% if index_collaborates|length > 0 %}
               <div class="item">
                 <a href="{% url 'about' %}#collaboration" class="s_title">{% trans '合作夥伴' %}</a>
               </div>
+              {% endif %}
             </div>
           </li>
           <li>
@@ -456,7 +460,9 @@
             <a href="{% url 'about' %}" class="big_link">{% trans '關於TBIA' %}</a>
             <a href="{% url 'about' %}#about" class="sma_link">{% trans '聯盟簡介' %}</a>
             <a href="{% url 'about' %}#partner" class="sma_link">{% trans '正式會員' %}</a>
+            {% if index_collaborates|length > 0 %}
             <a href="{% url 'about' %}#collaboration" class="sma_link">{% trans '合作夥伴' %}</a>
+            {% endif %}
             <a href="{% url 'qa' %}" class="big_link mt-10px">{% trans '常見Q&A' %}</a>
           </li>
         </ul>

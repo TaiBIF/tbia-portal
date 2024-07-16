@@ -88,6 +88,7 @@
 			</ul>
 		</div>
 	</div>
+	{% if index_collaborates|length > 0 %}
 	<div class="about_part" id="collaboration">
 		<div class="title">
 			<h3>{% trans '合作夥伴' %}</h3>
@@ -111,5 +112,6 @@
 			</ul>
 		</div>
 	</div>
+	{% endif %}
 
 {% endblock body %}
