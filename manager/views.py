@@ -1,5 +1,4 @@
 from django.contrib.auth.backends import ModelBackend
-# from django.db import connection
 # from django.http import request
 from django.shortcuts import render
 # from django.contrib.auth.decorators import login_required
@@ -50,6 +49,7 @@ import pytz
 from django.utils.translation import gettext #, get_language
 # from data.utils import create_search_query
 
+from django.db import connection
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -1070,7 +1070,7 @@ def send_partner_request(request):
 
 def withdraw_partner_request(request):
     user_id = request.POST.get('user_id')
-    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False)
+    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False,partner_id=None)
     response = {'message': '申請已撤回'}
     return JsonResponse(response, safe=False)
 
@@ -1188,6 +1188,67 @@ def download_sensitive_report(request):
         df.to_excel(writer, sheet_name='Sheet1', index=None)
 
     return response
+
+
+def download_partner_sensitive_report(request):
+
+    now_group = ''
+
+    if not request.user.is_anonymous:
+        current_user = request.user
+        if current_user.partner:
+            now_group = current_user.partner.group
+
+            # print(now_group)
+            now = timezone.now() + timedelta(hours=8)
+            now = now.strftime('%Y-%m-%d')
+            df = pd.DataFrame()
+
+            par = json.dumps([{"val": "{}".format(now_group)}])
+
+            query = '''
+                    SELECT sq.created, sq.query_id, sq.query, p.select_title
+                    FROM   manager_searchquery sq
+                    JOIN   tbia_user tu ON tu.id = sq.user_id
+                    LEFT JOIN   partner p ON p.id = tu.partner_id
+                    WHERE  sq.sensitive_stat @> %s 
+                    AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
+                    ORDER BY created ASC;
+                    '''
+
+            with connection.cursor() as cursor:
+                cursor.execute(query, (par,))
+                results = cursor.fetchall()
+
+                for s in results:
+                    search_dict = dict(parse.parse_qsl(s[2]))
+                    query = create_query_display(search_dict)
+                    query = query.replace('<b>','').replace('</b>','')
+                    query = query.replace('<br>','\n')
+
+                    date = s[0] + timedelta(hours=8)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                    if not s[3]:
+                        partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    else:
+                        partner_title = s[3]
+
+                    df = pd.concat([df, pd.DataFrame([{
+                                                    '下載時間': date,
+                                                    '檔案編號': s[1],
+                                                    '搜尋條件': query,
+                                                    '下載者所屬單位': partner_title,
+                                                    '下載檔案連結': f'{scheme}://{request.get_host()}/media/download/record/{s[1]}.zip'
+                                                    }])],ignore_index=True)
+            
+            response = HttpResponse(content_type='application/xlsx')
+            response['Content-Disposition'] = f'attachment; filename="tbia_partner_sensitive_report_{now}.xlsx"'
+            with pd.ExcelWriter(response) as writer:
+                df.to_excel(writer, sheet_name='Sheet1', index=None)
+
+            return response
+
 
 
 def get_request_detail(request):
@@ -1905,6 +1966,7 @@ def update_user_status(request):
                 u.is_partner_account = False
                 u.is_partner_admin = False
                 u.is_staff = False
+                u.partner_id = None
 
             u.status = status
             u.save()

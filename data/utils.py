@@ -1688,7 +1688,6 @@ def check_map_bound(map_bound):
     return new_map_bound
 
 
-
 def create_search_stat(query_list):
 
     stat_query = { "query": "*:*",
@@ -1729,3 +1728,38 @@ def backgroud_search_stat(query_list,record_type,query_string):
 
     stat_rightsHolder = create_search_stat(query_list=query_list)
     SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
+
+
+def create_sensitive_partner_stat(query_list):
+
+    query = { "query": "raw_location_rpt:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "stat_group": {
+                        'type': 'terms',
+                        'field': 'group',
+                        'mincount': 1,
+                        'limit': -1,
+                        'allBuckets': False,
+                        'numBuckets': False
+                    }
+                }
+            }
+
+    if not query_list:
+        query.pop('filter')
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+
+    total_count = response.json()['response']['numFound']
+
+    stat_group = []
+
+    if total_count: # 有的話再存
+        stat_group = facets['stat_group']['buckets']
+        stat_group.append({'val': 'total', 'count': total_count})
+
+    return stat_group

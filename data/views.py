@@ -544,7 +544,13 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     # 儲存到下載統計
 
     stat_rightsHolder = create_search_stat(query_list=query_list)
+    # 如果是正式會員的話 記錄是否有下載敏感資料
+    sensitive_stat_group = []
+    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+
     sq.stat = stat_rightsHolder
+    sq.sensitive_stat = sensitive_stat_group
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -561,6 +567,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
+
+
 # facet.pivot=taxonID,scientificName
 
 # 進階搜尋名錄下載
@@ -713,7 +721,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_name_reg = get_variants(keyword_name_reg)
 
-
     if key == 'taxonID':
         for k in taxon_facets:
             query_list += [f'{k}:/.*{keyword_name_reg}.*/']
@@ -762,7 +769,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             # "sort":  "scientificName asc",
             "fields": fl_cols,
             }
-
 
     if not fq_list:
         query.pop('filter')

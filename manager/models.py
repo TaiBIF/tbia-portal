@@ -151,7 +151,8 @@ class SearchQuery(models.Model):
     query_id = models.CharField(max_length=50, blank=True)
     # 使用者個人下載編號id
     personal_id = models.IntegerField(null=True, blank=True)
-    stat = models.JSONField(null=True, blank=True)
+    stat = models.JSONField(null=True, blank=True) # 記錄各單位筆數
+    sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數
 
 
 class SensitiveDataRequest(models.Model):
