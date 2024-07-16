@@ -1107,6 +1107,8 @@ def partner_info(request):
 
 
 def download_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
+
     now = timezone.now() + timedelta(hours=8)
     now = now.strftime('%Y-%m-%d')
     df = pd.DataFrame()
@@ -1191,6 +1193,7 @@ def download_sensitive_report(request):
 
 
 def download_partner_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
 
     now_group = ''
 
@@ -1221,9 +1224,29 @@ def download_partner_sensitive_report(request):
                 results = cursor.fetchall()
 
                 for s in results:
+                    query = ''
                     search_dict = dict(parse.parse_qsl(s[2]))
-                    query = create_query_display(search_dict)
-                    query = query.replace('<b>','').replace('</b>','')
+                    if search_dict.get('from_full') == 'yes':
+                        query = '全站搜尋<br>'
+                        search_str = search_dict.get('search_str')
+                        search_dict = dict(parse.parse_qsl(search_str))
+
+                        query += f"關鍵字：{search_dict['keyword']}"
+                        
+                        if search_dict.get('record_type') == 'occ':
+                            map_dict = map_occurrence
+                        else:
+                            map_dict = map_collection
+                        key = map_dict.get(search_dict['key'])
+                        query += f"<br>{gettext(key)}：{search_dict['value']}"
+                        if search_dict.get('scientific_name'):
+                            query += f"<br>學名：{search_dict['scientific_name']}"
+
+                    else:
+                        query = '進階搜尋<br>'
+                        query += create_query_display(search_dict)
+                        query = query.replace('<b>','').replace('</b>','')
+                    
                     query = query.replace('<br>','\n')
 
                     date = s[0] + timedelta(hours=8)

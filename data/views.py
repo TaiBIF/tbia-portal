@@ -788,7 +788,14 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     # 儲存到下載統計
     
     stat_rightsHolder = create_search_stat(query_list=fq_list)
+
+    # 如果是正式會員的話 記錄是否有下載敏感資料
+    sensitive_stat_group = []
+    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+
     sq.stat = stat_rightsHolder
+    sq.sensitive_stat = sensitive_stat_group
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
