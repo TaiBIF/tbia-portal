@@ -985,7 +985,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 'total_count': x['allBuckets']['count'],
                 'key': i
             })
-
         for k in x['buckets']:
             bucket = k['taxonID']['buckets']
             if bucket:
@@ -999,7 +998,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                     for item in bucket:
                         if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
                             result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
-
             elif not bucket and k['count']:
                 if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
                     result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
@@ -1078,10 +1076,12 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
             result_df = pd.DataFrame(result_dict_all[:9])
 
         # s = time.time()
+        result_df = result_df.replace({None:'', np.nan: ''}) 
         taicol = pd.DataFrame()
         if len(result_df):
-            taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
+            taxon_ids = [f"id:{d}" for d in result_df[result_df.val!=''].val.unique()]
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms')
+            # response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -1092,6 +1092,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                             taicol[u] = ''
                     taicol = taicol[used_cols]
                     taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+                    # print(taicol.keys())
             # print(taicol)
             if len(taicol):
                 result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
@@ -1202,7 +1203,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     query['limit'] = 4 if offset < 28 else 2
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
-    query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
+    # query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
 
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
@@ -1212,8 +1213,8 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     total_count = data['numFound']
     if total_count:
         taicol = pd.DataFrame(data['docs'])
-        # taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
-        # taicol = taicol[taicol_cols]
+        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
+        taicol = taicol[taicol_cols]
         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
     taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
 

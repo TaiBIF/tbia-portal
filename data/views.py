@@ -1508,7 +1508,7 @@ def search_full(request):
     if keyword and len(keyword) < 2000:
         ## collection
 
-        s = time.time()
+        # s = time.time()
 
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
         collection_rows = col_resp['menu_rows']
