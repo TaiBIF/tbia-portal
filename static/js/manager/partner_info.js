@@ -113,7 +113,7 @@ function showRequest(query_id, query, sdr_id) {
 
 function changePage(page, menu) {
     $.ajax({
-        url: `/change_manager_page?page=${page}&menu=${menu}&from=` + $('input[name=from]').val(),
+        url: `/change_manager_page?page=${page}&menu=${menu}&from=partner`,
         type: 'GET',
         success: function (response) {
 
