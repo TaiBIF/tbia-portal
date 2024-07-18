@@ -226,6 +226,10 @@ $(document).ready(function () {
         $('#downloadReport').submit()
     })
 
+    $('.downloadPartnerReport').on('click', function () {
+        $('#downloadPartnerReport').submit()
+    })
+
     // 起始頁面
     changePage(1, 'account')
     changePage(1, 'sensitive_apply')

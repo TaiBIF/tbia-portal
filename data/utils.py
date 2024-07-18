@@ -985,7 +985,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 'total_count': x['allBuckets']['count'],
                 'key': i
             })
-
         for k in x['buckets']:
             bucket = k['taxonID']['buckets']
             if bucket:
@@ -999,7 +998,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                     for item in bucket:
                         if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
                             result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
-
             elif not bucket and k['count']:
                 if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
                     result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
@@ -1078,10 +1076,12 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
             result_df = pd.DataFrame(result_dict_all[:9])
 
         # s = time.time()
+        result_df = result_df.replace({None:'', np.nan: ''}) 
         taicol = pd.DataFrame()
         if len(result_df):
-            taxon_ids = [f"id:{d}" for d in result_df.val.unique()]
+            taxon_ids = [f"id:{d}" for d in result_df[result_df.val!=''].val.unique()]
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms')
+            # response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -1092,6 +1092,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                             taicol[u] = ''
                     taicol = taicol[used_cols]
                     taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+                    # print(taicol.keys())
             # print(taicol)
             if len(taicol):
                 result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
@@ -1202,7 +1203,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     query['limit'] = 4 if offset < 28 else 2
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
-    query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
+    # query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
 
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
@@ -1212,8 +1213,8 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     total_count = data['numFound']
     if total_count:
         taicol = pd.DataFrame(data['docs'])
-        # taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
-        # taicol = taicol[taicol_cols]
+        taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
+        taicol = taicol[taicol_cols]
         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
     taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
 
@@ -1359,7 +1360,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
 
 
 def if_raw_map(user_id):
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         return True
     else:
         return False
@@ -1453,7 +1454,11 @@ def create_data_detail(id, user_id, record_type):
 
         am = []
         if ams := row.get('associatedMedia'):
-            ams = ams.split(';')
+            if ';' in ams:
+                img_sep = ';'
+            else:
+                img_sep = '|'
+            ams = ams.split(img_sep)
             if row.get('mediaLicense'):
                 mls = row.get('mediaLicense').split(';')
                 if len(mls) == 1:
@@ -1484,7 +1489,7 @@ def create_data_detail(id, user_id, record_type):
         row.update({'date': date})
 
         # 經緯度
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
             lat = None
             if lat := row.get('standardRawLatitude'):
                 if -90 <= lat[0] and lat[0] <= 90:        
@@ -1588,8 +1593,8 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + row.get('eventDate') + '</small>'
 
         # 經緯度
-        # 如果是夥伴單位直接給原始
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+        # 如果是正式會員直接給原始
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
             if lat := row.get('standardRawLatitude'):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
@@ -1688,7 +1693,6 @@ def check_map_bound(map_bound):
     return new_map_bound
 
 
-
 def create_search_stat(query_list):
 
     stat_query = { "query": "*:*",
@@ -1729,3 +1733,38 @@ def backgroud_search_stat(query_list,record_type,query_string):
 
     stat_rightsHolder = create_search_stat(query_list=query_list)
     SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
+
+
+def create_sensitive_partner_stat(query_list):
+
+    query = { "query": "raw_location_rpt:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "stat_group": {
+                        'type': 'terms',
+                        'field': 'group',
+                        'mincount': 1,
+                        'limit': -1,
+                        'allBuckets': False,
+                        'numBuckets': False
+                    }
+                }
+            }
+
+    if not query_list:
+        query.pop('filter')
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+
+    total_count = response.json()['response']['numFound']
+
+    stat_group = []
+
+    if total_count: # 有的話再存
+        stat_group = facets['stat_group']['buckets']
+        stat_group.append({'val': 'total', 'count': total_count})
+
+    return stat_group

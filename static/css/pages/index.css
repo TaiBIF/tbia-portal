@@ -69,3 +69,13 @@
         right: 50px
     }
 }
+
+
+.title-dark {
+    color: #3F5146 !important; 
+}
+
+
+.span-dark {
+    background-color: #3F5146 !important; 
+}

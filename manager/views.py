@@ -1,5 +1,4 @@
 from django.contrib.auth.backends import ModelBackend
-# from django.db import connection
 # from django.http import request
 from django.shortcuts import render
 # from django.contrib.auth.decorators import login_required
@@ -50,6 +49,7 @@ import pytz
 from django.utils.translation import gettext #, get_language
 # from data.utils import create_search_query
 
+from django.db import connection
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -574,7 +574,9 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
 
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
+        # 正式會員
         if request.GET.get('from') == 'partner':
+            # 排除掉自己的
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
                 if a.is_partner_admin:
@@ -600,6 +602,7 @@ def change_manager_page(request):
                 })
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
+        # 系統後台
         else:
             for a in User.objects.filter(partner_id__isnull=False).order_by('-id').exclude(status='withdraw')[offset:offset+10]:
                 if a.partner:
@@ -743,11 +746,10 @@ def change_manager_page(request):
 
 def manager(request):
     menu = request.GET.get('menu','info')
-    partners = Partner.objects.all().order_by('abbreviation','id')
 
     from_google = User.objects.filter(id=request.user.id, register_method='google').exists()
 
-    return render(request, 'manager/manager.html', {'partners': partners, 'menu': menu, 'from_google': from_google})
+    return render(request, 'manager/manager.html', {'menu': menu, 'from_google': from_google})
 
 
 def update_personal_info(request):
@@ -1069,7 +1071,7 @@ def send_partner_request(request):
 
 def withdraw_partner_request(request):
     user_id = request.POST.get('user_id')
-    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False)
+    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False,partner_id=None)
     response = {'message': '申請已撤回'}
     return JsonResponse(response, safe=False)
 
@@ -1094,8 +1096,8 @@ def partner_info(request):
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            if User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).exists():
-                partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
+            if User.objects.filter(Q(partner_id=current_user.partner.id,is_partner_admin=True)).exists():
+                partner_admin = User.objects.filter(Q(partner_id=current_user.partner.id,is_partner_admin=True)).values_list('name')
                 partner_admin = [p[0] for p in partner_admin]
                 partner_admin = ','.join(partner_admin)
             # info
@@ -1106,6 +1108,8 @@ def partner_info(request):
 
 
 def download_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
+
     now = timezone.now() + timedelta(hours=8)
     now = now.strftime('%Y-%m-%d')
     df = pd.DataFrame()
@@ -1187,6 +1191,88 @@ def download_sensitive_report(request):
         df.to_excel(writer, sheet_name='Sheet1', index=None)
 
     return response
+
+
+def download_partner_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
+
+    now_group = ''
+
+    if not request.user.is_anonymous:
+        current_user = request.user
+        if current_user.partner:
+            now_group = current_user.partner.group
+
+            # print(now_group)
+            now = timezone.now() + timedelta(hours=8)
+            now = now.strftime('%Y-%m-%d')
+            df = pd.DataFrame()
+
+            par = json.dumps([{"val": "{}".format(now_group)}])
+
+            query = '''
+                    SELECT sq.created, sq.query_id, sq.query, p.select_title
+                    FROM   manager_searchquery sq
+                    JOIN   tbia_user tu ON tu.id = sq.user_id
+                    LEFT JOIN   partner p ON p.id = tu.partner_id
+                    WHERE  sq.sensitive_stat @> %s 
+                    AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
+                    ORDER BY created ASC;
+                    '''
+
+            with connection.cursor() as cursor:
+                cursor.execute(query, (par,))
+                results = cursor.fetchall()
+
+                for s in results:
+                    query = ''
+                    search_dict = dict(parse.parse_qsl(s[2]))
+                    if search_dict.get('from_full') == 'yes':
+                        query = '全站搜尋<br>'
+                        search_str = search_dict.get('search_str')
+                        search_dict = dict(parse.parse_qsl(search_str))
+
+                        query += f"關鍵字：{search_dict['keyword']}"
+                        
+                        if search_dict.get('record_type') == 'occ':
+                            map_dict = map_occurrence
+                        else:
+                            map_dict = map_collection
+                        key = map_dict.get(search_dict['key'])
+                        query += f"<br>{gettext(key)}：{search_dict['value']}"
+                        if search_dict.get('scientific_name'):
+                            query += f"<br>學名：{search_dict['scientific_name']}"
+
+                    else:
+                        query = '進階搜尋<br>'
+                        query += create_query_display(search_dict)
+                        query = query.replace('<b>','').replace('</b>','')
+                    
+                    query = query.replace('<br>','\n')
+
+                    date = s[0] + timedelta(hours=8)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                    if not s[3]:
+                        partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
+                    else:
+                        partner_title = s[3]
+
+                    df = pd.concat([df, pd.DataFrame([{
+                                                    '下載時間': date,
+                                                    '檔案編號': s[1],
+                                                    '搜尋條件': query,
+                                                    '下載者所屬單位': partner_title,
+                                                    '下載檔案連結': f'{scheme}://{request.get_host()}/media/download/record/{s[1]}.zip'
+                                                    }])],ignore_index=True)
+            
+            response = HttpResponse(content_type='application/xlsx')
+            response['Content-Disposition'] = f'attachment; filename="tbia_partner_sensitive_report_{now}.xlsx"'
+            with pd.ExcelWriter(response) as writer:
+                df.to_excel(writer, sheet_name='Sheet1', index=None)
+
+            return response
+
 
 
 def get_request_detail(request):
@@ -1896,7 +1982,7 @@ def update_user_status(request):
                     u.is_partner_account = True
                     u.is_partner_admin = False
                     u.is_staff = True
-                else:
+                elif request.POST.get('role') == 'is_partner_admin':
                     u.is_partner_account = False
                     u.is_partner_admin = True
                     u.is_staff = True
@@ -1904,6 +1990,7 @@ def update_user_status(request):
                 u.is_partner_account = False
                 u.is_partner_admin = False
                 u.is_staff = False
+                u.partner_id = None
 
             u.status = status
             u.save()

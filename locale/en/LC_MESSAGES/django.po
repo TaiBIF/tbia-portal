@@ -125,8 +125,13 @@ msgstr "What is TBIA"
 #: templates/pages/about.html:70 templates/pages/index.html:371
 #: templates/pages/partner.html:13 templates/pages/partner.html:18
 #: templates/pages/partner.html:23
-msgid "夥伴單位"
-msgstr "Partnerships"
+msgid "正式會員"
+msgstr "Partnership"
+
+#:
+msgid "合作夥伴"
+msgstr "Collaboration"
+
 
 #: templates/base.html:191 templates/base.html:299 templates/base.html:432
 #: templates/data/search_collection.html:43
@@ -719,7 +724,7 @@ msgid "申請成為夥伴帳號"
 msgstr "Apply for an Organization Account"
 
 #: templates/manager/manager.html:116
-msgid "選擇所屬夥伴單位"
+msgid "選擇所屬正式會員"
 msgstr "Select Your Affiliated Partner Organization"
 
 #: templates/manager/manager.html:140
@@ -2461,7 +2466,7 @@ msgid "新版TaiCOL物種編號"
 msgstr "TaiCOL Taxon ID"
 
 #:
-msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
+msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA正式會員申請使用。"
 msgstr "Some information provided by this service are blurred. You need to use restricted API for non-blurred data. Restricted API are currently open to TBIA partners only."
 
 

@@ -167,7 +167,7 @@ def submit_sensitive_request(request):
         )
 
         # 以下改成背景處理
-        task = threading.Thread(target=backgroup_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
+        task = threading.Thread(target=backgroud_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
         task.start()
         
         return JsonResponse({"status": 'success'}, safe=False)
@@ -280,7 +280,7 @@ def partial_transfer_sensitive_response(request):
             sdr.save()
         
         # 寄送通知給 單位管理員
-        usrs = User.objects.filter(Q(is_partner_admin=True, partner_id=partner_id)) 
+        usrs = User.objects.filter(Q(is_partner_admin=True, partner_id=partner_id))
         for u in usrs:
             nn = Notification.objects.create(
                 type = 3,
@@ -485,7 +485,7 @@ def send_download_request(request):
 def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -544,7 +544,13 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     # 儲存到下載統計
 
     stat_rightsHolder = create_search_stat(query_list=query_list)
+    # 如果是正式會員的話 記錄是否有下載敏感資料
+    sensitive_stat_group = []
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
+        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+
     sq.stat = stat_rightsHolder
+    sq.sensitive_stat = sensitive_stat_group
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -561,6 +567,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
+
+
 # facet.pivot=taxonID,scientificName
 
 # 進階搜尋名錄下載
@@ -613,7 +621,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                         "limit": -1
                         }
                     }
-                    }
+                }
                 }
             }
 
@@ -680,7 +688,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 
 # 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True)| Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -712,7 +720,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     for j in keyword_name:
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_name_reg = get_variants(keyword_name_reg)
-
 
     if key == 'taxonID':
         for k in taxon_facets:
@@ -763,7 +770,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             "fields": fl_cols,
             }
 
-
     if not fq_list:
         query.pop('filter')
 
@@ -782,7 +788,14 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     # 儲存到下載統計
     
     stat_rightsHolder = create_search_stat(query_list=fq_list)
+
+    # 如果是正式會員的話 記錄是否有下載敏感資料
+    sensitive_stat_group = []
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
+        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+
     sq.stat = stat_rightsHolder
+    sq.sensitive_stat = sensitive_stat_group
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -1502,7 +1515,7 @@ def search_full(request):
     if keyword and len(keyword) < 2000:
         ## collection
 
-        s = time.time()
+        # s = time.time()
 
         col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
         collection_rows = col_resp['menu_rows']
@@ -1616,7 +1629,7 @@ def search_full(request):
     return render(request, 'data/search_full.html', response)
 
 
-def backgroup_submit_sensitive_request(project_type, req_dict, query_id):
+def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
     if project_type == '0':
 
         # 個人研究計畫

@@ -71,14 +71,9 @@ for d in data:
 
 
 # 夥伴單位負責的
-# query = """
-# select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
-# where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
-# """
-
 query = """
 select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
-where sdr.partner_id is not null;
+where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
 """
 
 with connection.cursor() as cursor:
