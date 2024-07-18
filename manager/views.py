@@ -576,6 +576,7 @@ def change_manager_page(request):
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
         # 正式會員
         if request.GET.get('from') == 'partner':
+            # 排除掉自己的
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
                 if a.is_partner_admin:

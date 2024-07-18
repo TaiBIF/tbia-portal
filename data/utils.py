@@ -1360,7 +1360,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
 
 
 def if_raw_map(user_id):
-    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         return True
     else:
         return False
@@ -1489,7 +1489,7 @@ def create_data_detail(id, user_id, record_type):
         row.update({'date': date})
 
         # 經緯度
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
             lat = None
             if lat := row.get('standardRawLatitude'):
                 if -90 <= lat[0] and lat[0] <= 90:        
@@ -1594,7 +1594,7 @@ def create_data_table(docs, user_id, obv_str):
 
         # 經緯度
         # 如果是正式會員直接給原始
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
             if lat := row.get('standardRawLatitude'):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:

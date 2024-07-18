@@ -485,7 +485,7 @@ def send_download_request(request):
 def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
-    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -546,7 +546,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     stat_rightsHolder = create_search_stat(query_list=query_list)
     # 如果是正式會員的話 記錄是否有下載敏感資料
     sensitive_stat_group = []
-    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
 
     sq.stat = stat_rightsHolder
@@ -688,7 +688,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 
 # 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
-    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)| Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols + sensitive_cols
     else:
         fl_cols = download_cols
@@ -791,7 +791,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
 
     # 如果是正式會員的話 記錄是否有下載敏感資料
     sensitive_stat_group = []
-    if User.objects.filter(id=user_id,partner__is_collaboration=False).filter(Q(is_partner_account=True)|Q(is_partner_admin=True)|Q(is_system_admin=True)).exists():
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
 
     sq.stat = stat_rightsHolder
