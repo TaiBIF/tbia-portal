@@ -1454,7 +1454,11 @@ def create_data_detail(id, user_id, record_type):
 
         am = []
         if ams := row.get('associatedMedia'):
-            ams = ams.split(';')
+            if ';' in ams:
+                img_sep = ';'
+            else:
+                img_sep = '|'
+            ams = ams.split(img_sep)
             if row.get('mediaLicense'):
                 mls = row.get('mediaLicense').split(';')
                 if len(mls) == 1:
