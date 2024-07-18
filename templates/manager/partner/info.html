@@ -56,7 +56,9 @@
                             <a class="info changeMenu" data-menu="info">修改單位資訊</a>
                             {% if user.is_partner_admin %}
                             <a class="account changeMenu" data-menu="account">單位帳號管理</a>
+                            {% if not user.partner.is_collaboration %}
                             <a class="sensitive_apply changeMenu" data-menu="sensitive_apply">單次使用去模糊化敏感資料申請</a>
+                            {% endif %}
                             {% endif %}
                             <!--<a class="feedback changeMenu" data-menu="feedback">意見回饋紀錄</a>-->
                         </div>
@@ -175,7 +177,7 @@
         </div>
 
         <div class="rightbox_content sensitive_apply d-none">
-        {% if user.is_partner_admin %}
+        {% if user.is_partner_admin and not user.partner.is_collaboration %}
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
                 <div class="d-flex-jc-fe">
