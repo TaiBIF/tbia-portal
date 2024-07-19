@@ -219,7 +219,9 @@ $(function () {
   $('.feedback-pop .send').on('click', function () {
 
 
-    if ((!window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
+    // 如果登入的話就不用再驗證recaptcha
+
+    if ((!$('input[name=is_authenticated]').val() && !window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
       alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
