@@ -350,8 +350,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
             # 等待檔案完成
-
-            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process.communicate()
 
@@ -537,7 +536,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
     
     # 等待檔案完成
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
 
@@ -780,8 +779,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
     # 等待檔案完成
-
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     process.communicate()
 
