@@ -1587,6 +1587,16 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
+        datathon = News.objects.filter(lang=lang,status='pass',type='datathon').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
+        c_datathon = datathon.count()
+        datathon_rows = []
+        for x in datathon[:6]:
+            datathon_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+
         # resource
         resource = Resource.objects.filter(lang=lang,title__regex=keyword_reg).order_by('-publish_date')
         c_resource = resource.count()
@@ -1610,6 +1620,7 @@ def search_full(request):
             'news': {'rows': news_rows, 'count': c_news},
             'event': {'rows': event_rows, 'count': c_event},
             'project': {'rows': project_rows, 'count': c_project},
+            'datathon': {'rows': datathon_rows, 'count': c_datathon},
             'resource': {'rows': resource_rows, 'count': c_resource},
             }
     else:
@@ -1621,6 +1632,7 @@ def search_full(request):
             'news': {'count': 0},
             'event': {'count': 0},
             'project': {'count': 0},
+            'datathon': {'count': 0},
             'resource': {'count': 0},
         }
 

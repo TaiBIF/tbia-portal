@@ -182,6 +182,10 @@ msgstr "Event Information"
 msgid "徵求公告"
 msgstr "Project and Talent Call"
 
+#: 
+msgid "數據松成果"
+msgstr "Datathon Results"
+
 #: templates/base.html:227 templates/base.html:321 templates/base.html:444
 #: templates/data/search_full.html:231 templates/data/search_full.html:574
 #: templates/pages/index.html:282 templates/pages/resources_link.html:19
