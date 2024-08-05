@@ -308,3 +308,9 @@ li.check-list  .chebox:checked {
     color: #FFF
 }
 
+
+
+.news_apply .result_table .table_style1 tr td:nth-child(3)  {
+    text-align: left !important;
+}
+

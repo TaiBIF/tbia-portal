@@ -188,3 +188,10 @@
     -webkit-transition: all .3s;
     stroke: #FFFFFF
 }
+
+
+
+.qa_table tr td:nth-child(3)  {
+    text-align: left !important;
+}
+

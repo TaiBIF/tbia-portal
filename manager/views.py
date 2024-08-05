@@ -48,8 +48,8 @@ from conf.utils import scheme
 import pytz
 from django.utils.translation import gettext #, get_language
 # from data.utils import create_search_query
-
 from django.db import connection
+
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -657,16 +657,16 @@ def change_manager_page(request):
                 publish_date = ''
 
             data.append({
+                'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>',
                 'id': f'#{n.id}',
                 'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
                 'partner_title': partner_title,
-                'user': n.user.name if n.user else '',
+                # 'user': n.user.name if n.user else '',
                 'publish_date': publish_date,
-                'modified': modified,
                 'status': n.get_status_display(),
-                'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>'
+                'modified': modified,
             })
         total_page = math.ceil(News.objects.all().count() / 10)
     elif menu == 'news': # 
