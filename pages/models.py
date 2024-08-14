@@ -24,6 +24,7 @@ class News(models.Model):
         ('news', '新聞公告'),
         ('event', '活動訊息'),
         ('project', '徵求公告'),
+        ('datathon', '數據松成果'),
     ]
     status_choice = [
         ('pending', '等待審核'),

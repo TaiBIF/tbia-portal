@@ -18,13 +18,14 @@ news_type_map = {
     'news':'green',
     'event': 'yellow',
     'project': 'red',
+    'datathon': 'blue',
 }
 
 news_type_c_map = {
     'news':'新聞公告',
     'event': '活動訊息',
     'project': '徵求公告',
-
+    'datathon': '數據松成果',
 }
 
 

@@ -271,3 +271,9 @@
 span#preview {
     font-size: 16px;
 }
+
+
+.resource_table tr td:nth-child(1)  {
+    text-align: left !important;
+}
+

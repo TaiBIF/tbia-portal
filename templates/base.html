@@ -13,7 +13,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />  
     <title>{% block title %}{% endblock title %}TBIA</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v8" />
+    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v9" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
@@ -227,6 +227,10 @@
                   <p>{% trans '徵求公告' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
+                <a href="{% url 'news' %}?type=datathon" class="s_title">
+                  <p>{% trans '數據松成果' %}</p>
+                  <img class="arright" src="{% static 'image/next.svg' %}" />
+                </a>
               </div>
             </li>
             <li class="rd_mb_two_menu_li">
@@ -327,6 +331,7 @@
                 <a href="{% url 'news' %}?type=news" class="s_title">{% trans '新聞公告' %}</a>
                 <a href="{% url 'news' %}?type=event" class="s_title">{% trans '活動訊息' %}</a>
                 <a href="{% url 'news' %}?type=project" class="s_title">{% trans '徵求公告' %}</a>
+                <a href="{% url 'news' %}?type=datathon" class="s_title">{% trans '數據松成果' %}</a>
               </div>
             </div>
           </li>
@@ -448,6 +453,7 @@
             <a href="{% url 'news' %}?type=news" class="sma_link">{% trans '新聞公告' %}</a>
             <a href="{% url 'news' %}?type=event" class="sma_link">{% trans '活動訊息' %}</a>
             <a href="{% url 'news' %}?type=project" class="sma_link">{% trans '徵求公告' %}</a>
+            <a href="{% url 'news' %}?type=datathon" class="sma_link">{% trans '數據松成果' %}</a>
           </li>
           <li>
             <a href="{% url 'resources' %}" class="big_link">{% trans '開放資料相關資源' %}</a>

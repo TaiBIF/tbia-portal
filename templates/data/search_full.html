@@ -221,6 +221,12 @@
               <div class="arr"></div>
             </a>
           </li>
+          <li class="li-item_datathon">
+            <a class="big_link rd_click focusComponent" data-item_class="item_datathon" data-go_back="false">
+              <p>{% trans '數據松成果' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
           <li class="li-item_resource">
             <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>{% trans '開放資料相關資源' %}</p>
@@ -547,6 +553,39 @@
           data-more_class=".more_project"
           data-card_class=".project-card">{% trans '更多結果' %} </a>
         <input type="hidden" id="project_offset" value="6">
+        {% endif %}
+      </div>
+
+
+      <!----- 數據松成果 ----->
+      <div class="item item_datathon" id="item_datathon">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '數據松成果' %} ({{ datathon.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if datathon.count > 0 %}
+        <ul class="card_list_2 datathon-card">
+          {% for i in datathon.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %} 
+        {% if datathon.count > 6 %}
+        <!--超過6個才有更多按鈕-->
+        <a class="more more_datathon getMoreDocs" 
+          data-doc_type="datathon"
+          data-offset_value="#datathon_offset"
+          data-more_class=".more_datathon"
+          data-card_class=".datathon-card">{% trans '更多結果' %} </a>
+        <input type="hidden" id="datathon_offset" value="6">
         {% endif %}
       </div>
 

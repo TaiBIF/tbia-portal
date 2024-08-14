@@ -8,7 +8,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v4" />
 {% endblock style %}
 
 {% block head %}
@@ -159,6 +159,7 @@
                                     <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
                                     <option value="event">活動訊息</option>
                                     <option value="project">徵求公告</option>
+                                    <option value="datathon">數據松成果</option>
                                 </select>
                             </li>
                             <li>語言</li>
@@ -196,16 +197,16 @@
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 news_apply_table">
                         <tr class="news_apply_table_header">
+                            <td class="w-8p"></td> <!-- 編輯按鈕 / 收回按鈕 -->
                             <td class="w-8p">編號</td>
                             <td class="w-18p">標題</td>
                             <td class="w-8p">類型</td>
                             <td class="w-8p">語言</td>
-                            <td class="w-20p">單位</td>
-                            <td class="w-15p">申請者</td>
+                            <td class="w-15p">單位</td>
+                            {% comment %} <td class="w-15p">申請者</td> {% endcomment %}
                             <td class="w-15p">發布日期</td>
-                            <td class="w-15p">最近修改</td>
                             <td class="w-8p">狀態</td>
-                            <td class="w-8p"></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td class="w-15p">最近修改</td>
                         </tr>
                     </table>						
                 </div>
