@@ -1176,6 +1176,7 @@ def download_sensitive_report(request):
                                                 '計畫類型': detail.get_type_display(),
                                                 '計畫名稱': detail.project_name,
                                                 '委託計畫單位': detail.project_affiliation,
+                                                '計畫主持人姓名': detail.principal_investigator,
                                                 '計畫摘要': detail.abstract,
                                                 '是否同意提供研究成果': detail.is_agreed_report,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),

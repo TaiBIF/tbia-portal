@@ -10,9 +10,11 @@ $(function () {
     $('#appilcationForm .inpu_3 .input_item select[name=type]').on('change', function () {
         if ($('#appilcationForm .inpu_3 .input_item select[name=type]').val() == '1') {
             $('.p_affli').removeClass('d-none')
+            $('.p_principal').removeClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('委辦工作計畫名稱')}`)
         } else {
             $('.p_affli').addClass('d-none')
+            $('.p_principal').addClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('個人研究計畫名稱')}`)
         }
     })
@@ -84,7 +86,7 @@ function sendRequest() {
             }
         })
 
-        let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name']
+        let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name', 'principal_investigator']
         cols.forEach(function (c) {
             if (!$(`#appilcationForm input[name=${c}]`).val()) {
                 checked = false;

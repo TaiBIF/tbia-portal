@@ -170,6 +170,7 @@ class SensitiveDataRequest(models.Model):
     job_title =  models.CharField(max_length=100, blank=True)
     project_name =  models.CharField(max_length=1000, blank=True)
     project_affiliation =  models.CharField(max_length=1000, blank=True)
+    principal_investigator =  models.CharField(max_length=1000, blank=True)
     type = models.CharField(choices=type_choice, max_length=20, blank=True)
     users = models.JSONField(null=True, blank=True) # 資料使用者
     abstract = models.TextField(null=True, blank=True)

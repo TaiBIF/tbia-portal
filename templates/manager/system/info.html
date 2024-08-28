@@ -310,7 +310,12 @@
                                 <p>委託計畫單位</p>
                                 <input name="project_affiliation" type="text" disabled>
                             </div>
-
+                        </div>
+                        <div class="inpu_3">
+                            <div class="input_item p_principal d-none">
+                                <p>計畫主持人姓名</p>
+                                <input name="principal_investigator" type="text" disabled>
+                            </div>
                         </div>
                         <div class="text_area">
                             <p>計畫摘要</p>
@@ -407,5 +412,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v7"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v8"></script>
 {% endblock script %}

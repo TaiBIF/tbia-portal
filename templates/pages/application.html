@@ -81,7 +81,7 @@
 						</select>
 					</div>
 				</div>
-				<div class="inpu_2">
+				<div class="inpu_3">
 					<div class="input_item">
 						<p class="project_type">
 							<span class="color_red">*</span>{% trans '個人研究計畫名稱' %}
@@ -94,7 +94,12 @@
 						</p>
 						<input name="project_affiliation" type="text">
 					</div>
-
+					<div class="input_item p_principal d-none">
+						<p>
+							<span class="color_red">*</span>{% trans '計畫主持人姓名' %}
+						</p>
+						<input name="principal_investigator" type="text">
+					</div>
 				</div>
 				<div class="text_area">
 					<p>
@@ -139,5 +144,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/pages/application.js' %}?v2"></script>
+<script src="{% static 'js/pages/application.js' %}?v3"></script>
 {% endblock script %}
