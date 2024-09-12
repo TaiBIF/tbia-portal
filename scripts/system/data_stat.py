@@ -21,7 +21,8 @@ current_year_month = resp['response']['docs'][0]['modified'][0][:7]
 
 rights_holder_map = {
     'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'brmas',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
+    '中央研究院生物多樣性中心動物標本館': 'asiz',
     '台灣生物多樣性網絡 TBN': 'tbri',
     '國立臺灣博物館典藏': 'ntm',
     '林業試驗所昆蟲標本館': 'fact',
@@ -31,7 +32,8 @@ rights_holder_map = {
     '生態調查資料庫系統': 'forest',
     '臺灣國家公園生物多樣性資料庫': 'nps',
     '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
-    '海洋保育資料倉儲系統': 'oca'
+    '海洋保育資料倉儲系統': 'oca',
+    '科博典藏 (NMNS Collection)': 'nmns',
 }
 
 

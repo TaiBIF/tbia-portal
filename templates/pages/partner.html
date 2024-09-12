@@ -35,7 +35,8 @@
 						<img src="/static/image/partner/{{ i.logo }}" >
 					</div>
 					<h2>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</h2>
-					<h3  {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %}>
+					<h3>
+						{% comment %} {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %} {% endcomment %}
 						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>
 							{% if LANGUAGE_CODE == 'en-us' and i.subtitle_en != None %}
 								{{ i.subtitle_en }}
@@ -45,13 +46,13 @@
 							{% if i.link %} <i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i> {% endif %}
 						</a> 
 					</h3>
-					{% if i.subtitle == '生物多樣性研究博物館' %}
+					{% comment %} {% if i.subtitle == '生物多樣性研究博物館' %}
 					<h3>
 						<a target="_blank" href="https://hast.biodiv.tw/">{% if LANGUAGE_CODE == 'en-us' %}Herbarium (HAST){% else %}植物標本資料庫{% endif %}
 							<i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i>
 						</a> 
 					</h3>
-					{% endif %}
+					{% endif %} {% endcomment %}
 					<p>{% if LANGUAGE_CODE == 'en-us' and i.description_en != None %}{{ i.description_en|safe }}{% else %}{{ i.description|safe }}{% endif %}</p>
 				</div>
 				<div class="rightbox">

@@ -61,11 +61,14 @@ function showRequest(query_id, query, sdr_id) {
                 $('.detail-pop input[name=type] ').val('個人研究計畫')
                 $('.project_type').html('個人研究計畫名稱')
                 $('.p_affli').addClass('d-none')
+                $('.p_principal').addClass('d-none')
             } else {
                 $('.detail-pop input[name=type] ').val('委辦工作計畫')
                 $('.project_type').html('委辦工作計畫名稱')
                 $('.p_affli').removeClass('d-none')
+                $('.p_principal').removeClass('d-none')
                 $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
+                $('.detail-pop input[name=principal_investigator] ').val(response.detail.principal_investigator)
             }
 
             $('.apply_peo .item_set1').remove()

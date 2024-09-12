@@ -994,6 +994,10 @@ msgstr "Project Name"
 msgid "委辦工作計畫名稱"
 msgstr "Project Name"
 
+#: templates/pages/application.html:81
+msgid "計畫主持人姓名"
+msgstr "Principal Investigator"
+
 #: templates/pages/application.html:87
 msgid "委託計畫單位"
 msgstr "Issuing organization of the commissioned work project"
