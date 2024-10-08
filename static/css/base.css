@@ -451,6 +451,11 @@ input {
     width: 20px;
 }
 
+.icon-size-11 {
+    height: 11px;
+    width: 11px;
+}
+
 .partner_area .leftbox p {
     text-align: justify;
 }

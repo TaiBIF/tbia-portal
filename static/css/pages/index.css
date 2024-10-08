@@ -79,3 +79,7 @@
 .span-dark {
     background-color: #3F5146 !important; 
 }
+
+.index-search-box {
+    cursor: pointer;
+}

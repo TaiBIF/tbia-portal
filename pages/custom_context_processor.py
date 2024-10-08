@@ -12,7 +12,6 @@ def get_partners(request):
 
 def get_index_partners(request):
     # 回傳首頁上顯示的正式會員
-    # 排除中研院博物館&昆標館
     return {
        'index_partners': Partner.objects.filter(is_collaboration=False).values('abbreviation','title',"title_en",'logo','id','index_order').distinct("title","title_en","index_order").order_by('index_order'),
     }
@@ -20,7 +19,6 @@ def get_index_partners(request):
 
 def get_index_collaborates(request):
     # 回傳首頁上顯示的合作夥伴
-    # 排除中研院博物館&昆標館
     return {
        'index_collaborates': Partner.objects.filter(is_collaboration=True).values('abbreviation','title',"title_en",'logo','id','index_order').distinct("title","title_en","index_order").order_by('index_order'),
     }

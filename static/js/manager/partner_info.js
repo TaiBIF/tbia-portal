@@ -120,6 +120,8 @@ function changePage(page, menu) {
         type: 'GET',
         success: function (response) {
 
+            console.log(response.data);
+
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)

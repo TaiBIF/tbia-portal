@@ -114,8 +114,12 @@
     word-wrap: break-word;
 }
 
-.jc-fe {
+/* .jc-fe {
     justify-content: flex-end
+}
+ */
+.jc-fs {
+    justify-content: flex-start
 }
 
 .num_bottom {
@@ -449,4 +453,9 @@
 
 .records-legend {
     margin-left: 10px;
+}
+
+
+.ml-1px {
+    margin-left: 1px;
 }

@@ -663,7 +663,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
                 keyword_reg = get_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
 
-    for i in ['taxonID', 'occurrenceID', 'catalogNumber']:
+    for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
         if val := req_dict.get(i):
             query_list += [f'{i}:"{val}"']
 

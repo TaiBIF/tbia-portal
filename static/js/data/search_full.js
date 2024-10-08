@@ -929,10 +929,18 @@ function focusCards(record_type, key, go_back) {
             let display = '';
 
             if (x.taieol_id) {
-              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('物種介紹')}</a>`
-            } else {
-              display = ' jc-fe'
-            }
+              taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">
+              <p>
+              ${gettext('物種介紹')}
+              <i class="fa-solid fa-arrow-up-right-from-square icon-size-11 ml-1px"></i>
+              </p>
+              </a>`
+            } 
+            
+            
+            // else {
+            //   display = ' jc-fe'
+            // }
 
 
             html = `	<li>							
@@ -955,6 +963,12 @@ function focusCards(record_type, key, go_back) {
               </div>
               <div class="btn_area ${display}">
                 ${taieol}
+                  <a target="_blank" href="https://taicol.tw/taxon/${x.taxonID}">
+                    <p>
+                    ${gettext('臺灣物種名錄')}
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-size-11 ml-1px"></i>
+                    </p>
+                  </a>
                 <button class="getDist" data-taxonid="${x.taxonID}">${gettext('資料分布圖')}</button>
               </div></li>`
 
@@ -1343,7 +1357,11 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           let display = '';
 
           if (x.taieol_id) {
-            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">${gettext('物種介紹')}</a>`
+            taieol = `<a target="_blank" href="https://taieol.tw/pages/${x.taieol_id}">
+            <p>${gettext('物種介紹')}
+             <i class="fa-solid fa-arrow-up-right-from-square icon-size-11 ml-1px"></i>
+            </p>
+            </a>`
           } else {
             display = ' jc-fe'
           }
@@ -1368,6 +1386,13 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
           </div>
           <div class="btn_area ${display}">
             ${taieol}
+            <a target="_blank" href="https://taicol.tw/taxon/${x.taxonID}">
+              <p>
+              ${gettext('臺灣物種名錄')}
+              <i class="fa-solid fa-arrow-up-right-from-square icon-size-11 ml-1px"></i>
+              </p>
+            </a>
+
             <button class="getDist" data-taxonid="${x.taxonID}">${gettext('資料分布圖')}</button>
           </div></li>`
 

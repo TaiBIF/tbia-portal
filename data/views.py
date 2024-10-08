@@ -118,8 +118,9 @@ def send_sensitive_request(request):
                         search_dict[k] = tmp_list
                     else:
                         search_dict[k] = request.GET.get(k)
-        lang = request.GET.get('lang')
-        query = create_query_display(search_dict, lang)
+        # lang = request.GET.get('lang')
+        # query = create_query_display(search_dict, lang)
+        query = create_query_display(search_dict)
         return render(request, 'pages/application.html', {'query': query})
 
 
