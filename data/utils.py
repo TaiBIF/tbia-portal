@@ -1742,9 +1742,9 @@ def create_sensitive_partner_stat(query_list):
                 "limit": 0,
                 "filter": query_list,
                 "facet": {
-                    "stat_group": {
+                    "stat_rightsHolder": {
                         'type': 'terms',
-                        'field': 'group',
+                        'field': 'rightsHolder',
                         'mincount': 1,
                         'limit': -1,
                         'allBuckets': False,
@@ -1761,10 +1761,10 @@ def create_sensitive_partner_stat(query_list):
 
     total_count = response.json()['response']['numFound']
 
-    stat_group = []
+    stat_rightsHolder = []
 
     if total_count: # 有的話再存
-        stat_group = facets['stat_group']['buckets']
-        stat_group.append({'val': 'total', 'count': total_count})
+        stat_rightsHolder = facets['stat_rightsHolder']['buckets']
+        stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
-    return stat_group
+    return stat_rightsHolder
