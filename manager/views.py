@@ -1239,26 +1239,29 @@ def download_partner_sensitive_report(request):
         current_user = request.user
         if current_user.partner:
             now_group = current_user.partner.group
-
-            # print(now_group)
+            now_dbs = current_user.partner.info
+            now_dbs = ["sq.sensitive_stat @> '" + json.dumps([{"val": "{}".format(ii.get('dbname'))}]) + "'" for ii in now_dbs]
+            now_dbs_str = ' OR '.join(now_dbs)
+            
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
             df = pd.DataFrame()
 
-            par = json.dumps([{"val": "{}".format(now_group)}])
+            # par = json.dumps([{"val": "{}".format(now_group)}])
 
-            query = '''
+            query = f'''
                     SELECT sq.created, sq.query_id, sq.query, p.select_title
                     FROM   manager_searchquery sq
                     JOIN   tbia_user tu ON tu.id = sq.user_id
                     LEFT JOIN   partner p ON p.id = tu.partner_id
-                    WHERE  sq.sensitive_stat @> %s 
+                    WHERE  ({now_dbs_str})
                     AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
                     ORDER BY created ASC;
                     '''
+                    # WHERE  sq.sensitive_stat @> %s 
 
             with connection.cursor() as cursor:
-                cursor.execute(query, (par,))
+                cursor.execute(query)
                 results = cursor.fetchall()
 
                 for s in results:
