@@ -1448,6 +1448,11 @@ def create_data_detail(id, user_id, record_type):
     row = row.to_dict('records')
     row = row[0]
 
+    if record_type == 'col':
+        link_prefix = 'collection'
+    else:
+        link_prefix = 'occurrence'
+
     if (record_type == 'col' and row.get('recordType') == ['col']) or record_type == 'occ':
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_occurrence[row['taxonRank']]})
@@ -1550,6 +1555,8 @@ def create_data_detail(id, user_id, record_type):
                         current_str = t_rank.get(r)
                     if t_rank.get(f"{r}_c"):
                         current_str += ' ' + t_rank.get(f"{r}_c")
+
+                    current_str = f'<a target="_blank" href="/search/{link_prefix}?taxonID={path_taxon_id}&from=search">{current_str}</a>'
                     path.append(current_str)
 
         path_str = ' > '.join(path)
