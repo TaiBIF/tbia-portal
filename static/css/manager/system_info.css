@@ -235,6 +235,7 @@ td hr {
 
 .table-flow .table_style1 {
     width: max-content;
+    min-width: 100%;
 }
 
 .a-left {
