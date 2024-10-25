@@ -11,7 +11,7 @@ from conf.settings import datahub_db_settings
 import psycopg2
 from django.db.models import Q
 import requests
-from conf.settings import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX, env
 import html
 import geopandas as gpd
 import shapely.wkt as wkt
@@ -22,10 +22,13 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
-from manager.models import User, Partner, SearchStat
+from manager.models import User, Partner, SearchStat, SearchQuery
+from pages.models import News
 # import time
 # from urllib import parse
 import threading
+import random
+import string
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -1556,7 +1559,9 @@ def create_data_detail(id, user_id, record_type):
                     if t_rank.get(f"{r}_c"):
                         current_str += ' ' + t_rank.get(f"{r}_c")
 
-                    current_str = f'<a target="_blank" href="/search/{link_prefix}?taxonID={path_taxon_id}&from=search">{current_str}</a>'
+                    t_taxonID = t_rank.get(f"{r}_taxonID")
+
+                    current_str = f'<a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
                     path.append(current_str)
 
         path_str = ' > '.join(path)
@@ -1775,3 +1780,26 @@ def create_sensitive_partner_stat(query_list):
         stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
     return stat_rightsHolder
+
+
+
+def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digits, mode=env('ENV')):
+    if mode == 'prod':
+        prefix_number = '1' # 正式站
+    else:
+        prefix_number = '2' # 測試站
+
+    if data_type == 'news':
+        prefix_char = 'n' # 文章
+    else:
+        prefix_char = 'd' # 資料
+
+    new_ark = prefix_char + prefix_number + ''.join(random.choice(chars) for _ in range(size))
+    # 要確認有沒有存在在資料庫中
+    is_new_ark = False
+    while not is_new_ark:
+        if SearchQuery.objects.filter(ark=new_ark).exists() or News.objects.filter(ark=new_ark).exists():
+            new_ark = ''.join(random.choice(chars) for _ in range(size))
+        else:
+            is_new_ark = True
+    return new_ark
