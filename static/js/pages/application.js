@@ -86,12 +86,24 @@ function sendRequest() {
             }
         })
 
-        let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name', 'principal_investigator']
+        // 這邊要依據 是個人計畫還是委辦工作計畫 來判斷必填欄位有哪些
+        let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name']
         cols.forEach(function (c) {
             if (!$(`#appilcationForm input[name=${c}]`).val()) {
                 checked = false;
             }
         })
+
+        if ($('#appilcationForm .inpu_3 .input_item select[name=type]').val() == '1') {
+
+            c = 'principal_investigator';
+
+            if (!$(`#appilcationForm input[name=${c}]`).val()) {
+                checked = false;
+            }
+
+        }
+        
 
         if (!$('#appilcationForm textarea[name=abstract]').val()) {
             checked = false;

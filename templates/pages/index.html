@@ -4,7 +4,7 @@
 {% load tags %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/index.css' %}?v3" />
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -163,7 +163,7 @@
 
     <div class="topbox2">
       <div class="main_center">
-        <div class="itembox">
+        <div class="itembox index-search-box" data-href="{% url 'search_occurrence' %}">
           <div class="bird">
             <div class="rel">
               <div class="img"></div>
@@ -187,7 +187,7 @@
             {% endif %}
           </div>
         </div>
-        <div class="itembox">
+        <div class="itembox index-search-box" data-href="{% url 'search_collection' %}">
           <div class="icon_area">
             <div class="cirbox">
               <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 44.319 44.319">
@@ -419,5 +419,5 @@
 {% endblock body %} 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/index.js' %}?v5"></script>
+<script src="{% static 'js/pages/index.js' %}?v6"></script>
 {% endblock script %}

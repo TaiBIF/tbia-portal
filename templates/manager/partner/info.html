@@ -4,7 +4,7 @@
 {% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v5" />
 {% endblock style %}
 
 {% block head %}
@@ -180,37 +180,42 @@
         {% if user.is_partner_admin and not user.partner.is_collaboration %}
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
-                <div class="d-flex-jc-fe">
-                    <a class="dow_btn downloadReport">
-                        <form id="downloadReport" action="{% url 'download_sensitive_report' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="from" value="partner">
-                        </form>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <p>下載使用者申請報表</p>
-                    </a>
-                    <a class="dow_btn downloadPartnerReport">
-                        <form id="downloadPartnerReport" action="{% url 'download_partner_sensitive_report' %}" method="POST">
-                        {% csrf_token %}
-                        {% comment %} <input type="hidden" name="from" value="partner_use"> {% endcomment %}
-                        </form>
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <p>下載正式會員使用報表</p>
-                    </a>
+                <div class="d-flex-jc-sb">
+                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
+                    <div class="d-flex">
+                        <a class="dow_btn downloadReport">
+                            <form id="downloadReport" action="{% url 'download_sensitive_report' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="from" value="partner">
+                            </form>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p>下載使用者申請報表</p>
+                        </a>
+                        <a class="dow_btn downloadPartnerReport">
+                            <form id="downloadPartnerReport" action="{% url 'download_partner_sensitive_report' %}" method="POST">
+                            {% csrf_token %}
+                            {% comment %} <input type="hidden" name="from" value="partner_use"> {% endcomment %}
+                            </form>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p>下載正式會員使用報表</p>
+                        </a>
+                    </div>
                 </div>
                 <div class="result_table table-flow">
                     <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
                         <tr class="sensitive_apply_table_header">
                             <td class="w-10p">申請編號</td>
                             {% comment %} <td class="w-10p">檔案編號</td> {% endcomment %}
-                            <td class="w-30p">申請時間</td>
+                            <td class="w-10p">申請時間</td>
                             <td class="w-40p">搜尋條件</td>
+                            <td class="w-10p">筆數</td>
                             <td class="w-10p">狀態</td>
-                            <td class="w-10p"></td>
+                            <td class="w-10p">申請資訊</td>
+                            <td class="w-10p">檔案連結</td>
                         </tr> 
                     </table>
                 </div>
@@ -430,5 +435,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/partner_info.js' %}?v9"></script>
+<script src="{% static 'js/manager/partner_info.js' %}?v10"></script>
 {% endblock script %}

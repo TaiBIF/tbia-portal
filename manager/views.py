@@ -509,14 +509,38 @@ def change_manager_page(request):
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
                     a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    
+                    link = ''
+                    if sdr.status == 'pass' and sdr.status != 'expired':
+                        link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
+
+                    data_count = ''
+
+                    if r.sensitive_stat:
+                        partner_info = Partner.objects.get(id=request.user.partner.id).info
+                        if len(partner_info) > 1:
+                            data_count = []
+                            for pp in partner_info:
+                                for stat in r.sensitive_stat:
+                                    if stat.get('val') == pp.get('dbname'):
+                                        data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
+                                        # data_count += stat.get('count')
+                            data_count = '<br>'.join(data_count)
+                        elif len(partner_info) == 1:
+                            for stat in r.sensitive_stat:
+                                if stat.get('val') == partner_info[0].get('dbname'):
+                                    data_count = stat.get('count')
+
                     query = query_a_href(query,query_a)
                     data.append({
                         'id': f'#{sdr.id}',
                         # 'query_id': sdr.query_id,
                         'created':  created + '<br>審核期限：'+due,
                         'query':   query,
+                        'data_count': data_count,
                         'status': sdr.get_status_display(),
                         'a': a,
+                        'link': link
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
@@ -560,6 +584,16 @@ def change_manager_page(request):
 
                     a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
 
+                    link = ''
+                    if sdr.status == 'pass' and sdr.status != 'expired':
+                        link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
+
+
+                    data_count = ''
+
+                    if r.sensitive_stat:
+                        data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
+                        data_count = '<br>'.join(data_count)
                     query = query_a_href(query,query_a)
                     
                     data.append({
@@ -567,8 +601,10 @@ def change_manager_page(request):
                         'query_id': sdr.query_id,
                         'created':  date,
                         'query':   query,
+                        'data_count': data_count,
                         'status': status,
                         'a': a,
+                        'link': link,
                     })
 
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=None).count() / 10)
@@ -1203,26 +1239,29 @@ def download_partner_sensitive_report(request):
         current_user = request.user
         if current_user.partner:
             now_group = current_user.partner.group
-
-            # print(now_group)
+            now_dbs = current_user.partner.info
+            now_dbs = ["sq.sensitive_stat @> '" + json.dumps([{"val": "{}".format(ii.get('dbname'))}]) + "'" for ii in now_dbs]
+            now_dbs_str = ' OR '.join(now_dbs)
+            
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
             df = pd.DataFrame()
 
-            par = json.dumps([{"val": "{}".format(now_group)}])
+            # par = json.dumps([{"val": "{}".format(now_group)}])
 
-            query = '''
+            query = f'''
                     SELECT sq.created, sq.query_id, sq.query, p.select_title
                     FROM   manager_searchquery sq
                     JOIN   tbia_user tu ON tu.id = sq.user_id
                     LEFT JOIN   partner p ON p.id = tu.partner_id
-                    WHERE  sq.sensitive_stat @> %s 
+                    WHERE  ({now_dbs_str})
                     AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
                     ORDER BY created ASC;
                     '''
+                    # WHERE  sq.sensitive_stat @> %s 
 
             with connection.cursor() as cursor:
-                cursor.execute(query, (par,))
+                cursor.execute(query)
                 results = cursor.fetchall()
 
                 for s in results:

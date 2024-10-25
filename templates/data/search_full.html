@@ -23,7 +23,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v4" />
 {% endblock style %}
 
 {% block body %}
@@ -295,16 +295,29 @@
 
                 {% comment %} justify-content: center {% endcomment %}
 
-                {% if i.taieol_id %}
+                
                 <div class="btn_area">
-                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">{% trans '物種介紹' %}</a>
+                  {% if i.taieol_id %}                  
+                  <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">
+                    <p>
+                    {% trans '物種介紹' %}
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-size-11"></i>
+                    </p>
+                  </a>
+                  {% endif %}
+                  <a target="_blank" href="https://taicol.tw/taxon/{{ i.taxonID }}">
+                    <p>
+                    {% trans '臺灣物種名錄' %}
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-size-11"></i>
+                    </p>
+                  </a>
                   <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
                 </div>
-                {% else %}
+                {% comment %} {% else %}
                 <div class="btn_area jc-fe">
                   <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
                 </div>
-                {% endif %}
+                {% endif %} {% endcomment %}
 							</li>
               {% endfor %}
 						</ul>
@@ -937,5 +950,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v8"></script>
+<script src="{% static 'js/data/search_full.js' %}?v9"></script>
 {% endblock script %}

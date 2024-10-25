@@ -67,12 +67,16 @@
                 <input  class="{% if LANGUAGE_CODE == 'en-us' %} name_input {% endif %}" type="text" name="name" placeholder="{% trans '學名/中文名/中文別名/同物異名/誤用名' %}" value=""/>
               </div>
               <div class="input_item">
-                <input type="text" name="catalogNumber" placeholder="{% trans '館藏號' %}" value=""/>
+                {% comment %} <input type="text" name="catalogNumber" placeholder="{% trans '館藏號' %}" value=""/> {% endcomment %}
+				<input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" value="" />
+
               </div>
             </div>
             <div class="two_input">
 				<div class="input_item">
-					<select id="taxonGroup" name="taxonGroup">
+					<input type="text" name="catalogNumber" placeholder="{% trans '館藏號' %}" value=""/>
+
+					{% comment %} <select id="taxonGroup" name="taxonGroup">
 						<option value="">{% trans '-- 不限 --' %}</option>
 						<option value="Insects">{% trans '昆蟲' %}</option>
 						<option value="Fishes">{% trans '魚類' %}</option>
@@ -84,10 +88,11 @@
 						<option value="Mammals">{% trans '哺乳類' %}</option>
 						<option value="Bacteria">{% trans '細菌' %}</option>
 						<option value="Others">{% trans '其他' %}</option>
-					</select>  
+					</select>   {% endcomment %}
 				</div>  
 				<div class="input_item">
-					<input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" value="" />
+					<input type="text" name="recordNumber" placeholder="{% trans '採集號' %}" value=""/>
+					{% comment %} <input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" value="" /> {% endcomment %}
 				</div>
             </div>
             <div class="two_input">
@@ -105,16 +110,37 @@
                 </select>
               </div>-->
               <div class="input_item">
-                <select name="taxonRank" id="taxonRank">
+				<select id="taxonGroup" name="taxonGroup">
+					<option value="">{% trans '-- 不限 --' %}</option>
+					<option value="Insects">{% trans '昆蟲' %}</option>
+					<option value="Fishes">{% trans '魚類' %}</option>
+					<option value="Reptiles">{% trans '爬蟲類' %}</option>
+					<option value="Amphibians">{% trans '兩棲類' %}</option>
+					<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
+					<option value="Plants">{% trans '植物' %}</option>
+					<option value="Birds">{% trans '鳥類' %}</option>
+					<option value="Mammals">{% trans '哺乳類' %}</option>
+					<option value="Bacteria">{% trans '細菌' %}</option>
+					<option value="Others">{% trans '其他' %}</option>
+				</select>
+                {% comment %} <select name="taxonRank" id="taxonRank">
                   <option value="">{% trans '-- 不限 --' %}</option>
                   {% for i in rank_list %}
                   <option value="{{ i.1 }}">{% trans i.0 %}</option>
                   {% endfor %}
-                </select>
+                </select> {% endcomment %}
               </div>
             </div>
 			<div class="two_input">
-				<div class="input_item input-100">
+				<div class="input_item">
+					<select name="taxonRank" id="taxonRank">
+						<option value="">{% trans '-- 不限 --' %}</option>
+						{% for i in rank_list %}
+						<option value="{{ i.1 }}">{% trans i.0 %}</option>
+						{% endfor %}
+					  </select> 
+				</div>
+				<div class="input_item">
 				  <select id="higherTaxa" name="higherTaxa">
 				  </select>  
 				</div>  

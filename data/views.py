@@ -118,8 +118,9 @@ def send_sensitive_request(request):
                         search_dict[k] = tmp_list
                     else:
                         search_dict[k] = request.GET.get(k)
-        lang = request.GET.get('lang')
-        query = create_query_display(search_dict, lang)
+        # lang = request.GET.get('lang')
+        # query = create_query_display(search_dict, lang)
+        query = create_query_display(search_dict)
         return render(request, 'pages/application.html', {'query': query})
 
 
@@ -362,6 +363,12 @@ def generate_sensitive_csv(query_id, scheme, host):
             stat_rightsHolder = create_search_stat(query_list=query_list)
             sq.stat = stat_rightsHolder
 
+            # 敏感資料統計
+            sensitive_stat_rightsHolder = []
+            sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+
+            sq.sensitive_stat = sensitive_stat_rightsHolder
+
             # 要排除掉轉交的情況
             # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
             # if len(tmp) == len(tmp.filter(status='pass')):
@@ -545,12 +552,12 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
     stat_rightsHolder = create_search_stat(query_list=query_list)
     # 如果是正式會員的話 記錄是否有下載敏感資料
-    sensitive_stat_group = []
+    sensitive_stat_rightsHolder = []
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
 
     sq.stat = stat_rightsHolder
-    sq.sensitive_stat = sensitive_stat_group
+    sq.sensitive_stat = sensitive_stat_rightsHolder
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
@@ -789,12 +796,12 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     stat_rightsHolder = create_search_stat(query_list=fq_list)
 
     # 如果是正式會員的話 記錄是否有下載敏感資料
-    sensitive_stat_group = []
+    sensitive_stat_rightsHolder = []
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        sensitive_stat_group = create_sensitive_partner_stat(query_list=query_list)
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
 
     sq.stat = stat_rightsHolder
-    sq.sensitive_stat = sensitive_stat_group
+    sq.sensitive_stat = sensitive_stat_rightsHolder
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()

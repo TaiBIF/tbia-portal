@@ -7328,18 +7328,22 @@ body {
 
 .two_cont_area .rightbox_content .card_list_2.species_list .btn_area {
     display: flex;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     border-top: 1px dashed #ddd;
-    padding-top: 10px
+    padding-top: 10px;
+    /* margin-right: 10px; */
 }
 
 .two_cont_area .rightbox_content .card_list_2.species_list .btn_area a, .two_cont_area .rightbox_content .card_list_2.species_list .btn_area button {
     background: #76A578;
     height: 45px;
     color: #FFFFFF;
-    width: calc(50% - 2px);
+    /* width: calc(50% - 2px); */
+    width: calc(33% - 2px);
+    margin: 0 2px;
     border-radius: 5px;
-    font-size: 16px;
+    /* font-size: 16px; */
+    font-size: 14px;
     display: flex;
     align-items: center;
     text-align: center;
