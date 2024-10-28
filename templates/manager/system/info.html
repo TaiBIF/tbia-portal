@@ -176,7 +176,8 @@
         <div class="rightbox_content sensitive_apply d-none">
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
-                <div class="d-flex-jc-fe">
+                <div class="d-flex-jc-sb">
+                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
                     <a class="dow_btn downloadReport">
                         <form action="{% url 'download_sensitive_report' %}" method="POST">
                         {% csrf_token %}
