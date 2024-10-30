@@ -152,7 +152,8 @@ class SearchQuery(models.Model):
     # 使用者個人下載編號id
     personal_id = models.IntegerField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True) # 記錄各單位筆數
-    sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數
+    sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數, 若是申請通過的敏感資料統計也會計算在這
+    # ark = models.CharField(max_length=50, null=True, blank=True)
 
 
 class SensitiveDataRequest(models.Model):
@@ -258,3 +259,12 @@ class ChecklistStat(models.Model):
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     count = models.IntegerField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+
+
+
+class Ark(models.Model):
+    model_id = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 如果是news則對到news表的id 如果是data 則對到search query 表的id
+    type = models.CharField(max_length=20, blank=True) # news / data
+    ark = models.CharField(max_length=50, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now_add=True)

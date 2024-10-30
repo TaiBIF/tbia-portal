@@ -1,0 +1,99 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% load i18n %}
+{% block head %}
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+
+<link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
+<script src="/static/datepicker/air-datepicker.js" ></script>
+{% if LANGUAGE_CODE == 'en-us' %}
+<script src="/static/datepicker/en.js" ></script>
+{% else %}
+<script src="/static/datepicker/zh.js" ></script>
+{% endif %}
+{% endblock head %}
+{% block title %}{% trans 'ARK服務' %}｜{% endblock %}
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/ark_ids.css' %}?v1" />
+{% endblock style %}
+{% block body %}
+{% csrf_token %}
+
+
+<input type="hidden" name="ark_type" value="{{ type }}">
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans 'ARK服務' %}</p>
+	</div>
+</div>
+<div class="in_bn resource_bn">
+	<div class="title">
+		<h2>{% trans 'ARK服務' %}</h2>
+		{% comment %} <h3>Resources</h3> {% endcomment %}
+	</div>
+</div>
+<div class="container_area">
+	<div class="main_1240"> 
+		<div class="tab_scromb">
+			<!--目前位置給class>now-->
+			<ul class="news_tab_in">
+				<li class="li-resource-news updateArk" data-type="news">
+					<p>{% trans '最新消息' %}</p>
+					<div class="arr"></div>
+				</li>
+				<li class="li-resource-data updateArk" data-type="data">
+					<p>{% trans '下載資料' %}</p>
+					<div class="arr"></div>
+				</li>
+			</ul> 
+		</div>
+
+		{% comment %} <div class="date_select">
+			<p>{% trans '篩選' %}</p>
+			<div class="input_item"> 
+                <input name="start_date" id="start_date" type="text" value="{% now 'Y-m-d' %}" />
+                <a class="dateicon show_start"></a>
+			</div>
+			<span>~</span>
+			<div class="input_item">
+                <input name="end_date" id="end_date" type="text" value="{% now 'Y-m-d' %}" />
+                <a class="dateicon show_end"></a>
+			</div>
+			<button class="search_btn">{% trans '送出' %}</button>
+		</div>
+		<div class="already_selected" data-filter="no">
+			<ul class="d-none">
+				<li>
+					<p class="date-range"></p>
+					<button class="xx">
+						<img src="/static/image/xx_w.svg" >
+					</button>
+				</li>
+			</ul>
+		</div> {% endcomment %}
+
+		<div class="result_table flow-x-auto">
+			<table cellspacing="0" cellspacing="0" class="table_style1 ark_table">
+				<tr class="first-row">
+					<td>{% trans '識別碼' %}</td>
+					<td>URL</td>
+					<td>{% trans '建立日期' %}</td>
+					<td>{% trans '更新日期' %}</td>
+				</tr>
+			</table>						
+		</div>
+
+
+	</div>
+</div>
+{% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/tutorial.js' %}?v1"></script>
+<script src="{% static 'js/pages/ark_ids.js' %}?v1"></script>
+{% endblock script %}

@@ -1,0 +1,140 @@
+
+.news_tab_in li {
+    background-color: #FFF;
+}
+
+.news_tab_in {
+    background-color: transparent;
+}
+
+
+.search_btn {
+    color: #FFF;
+    background: #76A578;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    width: 80px;
+    padding: 0 15px;
+    margin-left: 10px;
+    height: 35px;
+    border-radius: 3px;
+    font-size: 16px;
+}
+
+
+@media only screen and (max-width: 767px) {
+    .search_btn {
+        font-size: 14px;    
+        min-width: 70px;
+
+    }
+}
+
+
+  @media only screen and (min-width: 1000px) {
+    .search_btn:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #E2A460
+    }
+}
+
+.color-888 {
+    color: #888
+}
+
+.bd-0 {
+    border: 0
+}
+
+
+.date_select {
+    margin-bottom: 10px;
+}
+
+
+.already_selected {
+    margin-top: 10px;
+    margin-bottom: 50px;
+
+}
+
+.already_selected ul {
+    display: flex;
+    list-style: none;
+    flex-wrap: wrap
+}
+
+.already_selected ul li {
+    padding: 7px 36px 7px 13px;
+    position: relative;
+    background: #3B8D70;
+    border-radius: 20px;
+    margin-right: 10px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}
+
+@media only screen and (min-width: 1000px) {
+    .already_selected ul li:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #B2D956
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .already_selected ul li {
+        padding: 5px 30px 5px 10px
+    }
+}
+
+.already_selected ul li p {
+    font-size: 16px;
+    line-height: 20px;
+    margin-right: 0
+}
+
+@media only screen and (max-width: 767px) {
+    .already_selected ul li p {
+        font-size: 14px
+    }
+}
+
+.already_selected ul li .xx {
+    position: absolute;
+    right: 13px;
+    background: none;
+    top: 50%;
+    margin-top: -7.5px
+}
+
+.already_selected ul li .xx img {
+    display: block
+}
+
+@media only screen and (max-width: 767px) {
+    .already_selected ul li .xx img {
+        width: 12px
+    }
+}
+
+.already_selected ul li p {
+    color: #FFF
+}
+
+#start_date, #end_date {
+    background-color: #fff;
+}

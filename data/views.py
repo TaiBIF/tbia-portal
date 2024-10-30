@@ -977,7 +977,7 @@ def get_more_docs(request):
                     'extension': x.extension,
                     'cate': get_resource_cate(x.extension),
                     'url': x.url,
-                    'date': x.publish_date.strftime("%Y.%m.%d")
+                    'date': x.publish_date.strftime("%Y-%m-%d")
                 })
             has_more = True if resource[offset+6:].count() > 0 else False
         else:
@@ -1615,7 +1615,7 @@ def search_full(request):
                 'extension': x.extension,
                 'cate': get_resource_cate(x.extension),
                 'url': x.url,
-                'date': x.publish_date.strftime("%Y.%m.%d")
+                'date': x.publish_date.strftime("%Y-%m-%d")
             })
         
         # taxon_more = True if taxon_card_len > 4 else False
@@ -1708,4 +1708,3 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
             send_notification([u.id],content,'單次使用敏感資料申請通知')
-

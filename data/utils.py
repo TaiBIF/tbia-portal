@@ -22,7 +22,7 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
-from manager.models import User, Partner, SearchStat, SearchQuery
+from manager.models import User, Partner, SearchStat, SearchQuery, Ark
 from pages.models import News
 # import time
 # from urllib import parse
@@ -1798,7 +1798,7 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
     # 要確認有沒有存在在資料庫中
     is_new_ark = False
     while not is_new_ark:
-        if SearchQuery.objects.filter(ark=new_ark).exists() or News.objects.filter(ark=new_ark).exists():
+        if Ark.objects.filter(ark=new_ark).exists():
             new_ark = ''.join(random.choice(chars) for _ in range(size))
         else:
             is_new_ark = True

@@ -75,4 +75,6 @@ urlpatterns = [
     path('download_partner_sensitive_report', views.download_partner_sensitive_report, name='download_partner_sensitive_report'),
     # # 取得敏感資料相關的夥伴單位
     # path('get_partial_partner', views.get_partial_partner, name='get_partial_partner'),
+    # 申請 ark
+    path('submit_apply_ark', views.submit_apply_ark, name='submit_apply_ark'),
 ]

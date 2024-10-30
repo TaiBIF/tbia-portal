@@ -255,6 +255,10 @@
                   <p>{% trans '教學文件' %}</p>
                   <img class="arright" src="{% static 'image/next.svg' %}" />
                 </a>
+                <a href="{% url 'ark_ids' %}" class="s_title">
+                  <p>{% trans 'ARK服務' %}</p>
+                  <img class="arright" src="{% static 'image/next.svg' %}" />
+                </a>
               </div>
             </li>
             <li>
@@ -344,6 +348,7 @@
                 <a href="{% url 'resources' %}?type=guide" class="s_title">{% trans '開放資料指引' %}</a>
                 <a href="{% url 'resources' %}?type=tool" class="s_title">{% trans '參考文件/工具' %}</a>
                 <a href="{% url 'resources' %}?type=tutorial" class="s_title">{% trans '教學文件' %}</a>
+                <a href="{% url 'ark_ids' %}" class="s_title">{% trans 'ARK服務' %}</a>
               </div>
             </div>
           </li>
@@ -461,6 +466,7 @@
             <a href="{% url 'resources' %}?type=guide" class="sma_link">{% trans '開放資料指引' %}</a>
             <a href="{% url 'resources' %}?type=tool" class="sma_link">{% trans '參考文件/工具' %}</a>
             <a href="{% url 'resources' %}?type=tutorial" class="sma_link">{% trans '教學文件' %}</a>
+            <a href="{% url 'ark_ids' %}" class="sma_link">{% trans 'ARK服務' %}</a>
           </li>
           <li>
             <a href="{% url 'about' %}" class="big_link">{% trans '關於TBIA' %}</a>

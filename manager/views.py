@@ -1,35 +1,24 @@
 from django.contrib.auth.backends import ModelBackend
-# from django.http import request
 from django.shortcuts import render
-# from django.contrib.auth.decorators import login_required
-# from conf.decorators import auth_user_should_not_access
 from django.contrib.auth import authenticate, login, logout #, tokens
 from manager.models import *
 from pages.models import Feedback, News, Notification, Resource, Link
 from django.shortcuts import render, redirect
-# from django.urls import reverse
-# from django.contrib import messages
 from django.core.mail import EmailMessage
-# from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_bytes, force_str #, DjangoUnicodeDecodeError
+from django.utils.encoding import force_bytes, force_str 
 from manager.utils import generate_token, check_due
 import threading
 from django.http import (
-    # request,
     JsonResponse,
-    # HttpResponseRedirect,
-    # Http404,
     HttpResponse,
 )
 import json
 from allauth.socialaccount.models import SocialAccount
-from conf.settings import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 import requests
-# import subprocess
 import os
-# import time
 from pages.models import Keyword, Qa
 from ckeditor.fields import RichTextField
 from django import forms
@@ -47,8 +36,12 @@ from pathlib import Path
 from conf.utils import scheme
 import pytz
 from django.utils.translation import gettext #, get_language
-# from data.utils import create_search_query
 from django.db import connection
+from data.utils import ark_generator
+import subprocess
+import os
+import threading
+from data.utils import sensitive_cols
 
 
 class NewsForm(forms.ModelForm):
@@ -202,6 +195,14 @@ def change_manager_page(request):
             query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
             query = query_a_href(query,query_a)
+
+            if Ark.objects.filter(model_id=t.id, type='data').exists():
+                now_ark_id = Ark.objects.get(model_id=t.id, type='data').ark
+                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+            elif t.status == 'pass':
+                ark = f'<a class="manager_btn applyARK" data-query_id="{ t.query_id }"=>{gettext("申請")}</a>'
+            else:
+                ark = ''
             
             data.append({
                 'id': f"#{t.personal_id}",
@@ -209,7 +210,8 @@ def change_manager_page(request):
                 'date': date,
                 'query': query,
                 'status': gettext(t.get_status_display()),
-                'link': link
+                'link': link,
+                'ark': ark
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='taxon').count() / 10)
@@ -266,6 +268,14 @@ def change_manager_page(request):
             if s.status == 'pass' and s.status != 'expired':
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
 
+            if Ark.objects.filter(model_id=s.id, type='data').exists():
+                now_ark_id = Ark.objects.get(model_id=s.id, type='data').ark
+                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+            elif s.status == 'pass':
+                ark = f'<a class="manager_btn applyARK" data-query_id="{ s.query_id }"=>{gettext("申請")}</a>'
+            else:
+                ark = ''
+            
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
@@ -273,7 +283,8 @@ def change_manager_page(request):
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': gettext(s.get_status_display()),
-                'link': link
+                'link': link,
+                'ark': ark
             })
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id, type='sensitive').count() / 10)
     
@@ -333,6 +344,14 @@ def change_manager_page(request):
                 link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
 
             query = query_a_href(query,query_a,lang)
+
+            if Ark.objects.filter(model_id=r.id, type='data').exists():
+                now_ark_id = Ark.objects.get(model_id=r.id, type='data').ark
+                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+            elif r.status == 'pass':
+                ark = f'<a class="manager_btn applyARK" data-query_id="{ r.query_id }"=>{gettext("申請")}</a>'
+            else:
+                ark = ''
             
             data.append({
                 'id': f'#{r.personal_id}',
@@ -341,6 +360,7 @@ def change_manager_page(request):
                 'query': query,
                 'status': gettext(r.get_status_display()),
                 'link': link,
+                'ark': ark
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
@@ -1830,6 +1850,9 @@ def submit_news(request):
             image_name = fs.save(f'news/' + image.name, image)
 
         if News.objects.filter(id=news_id).exists():
+
+            # 更新 news
+
             n = News.objects.get(id=news_id)
             ori_status = n.status
             
@@ -1851,16 +1874,10 @@ def submit_news(request):
                 image_name = image.name
             
             if image_name:
-                # n.type = type
-                # n.title = title
-                # n.content = content
                 n.image = image_name
-                # n.status = status
-                # n.modified = timezone.now()
-                # n.publish_date = publish_date
-                # n.save()
             else:
                 n.image = None
+
             n.type = type
             n.title = title
             n.content = content
@@ -1868,14 +1885,30 @@ def submit_news(request):
             n.publish_date = publish_date
             n.modified = timezone.now()
             n.lang = lang
+
+            if ori_status != 'pass' and status == 'pass':
+                # 新增 ark
+                # 如果已經有ARK的話就不要再給了
+                if not Ark.objects.create(type='news', model_id=n.id).exists():
+                    ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
+                    # insert api
+                    url = f"{env('TBIA_ARKLET_MINTER')}insert"
+                    ark_url = f"{scheme}://{request.get_host()}/news/detail/{ark_obj.model_id}"
+                    r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
+                                        data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
+                                                'naan': env("ARK_NAAN"),
+                                                'url': ark_url,
+                                                'shoulder': '/' + ark_obj.ark[:2]})
+
             n.save()
         else:
+
+            # 新增 news
             ori_status = 'pending'
             # if status == 'pass':
             #     publish_date = timezone.now() + timedelta(hours=8)
             # else:
             #     publish_date = None
-
 
             if image_name:
                 n = News.objects.create(
@@ -1887,7 +1920,7 @@ def submit_news(request):
                     image = image.name,
                     status = status,
                     publish_date = publish_date,
-                    lang=lang
+                    lang=lang,
                 )
             else:
                 n = News.objects.create(
@@ -1898,9 +1931,20 @@ def submit_news(request):
                     content = content,
                     status = status,
                     publish_date = publish_date,
-                    lang=lang
+                    lang=lang,
                 )
 
+            # 一新增就直接是通過
+            if request.POST.get('from_system') and status == 'pass':
+                ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
+                # insert api
+                url = f"{env('TBIA_ARKLET_MINTER')}insert"
+                ark_url = f"{scheme}://{request.get_host()}/news/detail/{ark_obj.model_id}"
+                r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
+                                    data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
+                                            'naan': env("ARK_NAAN"),
+                                            'url': ark_url,
+                                            'shoulder': '/' + ark_obj.ark[:2]})
 
         if request.POST.get('from_system'):
             if ori_status =='pending' and status in ['pass', 'fail']:
@@ -2235,3 +2279,86 @@ def delete_qa(request):
                 q = Qa.objects.get(id=qa_id)
                 q.delete()
                 return JsonResponse({}, safe=False)
+
+
+def submit_apply_ark(request):
+    if request.method == 'POST':
+        query_id = request.POST.get('query_id')
+        sq = SearchQuery.objects.get(query_id=query_id)
+        sq.save()
+
+        ark = ark_generator(data_type='data')
+        ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
+
+        url = f"{env('TBIA_ARKLET_MINTER')}insert"
+        ark_url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{ark_obj.ark}.zip"
+        r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
+                               data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
+                                     'naan': env("ARK_NAAN"),
+                                     'url': ark_url,
+                                     'shoulder': '/' + ark_obj.ark[:2]})
+
+        csv_folder = os.path.join(MEDIA_ROOT, 'download')
+        storage_folder = os.path.join(csv_folder, 'storage')
+
+        if sq.type == 'taxon':
+            # 直接複製一份
+            csv_folder = os.path.join(csv_folder, 'taxon')
+
+            original_path = os.path.join(csv_folder, f'tbia_{query_id}.zip')
+            target_path = os.path.join(storage_folder, f'tbia_{ark}.zip')
+
+            commands = "cp {} {}".format(original_path, target_path)
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
+
+        else:
+
+            # 串接產生檔案的程式碼
+            task = threading.Thread(target=generate_storage_csv, args=(query_id, ark))
+            task.start()
+
+        response = {'message': '申請完成，因檔案產生需要時間，若點選ARK連結無法正確跳轉至下載檔案，請稍後再試或聯絡管理員。'}
+
+        return JsonResponse(response, safe=False)
+
+
+# # 永久保存資料
+def generate_storage_csv(query_id, ark):
+
+    if SearchQuery.objects.filter(query_id=query_id).exists():
+        sq = SearchQuery.objects.get(query_id=query_id)
+        download_folder = os.path.join(MEDIA_ROOT, 'download')
+        csv_folder = os.path.join(download_folder, sq.type)
+        csv_file_path = os.path.join(csv_folder, f'tbia_{query_id}.csv')
+        zip_file_path = os.path.join(csv_folder, f'tbia_{query_id}.zip')
+        storage_csv_folder = os.path.join(download_folder, 'storage')
+        storage_csv_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.csv')
+        storage_zip_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.zip')
+        # step 1 unzip
+        commands = f"cd {csv_folder}; unzip {zip_file_path}"
+        process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()
+        # step 2 取得header
+        cols = pd.read_csv(csv_file_path, index_col=False, nrows=0).columns.tolist()
+        # step 3 拿掉敏感欄位
+        sensitive_index = []
+        for ss in sensitive_cols:
+            # 找到所有sensitive_cols的index位置 並一次移除
+            if ss in cols:
+                sensitive_index.append(cols.index(ss)+1)
+        if len(sensitive_index):
+            remaining_cols = [r for r in range(1, len(cols)+1)]
+            remaining_cols = [str(r) for r in remaining_cols if r not in sensitive_index]
+            commands = f"csvcut -c {(',').join(remaining_cols)} {csv_file_path} > {storage_csv_file_path}"
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
+        # 如果沒有敏感欄位的話 則複製一份改存名字
+        else:
+            commands = "cp {} {}".format(csv_file_path, storage_csv_file_path)
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
+        # step 4 & 5 壓縮 & 移除原本的csv檔案
+        commands = "zip -j {} {}; rm {} {}".format(storage_zip_file_path, storage_csv_file_path, csv_file_path, storage_csv_file_path)
+        process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()

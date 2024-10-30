@@ -4,11 +4,14 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update \
+    && apt-get -y upgrade \
     # dependencies for building Python packages
     && apt-get install -y build-essential \
     # tools
+    && apt-get install -y csvkit \
     && apt-get install -y curl \
     && apt-get install -y zip \
+    && apt-get install -y unzip \
     # django i18n
     && apt-get install -y gettext \
     # psycopg2 dependencies

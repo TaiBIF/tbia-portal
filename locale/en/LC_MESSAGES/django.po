@@ -213,6 +213,11 @@ msgstr "References / Tools"
 msgid "教學文件"
 msgstr "Tutorials"
 
+#:
+msgid "ARK服務"
+msgstr "ARK Service"
+
+
 #: templates/base.html:251 templates/base.html:333 templates/base.html:454
 #: templates/pages/qa.html:39 templates/pages/qa.html:44
 msgid "常見Q&A"

@@ -288,10 +288,7 @@ CSP_IMG_SRC = ("'self'",
                "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
                # 生命大百科
                "https://data.taieol.tw/",
-               # 各單位資料    
-            #    "https://www.tbn.org.tw/", 
-            #    "https://n2t.net/",
-            #    "https://brmas-media.s3.ap-northeast-1.amazonaws.com/"
+               # 各單位資料 - 改由media rule加上去
                ) 
 
 CSP_MEDIA_SRC = ("'self'") 
