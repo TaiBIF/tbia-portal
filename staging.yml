@@ -62,7 +62,9 @@ services:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=tbia
       - PGDATA=/var/lib/postgresql/data/pgdata
-
+    networks:
+      # - internal
+      - gateway
   nginx-portal:  # nginx to serve static files
     image: nginx:latest
     container_name: nginx-portal
@@ -82,34 +84,3 @@ services:
       - "traefik.http.routers.nginx-portal.rule=Host(`dev.tbiadata.tw`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
-
-
-# 舊的
-
-  # nginx:
-  #   image: nginx:1.19.10-alpine
-  #   restart: always
-  #   ports:
-  #     - 80:80
-  #     - 443:443
-  #   volumes:
-  #     - ./scripts/nginx/staging:/etc/nginx/conf.d
-  #     - ../tbia-volumes/static:/tbia-volumes/static
-  #     - ../tbia-volumes/media:/tbia-volumes/media
-  #     - ../tbia-volumes/logs/nginx:/var/log/nginx
-  #     - ../tbia-volumes/certbot/conf:/etc/letsencrypt
-  #     - ../tbia-volumes/certbot/www:/var/www/certbot
-  #   links:
-  #     - web:web
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "1m"
-  #       max-file: "3"
-  #   command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-  # certbot:
-  #   image: certbot/certbot
-  #   volumes:
-  #     - ../tbia-volumes/certbot/conf:/etc/letsencrypt
-  #     - ../tbia-volumes/certbot/www:/var/www/certbot
-  #   entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
