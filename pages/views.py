@@ -439,7 +439,7 @@ def get_ark_list(request):
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
             
         rows.append({
-            'ark_href': f'{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{x.ark}',
+            'ark_href': f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{x.ark}',
             'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
             'url': url,
             'created': created.strftime("%Y-%m-%d"),

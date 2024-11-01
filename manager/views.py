@@ -198,7 +198,7 @@ def change_manager_page(request):
 
             if Ark.objects.filter(model_id=t.id, type='data').exists():
                 now_ark_id = Ark.objects.get(model_id=t.id, type='data').ark
-                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+                ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif t.status == 'pass':
                 ark = f'<a class="manager_btn applyARK" data-query_id="{ t.query_id }"=>{gettext("申請")}</a>'
             else:
@@ -270,7 +270,7 @@ def change_manager_page(request):
 
             if Ark.objects.filter(model_id=s.id, type='data').exists():
                 now_ark_id = Ark.objects.get(model_id=s.id, type='data').ark
-                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+                ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif s.status == 'pass':
                 ark = f'<a class="manager_btn applyARK" data-query_id="{ s.query_id }"=>{gettext("申請")}</a>'
             else:
@@ -347,7 +347,7 @@ def change_manager_page(request):
 
             if Ark.objects.filter(model_id=r.id, type='data').exists():
                 now_ark_id = Ark.objects.get(model_id=r.id, type='data').ark
-                ark = f'<a href="{env("TBIA_ARKLET_RESOLVER_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
+                ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif r.status == 'pass':
                 ark = f'<a class="manager_btn applyARK" data-query_id="{ r.query_id }"=>{gettext("申請")}</a>'
             else:
@@ -1892,7 +1892,7 @@ def submit_news(request):
                 if not Ark.objects.create(type='news', model_id=n.id).exists():
                     ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
                     # insert api
-                    url = f"{env('TBIA_ARKLET_MINTER')}insert"
+                    url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
                     ark_url = f"{scheme}://{request.get_host()}/news/detail/{ark_obj.model_id}"
                     r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
                                         data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
@@ -1938,7 +1938,7 @@ def submit_news(request):
             if request.POST.get('from_system') and status == 'pass':
                 ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
                 # insert api
-                url = f"{env('TBIA_ARKLET_MINTER')}insert"
+                url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
                 ark_url = f"{scheme}://{request.get_host()}/news/detail/{ark_obj.model_id}"
                 r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
                                     data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
@@ -2290,7 +2290,7 @@ def submit_apply_ark(request):
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
 
-        url = f"{env('TBIA_ARKLET_MINTER')}insert"
+        url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
         ark_url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{ark_obj.ark}.zip"
         r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
                                data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
