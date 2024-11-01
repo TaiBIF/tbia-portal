@@ -2285,7 +2285,7 @@ def submit_apply_ark(request):
     if request.method == 'POST':
         query_id = request.POST.get('query_id')
         sq = SearchQuery.objects.get(query_id=query_id)
-        sq.save()
+        # sq.save()
 
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
