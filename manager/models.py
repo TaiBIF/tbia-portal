@@ -229,13 +229,16 @@ class TaxonStat(models.Model):
     type_choice = [
         ('taxon_group', '物種類群'),
         ('family', '科別'),
+        ('temporal', '時間空缺'),
     ]
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
     rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
-    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    # year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    year = models.CharField(max_length=4, null=True, blank=True, db_index=True)
+    month = models.CharField(max_length=2, null=True, blank=True, db_index=True)
     name = models.CharField(max_length=10000, null=True, blank=True)  # 類群名 / 科名
-    count = models.IntegerField(null=True, blank=True)
+    count = models.FloatField(null=True, blank=True)
     modified = models.DateTimeField(auto_now_add=True)
 
 
@@ -245,6 +248,9 @@ class DataStat(models.Model):
         ('data', '累積資料數量'),
         ('search', '累積被查詢資料數量'),
         ('download', '累積被下載資料數量'),
+        ('search_times', '累積被查詢次數'),
+        ('download_times', '累積被下載次數'),
+        ('sensitive', '累積敏感資料被下載筆數'),
     ]
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group

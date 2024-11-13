@@ -653,7 +653,8 @@ def generate_species_csv(req_dict, user_id, scheme, host):
                         subset_taxon_list += data
             subset_taxon = pd.DataFrame(subset_taxon_list)
             used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine',
+                        'kingdom','kingdom_c','phylum','phylum_c','class','class_c','order','order_c','family','family_c','genus','genus_c']
             subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
             for u in used_cols:
                 if u not in subset_taxon.keys():
@@ -1119,6 +1120,7 @@ def get_map_grid(request):
         get_raw_map =  if_raw_map(user_id)
 
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
         

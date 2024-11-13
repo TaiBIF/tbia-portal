@@ -26,6 +26,7 @@
     <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit{% if LANGUAGE_CODE == 'en-us' %}&hl=en{% endif %}" async defer></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v6" />
     <script src="{% static 'js/GA/ga_head.js' %}"></script>
+    <script src="{% static 'js/tokml.js' %}"></script>
     <!-- use django template in js -->
     <script src="{% url 'javascript-catalog' %}"></script>
     {% block head %}{% endblock head %}

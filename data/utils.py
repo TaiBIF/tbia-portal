@@ -863,6 +863,17 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
+
+    # group (後台儀表板的query)
+    if group := req_dict.get('group'):
+        if group != 'total':
+            query_list += ['group:{}'.format(group)]
+
+    # rights_holder (後台儀表板的query)
+    if rights_holder := req_dict.get('rights_holder'):
+        if rights_holder != 'total':
+            query_list += ['rightsHolder:{}'.format(rights_holder)]
+
     return query_list
 
 

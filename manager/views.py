@@ -25,7 +25,7 @@ from django import forms
 from django.core.files.storage import FileSystemStorage
 from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, Max #, Sum, F, DateTimeField, ExpressionWrapper
+from django.db.models import Q, Max, Count, Sum #, Sum, F, DateTimeField, ExpressionWrapper
 from datetime import datetime, timedelta
 from urllib import parse
 from data.utils import map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, create_search_query#, get_key
@@ -43,6 +43,17 @@ import os
 import threading
 from data.utils import sensitive_cols
 
+quality_map = {
+    3: '金',
+    2: '銀',
+    1: '銅'
+}
+
+quality_color_map = {
+    3: '#FFD700',
+    2: '#D8D8D8',
+    1: '#ac6b2b'
+}
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -1434,6 +1445,8 @@ def get_partner_stat(request):
     data_total = []
     image_data_total = []
     taxon_group_stat = []
+    quality_data_list = []
+    db_quality_stat = []
 
     if partner_id := request.GET.get('partner_id'):
 
@@ -1496,9 +1509,43 @@ def get_partner_stat(request):
 
             image_data_total.append({'name': '其他單位','y': other_image_count, 'color': '#ddd'})
 
+            # 資料品質 (入口網)
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+            data = requests.get(url).json()
+            if data['responseHeader']['status'] == 0:
+                facets = data['facet_counts']['facet_fields']['dataQuality']
+                for r in range(0,len(facets),2):
+                    # total_count += facets[r+1]
+                    # if facets[r+1] > 0 :
+                    quality_data_list.append({
+                        'name': quality_map[int(float(facets[r]))],
+                        'color': quality_color_map[int(float(facets[r]))],
+                        'y': facets[r+1]
+                    })
+
+            # 資料品質 (來源資料庫)
+
+            url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=group:{group}&rows=0&start=0"
+            quality_data = requests.get(url).json()
+            if quality_data['responseHeader']['status'] == 0:
+                facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+                for f in facets:
+                    p_dbname = f.get('value')
+                    quality_str_list = []
+                    for q in [3,2,1]:
+                        has_data = False
+                        for fp in f.get('pivot'):
+                            if q == int(float(fp.get('value'))):
+                                quality_str_list.append('{}級 {} 筆'.format(quality_map[q], fp.get('count')))
+                                has_data = True
+                        if not has_data:
+                            quality_str_list.append('{}級 0 筆'.format(quality_map[q]))
+                    db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
+
 
             # 物種類群資料筆數
-            taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
+            taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
+            taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
 
 
     response = {
@@ -1506,7 +1553,9 @@ def get_partner_stat(request):
         'has_taxon': has_taxon,
         'no_taxon': no_taxon,
         'image_data_total': image_data_total,
-        'taxon_group_stat': taxon_group_stat
+        'taxon_group_stat': taxon_group_stat,
+        'quality_data_list': quality_data_list,
+        'db_quality_stat': db_quality_stat
     }
     return JsonResponse(response, safe=False)
 
@@ -1586,14 +1635,11 @@ def get_data_stat(request):
     type = request.GET.get('type')
 
     if rights_holder := request.GET.get('rights_holder'):
-        data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month'))
+        data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month','rights_holder'))
     elif group :=  request.GET.get('group'):
         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
 
-    # print()
-    colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
-    '#555','#3B86C0','#304237','#C65454','#ccc' ]
-
+    colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065','#555','#3B86C0','#304237','#C65454','#ccc']
 
     if type == 'data':
         month_list = [1,3,5,7,9,11]
@@ -1622,9 +1668,25 @@ def get_data_stat(request):
         resp['data'] = new_data_list
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
 
-    else:
-        df = pd.DataFrame(data_list, columns=['count','year_month'])
+    elif type in ['search_times', 'download_times', 'sensitive'] and rights_holder != 'total':
 
+        df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
+        df['count'] = df['count'].astype('int')
+
+        new_data_list = []
+        for mm in month_list:
+            now_year_month = f'{year}-{"{:02d}".format(mm)}'
+            if not len(df[df.year_month==now_year_month]):
+                df = pd.concat([df, pd.DataFrame([{'rights_holder': rights_holder, 'count': 0, 'year_month': now_year_month}])])
+        df = df.reset_index(drop=True)
+        new_data_list.append({'name': rights_holder, 'data': df.sort_values('year_month')['count'].to_list(), 'color': colors[0] })
+
+        resp['data'] = new_data_list
+        resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+    else:
+
+        df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
         df['count'] = df['count'].astype('int')
 
         for mm in month_list:
@@ -1643,19 +1705,27 @@ def get_data_stat(request):
 
 def get_taxon_group_list(request):
 
+    # resp = {}
+    # taiwan_percentage = 0
+
+    final_list =[]
+
     name = request.GET.get('name')
     selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
     if selected_name:
         selected_name = selected_name[0]
+        # TaxonStat.objects.get(type='taiwan_percentage', name=selected_name, )
 
-    total_count = TaxonStat.objects.get(type='taxon_group', name=selected_name, group='total').count
+    total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
     
     if current_group := request.GET.get('group'):
-        taxon_list = list(TaxonStat.objects.filter(type='taxon_group', name=selected_name, group=current_group).order_by('-count').values('rights_holder','count'))
+        taxon_list = list(TaxonStat.objects.filter(year='x', month='x', type='taxon_group', name=selected_name, group=current_group).order_by('-count').values('rights_holder','count'))
     else:
-        taxon_list = list(TaxonStat.objects.filter(type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
+        taxon_list = list(TaxonStat.objects.filter(year='x', month='x', type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
 
-    final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'percent': round((t['count'] / total_count)*100, 2) } for t in taxon_list ]
+    final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'data_percent': round((t['count'] / total_count)*100, 2) if total_count else 0,
+                   'taiwan_percent': TaxonStat.objects.get(type='taiwan_percentage',  name=selected_name, rights_holder=t['rights_holder']).count } 
+                  for t in taxon_list ]
 
     return HttpResponse(json.dumps(final_list), content_type='application/json')
 
@@ -1668,6 +1738,10 @@ def get_system_stat(request):
     # partner_admin = ''
     data_total = []
     image_data_total = []
+    taxon_group_stat = []
+    quality_data_list = []
+    db_quality_stat = []
+
     # 資料筆數 - 
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url).json()
@@ -1716,8 +1790,13 @@ def get_system_stat(request):
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
+    # # 物種類群資料筆數
+    # taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
+
     # 物種類群資料筆數
-    taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
+    taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
+    taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
+
 
     # 各單位前三類群
     top3_taxon_list = []
@@ -1738,6 +1817,40 @@ def get_system_stat(request):
             data.append(f'{tt[0]} ({tt[1]})')
         top5_family_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
+    # 資料品質 (入口網)
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    data = requests.get(url).json()
+    if data['responseHeader']['status'] == 0:
+        facets = data['facet_counts']['facet_fields']['dataQuality']
+        for r in range(0,len(facets),2):
+            # total_count += facets[r+1]
+            # if facets[r+1] > 0 :
+            quality_data_list.append({
+                'name': quality_map[int(float(facets[r]))],
+                'color': quality_color_map[int(float(facets[r]))],
+                'y': facets[r+1]
+            })
+
+    # 資料品質 (來源資料庫)
+
+    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    quality_data = requests.get(url).json()
+    if quality_data['responseHeader']['status'] == 0:
+        facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+        for f in facets:
+            p_dbname = f.get('value')
+            quality_str_list = []
+            for q in [3,2,1]:
+                has_data = False
+                for fp in f.get('pivot'):
+                    if q == int(float(fp.get('value'))):
+                        quality_str_list.append('{}級 {} 筆'.format(quality_map[q], fp.get('count')))
+                        has_data = True
+                if not has_data:
+                    quality_str_list.append('{}級 0 筆'.format(quality_map[q]))
+            db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
+
+
     has_taxon = total_count - no_taxon
     response = {
         'data_total': data_total,
@@ -1746,7 +1859,11 @@ def get_system_stat(request):
         'image_data_total': image_data_total,
         'taxon_group_stat': taxon_group_stat,
         'top3_taxon_list': top3_taxon_list,
-        'top5_family_list': top5_family_list
+        'top5_family_list': top5_family_list,
+        'taxon_group_stat': taxon_group_stat,
+        'quality_data_list': quality_data_list,
+        'db_quality_stat': db_quality_stat
+
     }
     return JsonResponse(response, safe=False)
 
@@ -2362,3 +2479,252 @@ def generate_storage_csv(query_id, ark):
         commands = "zip -j {} {}; rm {} {}".format(storage_zip_file_path, storage_csv_file_path, csv_file_path, storage_csv_file_path)
         process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
+
+
+# def get_temporal_stat(request):
+
+#     year = int(request.GET.get('year'))
+#     rights_holder = request.GET.get('rights_holder')
+#     type = request.GET.get('type')
+
+#     if rights_holder := request.GET.get('rights_holder'):
+#         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month'))
+#     elif group :=  request.GET.get('group'):
+#         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
+
+#     if type == 'data':
+#         month_list = [1,3,5,7,9,11]
+#     else:
+#         month_list = [*range(1,13)]
+
+#     resp = {}
+#     if request.GET.get('group'):
+        
+#         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
+#         df['count'] = df['count'].astype('int')
+#         r_list = df.rights_holder.unique()
+#         r_list.sort() # 確保同一個來源資料庫是同一個顏色
+#         new_data_list = []
+
+#         c = 0
+#         for x in r_list:
+#             for mm in month_list:
+#                 now_year_month = f'{year}-{"{:02d}".format(mm)}'
+#                 if not len(df[(df.rights_holder==x)&(df.year_month==now_year_month)]):
+#                     df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'count': 0, 'year_month': now_year_month}])])
+#             df = df.reset_index(drop=True)
+#             new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
+#             c += 1
+
+#         resp['data'] = new_data_list
+#         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+#     else:
+#         df = pd.DataFrame(data_list, columns=['count','year_month'])
+
+#         df['count'] = df['count'].astype('int')
+
+#         for mm in month_list:
+#             now_year_month = f'{year}-{"{:02d}".format(mm)}'
+#             if not len(df[df.year_month==now_year_month]):
+#                 df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
+#         df = df.reset_index(drop=True)
+
+
+#         resp['data'] = df.sort_values('year_month')['count'].to_list()
+#         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+
+#     return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+
+def get_temporal_stat(request):
+
+    # 篩選條件 1 日期
+    # 篩選條件 2 類群
+    # 如果沒有選擇類群 要選擇 name is null
+
+    # 需要回傳 1 - 年份空缺 -> 需排除year = x的資料
+    # 需要回傳 2 - 月份空缺 -> 需排除year = x & month = x的資料
+
+    # print(request.GET)
+
+    start_year = int(request.GET.get('start_year'), 0)
+    end_year = int(request.GET.get('end_year'), 0)
+    where = request.GET.get('where')
+
+
+    resp = {}
+
+    colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065','#555','#3B86C0','#304237','#C65454','#ccc']
+
+    year_taxon_query = TaxonStat.objects.exclude(year='x')
+
+    if current_group := request.GET.get('group'):
+        year_taxon_query = year_taxon_query.filter(group=current_group)
+
+    elif current_rights_holder := request.GET.get('rights_holder'):
+        year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
+
+    if taxon_group := request.GET.get('taxon_group'):
+        year_taxon_query = year_taxon_query.filter(type='taxon_group',name=taxon_group)
+    else:
+        year_taxon_query = year_taxon_query.filter(type='temporal',name__isnull=True)
+
+    if start_year and end_year:
+        year_taxon_query = year_taxon_query.filter(year__gte=start_year,year__lte=end_year)
+        year_list = [str(y) for y in range(start_year, end_year +1)]    
+    else:
+        # 如果沒有選擇的話是1900-now
+        # 如果有選擇就用選擇的範圍
+        now = datetime.now()
+        year_list = [str(y) for y in range(1900, now.year +1)]    
+
+
+    # 要用year把資料group在一起
+    new_data_list = []
+
+    year_data_list = list(year_taxon_query.values('year','rights_holder').order_by('year').annotate(total_count=Sum('count')))
+    df = pd.DataFrame(year_data_list)
+
+    if len(df):
+        if where == 'system':
+            for yy in year_list:
+                if not len(df[df.year==yy]):
+                    df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'year': str(yy)}])])
+            df = df.reset_index(drop=True)
+            new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('year')['total_count'].to_list(), 'color': colors[0] })
+
+        else:
+            r_list = df.rights_holder.unique()
+            r_list.sort() # 確保同一個來源資料庫是同一個顏色
+            c = 0
+            for x in r_list:
+                for yy in year_list:
+                    if not len(df[(df.rights_holder==x)&(df.year==yy)]):
+                        df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'year': str(yy)}])])
+                df = df.reset_index(drop=True)
+                new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year')['total_count'].to_list(), 'color': colors[c] })
+                c += 1
+
+    # 如果都沒有 全部回傳0
+    # for yy in year_list:
+    if not new_data_list:
+        new_data_list.append({'name': '', 'data': [0 for y in  year_list], 'color': '' })
+
+    resp['year_data'] = new_data_list
+    resp['year_categories'] = year_list
+
+
+    # 月
+    # 要把資料group在一起
+
+    month_taxon_query = TaxonStat.objects.exclude(year='x', month='x')
+
+    if current_group := request.GET.get('group'):
+        month_taxon_query = month_taxon_query.filter(group=current_group)
+
+    elif current_rights_holder := request.GET.get('rights_holder'):
+        month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
+
+    if taxon_group := request.GET.get('taxon_group'):
+        month_taxon_query = month_taxon_query.filter(type='taxon_group',name=taxon_group)
+    else:
+        month_taxon_query = month_taxon_query.filter(type='temporal',name__isnull=True)
+
+    if start_year and end_year:
+        month_taxon_query = month_taxon_query.filter(year__gte=start_year, year__lte=end_year)
+
+
+    new_data_list = []
+
+    month_data_list = list(month_taxon_query.values('month', 'rights_holder').order_by('month').annotate(total_count=Sum('count')))
+    df = pd.DataFrame(month_data_list)
+
+    month_list = [str(m) for m in range(1,13)]
+
+    if len(df):
+        if where == 'system':
+            for mm in month_list:
+                if not len(df[df.month==mm]):
+                    df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'month': mm}])])
+            df = df.reset_index(drop=True)
+            new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('month')['total_count'].to_list(), 'color': colors[0] })
+
+        else:
+
+            r_list = df.rights_holder.unique()
+            r_list.sort() # 確保同一個來源資料庫是同一個顏色
+            c = 0
+            for x in r_list:
+                for mm in month_list:
+                    if not len(df[(df.rights_holder==x)&(df.month==mm)]):
+                        df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'month': mm}])])
+                df = df.reset_index(drop=True)
+                new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('month')['total_count'].to_list(), 'color': colors[c] })
+                c += 1
+
+    # 如果都沒有 全部回傳0
+    # for yy in year_list:
+    if not new_data_list:
+        new_data_list.append({'name': '', 'data': [0 for m in  month_list], 'color': '' })
+
+    resp['month_data'] = new_data_list
+    resp['month_categories'] = month_list
+
+
+
+    return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+
+
+# Highcharts.chart('container', {
+#     chart: {
+#         type: 'column'
+#     },
+#     title: {
+#         text: '每年數據堆疊'
+#     },
+#     xAxis: {
+#         type: 'category',  // 使用類別型 x 軸
+#         title: {
+#             text: '年份'
+#         }
+#     },
+#     yAxis: {
+#         min: 0,
+#         title: {
+#             text: '數值'
+#         },
+#         stackLabels: {
+#             enabled: true, // 顯示堆疊標籤
+#             style: {
+#                 fontWeight: 'bold',
+#                 color: 'gray'
+#             }
+#         }
+#     },
+#     plotOptions: {
+#         column: {
+#             stacking: 'normal', // 堆疊模式
+#             dataLabels: {
+#                 enabled: true, // 顯示每個區塊的數據
+#                 style: {
+#                     color: 'white'
+#                 }
+#             }
+#         }
+#     },
+#     series: [{
+#         name: '類別 1',
+#         data: [29.9, 71.5, null, 129.2, 144.0], // 其中 2020 年缺失數據
+#         pointStart: 2018, // 起始年份
+#         pointIntervalUnit: 'year', // 以年為單位
+#     }, {
+#         name: '類別 2',
+#         data: [48.9, null, 73.5, 85.3, 92.1], // 其中 2019 年缺失數據
+#         pointStart: 2018, // 起始年份
+#         pointIntervalUnit: 'year', // 以年為單位
+#     }]
+# });

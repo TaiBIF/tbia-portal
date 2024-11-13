@@ -1,28 +1,16 @@
-
-# 每次資料更新完成後計算
-
-from manager.models import *
-# import json
-import urllib.parse
-import pandas as pd
-from django.utils import timezone
-# from datetime import timedelta
-# import dateutil.relativedelta
+# 每次資料更新完成時需要更新的統計
 
 import requests
 from conf.settings import SOLR_PREFIX
 import json
+from manager.models import DataStat, TaxonStat
 
-# 先找出上次更新的年月
-response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q.op=OR&q=*%3A*&rows=1&fl=modified')
-resp = response.json()
-
-current_year_month = resp['response']['docs'][0]['modified'][0][:7]
-
+year_month=''
+    
 rights_holder_map = {
     'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '中央研究院生物多樣性中心動物標本館': 'asiz',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '台灣生物多樣性網絡 TBN': 'tbri',
     '國立臺灣博物館典藏': 'ntm',
     '林業試驗所昆蟲標本館': 'fact',
@@ -34,51 +22,57 @@ rights_holder_map = {
     '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
     '海洋保育資料倉儲系統': 'oca',
     '科博典藏 (NMNS Collection)': 'nmns',
+    '臺灣魚類資料庫': 'ascdc',
 }
-
-
-# 入口網每次更新所屬單位的資料累積折線圖
 
 query = { "query": "*:*",
         "offset": 0,
         "limit": 0,
-        "facet": {
-            "rightsHolder": {
-                "type": "terms",
-                "field": "rightsHolder",
-                "limit": -1,
-                }
-            }
+        # "filter": fq_list,
         }
-response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-data = response.json()['facets']['rightsHolder']['buckets']
-total_count = 0
-for d in data:
+# 查詢記錄
+# if offset == 0:
+query['facet'] = {}
+query['facet']['stat_rightsHolder'] = {
+    'type': 'terms',
+    'field': 'rightsHolder',
+    'mincount': 1,
+    'limit': -1,
+    'allBuckets': False,
+    'numBuckets': False}
+
+response = requests.post(f'{{SOLR_PREFIX}}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+response = response.json()
+# 整理欄位
+total = response['response']['numFound']
+# data = response['response']['docs']
+stat_rightsHolder = []
+# if 'stat_rightsHolder' in response['facets'].keys():
+stat_rightsHolder = response['facets']['stat_rightsHolder']['buckets']
+stat_rightsHolder.append({'val': 'total', 'count': total})
+
+for d in stat_rightsHolder:
     if d['val'] in rights_holder_map.keys():
         group = rights_holder_map[d['val']]
-    total_count += d['count']
+    else:
+        group = 'total'
     DataStat.objects.create(
-        year_month = current_year_month,
-        count = d['count'],
-        rights_holder= d['val'],
+        year_month=year_month,
+        count=d['count'],
+        rights_holder=d['val'],
         group=group,
-        type = 'data'
+        type='data'
     )
 
-DataStat.objects.create(
-    year_month = current_year_month,
-    count = total_count,
-    rights_holder= 'total',
-    group= 'total',
-    type = 'data'
-)
 
 
+# taxon stat
+# 2024-11 改成也存year_month
 
 
 taxon_group_map = {
     'Insects' : [{'key': 'class', 'value': 'Insecta'}],
-    'Fishes' : [{'key': 'class', 'value': 'Actinopterygii'},{'key': 'class', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
+    'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
     'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
     'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
@@ -90,11 +84,8 @@ taxon_group_map = {
 }
 
 
-# 入口網上各物種類群資料筆數圓餅圖
-
-
 for val in taxon_group_map.keys():
-    query_list = []
+    query_list = ['is_in_taiwan:1']
     vv_list = []
     # 如果是others的話 要排除掉其他的
     if val == 'Others':
@@ -125,23 +116,15 @@ for val in taxon_group_map.keys():
         if d['val'] in rights_holder_map.keys():
             group = rights_holder_map[d['val']]
         total_count += d['count']
-        if TaxonStat.objects.filter(rights_holder=d['val'],name=val,type='taxon_group', group=group).exists():
-            TaxonStat.objects.filter(rights_holder=d['val'],name=val,type='taxon_group', group=group).update(count=d['count'])
-        else:
-            TaxonStat.objects.create(rights_holder=d['val'],name=val,type='taxon_group',count=d['count'], group=group)
-    if TaxonStat.objects.filter(rights_holder='total',name=val,type='taxon_group', group='total').exists():
-        TaxonStat.objects.filter(rights_holder='total',name=val,type='taxon_group', group='total').update(count=total_count,modified=timezone.now())
-    else:
-        TaxonStat.objects.create(rights_holder='total',name=val,type='taxon_group',count=total_count, group='total')
+        TaxonStat.objects.create(rights_holder=d['val'],name=val,type='taxon_group',count=d['count'], group=group,year_month=year_month)
+    TaxonStat.objects.create(rights_holder='total',name=val,type='taxon_group',count=total_count, group='total',year_month=year_month)
 
-
-# 各單位提供最多資料的前五個科與對應資料筆數
 
 for r in rights_holder_map.keys():
     query = { "query": "*:*",
             "offset": 0,
             "limit": 0,
-            "filter": [f'rightsHolder:"{r}"'],
+            "filter": [f'rightsHolder:"{r}"',"is_in_taiwan:1"],
             "facet": {
                 "family": {
                     "type": "terms",
@@ -153,9 +136,7 @@ for r in rights_holder_map.keys():
             }
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
     data = response.json()['facets']['family']['buckets']
-    # 每次要先刪掉原本的
-    TaxonStat.objects.filter(rights_holder=r,type='family').delete()
     for d in data:
         if d['val'] in rights_holder_map.keys():
             group = rights_holder_map[d['val']]
-        TaxonStat.objects.create(rights_holder=r,name=d['val'],type='family',count=d['count'],group=group)
+        TaxonStat.objects.create(rights_holder=r,name=d['val'],type='family',count=d['count'],group=group,year_month=year_month)

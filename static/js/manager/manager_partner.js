@@ -26,7 +26,57 @@ let commonOptions = {
     legend: { enabled: false },
 }
 
+var SliderFormat = {
+    from: function(value) {
+        return parseInt(value);
+    },
+    to: function(value) {
+            return parseInt(value);
+        }
+    };
+
 $(document).ready(function () {
+
+    $('.exportPartnerKML').on('click', function(){
+        exportToKML(window.partner_layer)
+    })
+
+    $('.exportPortalKML').on('click', function(){
+        exportToKML(window.portal_layer)
+    })
+
+    var PartnerTemporalYearSlider = document.getElementById('partner-temporal-year-slider');
+
+    noUiSlider.create(PartnerTemporalYearSlider, {
+        start: [1900, new Date().getFullYear()],
+        range: { min: 1900, max: new Date().getFullYear() },
+        connect: true,
+        step: 1,
+        tooltips: true,
+        format: SliderFormat,
+    });
+
+
+
+    PartnerTemporalYearSlider.noUiSlider.on('change', function( values, handle ) {
+        updatePartnerTemporal(PartnerTemporalYearSlider);
+    });
+
+
+    var PortalTemporalYearSlider = document.getElementById('portal-temporal-year-slider');
+
+    noUiSlider.create(PortalTemporalYearSlider, {
+        start: [1900, new Date().getFullYear()],
+        range: { min: 1900, max: new Date().getFullYear() },
+        connect: true,
+        step: 1,
+        tooltips: true,
+        format: SliderFormat,
+    });
+    
+    PortalTemporalYearSlider.noUiSlider.on('change', function( values, handle ) {
+        updatePortalTemporal(PortalTemporalYearSlider);
+    });
 
     $(".mb_fixed_btn").on("click", function (event) {
         $(".mbmove").toggleClass("open");
@@ -53,6 +103,43 @@ $(document).ready(function () {
             type: 'GET',
         })
         .done(function (response) {
+
+            // 資料品質左側圓餅圖
+
+            $('#container-data-quality').highcharts(Highcharts.merge(commonOptions, {
+                chart: {
+                    type: 'pie'
+                },
+                tooltip: {
+                    pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                },
+                accessibility: {
+                    point: {
+                        valueSuffix: '%'
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        size: '100%',
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: false,
+                        }
+                    }
+                },
+                series: [{
+                    name: '',
+                    data: response.quality_data_list
+                }]
+            }));
+
+            // 右側文字
+            $('#quality-stat-list').html('')
+            for (ss of response.db_quality_stat){
+                $('#quality-stat-list').append(ss)
+            }
+
 
             $('#container').highcharts(Highcharts.merge(commonOptions, {
                 chart: {
@@ -83,6 +170,44 @@ $(document).ready(function () {
                 }]
             }));
 
+            $('#container2').highcharts(Highcharts.merge(commonOptions, {
+                chart: {
+                    type: 'pie'
+                },
+                tooltip: {
+                    pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                },
+                accessibility: {
+                    point: {
+                        valueSuffix: '%'
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        size: '100%',
+                        colors: ['#ddd', '#C65454'],
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        }
+                    }
+                },
+                series: [{
+                    name: 'Brands',
+                    colorByPoint: true,
+                    data: [{
+                        name: '有對應',
+                        y: response.has_taxon,
+                        sliced: true,
+                        selected: true
+                    }, {
+                        name: '無對應',
+                        y: response.no_taxon
+                    }]
+                }]
+            }));
 
             $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
                 chart: {
@@ -129,7 +254,7 @@ $(document).ready(function () {
                                     $('#taxon_group-stat-list').html('')
                                     if (resp.length > 0){
                                         for (i of resp){
-                                            $('#taxon_group-stat-list').append(`<li>${i.rights_holder}：${i.count} (${i.percent}%)</li>`)
+                                            $('#taxon_group-stat-list').append(`<li><a href="/media/taxon_stat/${i.rights_holder}_${now_name}.csv">${i.rights_holder}：${i.count} 筆</a><br><span class="small-gray-text">佔入口網臺灣${now_name}資料筆數 ${i.data_percent}%，佔TaiCOL臺灣${now_name}物種數 ${i.taiwan_percent}%</span></li>`)
                                         }
                                     } else {
                                         $('#taxon_group-stat-list').html('無資料')
@@ -178,44 +303,6 @@ $(document).ready(function () {
                 }]
             }));
 
-            $('#container2').highcharts(Highcharts.merge(commonOptions, {
-                chart: {
-                    type: 'pie'
-                },
-                tooltip: {
-                    pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
-                },
-                accessibility: {
-                    point: {
-                        valueSuffix: '%'
-                    }
-                },
-                plotOptions: {
-                    pie: {
-                        size: '100%',
-                        colors: ['#ddd', '#C65454'],
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        dataLabels: {
-                            enabled: true,
-                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                        }
-                    }
-                },
-                series: [{
-                    name: 'Brands',
-                    colorByPoint: true,
-                    data: [{
-                        name: '有對應',
-                        y: response.has_taxon,
-                        sliced: true,
-                        selected: true
-                    }, {
-                        name: '無對應',
-                        y: response.no_taxon
-                    }]
-                }]
-            }));
             
         })
         .fail(function (xhr, status, errorThrown) {
@@ -225,179 +312,577 @@ $(document).ready(function () {
 
 
 
-            // 資料查詢筆數
-            $('#container-search-stat').highcharts(Highcharts.merge(commonOptions, {
-                chart: {
-                    type: "column",
-                  },
-                yAxis: {
-                    title: {
-                        text: ''
+        // 資料查詢次數
+        $('#container-search-times-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: ''
+                },
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
                     },
                 },
-                xAxis: {
-                    categories: [],
-                },
-                plotOptions: {
-                    column: {
-                        stacking: 'normal',
-                        dataLabels: {
-                            enabled: true
-                        },
-                    },
-                },
-                tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
-                },
-            }));
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
 
-            $('select[name=search-stat-year]').on('change', function(){
-                $.ajax({
-                    url:  `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
-                    type: 'GET',
-                })
-                .done(function(response){
-                    let search_chart = $('#container-search-stat').highcharts()
+        $('select[name=search-times-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=search_times&year=${$('select[name=search-times-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                let search_times_chart = $('#container-search-times-stat').highcharts()
 
-                    while (search_chart.series.length) {
-                        search_chart.series[0].remove();
-                      }
-
-                    search_chart.xAxis[0].setCategories(response.categories, false);
-
-                    for (i of response.data ) {
-                        search_chart.addSeries(i)
+                while (search_times_chart.series.length) {
+                    search_times_chart.series[0].remove();
                     }
 
+                    search_times_chart.xAxis[0].setCategories(response.categories, false);
 
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+                for (i of response.data ) {
+                    search_times_chart.addSeries(i)
+                }
+
 
             })
-
-            // 起始狀態
-            $('select[name=search-stat-year]').trigger('change')
-
-            // 資料下載筆數
-            $('#container-download-stat').highcharts(Highcharts.merge(commonOptions, {
-                chart: {
-                    type: "column",
-                  },
-                yAxis: {
-                    title: {
-                        text: ''
-                    },
-                },
-                xAxis: {
-                    categories: [],
-                },
-                plotOptions: {
-                    column: {
-                        stacking: 'normal',
-                        dataLabels: {
-                            enabled: true
-                        },
-                    },
-                },
-                tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
-                },
-            }));
-
-            $('select[name=download-stat-year]').on('change', function(){
-                $.ajax({
-                    url:  `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
-                    type: 'GET',
-                })
-                .done(function(response){
-                    let download_chart = $('#container-download-stat').highcharts()
-
-                    while (download_chart.series.length) {
-                        download_chart.series[0].remove();
-                      }
-
-                    download_chart.xAxis[0].setCategories(response.categories, false);
-
-                    for (i of response.data ) {
-                        download_chart.addSeries(i)
-                    }
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
-
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
 
-            // 起始狀態
-            $('select[name=download-stat-year]').trigger('change')
+        })
+
+        // 起始狀態
+        $('select[name=search-times-stat-year]').trigger('change')
 
 
-
-            // 資料累積筆數
-            $('#container-data-stat').highcharts(Highcharts.merge(commonOptions, {
-                chart: {
-                    type: "column",
+        // 資料查詢筆數
+        $('#container-search-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: ''
+                },
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
                     },
-                yAxis: {
-                    title: {
-                        text: '累積筆數'
-                    }
                 },
-                xAxis: {
-                    categories: [],
-                },
-                plotOptions: {
-                    column: {
-                        stacking: 'normal',
-                        dataLabels: {
-                            enabled: true
-                        },
-                    },
-                },
-                tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
-                },
-            }));
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
 
-            $('select[name=data-stat-year]').on('change', function(){
-                $.ajax({
-                    url:  `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
-                    type: 'GET',
-                })
-                .done(function(response){
-                     
-                    let data_chart = $('#container-data-stat').highcharts()
+        $('select[name=search-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                let search_chart = $('#container-search-stat').highcharts()
 
-                    while (data_chart.series.length) {
-                        data_chart.series[0].remove();
+                while (search_chart.series.length) {
+                    search_chart.series[0].remove();
                     }
 
-                    data_chart.xAxis[0].setCategories(response.categories, false);
+                search_chart.xAxis[0].setCategories(response.categories, false);
 
-                    for (i of response.data ) {
-                        data_chart.addSeries(i)
-                    }
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+                for (i of response.data ) {
+                    search_chart.addSeries(i)
+                }
+
 
             })
-            // 起始狀態
-            $('select[name=data-stat-year]').trigger('change')
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+
+        // 起始狀態
+        $('select[name=search-stat-year]').trigger('change')
+
+
+
+        // 資料下載筆數
+        $('#container-download-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: ''
+                },
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+
+        $('select[name=download-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                let download_chart = $('#container-download-stat').highcharts()
+
+                while (download_chart.series.length) {
+                    download_chart.series[0].remove();
+                    }
+
+                download_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (i of response.data ) {
+                    download_chart.addSeries(i)
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+
+        // 起始狀態
+        $('select[name=download-stat-year]').trigger('change')
+
+        // 資料下載次數
+        $('#container-download-times-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: ''
+                },
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+
+        $('select[name=download-times-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=download_times&year=${$('select[name=download-times-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                let download_times_chart = $('#container-download-times-stat').highcharts()
+
+                while (download_times_chart.series.length) {
+                    download_times_chart.series[0].remove();
+                    }
+
+                    download_times_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (i of response.data ) {
+                    download_times_chart.addSeries(i)
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+
+        // 起始狀態
+        $('select[name=download-times-stat-year]').trigger('change')
+
+
+
+        // 資料累積筆數
+        $('#container-data-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '累積筆數'
+                }
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+
+        $('select[name=data-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                    
+                let data_chart = $('#container-data-stat').highcharts()
+
+                while (data_chart.series.length) {
+                    data_chart.series[0].remove();
+                }
+
+                data_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (i of response.data ) {
+                    data_chart.addSeries(i)
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+        // 起始狀態
+        $('select[name=data-stat-year]').trigger('change')
+
+        // 敏感資料被下載筆數
+        $('#container-sensitive-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '累積筆數'
+                }
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+
+        $('select[name=sensitive-stat-year]').on('change', function(){
+            $.ajax({
+                url:  `/get_data_stat?type=sensitive&year=${$('select[name=sensitive-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
+                type: 'GET',
+            })
+            .done(function(response){
+                    
+                let sensitive_chart = $('#container-sensitive-stat').highcharts()
+
+                while (sensitive_chart.series.length) {
+                    sensitive_chart.series[0].remove();
+                }
+
+                sensitive_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (i of response.data ) {
+                    sensitive_chart.addSeries(i)
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+
+        // 起始狀態
+        $('select[name=sensitive-stat-year]').trigger('change')
+
+
+        //
+
+        // 資料時間空缺 - 年 - 所屬單位
+
+        $('#container-partner-temporal-year-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '筆數'
+                }
+            },
+            xAxis: {
+                title: {
+                    text: '年'
+                },
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+        
+        // 資料時間空缺 - 月 - 所屬單位
+        
+        $('#container-partner-temporal-month-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '筆數'
+                }
+            },
+            xAxis: {
+                title: {
+                    text: '月'
+                },
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}月</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+        
+        $('select[name=partner-temporal-taxonGroup]').on('change', function(){
+            updatePartnerTemporal(PartnerTemporalYearSlider);
+        })
+
+        // 起始狀態
+        $('select[name=partner-temporal-taxonGroup]').trigger('change')
+
+        // 資料時間空缺 - 年 - 入口網
+
+        $('#container-portal-temporal-year-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '筆數'
+                }
+            },
+            xAxis: {
+                title: {
+                    text: '年'
+                },
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+        
+        // 資料時間空缺 - 月 - 入口網
+        
+        $('#container-portal-temporal-month-stat').highcharts(Highcharts.merge(commonOptions, {
+            chart: {
+                type: "column",
+                },
+            yAxis: {
+                title: {
+                    text: '筆數'
+                }
+            },
+            xAxis: {
+                title: {
+                    text: '月'
+                },
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
+                    },
+                },
+            },
+            tooltip: {
+                headerFormat: '<b>{point.x}月</b><br/>',
+                pointFormat: '{series.name}: {point.y}'
+            },
+        }));
+        
+        $('select[name=portal-temporal-taxonGroup]').on('change', function(){
+            updatePortalTemporal(PortalTemporalYearSlider);
+        })
+
+        // 起始狀態
+        $('select[name=portal-temporal-taxonGroup]').trigger('change')
 
     }
 
 })
 
+
+function updatePartnerTemporal(PartnerTemporalYearSlider){
+    $.ajax({
+        url:  `/get_temporal_stat?group=${$('input[name=current_group]').val()}&taxon_group=${$('select[name=partner-temporal-taxonGroup]').find(':selected').val()}&start_year=${PartnerTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PartnerTemporalYearSlider.noUiSlider.get()[1]}`,
+        type: 'GET',
+    })
+    .done(function(response){
+
+        // 年
+         
+        let partner_temporal_year_chart = $('#container-partner-temporal-year-stat').highcharts()
+
+        while (partner_temporal_year_chart.series.length) {
+            partner_temporal_year_chart.series[0].remove();
+        }
+
+        partner_temporal_year_chart.xAxis[0].setCategories(response.year_categories, false);
+
+        for (i of response.year_data ) {
+            partner_temporal_year_chart.addSeries(i)
+        }
+
+        // 月
+
+        let partner_temporal_month_chart = $('#container-partner-temporal-month-stat').highcharts()
+
+        while (partner_temporal_month_chart.series.length) {
+            partner_temporal_month_chart.series[0].remove();
+        }
+
+        partner_temporal_month_chart.xAxis[0].setCategories(response.month_categories, false);
+
+        for (i of response.month_data ) {
+            partner_temporal_month_chart.addSeries(i)
+        }
+
+    })
+    .fail(function (xhr, status, errorThrown) {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+}
+
+function updatePortalTemporal(PortalTemporalYearSlider){
+    $.ajax({
+        url:  `/get_temporal_stat?group=total&taxon_group=${$('select[name=portal-temporal-taxonGroup]').find(':selected').val()}&start_year=${PortalTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PortalTemporalYearSlider.noUiSlider.get()[1]}`,
+        type: 'GET',
+    })
+    .done(function(response){
+
+        // 年
+         
+        let portal_temporal_year_chart = $('#container-portal-temporal-year-stat').highcharts()
+
+        while (portal_temporal_year_chart.series.length) {
+            portal_temporal_year_chart.series[0].remove();
+        }
+
+        portal_temporal_year_chart.xAxis[0].setCategories(response.year_categories, false);
+
+        for (i of response.year_data ) {
+            portal_temporal_year_chart.addSeries(i)
+        }
+
+        // 月
+
+        let portal_temporal_month_chart = $('#container-portal-temporal-month-stat').highcharts()
+
+        while (portal_temporal_month_chart.series.length) {
+            portal_temporal_month_chart.series[0].remove();
+        }
+
+        portal_temporal_month_chart.xAxis[0].setCategories(response.month_categories, false);
+
+        for (i of response.month_data ) {
+            portal_temporal_month_chart.addSeries(i)
+        }
+
+    })
+    .fail(function (xhr, status, errorThrown) {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+}
 
 function updateInfo() {
     // remove all notice first
@@ -435,3 +920,151 @@ function updateInfo() {
             })
     }
 }
+
+
+
+
+function getWKTMap(current_map) {
+    var neLat = current_map.getBounds().getNorthEast()['lat'] 
+    var neLng = current_map.getBounds().getNorthEast()['lng']
+    var swLat = current_map.getBounds().getSouthWest()['lat']
+    var swLng = current_map.getBounds().getSouthWest()['lng'] 
+
+    return Number(swLat).toFixed(2) + ',' + Number(swLng).toFixed(2) + ' TO ' + Number(neLat).toFixed(2)+ ',' + Number(neLng).toFixed(2)
+}
+
+function getColor(d) {
+    return d > 100000 ? '#bd0026' :
+            d > 50000 ? '#e31a1c' :
+            d > 10000 ? '#fc4e2a' :
+            d > 5000 ? '#fd8d3c' :
+            d > 1000 ? '#feb24c' :
+            d > 100 ? '#fed976' :
+            d > 10 ? '#ffeda0' :
+                '#ffffcc';
+}
+
+
+function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.counts),
+        weight: 1,
+        fillOpacity: 0.7,
+        color: '#b2d2dd'
+    };
+}
+
+let portal_map = L.map('portal-map', {gestureHandling: true, minZoom: 2}).setView([23.5, 121.2], 7);
+let partner_map = L.map('partner-map', {gestureHandling: true, minZoom: 2}).setView([23.5, 121.2], 7);
+
+var southWest = L.latLng(-89.98155760646617, -179.9);
+var northEast = L.latLng(89.99346179538875, 179.9);
+var bounds = L.latLngBounds(southWest, northEast);
+
+portal_map.setMaxBounds(bounds);
+portal_map.on('drag', function() {
+    portal_map.panInsideBounds(bounds, { animate: false });
+});
+
+partner_map.setMaxBounds(bounds);
+partner_map.on('drag', function() {
+    partner_map.panInsideBounds(bounds, { animate: false });
+});
+
+
+L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(portal_map);
+
+L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(partner_map);
+
+
+portal_map.on('zoomend', function zoomendEvent(ev) {
+    drawMapGrid(current_map=portal_map,group='total')
+});
+
+
+portal_map.on('dragend', function zoomendEvent(ev) {
+    drawMapGrid(current_map=portal_map,group='total')
+});
+
+
+partner_map.on('zoomend', function zoomendEvent(ev) {
+    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+});
+
+
+partner_map.on('dragend', function zoomendEvent(ev) {
+    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+});
+
+
+$('select[name=portal-spatial-taxonGroup]').on('change', function(){
+    drawMapGrid(current_map=portal_map,group='total')
+})
+
+// 起始
+$('select[name=portal-spatial-taxonGroup]').trigger('change')
+
+$('select[name=partner-spatial-taxonGroup]').on('change', function(){
+    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+})
+
+// 起始
+$('select[name=partner-spatial-taxonGroup]').trigger('change')
+
+// 統一畫5公里網格
+// TODO 這邊還要加上taxon group
+function drawMapGrid(current_map, group){
+
+    if (group == 'total'){
+        taxon_group = $('select[name=portal-spatial-taxonGroup]').find(':selected').val()
+    } else {
+        taxon_group = $('select[name=partner-spatial-taxonGroup]').find(':selected').val()
+    }
+    
+    $('.loading_area').removeClass('d-none')
+    $(`.resultG_5_${group}`).remove()
+
+
+    $.ajax({
+        url: "/get_map_grid",
+        data: `group=${group}&taxonGroup=${taxon_group}&grid=5&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
+        type: 'POST',
+        dataType: 'json',
+    })
+    .done(function (response) {
+        if (group == 'total'){
+            window.portal_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
+        } else {
+            window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
+        }
+        $('.loading_area').addClass('d-none')
+    })
+    .fail(function (xhr, status, errorThrown) {
+        if (xhr.status == 504) {
+            alert(gettext('要求連線逾時'))
+        } else {
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+        }
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        $('.loading_area').addClass('d-none')
+    })
+
+}
+
+function exportToKML(layer) {
+    const geoJsonData = layer.toGeoJSON(); // 將圖層轉為 GeoJSON
+    const kmlData = tokml(geoJsonData); // 使用 tokml 轉為 KML 格式
+    
+    // 將 KML 資料導出為檔案
+    const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'map.kml';
+    link.click();
+}
+
