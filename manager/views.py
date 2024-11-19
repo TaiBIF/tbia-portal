@@ -1665,7 +1665,7 @@ def get_data_stat(request):
             new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
             c += 1
 
-        if not r_list:
+        if not len(r_list):
             for mm in month_list:
                 now_year_month = f'{year}-{"{:02d}".format(mm)}'
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': '', 'count': 0, 'year_month': now_year_month}])])
