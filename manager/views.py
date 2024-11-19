@@ -1665,10 +1665,18 @@ def get_data_stat(request):
             new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
             c += 1
 
+        if not r_list:
+            for mm in month_list:
+                now_year_month = f'{year}-{"{:02d}".format(mm)}'
+                df = pd.concat([df, pd.DataFrame([{'rights_holder': '', 'count': 0, 'year_month': now_year_month}])])
+                new_data_list.append({'name': '', 'data': df.sort_values('year_month')['count'].to_list(), 'color': colors[c] })
+
+
         resp['data'] = new_data_list
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
 
     elif type in ['search_times', 'download_times', 'sensitive'] and rights_holder != 'total':
+
 
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
         df['count'] = df['count'].astype('int')
@@ -2671,7 +2679,6 @@ def get_temporal_stat(request):
 
     resp['month_data'] = new_data_list
     resp['month_categories'] = month_list
-
 
 
     return HttpResponse(json.dumps(resp), content_type='application/json')

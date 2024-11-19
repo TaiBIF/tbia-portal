@@ -292,7 +292,6 @@ taicol_df = taicol_df.replace({nan: None})
 taicol_df = taicol_df.rename(columns={'id': 'taxon_id'})
 
 
-holder_df = pd.DataFrame()
 for tt in taxon_group_map.keys():
     for k in rights_holder_map.keys():
         query_list = []
@@ -353,7 +352,7 @@ for tt in taxon_group_map.keys():
                                     name=tt, count=tw_percentage)
         # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
         now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
-        now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id']]
+        now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
         now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
                                                       'taxon_id': 'taxonID'})
         now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
