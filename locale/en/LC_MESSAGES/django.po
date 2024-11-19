@@ -2621,3 +2621,8 @@ msgstr "Identifier"
 msgid "建立日期"
 msgstr "Created"
 
+
+
+#:
+msgid "下載資料"
+msgstr "Download"
