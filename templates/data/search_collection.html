@@ -75,24 +75,9 @@
             <div class="two_input">
 				<div class="input_item">
 					<input type="text" name="catalogNumber" placeholder="{% trans '館藏號' %}" value=""/>
-
-					{% comment %} <select id="taxonGroup" name="taxonGroup">
-						<option value="">{% trans '-- 不限 --' %}</option>
-						<option value="Insects">{% trans '昆蟲' %}</option>
-						<option value="Fishes">{% trans '魚類' %}</option>
-						<option value="Reptiles">{% trans '爬蟲類' %}</option>
-						<option value="Amphibians">{% trans '兩棲類' %}</option>
-						<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
-						<option value="Plants">{% trans '植物' %}</option>
-						<option value="Birds">{% trans '鳥類' %}</option>
-						<option value="Mammals">{% trans '哺乳類' %}</option>
-						<option value="Bacteria">{% trans '細菌' %}</option>
-						<option value="Others">{% trans '其他' %}</option>
-					</select>   {% endcomment %}
 				</div>  
 				<div class="input_item">
 					<input type="text" name="recordNumber" placeholder="{% trans '採集號' %}" value=""/>
-					{% comment %} <input name="taxonID" type="text" placeholder="{% trans 'TaiCOL物種編號' %}" value="" /> {% endcomment %}
 				</div>
             </div>
             <div class="two_input">
@@ -103,12 +88,6 @@
 					  <option value="模式">{% trans '模式' %}</option>
 					</select>
 				  </div>
-				  <!--
-              <div class="input_item">
-                <select name="sensitiveCategory" id="sensitiveCategory" required>
-                  <option value="">-- 不限 --</option>
-                </select>
-              </div>-->
               <div class="input_item">
 				<select id="taxonGroup" name="taxonGroup">
 					<option value="">{% trans '-- 不限 --' %}</option>
@@ -123,12 +102,6 @@
 					<option value="Bacteria">{% trans '細菌' %}</option>
 					<option value="Others">{% trans '其他' %}</option>
 				</select>
-                {% comment %} <select name="taxonRank" id="taxonRank">
-                  <option value="">{% trans '-- 不限 --' %}</option>
-                  {% for i in rank_list %}
-                  <option value="{{ i.1 }}">{% trans i.0 %}</option>
-                  {% endfor %}
-                </select> {% endcomment %}
               </div>
             </div>
 			<div class="two_input">
@@ -292,7 +265,7 @@
 
 		<div class="result_table flow-x-auto">
 			<table cellspacing="0" cellspacing="0" class="table_style1 record_table">
-			</table>						
+			</table>
 		</div>
 
 		<div class="no_data d-none">{% trans '無資料' %}</div>
@@ -394,7 +367,7 @@
 					<input type="checkbox" class="chebox" id="col-organismQuantity">
 					<p>{% trans '數量' %}</p>
 				</li>				
-        <li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-organismQuantityType">
 					<p>{% trans '數量單位' %}</p>
 				</li>
@@ -434,7 +407,7 @@
 					<input type="checkbox" class="chebox" id="col-resourceContacts">
 					<p>{% trans '資料集聯絡人' %}</p>
 				</li>
-        <li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-license">
 					<p>{% trans '授權狀況' %}</p>
 				</li>

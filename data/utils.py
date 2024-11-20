@@ -22,7 +22,7 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, get_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
-from manager.models import User, Partner, SearchStat, SearchQuery
+from manager.models import User, Partner, SearchStat, SearchQuery, Ark
 from pages.models import News
 # import time
 # from urllib import parse
@@ -862,6 +862,17 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
+
+
+    # group (後台儀表板的query)
+    if group := req_dict.get('group'):
+        if group != 'total':
+            query_list += ['group:{}'.format(group)]
+
+    # rights_holder (後台儀表板的query)
+    if rights_holder := req_dict.get('rights_holder'):
+        if rights_holder != 'total':
+            query_list += ['rightsHolder:{}'.format(rights_holder)]
 
     return query_list
 
@@ -1798,7 +1809,7 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
     # 要確認有沒有存在在資料庫中
     is_new_ark = False
     while not is_new_ark:
-        if SearchQuery.objects.filter(ark=new_ark).exists() or News.objects.filter(ark=new_ark).exists():
+        if Ark.objects.filter(ark=new_ark).exists():
             new_ark = ''.join(random.choice(chars) for _ in range(size))
         else:
             is_new_ark = True

@@ -366,3 +366,10 @@ td hr {
     -webkit-transition: all .3s;
     stroke: #FFFFFF
 }
+
+
+.expired-p {
+    font-size: 14px;
+    color: #C65454;
+    line-height: 32px;
+}

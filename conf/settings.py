@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'api',
     'ckeditor',
     'ckeditor_uploader',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -96,6 +97,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -126,6 +128,8 @@ TEMPLATES = [
         },
     },
 ]
+
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
 
 WSGI_APPLICATION = 'conf.wsgi.application'
 
@@ -272,7 +276,8 @@ CSP_STYLE_SRC = ["'self'",
     "https://fonts.googleapis.com/",
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
     "https://cdn.quilljs.com/1.3.6/quill.snow.css",
-    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css"
+    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css",
+    "https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"
 ]
 
 # CSP_IMG_SRC = ("'self'","*","data: *") 
@@ -288,10 +293,7 @@ CSP_IMG_SRC = ("'self'",
                "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
                # 生命大百科
                "https://data.taieol.tw/",
-               # 各單位資料    
-            #    "https://www.tbn.org.tw/", 
-            #    "https://n2t.net/",
-            #    "https://brmas-media.s3.ap-northeast-1.amazonaws.com/"
+               # 各單位資料 - 改由media rule加上去
                ) 
 
 CSP_MEDIA_SRC = ("'self'") 
@@ -326,7 +328,8 @@ CSP_SCRIPT_SRC = ["'self'",
     "https://cdn.quilljs.com/1.3.6/quill.js",
     "https://unpkg.com/terraformer@1.0.7/terraformer.js",
     "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
-    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"
+    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js",
+    "https://code.jquery.com/ui/1.14.1/jquery-ui.js"
 ]
 
 # <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>

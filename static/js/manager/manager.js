@@ -57,6 +57,13 @@ function changePage(page, menu) {
                 $('.changePage').on('click', function () {
                     changePage($(this).data('page'), $(this).data('type'))
                 })
+
+                $(".applyARK").on("click", function(){            
+                    $(".apply-ark-pop").removeClass('d-none');
+                    $(".submit_apply_ark").data('query_id', $(this).data('query_id'));
+                });
+
+            
             }
         }
     });
@@ -86,7 +93,34 @@ function withdrawRequest(user_id) {
 
 $(document).ready(function () {
 
-    //起始
+    $(".hide_apply_ark_pop").on("click", function(){
+        $(".apply-ark-pop").addClass("d-none");
+    })
+
+    $(".submit_apply_ark").on("click", function(){
+        $(".apply-ark-pop").addClass("d-none");
+
+            $.ajax({
+                url: "/submit_apply_ark",
+                data: {'query_id': $(this).data('query_id'), csrfmiddlewaretoken: $csrf_token},
+                type: 'POST',
+                dataType: 'json',
+            })
+            .done(function (response) {
+                alert(gettext(response.message))
+                if (response.message.includes('申請完成')) {
+                    window.location = '/manager'
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+    })
+
+
+    //起始 
     changePage(1, 'notification')
     changePage(1, 'download')
     changePage(1, 'download_taxon')
@@ -111,10 +145,6 @@ $(document).ready(function () {
         $(this).addClass("now")
         $(this).parent().parent('li').addClass('now')
     });
-
-    // $('.changePage').on('click', function () {
-    //     changePage($(this).data('page'), $(this).data('type'))
-    // })
 
     $(`.rd_click[data-type=${$('input[name=menu]').val()}]`).parent().addClass('now')
     $(`.rightbox_content.${$('input[name=menu]').val()}`).removeClass('d-none')

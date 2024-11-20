@@ -51,6 +51,7 @@ class News(models.Model):
     modified = models.DateTimeField(auto_now_add=True)
     publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     order = models.IntegerField(blank=True, null=True)
+    # ark = models.CharField(max_length=50, null=True, blank=True)
     class Meta:
         db_table = 'news'
 

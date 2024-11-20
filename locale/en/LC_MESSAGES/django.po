@@ -213,6 +213,11 @@ msgstr "References / Tools"
 msgid "教學文件"
 msgstr "Tutorials"
 
+#:
+msgid "ARK服務"
+msgstr "ARK Service"
+
+
 #: templates/base.html:251 templates/base.html:333 templates/base.html:454
 #: templates/pages/qa.html:39 templates/pages/qa.html:44
 msgid "常見Q&A"
@@ -2601,3 +2606,23 @@ msgstr "Exceeding the system's accessible page limit, please try using the resul
 msgid "下載檔案連結將保留三個月"
 msgstr "The download link will be valid for three months."
 
+
+#:
+msgid "申請"
+msgstr "Apply"
+
+
+#:
+msgid "識別碼"
+msgstr "Identifier"
+
+
+#:
+msgid "建立日期"
+msgstr "Created"
+
+
+
+#:
+msgid "下載資料"
+msgstr "Download"

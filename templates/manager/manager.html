@@ -5,11 +5,23 @@
 {% block title %}{% trans '帳號後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v3" />
 {% endblock style %}
 
 {% block body %}
 {% csrf_token %}
+
+<div class="messageboxfix apply-ark-pop d-none">
+    <div class="message_box">
+      <div class="informationicon">!</div>
+      <p>確認送出？</p>
+      <div class="btn_area">
+        <button class="hide_apply_ark_pop">取消</button>
+        <button class="submit_apply_ark" data-query_id="">確認</button>
+      </div>
+    </div>
+</div>
+
 <input type="hidden" name="menu" value="{{ menu }}">
 <input type="hidden" name="user_id" value="{{ user.id }}">
 <input type="hidden" name="user_email" value="{{ user.email }}">
@@ -171,6 +183,7 @@
                             <td class="w-20p">{% trans '搜尋條件' %}</td>
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
+                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -198,6 +211,7 @@
                             <td class="w-20p">{% trans '搜尋條件' %}</td>
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
+                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -226,6 +240,7 @@
                             <td class="w-15p">{% trans '審查意見' %}</td>
                             <td class="w-5p">{% trans '狀態' %}</td>
                             <td class="w-5p">{% trans '檔案連結' %}</td>
+                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -258,5 +273,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/manager.js' %}?v3"></script>
+<script src="{% static 'js/manager/manager.js' %}?v4"></script>
 {% endblock script %}

@@ -4,14 +4,31 @@
 {% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_partner.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_partner.css' %}?v4" />
+<link rel="stylesheet" href="/static/nouislider/nouislider.css">
+
 {% endblock style %}
 
 {% block head %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" type="text/css">
+<script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
+
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="/static/nouislider/nouislider.js"></script>
+
 {% endblock head %}
 
 {% block body %}
@@ -108,6 +125,31 @@
             </div>
             <hr>
             <div class="item">
+                <div class="box-title"><div class="dottt"></div>資料品質
+                    <a class="qmark tooltip">
+                        <span class="tooltiptext">
+                            金：包含 scientificName、latitude、longitude、year、month、basisOfRecord、coordinatesUncertaintyInMeters / coordinatePrecision 其一
+                            <br>
+                            銀：包含 scientificName、latitude、longitude、year
+                            <br>
+                            銅：缺少 scientificName、latitude、longitude、year 任一項
+                        </span>
+                    </a>
+                </div>
+                <div class="d-flex-jc-sb">
+                    <div class="w-50p">
+                        <figure class="highcharts-figure h-300px">
+                            <div id="container-data-quality" class="h-100p"></div>
+                        </figure>
+                    </div>                    
+                    <div class="w-50p mt-15px ml-20px">
+                        <ul id="quality-stat-list" class="mt-5px ml-20px fs-16px">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="item">
                 <div class="box-title"><div class="dottt"></div>TaiCOL 學名對應狀況</div>
                 <div class="d-flex-jc-sb">
                     <div class="w-50p">
@@ -116,7 +158,7 @@
                         </figure>
                     </div>                    
                     <div class="w-50p mt-15px ml-20px">
-                        <p>下載學名比對結果清單 <a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank" >(學名比對欄位說明文件)</a></p>
+                        <p>下載學名比對結果清單 <a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank">(學名比對欄位說明文件)</a></p>
                         <ul class="mt-5px ml-20px fs-16px">
                             {% for i in download_url %}
                             <li>
@@ -131,7 +173,7 @@
             <div class="item d-flex-jc-sb">
                 <div class="w-50p">
                     <div class="box-title">
-                        <div class="dottt"></div>物種類群資料筆數
+                        <div class="dottt"></div>物種類群資料筆數 <p class="expired-p ml-5px">*物種數僅計算TaiCOL定義之臺灣物種</p>
                     </div>
                     <div class="highcharts-figure">
                         <div id="container-taxon_group-stat" class="h-100p"></div>
@@ -144,7 +186,7 @@
                 </div>
             </div>
             <hr>
-            <div class="item d-flex-jc-sb" >
+            <div class="item d-flex-jc-sb">
                 <div class="w-50p">
                     <div class="box-title">
                         <div class="dottt"></div>每月資料被查詢筆數
@@ -164,10 +206,10 @@
                 </div>
                 <div class="w-50p">
                     <div class="box-title">
-                        <div class="dottt"></div>每月資料被下載筆數
+                        <div class="dottt"></div>每月資料被下載筆數 <p class="expired-p ml-5px">*不包含敏感資料申請筆數</p>
                     </div>
-                    <div class="ml-20px mt-15px">
-                        <div class="d-flex">
+                    <div class="ml-20px">                        
+                        <div class="d-flex mt-15px">
                             <select class="panel-select" name="download-stat-year">
                                 {% for y in stat_year %}
                                 <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
@@ -180,7 +222,45 @@
                     </div>
                 </div>            
             </div>
-            <div class="item d-flex-jc-sb" >
+            <hr>
+            <div class="item d-flex-jc-sb">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月資料被查詢次數
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="search-times-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-search-times-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月資料被下載次數 <p class="expired-p ml-5px">*不包含敏感資料申請筆數</p>
+                    </div>
+                    <div class="ml-20px">                        
+                        <div class="d-flex mt-15px">
+                            <select class="panel-select" name="download-times-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-download-times-stat" class="h-100p"></div>
+                    </div>
+                </div>            
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb">
                 <div class="w-50p">
                     <div class="box-title">
                         <div class="dottt"></div>資料累積筆數
@@ -192,16 +272,196 @@
                                 <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
                                 {% endfor %}
                             </select> <span class="ml-5px">年</span>
-                            </select>
                         </div>
                     </div>
                     <div class="highcharts-figure">
                         <div id="container-data-stat" class="h-100p"></div>
                     </div>
                 </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>每月敏感資料被下載筆數
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <select class="panel-select" name="sensitive-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-sensitive-stat" class="h-100p"></div>
+                    </div>
+                </div>
             </div>
             <hr>
+            <div class="item d-flex-jc-sb margin-bottom-0">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>所屬單位資料空間空缺狀況
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text ">類群篩選</span>
+                            <select class="panel-select" name="partner-spatial-taxonGroup">
+                                <option value="">-- 不限 --</option>
+                                <option value="Insects">昆蟲</option>
+                                <option value="Fishes">魚類</option>
+                                <option value="Reptiles">爬蟲類</option>
+                                <option value="Amphibians">兩棲類</option>
+                                <option value="Fungi">真菌(含地衣)</option>
+                                <option value="Plants">植物</option>
+                                <option value="Birds">鳥類</option>
+                                <option value="Mammals">哺乳類</option>
+                                <option value="Bacteria">細菌</option>
+                                <option value="Others">其他</option>
+                            </select>
+                            <span class="ml-5px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">匯出KML</button></span>
+                        </div>
+                    </div>
+                    <div class="map_img">
+                        <div class="imgbox">
+                            <div id="partner-map" class="img"></div>
+                        </div>
+                    </div>          
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>入口網資料空間空缺狀況
+                    </div>
+                    <div class="ml-20px mt-15px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text ">類群篩選</span>
+                            <select class="panel-select" name="portal-spatial-taxonGroup">
+                                <option value="">-- 不限 --</option>
+                                <option value="Insects">昆蟲</option>
+                                <option value="Fishes">魚類</option>
+                                <option value="Reptiles">爬蟲類</option>
+                                <option value="Amphibians">兩棲類</option>
+                                <option value="Fungi">真菌(含地衣)</option>
+                                <option value="Plants">植物</option>
+                                <option value="Birds">鳥類</option>
+                                <option value="Mammals">哺乳類</option>
+                                <option value="Bacteria">細菌</option>
+                                <option value="Others">其他</option>
+                            </select>
+                            <span class="ml-5px panel-select-text"> <button class="feedback_btn w-100p exportPortalKML">匯出KML</button></span>
+                        </div>
+                    </div>
 
+                    <div class="map_img">
+                        <div class="imgbox">
+                            <div id="portal-map" class="img"></div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="records-legend d-flex legend-fs-15px">
+                資料筆數：
+                <div class="d-flex"><div class="count-0"></div>1 - 10</div>
+                <div class="d-flex"><div class="count-10"></div>10 - 100</div>
+                <div class="d-flex"><div class="count-20"></div>100 - 1,000</div>
+                <div class="d-flex"><div class="count-50"></div>1,000 - 5,000</div>
+            </div>
+            <div class="records-legend d-flex legend-fs-15px">
+                <div class="d-flex"><div class="count-100"></div>5,000 - 10,000</div>
+                <div class="d-flex"><div class="count-200"></div>10,000 - 50,000</div>
+                <div class="d-flex"><div class="count-500"></div>50,000 - 100,000</div>
+                <div class="d-flex"><div class="count-1000"></div>> 100,000</div> 
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>所屬單位資料時間空缺狀況
+                    </div>
+                    <div class="ml-20px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text">年份區間</span>
+                            <div class="panel-range-select ml-20px">
+                                <div id="partner-temporal-year-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-partner-temporal-year-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="no-dottt"></div>
+                    </div>
+                    <div class="ml-20px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text ">類群篩選</span>
+                            <select class="panel-select" name="partner-temporal-taxonGroup">
+                                <option value="">-- 不限 --</option>
+                                <option value="Insects">昆蟲</option>
+                                <option value="Fishes">魚類</option>
+                                <option value="Reptiles">爬蟲類</option>
+                                <option value="Amphibians">兩棲類</option>
+                                <option value="Fungi">真菌(含地衣)</option>
+                                <option value="Plants">植物</option>
+                                <option value="Birds">鳥類</option>
+                                <option value="Mammals">哺乳類</option>
+                                <option value="Bacteria">細菌</option>
+                                <option value="Others">其他</option>
+                              </select>  
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-partner-temporal-month-stat" class="h-100p"></div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="item d-flex-jc-sb">
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="dottt"></div>入口網資料時間空缺狀況
+                    </div>
+                    <div class="ml-20px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text">年份區間</span>
+                            <div class="panel-range-select ml-20px">
+                                <div id="portal-temporal-year-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-portal-temporal-year-stat" class="h-100p"></div>
+                    </div>
+                </div>
+                <div class="w-50p">
+                    <div class="box-title">
+                        <div class="no-dottt"></div>
+                    </div>
+                    <div class="ml-20px">
+                        <div class="d-flex">
+                            <span class="mr-5px panel-select-text ">類群篩選</span>
+                            <select class="panel-select" name="portal-temporal-taxonGroup">
+                                <option value="">-- 不限 --</option>
+                                <option value="Insects">昆蟲</option>
+                                <option value="Fishes">魚類</option>
+                                <option value="Reptiles">爬蟲類</option>
+                                <option value="Amphibians">兩棲類</option>
+                                <option value="Fungi">真菌(含地衣)</option>
+                                <option value="Plants">植物</option>
+                                <option value="Birds">鳥類</option>
+                                <option value="Mammals">哺乳類</option>
+                                <option value="Bacteria">細菌</option>
+                                <option value="Others">其他</option>
+                              </select>  
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="container-portal-temporal-month-stat" class="h-100p"></div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% else %}
         {% trans '您的權限不足' %}
@@ -211,5 +471,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/manager_partner.js' %}?v3"></script>
+<script src="{% static 'js/manager/manager_partner.js' %}?v4"></script>
 {% endblock script %}

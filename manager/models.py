@@ -152,7 +152,8 @@ class SearchQuery(models.Model):
     # 使用者個人下載編號id
     personal_id = models.IntegerField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True) # 記錄各單位筆數
-    sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數
+    sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數, 若是申請通過的敏感資料統計也會計算在這
+    # ark = models.CharField(max_length=50, null=True, blank=True)
 
 
 class SensitiveDataRequest(models.Model):
@@ -228,13 +229,16 @@ class TaxonStat(models.Model):
     type_choice = [
         ('taxon_group', '物種類群'),
         ('family', '科別'),
+        ('temporal', '時間空缺'),
     ]
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
     rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
-    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    # year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    year = models.CharField(max_length=4, null=True, blank=True, db_index=True)
+    month = models.CharField(max_length=2, null=True, blank=True, db_index=True)
     name = models.CharField(max_length=10000, null=True, blank=True)  # 類群名 / 科名
-    count = models.IntegerField(null=True, blank=True)
+    count = models.FloatField(null=True, blank=True)
     modified = models.DateTimeField(auto_now_add=True)
 
 
@@ -244,6 +248,9 @@ class DataStat(models.Model):
         ('data', '累積資料數量'),
         ('search', '累積被查詢資料數量'),
         ('download', '累積被下載資料數量'),
+        ('search_times', '累積被查詢次數'),
+        ('download_times', '累積被下載次數'),
+        ('sensitive', '累積敏感資料被下載筆數'),
     ]
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
@@ -258,3 +265,12 @@ class ChecklistStat(models.Model):
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     count = models.IntegerField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+
+
+
+class Ark(models.Model):
+    model_id = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 如果是news則對到news表的id 如果是data 則對到search query 表的id
+    type = models.CharField(max_length=20, blank=True) # news / data
+    ark = models.CharField(max_length=50, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now_add=True)

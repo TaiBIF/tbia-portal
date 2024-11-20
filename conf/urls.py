@@ -48,5 +48,10 @@ urlpatterns += i18n_patterns(
     path('', include('api.urls')),
 )
 
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
 handler404 = "pages.views.page_not_found_view"
 handler500 = "pages.views.error_view"

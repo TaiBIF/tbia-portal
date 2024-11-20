@@ -50,6 +50,7 @@ urlpatterns = [
     path('get_checklist_stat', views.get_checklist_stat, name='get_checklist_stat'), 
     path('get_data_stat', views.get_data_stat, name='get_data_stat'), 
     path('get_taxon_group_list', views.get_taxon_group_list, name='get_taxon_group_list'), 
+    path('get_temporal_stat', views.get_temporal_stat, name='get_temporal_stat'), 
     # link 管理
     path('edit_link', views.edit_link, name='edit_link'),
     path('get_link_content', views.get_link_content, name='get_link_content'),
@@ -75,4 +76,6 @@ urlpatterns = [
     path('download_partner_sensitive_report', views.download_partner_sensitive_report, name='download_partner_sensitive_report'),
     # # 取得敏感資料相關的夥伴單位
     # path('get_partial_partner', views.get_partial_partner, name='get_partial_partner'),
+    # 申請 ark
+    path('submit_apply_ark', views.submit_apply_ark, name='submit_apply_ark'),
 ]

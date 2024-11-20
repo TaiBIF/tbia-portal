@@ -1,13 +1,13 @@
 from django.http import HttpResponse, JsonResponse #request, 
 from django.shortcuts import render#, redirect
 from pages.models import *
-from conf.settings import SOLR_PREFIX
-from manager.models import Partner, About
+from conf.settings import SOLR_PREFIX, env
+from manager.models import Partner, About, SearchQuery, Ark
 import json
 import math
 from data.utils import get_page_list, get_resource_cate
 from django.utils import timezone, translation
-from conf.utils import notif_map
+from conf.utils import notif_map, scheme
 from datetime import datetime, timedelta
 from django.utils.translation import get_language, gettext
 import requests
@@ -284,7 +284,7 @@ def index(request):
             'extension': x.extension,
             'url': x.url,
             'doc_url': x.doc_url,
-            'date': x.publish_date.strftime("%Y.%m.%d")})
+            'date': x.publish_date.strftime("%Y-%m-%d")})
         
     news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE).order_by('-publish_date')[:4]
 
@@ -345,7 +345,7 @@ def get_resource_list(request):
             'extension': x.extension,
             'url': x.url,
             'doc_url': x.doc_url,
-            'date': x.publish_date.strftime("%Y.%m.%d")})
+            'date': x.publish_date.strftime("%Y-%m-%d")})
 
     response = {
         'rows': resource_rows,
@@ -404,3 +404,53 @@ def resources_link(request):
 def update_not_show(request):
     request.session['not_show_tech'] = True
     return JsonResponse({}, safe=False) 
+
+
+def ark_ids(request):
+    type = request.GET.get('type', 'news')
+    return render(request, 'pages/ark_ids.html', {'type': type})
+
+
+def get_ark_list(request):
+    type = request.POST.get('type')
+    lang = request.POST.get('lang', 'zh-hant')
+
+    limit = 10
+    
+    query_obj = []
+
+    query_obj = Ark.objects.filter(type=type).order_by('-modified')
+
+    current_page = int(request.POST.get('get_page', 1))
+    total_page = math.ceil(query_obj.count() / limit)
+    page_list = get_page_list(current_page,total_page,5)
+
+    rows = []
+    offset = (current_page-1)*limit
+
+    for x in query_obj[offset:offset+limit]:
+
+        modified = x.modified + timedelta(hours=8) if x.modified else x.modified
+        created = x.created + timedelta(hours=8)
+
+        if type == 'news':
+            url = f"{scheme}://{request.get_host()}/news/detail/{x.model_id}"
+        else:
+            url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
+            
+        rows.append({
+            'ark_href': f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{x.ark}',
+            'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
+            'url': url,
+            'created': created.strftime("%Y-%m-%d"),
+            'modified': modified.strftime("%Y-%m-%d"),    
+        })
+
+    response = {
+        'rows': rows,
+        'current_page': current_page,
+        'total_page': total_page,
+        'page_list' : page_list
+    }
+
+    return HttpResponse(json.dumps(response), content_type='application/json')
