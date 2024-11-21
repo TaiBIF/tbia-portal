@@ -22,7 +22,7 @@ django-quill-editor==0.1.40
 django-ses==3.1.2
 et_xmlfile==2.0.0
 fiona==1.10.1
-geopandas==0.10.2
+geopandas==0.14.4
 greenlet==2.0.2
 gunicorn==23.0.0
 idna==3.2
