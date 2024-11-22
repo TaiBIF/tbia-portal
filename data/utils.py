@@ -816,7 +816,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         else:
             if g_list := req_dict.get('polygon'):
                 try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
+                    mp = MultiPolygon(map(wkt.loads, [g_list]))
                     if get_raw_map:
                         query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
                     else:
