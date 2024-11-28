@@ -16,7 +16,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}?v4" />
 {% endblock style %}
 
 {% block body %}
@@ -213,16 +213,16 @@
                 <button class="read_btn" id="link_button">編輯推薦連結</button>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 resource_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 resource_table edu_table">
                         <tr class="resource_table_header">
-                            <td class="w-18p">標題</td>
-                            <td class="w-18p">類型</td>
-                            <td class="w-10p">語言</td>
+                            <td>標題</td>
+                            <td>類型</td>
+                            <td>語言</td>
                             {% comment %} <td class="w-20p">檔名</td> {% endcomment %}
-                            <td class="w-15p">發布日期</td>
-                            <td class="w-15p">最近修改</td>
-                            <td class="w-8p"></td> 
-                            <td class="w-8p"></td> 
+                            <td>發布日期</td>
+                            <td>最近修改</td>
+                            <td></td> 
+                            <td></td> 
                         </tr>
                     </table>						
                 </div>
