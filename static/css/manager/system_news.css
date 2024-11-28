@@ -251,10 +251,10 @@
     color: black
 }
 
-.table-flow {
+/* .table-flow {
     overflow-x: auto; 
     margin-top: 10px
-}
+} */
 
 .img-style {
     max-height: 200px; margin: auto
@@ -310,7 +310,34 @@ li.check-list  .chebox:checked {
 
 
 
-.news_apply .result_table .table_style1 tr td:nth-child(3)  {
+/* .news_apply .result_table .table_style1 tr td:nth-child(3)  {
     text-align: left !important;
 }
+ */
 
+ .news_apply_table td:nth-child(2) {
+    white-space: nowrap
+}
+
+.news_apply_table td:nth-child(3) {
+    text-align: left;
+    width: 30%
+}
+
+.news_apply_table td:nth-child(6) {
+    width: 20%;
+    font-size: 14px
+}
+
+.news_apply_table td:nth-child(7) {
+    /* font-size: 14px; */
+    width: 66px
+}
+
+.news_apply_table td:nth-child(8) {
+    width: 66px
+}
+
+.news_apply_table td:last-child {
+    font-size: 14px
+}

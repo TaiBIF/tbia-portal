@@ -8,7 +8,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_news.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_news.css' %}?v3" />
 {% endblock style %}
 
 {% block head %}
@@ -152,7 +152,7 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>審核狀態</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 news_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 news_table">
                         <tr class="news_table_header">
                             <td class="w-5p"></td>
                             <td class="w-20p">標題</td>
@@ -177,9 +177,9 @@
                             <!-- 編輯按鈕 / 收回按鈕 -->
                             <td>
                                 {% if n.status == 'pending' %}
-                                <a class="manager_btn" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回</a>
+                                <a class="btn-style1" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回</a>
                                 {% else %}
-                                <a class="manager_btn" href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
+                                <a class="btn-style1" href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
                                 {% endif %}
                             </td> 
                         </tr>

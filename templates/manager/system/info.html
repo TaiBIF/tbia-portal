@@ -11,7 +11,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}?v6" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_info.css' %}?v7" />
 {% endblock style %}
 
 
@@ -111,14 +111,14 @@
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>帳號管理</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 account_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 account_table accouunt_table">
                         <tr class="account_table_header">
-                            <td class="w-8p">編號</td>
-                            <td class="w-25p">姓名</td>
-                            <td class="w-20p">單位</td>
-                            <td class="min-150px">權限</td>
-                            <td class="min-150px">狀態</td>
-                            <td class="w-15p"></td>
+                            <td>編號</td>
+                            <td>姓名</td>
+                            <td>單位</td>
+                            <td>權限</td>
+                            <td>狀態</td>
+                            <td></td>
                         </tr> 
                     </table>						
                 </div>
@@ -158,15 +158,15 @@
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>意見回饋紀錄</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 feedback_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 feedback_table reply_table">
                         <tr class="feedback_table_header">
-                            <td class="w-10p">編號</td>
-                            <td class="w-20p">單位</td>
-                            <td class="w-10p">時間</td>
-                            <td class="w-5p">Email</td>
-                            <td class="w-10p">類型</td>
-                            <td class="min-300px">內容</td>
-                            <td class="w-20p">已回覆</td>
+                            <td>編號</td>
+                            <td>單位</td>
+                            <td>時間</td>
+                            <td>Email</td>
+                            <td>類型</td>
+                            <td>內容</td>
+                            <td>回覆狀態</td>
                         </tr> 
                     </table>						
                 </div>
@@ -190,16 +190,16 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table once_table">
                         <tr class="sensitive_apply_table_header">
-                            <td class="w-10p">申請編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">申請時間</td>
-                            <td class="w-40p">搜尋條件</td>
-                            <td class="w-10p">筆數</td>
-                            <td class="w-10p">狀態</td>
-                            <td class="w-10p">申請資訊</td>
-                            <td class="w-10p">檔案連結</td>
+                            <td>申請編號</td>
+                            <td>檔案編號</td>
+                            <td>申請時間</td>
+                            <td>搜尋條件</td>
+                            <td>筆數</td>
+                            <td>狀態</td>
+                            <td>申請資訊</td>
+                            <td>檔案連結</td>
                         </tr> 
                     </table>
                 </div>
@@ -221,15 +221,15 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_track_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_track_table track_table">
                         <tr class="sensitive_track_table_header">
-                            <td class="w-5p">申請編號</td>
-                            <td class="w-10p">檔案編號</td>
-                            <td class="w-10p">申請時間</td>
-                            <td class="w-15p">搜尋條件</td>
-                            <td class="w-15p">審查意見</td>
-                            <td class="w-5p">檔案狀態</td>
-                            <td class="w-5p"></td>
+                            <td>申請編號</td>
+                            <td>檔案編號</td>
+                            <td>申請時間</td>
+                            <td>搜尋條件</td>
+                            <td>審查意見</td>
+                            <td>檔案狀態</td>
+                            <td></td>
                         </tr>
                     </table>
                 </div>
@@ -415,5 +415,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_info.js' %}?v8"></script>
+<script src="{% static 'js/manager/system_info.js' %}?v9"></script>
 {% endblock script %}

@@ -8,7 +8,7 @@
 <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
 <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
 <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v4" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_news.css' %}?v5" />
 {% endblock style %}
 
 {% block head %}
@@ -195,18 +195,17 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>審核狀態</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 news_apply_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 news_apply_table">
                         <tr class="news_apply_table_header">
-                            <td class="w-8p"></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td class="w-8p">編號</td>
-                            <td class="w-18p">標題</td>
-                            <td class="w-8p">類型</td>
-                            <td class="w-8p">語言</td>
-                            <td class="w-15p">單位</td>
-                            {% comment %} <td class="w-15p">申請者</td> {% endcomment %}
-                            <td class="w-15p">發布日期</td>
-                            <td class="w-8p">狀態</td>
-                            <td class="w-15p">最近修改</td>
+                            <td></td> <!-- 編輯按鈕 / 收回按鈕 -->
+                            <td>編號</td>
+                            <td>標題</td>
+                            <td>類型</td>
+                            <td>語言</td>
+                            <td>單位</td>
+                            <td>發布日期</td>
+                            <td>狀態</td>
+                            <td>最近修改</td>
                         </tr>
                     </table>						
                 </div>

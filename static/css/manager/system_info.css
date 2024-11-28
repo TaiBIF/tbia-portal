@@ -1,38 +1,70 @@
-.sensitive_apply_table tr:not(:first-child) td:nth-child(3) {
-    text-align: left !important;
+
+.sensitive_apply_table td:nth-child(3) {
+    min-width: 125px;
+    max-width: 125px;
+
 }
 
-.sensitive_apply_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left !important;
-    word-wrap: break-word;
-    /* word-break: break-all; */
-    white-space: normal;
-    /* width: 300px; */
+.sensitive_apply_table td:nth-child(4) {
+    width: 30%;
+    font-size: 14px;
+    text-align: left;
+    word-break: break-all
 }
 
 
+.sensitive_apply_table td:nth-child(5) {
+    width: 20%;
+    font-size: 14px;
+}
+
+
+
+
+/* 
 .feedback_table tr:not(:first-child) td:nth-child(6) {
     white-space: pre-wrap;
     text-align: left !important;
 }
 
+ */
 
-.sensitive_track_table tr:not(:first-child) td:nth-child(2), .sensitive_apply_table tr:not(:first-child) td:nth-child(2)  {
+ .sensitive_track_table td:nth-child(2) {
+    min-width: 125px;
+    max-width: 125px;
+
+}
+
+
+ .sensitive_track_table td:nth-child(3) {
+    text-align: center;
+    min-width: 150px;
+    max-width: 150px;
+}
+
+.sensitive_track_table td:nth-child(6),
+.sensitive_track_table td:nth-child(7)
+ {
+    min-width: 95px
+}
+
+
+/* .sensitive_track_table tr:not(:first-child) td:nth-child(2), .sensitive_apply_table tr:not(:first-child) td:nth-child(2)  {
     word-wrap: break-word;
     word-break: break-all;
     white-space: normal;
 }
-
+ */
 /* .track_table tr:not(:first-child) td:nth-child(1) {
     word-wrap: break-word;
     word-break: break-all;
     white-space: normal;
 } */
-
+/* 
 .sensitive_track_table tr:not(:first-child) td:nth-child(4), .sensitive_track_table tr:not(:first-child) td:nth-child(5) {
     text-align: left
 }
-
+ */
 
 td hr {
     border-top: 1px dashed grey;
@@ -228,7 +260,7 @@ td hr {
     color: black
 }
 
-.table-flow {
+/* .table-flow {
     overflow-x: auto; 
     margin-top: 10px
 }
@@ -236,7 +268,7 @@ td hr {
 .table-flow .table_style1 {
     width: max-content;
     min-width: 100%;
-}
+} */
 
 .a-left {
     text-align: left

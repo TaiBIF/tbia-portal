@@ -626,7 +626,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if is_native == 'y':
             query_list += ['alien_type:native']
         elif is_native == 'n':
-            query_list += ['-alien_type:native']
+            query_list += ['alien_type:(naturalized OR invasive OR cultured)']
 
 
     # 是否為保育類

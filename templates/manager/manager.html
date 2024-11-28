@@ -5,7 +5,7 @@
 {% block title %}{% trans '帳號後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v4" />
 {% endblock style %}
 
 {% block body %}
@@ -175,15 +175,15 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 download_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 download_table once_table">
                         <tr class="download_table_header">
-                            <td class="w-5p">{% trans '下載編號' %}</td>
-                            <td class="w-10p">{% trans '檔案編號' %}</td>
-                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
-                            <td class="w-20p">{% trans '搜尋條件' %}</td>
-                            <td class="w-5p">{% trans '狀態' %}</td>
-                            <td class="w-5p">{% trans '檔案連結' %}</td>
-                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
+                            <td>{% trans '下載編號' %}</td>
+                            <td>{% trans '檔案編號' %}</td>
+                            <td>{% trans '檔案產生日期' %}</td>
+                            <td>{% trans '搜尋條件' %}</td>
+                            <td>{% trans '狀態' %}</td>
+                            <td>{% trans '檔案連結' %}</td>
+                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -203,15 +203,15 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 download_taxon_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 download_taxon_table once_table">
                         <tr class="download_taxon_table_header">
-                            <td class="w-5p">{% trans '下載編號' %}</td>
-                            <td class="w-10p">{% trans '檔案編號' %}</td>
-                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
-                            <td class="w-20p">{% trans '搜尋條件' %}</td>
-                            <td class="w-5p">{% trans '狀態' %}</td>
-                            <td class="w-5p">{% trans '檔案連結' %}</td>
-                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
+                            <td>{% trans '下載編號' %}</td>
+                            <td>{% trans '檔案編號' %}</td>
+                            <td>{% trans '檔案產生日期' %}</td>
+                            <td>{% trans '搜尋條件' %}</td>
+                            <td>{% trans '狀態' %}</td>
+                            <td>{% trans '檔案連結' %}</td>
+                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -231,16 +231,16 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_table track_table">
                         <tr class="sensitive_table_header">
-                            <td class="w-5p">{% trans '下載編號' %}</td>
-                            <td class="w-10p">{% trans '檔案編號' %}</td>
-                            <td class="w-10p">{% trans '檔案產生日期' %}</td>
-                            <td class="w-15p">{% trans '搜尋條件' %}</td>
-                            <td class="w-15p">{% trans '審查意見' %}</td>
-                            <td class="w-5p">{% trans '狀態' %}</td>
-                            <td class="w-5p">{% trans '檔案連結' %}</td>
-                            <td class="w-5p"><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
+                            <td>{% trans '下載編號' %}</td>
+                            <td>{% trans '檔案編號' %}</td>
+                            <td>{% trans '檔案產生日期' %}</td>
+                            <td>{% trans '搜尋條件' %}</td>
+                            <td>{% trans '審查意見' %}</td>
+                            <td>{% trans '狀態' %}</td>
+                            <td>{% trans '檔案連結' %}</td>
+                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
                     </table>						
                 </div>
@@ -254,7 +254,7 @@
                 <button class="read_btn updateIsRead">{% trans '全部已讀' %}</button>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 notification_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 notification_table">
                         <tr class="notification_table_header">
                             <td class="w-30p">{% trans '日期' %}</td>
                             <td class="w-70p">{% trans '內容' %}</td>
