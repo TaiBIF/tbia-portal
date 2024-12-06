@@ -2626,3 +2626,53 @@ msgstr "Created"
 #:
 msgid "下載資料"
 msgstr "Download"
+
+
+#:
+msgid "資料集查詢"
+msgstr "Search Dataset"
+
+
+#:
+msgid "下載資料集清單"
+msgstr "Download Dataset List"
+
+
+#:
+msgid "涵蓋日期起始"
+msgstr "Dataset Start Date"
+
+
+#:
+msgid "涵蓋日期結束"
+msgstr "Dataset End Date"
+
+
+#:
+msgid "下載次數"
+msgstr "Number of Downloads"
+
+
+#:
+msgid "入口網資料集ID"
+msgstr "TBIA Dataset ID"
+
+
+#:
+msgid "GBIF資料集ID"
+msgstr "GBIF Dataset ID"
+
+
+#:
+msgid "來源資料庫資料集ID"
+msgstr "Source Dataset ID"
+
+
+#:
+msgid "資料集發布者"
+msgstr "Dataset Publisher"
+
+
+#:
+msgid "最後更新時間"
+msgstr "Last Updated"

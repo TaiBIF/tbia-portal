@@ -231,21 +231,22 @@ function getWKTMap() {
 }
 
 function getColor(d) {
-    return d > 1000 ? '#C50101' :
-            d > 500 ? '#D71414' :
-            d > 200 ? '#E72424' :
-            d > 100 ? '#F73535' :
-            d > 50 ? '#FB4C4C' :
-            d > 20 ? '#FB6262' :
-            d > 10 ? '#FC7E7E' :
-                '#FD9696';
+    return d > 100000 ? '#bd0026' :
+            d > 50000 ? '#e31a1c' :
+            d > 10000 ? '#fc4e2a' :
+            d > 5000 ? '#fd8d3c' :
+            d > 1000 ? '#feb24c' :
+            d > 100 ? '#fed976' :
+            d > 10 ? '#ffeda0' :
+                '#ffffcc';
 }
 
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.counts),
-        weight: 0,
-        fillOpacity: 0.7
+        weight: 1,
+        fillOpacity: 0.7,
+        color: '#b2d2dd'
     };
 }
 

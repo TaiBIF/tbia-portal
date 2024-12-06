@@ -302,7 +302,7 @@ hr {
     margin-bottom: 0 !important;
 }
 
-
+/* 
 div.count-100000 {
     border: none;
     background: #bd0026;
@@ -380,7 +380,7 @@ div.count-0 {
     height: 25px;
     border-radius: 100px;
     transform: scale(0.5, 0.5);
-}
+} */
 
 .feedback_btn {
     color: #FFF;

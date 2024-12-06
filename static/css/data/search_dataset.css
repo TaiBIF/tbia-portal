@@ -367,3 +367,23 @@ input.name_input::placeholder {
 .mr-5px {
     margin-right: 5px;
 }
+
+
+
+
+td.datasetName {
+    max-width: 400px;
+    min-width: 400px;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    text-align: left !important;
+}
+
+
+td.rightsHolder {
+    max-width: 300px;
+    min-width: 260px;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    text-align: left !important;
+}

@@ -1,3 +1,60 @@
+.code {
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 18px;
+    line-height: 20px;
+    color: #FFF;
+    display: flex;
+    background: #3F5146;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.code:hover {
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    background: #76A578;
+    color: #FFF;
+}
+
+@media only screen and (max-width: 999px) {
+    .code {
+        margin-bottom: 0px;
+        margin-left: 5px;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .code {
+        font-size: 16px;
+        margin-left: 5px;
+    }
+}
+
+.logo_area {
+    width: fit-content !important;
+}
+
+
+
+.nbn_title {
+    max-width: 70%;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: 35px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+
 
 input.name_input::placeholder {
     font-size: 11px 
@@ -20,10 +77,6 @@ input.name_input::placeholder {
     color: white;
     height: 14px;
     margin-left: 5px;
-}
-
-.orderby {
-    cursor: pointer
 }
 
 .leaflet-draw-actions {
@@ -66,9 +119,53 @@ input.name_input::placeholder {
     margin-bottom: 10px
 }
 
+.sc_result .rightmore .dwd {
+    padding: 0px 10px;
+    font-size: 16px;
+    color: lightgrey;
+    height: 40px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    border-radius: 10px;
+    margin-left: 10px;
+    border: 1px solid lightgrey;
+    background: none;
+    cursor: default;
+}
+
+@media only screen and (max-width: 767px) {
+    .sc_result .rightmore .dwd {
+        font-size: 16px;
+        padding: 0 10px;
+        height: 30px;
+        margin-left: 0px;
+        margin-right: 10px
+    }
+}
+
+.orderby {
+    cursor: pointer
+}
+
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
 
 .mt-5p {
     margin-top: 5%
+}
+
+
+.bd-0 {
+    border: 0
 }
 
 .imgbox {
@@ -76,32 +173,38 @@ input.name_input::placeholder {
     width: auto !important;
 }
 
-.choice-flow {
-    max-height: 100%;
-    overflow-y: auto
+.h-300px {
+    height: 300px
 }
 
 .note-text {
-    text-align: right;
+    text-align: right; 
     color: #C65454
 }
 
-
 .text-right {
     text-align: right;
-}
-
-
-.h-300px {
-    height: 300px
 }
 
 .mh-380px {
     max-height: 380px
 }
 
-.bd-0 {
-    border: 0
+.w-110px {
+    width: 110px
+}
+
+.w-120px {
+    width: 120px
+}
+
+.w-130px {
+    width: 130px
+}
+
+.choice-flow {
+    max-height: 100%; 
+    overflow-y: auto
 }
 
 .mr-20px {
@@ -120,13 +223,14 @@ input.name_input::placeholder {
     overflow-x: auto;
 }
 
+
 .page-jump {
     -webkit-appearance: none;
-    text-align: center;
-    margin-right: 5px;
+    text-align: center; 
+    margin-right: 5px; 
     margin-left: 5px;
-    width: 60px;
-    border: 1px;
+    width: 60px; 
+    border:1px; 
     border-bottom-style: solid;
     border-top-style: none;
     border-left-style: none;
@@ -161,13 +265,52 @@ input.name_input::placeholder {
 @media only screen and (max-width: 767px) {
     .res_flex {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-start; 
     }
 }
+
+@media only screen and (max-width: 767px) {
+    .per_page {
+        margin-top: 10px;
+    }
+}
+
 .input-100 {
     width: 100% !important;
 }
 
+.search_btn {
+    margin: 10px;
+}
+
+.clear_btn {
+    color: #3F5146;
+    background: #FFF;
+    border: 1px solid #3F5146;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    width: 50%;
+    height: 50px;
+    border-radius: 25px;
+    font-size: 19px;
+    display: block;
+    margin: 0 10px
+}
+
+@media only screen and (min-width: 1000px) {
+    .clear_btn:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #3F5146;
+        color: #FFF;
+    }
+}
 
 .search_area_btns {
     width: 50% !important;
@@ -188,7 +331,9 @@ input.name_input::placeholder {
  }
 
 
- .page-inf {
+
+
+.page-inf {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -208,6 +353,13 @@ input.name_input::placeholder {
     .page-inf span {
         margin-top: 10px;
     }
+}
+
+
+/* 欄位選項 */
+.popbg.occ-choice .wbox_center {
+    max-height: 90%;
+    overflow: auto
 }
 
 

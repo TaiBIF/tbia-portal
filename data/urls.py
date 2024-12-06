@@ -5,10 +5,12 @@ from . import views
 urlpatterns = [
     # 頁面
     path('search/full', views.search_full, name='search_full'),
+    path('search/dataset', views.search_dataset, name='search_dataset'),
     path('search/collection', views.search_collection, name='search_collection'),
     path('search/occurrence', views.search_occurrence, name='search_occurrence'),
     path('collection/<str:id>/', views.collection_detail, name='collection_detail'),
     path('occurrence/<str:id>/', views.occurrence_detail, name='occurrence_detail'),
+    path('dataset/<str:id>/', views.dataset_detail, name='dataset_detail'),
     # 全站搜尋
     path('get_records', views.get_records, name='get_records'),
     path('get_more_docs', views.get_more_docs, name='get_more_docs'),
@@ -27,9 +29,9 @@ urlpatterns = [
     path('get_locality', views.get_locality, name='get_locality'),
     path('get_locality_init', views.get_locality_init, name='get_locality_init'),
     path('get_dataset', views.get_dataset, name='get_dataset'),
-    # path('get_dataset_init', views.get_dataset_init, name='get_dataset_init'),
     # 進階搜尋 取得結果
     path('get_conditional_records', views.get_conditional_records, name='get_conditional_records'),
+    path('get_conditional_dataset', views.get_conditional_dataset, name='get_conditional_dataset'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),
     # 下載 / 敏感資料
     path('send_download_request', views.send_download_request, name='send_download_request'),
@@ -39,4 +41,5 @@ urlpatterns = [
     path('submit_sensitive_response', views.submit_sensitive_response, name='submit_sensitive_response'),
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
     path('partial_transfer_sensitive_response', views.partial_transfer_sensitive_response, name='partial_transfer_sensitive_response'),
+    path('download_dataset_results', views.download_dataset_results, name='download_dataset_results'),
 ]

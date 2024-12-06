@@ -19,7 +19,7 @@ a {
     background: #EEF4EF
 }
 
-.popbg .wbox_center .map_img .img {
+/* .popbg .wbox_center .map_img .img {
     background: none;
 }
 
@@ -29,7 +29,34 @@ a {
 
 .sc_de_main .right_area .map_img .img {
     background: none;
+} */
+
+.map_img .img {
+    background: none ;
 }
+
+.leaflet-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-zoom-box { z-index:  58 !important; }
+.leaflet-pane         { z-index:  58 !important; }
+
+.leaflet-tile-pane    { z-index:  58 !important; }
+.leaflet-overlay-pane { z-index:  58 !important; }
+.leaflet-shadow-pane  { z-index:  58 !important; }
+.leaflet-marker-pane  { z-index:  58 !important; }
+.leaflet-tooltip-pane   { z-index:  58 !important; }
+.leaflet-popup-pane   { z-index:  58 !important; }
+
+.leaflet-map-pane canvas { z-index:  58 !important; }
+.leaflet-map-pane svg    { z-index:  58 !important; }
+
+.leaflet-control { z-index:  58 !important; }
+.leaflet-top,
+.leaflet-bottom {  z-index:  58 !important; }
+
+.leaflet-container:after { z-index:  58 !important; }
 
 .header .right_btn2 .member_login .member_slimenu ul li:not(:last-child) {
     border-bottom-left-radius: 0;
@@ -694,7 +721,91 @@ form#search_full_form_top {
 }
 
 
-/* map legend */
+
+div.count-100000 {
+    border: none;
+    background: #bd0026;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-50000 {
+    border: none;
+    background: #e31a1c;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-10000 {
+    border: none;
+    background: #fc4e2a;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-5000 {
+    border: none;
+    background: #fd8d3c;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-1000 {
+    border: none;
+    background: #feb24c;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-100 {
+    border: none;
+    background: #fed976;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-10 {
+    border: none;
+    background: #ffeda0;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+
+div.count-0 {
+    border: none;
+    background: #ffffcc;
+    width: 25px;
+    height: 25px;
+    border-radius: 100px;
+    transform: scale(0.5, 0.5);
+}
+
+.legend-fs-13px {
+    font-size: 13px;
+    line-height: 25px;
+}
+/* map legend
 
 div.count-1000 {
     border: none;
@@ -773,7 +884,7 @@ div.count-0 {
     height: 25px;
     border-radius: 100px;
     transform: scale(0.5, 0.5);
-}
+} */
 
 
 .legend-fs-15px {
@@ -819,3 +930,91 @@ div.count-0 {
 }
 
 
+
+
+.clear_btn {
+    color: #3F5146;
+    background: #FFF;
+    border: 1px solid #3F5146;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    width: 50%;
+    height: 50px;
+    border-radius: 25px;
+    font-size: 19px;
+    display: block;
+    margin: 0 10px
+}
+
+@media only screen and (min-width: 1000px) {
+    .clear_btn:hover {
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s;
+        background: #3F5146;
+        color: #FFF;
+    }
+}
+
+
+
+
+.ml-5px {
+    margin-left: 5px;
+}
+
+
+.qmark-dark {
+    display: inline-block;
+    background: url("/static/image/quesmarkw.svg") no-repeat center;
+    width: 17px;
+    height: 17px;
+    background-size: contain;
+    margin-left: 3px;
+}
+
+.qmark-dark:hover {
+    background: url("/static/image/quesmark.svg") no-repeat center;
+    background-size: contain;
+
+}
+
+
+.qmark-small {
+    display: inline-block;
+    background: url("/static/image/quesmark.svg") no-repeat center;
+    background-size: contain;
+    width: 20px;
+    height: 20px;
+}
+
+.qmark-small:hover {
+    background: url("/static/image/quesmarkg.svg") no-repeat center;
+    background-size: contain;
+}
+
+
+.qmark-small-flex {
+    line-height: 22px;
+    display: flex;
+}
+
+
+.qmark-small-dark {
+    display: inline-block;
+    background: url("/static/image/quesmarkw.svg") no-repeat center;
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+}
+
+.qmark-small-dark:hover {
+    background: url("/static/image/quesmark.svg") no-repeat center;
+    background-size: contain;
+
+}

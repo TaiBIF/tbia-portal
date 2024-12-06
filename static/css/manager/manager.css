@@ -294,17 +294,3 @@ span.expired-notice {
     margin-right: 15px
 }
 
-.qmark-dark {
-    display: inline-block;
-    background: url("/static/image/quesmarkw.svg") no-repeat center;
-    width: 17px;
-    height: 17px;
-    background-size: contain;
-    margin-left: 3px;
-}
-
-.qmark-dark:hover {
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain;
-
-}

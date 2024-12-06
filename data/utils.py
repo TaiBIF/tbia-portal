@@ -57,9 +57,10 @@ basis_map = {
 
 
 def get_dataset_key(key):
+    # 2024-12 修改為tbiaDatasetID
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "name" FROM dataset WHERE id = %s' # 不考慮deprecated
+    query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
     with conn.cursor() as cursor:
         cursor.execute(query, (key,))
         results = cursor.fetchone()
@@ -84,7 +85,7 @@ def get_dataset_by_key(key_list):
     results = []
     conn = psycopg2.connect(**datahub_db_settings)
     
-    query = f''' select id, name FROM dataset WHERE "id" IN %s AND deprecated = 'f' '''
+    query = f''' select id, name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
 
     with conn.cursor() as cursor:
         cursor.execute(query, (tuple(key_list), ))
@@ -1791,6 +1792,55 @@ def create_sensitive_partner_stat(query_list):
         stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
     return stat_rightsHolder
+
+
+def create_dataset_stat(query_list):
+
+    query = { "query": "*:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "stat_tbiaDatasetID": {
+                        'type': 'terms',
+                        'field': 'tbiaDatasetID',
+                        'mincount': 1,
+                        'limit': -1,
+                        'allBuckets': False,
+                        'numBuckets': False
+                    }
+                }
+            }
+
+    if not query_list:
+        query.pop('filter')
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+
+    stat_tbiaDatasetID = []
+
+    stat_tbiaDatasetID = facets['stat_tbiaDatasetID']['buckets']
+
+    for row in stat_tbiaDatasetID:
+        
+
+        conn = psycopg2.connect(**datahub_db_settings)
+        query = 'UPDATE dataset set "downloadCount" = "downloadCount" + 1 WHERE "tbiaDatasetID" = %s'
+        with conn.cursor() as cursor:
+            cursor.execute(query, (row.get('val'),))
+            conn.commit()
+
+
+        # if DatasetStat.objects.filter(tbiaDatasetID=row.get('val')).exists():
+        #     dataset_obj = DatasetStat.objects.get(tbiaDatasetID=row.get('val'))
+        #     dataset_obj.count += 1
+        #     dataset_obj.modified = timezone.now()
+        #     dataset_obj.save()
+        # else:
+        #     DatasetStat.objects.create(tbiaDatasetID=row.get('val'), count=1)
+
+    return 'done'
 
 
 
