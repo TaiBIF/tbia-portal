@@ -962,7 +962,7 @@ def get_records(request): # 全站搜尋
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder']
+            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -1125,7 +1125,6 @@ def get_conditional_dataset(request):
         if holders := req_dict.getlist('rightsHolder'):
             holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
             query_list.append(f"({' OR '.join(holders)})")
-
 
 
         query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount" FROM dataset'
@@ -1340,7 +1339,7 @@ def dataset_detail(request, id):
 
 def get_map_grid(request):
     if request.method == 'POST':
-        
+
         req_dict = request.POST
         grid = int(req_dict.get('grid'))
 
@@ -1390,10 +1389,6 @@ def get_conditional_records(request):
     if request.method == 'POST':
         req_dict = request.POST
 
-        # print(req_dict)
-        # print(req_dict.getlist('selected_col'))
-        # print(len(req_dict.getlist('selected_col')))
-
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
         sort = req_dict.get('sort', 'asc')
@@ -1402,11 +1397,9 @@ def get_conditional_records(request):
 
         # selected columns
         if req_dict.getlist('selected_col'):
-            # print('hello')
             selected_col = req_dict.getlist('selected_col')
         else:
-            # print('hello22')
-            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate']
+            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -1520,7 +1513,6 @@ def get_conditional_records(request):
 
         if req_dict.get('from') == 'search':
 
-            print('search')
             # 搜尋紀錄
 
             now_dict = dict(req_dict)

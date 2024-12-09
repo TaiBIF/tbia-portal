@@ -559,9 +559,11 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        a.className = 'orderby';
-        a.dataset.orderby = Object.keys(map_dict)[i];
-        a.dataset.sort = 'asc';
+        if (Object.keys(map_dict)[i]!='associatedMedia'){
+          a.className = 'orderby';
+          a.dataset.orderby = Object.keys(map_dict)[i];
+          a.dataset.sort = 'asc';
+      }
         this_td.appendChild(text);
         this_td.appendChild(a);
         table_title.appendChild(this_td);
@@ -633,7 +635,6 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
         getRecords(record_type, key, value, scientific_name, limit, page, 'orderby', go_back, $(this).data('orderby'), $(this).data('sort'))
       })
 
-      // let selected_key = Object.keys(map_dict).find(a => map_dict[a] === key)
       window.selected_key = key
       // 判斷是從分頁或卡片點選
       if ((from == 'card') || ($(`.${record_type}-choice input:checked`).length == 0)) { //如果都沒有選的話用預設值

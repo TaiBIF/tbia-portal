@@ -411,6 +411,10 @@
 					<input type="checkbox" class="chebox" id="col-license">
 					<p>{% trans '授權狀況' %}</p>
 				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-associatedMedia">
+					<p>{% trans '影像' %}</p>
+				</li>
 			</ul>
 			<button class="send_bt sendSelected">{% trans '確認' %}</button>
 		</div>
@@ -494,5 +498,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v17"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v18"></script>
 {% endblock %}

@@ -1090,15 +1090,18 @@ function setTable(response, queryString, from, orderby, sort) {
     function_td.appendChild(text);
     table_title.appendChild(function_td);
 
+
     for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        a.className = 'orderby';
-        a.dataset.orderby = Object.keys(map_dict)[i];
-        a.dataset.sort = 'asc';
+        if (Object.keys(map_dict)[i]!='associatedMedia'){
+            a.className = 'orderby';
+            a.dataset.orderby = Object.keys(map_dict)[i];
+            a.dataset.sort = 'asc';
+        }
         this_td.appendChild(text);
         this_td.appendChild(a);
         table_title.appendChild(this_td);

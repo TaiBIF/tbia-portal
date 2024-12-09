@@ -215,6 +215,7 @@ def get_key(val, my_dict):
     return "key doesn't exist"
 
 map_occurrence = {
+    'associatedMedia': '影像',
     'domain'	:'域',
     'superkingdom'	:'總界',
     'kingdom'	:'界',
@@ -343,7 +344,7 @@ map_occurrence = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'occurrenceID': 'occurrenceID' 
+    'occurrenceID': 'occurrenceID',
 }
 
 # 抓出collection和occurrence不一樣的地方
@@ -1689,6 +1690,12 @@ def create_data_table(docs, user_id, obv_str):
         if row.get('basisOfRecord',''):
             if row.get('basisOfRecord') in basis_map.keys():
                 docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
+
+        if media_list := row.get('associatedMedia'):
+            media_list = media_list.split(';')
+            if len(media_list):
+                # 取第一張
+                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
