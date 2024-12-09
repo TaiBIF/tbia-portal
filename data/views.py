@@ -1240,7 +1240,18 @@ def download_dataset_results(request):
     return response
 
 
+def get_media_rule():
+    conn = psycopg2.connect(**datahub_db_settings)
+    query = 'SELECT "media_rule" FROM media_rule'
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        conn.close()
+        results = [r[0] for r in results]
+        return results
 
+
+@csp_update(IMG_SRC=get_media_rule())
 def search_collection(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
@@ -1252,6 +1263,7 @@ def search_collection(request):
         'rank_list': rank_list})
     
 
+@csp_update(IMG_SRC=get_media_rule())
 def search_occurrence(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
@@ -1262,17 +1274,6 @@ def search_occurrence(request):
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
         })
-
-def get_media_rule():
-    conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "media_rule" FROM media_rule'
-    with conn.cursor() as cursor:
-        cursor.execute(query)
-        results = cursor.fetchall()
-        conn.close()
-        results = [r[0] for r in results]
-        return results
-
 
 @csp_update(IMG_SRC=get_media_rule())
 def occurrence_detail(request, id):
