@@ -5738,7 +5738,7 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("/static/image/mapimg.jpg") no-repeat center;
+    /* background: url("/static/image/mapimg.jpg") no-repeat center; */
     background-size: cover
 }
 
@@ -8203,7 +8203,7 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("/static/image/mapimg.jpg") no-repeat center;
+    /* background: url("/static/image/mapimg.jpg") no-repeat center; */
     background-size: cover
 }
 
@@ -8836,7 +8836,7 @@ body {
     z-index: 5;
     top: 0px;
     left: 0;
-    background: url("/static/image/mapimg.jpg") no-repeat center;
+    /* background: url("/static/image/mapimg.jpg") no-repeat center; */
     background-size: cover
 }
 

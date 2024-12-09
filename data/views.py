@@ -1340,6 +1340,7 @@ def dataset_detail(request, id):
 
 def get_map_grid(request):
     if request.method == 'POST':
+        
         req_dict = request.POST
         grid = int(req_dict.get('grid'))
 
