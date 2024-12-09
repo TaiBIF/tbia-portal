@@ -1692,7 +1692,14 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
 
         if media_list := row.get('associatedMedia'):
-            media_list = media_list.split(';')
+
+            if ';' in media_list:
+                img_sep = ';'
+            else:
+                img_sep = '|'
+
+            media_list = media_list.split(img_sep)
+
             if len(media_list):
                 # 取第一張
                 docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
