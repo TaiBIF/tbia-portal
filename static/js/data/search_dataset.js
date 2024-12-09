@@ -14,6 +14,15 @@ let selectBox1 = new vanillaSelectBox("#taxonGroup", {
 
 $(function () {
 
+    $(document).on("keydown", "form", function(event) { 
+        
+        if (event.key == "Enter"){
+            submitSearch(is_preload=false)
+            return event.key != "Enter";
+        }
+    });
+    
+
     $('.resetSearch').on('click', function () {
         $('#searchForm').trigger("reset");
         selectBox.empty()
@@ -40,7 +49,7 @@ $(function () {
     
 
     $('.submitSearch').on('click', function(){
-        submitSearch()
+        submitSearch(is_preload=false)
     })
 
     // 起始狀態
@@ -112,8 +121,6 @@ function submitSearch(is_preload, page){
         
         $('.result_table tr:not(.table_title)').remove()
         $('.page-inf').remove()
-
-
 
         if (response.count == 0) {
     

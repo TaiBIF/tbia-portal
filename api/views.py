@@ -15,7 +15,7 @@ from conf.utils import scheme
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 from urllib import parse
 from manager.models import SearchCount #, SearchStat
@@ -23,7 +23,7 @@ from manager.models import SearchCount #, SearchStat
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql
-from data.utils import backgroud_search_stat
+from data.utils import backgroud_search_stat, taxon_group_map_e
 import threading
 
 def check_coor(lon,lat):
@@ -364,20 +364,9 @@ def dataset(request):
         if limit > 1000: # 最高為1000
             limit = 1000
 
-        # offset = req.get('offset', 0)
-        # try:
-        #     offset = int(offset)
-        # except:
-        #     offset = 0
-
         now_cursor = int(req.get('cursor', 0))
 
         # 篩選條件
-        
-        # datasetName={string}
-        # sourceDatasetID={string}
-        # tbiaDatasetID={string} (暫不提供)
-        # rightsHolder={string}
 
         conn = psycopg2.connect(**datahub_db_settings)
     
@@ -385,11 +374,14 @@ def dataset(request):
         query_pair = []
         query_identifier = []
 
-        # union_list = ['taxonID', 'rightsHolder','datasetName']
-        # for u in union_list:
-        #     if values := req.getlist(u):
-        #         values = [f'"{v}"' for v in values]
-        #         fq_list.append(f'{u}: ({(" OR ").join(values)})')
+
+        # 統一換成英文
+        if group_value := req.get('datasetTaxonGroup'):
+            if group_value in taxon_group_map_e.keys():
+                group_value = taxon_group_map_e[group_value]
+            query_pair.append('{} like %s')
+            query_value.append('%{}%'.format(group_value))
+            query_identifier.append('datasetTaxonGroup')
 
 
         for k in ['datasetName', 'rightsHolder']:
@@ -410,17 +402,54 @@ def dataset(request):
                 query_pair.append("(" + ' OR '.join(tmp_list) + ")")
 
 
-        for k in ['sourceDatasetID']:
+        for k in ['sourceDatasetID','tbiaDatasetID','gbifDatasetID']:
             if req.get(k):
                 query_pair.append('{} = %s')
                 query_value.append(req.get(k))
                 query_identifier.append(k)
 
 
-                
-        query_str = '''SELECT id, "name" AS "datasetName", "rights_holder" AS "rightsHolder", "sourceDatasetID", "gbifDatasetID", 
-                        "resourceContacts", "datasetURL", "datasetAuthor", "datasetPublisher",
-                        "datasetLicense", "datasetTaxonGroup", "dateCoverage", "occurrenceCount",
+        for k in ['created','modified']:
+            if k_date := req.get(k):
+                date_list = k_date.split(',')
+                if len(date_list) == 2: # 起迄
+                    # 區間
+                    try:
+                        start_date = datetime.strptime(date_list[0], '%Y-%m-%d')
+                        start_date = start_date.strftime('%Y-%m-%d')
+                        end_date = datetime.strptime(date_list[1], '%Y-%m-%d')
+                        end_date = end_date + timedelta(days=1)
+                        end_date = end_date.strftime('%Y-%m-%d')
+                        query_pair.append('{} >= %s')
+                        query_value.append(start_date)
+                        query_identifier.append(k)
+                        query_pair.append('{} < %s')
+                        query_value.append(end_date)
+                        query_identifier.append(k)
+                    except:
+                        final_response['status'] = {'code': 400, 'message': f'Invalid date format'}
+                        return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+                else:
+                    # 當天
+                    date = date_list[0]
+                    try:
+                        start_date = datetime.strptime(date, '%Y-%m-%d')
+                        end_date = start_date + timedelta(days=1)
+                        start_date = start_date.strftime('%Y-%m-%d')
+                        end_date = end_date.strftime('%Y-%m-%d')
+                        query_pair.append('{} >= %s')
+                        query_value.append(start_date)
+                        query_identifier.append(k)
+                        query_pair.append('{} < %s')
+                        query_value.append(end_date)
+                        query_identifier.append(k)
+                    except:
+                        final_response['status'] = {'code': 400, 'message': f'Invalid date format'}
+                        return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+        query_str = '''SELECT "id", "name" as "datasetName", "rights_holder" as "rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+                          "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup",
                         TO_CHAR(created, 'yyyy-mm-dd') AS created , TO_CHAR(modified, 'yyyy-mm-dd') AS modified,
                         COUNT(*) OVER() AS total
                         FROM dataset WHERE deprecated = 'f' 

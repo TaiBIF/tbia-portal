@@ -1210,7 +1210,7 @@ def download_dataset_results(request):
             holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
             query_list.append(f"({' OR '.join(holders)})")
 
-        download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+        dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
                          "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
 
@@ -1224,12 +1224,12 @@ def download_dataset_results(request):
 
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
-        df = pd.DataFrame(columns=download_cols)
+        df = pd.DataFrame(columns=dataset_download_cols)
 
         with conn.cursor() as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
-            df = pd.DataFrame(results, columns=download_cols)
+            df = pd.DataFrame(results, columns=dataset_download_cols)
             
         conn.close()
 

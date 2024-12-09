@@ -2676,3 +2676,53 @@ msgstr "Dataset Publisher"
 #:
 msgid "最後更新時間"
 msgstr "Last Updated"
+
+
+#:
+msgid "資料集 - dataset API"
+msgstr "dataset API"
+
+
+#:
+msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
+msgstr "The service will perform partial data blurred. Access to the restricted API for non-blurred data is currently available only to TBIA partner organizations."
+
+
+#:
+msgid "使用本網站之資料集ID取得指定的資料集"
+msgstr "Get dataset by TBIA datasetID"
+
+
+#:
+msgid "使用來源資料庫 / 典藏單位之資料集ID取得指定的資料集"
+msgstr "Get dataset by sourceDatasetID from rights holder"
+
+
+#:
+msgid "以GBIF的資料集ID取得指定的資料集"
+msgstr "Get dataset by GBIF datasetID"
+
+
+#:
+msgid "取得指定來源資料庫 / 典藏單位的資料集"
+msgstr "List dataset by rights holder"
+
+
+#:
+msgid "以資料集名稱查詢，支援部分查詢"
+msgstr "List dataset by dataset name, supporting partial matching"
+
+
+#:
+msgid "取得含括指定物種類群的資料集"
+msgstr "List dataset that include the specified taxon group"
+
+
+#:
+msgid "資料集建立時間，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List datasets by created date (TBIA portal). Supports range queries."
+
+
+#:
+msgid "資料集更新時間，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List datasets by modified date (TBIA portal). Supports range queries."

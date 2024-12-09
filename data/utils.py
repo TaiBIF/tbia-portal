@@ -60,13 +60,20 @@ def get_dataset_key(key):
     # 2024-12 修改為tbiaDatasetID
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
-    with conn.cursor() as cursor:
-        cursor.execute(query, (key,))
-        results = cursor.fetchone()
-        conn.close()
-        if results:
-            results = results[0]
+    try:
+        key = int(key)        
+        query = 'SELECT "name" FROM dataset WHERE "id" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    except:
+        query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    conn.close()
+    if results:
+        results = results[0]
     return results
 
 
@@ -133,6 +140,19 @@ taxon_group_map_c = {
     'Mammals' : '哺乳類',
     'Bacteria': '細菌',
     'Others': '其他',
+}
+
+taxon_group_map_e = {
+    '昆蟲': 'Insects' ,
+    '魚類': 'Fishes',
+    '爬蟲類': 'Reptiles',
+    '兩棲類': 'Amphibians',
+    '真菌(含地衣)': 'Fungi',
+    '植物': 'Plants',
+    '鳥類': 'Birds',
+    '哺乳類': 'Mammals',
+    '細菌': 'Bacteria',
+    '其他': 'Others'
 }
 
 
