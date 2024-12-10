@@ -1700,6 +1700,19 @@ def get_taxon_group_list(request):
 
 
 
+def get_taxon_stat(request):
+    # 資料空缺年的資料
+    # 物種類群資料筆數
+
+    taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
+    taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
+
+    response = {
+        'taxon_group_stat': taxon_group_stat,
+    }
+
+    return JsonResponse(response, safe=False)
+
 
 def get_system_stat(request):
     no_taxon = 0
@@ -2509,8 +2522,6 @@ def get_temporal_stat(request):
 
     # 需要回傳 1 - 年份空缺 -> 需排除year = x的資料
     # 需要回傳 2 - 月份空缺 -> 需排除year = x & month = x的資料
-
-    # print(request.GET)
 
     start_year = int(request.GET.get('start_year'), 0)
     end_year = int(request.GET.get('end_year'), 0)

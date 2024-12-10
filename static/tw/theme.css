@@ -2713,6 +2713,10 @@ body {
     background: #417991
 }
 
+.news_list li .infbox .center_box .tag_date .tag.silver {
+    background: #707070
+}
+
 .news_list li .infbox .center_box .tag_date .date {
     font-size: 12px
 }
@@ -3203,7 +3207,7 @@ body {
 }
 
 .edu_list li .cate_dbox .cate.web {
-    background: silver
+    background: rgba(192, 192, 192, 0.705)
 }
 
 .edu_list li .cate_dbox .cate.web a {
@@ -5120,6 +5124,10 @@ body {
 
 .news_de .tag_date .tag.blue {
     background: #417991
+}
+
+.news_de .tag_date .tag.silver {
+    background: #707070
 }
 
 .news_de .tag_date .date {

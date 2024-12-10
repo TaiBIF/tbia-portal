@@ -227,6 +227,12 @@
               <div class="arr"></div>
             </a>
           </li>
+          <li class="li-item_themeyear">
+            <a class="big_link rd_click focusComponent" data-item_class="item_themeyear" data-go_back="false">
+              <p>{% trans '主題年活動' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
           <li class="li-item_resource">
             <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>{% trans '開放資料相關資源' %}</p>
@@ -599,6 +605,39 @@
           data-more_class=".more_datathon"
           data-card_class=".datathon-card">{% trans '更多結果' %} </a>
         <input type="hidden" id="datathon_offset" value="6">
+        {% endif %}
+      </div>
+
+
+      <!----- 主題年活動 ----->
+      <div class="item item_themeyear" id="item_themeyear">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '主題年活動' %} ({{ themeyear.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if themeyear.count > 0 %}
+        <ul class="card_list_2 themeyear-card">
+          {% for i in themeyear.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %} 
+        {% if themeyear.count > 6 %}
+        <!--超過6個才有更多按鈕-->
+        <a class="more more_themeyear getMoreDocs" 
+          data-doc_type="themeyear"
+          data-offset_value="#themeyear_offset"
+          data-more_class=".more_themeyear"
+          data-card_class=".themeyear-card">{% trans '更多結果' %} </a>
+        <input type="hidden" id="themeyear_offset" value="6">
         {% endif %}
       </div>
 

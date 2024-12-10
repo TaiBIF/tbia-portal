@@ -42,7 +42,7 @@
             <div class="mb_scroll">
                 <ul>
                     <li class="nohover">
-                        <a class="big_link rd_click" href="/manager/system'">
+                        <a class="big_link rd_click" href="/manager/system">
                             <p>系統管理</p> 
                         </a>
                     </li>
@@ -160,6 +160,7 @@
                                     <option value="event">活動訊息</option>
                                     <option value="project">徵求公告</option>
                                     <option value="datathon">數據松成果</option>
+                                    <option value="themeyear">主題年活動</option>
                                 </select>
                             </li>
                             <li>語言</li>
@@ -219,8 +220,8 @@
     </div>
 
 </div>
-  {% endblock %}
+{% endblock %}
 
-  {% block script %}
-  <script src="{% static 'js/manager/system_news.js' %}?v4"></script>
-  {% endblock script %}
+{% block script %}
+<script src="{% static 'js/manager/system_news.js' %}?v4"></script>
+{% endblock script %}

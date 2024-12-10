@@ -1835,6 +1835,16 @@ def search_full(request):
                 'id': x.id
             })
 
+        themeyear = News.objects.filter(lang=lang,status='pass',type='themeyear').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
+        c_themeyear = themeyear.count()
+        themeyear_rows = []
+        for x in themeyear[:6]:
+            themeyear_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+
         # resource
         resource = Resource.objects.filter(lang=lang,title__regex=keyword_reg).order_by('-publish_date')
         c_resource = resource.count()
@@ -1860,6 +1870,7 @@ def search_full(request):
             'project': {'rows': project_rows, 'count': c_project},
             'datathon': {'rows': datathon_rows, 'count': c_datathon},
             'resource': {'rows': resource_rows, 'count': c_resource},
+            'themeyear': {'rows': themeyear_rows, 'count': c_themeyear},
             }
     else:
         response = {
@@ -1872,6 +1883,7 @@ def search_full(request):
             'project': {'count': 0},
             'datathon': {'count': 0},
             'resource': {'count': 0},
+            'themeyear': {'count': 0},
         }
 
     return render(request, 'data/search_full.html', response)

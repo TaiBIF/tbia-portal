@@ -2726,3 +2726,63 @@ msgstr "List datasets by created date (TBIA portal). Supports range queries."
 #:
 msgid "資料集更新時間，日期格式：yyyy-mm-dd。支援區間查詢"
 msgstr "List datasets by modified date (TBIA portal). Supports range queries."
+
+
+#:
+msgid "匯出KML"
+msgstr "Export to KML"
+
+
+#:
+msgid "點擊圓餅圖"
+msgstr "Click Pie Chart"
+
+
+#:
+msgid "筆數"
+msgstr "Number of Records"
+
+
+#:
+msgid "年"
+msgstr "Year"
+
+
+#:
+msgid "月"
+msgstr "Month"
+
+
+#:
+msgid "年份區間"
+msgstr "Year Range"
+
+
+#:
+msgid "筆"
+msgstr "records"
+
+
+#:
+msgid "共"
+msgstr "total"
+
+
+#:
+msgid "物種類群資料筆數"
+msgstr "Biological Group"
+
+
+#:
+msgid "資料時間空缺狀況"
+msgstr "Temporal Data Gap"
+
+
+#:
+msgid "資料空間空缺狀況"
+msgstr "Spatial Data Gap"
+
+
+#:
+msgid "資料空缺"
+msgstr "Data Gap"
