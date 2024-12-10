@@ -1,12 +1,6 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $(function () {
-  // 起始頁面
-  updateNews('all', 1) 
-
-  // $('.changePage').on('click', function () {
-  //   changePage($(this).data('page'), $(this).data('type'))
-  // })
 
   let start_date_picker = new AirDatepicker('#start_date',
     { locale: date_locale, dateFormat: 'yyyy-MM-dd' });
