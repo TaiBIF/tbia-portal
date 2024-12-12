@@ -165,7 +165,7 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: `<b>{point.category} ${gettext('年')}</b><br/>`,
+                // headerFormat: `<b>{point.category} ${gettext('年')}</b><br/>`,
                 pointFormat: '{point.y} ' + gettext('筆'),
             },
         }));
@@ -196,7 +196,7 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.category}月</b><br/>',
+                // headerFormat: '<b>{point.category}月</b><br/>',
                 pointFormat: '{point.y} ' + gettext('筆')
             },
         }));

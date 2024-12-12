@@ -72,9 +72,17 @@ input.name_input::placeholder {
 }
 
 .imgbox {
-    height: 390px !important;
+    height: 540px !important;
     width: auto !important;
 }
+
+
+@media only screen and (max-width: 999px) {
+    .imgbox {
+        height: 500px !important;    
+    }
+}
+
 
 .choice-flow {
     max-height: 100%;

@@ -2641,10 +2641,10 @@ def get_temporal_stat(request):
     # 如果都沒有 全部回傳0
     # for yy in year_list:
     if not new_data_list:
-        new_data_list.append({'name': '', 'data': [0 for m in  month_list], 'color': '' })
+        new_data_list.append({'name': '', 'data': [0 for m in month_list], 'color': '' })
 
     resp['month_data'] = new_data_list
-    resp['month_categories'] = month_list
+    resp['month_categories'] = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 
     return HttpResponse(json.dumps(resp), content_type='application/json')

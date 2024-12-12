@@ -171,8 +171,9 @@ $(document).ready(function () {
                         },
                     },
                     tooltip: {
-                        headerFormat: '<b>{point.x}</b><br/>',
-                        pointFormat: '{series.name}: {point.y}'
+                        // headerFormat: '<b>{point.x}</b><br/>',
+                        // pointFormat: '{series.name}: {point.y}'
+                        pointFormat: '<b>{point.y}筆</b>'
                     },
                 }));
 
@@ -237,8 +238,9 @@ $(document).ready(function () {
                         },
                     },
                     tooltip: {
-                        headerFormat: '<b>{point.x}</b><br/>',
-                        pointFormat: '{series.name}: {point.y}'
+                        // headerFormat: '<b>{point.x}</b><br/>',
+                        // pointFormat: '{series.name}: {point.y}'
+                        pointFormat: '<b>{point.y}筆</b>'
                     },
                 }));
 
@@ -669,8 +671,9 @@ $(document).ready(function () {
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: '<b>{point.x}</b><br/>',
+                    // pointFormat: '{series.name}: {point.y}'
+                    pointFormat: '<b>{point.y}筆</b>'
                 },
             }));
 
@@ -739,8 +742,8 @@ $(document).ready(function () {
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: `<b>{point.category} ${gettext('年')}</b><br/>`,
+                    pointFormat: '{point.y} ' + gettext('筆'),
                 },
             }));
             
@@ -770,8 +773,8 @@ $(document).ready(function () {
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}月</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: '<b>{point.category}月</b><br/>',
+                    pointFormat: '{point.y} ' + gettext('筆')
                 },
             }));
             

@@ -41,6 +41,22 @@ map.on('drag', function() {
     map.panInsideBounds(bounds, { animate: false });
 });
 
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend map-legend d-none'),
+        grades = [1, 10, 100, 1000, 5000, 10000, 50000, 100000]
+    div.innerHTML += `<div class="ml-5px mb-5">${gettext('資料筆數')}</div>`
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            `<div class="d-flex-ai-c"><div class="count-${grades[i]}"></div>` +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+') 
+            + '</div>'
+    }
+    return div;
+};
+
+legend.addTo(map);
 
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -373,7 +389,7 @@ function setTable(response, queryString, from, orderby, sort) {
 
     // 如果queryString裡面沒有指定orderby，使用scientificName
     $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
-    if (response.sort == 'asc') {
+    if (response.sort == 'desc') {
         $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
     } else {
         $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-up sort-icon-active"></i>')
@@ -381,18 +397,19 @@ function setTable(response, queryString, from, orderby, sort) {
     }
 
     $('.orderby').on('click', function () {
+        
         if ($(this).children('svg').hasClass('fa-sort')) {
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active');
-            $(this).data('sort', 'asc');
-        } else if ($(this).children('svg').hasClass('fa-sort-down')) {
+            $(this).data('sort', 'desc');
+        } else if ($(this).children('svg').hasClass('fa-sort-down')) { // 如果原本是down (desc)
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-up sort-icon-active')
-            $(this).data('sort', 'desc');
-        } else {
+            $(this).data('sort', 'asc');
+        } else {  // 如果原本是up (asc)
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
-            $(this).data('sort', 'asc');
+            $(this).data('sort', 'desc');
         }
 
         submitSearch(1, 'orderby', false, response.limit, $(this).data('orderby'), $(this).data('sort'))
@@ -404,6 +421,7 @@ function setTable(response, queryString, from, orderby, sort) {
 function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state) {
 
     // if (push_state == null) { push_state = true }
+        $('.map-legend').removeClass('d-none');
 
         let selected_col = ''
 

@@ -1557,7 +1557,7 @@ def change_dataset(request):
         record_type = '&fq=record_type:/.*col.*/'
 
     if datasetKey := request.GET.getlist('datasetKey'):
-        datasetKey = [int(d) for d in datasetKey]
+        # datasetKey = [int(d) for d in datasetKey]
         results = get_dataset_by_key(key_list=datasetKey)
         for d in results:
             ds += [{'value': d[0], 'text': d[1]}]

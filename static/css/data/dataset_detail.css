@@ -168,9 +168,30 @@ input[type='number']::-webkit-outer-spin-button {
     border: 0
 }
 
+
+
+.sc_de_top_data .left_area{
+    height: 510px !important;
+}
+
+@media only screen and (max-width: 999px) {
+    
+    .sc_de_top_data .left_area{
+        height: auto !important;
+    }
+}
+
+
 .imgbox {
-    height: 390px !important;
+    height: 460px !important;
     width: auto !important;
+}
+
+
+@media only screen and (max-width: 999px) {
+    .imgbox {
+        height: 430px !important;    
+    }
 }
 
 .h-300px {

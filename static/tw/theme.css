@@ -7826,6 +7826,12 @@ body {
     white-space: nowrap;
 }
 
+/* .result_table .table_style1 td:not(.row-synonyms){ */
+/* .result_table .table_style1 td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+ */
 .result_table .table_style1 tr:first-child td {
     border-bottom: 0px;
     background: #3F5146;
@@ -8173,7 +8179,8 @@ body {
 @media only screen and (max-width: 767px) {
     .search_condition_are .secboxtop2 .rightbox {
         width: 100%;
-        padding-left: 0px
+        padding-left: 0px;
+        max-width: none;
     }
 }
 
@@ -9471,7 +9478,7 @@ body {
     }
 }
 
-.page_data_area select {
+select[name=shownumber] {
     margin: 0px 5px;
     width: 65px;
     border-radius: 5px;
@@ -9479,10 +9486,10 @@ body {
     height: 40px;
     font-size: 16px;
     padding: 0px 10px;
-    color: #707070;
+    color: black;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background: url("../image/ardownselect.svg") right 10px top 15px no-repeat
+    background: url("/static/image/ardownselect.svg") right 10px top 15px no-repeat
 }
 
 @media only screen and (max-width: 999px) {

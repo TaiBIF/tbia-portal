@@ -412,6 +412,9 @@ download_cols = [
 'coordinateUncertaintyInMeters',
 'dataGeneralizations',
 'datasetName',
+'tbiaDatasetID',
+'sourceDatasetID',
+'gbifDatasetID',
 'eventDate',
 'license',
 'locality',
@@ -1629,6 +1632,38 @@ def create_data_table(docs, user_id, obv_str):
         if row.get('scientificName') and row.get('formatted_name'):
             docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
 
+        # 這邊如果太長的時候不顯示全部
+
+        syns, misapplied = '', ''
+
+        if row.get('formatted_synonyms'):
+            syns = row.get('formatted_synonyms')
+        elif row.get('synonyms'):
+            syns = row.get('synonyms')
+        
+        if syns:
+            syns = syns.split(',')
+            if len(syns) > 1:
+                syns = syns[:2]
+                syns = ', '.join(syns) + '...'
+            else:
+                syns = ', '.join(syns)
+            docs.loc[i, 'synonyms'] = syns
+
+        if row.get('formatted_misapplied'):
+            misapplied = row.get('formatted_misapplied')
+        elif row.get('misapplied'):
+            misapplied = row.get('misapplied')
+        
+        if misapplied:
+            misapplied = misapplied.split(',')
+            if len(misapplied) > 1:
+                misapplied = misapplied[:2]
+                misapplied = ', '.join(misapplied) + '...'
+            else:
+                misapplied = ', '.join(misapplied)
+            docs.loc[i, 'misapplied'] = misapplied
+
         # date
         if date := row.get('standardDate'):
             date = date[0].split('T')[0]
@@ -1706,14 +1741,6 @@ def create_data_table(docs, user_id, obv_str):
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
-
-    
-    if 'formatted_synonyms' in docs.keys():
-        docs['synonyms'] = docs['formatted_synonyms']
-        docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-    if 'misapplied' in docs.keys():
-        docs['misapplied'] = docs['formatted_misapplied']
-        docs['misapplied'] = docs['formatted_misapplied'].apply(lambda x: ', '.join(x.split(',')))
 
     rows = docs.to_dict('records')
 
