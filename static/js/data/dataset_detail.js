@@ -24,7 +24,7 @@ function getColor(d) {
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.counts),
-        weight: 1,
+        weight: 0.7,
         fillOpacity: 0.7,
         color: '#b2d2dd'
     };
@@ -91,7 +91,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_100', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_100', style: style, onEachFeature: onEachFeature  }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -119,7 +119,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_10', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_10', style: style, onEachFeature: onEachFeature  }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -146,7 +146,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_5', style: style, onEachFeature: onEachFeature  }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -174,7 +174,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_1', style: style, onEachFeature: onEachFeature  }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -192,6 +192,36 @@ function drawMapGrid(currentZoomLevel){
         }
     }
 }
+
+
+function whenClicked(e) {
+    
+    const current_pars = new URLSearchParams(window.condition)
+
+    current_pars.delete('current_grid_level')
+    current_pars.delete('current_grid')
+
+    let queryString = current_pars.toString() + '&current_grid_level=' + e.target.feature.properties.current_grid_level + '&current_grid=' + e.target.feature.properties.current_grid
+    window.condition = queryString
+
+    submitSearch(1, 'map', false, $('select[name=shownumber]').find(':selected').val(), 'scientificName', 'desc', null) 
+
+}
+  
+function onEachFeature(feature, layer) {
+    //bind click
+    layer.on({
+        click: whenClicked,
+        mouseover: (e) => {
+            e.target.setStyle({color: '#3c8299', weight: 2});
+          },
+        mouseout: (e) => {
+            e.target.setStyle({color: '#b2d2dd', weight: 0.7});
+          },
+  
+    });
+}
+
 
 $(document).ready(function () {
 
@@ -447,7 +477,10 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
         }
 
         // 在這邊要先把過去queryString的page , from , limit拿掉
-        window.condition = 'record_type=occ&datasetName=' + window.location.pathname.split('/')[2];
+        // window.condition = 'record_type=occ&datasetName=' + window.location.pathname.split('/')[2];
+        if (!window.condition){
+            window.condition = 'record_type=occ&datasetName=' + window.location.pathname.split('/')[2];
+        }
         const current_pars = new URLSearchParams(window.condition)
 
         current_pars.delete('page')
@@ -492,6 +525,19 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
             })
             .done(function (response) {
 
+
+                if (response.selected_grid_text!=''){
+
+                    $('.selected_grid_area').removeClass('d-none')
+                    $('.selected_grid').html(response.selected_grid_text)
+
+                } else {
+
+                    $('.selected_grid_area').addClass('d-none')
+                }
+
+
+
                 if (response.message == 'exceed'){
 
                     $(".loading_area").addClass('d-none');
@@ -504,10 +550,13 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
                     $('.page-inf').remove()
 
                     if (response.count == 0) {
+
+
     
                         $('.records-legend').addClass('d-none')
                         $('.result_inf_top').addClass('d-none')
                         $('.result_inf_top_1').addClass('d-none')
+                        $('.result_table').addClass('d-none')
                         $('.no_data').removeClass('d-none')
                         $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
 
@@ -517,7 +566,8 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
     
                         $('.result_inf_top').removeClass('d-none')
                         $('.result_inf_top_1').removeClass('d-none')
-    
+                        $('.result_table').removeClass('d-none')
+
                         $('.no_data').addClass('d-none')
     
                         // 在這步繪製地圖

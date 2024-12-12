@@ -1,3 +1,14 @@
+.selected_grid_area {
+    font-size: 16px;
+    margin-left: 10px;
+    color: #3F5146;
+    text-align: left;
+}
+
+.map_img {
+    margin-bottom: 10px;
+}
+
 .code {
     padding: 10px 15px;
     border-radius: 20px;

@@ -345,6 +345,10 @@ map_occurrence = {
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
     'occurrenceID': 'occurrenceID',
+    'grid_1': '1公里網格編號',
+    'grid_5': '5公里網格編號',
+    'grid_10': '10公里網格編號',
+    'grid_100': '100公里網格編號',
 }
 
 # 抓出collection和occurrence不一樣的地方
@@ -485,6 +489,9 @@ def create_query_display(search_dict,lang=None):
     d_list = []
     r_list = []
     l_list = []
+
+    if search_dict.get('current_grid_level') in map_dict.keys() and search_dict.get('current_grid'):
+        query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{search_dict.get("current_grid")}'
 
     for k in search_dict.keys():
         if k in map_dict.keys():
@@ -628,6 +635,14 @@ def query_a_href(query, query_a, lang=None):
     return query
 
 
+def return_selected_grid_text(req_dict,map_dict):
+
+    string = ''
+    if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
+        string = f'''{gettext(map_dict[req_dict["current_grid_level"]])} {req_dict.get('current_grid')}'''
+    return string
+
+
 # 已經預先存好的req_dict, getlist改為get
 # generate_sensitive_csv (v), transfer_sensitive_response (v), submit_sensitive_request(v)
 
@@ -695,6 +710,9 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if val := req_dict.get(i):
             query_list += [f'{i}:"{val}"']
 
+    # 這邊會不會有模糊化的問題
+    if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
+        query_list += [f'''{req_dict.get('current_grid_level')}:"{req_dict.get('current_grid')}"''']
 
     # higherTaxa
     # 找到該分類群的階層 & 名稱
@@ -1422,7 +1440,9 @@ def get_map_geojson(data_c, grid):
                     "type": "Feature",
                     "geometry":{"type":"Polygon","coordinates":[borders]},
                     "properties": {
-                        "counts": current_count
+                        "counts": current_count,
+                        "current_grid_level": f'grid_{grid}',
+                        "current_grid": cc['val'],
                     }
                 }]
                 map_geojson[f'grid_{grid}']['features'] += tmp

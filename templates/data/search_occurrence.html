@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v4" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v5" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -199,6 +199,9 @@
                 <div id="map" class="img"></div>
               </div>
             </div>
+            <div class="selected_grid_area d-none">
+              <b>{% trans '目前所選網格：' %}</b><span class="selected_grid"></span>
+             </div>  
             {% comment %} <div class="records-legend d-flex legend-fs-13px">
               {% trans '資料筆數' %}：
               <div class="d-flex"><div class="count-1"></div>1 - 10</div>
@@ -471,5 +474,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v18"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v19"></script>
 {% endblock script %}

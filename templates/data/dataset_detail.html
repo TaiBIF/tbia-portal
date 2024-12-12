@@ -21,7 +21,7 @@
 {% block title %}{{ resp.name }}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/dataset_detail.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/dataset_detail.css' %}?v2" />
 {% endblock style %}
 
 {% block body %}
@@ -106,6 +106,10 @@
 						</div>
 					</div>
 				</div>
+				<div class="selected_grid_area d-none">
+					<b>{% trans '目前所選網格：' %}</b><span class="selected_grid"></span>
+				</div>  
+	
 				{% comment %} <div class="records-legend d-flex legend-fs-13px mt-5px">
 					{% trans '資料筆數' %}：
 					<div class="d-flex"><div class="count-1"></div>1 - 10</div>
@@ -298,5 +302,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/dataset_detail.js' %}?v1"></script>
+<script src="{% static 'js/data/dataset_detail.js' %}?v2"></script>
 {% endblock script %}

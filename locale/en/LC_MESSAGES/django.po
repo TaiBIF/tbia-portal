@@ -2786,3 +2786,28 @@ msgstr "Spatial Data Gap"
 #:
 msgid "資料空缺"
 msgstr "Data Gap"
+
+
+#:
+msgid "1公里網格編號"
+msgstr "1 KM Grid Number"
+
+
+#:
+msgid "5公里網格編號"
+msgstr "5 KM Grid Number"
+
+
+#:
+msgid "10公里網格編號"
+msgstr "10 KM Grid Number"
+
+
+#:
+msgid "100公里網格編號"
+msgstr "100 KM Grid Number"
+
+
+#:
+msgid "目前所選網格："
+msgstr "Current Selected Grid: "

@@ -33,7 +33,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v6" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v7" />
 {% endblock style %}
 
 
@@ -213,7 +213,9 @@
                 <div id="map" class="img"></div>
               </div>
             </div>
-			
+			<div class="selected_grid_area d-none">
+				<b>{% trans '目前所選網格：' %}</b><span class="selected_grid"></span>
+			</div>  
             {% comment %} <div class="records-legend d-flex legend-fs-13px">
 				{% trans '資料筆數' %}：
 				<div class="d-flex"><div class="count-1"></div>1 - 10</div>
@@ -227,7 +229,7 @@
 				<div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
 				<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
 			</div> {% endcomment %}
-  
+
           </div>
         </div>
         </form>
@@ -498,5 +500,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v18"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v19"></script>
 {% endblock %}

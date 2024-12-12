@@ -1408,6 +1408,7 @@ def get_conditional_records(request):
 
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
+
         record_type = req_dict.get('record_type')
 
         if record_type == 'col': # occurrence include occurrence + collection
@@ -1418,6 +1419,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
+        selected_grid_text = return_selected_grid_text(req_dict=req_dict, map_dict=map_dict)
 
         if orderby == 'eventDate':
             solr_orderby = 'standardDate' + ' ' + sort
@@ -1542,6 +1544,7 @@ def get_conditional_records(request):
             'limit': limit,
             'orderby': orderby,
             'sort': sort,
+            'selected_grid_text': selected_grid_text
         }
         
         return HttpResponse(json.dumps(response, default=str), content_type='application/json')

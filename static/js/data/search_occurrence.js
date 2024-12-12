@@ -244,7 +244,7 @@ function getColor(d) {
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.counts),
-        weight: 1,
+        weight: 0.7,
         fillOpacity: 0.7,
         color: '#b2d2dd'
     };
@@ -340,7 +340,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_100', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_100', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -368,7 +368,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_10', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_10', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -395,7 +395,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_5', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -423,7 +423,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_1', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -441,6 +441,36 @@ function drawMapGrid(currentZoomLevel){
         }
     }
 }
+
+function whenClicked(e) {
+
+    const current_pars = new URLSearchParams(window.condition)
+
+    current_pars.delete('current_grid_level')
+    current_pars.delete('current_grid')
+
+    let queryString = current_pars.toString() + '&current_grid_level=' + e.target.feature.properties.current_grid_level + '&current_grid=' + e.target.feature.properties.current_grid
+    window.condition = queryString
+
+    submitSearch(1, 'map', false, $('select[name=shownumber]').find(':selected').val(), 'scientificName', 'desc', null) 
+
+}
+  
+function onEachFeature(feature, layer) {
+    //bind click
+    layer.on({
+        click: whenClicked,
+        mouseover: (e) => {
+            e.target.setStyle({color: '#3c8299', weight: 2});
+          },
+        mouseout: (e) => {
+            e.target.setStyle({color: '#b2d2dd', weight: 0.7});
+          },
+  
+    });
+}
+  
+  
 
 function initDataset(what, datasize) {
     let valueProperty = "value";
@@ -549,7 +579,7 @@ function doSearchDataset(what, datasize) {
 $(function () {
 
     $('.resetSearch, .clearGeo').on('click',function(){
-        $('.map-legend').addClass('d-none')
+        $('.map-legend, .selected_grid_area').addClass('d-none')
     })
 
     $('#searchForm').on('submit', function(event) { 
@@ -1346,12 +1376,23 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             })
             .done(function (response) {
 
-                if (response.message == 'exceed'){
+                if (response.selected_grid_text!=''){
+
+                    $('.selected_grid_area').removeClass('d-none')
+                    $('.selected_grid').html(response.selected_grid_text)
+
+                } else {
+
+                    $('.selected_grid_area').addClass('d-none')
+                }
+
+              if (response.message == 'exceed'){
 
                     $(".loading_area").addClass('d-none');
                     alert(gettext('超過系統可取得的頁數，請嘗試使用結果排序功能或縮小搜尋範圍'))
 
                 } else {
+
 
                     // clear previous results
                     $('.record_table tr').remove()
