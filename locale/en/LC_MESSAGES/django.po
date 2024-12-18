@@ -2321,8 +2321,8 @@ msgid "使用本網站之入口網ID取得指定的出現紀錄資料"
 msgstr "Get record by TBIA ID"
 
 #:
-msgid "取得指定物種編號的物種資料"
-msgstr "List records by taxon ID"
+msgid "取得指定TaiCOL物種編號的物種資料"
+msgstr "List records by TaiCOL taxon ID"
 
 #:
 msgid "是否為自然史典藏資料，是=true，否=false"
@@ -2375,6 +2375,14 @@ msgstr "Created Date (TBIA Portal)"
 #:
 msgid "入口網資料修改時間"
 msgstr "Modified Date (TBIA Portal)"
+
+#:
+msgid "入口網資料集建立時間"
+msgstr "Dataset Created Date (TBIA Portal)"
+
+#:
+msgid "入口網資料集修改時間"
+msgstr "Dataset Modified Date (TBIA Portal)"
 
 #:
 msgid "標準化日期"
@@ -2811,3 +2819,23 @@ msgstr "100 KM Grid Number"
 #:
 msgid "目前所選網格："
 msgstr "Current Selected Grid: "
+
+
+#:
+msgid "資料集URL"
+msgstr "Dataset URL"
+
+
+#:
+msgid "資料集授權狀況"
+msgstr "Dataset License"
+
+
+#:
+msgid "含括物種類群"
+msgstr "Taxonomic Groups Included in the Dataset"
+
+
+#:
+msgid "含括資料筆數"
+msgstr "Number of Records Included in the Dataset"
