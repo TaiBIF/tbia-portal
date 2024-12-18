@@ -2839,3 +2839,8 @@ msgstr "Taxonomic Groups Included in the Dataset"
 #:
 msgid "含括資料筆數"
 msgstr "Number of Records Included in the Dataset"
+
+
+#:
+msgid "影像"
+msgstr "Associated Media"

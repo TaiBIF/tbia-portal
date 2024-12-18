@@ -388,9 +388,11 @@ function setTable(response, queryString, from, orderby, sort) {
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        a.className = 'orderby';
-        a.dataset.orderby = Object.keys(map_dict)[i];
-        a.dataset.sort = 'asc';
+        if (Object.keys(map_dict)[i]!='associatedMedia'){
+            a.className = 'orderby';
+            a.dataset.orderby = Object.keys(map_dict)[i];
+            a.dataset.sort = 'asc';
+        }
         this_td.appendChild(text);
         this_td.appendChild(a);
         table_title.appendChild(this_td);

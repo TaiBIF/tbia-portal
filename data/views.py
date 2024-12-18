@@ -1293,8 +1293,10 @@ def collection_detail(request, id):
     return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
+@csp_update(IMG_SRC=get_media_rule())
 def dataset_detail(request, id):
 
+    link, logo = '', ''
     dataset_prefix = None
 
     query = '''SELECT * FROM dataset WHERE "tbiaDatasetID" = %s AND deprecated = 'f';'''
@@ -1746,6 +1748,7 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
+@csp_update(IMG_SRC=get_media_rule())
 def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')
