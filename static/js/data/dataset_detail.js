@@ -203,6 +203,7 @@ function whenClicked(e) {
 
     let queryString = current_pars.toString() + '&current_grid_level=' + e.target.feature.properties.current_grid_level + '&current_grid=' + e.target.feature.properties.current_grid
     window.condition = queryString
+    history.pushState(null, '', window.location.pathname + '?' + queryString)
 
     submitSearch(1, 'map', false, $('select[name=shownumber]').find(':selected').val(), 'scientificName', 'desc', null) 
 
@@ -225,7 +226,10 @@ function onEachFeature(feature, layer) {
 
 $(document).ready(function () {
 
+    // 起始狀態 & 從網址進入
+    window.condition = window.location.search;
     submitSearch()
+
 
     $('.popupField').on('click', function () {
         $(`.occ-choice`).removeClass('d-none')
@@ -450,7 +454,7 @@ function setTable(response, queryString, from, orderby, sort) {
 
 function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state) {
 
-    // if (push_state == null) { push_state = true }
+    if (push_state == null) { push_state = true }
         $('.map-legend').removeClass('d-none');
 
         let selected_col = ''
@@ -476,11 +480,12 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
             orderby_str = '&orderby=' + orderby + '&sort=' + sort
         }
 
-        // 在這邊要先把過去queryString的page , from , limit拿掉
-        // window.condition = 'record_type=occ&datasetName=' + window.location.pathname.split('/')[2];
+
         if (!window.condition){
-            window.condition = 'record_type=occ&datasetName=' + window.location.pathname.split('/')[2];
+            window.condition = 'record_type=occ&datasetName=' + $('#tbiaDatasetID').html();
         }
+
+
         const current_pars = new URLSearchParams(window.condition)
 
         current_pars.delete('page')
@@ -493,13 +498,14 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
         let queryString = current_pars.toString() + '&page=' + page + '&from=' + from + '&limit=' + limit + orderby_str
         window.condition = queryString
 
+
         if (queryString.length > 2000) {
             alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
         } else {
 
-            // if (push_state) {
-            //     history.pushState(null, '', window.location.pathname + '?' + queryString)
-            // }
+            if (push_state) {
+                history.pushState(null, '', window.location.pathname + '?' + queryString)
+            }
 
             $(".loading_area").removeClass('d-none');
 
