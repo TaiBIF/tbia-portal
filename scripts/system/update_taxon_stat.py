@@ -6,6 +6,8 @@ from numpy import nan
 import json
 import math
 from data.utils import taxon_group_map_c
+from datetime import datetime
+now = datetime.now()
 
 # 只取 year 從1900開始的
 # 也有可能有 year 但沒有 month
@@ -94,8 +96,6 @@ for k in rights_holder_map.keys():
 
 stat_df = pd.DataFrame(stat_list)
 
-from datetime import datetime
-now = datetime.now()
 
 stat_df = stat_df[(stat_df.month.isin([r for r in range(1,13)])) | (stat_df.month=='x') ]
 stat_df = stat_df[stat_df.year.isin([r for r in range(1900, now.year + 1)])]
@@ -204,7 +204,12 @@ taxon_stat_df = taxon_stat_df[(taxon_stat_df.year.isin([r for r in range(1900, n
 taxon_stat_df = taxon_stat_df.groupby(['year', 'month', 'rights_holder', 'group', 'name'], as_index=False).sum()
 taxon_stat_df['type'] = 'taxon_group'
 
+
+c = 0
 for ss in taxon_stat_df.to_dict('records'):
+    c += 1
+    if c % 100 == 0:
+        print(c)
     # 存在則update
     if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
                                 rights_holder=ss['rights_holder'], group=ss['group'],name=ss['name']).exists():
@@ -362,9 +367,16 @@ for tt in taxon_group_map.keys():
                                     rights_holder=k, group=rights_holder_map[k],
                                     name=tt, count=tw_percentage)
         # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
-        now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
-        now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
-        now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
-                                                      'taxon_id': 'taxonID'})
-        now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+        if k == 'total':
+            now_taicol_df['TBIA入口網是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
+            now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','TBIA入口網是否有收錄']]
+            now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
+                                                        'taxon_id': 'taxonID'})
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+        else:
+            now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
+            now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
+            now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
+                                                        'taxon_id': 'taxonID'})
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
 

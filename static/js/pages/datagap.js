@@ -119,7 +119,7 @@ $(document).ready(function () {
                                         } else {
                                             percent_string = `佔TaiCOL臺灣${now_name}物種數 ${i.taiwan_percent}%`
                                         }
-                                        $('#taxon_group-stat-list').append(`<li>${gettext('共')} ${i.count} ${gettext('筆')}<br><span class="small-gray-text">${percent_string}</span></li>`)
+                                        $('#taxon_group-stat-list').append(`<li>${gettext('共')} ${i.count} ${gettext('筆')}<br><span class="small-gray-text"><a href="/media/taxon_stat/total_${now_name}.csv">${percent_string}</a></span></li>`)
                                     }
                                 } else {
                                     $('#taxon_group-stat-list').html(gettext('無資料'))
