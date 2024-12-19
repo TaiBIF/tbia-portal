@@ -166,7 +166,7 @@ $(document).ready(function () {
                         column: {
                             stacking: 'normal',
                             dataLabels: {
-                                enabled: true
+                                enabled: false
                             },
                         },
                     },
@@ -233,7 +233,7 @@ $(document).ready(function () {
                         column: {
                             stacking: 'normal',
                             dataLabels: {
-                                enabled: true
+                                enabled: false
                             },
                         },
                     },
@@ -515,6 +515,9 @@ $(document).ready(function () {
                 },
                 xAxis: {
                     categories: [],
+                    labels: {
+                        rotation: -45
+                    }    
                 },
                 plotOptions: {
                     line: {
@@ -666,7 +669,7 @@ $(document).ready(function () {
                     column: {
                         stacking: 'normal',
                         dataLabels: {
-                            enabled: true
+                            enabled: false
                         },
                     },
                 },
@@ -763,6 +766,9 @@ $(document).ready(function () {
                         text: '月'
                     },
                     categories: [],
+                    labels: {
+                        rotation: -45
+                    }    
                 },
                 plotOptions: {
                     column: {
