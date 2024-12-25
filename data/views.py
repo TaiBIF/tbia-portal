@@ -249,7 +249,7 @@ def transfer_sensitive_response(request):
         
             for p in Partner.objects.filter(group__in=groups):
                 new_sdr = SensitiveDataResponse.objects.create(
-                    partner = p,
+                    partner_id = p.id,
                     status = 'pending',
                     query_id = query_id
                 )       
@@ -1926,7 +1926,7 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
 
         for p in Partner.objects.filter(group__in=groups):
             sdr = SensitiveDataResponse.objects.create(
-                partner = p,
+                partner_id = p.id,
                 status = 'pending',
                 query_id = query_id
             )       
