@@ -1982,7 +1982,7 @@ def submit_news(request):
             if ori_status != 'pass' and status == 'pass':
                 # 新增 ark
                 # 如果已經有ARK的話就不要再給了
-                if not Ark.objects.create(type='news', model_id=n.id).exists():
+                if not Ark.objects.filter(type='news', model_id=n.id).exists():
                     ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
                     # insert api
                     url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
