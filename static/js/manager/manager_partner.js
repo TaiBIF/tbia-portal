@@ -329,13 +329,14 @@ $(document).ready(function () {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -387,13 +388,14 @@ $(document).ready(function () {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -446,13 +448,14 @@ $(document).ready(function () {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -501,13 +504,14 @@ $(document).ready(function () {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -553,18 +557,22 @@ $(document).ready(function () {
             },
             xAxis: {
                 categories: [],
+                labels: {
+                    rotation: -45
+                }
             },
             plotOptions: {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -613,13 +621,14 @@ $(document).ready(function () {
                 column: {
                     stacking: 'normal',
                     dataLabels: {
-                        enabled: true
+                        enabled: false
                     },
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
 
@@ -681,8 +690,7 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
         
@@ -702,6 +710,9 @@ $(document).ready(function () {
                     text: '月'
                 },
                 categories: [],
+                labels: {
+                    rotation: -45
+                }
             },
             plotOptions: {
                 column: {
@@ -712,8 +723,9 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}月</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.category}月</b><br/>',
+                // pointFormat: '{point.y} ' + gettext('筆')
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
         
@@ -750,8 +762,9 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
         
@@ -771,6 +784,9 @@ $(document).ready(function () {
                     text: '月'
                 },
                 categories: [],
+                labels: {
+                    rotation: -45
+                }
             },
             plotOptions: {
                 column: {
@@ -781,8 +797,9 @@ $(document).ready(function () {
                 },
             },
             tooltip: {
-                headerFormat: '<b>{point.x}月</b><br/>',
-                pointFormat: '{series.name}: {point.y}'
+                // headerFormat: '<b>{point.x}月</b><br/>',
+                // pointFormat: '{series.name}: {point.y}'
+                pointFormat: '<b>{point.y}筆</b>'
             },
         }));
         
@@ -922,6 +939,17 @@ function updateInfo() {
 }
 
 
+function syncMaps(sourceMap, targetMap) {
+    // targetMap.off('moveend'); // 暫時取消事件以避免循環觸發
+    targetMap.setView(sourceMap.getCenter(), sourceMap.getZoom(), { animate: false });
+    // 兩個地圖都要畫
+    // targetMap.on('moveend', () => syncMaps(targetMap, sourceMap)); // 再次添加事件
+    let wkt_range = getWKTMap(sourceMap);
+
+    drawMapGrid(current_map=portal_map,group='total',wkt_range=wkt_range)
+    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val(),wkt_range=wkt_range)
+
+}
 
 
 function getWKTMap(current_map) {
@@ -982,34 +1010,36 @@ L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 
 
 portal_map.on('zoomend', function zoomendEvent(ev) {
-    drawMapGrid(current_map=portal_map,group='total')
+    syncMaps(portal_map, partner_map)
 });
 
 
 portal_map.on('dragend', function zoomendEvent(ev) {
-    drawMapGrid(current_map=portal_map,group='total')
+    syncMaps(portal_map, partner_map)
 });
 
 
 partner_map.on('zoomend', function zoomendEvent(ev) {
-    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+    syncMaps(partner_map, portal_map)
 });
 
 
 partner_map.on('dragend', function zoomendEvent(ev) {
-    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+    syncMaps(partner_map, portal_map)
 });
 
 
+
 $('select[name=portal-spatial-taxonGroup]').on('change', function(){
-    drawMapGrid(current_map=portal_map,group='total')
+    // wkt_range = getWKTMap(portal_map)
+    drawMapGrid(current_map=portal_map,group='total',wkt_range=getWKTMap(portal_map))
 })
 
 // 起始
 $('select[name=portal-spatial-taxonGroup]').trigger('change')
 
 $('select[name=partner-spatial-taxonGroup]').on('change', function(){
-    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val())
+    drawMapGrid(current_map=partner_map,group=$('input[name=current_group]').val(),wkt_range=getWKTMap(partner_map))
 })
 
 // 起始
@@ -1017,7 +1047,7 @@ $('select[name=partner-spatial-taxonGroup]').trigger('change')
 
 // 統一畫5公里網格
 // TODO 這邊還要加上taxon group
-function drawMapGrid(current_map, group){
+function drawMapGrid(current_map, group, wkt_range){
 
     if (group == 'total'){
         taxon_group = $('select[name=portal-spatial-taxonGroup]').find(':selected').val()
@@ -1031,7 +1061,7 @@ function drawMapGrid(current_map, group){
 
     $.ajax({
         url: "/get_map_grid",
-        data: `group=${group}&taxonGroup=${taxon_group}&grid=5&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: `group=${group}&taxonGroup=${taxon_group}&grid=5&map_bound=` + wkt_range + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
     })

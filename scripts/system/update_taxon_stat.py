@@ -6,6 +6,8 @@ from numpy import nan
 import json
 import math
 from data.utils import taxon_group_map_c
+from datetime import datetime
+now = datetime.now()
 
 # 只取 year 從1900開始的
 # 也有可能有 year 但沒有 month
@@ -94,8 +96,6 @@ for k in rights_holder_map.keys():
 
 stat_df = pd.DataFrame(stat_list)
 
-from datetime import datetime
-now = datetime.now()
 
 stat_df = stat_df[(stat_df.month.isin([r for r in range(1,13)])) | (stat_df.month=='x') ]
 stat_df = stat_df[stat_df.year.isin([r for r in range(1900, now.year + 1)])]
@@ -120,29 +120,40 @@ for ss in stat_df.to_dict('records'):
 
 
 # 以下為區分類群
+# 這邊要只計算種 & 種下
 
 taxon_stat_list = []
 
 
 for tt in taxon_group_map.keys():
-    taxon_query = taxon_group_map[tt]
-    fq_taxon_query = ''
+    query_list = []
+    vv_list = []
     if tt == 'Others':
         for vv in taxon_group_map.keys():
             if vv != 'Others':
                 for vvv in taxon_group_map[vv]:
-                    fq_taxon_query += f"fq=-{vvv['key']}:{vvv['value']}&"
+                    vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
     else:
-        for tq in taxon_query:
-            fq_taxon_query += f"fq={tq['key']}:{tq['value']}&"
+        for vv in taxon_group_map[tt]:
+            vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+    query_list += [" OR ".join(vv_list)]
+    query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
+    query_list += ['is_in_taiwan:1']
     for k in rights_holder_map.keys():
-        if k == 'total':
-            fq_query = ''
+        if k != 'total':
+            # query_list += [f'rightsHolder:"{k}"']
+            holder_str = f'&fq=rightsHolder:"{k}"'
         else:
-            fq_query = f'fq=rightsHolder:"{k}"&'
+            holder_str = ''
+        query = {
+                    "offset": 0,
+                    "limit": 0,
+                    "filter": query_list
+                }
+        url = f'{SOLR_PREFIX}tbia_records/select?q=*:*&facet.pivot=year,month&facet=true&facet.limit=-1&facet.mincount=1{holder_str}'
+        data = requests.post(url, data=json.dumps(query), headers={'content-type': "application/json" }).json()
         # 1. 先計算有 year + month 的
-        url = f'{SOLR_PREFIX}tbia_records/select?{fq_taxon_query}{fq_query}q.op=OR&q=*:*&facet.pivot=year,month&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
-        data = requests.get(url).json()
+        # data = requests.get(url).json()
         for dd in data['facet_counts']['facet_pivot']['year,month']:
             now_year = dd['value']
             if dd.get('pivot'):
@@ -158,8 +169,8 @@ for tt in taxon_group_map.keys():
                         'name': tt
                     })
         # 2. 再計算沒有 month 的 
-        url = f'{SOLR_PREFIX}tbia_records/select?{fq_taxon_query}{fq_query}q=-month:*&q.op=OR&facet.field=year&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
-        data = requests.get(url).json()
+        url = f'{SOLR_PREFIX}tbia_records/select?q=-month:*&q.op=OR&facet.field=year&facet=true&facet.limit=-1&facet.mincount=1{holder_str}'
+        data = requests.post(url, data=json.dumps(query), headers={'content-type': "application/json" }).json()
         data = data['facet_counts']['facet_fields']['year']
         for i in range(0, len(data), 2):
             now_year = data[i]
@@ -174,8 +185,8 @@ for tt in taxon_group_map.keys():
                         'name': tt
                     })
         # 3. 再計算完全沒有考慮時間的總和
-        url = f'{SOLR_PREFIX}tbia_records/select?{fq_taxon_query}{fq_query}q=*:*&q.op=OR&rows=0&start=0'
-        data = requests.get(url).json()
+        url = f'{SOLR_PREFIX}tbia_records/select?q=*:*{holder_str}'
+        data = requests.post(url, data=json.dumps(query), headers={'content-type': "application/json" }).json()
         taxon_stat_list.append({
                     'year': 'x',
                     'month': 'x',
@@ -193,7 +204,12 @@ taxon_stat_df = taxon_stat_df[(taxon_stat_df.year.isin([r for r in range(1900, n
 taxon_stat_df = taxon_stat_df.groupby(['year', 'month', 'rights_holder', 'group', 'name'], as_index=False).sum()
 taxon_stat_df['type'] = 'taxon_group'
 
+
+c = 0
 for ss in taxon_stat_df.to_dict('records'):
+    c += 1
+    if c % 100 == 0:
+        print(c)
     # 存在則update
     if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
                                 rights_holder=ss['rights_holder'], group=ss['group'],name=ss['name']).exists():
@@ -351,9 +367,16 @@ for tt in taxon_group_map.keys():
                                     rights_holder=k, group=rights_holder_map[k],
                                     name=tt, count=tw_percentage)
         # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
-        now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
-        now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
-        now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
-                                                      'taxon_id': 'taxonID'})
-        now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+        if k == 'total':
+            now_taicol_df['TBIA入口網是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
+            now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','TBIA入口網是否有收錄']]
+            now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
+                                                        'taxon_id': 'taxonID'})
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+        else:
+            now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
+            now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
+            now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
+                                                        'taxon_id': 'taxonID'})
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
 

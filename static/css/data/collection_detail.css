@@ -13,7 +13,7 @@
     -moz-transition: all .3s;
     -o-transition: all .3s;
     -ms-transition: all .3s;
-    -webkit-transition: all .3s
+    -webkit-transition: all .3s;
 }
 
 @media only screen and (min-width: 1000px) {
@@ -66,10 +66,6 @@
 .imgbox {
     height: 390px !important;
     width: auto !important;
-}
-
-.ml-5px {
-    margin-left: 5px;
 }
 
 .yellow-btn {

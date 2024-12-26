@@ -45,12 +45,12 @@
 							{% trans '物種出現紀錄 - occurrence API' %}
 						</a>
 					</li>
-					{% comment %} <li>
+					<li>
 						<div class="dot"></div>
 						<a href="#dataset-area">
 							{% trans '資料集 - dataset API' %}
 						</a>
-					</li> {% endcomment %}
+					</li>
 					<li>
 						<div class="dot"></div>
 						<a href="#common-area">
@@ -106,7 +106,7 @@
 						<tr>
 							<td>taxonID</td>
 							<td>string</td>
-							<td>{% trans '取得指定物種編號的物種資料' %}</td>
+							<td>{% trans '取得指定TaiCOL物種編號的物種資料' %}</td>
 							<td><a href="/api/v1/occurrence?taxonID=t0052516" target="_blank">/api/v1/occurrence?taxonID=t0052516</a></td>
 						</tr>
 						<tr>
@@ -170,14 +170,13 @@
 							<td>apikey</td>
 							<td>string</td>
 							<td>{% trans '限制型API金鑰' %}</td>
-							<td><a href="/api/v1/occurrence?apikey={yourAPIkey}" target="_blank">/api/v1/occurrence?circle={yourAPIkey}</a></td>
+							<td><a href="/api/v1/occurrence?apikey={yourAPIkey}" target="_blank">/api/v1/occurrence?apikey={yourAPIkey}</a></td>
 						</tr>
 					</table>
 					*{% trans '區間查詢請用半形逗號分隔起迄時間' %}
 					<br>
 					{% trans '範例網址' %}{% trans '：' %}
 					<a class="col_blue" href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a>
-
 				</div>
 
 				<div class="green_title">
@@ -291,6 +290,24 @@
 						<tr>
 							<td>datasetName</td>
 							<td>{% trans  '資料集名稱' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>tbiaDatasetID</td>
+							<td>{% trans '入口網資料集ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceDatasetID</td>
+							<td>{% trans '來源資料庫資料集ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>gbifDatasetID</td>
+							<td>{% trans 'GBIF資料集ID' %}</td>
 							<td>string</td>
 							<td></td>
 						</tr>
@@ -585,7 +602,6 @@
 					</table>
 				</div>
 			</div>
-			<!--
 			<div class="item_one" id="dataset-area">
 				<div class="sec_title">
 					<h3>{% trans '資料集 - dataset API' %}</h3>
@@ -606,26 +622,59 @@
 							<td>{% trans '範例網址' %}</td>
 						</tr>
 						<tr>
-							<td>datasetName</td>
+							<td>tbiaDatasetID</td>
 							<td>string</td>
-							<td>{% trans '以資料集名稱查詢，支援部分查詢' %}</td>
-							<td><a href="/api/v1/occurrence?datasetName=eBird" target="_blank">/api/v1/occurrence?datasetName=eBird</a></td>
+							<td>{% trans '使用本網站之資料集ID取得指定的資料集' %}</td>
+							<td><a href="/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10" target="_blank">/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10</a></td>
 						</tr>
 						<tr>
 							<td>sourceDatasetID</td>
 							<td>string</td>
-							<td>{% trans '以來源資料庫 / 典藏單位提供的資料集編號查詢' %}</td>
-							<td><a href="/api/v1/dataset?sourceDatasetID=0d719d59-070c-496d-a384-e34b82b0ab01" target="_blank">/api/v1/dataset?sourceDatasetID=0d719d59-070c-496d-a384-e34b82b0ab01</a></td>
+							<td>{% trans '使用來源資料庫 / 典藏單位之資料集ID取得指定的資料集' %}</td>
+							<td><a href="/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a" target="_blank">/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a</a></td>
+						</tr>
+						<tr>
+							<td>gbifDatasetID</td>
+							<td>string</td>
+							<td>{% trans '以GBIF的資料集ID取得指定的資料集' %}</td>
+							<td><a href="/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb" target="_blank">/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb</a></td>
 						</tr>
 						<tr>
 							<td>rightsHolder</td>
 							<td>string</td>
-							<td>{% trans  '以來源資料庫 / 典藏單位查詢' %}</td>
+							<td>{% trans '取得指定來源資料庫 / 典藏單位的資料集' %}</td>
 							<td><a href="/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a></td>
 						</tr>
+						<tr>
+							<td>datasetName</td>
+							<td>string</td>
+							<td>{% trans '以資料集名稱查詢，支援部分查詢' %}</td>
+							<td><a href="/api/v1/dataset?datasetName=eBird" target="_blank">/api/v1/dataset?datasetName=eBird</a></td>
+						</tr>
+						<tr>
+							<td>datasetTaxonGroup</td>
+							<td>string</td>
+							<td>{% trans '取得含括指定物種類群的資料集' %}</td>
+							<td><a href="/api/v1/dataset?datasetTaxonGroup=Birds" target="_blank">/api/v1/dataset?datasetTaxonGroup=Birds</a></td>
+						</tr>
+						<tr>
+							<td>created</td>
+							<td>date</td>
+							<td>{% trans '資料集建立時間，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
+							<td><a href="/api/v1/dataset?created=2023-05-09" target="_blank">/api/v1/dataset?created=2023-05-09</a></td>
+						</tr>
+						<tr>
+							<td>modified</td>
+							<td>date</td>
+							<td>{% trans '資料集更新時間，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
+							<td><a href="/api/v1/dataset?modified=2023-05-09" target="_blank">/api/v1/dataset?modified=2023-05-09</a></td>
+						</tr>
 					</table>
+					*{% trans '區間查詢請用半形逗號分隔起迄時間' %}
+					<br>
+					{% trans '範例網址' %}{% trans '：' %}
+					<a class="col_blue" href="/api/v1/dataset?created=2024-01-01,2024-12-31" target="_blank">/api/v1/dataset?created=2024-01-01,2024-12-31</a>
 				</div>
-
 				<div class="green_title">
 					<div class="line_mark"></div>
 					<h4>{% trans '回傳欄位說明' %}</h4>
@@ -639,29 +688,108 @@
 							<td>{% trans '備註' %}</td>
 						</tr>
 						<tr>
+							<td>datasetName</td>
+							<td>{% trans  '資料集名稱' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>rightsHolder</td>
+							<td>{% trans '來源資料庫 / 典藏單位' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>tbiaDatasetID</td>
+							<td>{% trans '入口網資料集ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>sourceDatasetID</td>
+							<td>{% trans '來源資料庫資料集ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>gbifDatasetID</td>
+							<td>{% trans 'GBIF資料集ID' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>resourceContacts</td>
+							<td>{% trans '資料集聯絡人' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+
+						<tr>
+							<td>occurrenceCount</td>
+							<td>{% trans '含括資料筆數' %}</td>
+							<td>integer</td>
+							<td></td>
+						</tr>
+
+						<tr>
+							<td>datasetDateStart</td>
+							<td>{% trans '涵蓋日期起始' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>datasetDateEnd</td>
+							<td>{% trans '涵蓋日期結束' %}</td>
+							<td>date</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>datasetURL</td>
+							<td>{% trans '資料集URL' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+
+						<tr>
+							<td>datasetPublisher</td>
+							<td>{% trans '資料集發布者' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+
+						<tr>
+							<td>datasetLicense</td>
+							<td>{% trans '資料集授權狀況' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+
+						<tr>
+							<td>datasetTaxonGroup</td>
+							<td>{% trans '含括物種類群' %}</td>
+							<td>string</td>
+							<td></td>
+						</tr>
+
+						<tr>
 							<td>created</td>
-							<td>{% trans '入口網資料建立時間' %}</td>
+							<td>{% trans '入口網資料集建立時間' %}</td>
 							<td>date</td>
 							<td></td>
 						</tr>
 						<tr>
 							<td>modified</td>
-							<td>{% trans '入口網資料修改時間' %}</td>
+							<td>{% trans '入口網資料集修改時間' %}</td>
 							<td>date</td>
 							<td></td>
 						</tr>
 					</table>
 				</div>
 			</div>
-			-->
 			<div class="item_one" id="common-area">
 				<div class="sec_title mb-30px">
 					<h3>{% trans '格式及共同參數說明' %}</h3>
 				</div>
-				{% comment %} <div class="col_blue marb_20"> {% endcomment %}
-					{% comment %} 本API回傳格式為JSON。 <br>
-					各參數可用「&」相互組合，但可能因性質而異。 {% endcomment %}
-				{% comment %} </div> {% endcomment %}
 				<div class="green_title">
 					<div class="line_mark"></div>
 					<h4>{% trans '複合查詢' %}{% trans '：' %}</h4>
@@ -779,6 +907,12 @@
 					<li>
 						<div class="flexbox">
 							<div class="dot"></div>
+							<h3>2024-12-13 ｜ {% if LANGUAGE_CODE == 'en-us' %}Add Dataset API{% else %}新增資料集API{% endif %}</h3>
+						</div>
+					</li>
+					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
 							<h3>2024-06-27 ｜ {% if LANGUAGE_CODE == 'en-us' %}Modified the pagination parameter.{% else %}修改分頁參數取得方式：棄用offset，改以next參數提供下一分頁網址。{% endif %}</h3>
 						</div>
 					</li>
@@ -788,51 +922,6 @@
 							<h3>2023-12-12 ｜ V1{% if LANGUAGE_CODE == 'en-us' %} release note{% else %}公告{% endif %}</h3>
 						</div>
 					</li>
-					{% comment %} <li>
-						<div class="flexbox">
-							<div class="dot"></div>
-							<h3>2023-04-19 ｜ taxon API：增加 status, new_taxon_id 等2個回傳欄位</h3>
-						</div>
-					</li>
-					<li>
-						<div class="flexbox">
-							<div class="dot"></div>
-							<h3>2023-07-21 ｜ 增加錨點、文資法稀有植物參數、修正連結</h3>
-						</div>
-					</li>
-					<li>
-						<div class="flexbox">
-							<div class="dot"></div>
-							<h3>2023-07-21 ｜ 更新項目</h3>
-						</div>
-						<ul class="li_style3">
-							<li>
-								<div class="flexbox">
-									<div class="line">-</div>
-									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
-								</div>
-							</li>
-							<li>
-								<div class="flexbox">
-									<div class="line">-</div>
-									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
-								</div>
-							</li>
-							<li>
-								<div class="flexbox">
-									<div class="line">-</div>
-									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
-								</div>
-							</li>
-							<li>
-								<div class="flexbox">
-									<div class="line">-</div>
-									<p>name API：回傳欄位增加 namecode, taxon_id, usage_status, is_deleted</p>
-								</div>
-							</li>
-
-						</ul>
-					</li> {% endcomment %}
 				</ul>
 			</div>
 		</div>

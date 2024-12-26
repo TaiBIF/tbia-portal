@@ -7,7 +7,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_qa.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_qa.css' %}?v3" />
 {% endblock style %}
 
 {% block body %}
@@ -127,7 +127,6 @@
                         <li>
                             <textarea name="question" placeholder="">{{ current_q.question }}</textarea>
                             <div class="noticbox d-none">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
                                 <p>必填欄位</p>
                             </div>
                         </li>
@@ -168,7 +167,7 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>QA列表</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 qa_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 qa_table">
                         <tr class="qa_table_header">
                             <td class="w-20p">類型</td>
                             <td class="w-10p">排序</td>
@@ -176,43 +175,8 @@
                             <td class="w-10p"></td> 
                             <td class="w-10p"></td> 
                         </tr>
-                        {% comment %} {% for q in qa_list %}
-                        <tr>
-                            <td>{{ q.get_type_display }}</td>
-                            <td>{{ q.order }}</a></td>
-                            <td>{{ q.question }}</a></td>
-                            <td><a class="manager_btn" href="{% url 'system_qa' %}?menu=edit&qa_id={{ q.id }}">編輯</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td><a  class="delete_qa del_btn" data-qa_id='{{ q.id }}'>刪除</a></td> <!-- 編輯按鈕 / 收回按鈕 -->
-                        </tr>
-                        {% endfor %} {% endcomment %}
                     </table>						
                 </div>
-                {% comment %} <div class="page_number">
-					{% if q_page_list|length > 1 %}
-                    <a  class="num changePage" data-page="1" data-type="qa">1</a>
-                    <a  class="pre pt-none">
-                        <span></span>上一頁
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in q_page_list %}
-                        {% if p == 1 %}
-                            <a  class="num now changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
-                        {% else %}
-                            <a  class="num changePage" data-page="{{ p }}" data-type="qa">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in q_page_list %}
-                    <a  class="next changePage" data-page="2" data-type="qa">
-                        下一頁<span></span>
-                    </a>
-                    {% else %}
-                    <a  class="next pt-none">
-                        下一頁<span></span>
-                    </a>
-                    {% endif %}
-                    <a  class="num changePage" data-page="{{ q_total_page }}" data-type="qa">{{ q_total_page }}</a>
-                    {% endif %}
-				</div> {% endcomment %}
             </div>
         </div>
         {% else %}

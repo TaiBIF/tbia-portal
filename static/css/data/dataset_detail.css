@@ -1,8 +1,70 @@
 .selected_grid_area {
     font-size: 16px;
     margin-left: 10px;
-    color: #3F5146
+    color: #3F5146;
+    text-align: left;
 }
+
+.map_img {
+    margin-bottom: 10px;
+}
+
+.code {
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 18px;
+    line-height: 20px;
+    color: #FFF;
+    display: flex;
+    background: #3F5146;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.code:hover {
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    background: #76A578;
+    color: #FFF;
+}
+
+@media only screen and (max-width: 999px) {
+    .code {
+        margin-bottom: 0px;
+        margin-left: 5px;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .code {
+        font-size: 16px;
+        margin-left: 5px;
+    }
+}
+
+.logo_area {
+    width: fit-content !important;
+}
+
+
+
+.nbn_title {
+    max-width: 70%;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: 35px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
 
 
 input.name_input::placeholder {
@@ -117,6 +179,20 @@ input[type='number']::-webkit-outer-spin-button {
     border: 0
 }
 
+
+
+.sc_de_top_data .left_area{
+    height: 510px !important;
+}
+
+@media only screen and (max-width: 999px) {
+    
+    .sc_de_top_data .left_area{
+        height: auto !important;
+    }
+}
+
+
 .imgbox {
     height: 460px !important;
     width: auto !important;
@@ -128,7 +204,6 @@ input[type='number']::-webkit-outer-spin-button {
         height: 430px !important;    
     }
 }
-
 
 .h-300px {
     height: 300px
@@ -475,4 +550,9 @@ input[type='number']::-webkit-outer-spin-button {
 
 .mr-5px {
     margin-right: 5px;
+}
+
+
+.mt-5px {
+    margin-top: 5px
 }

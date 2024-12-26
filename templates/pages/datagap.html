@@ -1,0 +1,157 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% load i18n %}
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap.css' %}?v1" />
+<link rel="stylesheet" href="/static/nouislider/nouislider.css">
+
+{% endblock style %}
+{% block head %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha512-gc3xjCmIy673V6MyOAZhIW93xhM9ei1I+gLbmFjUHIjocENRsLX/QUE1htk5q1XV2D/iie/VQ8DXI6Vu8bexvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" type="text/css">
+<script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<script src="/static/nouislider/nouislider.js"></script>
+
+{% endblock head %}
+
+{% block title %}{% trans '資料空缺' %}｜{% endblock %}
+
+{% block body %}
+		<div class="path"> 
+			<div class="main_1240"> 
+				<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '資料空缺' %}</p>
+			</div>
+		</div>
+		<div class="in_bn news_bn">
+			<div class="title">
+				<h2>{% trans '資料空缺' %}</h2>
+			</div>
+		</div>
+		<div class="container_area">
+			<div class="main_1240"> 
+				<div class="w_bgr10 news_de">
+					<h3>{% trans '資料空間空缺狀況' %}</h3>
+
+					<div class="item d-flex-jc-sb margin-bottom-0">
+						<div class="w-100p">
+							<div class="ml-20px mt-15px">
+								<div class="d-flex">
+									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
+									<select class="panel-select" name="partner-spatial-taxonGroup">
+										<option value="">{% trans '-- 不限 --' %}</option>
+										<option value="Insects">{% trans '昆蟲' %}</option>
+										<option value="Fishes">{% trans '魚類' %}</option>
+										<option value="Reptiles">{% trans '爬蟲類' %}</option>
+										<option value="Amphibians">{% trans '兩棲類' %}</option>
+										<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
+										<option value="Plants">{% trans '植物' %}</option>
+										<option value="Birds">{% trans '鳥類' %}</option>
+										<option value="Mammals">{% trans '哺乳類' %}</option>
+										<option value="Bacteria">{% trans '細菌' %}</option>
+										<option value="Others">{% trans '其他' %}</option>
+									</select>
+									<span class="ml-20px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">{% trans '匯出KML' %}</button></span>
+								</div>
+							</div>
+							<div class="map_img">
+								<div class="imgbox">
+									<div id="partner-map" class="img"></div>
+								</div>
+							</div>          
+						</div>
+					</div>
+					<div class="records-legend d-flex legend-fs-15px">
+						{% trans '資料筆數' %}：
+						<div class="d-flex"><div class="count-1"></div>1 - 10</div>
+						<div class="d-flex"><div class="count-10"></div>10 - 100</div>
+						<div class="d-flex"><div class="count-100"></div>100 - 1,000</div>
+						<div class="d-flex"><div class="count-1000"></div>1,000 - 5,000</div>
+						<div class="d-flex"><div class="count-5000"></div>5,000 - 10,000</div>
+						<div class="d-flex"><div class="count-10000"></div>10,000 - 50,000</div>
+						<div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
+						<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
+					</div>
+					<hr>
+
+					<h3>{% trans '資料時間空缺狀況' %}</h3>
+
+					<div class="item d-flex-jc-sb">
+						<div class="w-50p">
+							<div class="ml-20px">
+								<div class="d-flex">
+									<span class="mr-5px panel-select-text">{% trans '年份區間' %}</span>
+									<div class="panel-range-select ml-20px">
+										<div id="partner-temporal-year-slider"></div>
+									</div>
+								</div>
+							</div>
+							<div class="highcharts-figure">
+								<div id="container-partner-temporal-year-stat" class="h-100p"></div>
+							</div>
+						</div>
+						<div class="w-50p">
+							<div class="ml-20px">
+								<div class="d-flex">
+									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
+									<select class="panel-select w-50p" name="partner-temporal-taxonGroup">
+										<option value="">{% trans '-- 不限 --' %}</option>
+										<option value="Insects">{% trans '昆蟲' %}</option>
+										<option value="Fishes">{% trans '魚類' %}</option>
+										<option value="Reptiles">{% trans '爬蟲類' %}</option>
+										<option value="Amphibians">{% trans '兩棲類' %}</option>
+										<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
+										<option value="Plants">{% trans '植物' %}</option>
+										<option value="Birds">{% trans '鳥類' %}</option>
+										<option value="Mammals">{% trans '哺乳類' %}</option>
+										<option value="Bacteria">{% trans '細菌' %}</option>
+										<option value="Others">{% trans '其他' %}</option>
+									</select> 
+								</div>
+							</div>
+							<div class="highcharts-figure">
+								<div id="container-partner-temporal-month-stat" class="h-100p"></div>
+							</div>
+						</div>
+					</div>
+					<hr>
+					<h3>{% trans '物種類群資料筆數' %}</h3>
+
+					<div class="item d-flex-jc-sb">
+						<div class="w-50p">
+							<div class="highcharts-figure">
+								<div id="container-taxon_group-stat" class="h-100p"></div>
+							</div>
+						</div>
+						<div class="w-50p">
+							<div id="taxon_group-stat-title">👈 {% trans '點擊圓餅圖' %}</div>
+							<ul id="taxon_group-stat-list" class="mt-5px ml-20px fs-16px">
+							</ul>
+						</div>
+					</div>
+
+				</div> 
+			</div>
+		</div>
+
+{% endblock body %}	
+
+
+{% block script %}
+<script src="{% static 'js/pages/datagap.js' %}?v2"></script>
+{% endblock script %}

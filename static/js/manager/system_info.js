@@ -107,8 +107,8 @@ function changePage(page, menu) {
                     showRequest(query_id, query, sdr_id, is_transferred)
                 })
 
-                $('.updateFeedback').off('click')
-                $('.updateFeedback').on('click', function () {
+                $('select[name=is_replied]').off('change')
+                $('select[name=is_replied]').on('change', function () {
                     let current_id = $(this).data('fid')
                     updateFeedback(current_id)
                 })

@@ -1,0 +1,295 @@
+
+{% extends 'base.html' %} 
+{% load static %} 
+{% load i18n %}
+{% load humanize %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+{% endblock head %}
+{% block title %}{{ resp.name }}｜{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/dataset_detail.css' %}?v2" />
+{% endblock style %}
+
+{% block body %}
+
+<div class="path"> 
+	<div class="main_1240"> 
+		<a href="{% url 'index' %}" class="home"></a> <span>></span>
+		<p>{% trans '資料集' %}</p>
+	</div>
+</div>
+
+<div class="nbn_title">
+	<h2>{{ resp.name }}</h2>
+</div>
+
+<div class="container_area">
+	<div class="main_1240"> 
+		<div class="sc_de_top_data">
+			<div class="left_area">
+				<div class="cont_padbox">
+					<div class="logo_area">
+						{% if logo %}
+						<img src="/static/image/{{ logo }}" data-ref="{{ link }}" class="pointer open-ref">
+						{% endif %}
+						<a href="{{ link }}" class="code" target="_blank">{% trans '來源資料庫' %}：{% trans resp.rights_holder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+					</div>						
+
+					<div class="short">
+						<p>{% trans '入口網資料集ID' %}：<span id="tbiaDatasetID">{{ resp.tbiaDatasetID|default_if_none:"" }}</span></p>
+						<p>{% trans '來源資料庫資料集ID' %}：
+							{% if dataset_prefix and resp.sourceDatasetID %}
+								<a target="_blank" href="{{dataset_prefix}}{{ resp.sourceDatasetID }}">{{ resp.sourceDatasetID }}
+								<i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+							{% else %}
+								{{ resp.sourceDatasetID|default_if_none:"" }}
+							{% endif %}
+						</p>
+						<p>{% trans 'GBIF資料集ID' %}：
+							{% if resp.group == "gbif" and resp.sourceDatasetID %}
+								<a target="_blank" href="https://www.gbif.org/dataset/{{ resp.sourceDatasetID }}">{{ resp.sourceDatasetID }}
+								<i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+							{% elif resp.gbifDatasetID %}
+								<a target="_blank" href="https://www.gbif.org/dataset/{{ resp.gbifDatasetID }}">{{ resp.gbifDatasetID }}
+								<i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+							{% endif %}
+						</p>
+						<p>{% trans '資料集發布者' %}：{{ resp.datasetPublisher|default_if_none:"" }}</p>
+						<p>{% trans '資料集聯絡人' %}：{{ resp.resourceContacts|default_if_none:"" }}</p>
+						<p>{% trans '涵蓋日期起始' %}：{{ resp.datasetDateStart|default_if_none:"" }}</p>
+						<p>{% trans '涵蓋日期結束' %}：{{ resp.datasetDateEnd|default_if_none:"" }}</p>
+					</div>
+					<div class="inf_databox">
+						<div class="title">
+							{% trans '資料筆數' %}：{{ resp.occurrenceCount|intcomma:False }}
+							<div class="arr">
+								<svg xmlns="http://www.w3.org/2000/svg" width="8.999" height="4.999" viewBox="0 0 8.999 4.999">
+									<path id="Union_3" data-name="Union 3" d="M-11394.853-10021.146l-4-4a.5.5,0,0,1,0-.706.5.5,0,0,1,.709,0l3.646,3.646,3.646-3.646a.5.5,0,0,1,.707,0,.5.5,0,0,1,0,.706l-4,4a.5.5,0,0,1-.355.146A.5.5,0,0,1-11394.853-10021.146Z" transform="translate(11399 10026)" fill="#fff"/>
+								</svg>
+							</div>
+						</div>
+						<div class="data-item">
+							<ul>
+								{% for  key, values in resp.datasetTaxonStat.items %}
+								<li>{% trans key %}：{{ values|intcomma:False }}</li>
+								{% endfor %}
+							</ul>
+						</div>
+					</div>
+					<div class="flex_inf">
+						<div class="short">
+							<p class="qmark-small-flex">{% trans '下載次數' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" class="qmark-small" target="_blank"></a>：{{ resp.downloadCount|intcomma:False }}</p>
+							<p>{% trans '更新時間' %}：{{ resp.modified|date:'Y-m-d'|default_if_none:'' }}</p>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="right_area">
+				<div class="map_img">
+					<div class="imgbox">
+						<div id="map" class="img">
+						</div>
+					</div>
+				</div>
+				<div class="selected_grid_area d-none">
+					<b>{% trans '目前所選網格：' %}</b><span class="selected_grid"></span>
+				</div>  	
+			</div>
+		</div>
+
+		<div class="sc_result d-none">
+			{% csrf_token %}
+
+			<div class="result_inf_top">
+			  <button class="cate_btn popupField">{% trans '欄位選項' %} +</button>
+			  <div class="rightmore">
+			  <button class="dw downloadData" data-query="" data-count="">{% trans '資料下載' %}</button>
+			  <button class="dw downloadTaxon" data-query="">{% trans '名錄下載' %}</button>
+			  <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=14" target="_blank" class="qmark"></a>
+			  <button class="dw downloadSensitive" data-query="" data-count="">{% trans '申請單次使用去模糊化敏感資料' %}</button>
+			  <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=15" target="_blank" class="qmark"></a>
+			  </div>
+			</div>
+			<div class="d-flex-jc-sb result_inf_top_1">
+			  <div class="per_page">{% trans '每頁顯示' %}
+				<select name="shownumber" data-query="">
+				<option value="10">10</option>
+				<option value="20">20</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+				</select>{% trans ' 筆' %}{% trans '，共' %} <span class="return-total-page"></span> {% trans '頁' %}
+			  </div>
+			  <p class="datenum">{% trans "資料筆數" %}{% trans '：' %}<span class="return-num"></span></p>
+			</div>
+		
+			<div class="result_table flow-x-auto">
+			  <table cellspacing="0" cellspacing="0" class="table_style1 record_table">
+			  </table>						
+			</div>
+		
+			<div class="no_data d-none">{% trans '無資料' %}</div>
+		</div>
+
+
+	</div>
+</div>
+
+
+
+<!-- 物種出現紀錄欄位選擇 -->
+<div class="popbg occ-choice d-none">
+	<div class="ovhy choice-ovhy">
+		<div class="wbox_center choice-flow">
+			<div class="xx choice-xx">
+			</div>
+			<div class="catetitle">
+				<div class="titlebox">{% trans '欄位選項' %}</div>	
+				<button class="selt selectAll">{% trans '全選' %}</button>
+				<button class="selt resetAll">{% trans '重設' %}</button>
+			</div>
+			<ul class="catalist">
+				<li>
+					<input type="checkbox" class="chebox" id="occ-common_name_c">
+					<p>{% trans '中文名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-scientificName">
+					<p>{% trans '學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-alternative_name_c">
+					<p>{% trans '中文別名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-synonyms">
+					<p>{% trans '同物異名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-misapplied">
+					<p>{% trans '誤用名' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
+					<p>{% trans '來源資料庫使用學名' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sourceVernacularName">
+					<p>{% trans '來源資料庫使用中文名' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-originalScientificName">
+					<p>{% trans '原始紀錄物種' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-taxonRank">
+					<p>{% trans '鑑定層級' %}</p>
+				</li>				
+				<li>
+					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
+					<p>{% trans '敏感層級' %}</p>
+				</li>				
+        <li>
+					<input type="checkbox" class="chebox" id="occ-rightsHolder">
+					<p>{% trans '來源資料庫' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-taxonID">
+					<p>{% trans 'TaiCOL物種編號' %}</p>
+				</li>
+
+				<li>
+					<input type="checkbox" class="chebox" id="occ-eventDate">
+					<p>{% trans '紀錄日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-locality">
+					<p>{% trans '出現地' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantity">
+					<p>{% trans '數量' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-organismQuantityType">
+					<p>{% trans '數量單位' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-recordedBy">
+					<p>{% trans '記錄者' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLongitude">
+					<p>{% trans '經度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimLatitude">
+					<p>{% trans '緯度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimSRS">
+					<p>{% trans '空間參考系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-verbatimCoordinateSystem">
+					<p>{% trans '座標系統' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinateUncertaintyInMeters">
+					<p>{% trans '座標誤差（公尺）' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-dataGeneralizations">
+					<p>{% trans '座標是否有模糊化' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-coordinatePrecision">
+					<p>{% trans '座標模糊化程度' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-basisOfRecord">
+					<p>{% trans '紀錄類型' %}</p>
+				</li>
+				<li>				
+					<input type="checkbox" class="chebox" id="occ-datasetName">
+					<p>{% trans '資料集名稱' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-resourceContacts">
+					<p>{% trans '資料集聯絡人' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-license">
+					<p>{% trans '授權狀況' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-associatedMedia">
+					<p>{% trans '影像' %}</p>
+				</li>
+			</ul>
+			<button class="send_bt sendSelected">{% trans '確認' %}</button>
+		</div>
+	</div>
+</div>
+
+{% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/wicket.js' %}"></script>
+<script src="{% static 'js/wicket-leaflet.js' %}"></script>
+<script src="{% static 'js/data/dataset_detail.js' %}?v3"></script>
+{% endblock script %}

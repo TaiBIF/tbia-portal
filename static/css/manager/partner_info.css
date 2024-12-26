@@ -1,13 +1,20 @@
-.feedback_table tr:not(:first-child) td:nth-child(5) {
-    white-space: pre-wrap;
-    text-align: left !important;
+
+.sensitive_apply_table td:nth-child(2) {
+    min-width: 125px;
+    max-width: 125px;
+
 }
 
-.sensitive_apply_table tr:not(:first-child) td:nth-child(3){
-    text-align: left !important;
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
+.sensitive_apply_table td:nth-child(3) {
+    width: 30%;
+    font-size: 14px;
+    text-align: left;
+    word-break: break-all
+}
+
+
+.sensitive_apply_table td:nth-child(4) {
+    width: 20%;
 }
 
 .send-submitted {
@@ -44,22 +51,6 @@
     background: #E2A460;
 
 }
-
-/*
-.accordion::after {
-    content: '+';
-    font-size: 22px;
-    color: white;
-    margin-left: 5px;
-}
-
-.accordion:hover::after {
-    color: white;
-}
-
-.accordion.active:after {
-    content: "\2796";
-}*/
 
 
 .two_cont_area {
@@ -201,7 +192,7 @@
     margin-top: 15px
 }
 
-.table-flow {
+/* .table-flow {
     overflow-x: auto; 
     margin-top: 10px
 }
@@ -209,7 +200,7 @@
 .table-flow .table_style1 {
     width: max-content;
     min-width: 100%;
-}
+} */
 
 
 .form-flow {

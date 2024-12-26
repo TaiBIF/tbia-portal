@@ -4,7 +4,7 @@
 {% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v6" />
 {% endblock style %}
 
 {% block head %}
@@ -159,7 +159,7 @@
             <div class="item">
                 <div class="box-title"><div class="dottt"></div>單位帳號管理</div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 account_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 account_table accouunt_table">
                         <tr class="account_table_header">
                             <td class="w-8p">編號</td>
                             <td class="w-25p">姓名</td>
@@ -206,16 +206,16 @@
                     </div>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 sensitive_apply_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table once_table">
                         <tr class="sensitive_apply_table_header">
-                            <td class="w-10p">申請編號</td>
+                            <td>申請編號</td>
                             {% comment %} <td class="w-10p">檔案編號</td> {% endcomment %}
-                            <td class="w-10p">申請時間</td>
-                            <td class="w-40p">搜尋條件</td>
-                            <td class="w-10p">筆數</td>
-                            <td class="w-10p">狀態</td>
-                            <td class="w-10p">申請資訊</td>
-                            <td class="w-10p">檔案連結</td>
+                            <td>申請時間</td>
+                            <td>搜尋條件</td>
+                            <td>筆數</td>
+                            <td>狀態</td>
+                            <td>申請資訊</td>
+                            <td>檔案連結</td>
                         </tr> 
                     </table>
                 </div>
@@ -224,66 +224,6 @@
         {% trans '您的權限不足' %}
         {% endif %}
         </div>
-
-        <!--
-        <div class="rightbox_content feedback d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>意見回饋紀錄</div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style1 feedback_table">
-                        <tr>
-                            <td>編號</td>
-                            <td>時間</td>
-                            <td>Email</td>
-                            <td>類型</td>
-                            <td>內容</td>
-                            <td class="w-15p">已回覆</td>
-                        </tr> 
-                        {% for f in feedback %}
-                        <tr>
-                            <td>#{{ f.id }}</td>
-                            <td>{{ f.created_8|date:'Y-m-d H:i:s' }}</td>
-                            <td>{{ f.email }}</td>
-                            <td>{{ f.get_type_display }}</td>
-                            <td>{{ f.content }}</td>
-                            <td>{% if f.is_replied %}
-                                是<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>
-                                {% else %}
-                                否<button class="manager_btn feedback_btn w-95p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-                <div class="page_number">
-					{% if f_page_list|length > 1 %}
-                    <a class="num changePage" data-page="1" data-type="feedback">1</a>
-                    <a class="pre pt-none">
-                        上一頁
-                    </a>
-                    {% for p in f_page_list %}
-                        {% if p == 1 %}
-                            <a class="num now changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
-                        {% else %}
-                            <a class="num changePage" data-page="{{ p }}" data-type="feedback">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in f_page_list %}
-                    <a class="next changePage" data-page="2" data-type="feedback">
-                        下一頁
-                    </a>
-                    {% else %}
-                    <a class="next pt-none">
-                        下一頁
-                    </a>
-                    {% endif %}
-                    <a class="num changePage" data-page="{{ f_total_page }}" data-type="feedback">{{ f_total_page }}</a>
-                    {% endif %}
-				</div>
-            </div>
-        </div>
-        -->
         {% else %}
         {% trans '您的權限不足' %}
         {% endif %}
@@ -435,5 +375,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/partner_info.js' %}?v10"></script>
+<script src="{% static 'js/manager/partner_info.js' %}?v11"></script>
 {% endblock script %}

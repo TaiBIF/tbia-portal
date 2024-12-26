@@ -155,12 +155,12 @@
               <div class="arrd"></div>
             </div>
             <div class="spe_menu second_menu">
-              <a id="facet_spe_all" class="focusComponent" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma }})</a>
+              <a id="facet_spe_all" class="focusComponent" data-item_class="item_spe" data-go_back="false">{% trans '全部' %}({{ taxon.count|intcomma:False }})</a>
               {% for i in taxon.rows %} 
               <a id="facet_taxon_{{ i.key }}" class="focusCards" 
               data-record_type="taxon"
               data-key="{{ i.key }}"
-              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma:False }})</a>
               {% endfor %}
             </div>
           </li>
@@ -174,12 +174,12 @@
               <div class="arrd"></div>
             </div>
             <div class="occ_menu second_menu">
-              <a id="facet_occ_all" class="focusComponent" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma }})</a>
+              <a id="facet_occ_all" class="focusComponent" data-item_class="item_occ" data-go_back="false">{% trans '全部' %}({{ occurrence.count|intcomma:False }})</a>
               {% for i in occurrence.rows %} 
               <a id="facet_occ_{{ i.key }}" class="focusCards" 
               data-record_type="occ"
               data-key="{{ i.key }}"
-              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+              data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma:False }})</a>
               {% endfor %}
             </div>
           </li>
@@ -193,12 +193,12 @@
               <div class="arrd"></div>
             </div>
             <div class="col_menu second_menu">
-              <a id="facet_col_all" class="focusComponent" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma }})</a>
+              <a id="facet_col_all" class="focusComponent" data-item_class="item_col" data-go_back="false">{% trans '全部' %}({{ collection.count|intcomma:False }})</a>
               {% for i in collection.rows %} 
                 <a id="facet_col_{{ i.key }}" class="focusCards"
                 data-record_type="col"
                 data-key="{{ i.key }}"
-                data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma }})</a>
+                data-go_back="false">{% trans i.title %}({{ i.total_count|intcomma:False }})</a>
               {% endfor %}
             </div>
           </li>
@@ -227,6 +227,12 @@
               <div class="arr"></div>
             </a>
           </li>
+          <li class="li-item_themeyear">
+            <a class="big_link rd_click focusComponent" data-item_class="item_themeyear" data-go_back="false">
+              <p>{% trans '主題年活動' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
           <li class="li-item_resource">
             <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>{% trans '開放資料相關資源' %}</p>
@@ -242,7 +248,7 @@
 					<div class="item item_spe"  id="item_spe">
 						<div class="titlebox_line">
 							<div class="title">
-								<p>{% trans '物種' %} ({{ taxon.count|intcomma }})</p>
+								<p>{% trans '物種' %} ({{ taxon.count|intcomma:False }})</p>
 								<div class="line"></div>
 							</div>
 						</div>
@@ -263,8 +269,8 @@
                       <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
                       {% endif %}    
                     {%  endfor %}
-										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma }}</p>
-										<p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma }}</p>
+										<p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma:False }}</p>
+										<p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma:False }}</p>
 									</div>
                   {% if i.images|length > 0 %}
 									<div class="right_img">
@@ -343,7 +349,7 @@
       <div class="item item_occ" id="item_occ">
         <div class="titlebox_line">
           <div class="title">
-            <p>{% trans '物種出現紀錄' %} ({{ occurrence.count|intcomma }})</p>
+            <p>{% trans '物種出現紀錄' %} ({{ occurrence.count|intcomma:False }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -409,7 +415,7 @@
       <div class="item item_col" id="item_col">
         <div class="titlebox_line">
           <div class="title">
-            <p>{% trans '⾃然史典藏' %} ({{ collection.count|intcomma }})</p>
+            <p>{% trans '⾃然史典藏' %} ({{ collection.count|intcomma:False }})</p>
             <div class="line"></div>
           </div>
         </div>
@@ -603,6 +609,39 @@
       </div>
 
 
+      <!----- 主題年活動 ----->
+      <div class="item item_themeyear" id="item_themeyear">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '主題年活動' %} ({{ themeyear.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        {% if themeyear.count > 0 %}
+        <ul class="card_list_2 themeyear-card">
+          {% for i in themeyear.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{% highlight i.content keyword %}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div>
+        {% endif %} 
+        {% if themeyear.count > 6 %}
+        <!--超過6個才有更多按鈕-->
+        <a class="more more_themeyear getMoreDocs" 
+          data-doc_type="themeyear"
+          data-offset_value="#themeyear_offset"
+          data-more_class=".more_themeyear"
+          data-card_class=".themeyear-card">{% trans '更多結果' %} </a>
+        <input type="hidden" id="themeyear_offset" value="6">
+        {% endif %}
+      </div>
+
+
       <!----- 開放資料相關資源 ----->
       <div class="item item_resource" id="item_resource">
         <div class="titlebox_line">
@@ -780,6 +819,10 @@
 					<input type="checkbox" class="chebox" id="col-license">
 					<p>{% trans '授權狀況' %}</p>
 				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="col-associatedMedia">
+					<p>{% trans '影像' %}</p>
+				</li>
 			</ul>
 			<button class="send_bt sendSelected" data-type="col">{% trans '確認' %}</button>
 		</div>
@@ -910,6 +953,10 @@
 					<input type="checkbox" class="chebox" id="occ-license">
 					<p>{% trans '授權狀況' %}</p>
 				</li>
+        <li>
+					<input type="checkbox" class="chebox" id="occ-associatedMedia">
+					<p>{% trans '影像' %}</p>
+				</li>
 			</ul>
 			<button class="send_bt sendSelected" data-type="occ">{% trans '確認' %}</button>
 		</div>
@@ -929,20 +976,20 @@
         {% comment %} <p id="taxon_name"><p> {% endcomment %}
         <div id="map"></div>
       </div>
+      {% comment %} <div class="records-legend d-flex legend-fs-15px">
+        {% trans '資料筆數' %}：
+        <div class="d-flex"><div class="count-1"></div>1 - 10</div>
+        <div class="d-flex"><div class="count-10"></div>10 - 100</div>
+        <div class="d-flex"><div class="count-100"></div>100 - 1,000</div>
+        <div class="d-flex"><div class="count-1000"></div>1,000 - 5,000</div>
+      </div>
+      <div class="records-legend d-flex legend-fs-15px">
+        <div class="d-flex"><div class="count-5000"></div>5,000 - 10,000</div>
+        <div class="d-flex"><div class="count-10000"></div>10,000 - 50,000</div>
+        <div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
+        <div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
+      </div> {% endcomment %}
 
-      <div class="records-legend d-flex legend-fs-15px">
-        {% trans '資料筆數' %}
-      </div>
-      <div class="records-legend d-flex legend-fs-15px">
-        <div class="d-flex"><div class="count-0"></div>>0</div>
-        <div class="d-flex"><div class="count-10"></div>>10</div>
-        <div class="d-flex"><div class="count-20"></div>>20</div>
-        <div class="d-flex"><div class="count-50"></div>>50</div>
-        <div class="d-flex"><div class="count-100"></div>>100</div>
-        <div class="d-flex"><div class="count-200"></div>>200</div>
-        <div class="d-flex"><div class="count-500"></div>>500</div>
-        <div class="d-flex"><div class="count-1000"></div>>1000</div>
-      </div>
 		</div>
 	</div>
 </div>
@@ -950,5 +997,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v9"></script>
+<script src="{% static 'js/data/search_full.js' %}?v11"></script>
 {% endblock script %}

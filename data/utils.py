@@ -57,15 +57,23 @@ basis_map = {
 
 
 def get_dataset_key(key):
+    # 2024-12 修改為tbiaDatasetID
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "name" FROM dataset WHERE id = %s' # 不考慮deprecated
-    with conn.cursor() as cursor:
-        cursor.execute(query, (key,))
-        results = cursor.fetchone()
-        conn.close()
-        if results:
-            results = results[0]
+    try:
+        key = int(key)        
+        query = 'SELECT "name" FROM dataset WHERE "id" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    except:
+        query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    conn.close()
+    if results:
+        results = results[0]
     return results
 
 
@@ -84,7 +92,7 @@ def get_dataset_by_key(key_list):
     results = []
     conn = psycopg2.connect(**datahub_db_settings)
     
-    query = f''' select id, name FROM dataset WHERE "id" IN %s AND deprecated = 'f' '''
+    query = f''' select id, name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
 
     with conn.cursor() as cursor:
         cursor.execute(query, (tuple(key_list), ))
@@ -132,6 +140,19 @@ taxon_group_map_c = {
     'Mammals' : '哺乳類',
     'Bacteria': '細菌',
     'Others': '其他',
+}
+
+taxon_group_map_e = {
+    '昆蟲': 'Insects' ,
+    '魚類': 'Fishes',
+    '爬蟲類': 'Reptiles',
+    '兩棲類': 'Amphibians',
+    '真菌(含地衣)': 'Fungi',
+    '植物': 'Plants',
+    '鳥類': 'Birds',
+    '哺乳類': 'Mammals',
+    '細菌': 'Bacteria',
+    '其他': 'Others'
 }
 
 
@@ -194,6 +215,7 @@ def get_key(val, my_dict):
     return "key doesn't exist"
 
 map_occurrence = {
+    'associatedMedia': '影像',
     'domain'	:'域',
     'superkingdom'	:'總界',
     'kingdom'	:'界',
@@ -322,7 +344,11 @@ map_occurrence = {
     'datasetName': '資料集名稱', 
     'resourceContacts': '資料集聯絡人',
     'license': '授權狀況',
-    'occurrenceID': 'occurrenceID' 
+    'occurrenceID': 'occurrenceID',
+    'grid_1': '1公里網格編號',
+    'grid_5': '5公里網格編號',
+    'grid_10': '10公里網格編號',
+    'grid_100': '100公里網格編號',
 }
 
 # 抓出collection和occurrence不一樣的地方
@@ -390,6 +416,9 @@ download_cols = [
 'coordinateUncertaintyInMeters',
 'dataGeneralizations',
 'datasetName',
+'tbiaDatasetID',
+'sourceDatasetID',
+'gbifDatasetID',
 'eventDate',
 'license',
 'locality',
@@ -460,6 +489,9 @@ def create_query_display(search_dict,lang=None):
     d_list = []
     r_list = []
     l_list = []
+
+    if search_dict.get('current_grid_level') in map_dict.keys() and search_dict.get('current_grid'):
+        query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{search_dict.get("current_grid")}'
 
     for k in search_dict.keys():
         if k in map_dict.keys():
@@ -603,6 +635,14 @@ def query_a_href(query, query_a, lang=None):
     return query
 
 
+def return_selected_grid_text(req_dict,map_dict):
+
+    string = ''
+    if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
+        string = f'''{gettext(map_dict[req_dict["current_grid_level"]])} {req_dict.get('current_grid')}'''
+    return string
+
+
 # 已經預先存好的req_dict, getlist改為get
 # generate_sensitive_csv (v), transfer_sensitive_response (v), submit_sensitive_request(v)
 
@@ -626,7 +666,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if is_native == 'y':
             query_list += ['alien_type:native']
         elif is_native == 'n':
-            query_list += ['-alien_type:native']
+            query_list += ['alien_type:(naturalized OR invasive OR cultured)']
 
 
     # 是否為保育類
@@ -670,6 +710,9 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if val := req_dict.get(i):
             query_list += [f'{i}:"{val}"']
 
+    # 這邊會不會有模糊化的問題
+    if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
+        query_list += [f'''{req_dict.get('current_grid_level')}:"{req_dict.get('current_grid')}"''']
 
     # higherTaxa
     # 找到該分類群的階層 & 名稱
@@ -1397,7 +1440,9 @@ def get_map_geojson(data_c, grid):
                     "type": "Feature",
                     "geometry":{"type":"Polygon","coordinates":[borders]},
                     "properties": {
-                        "counts": current_count
+                        "counts": current_count,
+                        "current_grid_level": f'grid_{grid}',
+                        "current_grid": cc['val'],
                     }
                 }]
                 map_geojson[f'grid_{grid}']['features'] += tmp
@@ -1607,6 +1652,38 @@ def create_data_table(docs, user_id, obv_str):
         if row.get('scientificName') and row.get('formatted_name'):
             docs.loc[i, 'scientificName'] = docs.loc[i, 'formatted_name']
 
+        # 這邊如果太長的時候不顯示全部
+
+        syns, misapplied = '', ''
+
+        if row.get('formatted_synonyms'):
+            syns = row.get('formatted_synonyms')
+        elif row.get('synonyms'):
+            syns = row.get('synonyms')
+        
+        if syns:
+            syns = syns.split(',')
+            if len(syns) > 1:
+                syns = syns[:2]
+                syns = ', '.join(syns) + '...'
+            else:
+                syns = ', '.join(syns)
+            docs.loc[i, 'synonyms'] = syns
+
+        if row.get('formatted_misapplied'):
+            misapplied = row.get('formatted_misapplied')
+        elif row.get('misapplied'):
+            misapplied = row.get('misapplied')
+        
+        if misapplied:
+            misapplied = misapplied.split(',')
+            if len(misapplied) > 1:
+                misapplied = misapplied[:2]
+                misapplied = ', '.join(misapplied) + '...'
+            else:
+                misapplied = ', '.join(misapplied)
+            docs.loc[i, 'misapplied'] = misapplied
+
         # date
         if date := row.get('standardDate'):
             date = date[0].split('T')[0]
@@ -1669,16 +1746,21 @@ def create_data_table(docs, user_id, obv_str):
             if row.get('basisOfRecord') in basis_map.keys():
                 docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
 
+        if media_list := row.get('associatedMedia'):
+
+            if ';' in media_list:
+                img_sep = ';'
+            else:
+                img_sep = '|'
+
+            media_list = media_list.split(img_sep)
+
+            if len(media_list):
+                # 取第一張
+                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
+
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
-
-    
-    if 'formatted_synonyms' in docs.keys():
-        docs['synonyms'] = docs['formatted_synonyms']
-        docs['synonyms'] = docs['synonyms'].apply(lambda x: ', '.join(x.split(',')))
-    if 'misapplied' in docs.keys():
-        docs['misapplied'] = docs['formatted_misapplied']
-        docs['misapplied'] = docs['formatted_misapplied'].apply(lambda x: ', '.join(x.split(',')))
 
     rows = docs.to_dict('records')
 
@@ -1791,6 +1873,55 @@ def create_sensitive_partner_stat(query_list):
         stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
     return stat_rightsHolder
+
+
+def create_dataset_stat(query_list):
+
+    query = { "query": "*:*",
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "stat_tbiaDatasetID": {
+                        'type': 'terms',
+                        'field': 'tbiaDatasetID',
+                        'mincount': 1,
+                        'limit': -1,
+                        'allBuckets': False,
+                        'numBuckets': False
+                    }
+                }
+            }
+
+    if not query_list:
+        query.pop('filter')
+
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    facets = response.json()['facets']
+
+    stat_tbiaDatasetID = []
+
+    stat_tbiaDatasetID = facets['stat_tbiaDatasetID']['buckets']
+
+    for row in stat_tbiaDatasetID:
+        
+
+        conn = psycopg2.connect(**datahub_db_settings)
+        query = 'UPDATE dataset set "downloadCount" = "downloadCount" + 1 WHERE "tbiaDatasetID" = %s'
+        with conn.cursor() as cursor:
+            cursor.execute(query, (row.get('val'),))
+            conn.commit()
+
+
+        # if DatasetStat.objects.filter(tbiaDatasetID=row.get('val')).exists():
+        #     dataset_obj = DatasetStat.objects.get(tbiaDatasetID=row.get('val'))
+        #     dataset_obj.count += 1
+        #     dataset_obj.modified = timezone.now()
+        #     dataset_obj.save()
+        # else:
+        #     DatasetStat.objects.create(tbiaDatasetID=row.get('val'), count=1)
+
+    return 'done'
 
 
 

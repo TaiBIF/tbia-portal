@@ -19,6 +19,7 @@ news_type_map = {
     'event': 'yellow',
     'project': 'red',
     'datathon': 'blue',
+    'themeyear': 'silver',
 }
 
 news_type_c_map = {
@@ -26,6 +27,7 @@ news_type_c_map = {
     'event': '活動訊息',
     'project': '徵求公告',
     'datathon': '數據松成果',
+    'themeyear': '主題年活動',
 }
 
 
@@ -454,3 +456,8 @@ def get_ark_list(request):
     }
 
     return HttpResponse(json.dumps(response), content_type='application/json')
+
+
+def datagap(request):
+    # type = request.GET.get('type', 'all')
+    return render(request, 'pages/datagap.html')

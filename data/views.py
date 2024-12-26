@@ -22,7 +22,7 @@ import requests
 import geopandas as gpd
 # import shapely.wkt as wkt
 # from shapely.geometry import MultiPolygon
-# from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 import re
 from bson.objectid import ObjectId
 import subprocess
@@ -39,6 +39,26 @@ import html
 from django.utils.translation import get_language, gettext
 import shapely
 from csp.decorators import csp_update
+
+
+rights_holder_map = {
+    'GBIF': 'gbif',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
+    '中央研究院生物多樣性中心動物標本館': 'asiz',
+    '台灣生物多樣性網絡 TBN': 'tbri',
+    '國立臺灣博物館典藏': 'ntm',
+    '林業試驗所昆蟲標本館': 'fact',
+    '林業試驗所植物標本資料庫': 'taif',
+    '河川環境資料庫': 'wra',
+    '濕地環境資料庫': 'nps',
+    '生態調查資料庫系統': 'forest',
+    '臺灣國家公園生物多樣性資料庫': 'nps',
+    '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
+    '海洋保育資料倉儲系統': 'oca',
+    '科博典藏 (NMNS Collection)': 'nmns',
+    '臺灣魚類資料庫': 'ascdc',
+}
+
 
 
 def get_geojson(request,id):
@@ -118,8 +138,6 @@ def send_sensitive_request(request):
                         search_dict[k] = tmp_list
                     else:
                         search_dict[k] = request.GET.get(k)
-        # lang = request.GET.get('lang')
-        # query = create_query_display(search_dict, lang)
         query = create_query_display(search_dict)
         return render(request, 'pages/application.html', {'query': query})
 
@@ -231,7 +249,7 @@ def transfer_sensitive_response(request):
         
             for p in Partner.objects.filter(group__in=groups):
                 new_sdr = SensitiveDataResponse.objects.create(
-                    partner = p,
+                    partner_id = p.id,
                     status = 'pending',
                     query_id = query_id
                 )       
@@ -378,6 +396,9 @@ def generate_sensitive_csv(query_id, scheme, host):
             sq.status = 'pass'
             sq.modified = timezone.now()
             sq.save()
+
+            # 資料集統計
+            create_dataset_stat(query_list=query_list)
 
         else:
             # 沒有帳號通過
@@ -562,6 +583,9 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     sq.modified = timezone.now()
     sq.save()
 
+    # 資料集統計
+    create_dataset_stat(query_list=query_list)
+
     # 寄送通知
     nn = Notification.objects.create(
         type = 1,
@@ -678,6 +702,9 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     sq.status = 'pass'
     sq.modified = timezone.now()
     sq.save()
+
+    # 資料集統計
+    create_dataset_stat(query_list=query_list)
 
     # 寄送通知
     nn = Notification.objects.create(
@@ -807,6 +834,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     sq.modified = timezone.now()
     sq.save()
 
+    # 資料集統計
+    create_dataset_stat(query_list=query_list)
+
     # 寄送通知
     nn = Notification.objects.create(
         type = 1,
@@ -932,7 +962,7 @@ def get_records(request): # 全站搜尋
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder']
+            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -1059,27 +1089,156 @@ def get_more_cards(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-def search_collection(request):
+def search_dataset(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
 
-    return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
-        'rank_list': rank_list})
+    return render(request, 'data/search_dataset.html', {'holder_list': holder_list})
+
+
+def get_conditional_dataset(request):
     
+    if request.method == 'POST':
 
-def search_occurrence(request):
+        total_count = 0
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
-    holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
+        req_dict = request.POST
+        limit = int(req_dict.get('limit', 10))
+        orderby = req_dict.get('orderby','name')
+        sort = req_dict.get('sort', 'asc')
 
-    return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
-        })
+        page = int(req_dict.get('page', 1))
+        offset = (page-1)*limit
+
+        # taxonGroup
+        query_list = ["deprecated = 'f'"]
+        if taxonGroup := req_dict.get('taxonGroup'):
+            query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+
+        # datasetName
+        if name := req_dict.get('name'):
+            query_list.append('''( "name" like '%{}%')'''.format(name))
+
+        # rightsHolder
+        if holders := req_dict.getlist('rightsHolder'):
+            holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
+            query_list.append(f"({' OR '.join(holders)})")
+
+
+        query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount" FROM dataset'
+        count_query = 'SELECT count(*) FROM dataset'
+
+        if len(query_list):
+            query += ' WHERE ' + (' AND ').join(query_list)
+            count_query += ' WHERE ' + (' AND ').join(query_list)
+
+        # 先計算總數
+        conn = psycopg2.connect(**datahub_db_settings)
+
+        with conn.cursor() as cursor:
+            cursor.execute(count_query)
+            count_result = cursor.fetchone()
+            total_count = count_result[0]
+
+        # 再取得分頁資訊
+        
+        query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
+
+        df = []
+
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
+                                                 "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
+            
+        conn.close()
+
+        current_page = offset / limit + 1
+        total_page = math.ceil(total_count / limit)
+        page_list = get_page_list(current_page, total_page)
+
+
+        response = {
+            'rows' : df.to_dict('records'),
+            'count': total_count,
+            'page_list': page_list,
+            'current_page' : current_page,
+            'total_page' : total_page,
+            'limit': limit,
+            'orderby': orderby,
+            'sort': sort,
+        }
+        
+        return HttpResponse(json.dumps(response, default=str), content_type='application/json')
+
+
+
+
+def download_dataset_results(request):
+    # req = request.POST
+    # file_format = req.get('file_format','csv')
+
+    # solr_query_list, is_chinese = get_conditioned_solr_search(req)
+    # df = return_download_file_by_solr(solr_query_list, is_chinese)
+
+    now = datetime.now()+timedelta(hours=8)
+
+    if request.method == 'POST':
+        req_dict = request.POST
+        # limit = int(req_dict.get('limit', 10))
+        orderby = req_dict.get('orderby','name')
+        sort = req_dict.get('sort', 'asc')
+
+        # page = int(req_dict.get('page', 1))
+        # offset = (page-1)*limit
+
+        # taxonGroup
+        query_list = ["deprecated = 'f'"]
+        if taxonGroup := req_dict.get('taxonGroup'):
+            query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+
+        # datasetName
+        if name := req_dict.get('name'):
+            query_list.append('''( "name" like '%{}%')'''.format(name))
+
+        # rightsHolder
+        if holders := req_dict.getlist('rightsHolder'):
+            holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
+            query_list.append(f"({' OR '.join(holders)})")
+
+        dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+                         "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
+
+
+        query = '''SELECT "name","rights_holder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+                          "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
+
+        if len(query_list):
+            query += ' WHERE ' + (' AND ').join(query_list)
+
+        conn = psycopg2.connect(**datahub_db_settings)
+
+        query += ' ORDER BY "{}" {}'.format(orderby, sort)
+
+        df = pd.DataFrame(columns=dataset_download_cols)
+
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            df = pd.DataFrame(results, columns=dataset_download_cols)
+            
+        conn.close()
+
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
+    df.to_csv(response, index=False, escapechar='\\')
+
+    return response
+
 
 def get_media_rule():
     conn = psycopg2.connect(**datahub_db_settings)
@@ -1091,6 +1250,30 @@ def get_media_rule():
         results = [r[0] for r in results]
         return results
 
+
+@csp_update(IMG_SRC=get_media_rule())
+def search_collection(request):
+
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    holder_list = [f_list[x] for x in range(0, len(f_list),2)]
+    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+
+    return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+        'rank_list': rank_list})
+    
+
+@csp_update(IMG_SRC=get_media_rule())
+def search_occurrence(request):
+
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
+    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    holder_list = [f_list[x] for x in range(0, len(f_list),2)]
+    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
+
+    return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
+        'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
+        })
 
 @csp_update(IMG_SRC=get_media_rule())
 def occurrence_detail(request, id):
@@ -1110,9 +1293,56 @@ def collection_detail(request, id):
     return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
+@csp_update(IMG_SRC=get_media_rule())
+def dataset_detail(request, id):
+
+    link, logo = '', ''
+    dataset_prefix = None
+
+    query = '''SELECT * FROM dataset WHERE "tbiaDatasetID" = %s AND deprecated = 'f';'''
+
+    conn = psycopg2.connect(**datahub_db_settings)
+    resp = {}
+
+    with conn.cursor() as cursor:
+        cursor.execute(query, (id,))
+        column_names = [desc[0] for desc in cursor.description]
+        results = cursor.fetchone()
+        if len(results):
+
+            i = 0
+            for c in column_names:
+                resp[c] = results[i]
+                i += 1
+
+            new_taxon_stat = {}
+
+            for t in resp['datasetTaxonStat'].keys():
+                new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+
+            resp['datasetTaxonStat'] = new_taxon_stat
+                
+            # 取得logo
+            # group = rights_holder_map[resp['rights_holder']]
+            if resp['group'] == 'gbif':
+                logo = 'GBIF-2015.png'
+                link = 'https://www.gbif.org/'
+                dataset_prefix = 'https://www.gbif.org/dataset/'
+            elif partner := Partner.objects.get(group=resp['group']):
+                logo = 'partner/' + partner.logo
+                for ii in partner.info:
+                    if ii.get('dbname') == resp['rights_holder']:
+                        link = ii.get('link')
+                        dataset_prefix = ii.get('dataset_prefix')
+
+    conn.close()
+
+    return render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix})
+
 
 def get_map_grid(request):
     if request.method == 'POST':
+
         req_dict = request.POST
         grid = int(req_dict.get('grid'))
 
@@ -1161,10 +1391,9 @@ def get_map_grid(request):
 def get_conditional_records(request):
     if request.method == 'POST':
         req_dict = request.POST
+
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby','scientificName')
-        # if orderby == 'eventDate':
-        #     orderby = 'standardDate'
         sort = req_dict.get('sort', 'asc')
         user_id = request.user.id if request.user.id else 0
         get_raw_map = if_raw_map(user_id)
@@ -1173,13 +1402,14 @@ def get_conditional_records(request):
         if req_dict.getlist('selected_col'):
             selected_col = req_dict.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate']
+            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+
 
         record_type = req_dict.get('record_type')
 
@@ -1191,6 +1421,7 @@ def get_conditional_records(request):
             map_dict = map_occurrence
             obv_str = '紀錄'
 
+        selected_grid_text = return_selected_grid_text(req_dict=req_dict, map_dict=map_dict)
 
         if orderby == 'eventDate':
             solr_orderby = 'standardDate' + ' ' + sort
@@ -1286,6 +1517,7 @@ def get_conditional_records(request):
         page_list = get_page_list(current_page, total_page)
 
         if req_dict.get('from') == 'search':
+
             # 搜尋紀錄
 
             now_dict = dict(req_dict)
@@ -1314,6 +1546,7 @@ def get_conditional_records(request):
             'limit': limit,
             'orderby': orderby,
             'sort': sort,
+            'selected_grid_text': selected_grid_text
         }
         
         return HttpResponse(json.dumps(response, default=str), content_type='application/json')
@@ -1329,7 +1562,7 @@ def change_dataset(request):
         record_type = '&fq=record_type:/.*col.*/'
 
     if datasetKey := request.GET.getlist('datasetKey'):
-        datasetKey = [int(d) for d in datasetKey]
+        # datasetKey = [int(d) for d in datasetKey]
         results = get_dataset_by_key(key_list=datasetKey)
         for d in results:
             ds += [{'value': d[0], 'text': d[1]}]
@@ -1340,7 +1573,7 @@ def change_dataset(request):
             # solr內的id和datahub的postgres互通
             for l in d_list:
                 if l['name'] not in [d['text'] for d in ds]:
-                    ds.append({'text': l['name'], 'value': l['id']})
+                    ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
     else:
         # 起始
         response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
@@ -1348,7 +1581,7 @@ def change_dataset(request):
         # solr內的id和datahub的postgres互通
         for l in d_list:
             if l['name'] not in [d['text'] for d in ds]:
-                ds.append({'text': l['name'], 'value': l['id']})
+                ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
@@ -1459,7 +1692,7 @@ def get_dataset(request):
     # solr內的id和datahub的postgres互通
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
-            ds.append({'text': l['name'], 'value': l['id']})
+            ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
     
     # if len(ds):
     #     ds = pd.DataFrame(ds)
@@ -1515,6 +1748,7 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
+@csp_update(IMG_SRC=get_media_rule())
 def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')
@@ -1607,6 +1841,16 @@ def search_full(request):
                 'id': x.id
             })
 
+        themeyear = News.objects.filter(lang=lang,status='pass',type='themeyear').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
+        c_themeyear = themeyear.count()
+        themeyear_rows = []
+        for x in themeyear[:6]:
+            themeyear_rows.append({
+                'title': x.title,
+                'content': x.content,
+                'id': x.id
+            })
+
         # resource
         resource = Resource.objects.filter(lang=lang,title__regex=keyword_reg).order_by('-publish_date')
         c_resource = resource.count()
@@ -1632,6 +1876,7 @@ def search_full(request):
             'project': {'rows': project_rows, 'count': c_project},
             'datathon': {'rows': datathon_rows, 'count': c_datathon},
             'resource': {'rows': resource_rows, 'count': c_resource},
+            'themeyear': {'rows': themeyear_rows, 'count': c_themeyear},
             }
     else:
         response = {
@@ -1644,6 +1889,7 @@ def search_full(request):
             'project': {'count': 0},
             'datathon': {'count': 0},
             'resource': {'count': 0},
+            'themeyear': {'count': 0},
         }
 
     return render(request, 'data/search_full.html', response)
@@ -1680,7 +1926,7 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
 
         for p in Partner.objects.filter(group__in=groups):
             sdr = SensitiveDataResponse.objects.create(
-                partner = p,
+                partner_id = p.id,
                 status = 'pending',
                 query_id = query_id
             )       

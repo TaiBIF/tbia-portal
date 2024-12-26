@@ -166,13 +166,14 @@ $(document).ready(function () {
                         column: {
                             stacking: 'normal',
                             dataLabels: {
-                                enabled: true
+                                enabled: false
                             },
                         },
                     },
                     tooltip: {
-                        headerFormat: '<b>{point.x}</b><br/>',
-                        pointFormat: '{series.name}: {point.y}'
+                        // headerFormat: '<b>{point.x}</b><br/>',
+                        // pointFormat: '{series.name}: {point.y}'
+                        pointFormat: '<b>{point.y}筆</b>'
                     },
                 }));
 
@@ -232,13 +233,14 @@ $(document).ready(function () {
                         column: {
                             stacking: 'normal',
                             dataLabels: {
-                                enabled: true
+                                enabled: false
                             },
                         },
                     },
                     tooltip: {
-                        headerFormat: '<b>{point.x}</b><br/>',
-                        pointFormat: '{series.name}: {point.y}'
+                        // headerFormat: '<b>{point.x}</b><br/>',
+                        // pointFormat: '{series.name}: {point.y}'
+                        pointFormat: '<b>{point.y}筆</b>'
                     },
                 }));
 
@@ -513,6 +515,9 @@ $(document).ready(function () {
                 },
                 xAxis: {
                     categories: [],
+                    labels: {
+                        rotation: -45
+                    }    
                 },
                 plotOptions: {
                     line: {
@@ -664,13 +669,14 @@ $(document).ready(function () {
                     column: {
                         stacking: 'normal',
                         dataLabels: {
-                            enabled: true
+                            enabled: false
                         },
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: '<b>{point.x}</b><br/>',
+                    // pointFormat: '{series.name}: {point.y}'
+                    pointFormat: '<b>{point.y}筆</b>'
                 },
             }));
 
@@ -739,8 +745,8 @@ $(document).ready(function () {
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: `<b>{point.category} ${gettext('年')}</b><br/>`,
+                    pointFormat: '{point.y} ' + gettext('筆'),
                 },
             }));
             
@@ -760,6 +766,9 @@ $(document).ready(function () {
                         text: '月'
                     },
                     categories: [],
+                    labels: {
+                        rotation: -45
+                    }    
                 },
                 plotOptions: {
                     column: {
@@ -770,8 +779,8 @@ $(document).ready(function () {
                     },
                 },
                 tooltip: {
-                    headerFormat: '<b>{point.x}月</b><br/>',
-                    pointFormat: '{series.name}: {point.y}'
+                    // headerFormat: '<b>{point.category}月</b><br/>',
+                    pointFormat: '{point.y} ' + gettext('筆')
                 },
             }));
             

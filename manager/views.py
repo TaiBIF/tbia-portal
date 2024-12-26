@@ -192,7 +192,7 @@ def change_manager_page(request):
             query = create_query_display(search_dict, lang)
             link = ''
             if t.status == 'pass' and t.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">{gettext("下載")}</a>'
+                link = f'<a class="btn-style1" target="_blank" href="/media/download/taxon/tbia_{ t.query_id }.zip">{gettext("下載")}</a>'
 
             if search_dict.get("record_type") == 'col':
                 search_prefix = 'collection'
@@ -211,7 +211,7 @@ def change_manager_page(request):
                 now_ark_id = Ark.objects.get(model_id=t.id, type='data').ark
                 ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif t.status == 'pass':
-                ark = f'<a class="manager_btn applyARK" data-query_id="{ t.query_id }"=>{gettext("申請")}</a>'
+                ark = f'<a class="btn-style1 applyARK" data-query_id="{ t.query_id }"=>{gettext("申請")}</a>'
             else:
                 ark = ''
             
@@ -277,13 +277,13 @@ def change_manager_page(request):
 
             link = ''
             if s.status == 'pass' and s.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
+                link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
 
             if Ark.objects.filter(model_id=s.id, type='data').exists():
                 now_ark_id = Ark.objects.get(model_id=s.id, type='data').ark
                 ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif s.status == 'pass':
-                ark = f'<a class="manager_btn applyARK" data-query_id="{ s.query_id }"=>{gettext("申請")}</a>'
+                ark = f'<a class="btn-style1 applyARK" data-query_id="{ s.query_id }"=>{gettext("申請")}</a>'
             else:
                 ark = ''
             
@@ -352,7 +352,7 @@ def change_manager_page(request):
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
-                link = f'<a class="manager_btn" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
+                link = f'<a class="btn-style1" target="_blank" href="/media/download/record/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
 
             query = query_a_href(query,query_a,lang)
 
@@ -360,7 +360,7 @@ def change_manager_page(request):
                 now_ark_id = Ark.objects.get(model_id=r.id, type='data').ark
                 ark = f'<a href="{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{now_ark_id}" target="_blank">ark:/{env("ARK_NAAN")}/{now_ark_id}</a>'
             elif r.status == 'pass':
-                ark = f'<a class="manager_btn applyARK" data-query_id="{ r.query_id }"=>{gettext("申請")}</a>'
+                ark = f'<a class="btn-style1 applyARK" data-query_id="{ r.query_id }"=>{gettext("申請")}</a>'
             else:
                 ark = ''
             
@@ -376,77 +376,39 @@ def change_manager_page(request):
 
         total_page = math.ceil(SearchQuery.objects.filter(user_id=request.user.id,type='record').count() / 10)
 
-    elif menu == 'feedback': # 意見回饋 單位帳號 / 系統帳號
-        # 暫時沒有使用
-        if request.GET.get('from') == 'partner':
-            for f in Feedback.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
-                if f.created:
-                    date = f.created + timedelta(hours=8)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+    elif menu == 'feedback': # 意見回饋 系統帳號
+
+        for f in Feedback.objects.all().order_by('-id')[offset:offset+10]:
+            if f.created:
+                date = f.created + timedelta(hours=8)
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
+            else:
+                date = ''
+
+            if f.partner:
+                if lang == 'en-us':
+                    partner_title = f.partner.select_title_en
                 else:
-                    date = ''
-
-                if f.is_replied:
-                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為未回覆</button>'
+                    partner_title = f.partner.select_title 
+            else:
+                if lang == 'en-us':
+                    partner_title = 'Taiwan Biodiversity Information Alliance'
                 else:
-                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{{ f.id }}">修改為已回覆</button>'
+                    partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
 
-                data.append({
-                    'id': f"#{f.id}",
-                    'created': date,
-                    'email': f.email,
-                    'type': f.get_type_display(),
-                    'content': f.content,
-                    'a': a
-                })
+            a = f"""<select name="is_replied" class="w-100p" data-fid="{ f.id }"><option value="true" { 'selected' if f.is_replied else '' }>已回覆</option><option value="false" { 'selected' if not f.is_replied else '' }>未回覆</option></select>"""
 
-            total_page = math.ceil(Feedback.objects.filter(partner_id=request.user.partner.id).count() / 10)
-        else:
-            for f in Feedback.objects.all().order_by('-id')[offset:offset+10]:
-                if f.created:
-                    date = f.created + timedelta(hours=8)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
-                else:
-                    date = ''
+            data.append({
+                'id': f"#{f.id}",
+                'partner': partner_title,
+                'created': date,
+                'email': f.email,
+                'type': f.get_type_display(),
+                'content': f.content,
+                'a': a
+            })
 
-                # if f.partner:
-                #     partner_title = f.partner.select_title
-                # else:
-                #     partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
-
-                if f.partner:
-                    if lang == 'en-us':
-                        partner_title = f.partner.select_title_en
-                    else:
-                        partner_title = f.partner.select_title 
-                else:
-                    if lang == 'en-us':
-                        partner_title = 'Taiwan Biodiversity Information Alliance'
-                    else:
-                        partner_title = 'TBIA 臺灣生物多樣性資訊聯盟'
-
-                # if f.partner:
-                #     if f.is_replied:
-                #         a = '是'
-                #     else:
-                #         a = '否'
-                # else:
-                if f.is_replied:
-                    a = f'是<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為未回覆</button>'
-                else:
-                    a = f'否<br><button class=" feedback_btn w-100p updateFeedback" data-fid="{ f.id }">修改為已回覆</button>'
-
-                data.append({
-                    'id': f"#{f.id}",
-                    'partner': partner_title,
-                    'created': date,
-                    'email': f.email,
-                    'type': f.get_type_display(),
-                    'content': f.content,
-                    'a': a
-                })
-
-            total_page = math.ceil(Feedback.objects.all().count() / 10)
+        total_page = math.ceil(Feedback.objects.all().count() / 10)
 
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
@@ -460,7 +422,7 @@ def change_manager_page(request):
             if s.created:
                 date = s.created + timedelta(hours=8)
                 due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
-                date = date.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
+                date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
             # else:
             #     date = ''
 
@@ -481,7 +443,7 @@ def change_manager_page(request):
 
             query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-            a = f'<a class="pointer showRequest manager_btn" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
+            a = f'<a class="pointer showRequest btn-style1" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
             query = query_a_href(query,query_a)
 
             # 審查意見
@@ -510,7 +472,7 @@ def change_manager_page(request):
             data.append({
                 'id': f"#{s.id}",
                 'query_id': s.query_id,
-                'date':  date + '<br>審核期限：' + due,
+                'date':  date + '<br>審核期限：<br>' + due,
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': sq.get_status_display(),
@@ -524,7 +486,7 @@ def change_manager_page(request):
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = check_due(created.date(), 14)
-                created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
+                created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
@@ -539,11 +501,11 @@ def change_manager_page(request):
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-                    a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
                     
                     link = ''
                     if sdr.status == 'pass' and sdr.status != 'expired':
-                        link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
+                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 
                     data_count = ''
 
@@ -566,7 +528,7 @@ def change_manager_page(request):
                     data.append({
                         'id': f'#{sdr.id}',
                         # 'query_id': sdr.query_id,
-                        'created':  created + '<br>審核期限：'+due,
+                        'created':  created + '<br>審核期限：<br>'+due,
                         'query':   query,
                         'data_count': data_count,
                         'status': sdr.get_status_display(),
@@ -603,21 +565,21 @@ def change_manager_page(request):
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
                         due = check_due(created.date(), 14)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S') #.replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     else:
                         status = sdr.get_status_display()
                         due = check_due(created.date(), 7)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S')#.replace(' ', '<br/>')
+                        created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     
-                    date = created + '<br>審核期限：' + due
+                    date = created + '<br>審核期限：<br>' + due
                     
                     # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
-                    a = f'<a class="pointer showRequest manager_btn" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+                    a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
 
                     link = ''
                     if sdr.status == 'pass' and sdr.status != 'expired':
-                        link = f'<a class="manager_btn" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
+                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 
 
                     data_count = ''
@@ -665,7 +627,7 @@ def change_manager_page(request):
                     'name': f"{a.name} ({a.email})",
                     'select': select,
                     'status': status,
-                    'a': f'<button class="manager_btn save_btn" data-id="{ a.id }">儲存</button>'
+                    'a': f'<button class="btn-style1 save_btn" data-id="{ a.id }">儲存</button>'
                 })
             total_page = math.ceil(User.objects.filter(partner_id=request.user.partner.id).exclude(status='withdraw').exclude(id=request.user.id).count() / 10)
 
@@ -698,7 +660,7 @@ def change_manager_page(request):
                     'partner_title': partner_title,
                     'select': select,
                     'status': status,
-                    'a': f'<button class="manager_btn save_btn saveStatus" data-pmid="{ a.id }">儲存</button>'
+                    'a': f'<button class="btn-style1 save_btn saveStatus" data-pmid="{ a.id }">儲存</button>'
                 })
 
             total_page = math.ceil(User.objects.filter(partner_id__isnull=False).exclude(status='withdraw').count() / 10)
@@ -724,7 +686,7 @@ def change_manager_page(request):
                 publish_date = ''
 
             data.append({
-                'edit': f'<a class="manager_btn" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>',
+                'edit': f'<a class="btn-style1" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>',
                 'id': f'#{n.id}',
                 'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
                 'type': n.get_type_display(),
@@ -759,9 +721,9 @@ def change_manager_page(request):
                 publish_date = ''
             
             if n.status == 'pending':
-                a = f'<a class="manager_btn" href="/withdraw_news?news_id={ n.id }">撤回</a>'
+                a = f'<a class="btn-style1" href="/withdraw_news?news_id={ n.id }">撤回</a>'
             else:
-                a = f'<a class="manager_btn" href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
+                a = f'<a class="btn-style1" href="/manager/partner/news?menu=edit&news_id={ n.id }">編輯</a>'
 
             data.append({
                 'id': f"#{n.id}",
@@ -784,7 +746,7 @@ def change_manager_page(request):
                 # 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'publish_date': r.publish_date.strftime('%Y-%m-%d'),
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>'),
-                'edit': f'<a class="manager_btn" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
+                'edit': f'<a class="btn-style1" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
                 'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
         total_page = math.ceil(Resource.objects.all().count() / 10)
@@ -794,7 +756,7 @@ def change_manager_page(request):
                 'type': q.get_type_display(),
                 'order': q.order,
                 'question': q.question,
-                'edit': f'<a class="manager_btn" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
+                'edit': f'<a class="btn-style1" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
                 'delete': f'<a class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
             })
 
@@ -1722,7 +1684,6 @@ def get_taxon_group_list(request):
     selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
     if selected_name:
         selected_name = selected_name[0]
-        # TaxonStat.objects.get(type='taiwan_percentage', name=selected_name, )
 
     total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
     
@@ -1738,6 +1699,19 @@ def get_taxon_group_list(request):
     return HttpResponse(json.dumps(final_list), content_type='application/json')
 
 
+
+def get_taxon_stat(request):
+    # 資料空缺年的資料
+    # 物種類群資料筆數
+
+    taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
+    taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
+
+    response = {
+        'taxon_group_stat': taxon_group_stat,
+    }
+
+    return JsonResponse(response, safe=False)
 
 
 def get_system_stat(request):
@@ -1798,8 +1772,6 @@ def get_system_stat(request):
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
-    # # 物種類群資料筆數
-    # taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in list(TaxonStat.objects.filter(rights_holder='total',type='taxon_group').order_by('-count').values('name','count')) ]
 
     # 物種類群資料筆數
     taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
@@ -1812,7 +1784,6 @@ def get_system_stat(request):
     for h in top3_taxon_group.rights_holder.unique():
         data = []
         for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
-            # data.append({'name': taxon_group_map_c[tt[0]], 'count': tt[1]})
             data.append(f'{taxon_group_map_c[tt[0]]} ({tt[1]})')
         top3_taxon_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
@@ -1821,7 +1792,6 @@ def get_system_stat(request):
     for h in top5_family.rights_holder.unique():
         data = []
         for tt in top5_family[top5_family.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:5]:
-            # data.append({'name': taxon_group_map_c[tt[0]], 'count': tt[1]})
             data.append(f'{tt[0]} ({tt[1]})')
         top5_family_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
@@ -1831,8 +1801,6 @@ def get_system_stat(request):
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_fields']['dataQuality']
         for r in range(0,len(facets),2):
-            # total_count += facets[r+1]
-            # if facets[r+1] > 0 :
             quality_data_list.append({
                 'name': quality_map[int(float(facets[r]))],
                 'color': quality_color_map[int(float(facets[r]))],
@@ -2014,7 +1982,7 @@ def submit_news(request):
             if ori_status != 'pass' and status == 'pass':
                 # 新增 ark
                 # 如果已經有ARK的話就不要再給了
-                if not Ark.objects.create(type='news', model_id=n.id).exists():
+                if not Ark.objects.filter(type='news', model_id=n.id).exists():
                     ark_obj = Ark.objects.create(type='news', ark=ark_generator(data_type='news'), model_id=n.id)
                     # insert api
                     url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
@@ -2555,8 +2523,6 @@ def get_temporal_stat(request):
     # 需要回傳 1 - 年份空缺 -> 需排除year = x的資料
     # 需要回傳 2 - 月份空缺 -> 需排除year = x & month = x的資料
 
-    # print(request.GET)
-
     start_year = int(request.GET.get('start_year'), 0)
     end_year = int(request.GET.get('end_year'), 0)
     where = request.GET.get('where')
@@ -2675,10 +2641,10 @@ def get_temporal_stat(request):
     # 如果都沒有 全部回傳0
     # for yy in year_list:
     if not new_data_list:
-        new_data_list.append({'name': '', 'data': [0 for m in  month_list], 'color': '' })
+        new_data_list.append({'name': '', 'data': [0 for m in month_list], 'color': '' })
 
     resp['month_data'] = new_data_list
-    resp['month_categories'] = month_list
+    resp['month_categories'] = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 
     return HttpResponse(json.dumps(resp), content_type='application/json')

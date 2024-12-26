@@ -120,11 +120,11 @@
     display: flex; 
     color: black
 }
-
+/* 
 .table-flow {
     overflow-x: auto; 
     margin-top: 10px
-}
+} */
 
 
 .dow_btn {
@@ -190,8 +190,7 @@
 }
 
 
-
+/* 
 .qa_table tr td:nth-child(3)  {
     text-align: left !important;
-}
-
+} */

@@ -1,4 +1,11 @@
 
+.selected_grid_area {
+    font-size: 16px;
+    margin-left: 10px;
+    color: #3F5146
+}
+
+
 input.name_input::placeholder {
     font-size: 11px 
 }
@@ -72,9 +79,17 @@ input.name_input::placeholder {
 }
 
 .imgbox {
-    height: 390px !important;
+    height: 540px !important;
     width: auto !important;
 }
+
+
+@media only screen and (max-width: 999px) {
+    .imgbox {
+        height: 500px !important;    
+    }
+}
+
 
 .choice-flow {
     max-height: 100%;
@@ -168,35 +183,6 @@ input.name_input::placeholder {
     width: 100% !important;
 }
 
-
-.clear_btn {
-    color: #3F5146;
-    background: #FFF;
-    border: 1px solid #3F5146;
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    width: 50%;
-    height: 50px;
-    border-radius: 25px;
-    font-size: 19px;
-    display: block;
-    margin: 0 10px
-}
-
-@media only screen and (min-width: 1000px) {
-    .clear_btn:hover {
-        transition: all .3s;
-        -moz-transition: all .3s;
-        -o-transition: all .3s;
-        -ms-transition: all .3s;
-        -webkit-transition: all .3s;
-        background: #3F5146;
-        color: #FFF;
-    }
-}
 
 .search_area_btns {
     width: 50% !important;

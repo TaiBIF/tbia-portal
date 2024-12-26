@@ -45,6 +45,7 @@ urlpatterns = [
     # 取得資料 後台統計圖 / 敏感資料申請內容
     path('get_partner_stat', views.get_partner_stat, name='get_partner_stat'),
     path('get_system_stat', views.get_system_stat, name='get_system_stat'),
+    path('get_taxon_stat', views.get_taxon_stat, name='get_taxon_stat'),
     path('get_request_detail', views.get_request_detail, name='get_request_detail'), 
     path('get_keyword_stat', views.get_keyword_stat, name='get_keyword_stat'), 
     path('get_checklist_stat', views.get_checklist_stat, name='get_checklist_stat'), 

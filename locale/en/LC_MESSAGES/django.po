@@ -2321,8 +2321,8 @@ msgid "使用本網站之入口網ID取得指定的出現紀錄資料"
 msgstr "Get record by TBIA ID"
 
 #:
-msgid "取得指定物種編號的物種資料"
-msgstr "List records by taxon ID"
+msgid "取得指定TaiCOL物種編號的物種資料"
+msgstr "List records by TaiCOL taxon ID"
 
 #:
 msgid "是否為自然史典藏資料，是=true，否=false"
@@ -2375,6 +2375,14 @@ msgstr "Created Date (TBIA Portal)"
 #:
 msgid "入口網資料修改時間"
 msgstr "Modified Date (TBIA Portal)"
+
+#:
+msgid "入口網資料集建立時間"
+msgstr "Dataset Created Date (TBIA Portal)"
+
+#:
+msgid "入口網資料集修改時間"
+msgstr "Dataset Modified Date (TBIA Portal)"
 
 #:
 msgid "標準化日期"
@@ -2626,3 +2634,218 @@ msgstr "Created"
 #:
 msgid "下載資料"
 msgstr "Download"
+
+
+#:
+msgid "資料集查詢"
+msgstr "Search Dataset"
+
+
+#:
+msgid "下載資料集清單"
+msgstr "Download Dataset List"
+
+
+#:
+msgid "涵蓋日期起始"
+msgstr "Dataset Start Date"
+
+
+#:
+msgid "涵蓋日期結束"
+msgstr "Dataset End Date"
+
+
+#:
+msgid "下載次數"
+msgstr "Number of Downloads"
+
+
+#:
+msgid "入口網資料集ID"
+msgstr "TBIA Dataset ID"
+
+
+#:
+msgid "GBIF資料集ID"
+msgstr "GBIF Dataset ID"
+
+
+#:
+msgid "來源資料庫資料集ID"
+msgstr "Source Dataset ID"
+
+
+#:
+msgid "資料集發布者"
+msgstr "Dataset Publisher"
+
+
+#:
+msgid "最後更新時間"
+msgstr "Last Updated"
+
+
+#:
+msgid "資料集 - dataset API"
+msgstr "dataset API"
+
+
+#:
+msgid "本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
+msgstr "The service will perform partial data blurred. Access to the restricted API for non-blurred data is currently available only to TBIA partner organizations."
+
+
+#:
+msgid "使用本網站之資料集ID取得指定的資料集"
+msgstr "Get dataset by TBIA datasetID"
+
+
+#:
+msgid "使用來源資料庫 / 典藏單位之資料集ID取得指定的資料集"
+msgstr "Get dataset by sourceDatasetID from rights holder"
+
+
+#:
+msgid "以GBIF的資料集ID取得指定的資料集"
+msgstr "Get dataset by GBIF datasetID"
+
+
+#:
+msgid "取得指定來源資料庫 / 典藏單位的資料集"
+msgstr "List dataset by rights holder"
+
+
+#:
+msgid "以資料集名稱查詢，支援部分查詢"
+msgstr "List dataset by dataset name, supporting partial matching"
+
+
+#:
+msgid "取得含括指定物種類群的資料集"
+msgstr "List dataset that include the specified taxon group"
+
+
+#:
+msgid "資料集建立時間，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List datasets by created date (TBIA portal). Supports range queries."
+
+
+#:
+msgid "資料集更新時間，日期格式：yyyy-mm-dd。支援區間查詢"
+msgstr "List datasets by modified date (TBIA portal). Supports range queries."
+
+
+#:
+msgid "匯出KML"
+msgstr "Export to KML"
+
+
+#:
+msgid "點擊圓餅圖"
+msgstr "Click Pie Chart"
+
+
+#:
+msgid "筆數"
+msgstr "Number of Records"
+
+
+#:
+msgid "年"
+msgstr "Year"
+
+
+#:
+msgid "月"
+msgstr "Month"
+
+
+#:
+msgid "年份區間"
+msgstr "Year Range"
+
+
+#:
+msgid "筆"
+msgstr "records"
+
+
+#:
+msgid "共"
+msgstr "total"
+
+
+#:
+msgid "物種類群資料筆數"
+msgstr "Biological Group"
+
+
+#:
+msgid "資料時間空缺狀況"
+msgstr "Temporal Data Gap"
+
+
+#:
+msgid "資料空間空缺狀況"
+msgstr "Spatial Data Gap"
+
+
+#:
+msgid "資料空缺"
+msgstr "Data Gap"
+
+
+#:
+msgid "1公里網格編號"
+msgstr "1 KM Grid Number"
+
+
+#:
+msgid "5公里網格編號"
+msgstr "5 KM Grid Number"
+
+
+#:
+msgid "10公里網格編號"
+msgstr "10 KM Grid Number"
+
+
+#:
+msgid "100公里網格編號"
+msgstr "100 KM Grid Number"
+
+
+#:
+msgid "目前所選網格："
+msgstr "Current Selected Grid: "
+
+
+#:
+msgid "資料集URL"
+msgstr "Dataset URL"
+
+
+#:
+msgid "資料集授權狀況"
+msgstr "Dataset License"
+
+
+#:
+msgid "含括物種類群"
+msgstr "Taxonomic Groups Included in the Dataset"
+
+
+#:
+msgid "含括資料筆數"
+msgstr "Number of Records Included in the Dataset"
+
+
+#:
+msgid "影像"
+msgstr "Associated Media"
+
+
+#:
+msgid "主題年活動"
+msgstr "Theme Year"

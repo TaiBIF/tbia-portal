@@ -1,58 +1,22 @@
 
-
-
-.download_table tr:not(:first-child) td:nth-child(2) {
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-}
-
-.download_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left;
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
+.download_table td:nth-child(2), .download_taxon_table td:nth-child(2), .sensitive_table td:nth-child(2) {
+    min-width: 125px;
+    max-width: 125px;
 
 }
 
-.download_taxon_table tr:not(:first-child) td:nth-child(2) {
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
+
+.download_table td:nth-child(3), .download_taxon_table td:nth-child(3), .sensitive_table td:nth-child(3) {
+    text-align: center;
+    min-width: 150px;
+    max-width: 150px;
 }
 
-.download_taxon_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left;
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
+.download_table td:nth-child(5), .download_taxon_table td:nth-child(5), .sensitive_table td:nth-child(6),
+.download_table td:nth-child(6), .download_taxon_table td:nth-child(6), .sensitive_table td:nth-child(7)
+ {
+    min-width: 95px
 }
-
-
-.sensitive_table tr:not(:first-child) td:nth-child(2) {
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-}
-
-.sensitive_table tr:not(:first-child) td:nth-child(4) {
-    text-align: left;
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-}
-
-.sensitive_table tr:not(:first-child) td:nth-child(5) {
-    text-align: left;
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-}
-
-
-/* .notification_table tr:not(:first-child) td:nth-child(2n) {
-    display: flex
-} */
 
 .notification_table tr:not(:first-child) td:nth-child(2n) {
     text-align: left
@@ -330,27 +294,3 @@ span.expired-notice {
     margin-right: 15px
 }
 
-.qmark-dark {
-    display: inline-block;
-    background: url("/static/image/quesmarkw.svg") no-repeat center;
-    width: 17px;
-    height: 17px;
-    background-size: contain;
-    margin-left: 3px;
-}
-
-.qmark-dark:hover {
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain;
-
-}
-
-/* .table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
-}
-
-.table-flow .table_style1 {
-    min-width: 100%;
-    width: max-content;
-}  */

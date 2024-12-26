@@ -256,10 +256,10 @@
     color: black
 }
 
-.table-flow {
+/* .table-flow {
     overflow-x: auto; 
     margin-top: 10px
-}
+} */
 
 .img-style {
     max-height: 200px; margin: auto
@@ -272,4 +272,14 @@
 .upload-warning {
     font-size: 14px;
     color: #C65454
+}
+
+
+.news_table td:nth-child(5) {
+    width: 5%;
+    font-size: 16px;
+}
+
+.news_table td:nth-child(7) {
+    font-size: 14px;
 }

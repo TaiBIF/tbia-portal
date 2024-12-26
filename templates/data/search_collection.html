@@ -33,7 +33,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v7" />
 {% endblock style %}
 
 
@@ -213,20 +213,22 @@
                 <div id="map" class="img"></div>
               </div>
             </div>
-			
-            <div class="records-legend d-none d-flex legend-fs-15px">
-              {% trans '資料筆數' %}
-            </div>
-            <div class="records-legend d-none d-flex legend-fs-15px">
-              <div class="d-flex"><div class="count-0"></div>>0</div>
-              <div class="d-flex"><div class="count-10"></div>>10</div>
-              <div class="d-flex"><div class="count-20"></div>>20</div>
-              <div class="d-flex"><div class="count-50"></div>>50</div>
-              <div class="d-flex"><div class="count-100"></div>>100</div>
-              <div class="d-flex"><div class="count-200"></div>>200</div>
-              <div class="d-flex"><div class="count-500"></div>>500</div>
-              <div class="d-flex"><div class="count-1000"></div>>1000</div>
-            </div>
+			<div class="selected_grid_area d-none">
+				<b>{% trans '目前所選網格：' %}</b><span class="selected_grid"></span>
+			</div>  
+            {% comment %} <div class="records-legend d-flex legend-fs-13px">
+				{% trans '資料筆數' %}：
+				<div class="d-flex"><div class="count-1"></div>1 - 10</div>
+				<div class="d-flex"><div class="count-10"></div>10 - 100</div>
+				<div class="d-flex"><div class="count-100"></div>100 - 1,000</div>
+				<div class="d-flex"><div class="count-1000"></div>1,000 - 5,000</div>
+			</div>
+			<div class="records-legend d-flex legend-fs-13px">
+				<div class="d-flex"><div class="count-5000"></div>5,000 - 10,000</div>
+				<div class="d-flex"><div class="count-10000"></div>10,000 - 50,000</div>
+				<div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
+				<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
+			</div> {% endcomment %}
 
           </div>
         </div>
@@ -258,7 +260,7 @@
 				<option value="20">20</option>
 				<option value="50">50</option>
 				<option value="100">100</option>
-				</select>{% trans ' 筆' %}，共<span class="return-total-page"></span>頁
+				</select>{% trans ' 筆' %}{% trans '，共' %} <span class="return-total-page"></span> {% trans '頁' %}
 			</div>
 			<p class="datenum">{% trans "資料筆數" %}{% trans '：' %}<span class="return-num"></span></p>
 		</div>
@@ -411,6 +413,10 @@
 					<input type="checkbox" class="chebox" id="col-license">
 					<p>{% trans '授權狀況' %}</p>
 				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-associatedMedia">
+					<p>{% trans '影像' %}</p>
+				</li>
 			</ul>
 			<button class="send_bt sendSelected">{% trans '確認' %}</button>
 		</div>
@@ -494,5 +500,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v16"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v19"></script>
 {% endblock %}

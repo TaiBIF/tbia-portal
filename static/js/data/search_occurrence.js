@@ -231,21 +231,22 @@ function getWKTMap() {
 }
 
 function getColor(d) {
-    return d > 1000 ? '#C50101' :
-            d > 500 ? '#D71414' :
-            d > 200 ? '#E72424' :
-            d > 100 ? '#F73535' :
-            d > 50 ? '#FB4C4C' :
-            d > 20 ? '#FB6262' :
-            d > 10 ? '#FC7E7E' :
-                '#FD9696';
+    return d > 100000 ? '#bd0026' :
+            d > 50000 ? '#e31a1c' :
+            d > 10000 ? '#fc4e2a' :
+            d > 5000 ? '#fd8d3c' :
+            d > 1000 ? '#feb24c' :
+            d > 100 ? '#fed976' :
+            d > 10 ? '#ffeda0' :
+                '#ffffcc';
 }
 
 function style(feature) {
     return {
         fillColor: getColor(feature.properties.counts),
-        weight: 0,
-        fillOpacity: 0.7
+        weight: 0.7,
+        fillOpacity: 0.7,
+        color: '#b2d2dd'
     };
 }
 
@@ -260,6 +261,22 @@ map.on('drag', function() {
     map.panInsideBounds(bounds, { animate: false });
 });
 
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend map-legend d-none'),
+        grades = [1, 10, 100, 1000, 5000, 10000, 50000, 100000]
+    div.innerHTML += `<div class="ml-5px mb-5">${gettext('資料筆數')}</div>`
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            `<div class="d-flex-ai-c"><div class="count-${grades[i]}"></div>` +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+') 
+            + '</div>'
+    }
+    return div;
+};
+
+legend.addTo(map);
 
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -323,7 +340,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_100', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_100', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -351,7 +368,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_10', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_10', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -378,7 +395,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_5', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_5', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -406,7 +423,7 @@ function drawMapGrid(currentZoomLevel){
                 dataType: 'json',
             })
                 .done(function (response) {
-                    L.geoJSON(response, { className: 'resultG_1', style: style }).addTo(map);
+                    L.geoJSON(response, { className: 'resultG_1', style: style, onEachFeature: onEachFeature }).addTo(map);
                     $('.loading_area').addClass('d-none')
                 })
                 .fail(function (xhr, status, errorThrown) {
@@ -424,6 +441,36 @@ function drawMapGrid(currentZoomLevel){
         }
     }
 }
+
+function whenClicked(e) {
+
+    const current_pars = new URLSearchParams(window.condition)
+
+    current_pars.delete('current_grid_level')
+    current_pars.delete('current_grid')
+
+    let queryString = current_pars.toString() + '&current_grid_level=' + e.target.feature.properties.current_grid_level + '&current_grid=' + e.target.feature.properties.current_grid
+    window.condition = queryString
+
+    submitSearch(1, 'map', false, $('select[name=shownumber]').find(':selected').val(), 'scientificName', 'desc', null) 
+
+}
+  
+function onEachFeature(feature, layer) {
+    //bind click
+    layer.on({
+        click: whenClicked,
+        mouseover: (e) => {
+            e.target.setStyle({color: '#3c8299', weight: 2});
+          },
+        mouseout: (e) => {
+            e.target.setStyle({color: '#b2d2dd', weight: 0.7});
+          },
+  
+    });
+}
+  
+  
 
 function initDataset(what, datasize) {
     let valueProperty = "value";
@@ -530,6 +577,10 @@ function doSearchDataset(what, datasize) {
 }
 
 $(function () {
+
+    $('.resetSearch, .clearGeo').on('click',function(){
+        $('.map-legend, .selected_grid_area').addClass('d-none')
+    })
 
     $('#searchForm').on('submit', function(event) { 
         event.preventDefault()
@@ -1026,21 +1077,6 @@ function changeAction() {
 
 function setTable(response, queryString, from, orderby, sort) {
 
-    // if (from == 'search' | from == 'change') {
-    //     $('.resultG_1, .resultG_10, .resultG_5, .resultG_100').remove()
-    //     // 目前的zoom level
-    //     if (window.current_grid_level == 100) {
-    //         L.geoJSON(response.map_geojson.grid_100, { className: "resultG_100", style: style }).addTo(map);
-    //     } else if (window.current_grid_level == undefined | window.current_grid_level == 10){
-    //         window.current_grid_level = 10
-    //         L.geoJSON(response.map_geojson.grid_10, { className: "resultG_10", style: style }).addTo(map);
-    //     } else if (window.current_grid_level == 5) {
-    //         L.geoJSON(response.map_geojson.grid_5, { className: "resultG_5", style: style }).addTo(map);
-    //     } else if (window.current_grid_level == 1) {
-    //         L.geoJSON(response.map_geojson.grid_1, { className: "resultG_1", style: style }).addTo(map);
-    //     } 
-    // }
-
     // 如果有資料回傳則顯示table
     $('.downloadData').data('query', queryString)
     $('.downloadData').data('count', response.count)
@@ -1089,15 +1125,18 @@ function setTable(response, queryString, from, orderby, sort) {
     function_td.appendChild(text);
     table_title.appendChild(function_td);
 
+
     for (let i = 0; i < Object.keys(map_dict).length; i++) {
         var this_td = document.createElement("td");
         this_td.className = `row-${Object.keys(map_dict)[i]} d-none`;
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        a.className = 'orderby';
-        a.dataset.orderby = Object.keys(map_dict)[i];
-        a.dataset.sort = 'asc';
+        if (Object.keys(map_dict)[i]!='associatedMedia'){
+            a.className = 'orderby';
+            a.dataset.orderby = Object.keys(map_dict)[i];
+            a.dataset.sort = 'asc';
+        }
         this_td.appendChild(text);
         this_td.appendChild(a);
         table_title.appendChild(this_td);
@@ -1130,7 +1169,7 @@ function setTable(response, queryString, from, orderby, sort) {
 
     // 如果queryString裡面沒有指定orderby，使用scientificName
     $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
-    if (response.sort == 'asc') {
+    if (response.sort == 'desc') {
         $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
     } else {
         $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-up sort-icon-active"></i>')
@@ -1138,18 +1177,19 @@ function setTable(response, queryString, from, orderby, sort) {
     }
 
     $('.orderby').on('click', function () {
+        
         if ($(this).children('svg').hasClass('fa-sort')) {
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active');
-            $(this).data('sort', 'asc');
-        } else if ($(this).children('svg').hasClass('fa-sort-down')) {
+            $(this).data('sort', 'desc');
+        } else if ($(this).children('svg').hasClass('fa-sort-down')) { // 如果原本是down (desc)
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-up sort-icon-active')
-            $(this).data('sort', 'desc');
-        } else {
+            $(this).data('sort', 'asc');
+        } else {  // 如果原本是up (asc)
             $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
             $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
-            $(this).data('sort', 'asc');
+            $(this).data('sort', 'desc');
         }
 
         submitSearch(1, 'orderby', false, response.limit, $(this).data('orderby'), $(this).data('sort'))
@@ -1159,6 +1199,8 @@ function setTable(response, queryString, from, orderby, sort) {
 
 // submit search form
 function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
+
+    $('.map-legend').removeClass('d-none');
 
     if (push_state == null) { push_state = true }
 
@@ -1319,12 +1361,23 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             })
             .done(function (response) {
 
-                if (response.message == 'exceed'){
+                if (response.selected_grid_text!=''){
+
+                    $('.selected_grid_area').removeClass('d-none')
+                    $('.selected_grid').html(response.selected_grid_text)
+
+                } else {
+
+                    $('.selected_grid_area').addClass('d-none')
+                }
+
+              if (response.message == 'exceed'){
 
                     $(".loading_area").addClass('d-none');
                     alert(gettext('超過系統可取得的頁數，請嘗試使用結果排序功能或縮小搜尋範圍'))
 
                 } else {
+
 
                     // clear previous results
                     $('.record_table tr').remove()
