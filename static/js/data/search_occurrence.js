@@ -118,6 +118,54 @@ let selectBox12 = new vanillaSelectBox("#is_protected", {
     placeHolder: gettext("是否為保育類"), search: false, disableSelectAll: true,
 });
 
+let selectBox13 = new vanillaSelectBox("#county", {
+    placeHolder: gettext("縣市"), search: false, disableSelectAll: true,
+});
+
+
+$('#county').on('change', function (e) {
+
+    e.preventDefault()
+    let res = selectBox13.getResult()
+    selectBox14.changeTree([{ 'value': '', 'text': gettext('-- 不限 --') }])
+
+    // municipality 的顏色拿掉
+    $('#btn-group-municipality button span.title').removeClass('black').addClass('color-707070')
+
+    $.ajax({
+        url: "/change_municipality?county=" + res,
+        dataType: 'json',
+    })
+    .done(function (response) {
+
+        if (response.length > 0) {
+            
+            selectBox14.enable()
+            final_resp = response
+            final_resp.unshift({ 'value': '', 'text': gettext('-- 不限 --') })
+            selectBox14.changeTree(final_resp)
+
+            if (window.has_municipality) {
+                selectBox14.setValue(window.municipality)
+                $('#btn-group-municipality button span.title').addClass('black').removeClass('color-707070')
+                window.has_municipality = false
+            } else {
+                $('#btn-group-municipality button span.title').removeClass('black').addClass('color-707070')
+            }
+        } else {
+
+            selectBox14.empty()
+        }
+    })
+
+})
+
+
+
+let selectBox14 = new vanillaSelectBox("#municipality", {
+    placeHolder: gettext("鄉鎮市區"), search: false, disableSelectAll: true,
+});
+
 
 function doSearchLocality(what, datasize) {
     let valueProperty = "value";
@@ -660,6 +708,7 @@ $(function () {
         $('.clearGeo').trigger('click')
         $('.search_condition_are #searchForm').trigger("reset");
         window.has_par = false
+        window.has_municipality = false
         selectBox.empty()
         selectBox2.empty()
         //selectBox3.empty()
@@ -672,6 +721,9 @@ $(function () {
         selectBox10.empty()
         selectBox11.empty()
         selectBox12.empty()
+        selectBox13.empty()
+        selectBox14.empty()
+        selectBox14.changeTree([{ 'value': '', 'text': gettext('-- 不限 --') }])
     })
 
     $('.sendSelected').on('click', function () {
@@ -974,6 +1026,7 @@ function changeAction() {
         let d_list = Array();
         let r_list = Array();
         let l_list = Array();
+        let county;
 
         for (const [key, value] of entries) {
             if (key == 'datasetName') {
@@ -992,6 +1045,11 @@ function changeAction() {
                 selectBox11.setValue(value)
             } else if (key == 'is_protected') {
                 selectBox12.setValue(value)
+            } else if (key == 'county') {
+                county = value
+            } else if (key == 'municipality') {
+                window.has_municipality = true
+                window.municipality = value
             } else if (key == 'higherTaxa') {
                 console.log(value)
             } else if (key == 'taxonGroup') {
@@ -1053,6 +1111,14 @@ function changeAction() {
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
         selectBox10.setValue(l_list);
+
+        if (county){
+            selectBox13.setValue(county)
+            $("#county").change();
+        } else if (window.has_municipality){
+            // 這邊會沒辦法append
+            selectBox14.setValue(window.municipality)
+        }
 
         // 如果有選項的 顏色改為黑色
         let select_length = $(".search_condition_are [id^=btn-group-]").length;

@@ -559,8 +559,6 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
 
                     if (response.count == 0) {
 
-
-    
                         $('.records-legend').addClass('d-none')
                         $('.result_inf_top').addClass('d-none')
                         $('.result_inf_top_1').addClass('d-none')

@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v6" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -118,7 +118,7 @@
             </div>
             <div class="two_input">
               <div class="input_item">
-                <select name="rightsHolder" id="rightsHolder" multiple size="1" class="d-none">>
+                <select name="rightsHolder" id="rightsHolder" multiple size="1" class="d-none">
                   {% for i in holder_list %}
                   <option value="{{ i }}">{% trans i %}</option>
                   {% endfor %}
@@ -129,6 +129,21 @@
                   <option value="">{% trans '-- 不限 --' %}</option>
                   <option value="y">{% trans '有影像' %}</option>
                   <option value="n">{% trans '無影像' %}</option>
+                </select>
+              </div>
+            </div>
+            <div class="two_input">
+              <div class="input_item">
+                <select name="county" id="county">
+                  <option value="">{% trans '-- 不限 --' %}</option>
+                  {% for cc in county_list %}
+                  <option value="{{ cc.county }}">{% if LANGUAGE_CODE == 'en-us' %}{{ cc.county_en }}{% else %}{{ cc.county }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input_item">
+                <select name="municipality" id="municipality">
+                  <option value="">{% trans '-- 不限 --' %}</option>
                 </select>
               </div>
             </div>
@@ -328,6 +343,14 @@
 					<p>{% trans '紀錄日期' %}</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="occ-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
 					<p>{% trans '出現地' %}</p>
 				</li>
@@ -474,5 +497,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v19"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v20"></script>
 {% endblock script %}

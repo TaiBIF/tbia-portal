@@ -34,7 +34,7 @@ from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
 # from os.path import exists
-# from data.models import Namecode, Taxon , DatasetKey
+from data.models import Municipality
 import html
 from django.utils.translation import get_language, gettext
 import shapely
@@ -145,7 +145,7 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator']
+        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -523,7 +523,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid']
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -610,7 +610,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -774,7 +774,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list.append(f'scientificName:{scientific_name}')
 
     req_dict = dict(req_dict)
-    not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
     for nq in not_query:
         if nq in req_dict.keys():
             req_dict.pop(nq)
@@ -1258,9 +1258,10 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+    county_list = Municipality.objects.all().order_by('county').values('county','county_en').distinct()
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
-        'rank_list': rank_list})
+        'rank_list': rank_list, 'county_list': county_list })
     
 
 @csp_update(IMG_SRC=get_media_rule())
@@ -1270,9 +1271,10 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
+    county_list = Municipality.objects.all().order_by('county').values('county','county_en').distinct()
 
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_map': basis_map, #'dataset_list': dataset_list
+        'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list #'dataset_list': dataset_list
         })
 
 @csp_update(IMG_SRC=get_media_rule())
@@ -1507,8 +1509,7 @@ def get_conditional_records(request):
                 has_species = True
 
         docs = pd.DataFrame(response.json()['response']['docs'])
-        docs = docs.replace({np.nan: ''})
-        docs = docs.replace({'nan': ''})
+        docs = docs.replace({np.nan: '', 'nan': ''})
 
         rows = create_data_table(docs, user_id, obv_str)
 
@@ -1521,7 +1522,7 @@ def get_conditional_records(request):
             # 搜尋紀錄
 
             now_dict = dict(req_dict)
-            not_query = ['csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
+            not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
             for nq in not_query:
                 if nq in now_dict.keys():
                     now_dict.pop(nq)
@@ -1585,6 +1586,14 @@ def change_dataset(request):
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
+
+def change_municipality(request):
+    if request.GET.get('county'):
+        data = []
+        lang = get_language()
+        for m in Municipality.objects.filter(county=request.GET.get('county')).order_by('municipality').values('municipality','municipality_en'):
+            data.append({'text': m['municipality_en'] if lang == 'en-us' else m['municipality'], 'value': m['municipality']})
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
 
 def get_locality(request):

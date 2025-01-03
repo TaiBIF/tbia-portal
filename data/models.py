@@ -23,3 +23,11 @@ class Variant(models.Model):
     char = models.CharField(blank=True, null=True, max_length=10)
     pattern = models.CharField(blank=True, null=True, max_length=1000)
     char_len = models.IntegerField(default=1)
+
+
+# for county 
+class Municipality(models.Model):
+    county = models.CharField(blank=True, null=True, max_length=1000)
+    county_en = models.CharField(blank=True, null=True, max_length=1000)
+    municipality = models.CharField(blank=True, null=True, max_length=1000)
+    municipality_en = models.CharField(blank=True, null=True, max_length=1000)

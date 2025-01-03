@@ -217,6 +217,14 @@
 					<p>{% trans '紀錄日期' %}</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="occ-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
 					<p>{% trans '出現地' %}</p>
 				</li>
@@ -291,5 +299,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/dataset_detail.js' %}?v3"></script>
+<script src="{% static 'js/data/dataset_detail.js' %}?v4"></script>
 {% endblock script %}

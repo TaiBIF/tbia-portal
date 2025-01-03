@@ -24,11 +24,17 @@ window.onpopstate = function (e) {
 };
 
 function showRequest(query_id, query, sdr_id) {
+
+    $(".loading_area").removeClass('d-none');
+
+
     $.ajax({
         url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
         type: 'GET',
     })
         .done(function (response) {
+
+            $(".loading_area").addClass('d-none')
 
             // console.log(response)
 
@@ -108,6 +114,8 @@ function showRequest(query_id, query, sdr_id) {
 
         })
         .fail(function (xhr, status, errorThrown) {
+            $(".loading_area").addClass('d-none');
+
             alert(gettext('發生未知錯誤！請聯絡管理員'))
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })

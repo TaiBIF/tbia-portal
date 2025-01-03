@@ -325,6 +325,8 @@ map_occurrence = {
     'rightsHolder': '來源資料庫', 
     'taxonID': 'TaiCOL物種編號', 
     'eventDate': '紀錄日期', 
+    'county': '縣市',
+    'municipality': '鄉鎮市區',
     'date': '紀錄日期', 
     'locality': '出現地', 
     'organismQuantity': '數量',
@@ -420,6 +422,8 @@ download_cols = [
 'sourceDatasetID',
 'gbifDatasetID',
 'eventDate',
+'county',
+'municipality',
 'license',
 'locality',
 'mediaLicense',
@@ -471,7 +475,10 @@ download_cols = [
 sensitive_cols = ['standardRawLatitude',
 'standardRawLongitude',
 'verbatimRawLatitude',
-'verbatimRawLongitude']
+'verbatimRawLongitude',
+'raw_county',
+'raw_municipality',
+]
 
 
 # 整理搜尋條件
@@ -584,6 +591,7 @@ def create_query_display(search_dict,lang=None):
 
 # 整理搜尋條件 再次查詢按鈕的連結
 def create_query_a(search_dict):
+    # 只處理多選 & 需要調整的參數
     query_a = ''
 
     d_list = []
@@ -842,6 +850,19 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
 
     #  要處理敏感資料
+
+    if county := req_dict.get('county'):
+        if get_raw_map:
+            query_list += ['county: "%s" OR raw_county: "%s"' % (county, county) ]
+        else:
+            query_list += ['county: "%s"' % county]
+
+    if municipality := req_dict.get('municipality'):
+        if get_raw_map:
+            query_list += ['municipality: "%s" OR raw_municipality: "%s"' % (municipality, municipality) ]
+        else:
+            query_list += ['municipality: "%s"' % municipality]
+
 
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
@@ -1568,6 +1589,13 @@ def create_data_detail(id, user_id, record_type):
                 else:
                     lon = None
             row.update({'lon': lon})
+
+            if row.get('raw_county'):
+                row.update({'county': row.get('raw_county')})
+
+            if row.get('raw_municipality'):
+                row.update({'municipality': row.get('raw_municipality')})
+
         else:
             lat = None
             if lat := row.get('standardLatitude'):
@@ -1706,6 +1734,13 @@ def create_data_table(docs, user_id, obv_str):
             else:
                 if row.get('verbatimRawLongitude'):
                     docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimRawLongitude') + '</small>'
+
+            if row.get('raw_county'):
+                docs.loc[i , 'county'] = row.get('raw_county')
+
+            if row.get('raw_municipality'):
+                docs.loc[i , 'municipality'] = row.get('raw_municipality')
+                
         else:
             if lat := row.get('standardLatitude'):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
@@ -1758,6 +1793,7 @@ def create_data_table(docs, user_id, obv_str):
             if len(media_list):
                 # 取第一張
                 docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
+
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})

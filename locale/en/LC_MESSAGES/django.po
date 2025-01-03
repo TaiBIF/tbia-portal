@@ -2849,3 +2849,13 @@ msgstr "Associated Media"
 #:
 msgid "主題年活動"
 msgstr "Theme Year"
+
+
+#:
+msgid "縣市"
+msgstr "County"
+
+
+#:
+msgid "鄉鎮市區"
+msgstr "Township / Town / City / District"

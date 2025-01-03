@@ -33,7 +33,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v7" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v8" />
 {% endblock style %}
 
 
@@ -150,8 +150,22 @@
 				  </select>              
 				</div>
             </div>
-
             <div class="two_input">
+				<div class="input_item">
+				  <select name="county" id="county">
+					<option value="">{% trans '-- 不限 --' %}</option>
+					{% for cc in county_list %}
+					<option value="{{ cc.county }}">{% if LANGUAGE_CODE == 'en-us' %}{{ cc.county_en }}{% else %}{{ cc.county }}{% endif %}</option>
+					{% endfor %}
+				  </select>
+				</div>
+				<div class="input_item">
+				  <select name="municipality" id="municipality">
+					<option value="">{% trans '-- 不限 --' %}</option>
+				  </select>
+				</div>
+			  </div>
+			  <div class="two_input">
               <div class="line_cneter">~</div>
               <div class="input_item">
                 <input name="start_date" id="start_date" type="text" placeholder="{% trans '起始日期' %}（YYYY-MM-DD）" value="" />
@@ -354,6 +368,14 @@
 					<p>{% trans '採集日期' %}</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="col-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-locality">
 					<p>{% trans '採集地' %}</p>
 				</li>
@@ -500,5 +522,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v19"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v20"></script>
 {% endblock %}

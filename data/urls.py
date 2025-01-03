@@ -25,6 +25,7 @@ urlpatterns = [
     path('return_geojson_query', views.return_geojson_query, name='return_geojson_query'),
     path('get_geojson/<str:id>/', views.get_geojson, name='get_geojson'),
     path('change_dataset', views.change_dataset, name='change_dataset'),
+    path('change_municipality', views.change_municipality, name='change_municipality'),
     path('get_higher_taxa', views.get_higher_taxa, name='get_higher_taxa'),
     path('get_locality', views.get_locality, name='get_locality'),
     path('get_locality_init', views.get_locality_init, name='get_locality_init'),

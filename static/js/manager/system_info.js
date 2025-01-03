@@ -380,11 +380,15 @@ function saveStatus(current_id) {
 
 function showRequest(query_id, query, sdr_id, is_transferred) {
 
+    $(".loading_area").removeClass('d-none');
+
     $.ajax({
         url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
         type: 'GET',
     })
         .done(function (response) {
+
+            $(".loading_area").addClass('d-none');
 
             // console.log(response.partners)
             // 如果沒有sdr_id的話 只顯示申請詳細資訊
@@ -507,8 +511,10 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
 
         })
         .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
 
+            $(".loading_area").addClass('d-none');
+
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
 
