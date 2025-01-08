@@ -1113,10 +1113,19 @@ def get_conditional_dataset(request):
         offset = (page-1)*limit
 
         # taxonGroup
+        # 這邊要讓新舊互通 因為舊的會需要再次查詢 但資料集好像沒有存search query?
         query_list = ["deprecated = 'f'"]
         if taxonGroup := req_dict.get('taxonGroup'):
-            query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
-
+            # 改成統一用中文查詢
+            # 如果輸入英文的話 轉成中文
+            if taxonGroup in taxon_group_map_c.keys():
+                taxonGroup = taxon_group_map_c[taxonGroup]
+            # 只需要處理維管束植物要包含蕨類
+            if taxonGroup == '維管束植物':
+                query_list.append('''( "datasetTaxonGroup" like '%維管束植物%' OR "datasetTaxonGroup" like '%蕨類植物%')''')
+            else:
+                query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+        
         # datasetName
         if name := req_dict.get('name'):
             query_list.append('''( "name" like '%{}%')'''.format(name))
@@ -1198,7 +1207,14 @@ def download_dataset_results(request):
         # taxonGroup
         query_list = ["deprecated = 'f'"]
         if taxonGroup := req_dict.get('taxonGroup'):
-            query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+            if taxonGroup in taxon_group_map_c.keys():
+                taxonGroup = taxon_group_map_c[taxonGroup]
+            # 只需要處理維管束植物要包含蕨類
+            if taxonGroup == '維管束植物':
+                query_list.append('''( "datasetTaxonGroup" like '%維管束植物%' OR "datasetTaxonGroup" like '%蕨類植物%')''')
+            else:
+                query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+        
 
         # datasetName
         if name := req_dict.get('name'):
@@ -1320,7 +1336,13 @@ def dataset_detail(request, id):
             new_taxon_stat = {}
 
             for t in resp['datasetTaxonStat'].keys():
-                new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+                if t in taxon_group_map_c.keys():
+                    new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+                elif t in old_taxon_group_map_c.keys():
+                    new_taxon_stat[old_taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+                elif t == 'Others':
+                    new_taxon_stat['其他'] = resp['datasetTaxonStat'][t]
+
 
             resp['datasetTaxonStat'] = new_taxon_stat
                 
@@ -1411,7 +1433,6 @@ def get_conditional_records(request):
         # use JSON API to avoid overlong query url
 
         query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
-
 
         record_type = req_dict.get('record_type')
 

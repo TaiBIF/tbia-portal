@@ -4,7 +4,7 @@
 {% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_partner.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager_partner.css' %}?v6" />
 <link rel="stylesheet" href="/static/nouislider/nouislider.css">
 
 {% endblock style %}
@@ -181,6 +181,7 @@
                         <div id="container-taxon_group-stat" class="h-100p"></div>
                     </div>
                     <p class="expired-p ml-5px">*物種數僅計算TaiCOL定義之臺灣物種</p>
+                    <p class="expired-p ml-5px">*此處維管束植物不包含蕨類植物</p>
                     <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p>
                 </div>
                 <div class="w-50p">
@@ -311,16 +312,20 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-spatial-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="Insects">昆蟲</option>
-                                <option value="Fishes">魚類</option>
-                                <option value="Reptiles">爬蟲類</option>
-                                <option value="Amphibians">兩棲類</option>
-                                <option value="Fungi">真菌(含地衣)</option>
-                                <option value="Plants">植物</option>
-                                <option value="Birds">鳥類</option>
-                                <option value="Mammals">哺乳類</option>
-                                <option value="Bacteria">細菌</option>
-                                <option value="Others">其他</option>
+                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="蜘蛛">{% trans "蜘蛛" %}</option>
+                                <option value="魚類">{% trans "魚類" %}</option>
+                                <option value="兩棲類">{% trans "兩棲類" %}</option>
+                                <option value="爬蟲類">{% trans "爬蟲類" %}</option>
+                                <option value="鳥類">{% trans "鳥類" %}</option>
+                                <option value="哺乳類">{% trans "哺乳類" %}</option>
+                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蕨類植物">{% trans "蕨類植物" %}</option>
+                                <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+                                <option value="藻類">{% trans "藻類" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
+                                <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="細菌">{% trans "細菌" %}</option>
                             </select>
                             <span class="ml-5px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">匯出KML</button></span>
                         </div>
@@ -340,16 +345,20 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="portal-spatial-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="Insects">昆蟲</option>
-                                <option value="Fishes">魚類</option>
-                                <option value="Reptiles">爬蟲類</option>
-                                <option value="Amphibians">兩棲類</option>
-                                <option value="Fungi">真菌(含地衣)</option>
-                                <option value="Plants">植物</option>
-                                <option value="Birds">鳥類</option>
-                                <option value="Mammals">哺乳類</option>
-                                <option value="Bacteria">細菌</option>
-                                <option value="Others">其他</option>
+                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="蜘蛛">{% trans "蜘蛛" %}</option>
+                                <option value="魚類">{% trans "魚類" %}</option>
+                                <option value="兩棲類">{% trans "兩棲類" %}</option>
+                                <option value="爬蟲類">{% trans "爬蟲類" %}</option>
+                                <option value="鳥類">{% trans "鳥類" %}</option>
+                                <option value="哺乳類">{% trans "哺乳類" %}</option>
+                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蕨類植物">{% trans "蕨類植物" %}</option>
+                                <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+                                <option value="藻類">{% trans "藻類" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
+                                <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="細菌">{% trans "細菌" %}</option>
                             </select>
                             <span class="ml-5px panel-select-text"> <button class="feedback_btn w-100p exportPortalKML">匯出KML</button></span>
                         </div>
@@ -362,19 +371,6 @@
                     </div>
                 </div>
                 
-            </div>
-            <div class="records-legend d-flex legend-fs-15px">
-                資料筆數：
-                <div class="d-flex"><div class="count-1"></div>1 - 10</div>
-                <div class="d-flex"><div class="count-10"></div>10 - 100</div>
-                <div class="d-flex"><div class="count-100"></div>100 - 1,000</div>
-                <div class="d-flex"><div class="count-1000"></div>1,000 - 5,000</div>
-            </div>
-            <div class="records-legend d-flex legend-fs-15px">
-                <div class="d-flex"><div class="count-5000"></div>5,000 - 10,000</div>
-                <div class="d-flex"><div class="count-10000"></div>10,000 - 50,000</div>
-                <div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
-                <div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
             </div>
             <hr>
             <div class="item d-flex-jc-sb">
@@ -403,17 +399,21 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-temporal-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="Insects">昆蟲</option>
-                                <option value="Fishes">魚類</option>
-                                <option value="Reptiles">爬蟲類</option>
-                                <option value="Amphibians">兩棲類</option>
-                                <option value="Fungi">真菌(含地衣)</option>
-                                <option value="Plants">植物</option>
-                                <option value="Birds">鳥類</option>
-                                <option value="Mammals">哺乳類</option>
-                                <option value="Bacteria">細菌</option>
-                                <option value="Others">其他</option>
-                              </select>  
+                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="蜘蛛">{% trans "蜘蛛" %}</option>
+                                <option value="魚類">{% trans "魚類" %}</option>
+                                <option value="兩棲類">{% trans "兩棲類" %}</option>
+                                <option value="爬蟲類">{% trans "爬蟲類" %}</option>
+                                <option value="鳥類">{% trans "鳥類" %}</option>
+                                <option value="哺乳類">{% trans "哺乳類" %}</option>
+                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蕨類植物">{% trans "蕨類植物" %}</option>
+                                <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+                                <option value="藻類">{% trans "藻類" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
+                                <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="細菌">{% trans "細菌" %}</option>
+                            </select>  
                         </div>
                     </div>
                     <div class="highcharts-figure">
@@ -448,17 +448,21 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="portal-temporal-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="Insects">昆蟲</option>
-                                <option value="Fishes">魚類</option>
-                                <option value="Reptiles">爬蟲類</option>
-                                <option value="Amphibians">兩棲類</option>
-                                <option value="Fungi">真菌(含地衣)</option>
-                                <option value="Plants">植物</option>
-                                <option value="Birds">鳥類</option>
-                                <option value="Mammals">哺乳類</option>
-                                <option value="Bacteria">細菌</option>
-                                <option value="Others">其他</option>
-                              </select>  
+                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="蜘蛛">{% trans "蜘蛛" %}</option>
+                                <option value="魚類">{% trans "魚類" %}</option>
+                                <option value="兩棲類">{% trans "兩棲類" %}</option>
+                                <option value="爬蟲類">{% trans "爬蟲類" %}</option>
+                                <option value="鳥類">{% trans "鳥類" %}</option>
+                                <option value="哺乳類">{% trans "哺乳類" %}</option>
+                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蕨類植物">{% trans "蕨類植物" %}</option>
+                                <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+                                <option value="藻類">{% trans "藻類" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
+                                <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="細菌">{% trans "細菌" %}</option>
+                            </select>  
                         </div>
                     </div>
                     <div class="highcharts-figure">
@@ -475,5 +479,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/manager_partner.js' %}?v6"></script>
+<script src="{% static 'js/manager/manager_partner.js' %}?v7"></script>
 {% endblock script %}

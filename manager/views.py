@@ -199,7 +199,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -250,7 +250,7 @@ def change_manager_page(request):
                 search_prefix = 'occurrence'
 
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -344,7 +344,7 @@ def change_manager_page(request):
                 else:
                     search_prefix = 'occurrence'
                 tmp_a = create_query_a(search_dict)
-                for i in ['locality','datasetName','rightsHolder','total_count']:
+                for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                     if i in search_dict.keys():
                         search_dict.pop(i)
 
@@ -437,7 +437,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -497,7 +497,7 @@ def change_manager_page(request):
                     else:
                         search_prefix = 'occurrence'
                     tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
@@ -555,7 +555,7 @@ def change_manager_page(request):
                     else:
                         search_prefix = 'occurrence'
                     tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                         if i in search_dict.keys():
                             search_dict.pop(i)
 
@@ -1682,8 +1682,11 @@ def get_taxon_group_list(request):
 
     name = request.GET.get('name')
     selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
+
+
     if selected_name:
         selected_name = selected_name[0]
+    # selected_name = name
 
     total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
     
@@ -1692,6 +1695,7 @@ def get_taxon_group_list(request):
     else:
         taxon_list = list(TaxonStat.objects.filter(year='x', month='x', type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
 
+    
     final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'data_percent': round((t['count'] / total_count)*100, 2) if total_count else 0,
                    'taiwan_percent': TaxonStat.objects.get(type='taiwan_percentage',  name=selected_name, rights_holder=t['rights_holder']).count } 
                   for t in taxon_list ]

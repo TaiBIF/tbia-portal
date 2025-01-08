@@ -37,19 +37,40 @@ rights_holder_map = {
 }
 
 
+# # 這邊改用bioGroup
 
-taxon_group_map = {
-    'Insects' : [{'key': 'class', 'value': 'Insecta'}],
-    'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
-    'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
-    'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
-    'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
-    'Birds' : [{'key': 'class', 'value': 'Aves'}],
-    'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
-    'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
-    'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
-    'Others' : [{'key': 'class', 'value': ''}],
+# taxon_group_map = {
+#     'Insects' : [{'key': 'class', 'value': 'Insecta'}],
+#     'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
+#     'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
+#     'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
+#     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
+#     'Birds' : [{'key': 'class', 'value': 'Aves'}],
+#     'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
+#     'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
+#     'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
+#     'Others' : [{'key': 'class', 'value': ''}],
+# }
+
+taxon_group_map_e = {
+    "昆蟲": "Insects",
+    "蜘蛛": "Spiders",
+    "魚類": "Fishes",
+    "爬蟲類": "Reptiles",
+    "兩棲類": "Amphibians",
+    "鳥類": "Birds",
+    "哺乳類": "Mammals",
+    "維管束植物": "Vascular Plants",
+    "蕨類植物": "Ferns",
+    "苔蘚植物": "Mosses",
+    "藻類": "Algae",
+    "病毒": "Viruses",
+    "細菌": "Bacteria",
+    "真菌": "Fungi",
+    "其他": "Others"
 }
+
+
 
 # 第一個month應該也要加上1~12的限制
 # 確認一下現在 year & month 的值有哪些樣態
@@ -125,18 +146,22 @@ for ss in stat_df.to_dict('records'):
 taxon_stat_list = []
 
 
-for tt in taxon_group_map.keys():
+for tt in taxon_group_map_e.keys():
     query_list = []
-    vv_list = []
-    if tt == 'Others':
-        for vv in taxon_group_map.keys():
-            if vv != 'Others':
-                for vvv in taxon_group_map[vv]:
-                    vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+    # vv_list = []
+    # if tt == 'Others':
+    #     for vv in taxon_group_map.keys():
+    #         if vv != 'Others':
+    #             for vvv in taxon_group_map[vv]:
+    #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+    # else:
+    #     for vv in taxon_group_map[tt]:
+    #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+    # query_list += [" OR ".join(vv_list)]
+    if tt == '其他':
+        query_list += ['-bioGroup:*']
     else:
-        for vv in taxon_group_map[tt]:
-            vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-    query_list += [" OR ".join(vv_list)]
+        query_list += [f'bioGroup:{tt}']
     query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
     query_list += ['is_in_taiwan:1']
     for k in rights_holder_map.keys():
@@ -166,7 +191,7 @@ for tt in taxon_group_map.keys():
                         'count': now_count,
                         'rights_holder': k,
                         'group': rights_holder_map[k],
-                        'name': tt
+                        'name': taxon_group_map_e[tt]
                     })
         # 2. 再計算沒有 month 的 
         url = f'{SOLR_PREFIX}tbia_records/select?q=-month:*&q.op=OR&facet.field=year&facet=true&facet.limit=-1&facet.mincount=1{holder_str}'
@@ -182,7 +207,7 @@ for tt in taxon_group_map.keys():
                         'count': int(float(now_count)),
                         'rights_holder': k,
                         'group': rights_holder_map[k],
-                        'name': tt
+                        'name': taxon_group_map_e[tt]
                     })
         # 3. 再計算完全沒有考慮時間的總和
         url = f'{SOLR_PREFIX}tbia_records/select?q=*:*{holder_str}'
@@ -193,7 +218,7 @@ for tt in taxon_group_map.keys():
                     'count': data['response']['numFound'],
                     'rights_holder': k,
                     'group': rights_holder_map[k],
-                    'name': tt
+                    'name': taxon_group_map_e[tt]
                 })
 
 
@@ -277,18 +302,22 @@ for r in rights_holder_map.keys():
 taicol_df = pd.DataFrame()
 
 # 先從taxa取得清單
-for tt in taxon_group_map.keys():
+for tt in taxon_group_map_e.keys():
     query_list = []
-    vv_list = []
-    if tt == 'Others':
-        for vv in taxon_group_map.keys():
-            if vv != 'Others':
-                for vvv in taxon_group_map[vv]:
-                    vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+    if tt == '其他':
+        query_list += ['-bioGroup:*']
     else:
-        for vv in taxon_group_map[tt]:
-            vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-    query_list += [" OR ".join(vv_list)]
+        query_list += [f'bioGroup:{tt}']
+    # vv_list = []
+    # if tt == 'Others':
+    #     for vv in taxon_group_map.keys():
+    #         if vv != 'Others':
+    #             for vvv in taxon_group_map[vv]:
+    #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+    # else:
+    #     for vv in taxon_group_map[tt]:
+    #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+    # query_list += [" OR ".join(vv_list)]
     query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
     query_list += ['is_in_taiwan:1']
     query = { "query": "*:*",
@@ -300,7 +329,7 @@ for tt in taxon_group_map.keys():
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     data = response.json()['response']['docs']
     df = pd.DataFrame(data)
-    df['taxon_group'] = tt
+    df['taxon_group'] = taxon_group_map_e[tt]
     taicol_df = pd.concat([taicol_df, df], ignore_index=True)
 
 
@@ -308,21 +337,25 @@ taicol_df = taicol_df.replace({nan: None})
 taicol_df = taicol_df.rename(columns={'id': 'taxon_id'})
 
 
-for tt in taxon_group_map.keys():
+for tt in taxon_group_map_e.keys():
     for k in rights_holder_map.keys():
         query_list = []
         if k != 'total':
             query_list += [f'rightsHolder:"{k}"']
-        vv_list = []
-        if tt == 'Others':
-            for vv in taxon_group_map.keys():
-                if vv != 'Others':
-                    for vvv in taxon_group_map[vv]:
-                        vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+        if tt == '其他':
+            query_list += ['-bioGroup:*']
         else:
-            for vv in taxon_group_map[tt]:
-                vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-        query_list += [" OR ".join(vv_list)]
+            query_list += [f'bioGroup:{tt}']
+        # vv_list = []
+        # if tt == 'Others':
+        #     for vv in taxon_group_map.keys():
+        #         if vv != 'Others':
+        #             for vvv in taxon_group_map[vv]:
+        #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
+        # else:
+        #     for vv in taxon_group_map[tt]:
+        #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
+        # query_list += [" OR ".join(vv_list)]
         query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
         query_list += ['is_in_taiwan:1']
         #  這邊應該要用facet才對
@@ -345,8 +378,9 @@ for tt in taxon_group_map.keys():
             df = df.rename(columns={'val': 'taxon_id'})
         else:
             df = pd.DataFrame(columns=['taxon_id','count'])
-        now_taicol_df = taicol_df[(taicol_df.taxon_group==tt)].merge(df, how='left')
-        taicol_len = len(now_taicol_df[(now_taicol_df.taxon_group==tt)&(now_taicol_df.taxonRank=='species')])
+        now_taicol_df = taicol_df[(taicol_df.taxon_group==taxon_group_map_e[tt])].merge(df, how='left')
+        # if taicol_len:
+        taicol_len = len(now_taicol_df[(now_taicol_df.taxon_group==taxon_group_map_e[tt])&(now_taicol_df.taxonRank=='species')])
         partner_len = len(now_taicol_df[(now_taicol_df.taxonRank=='species')&(now_taicol_df['count'].notna())])
         tw_percentage = round((partner_len / taicol_len) * 100, 2)
         print(k, tt, tw_percentage)
@@ -354,29 +388,29 @@ for tt in taxon_group_map.keys():
         if TaxonStat.objects.filter(type='taiwan_percentage',
                                     rights_holder=k, 
                                     group=rights_holder_map[k],
-                                    name=tt).exists():
+                                    name=taxon_group_map_e[tt]).exists():
             ts_obj = TaxonStat.objects.get(type='taiwan_percentage',
                                     rights_holder=k, 
                                     group=rights_holder_map[k],
-                                    name=tt)
+                                    name=taxon_group_map_e[tt])
             ts_obj.count = tw_percentage
             ts_obj.save()
         # 不存在則新增
         else:
             ts_obj = TaxonStat.objects.create(type='taiwan_percentage',
                                     rights_holder=k, group=rights_holder_map[k],
-                                    name=tt, count=tw_percentage)
+                                    name=taxon_group_map_e[tt], count=tw_percentage)
         # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
         if k == 'total':
             now_taicol_df['TBIA入口網是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
             now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','TBIA入口網是否有收錄']]
             now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
                                                         'taxon_id': 'taxonID'})
-            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,tt),index=None)
         else:
             now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
             now_taicol_df = now_taicol_df[['scientificName','common_name_c','taxonRank','taxon_id','所屬單位資料庫是否有收錄']]
             now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
                                                         'taxon_id': 'taxonID'})
-            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,taxon_group_map_c[tt]),index=None)
+            now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k,tt),index=None)
 

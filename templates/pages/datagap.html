@@ -2,7 +2,7 @@
 {% load static %} 
 {% load i18n %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap.css' %}?v1" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap.css' %}?v2" />
 <link rel="stylesheet" href="/static/nouislider/nouislider.css">
 
 {% endblock style %}
@@ -55,16 +55,20 @@
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
 									<select class="panel-select" name="partner-spatial-taxonGroup">
 										<option value="">{% trans '-- 不限 --' %}</option>
-										<option value="Insects">{% trans '昆蟲' %}</option>
-										<option value="Fishes">{% trans '魚類' %}</option>
-										<option value="Reptiles">{% trans '爬蟲類' %}</option>
-										<option value="Amphibians">{% trans '兩棲類' %}</option>
-										<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
-										<option value="Plants">{% trans '植物' %}</option>
-										<option value="Birds">{% trans '鳥類' %}</option>
-										<option value="Mammals">{% trans '哺乳類' %}</option>
-										<option value="Bacteria">{% trans '細菌' %}</option>
-										<option value="Others">{% trans '其他' %}</option>
+										<option value="昆蟲">{% trans "昆蟲" %}</option>
+										<option value="蜘蛛">{% trans "蜘蛛" %}</option>
+										<option value="魚類">{% trans "魚類" %}</option>
+										<option value="兩棲類">{% trans "兩棲類" %}</option>
+										<option value="爬蟲類">{% trans "爬蟲類" %}</option>
+										<option value="鳥類">{% trans "鳥類" %}</option>
+										<option value="哺乳類">{% trans "哺乳類" %}</option>
+										<option value="維管束植物">{% trans "維管束植物" %}</option>
+										<option value="蕨類植物">{% trans "蕨類植物" %}</option>
+										<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+										<option value="藻類">{% trans "藻類" %}</option>
+										<option value="病毒">{% trans "病毒" %}</option>
+										<option value="真菌">{% trans "真菌" %}</option>
+										<option value="細菌">{% trans "細菌" %}</option>
 									</select>
 									<span class="ml-20px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">{% trans '匯出KML' %}</button></span>
 								</div>
@@ -111,16 +115,20 @@
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
 									<select class="panel-select w-50p" name="partner-temporal-taxonGroup">
 										<option value="">{% trans '-- 不限 --' %}</option>
-										<option value="Insects">{% trans '昆蟲' %}</option>
-										<option value="Fishes">{% trans '魚類' %}</option>
-										<option value="Reptiles">{% trans '爬蟲類' %}</option>
-										<option value="Amphibians">{% trans '兩棲類' %}</option>
-										<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
-										<option value="Plants">{% trans '植物' %}</option>
-										<option value="Birds">{% trans '鳥類' %}</option>
-										<option value="Mammals">{% trans '哺乳類' %}</option>
-										<option value="Bacteria">{% trans '細菌' %}</option>
-										<option value="Others">{% trans '其他' %}</option>
+										<option value="昆蟲">{% trans "昆蟲" %}</option>
+										<option value="蜘蛛">{% trans "蜘蛛" %}</option>
+										<option value="魚類">{% trans "魚類" %}</option>
+										<option value="兩棲類">{% trans "兩棲類" %}</option>
+										<option value="爬蟲類">{% trans "爬蟲類" %}</option>
+										<option value="鳥類">{% trans "鳥類" %}</option>
+										<option value="哺乳類">{% trans "哺乳類" %}</option>
+										<option value="維管束植物">{% trans "維管束植物" %}</option>
+										<option value="蕨類植物">{% trans "蕨類植物" %}</option>
+										<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+										<option value="藻類">{% trans "藻類" %}</option>
+										<option value="病毒">{% trans "病毒" %}</option>
+										<option value="真菌">{% trans "真菌" %}</option>
+										<option value="細菌">{% trans "細菌" %}</option>
 									</select> 
 								</div>
 							</div>
@@ -137,6 +145,8 @@
 							<div class="highcharts-figure">
 								<div id="container-taxon_group-stat" class="h-100p"></div>
 							</div>
+							<p class="expired-p ml-5px">*{% trans '物種數僅計算TaiCOL定義之臺灣物種' %}</p>
+							<p class="expired-p ml-5px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
 						</div>
 						<div class="w-50p">
 							<div id="taxon_group-stat-title">👈 {% trans '點擊圓餅圖' %}</div>

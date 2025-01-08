@@ -917,6 +917,24 @@ partner_map.on('drag', function() {
 });
 
 
+
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend map-legend'),
+        grades = [1, 10, 100, 1000, 5000, 10000, 50000, 100000]
+    div.innerHTML += `<div class="ml-5px mb-5">${gettext('資料筆數')}</div>`
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            `<div class="d-flex-ai-c"><div class="count-${grades[i]}"></div>` +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+') 
+            + '</div>'
+    }
+    return div;
+};
+
+legend.addTo(partner_map);
+
 // L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 //     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 // }).addTo(portal_map);
