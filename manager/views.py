@@ -2188,7 +2188,7 @@ def save_resource_file(request):
         fs = FileSystemStorage()
         file_name = fs.save(f'resources/' + file.name, file)
         response['url'] = file_name
-        response['filename'] = file.name
+        response['filename'] = file_name.replace('resources/','')
 
     return JsonResponse(response, safe=False)
 

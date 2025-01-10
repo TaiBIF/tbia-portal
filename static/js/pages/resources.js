@@ -130,6 +130,7 @@ function updateResource(type, page) {
         $('#db-intro').addClass('d-none')
       }
 
+      console.log(response)
       // append rows
       if (response.rows.length > 0) {
         for (let i = 0; i < response.rows.length; i++) {
@@ -151,7 +152,7 @@ function updateResource(type, page) {
             <div class="item">
             <div class="cate_dbox">
               <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-              ${ response.rows[i].doc_url != null ? `<div class="cate web"><a href="${response.rows[i].doc_url}" target="_blank" >WEB <i class="fa-solid fa-link"></i></a></div>` : '' }
+              ${ response.rows[i].doc_url ? `<div class="cate web"><a href="${response.rows[i].doc_url}" target="_blank" >WEB <i class="fa-solid fa-link"></i></a></div>` : '' }
               <div class="date">${response.rows[i].date}</div>
             </div>
             <a href="/media/${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
