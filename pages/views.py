@@ -196,7 +196,8 @@ def get_news_list(request):
             n.color = news_type_map[n.type]
             n.type_c = news_type_c_map[n.type]
             if n.image:
-                n.image = '/media/news/' + n.image
+                # n.image = '/media/news/' + n.image
+                n.image = '/media/' + n.image
             else:
                 n.image = '/static/image/news_ub_img.jpg'
             news_list.append({'id': n.id,'image':n.image,'color':n.color, 
@@ -299,7 +300,8 @@ def index(request):
         n.color = news_type_map[n.type]
         n.type_c = news_type_c_map[n.type]
         if n.image:
-            n.image = '/media/news/' + n.image
+            # n.image = '/media/news/' + n.image
+            n.image = '/media/' + n.image
         else:
             n.image = '/static/image/news_ub_img.jpg'
         news_list.append({'id': n.id,'image':n.image,'color':n.color, 

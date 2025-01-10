@@ -1923,12 +1923,6 @@ def submit_news(request):
         # author_use_tbia = None
         author_use_tbia = request.POST.get('author_use_tbia')
 
-        # tmp = {"delta":'{"ops":[]}',"html":""}
-        # tmp['html'] = content
-        # html = '<ul><li>GBIF</li><li>TaiBIF</li><li>TBN</li></ul><p><img src=\\"/media/news/ntm_logo_j9SJDgw.png\\"></p>"'   
-        # #  = Quill('{"delta":"{\\"ops\\":"","html":"' + content + '"}')
-        # tmp = {"delta":'{"ops":[]}',"html":html}
-        # content = Quill(tmp)
 
         if request.POST.get('from_system'):
             # status = 'pass'
@@ -1968,7 +1962,7 @@ def submit_news(request):
             if n.image and not image_name: # 原本就有的
                 image_name = n.image
             elif image_name:
-                image_name = image.name
+                image_name = image_name
             
             if image_name:
                 n.image = image_name
@@ -2014,7 +2008,7 @@ def submit_news(request):
                     partner = partner_id,
                     title = title,
                     content = content,
-                    image = image.name,
+                    image = image_name,
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
@@ -2280,6 +2274,7 @@ def get_news_content(request):
     return JsonResponse(response, safe=False)
 
 
+# 文章裡面的圖片 
 def save_news_image(request):
     # print(request.POST, request.FILES)
     image_name = ''
