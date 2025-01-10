@@ -433,7 +433,6 @@ def get_ark_list(request):
     offset = (current_page-1)*limit
 
     for x in query_obj[offset:offset+limit]:
-
         modified = x.modified + timedelta(hours=8) if x.modified else x.modified
         created = x.created + timedelta(hours=8)
 

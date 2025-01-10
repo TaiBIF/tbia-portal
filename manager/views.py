@@ -1976,6 +1976,7 @@ def submit_news(request):
             n.publish_date = publish_date
             n.modified = timezone.now()
             n.lang = lang
+            n.save()
 
             if ori_status != 'pass' and status == 'pass':
                 # 新增 ark
@@ -1991,7 +1992,6 @@ def submit_news(request):
                                                 'url': ark_url,
                                                 'shoulder': '/' + ark_obj.ark[:2]})
 
-            n.save()
         else:
 
             # 新增 news
