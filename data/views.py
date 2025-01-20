@@ -1693,10 +1693,10 @@ def get_locality_init(request):
 
 def get_dataset(request):
 
-    # datasetlist = request.GET.getlist('datasetName')
     keyword = request.GET.get('keyword')
     rights_holder = request.GET.getlist('holder')
     h_str = ''
+
     if len(rights_holder) > 1:
         rights_holder = ' OR '.join(rights_holder)
         h_str = f'&fq=rights_holder:({rights_holder})'
@@ -1705,28 +1705,26 @@ def get_dataset(request):
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
-        # record_type = '&fq=record_type:col'
         record_type = '&fq=record_type:/.*col.*/'
-
 
     keyword_reg = ''
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
     keyword_reg = get_variants(keyword_reg)
 
+
     # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
     dataset_str = f'name:"{keyword}"^5 OR name:/{escape_solr_query(keyword)}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{escape_solr_query(keyword)}.*/^1 OR name:/.*{keyword_reg}.*/'
     ds = []
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q={dataset_str}{h_str}&rows=20{record_type}&fq=deprecated:false')
     d_list = response.json()['response']['docs']
+
+
     # solr內的id和datahub的postgres互通
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
             ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
-    
-    # if len(ds):
-    #     ds = pd.DataFrame(ds)
-    #     ds = ds[ds['text'].drop_duplicates()].to_dict('records')
+
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 

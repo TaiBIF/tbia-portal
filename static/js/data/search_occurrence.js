@@ -191,7 +191,7 @@ function doSearchLocality(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -242,7 +242,7 @@ function initLocality(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -543,7 +543,7 @@ function initDataset(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -599,7 +599,7 @@ function doSearchDataset(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -917,7 +917,7 @@ function inithigherTaxa(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
@@ -967,7 +967,7 @@ function doSearch(what, datasize) {
                     data = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(what)) != -1)
+                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
                             return {
                                 value: x[valueProperty],
                                 text: x[textProperty]
