@@ -14549,3 +14549,63 @@ body {
 .api-editer .item_one:target {
     scroll-margin-top: 100px;
 }
+
+
+
+
+
+.loading_area_partial {
+    top: 0px;
+    left: 0;
+    display: flex;
+    width: 100%;
+    height: 80%;
+    position: static;
+    z-index: 2023;
+    background: #FFF;
+    opacity: 0.8;
+    align-items: center;
+    justify-content: center
+}
+
+.loading_area_partial .sc {
+    min-width: 200px;
+    height: 200px;
+    padding: 10px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.3s linear;
+    /*margin-top: 80px*/
+}
+
+.loading_area_partial .load {
+    font-size: 50px;
+    line-height: 50px;
+    font-weight: bold;
+    color: #3F5146;
+    position: relative;
+    text-transform: uppercase
+}
+
+.loading_area_partial .load span {
+    display: inline-block;
+    margin-right: 44px
+}
+
+.loading_area_partial .load::before {
+    content: "";
+    position: absolute;
+    left: 31px;
+    bottom: 7px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 7px solid #3F5146;
+    border-bottom-color: #ead065;
+    -webkit-animation: rotation 0.6s linear infinite;
+    animation: rotation 0.6s linear infinite
+}
