@@ -524,6 +524,13 @@ def dataset(request):
         else:
             now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + '&cursor=' + str(now_cursor)
 
+
+        obj, created = SearchCount.objects.update_or_create(
+                search_location='dataset'
+            )
+        obj.count += 1
+        obj.save()
+
         final_response['status'] = {'code': 200, 'message': 'Success'}
         final_response['meta'] = {'total': total, 'limit': limit}
         final_response['links'] = {'self': now_url, 'next': next_url}

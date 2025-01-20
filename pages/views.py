@@ -423,7 +423,7 @@ def get_ark_list(request):
     
     query_obj = []
 
-    query_obj = Ark.objects.filter(type=type).order_by('-modified')
+    query_obj = Ark.objects.filter(type=type).order_by('-created')
 
     current_page = int(request.POST.get('get_page', 1))
     total_page = math.ceil(query_obj.count() / limit)

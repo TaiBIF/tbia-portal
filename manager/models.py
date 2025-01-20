@@ -123,14 +123,11 @@ class SearchStat(models.Model):
 # API 請求次數
 class SearchCount(models.Model):
     location_choice = [
-        # ('full', '全站搜尋'),
-        # ('occ', '物種出現紀錄進階搜尋'),
-        # ('col', '自然史典藏進階搜尋'),
         ('api_occ', '物種出現紀錄API'),
+        ('dataset', '資料集API'),
     ]
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     count = models.IntegerField(default=0)
-    # created = models.DateTimeField(auto_now_add=True)
 
 
 class SearchQuery(models.Model):
@@ -272,4 +269,4 @@ class Ark(models.Model):
     type = models.CharField(max_length=20, blank=True) # news / data
     ark = models.CharField(max_length=50, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now_add=True)
+    # modified = models.DateTimeField(auto_now_add=True)
