@@ -18,7 +18,7 @@
 {% block title %}{% trans '自然史典藏' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v4" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v5" />
 {% endblock style %}
 
 {% block body %}
@@ -249,6 +249,14 @@
           <li>
             <h3 class="pres-flex">{% trans '座標模糊化程度' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=28" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
             <p>{{ row.coordinatePrecision }}</p>
+          </li>
+          <li>
+            <h3 class="pres-flex">{% trans '縣市' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+            <p>{{ row.county }}</p>
+          </li>
+          <li>
+            <h3 class="pres-flex">{% trans '鄉鎮市區' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+            <p>{{ row.municipality }}</p>
           </li>
         </ul>
       </div>

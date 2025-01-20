@@ -33,7 +33,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v7" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_collection.css' %}?v8" />
 {% endblock style %}
 
 
@@ -91,16 +91,20 @@
               <div class="input_item">
 				<select id="taxonGroup" name="taxonGroup">
 					<option value="">{% trans '-- 不限 --' %}</option>
-					<option value="Insects">{% trans '昆蟲' %}</option>
-					<option value="Fishes">{% trans '魚類' %}</option>
-					<option value="Reptiles">{% trans '爬蟲類' %}</option>
-					<option value="Amphibians">{% trans '兩棲類' %}</option>
-					<option value="Fungi">{% trans '真菌(含地衣)' %}</option>
-					<option value="Plants">{% trans '植物' %}</option>
-					<option value="Birds">{% trans '鳥類' %}</option>
-					<option value="Mammals">{% trans '哺乳類' %}</option>
-					<option value="Bacteria">{% trans '細菌' %}</option>
-					<option value="Others">{% trans '其他' %}</option>
+					<option value="昆蟲">{% trans "昆蟲" %}</option>
+					<option value="蜘蛛">{% trans "蜘蛛" %}</option>
+					<option value="魚類">{% trans "魚類" %}</option>
+					<option value="兩棲類">{% trans "兩棲類" %}</option>
+					<option value="爬蟲類">{% trans "爬蟲類" %}</option>
+					<option value="鳥類">{% trans "鳥類" %}</option>
+					<option value="哺乳類">{% trans "哺乳類" %}</option>
+					<option value="維管束植物">{% trans "維管束植物" %}</option>
+					<option value="蕨類植物">{% trans "蕨類植物" %}</option>
+					<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+					<option value="藻類">{% trans "藻類" %}</option>
+					<option value="病毒">{% trans "病毒" %}</option>
+					<option value="真菌">{% trans "真菌" %}</option>
+					<option value="細菌">{% trans "細菌" %}</option>
 				</select>
               </div>
             </div>
@@ -150,8 +154,22 @@
 				  </select>              
 				</div>
             </div>
-
             <div class="two_input">
+				<div class="input_item">
+				  <select name="county" id="county">
+					<option value="">{% trans '-- 不限 --' %}</option>
+					{% for cc in county_list %}
+					<option value="{{ cc.county }}">{% if LANGUAGE_CODE == 'en-us' %}{{ cc.county_en }}{% else %}{{ cc.county }}{% endif %}</option>
+					{% endfor %}
+				  </select>
+				</div>
+				<div class="input_item">
+				  <select name="municipality" id="municipality">
+					<option value="">{% trans '-- 不限 --' %}</option>
+				  </select>
+				</div>
+			  </div>
+			  <div class="two_input">
               <div class="line_cneter">~</div>
               <div class="input_item">
                 <input name="start_date" id="start_date" type="text" placeholder="{% trans '起始日期' %}（YYYY-MM-DD）" value="" />
@@ -334,6 +352,10 @@
 					<p>{% trans '館藏號' %}</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="col-bioGroup">
+					<p>{% trans '物種類群' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-taxonRank">
 					<p>{% trans '鑑定層級' %}</p>
 				</li>
@@ -352,6 +374,14 @@
 				<li>
 					<input type="checkbox" class="chebox" id="col-eventDate">
 					<p>{% trans '採集日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-locality">
@@ -500,5 +530,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_collection.js' %}?v19"></script>
+<script src="{% static 'js/data/search_collection.js' %}?v21"></script>
 {% endblock %}

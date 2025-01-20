@@ -23,7 +23,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v4" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}?v5" />
 {% endblock style %}
 
 {% block body %}
@@ -740,6 +740,10 @@
 					<p>{% trans '館藏號' %}</p>
 				</li>
 				<li>
+					<input type="checkbox" class="chebox" id="col-bioGroup">
+					<p>{% trans '物種類群' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="col-taxonRank">
 					<p>{% trans '鑑定層級' %}</p>
 				</li>
@@ -758,6 +762,14 @@
 				<li>
 					<input type="checkbox" class="chebox" id="col-eventDate">
 					<p>{% trans '採集日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="col-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="col-locality">
@@ -872,7 +884,11 @@
 				<li>
 					<input type="checkbox" class="chebox" id="occ-originalScientificName">
 					<p>{% trans '原始紀錄物種' %}</p>
-				</li>				
+				</li>		
+				<li>
+					<input type="checkbox" class="chebox" id="occ-bioGroup">
+					<p>{% trans '物種類群' %}</p>
+				</li>		
 				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonRank">
 					<p>{% trans '鑑定層級' %}</p>
@@ -892,6 +908,14 @@
 				<li>
 					<input type="checkbox" class="chebox" id="occ-eventDate">
 					<p>{% trans '紀錄日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
@@ -997,5 +1021,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/data/search_full.js' %}?v11"></script>
+<script src="{% static 'js/data/search_full.js' %}?v12"></script>
 {% endblock script %}

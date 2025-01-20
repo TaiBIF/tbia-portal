@@ -1674,8 +1674,8 @@ msgstr "Reptiles"
 
 #: templates/data/search_collection.html:73
 #: templates/data/search_occurrence.html:78
-msgid "真菌(含地衣)"
-msgstr "Fungi (including Lichen)"
+msgid "真菌"
+msgstr "Fungi"
 
 #: templates/data/search_collection.html:74
 #: templates/data/search_occurrence.html:79
@@ -2849,3 +2849,63 @@ msgstr "Associated Media"
 #:
 msgid "主題年活動"
 msgstr "Theme Year"
+
+
+#:
+msgid "縣市"
+msgstr "County"
+
+
+#:
+msgid "鄉鎮市區"
+msgstr "Township / Town / City / District"
+
+
+#:
+msgid "未模糊化縣市"
+msgstr "Non-blurred County"
+
+
+#:
+msgid "未模糊化鄉鎮市區"
+msgstr "Non-blurred Township / Town / City / District"
+
+
+#:
+msgid "蜘蛛"
+msgstr "Spiders"
+
+
+#:
+msgid "維管束植物"
+msgstr "Vascular Plants"
+
+
+#:
+msgid "蕨類植物"
+msgstr "Ferns"
+
+
+#:
+msgid "苔蘚植物"
+msgstr "Mosses"
+
+
+#:
+msgid "藻類"
+msgstr "Algae"
+
+
+#:
+msgid "病毒"
+msgstr "Viruses"
+
+
+#:
+msgid "物種數僅計算TaiCOL定義之臺灣物種"
+msgstr "The number of species is calculated based on Taiwan species defined by TaiCOL."
+
+
+#:
+msgid "此處維管束植物不包含蕨類植物"
+msgstr "Vascular plants here do not include ferns."

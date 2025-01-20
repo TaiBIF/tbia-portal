@@ -194,8 +194,12 @@
 				<li>
 					<input type="checkbox" class="chebox" id="occ-originalScientificName">
 					<p>{% trans '原始紀錄物種' %}</p>
-				</li>				
-        <li>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-bioGroup">
+					<p>{% trans '物種類群' %}</p>
+				</li>
+				<li>
 					<input type="checkbox" class="chebox" id="occ-taxonRank">
 					<p>{% trans '鑑定層級' %}</p>
 				</li>				
@@ -203,7 +207,7 @@
 					<input type="checkbox" class="chebox" id="occ-sensitiveCategory">
 					<p>{% trans '敏感層級' %}</p>
 				</li>				
-        <li>
+				<li>
 					<input type="checkbox" class="chebox" id="occ-rightsHolder">
 					<p>{% trans '來源資料庫' %}</p>
 				</li>
@@ -215,6 +219,14 @@
 				<li>
 					<input type="checkbox" class="chebox" id="occ-eventDate">
 					<p>{% trans '紀錄日期' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-county">
+					<p>{% trans '縣市' %}</p>
+				</li>
+				<li>
+					<input type="checkbox" class="chebox" id="occ-municipality">
+					<p>{% trans '鄉鎮市區' %}</p>
 				</li>
 				<li>
 					<input type="checkbox" class="chebox" id="occ-locality">
@@ -291,5 +303,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/dataset_detail.js' %}?v3"></script>
+<script src="{% static 'js/data/dataset_detail.js' %}?v5"></script>
 {% endblock script %}

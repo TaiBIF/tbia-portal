@@ -65,7 +65,7 @@
 
 .imgbox {
     height: 390px !important;
-    width: auto !important;
+    /* width: auto !important; */
 }
 
 .ml-5px {
@@ -103,10 +103,12 @@
 
 .bottom-right {
     position: absolute;
-    bottom: 5%;
+    bottom: 3%;
     width: 100%;
     font-size: 16px;
     text-shadow: 0.1em 0.1em 0.2em black;
+    text-align: left;
+    margin-left: 10px;
 }
 
 

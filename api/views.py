@@ -23,7 +23,7 @@ from manager.models import SearchCount #, SearchStat
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql
-from data.utils import backgroud_search_stat, taxon_group_map_e
+from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c
 import threading
 
 def check_coor(lon,lat):
@@ -375,14 +375,26 @@ def dataset(request):
         query_identifier = []
 
 
-        # 統一換成英文
+        # 這邊會改成用中文搜尋 但要讓中英文都可以通
         if group_value := req.get('datasetTaxonGroup'):
-            if group_value in taxon_group_map_e.keys():
-                group_value = taxon_group_map_e[group_value]
-            query_pair.append('{} like %s')
-            query_value.append('%{}%'.format(group_value))
-            query_identifier.append('datasetTaxonGroup')
 
+            if group_value in taxon_group_map_c.keys():
+                group_value = taxon_group_map_c[group_value]
+            if group_value in old_taxon_group_map_c.keys():
+                group_value = old_taxon_group_map_c[group_value]
+            
+            
+
+            if group_value == '維管束植物':
+                query_value.append('%維管束植物%')
+                query_value.append('%蕨類植物%')
+                query_pair.append('({} like %s OR {} like %s)')
+                query_identifier.append('datasetTaxonGroup')
+                query_identifier.append('datasetTaxonGroup')
+            else:
+                query_value.append('%{}%'.format(group_value))
+                query_pair.append('{} like %s')
+                query_identifier.append('datasetTaxonGroup')
 
         for k in ['datasetName', 'rightsHolder']:
             tmp_list = []
@@ -469,7 +481,7 @@ def dataset(request):
         query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
 
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            cursor.execute(query, query_value )
+            cursor.execute(query, query_value)
             results = cursor.fetchall()
             conn.close()
 
@@ -511,6 +523,13 @@ def dataset(request):
             now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + query_string + '&cursor=' + str(now_cursor)
         else:
             now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + '&cursor=' + str(now_cursor)
+
+
+        obj, created = SearchCount.objects.update_or_create(
+                search_location='dataset'
+            )
+        obj.count += 1
+        obj.save()
 
         final_response['status'] = {'code': 200, 'message': 'Success'}
         final_response['meta'] = {'total': total, 'limit': limit}

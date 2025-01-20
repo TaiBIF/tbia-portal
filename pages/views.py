@@ -196,7 +196,8 @@ def get_news_list(request):
             n.color = news_type_map[n.type]
             n.type_c = news_type_c_map[n.type]
             if n.image:
-                n.image = '/media/news/' + n.image
+                # n.image = '/media/news/' + n.image
+                n.image = '/media/' + n.image
             else:
                 n.image = '/static/image/news_ub_img.jpg'
             news_list.append({'id': n.id,'image':n.image,'color':n.color, 
@@ -299,7 +300,8 @@ def index(request):
         n.color = news_type_map[n.type]
         n.type_c = news_type_c_map[n.type]
         if n.image:
-            n.image = '/media/news/' + n.image
+            # n.image = '/media/news/' + n.image
+            n.image = '/media/' + n.image
         else:
             n.image = '/static/image/news_ub_img.jpg'
         news_list.append({'id': n.id,'image':n.image,'color':n.color, 
@@ -421,7 +423,7 @@ def get_ark_list(request):
     
     query_obj = []
 
-    query_obj = Ark.objects.filter(type=type).order_by('-modified')
+    query_obj = Ark.objects.filter(type=type).order_by('-created')
 
     current_page = int(request.POST.get('get_page', 1))
     total_page = math.ceil(query_obj.count() / limit)
@@ -431,7 +433,6 @@ def get_ark_list(request):
     offset = (current_page-1)*limit
 
     for x in query_obj[offset:offset+limit]:
-
         modified = x.modified + timedelta(hours=8) if x.modified else x.modified
         created = x.created + timedelta(hours=8)
 

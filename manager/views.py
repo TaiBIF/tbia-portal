@@ -199,7 +199,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -250,7 +250,7 @@ def change_manager_page(request):
                 search_prefix = 'occurrence'
 
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -344,7 +344,7 @@ def change_manager_page(request):
                 else:
                     search_prefix = 'occurrence'
                 tmp_a = create_query_a(search_dict)
-                for i in ['locality','datasetName','rightsHolder','total_count']:
+                for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                     if i in search_dict.keys():
                         search_dict.pop(i)
 
@@ -437,7 +437,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
             tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count']:
+            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                 if i in search_dict.keys():
                     search_dict.pop(i)
 
@@ -497,7 +497,7 @@ def change_manager_page(request):
                     else:
                         search_prefix = 'occurrence'
                     tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
@@ -555,7 +555,7 @@ def change_manager_page(request):
                     else:
                         search_prefix = 'occurrence'
                     tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count']:
+                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
                         if i in search_dict.keys():
                             search_dict.pop(i)
 
@@ -1682,8 +1682,11 @@ def get_taxon_group_list(request):
 
     name = request.GET.get('name')
     selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
+
+
     if selected_name:
         selected_name = selected_name[0]
+    # selected_name = name
 
     total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
     
@@ -1692,6 +1695,7 @@ def get_taxon_group_list(request):
     else:
         taxon_list = list(TaxonStat.objects.filter(year='x', month='x', type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
 
+    
     final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'data_percent': round((t['count'] / total_count)*100, 2) if total_count else 0,
                    'taiwan_percent': TaxonStat.objects.get(type='taiwan_percentage',  name=selected_name, rights_holder=t['rights_holder']).count } 
                   for t in taxon_list ]
@@ -1919,12 +1923,6 @@ def submit_news(request):
         # author_use_tbia = None
         author_use_tbia = request.POST.get('author_use_tbia')
 
-        # tmp = {"delta":'{"ops":[]}',"html":""}
-        # tmp['html'] = content
-        # html = '<ul><li>GBIF</li><li>TaiBIF</li><li>TBN</li></ul><p><img src=\\"/media/news/ntm_logo_j9SJDgw.png\\"></p>"'   
-        # #  = Quill('{"delta":"{\\"ops\\":"","html":"' + content + '"}')
-        # tmp = {"delta":'{"ops":[]}',"html":html}
-        # content = Quill(tmp)
 
         if request.POST.get('from_system'):
             # status = 'pass'
@@ -1964,7 +1962,7 @@ def submit_news(request):
             if n.image and not image_name: # 原本就有的
                 image_name = n.image
             elif image_name:
-                image_name = image.name
+                image_name = image_name
             
             if image_name:
                 n.image = image_name
@@ -1978,6 +1976,7 @@ def submit_news(request):
             n.publish_date = publish_date
             n.modified = timezone.now()
             n.lang = lang
+            n.save()
 
             if ori_status != 'pass' and status == 'pass':
                 # 新增 ark
@@ -1993,7 +1992,6 @@ def submit_news(request):
                                                 'url': ark_url,
                                                 'shoulder': '/' + ark_obj.ark[:2]})
 
-            n.save()
         else:
 
             # 新增 news
@@ -2010,7 +2008,7 @@ def submit_news(request):
                     partner = partner_id,
                     title = title,
                     content = content,
-                    image = image.name,
+                    image = image_name,
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
@@ -2190,7 +2188,7 @@ def save_resource_file(request):
         fs = FileSystemStorage()
         file_name = fs.save(f'resources/' + file.name, file)
         response['url'] = file_name
-        response['filename'] = file.name
+        response['filename'] = file_name.replace('resources/','')
 
     return JsonResponse(response, safe=False)
 
@@ -2276,6 +2274,7 @@ def get_news_content(request):
     return JsonResponse(response, safe=False)
 
 
+# 文章裡面的圖片 
 def save_news_image(request):
     # print(request.POST, request.FILES)
     image_name = ''

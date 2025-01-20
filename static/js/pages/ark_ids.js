@@ -79,14 +79,10 @@ function updateArk(type, page) {
   } else {
     query = {
       'type': type,
-      // 'from': 'resource',
-      // 'start_date': $("#start_date").val(),
-      // 'end_date': $("#end_date").val(),
       'get_page': page,
       'lang':  $lang,
     }
   }
-
 
   $.ajax({
     url: "/get_ark_list",
@@ -96,8 +92,6 @@ function updateArk(type, page) {
     dataType: 'json',
   })
     .done(function (response) {
-      // console.log()
-      
 
       // remove all resources first
       $('.ark_table tr:not(.first-row)').remove()

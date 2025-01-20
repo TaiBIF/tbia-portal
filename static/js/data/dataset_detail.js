@@ -414,7 +414,7 @@ function setTable(response, queryString, from, orderby, sort) {
             if (tmp_value == null) {
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
             } else {
-                if (['basisOfRecord','taxonRank','rightsHolder','dataGeneralizations','taxonGroup'].includes(Object.keys(map_dict)[j])){
+                if (['basisOfRecord','taxonRank','rightsHolder','dataGeneralizations','bioGroup'].includes(Object.keys(map_dict)[j])){
                     tmp_value = gettext(tmp_value)
                 }
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -559,8 +559,6 @@ function submitSearch(page=1, from, new_click, limit, orderby, sort, push_state)
 
                     if (response.count == 0) {
 
-
-    
                         $('.records-legend').addClass('d-none')
                         $('.result_inf_top').addClass('d-none')
                         $('.result_inf_top_1').addClass('d-none')

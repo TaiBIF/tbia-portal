@@ -116,43 +116,47 @@ def escape_solr_query(string):
 
 # x: longtitude, y: latitude
 
-taxon_group_map = {
-    'Insects' : [{'key': 'class', 'value': 'Insecta'}],
-    'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
-    'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
-    'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
-    'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
-    'Birds' : [{'key': 'class', 'value': 'Aves'}],
-    'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
-    'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
-    'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
-    'Others' : [{'key': 'class', 'value': ''}],
+
+# 舊的
+old_taxon_group_map_c = {
+    'Plants' : '維管束植物',
+    # 'Others': '其他', 沒有可以對應的 不讓他選
 }
+
 
 taxon_group_map_c = {
     'Insects' : '昆蟲',
+    'Spiders' : '蜘蛛',
     'Fishes' : '魚類',
     'Reptiles' : '爬蟲類',
     'Amphibians': '兩棲類',
-    'Fungi' : '真菌(含地衣)',
-    'Plants' : '植物',
     'Birds' : '鳥類',
     'Mammals' : '哺乳類',
+    'Vascular Plants' : '維管束植物',
+    'Ferns' : '蕨類植物',
+    'Mosses' : '苔蘚植物',
+    'Algae' : '藻類',
+    'Viruses': '病毒',
     'Bacteria': '細菌',
-    'Others': '其他',
+    'Fungi': '真菌',
+    'Others': '其他'
 }
 
 taxon_group_map_e = {
-    '昆蟲': 'Insects' ,
-    '魚類': 'Fishes',
-    '爬蟲類': 'Reptiles',
-    '兩棲類': 'Amphibians',
-    '真菌(含地衣)': 'Fungi',
-    '植物': 'Plants',
-    '鳥類': 'Birds',
-    '哺乳類': 'Mammals',
-    '細菌': 'Bacteria',
-    '其他': 'Others'
+    "昆蟲": "Insects",
+    "蜘蛛": "Spiders",
+    "魚類": "Fishes",
+    "爬蟲類": "Reptiles",
+    "兩棲類": "Amphibians",
+    "鳥類": "Birds",
+    "哺乳類": "Mammals",
+    "維管束植物": "Vascular Plants",
+    "蕨類植物": "Ferns",
+    "苔蘚植物": "Mosses",
+    "藻類": "Algae",
+    "病毒": "Viruses",
+    "細菌": "Bacteria",
+    "真菌": "Fungi",
 }
 
 
@@ -320,11 +324,14 @@ map_occurrence = {
     'sourceScientificName': '來源資料庫使用學名',
     'sourceVernacularName': '來源資料庫使用中文名',
     'originalScientificName': '原始紀錄物種',
+    'bioGroup': '物種類群', 
     'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
     'taxonID': 'TaiCOL物種編號', 
     'eventDate': '紀錄日期', 
+    'county': '縣市',
+    'municipality': '鄉鎮市區',
     'date': '紀錄日期', 
     'locality': '出現地', 
     'organismQuantity': '數量',
@@ -420,6 +427,8 @@ download_cols = [
 'sourceDatasetID',
 'gbifDatasetID',
 'eventDate',
+'county',
+'municipality',
 'license',
 'locality',
 'mediaLicense',
@@ -449,6 +458,7 @@ download_cols = [
 # 'parentTaxonID',
 'scientificName',
 'name_author',
+'bioGroup',
 'taxonRank',
 'common_name_c',
 'alternative_name_c',
@@ -471,7 +481,10 @@ download_cols = [
 sensitive_cols = ['standardRawLatitude',
 'standardRawLongitude',
 'verbatimRawLatitude',
-'verbatimRawLongitude']
+'verbatimRawLongitude',
+'rawCounty',
+'rawMunicipality',
+]
 
 
 # 整理搜尋條件
@@ -539,9 +552,14 @@ def create_query_display(search_dict,lang=None):
                         query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
                 # if Taxon.objects.filter(taxonID=search_dict[k]).exists():
                 #     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
+            # 這邊要讓新舊互通 因為舊的會需要再次查詢
             elif k == 'taxonGroup':
-                if search_dict[k] in taxon_group_map_c.keys():
+                if search_dict[k] in taxon_group_map_e.keys():
+                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{ taxon_group_map_e[search_dict[k]] if lang == 'en-us' else search_dict[k]}"
+                elif search_dict[k] in taxon_group_map_c.keys():
                     query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k] if lang == 'en-us' else taxon_group_map_c[search_dict[k]] }"
+                elif search_dict[k] in old_taxon_group_map_c.keys():
+                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k] if lang == 'en-us' else old_taxon_group_map_c[search_dict[k]] }"
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
                 query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
@@ -584,12 +602,14 @@ def create_query_display(search_dict,lang=None):
 
 # 整理搜尋條件 再次查詢按鈕的連結
 def create_query_a(search_dict):
+    # 只處理多選 & 需要調整的參數
     query_a = ''
 
     d_list = []
     r_list = []
     l_list = []
 
+    # 這邊要處理taxonGroup 因為會有新舊的問題
     for k in search_dict.keys():
         if k == 'datasetName':
             if isinstance(search_dict[k], str):
@@ -617,6 +637,15 @@ def create_query_a(search_dict):
                     l_list.append(search_dict[k])
             else:
                 l_list = list(search_dict[k])
+        
+        elif k == 'taxonGroup':
+            # 這邊是給網址使用的 所以參數是taxonGroup
+            if search_dict[k] in taxon_group_map_e.keys():
+                query_a += f'&taxonGroup={search_dict[k]}'
+            elif search_dict[k] in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
+                query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
+            elif search_dict[k] in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
+                query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
 
     for l in l_list:
         query_a += f'&locality={l}'
@@ -682,18 +711,20 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         query_list += ['recordType:col']
 
     if val := req_dict.get('taxonGroup'):
-        if val in taxon_group_map.keys():
-            vv_list = []
-            # 如果是others的話 要排除掉其他的
-            if val == 'Others':
-                for vv in taxon_group_map.keys():
-                    if vv != 'Others':
-                        for vvv in taxon_group_map[vv]:
-                            vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
-            else:
-                for vv in taxon_group_map[val]:
-                    vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-            query_list += [" OR ".join(vv_list)]
+        # 這邊改用bioGroup 且是中文
+        now_bio_group = None
+        if val in taxon_group_map_e.keys():
+            now_bio_group = val
+        elif val in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
+            now_bio_group = taxon_group_map_c[val] # 改成中文
+        elif val in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
+            now_bio_group = old_taxon_group_map_c[val] # 改成中文
+        
+        if now_bio_group == '維管束植物':
+            now_bio_group = '(維管束植物 OR 蕨類植物)'
+
+        query_list += [f'bioGroup:{now_bio_group}']
+
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
@@ -842,6 +873,19 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
 
     #  要處理敏感資料
+
+    if county := req_dict.get('county'):
+        if get_raw_map:
+            query_list += ['county: "%s" OR rawCounty: "%s"' % (county, county) ]
+        else:
+            query_list += ['county: "%s"' % county]
+
+    if municipality := req_dict.get('municipality'):
+        if get_raw_map:
+            query_list += ['municipality: "%s" OR rawMunicipality: "%s"' % (municipality, municipality) ]
+        else:
+            query_list += ['municipality: "%s"' % municipality]
+
 
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
@@ -1568,6 +1612,13 @@ def create_data_detail(id, user_id, record_type):
                 else:
                     lon = None
             row.update({'lon': lon})
+
+            if row.get('rawCounty'):
+                row.update({'county': row.get('rawCounty')})
+
+            if row.get('rawMunicipality'):
+                row.update({'municipality': row.get('rawMunicipality')})
+
         else:
             lat = None
             if lat := row.get('standardLatitude'):
@@ -1706,6 +1757,13 @@ def create_data_table(docs, user_id, obv_str):
             else:
                 if row.get('verbatimRawLongitude'):
                     docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimRawLongitude') + '</small>'
+
+            if row.get('rawCounty'):
+                docs.loc[i , 'county'] = row.get('rawCounty')
+
+            if row.get('rawMunicipality'):
+                docs.loc[i , 'municipality'] = row.get('rawMunicipality')
+                
         else:
             if lat := row.get('standardLatitude'):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
@@ -1758,6 +1816,7 @@ def create_data_table(docs, user_id, obv_str):
             if len(media_list):
                 # 取第一張
                 docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
+
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
