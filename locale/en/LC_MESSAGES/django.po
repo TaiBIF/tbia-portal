@@ -2909,3 +2909,8 @@ msgstr "The number of species is calculated based on Taiwan species defined by T
 #:
 msgid "此處維管束植物不包含蕨類植物"
 msgstr "Vascular plants here do not include ferns."
+
+
+#:
+msgid "網頁維護中"
+msgstr "Maintenance"

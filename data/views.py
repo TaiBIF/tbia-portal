@@ -1257,14 +1257,17 @@ def download_dataset_results(request):
 
 
 def get_media_rule():
-    conn = psycopg2.connect(**datahub_db_settings)
-    query = 'SELECT "media_rule" FROM media_rule'
-    with conn.cursor() as cursor:
-        cursor.execute(query)
-        results = cursor.fetchall()
-        conn.close()
-        results = [r[0] for r in results]
-        return results
+    try:
+        conn = psycopg2.connect(**datahub_db_settings)
+        query = 'SELECT "media_rule" FROM media_rule'
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            conn.close()
+            results = [r[0] for r in results]
+            return results
+    except:
+        results = []
 
 
 @csp_update(IMG_SRC=get_media_rule())
