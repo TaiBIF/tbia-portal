@@ -1681,8 +1681,8 @@ def get_taxon_group_list(request):
     final_list =[]
 
     name = request.GET.get('name')
+    # 轉換成英文
     selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==name]
-
 
     if selected_name:
         selected_name = selected_name[0]
@@ -2540,7 +2540,12 @@ def get_temporal_stat(request):
         year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
-        year_taxon_query = year_taxon_query.filter(type='taxon_group',name=taxon_group)
+        selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        if selected_name:
+            selected_name = selected_name[0]
+        else:
+            selected_name = ''
+        year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
     else:
         year_taxon_query = year_taxon_query.filter(type='temporal',name__isnull=True)
 
@@ -2601,7 +2606,13 @@ def get_temporal_stat(request):
         month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
-        month_taxon_query = month_taxon_query.filter(type='taxon_group',name=taxon_group)
+        selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        if selected_name:
+            selected_name = selected_name[0]
+        else:
+            selected_name = ''
+        month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
+        
     else:
         month_taxon_query = month_taxon_query.filter(type='temporal',name__isnull=True)
 
