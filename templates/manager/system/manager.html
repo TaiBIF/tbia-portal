@@ -217,7 +217,7 @@
                     <div class="box-title">
                         <div class="dottt"></div>各來源資料庫資料空間空缺狀況
                     </div>
-                    <div class="ml-20px mt-15px">
+                    <div class="ml-20px mt-15px spatial-area-div">
                         <div class="d-flex">
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-spatial-taxonGroup">
@@ -245,15 +245,17 @@
                             <span class="ml-20px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">匯出KML</button></span>
                         </div>
                     </div>
-                    <div class="map_img">
+                    <div class="map_img spatial-area-div">
                         <div class="imgbox">
                             <div id="partner-map" class="img"></div>
                         </div>
-                    </div>          
-                </div>
-                {% comment %} <div class="w-50p">
-                </div> {% endcomment %}
-                
+                    </div>
+                    <div class="loading_area_partial">
+                        <div class="sc">
+                        <div class="load"><span>L</span>ading</div>
+                        </div>
+                    </div>
+                </div>                
             </div>
             <hr>
             <div class="item d-flex-jc-sb">
@@ -545,5 +547,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/manager_system.js' %}?v7"></script>
+  <script src="{% static 'js/manager/manager_system.js' %}?v8"></script>
   {% endblock script %}

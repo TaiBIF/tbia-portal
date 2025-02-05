@@ -992,7 +992,11 @@ function drawMapGrid(current_map, group){
     console.log(taxon_group)
     // }
     
-    $('.loading_area').removeClass('d-none')
+    // $('.loading_area').removeClass('d-none')
+
+    $('.loading_area_partial').removeClass('d-none')
+    $('.spatial-area-div').addClass('d-none')
+
     $(`.resultG_5_${group}`).remove()
 
 
@@ -1003,12 +1007,9 @@ function drawMapGrid(current_map, group){
         dataType: 'json',
     })
     .done(function (response) {
-        // if (group == 'total'){
-        //     window.portal_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-        // } else {
-            window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-        // }
-        $('.loading_area').addClass('d-none')
+        window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
+        $('.loading_area_partial').addClass('d-none')
+        $('.spatial-area-div').removeClass('d-none')
     })
     .fail(function (xhr, status, errorThrown) {
         if (xhr.status == 504) {
@@ -1018,7 +1019,8 @@ function drawMapGrid(current_map, group){
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        $('.loading_area').addClass('d-none')
+        $('.loading_area_partial').addClass('d-none')
+        $('.spatial-area-div').removeClass('d-none')
     })
 
 }

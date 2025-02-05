@@ -1,0 +1,16 @@
+{% extends './base.html' %}
+{% load static %} 
+{% load i18n %}
+{% block style %}
+<link rel="stylesheet" type="text/css" href="/static/css/404.css?v1" />
+{% endblock style %}
+{% block title %}網頁維護中 Maintenance｜{% endblock %}
+{% block body %}
+<div class="error">
+    <p class="content">
+        目前網頁資料維護中，服務暫時無法使用，若有疑問請<a class="showFeedback">聯絡我們</a>，謝謝。
+        <br>
+        The website is temporarily unavailable due to data maintenance. If you have any questions, please <a class="showFeedback">contact us</a>.
+    </p>
+</div>
+{% endblock body %}

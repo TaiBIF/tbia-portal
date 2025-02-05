@@ -36,7 +36,6 @@ function showRequest(query_id, query, sdr_id) {
 
             $(".loading_area").addClass('d-none')
 
-            // console.log(response)
 
             $('.detail-pop .send-check').removeClass('d-none')
             $('.detail-pop .send-submitted').addClass('d-none')

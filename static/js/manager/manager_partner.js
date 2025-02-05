@@ -1083,12 +1083,16 @@ $('select[name=partner-spatial-taxonGroup]').trigger('change')
 function drawMapGrid(current_map, group, wkt_range){
 
     if (group == 'total'){
+        $('.total.loading_area_partial').removeClass('d-none')
+        $('.total-spatial-area-div').addClass('d-none')
         taxon_group = $('select[name=portal-spatial-taxonGroup]').find(':selected').val()
     } else {
+        $('.loading_area_partial').not('.total').removeClass('d-none')
+        $('.spatial-area-div').addClass('d-none')
+
         taxon_group = $('select[name=partner-spatial-taxonGroup]').find(':selected').val()
     }
     
-    $('.loading_area').removeClass('d-none')
     $(`.resultG_5_${group}`).remove()
 
 
@@ -1101,10 +1105,13 @@ function drawMapGrid(current_map, group, wkt_range){
     .done(function (response) {
         if (group == 'total'){
             window.portal_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
+            $('.total.loading_area_partial').addClass('d-none')
+            $('.total-spatial-area-div').removeClass('d-none')
         } else {
             window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
+            $('.loading_area_partial').not('.total').addClass('d-none')
+            $('.spatial-area-div').removeClass('d-none')
         }
-        $('.loading_area').addClass('d-none')
     })
     .fail(function (xhr, status, errorThrown) {
         if (xhr.status == 504) {
@@ -1114,7 +1121,8 @@ function drawMapGrid(current_map, group, wkt_range){
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        $('.loading_area').addClass('d-none')
+        $('.loading_area_partial, .total.loading_area_partial').addClass('d-none')
+        $('.spatial-area-div').removeClass('d-none')
     })
 
 }

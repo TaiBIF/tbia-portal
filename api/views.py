@@ -23,8 +23,25 @@ from manager.models import SearchCount #, SearchStat
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql
-from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c
+from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c, get_map_geojson
 import threading
+
+
+
+def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
+    checked = True
+    if grid == 1 and ((maxLon - minLon > 1) or (maxLat - minLat > 1)):
+        checked = False
+    elif grid == 5 and ((maxLon - minLon > 10) or (maxLat - minLat > 10)):
+        checked = False
+    elif grid == 10 and ((maxLon - minLon > 20) or (maxLat - minLat > 20)):
+        checked = False
+    elif grid == 100 and ((maxLon - minLon > 40) or (maxLat - minLat > 40)):
+        checked = False
+    return checked
+
+
+
 
 def check_coor(lon,lat):
     try:
@@ -535,5 +552,155 @@ def dataset(request):
         final_response['meta'] = {'total': total, 'limit': limit}
         final_response['links'] = {'self': now_url, 'next': next_url}
         final_response['data'] = data
+
+    return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+
+def map(request):
+
+    final_response = {}
+    map_geojson = {}
+
+    if request.method == 'GET':
+        fq_list = []
+        req = request.GET
+
+        # 可聯集參數
+        union_list = ['taxonID']
+        for u in union_list:
+            if values := req.getlist(u):
+                values = [f'"{v}"' for v in values]
+                fq_list.append(f'{u}: ({(" OR ").join(values)})')
+
+        if group_values := req.getlist('bioGroup'):
+            values = []
+            for group_value in group_values:
+
+                if group_value in taxon_group_map_c.keys():
+                    group_value = taxon_group_map_c[group_value]
+                if group_value in old_taxon_group_map_c.keys():
+                    group_value = old_taxon_group_map_c[group_value]
+
+
+                if group_value == '維管束植物':
+                    values.append('維管束植物')
+                    values.append('蕨類植物')
+                else:
+                    values.append(group_value)
+            fq_list.append(f'bioGroup: ({(" OR ").join(values)})')
+
+        #  年份區間
+        if year := req.get('year'):
+            year_list = year.split(',')
+            if len(year_list) == 2: # 起迄
+                try:
+                    start_year = int(year_list[0])
+                    end_year = int(year_list[1])
+                    fq_list += [f'year:[{start_year} TO {end_year}]']
+                except:
+                    pass
+            else:
+                try:
+                    year = int(year_list[0])
+                    fq_list += [f'year:[{year} TO *]']
+                except:
+                    final_response['status'] = {'code': 400, 'message': f'Invalid year format'}
+                    return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+        # 網格大小 // 需搭配地理範圍
+        # 先統一使用模糊化座標
+        if grid := req.get('grid', 1):
+
+            try:
+                grid = int(grid)
+                grid = [g for g in [1,5,10,100] if g == grid][0]
+            except:
+                final_response['status'] = {'code': 400, 'message': f'Invalid grid value'}
+                return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+            facet_grid = f'grid_{grid}_blurred'
+
+            if boundedBy := req.get('boundedBy'): # maxLon, maxLat , minLon, minLat
+                boundedBy = boundedBy.split(',')
+                if len(boundedBy) == 4:
+                    try:
+                        maxLon = int(boundedBy[0])
+                        maxLat = int(boundedBy[1])
+                        minLon = int(boundedBy[2])
+                        minLat = int(boundedBy[3])
+                        if not check_coor(maxLon,maxLat) or not check_coor(minLon, minLat) or not (maxLat >= minLat) or not(maxLon >= minLon):
+                            final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
+                            return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+                    except:
+                        final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
+                        return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+                    
+                    if not check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
+                        final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy value according to grid size'}
+                        return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+                    fq_list += [f'location_rpt:[{minLat},{minLon} TO {maxLat},{maxLon}]']
+
+                else:
+                    final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
+                    return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+            else:
+                final_response['status'] = {'code': 400, 'message': f'Parameter boundedBy is required'}
+                return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+
+
+        query = { "query": "location_rpt:*",
+                 "limit": 0,
+                "filter": fq_list,
+                "facet": {
+                        facet_grid: {
+                            'field': facet_grid,
+                            'mincount': 1,
+                            "type": "terms",
+                            "limit": -1,
+                        },
+                }
+        }
+
+
+        if not fq_list:
+            aaa = query.pop('filter', None)
+
+
+        query_req = json.dumps(query)
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+        resp = response.json()
+
+        if resp['facets']['count']:
+
+            map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=grid)
+            map_geojson = map_geojson['grid_'+str(grid)]
+
+        # # 記錄在SearchStat
+        now_dict = dict(req)
+
+        for k in now_dict.keys():
+            if len(now_dict[k])==1:
+                now_dict[k] = now_dict[k][0]
+
+        query_string = parse.urlencode(now_dict)
+
+
+        task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'map', query_string))
+        task.start()
+
+        obj, created = SearchCount.objects.update_or_create(
+                search_location='map'
+            )
+        obj.count += 1
+        obj.save()
+
+        # metadata
+        final_response['status'] = {'code': 200, 'message': 'Success'}
+        final_response['data'] = map_geojson
 
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')

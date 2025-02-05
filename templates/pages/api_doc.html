@@ -53,6 +53,12 @@
 					</li>
 					<li>
 						<div class="dot"></div>
+						<a href="#map-area">
+							{% trans '地圖 - map API' %}
+						</a>
+					</li>
+					<li>
+						<div class="dot"></div>
 						<a href="#common-area">
 							{% trans '格式及共同參數說明' %}
 						</a>
@@ -816,6 +822,137 @@
 					</table>
 				</div>
 			</div>
+			<div class="item_one" id="map-area">
+				<div class="sec_title">
+					<h3>{% trans '地圖 - map API' %}</h3>
+				</div>
+				<div class="marb_20">
+					{% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/map" target="_blank">/api/v1/map</a>
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '查詢參數說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					<table class="table_style2 marb_20" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '參數' %}</td>
+							<td>{% trans '型值' %}</td>
+							<td>{% trans '說明' %}</td>
+							<td>{% trans '範例網址' %}</td>
+						</tr>
+						<tr>
+							<td>boundedBy</td>
+							<td>string</td>
+							<td>
+								{% trans '取得指定四邊形座標範圍內物種出現紀錄網格資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}
+								<br>
+								*{% trans '必填' %} 
+							</td>
+							<td><a href="/api/v1/map?boundedBy=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a></td>
+						</tr>
+						<tr>
+							<td>grid</td>
+							<td>integer</td>
+							<td>
+								{% trans '取得指定網格大小，提供1,5,10,100公里網格' %}
+								<br>
+								*{% trans '必填，預設為1' %}
+							</td>
+							<td><a href="/api/v1/map?grid=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a></td>
+						</tr>
+						<tr>
+							<td>taxonID</td>
+							<td>string</td>
+							<td>{% trans '取得指定TaiCOL物種編號的物種網格資料' %}</td>
+							<td><a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516</a></td>
+						</tr>
+						<tr>
+							<td>bioGroup</td>
+							<td>string</td>
+							<td>{% trans '取得含括指定物種類群的網格資料' %}</td>
+							<td><a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類</a></td>
+						</tr>
+						<tr>
+							<td>year</td>
+							<td>integer</td>
+							<td>{% trans '取得指定資料年份的網格資料，年份格式：yyyy。支援區間查詢' %}</td>
+							<td><a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024</a></td>
+						</tr>
+					</table>
+					*{% trans '因應效能考量，四邊形座標範圍需搭配網格大小(grid)使用，若您需要較大的地理範圍，請先切割成較小範圍分次取得' %}
+					<br>
+					*{% trans '一公里網格每次可取得 1 度經緯度範圍，五公里網格可取得 10 度，十公里網格可取得 20 度，一百公里網格可取得 40 度' %}
+					<br>
+					{% trans '範例網址' %}{% trans '：' %}
+					<br>
+					<a class="col_blue" href="/api/v1/map?boundedBy=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
+					<br>
+					<a class="col_blue" href="/api/v1/map?boundedBy=125,25,115,15&grid=5" target="_blank">/api/v1/map?boundedBy=125,25,115,15&grid=5</a>
+					<br>
+					<a class="col_blue" href="/api/v1/map?boundedBy=122,23,102,3&grid=10" target="_blank">/api/v1/map?boundedBy=122,23,102,3&grid=10</a>
+					<br>
+					<a class="col_blue" href="/api/v1/map?boundedBy=120,25,80,-15&grid=100" target="_blank">/api/v1/map?boundedBy=120,25,80,-15&grid=100</a>
+					<br>
+					<br>
+					*{% trans '區間查詢請用半形逗號分隔起迄年份' %}
+					<br>
+					{% trans '範例網址' %}{% trans '：' %}
+					<a class="col_blue" href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2020,2025" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2020,2025</a>
+					
+				</div>
+				<div class="green_title">
+					<div class="line_mark"></div>
+					<h4>{% trans '回傳欄位說明' %}</h4>
+				</div>
+				<div class="mb_scroll">
+					{% trans '以GeoJSON格式回傳1,5,10或100公里網格化的多邊形，取得之GeoJSON可直接套疊於地圖上，每個feature代表一個網格，並帶有屬性：' %}
+					<br> - {% trans '網格內資料筆數 (counts)' %}
+					<br> - {% trans '網格大小 (current_grid_level)' %}
+					<br> - {% trans '網格編號 (current_grid)' %}
+					<br> 
+					<br> 
+					{% trans '若您想繪製與入口網相同的地圖，可參考以下資料筆數對應的色碼代號：' %}
+					<table class="table_style2 marb_20 mart_10" cellspacing="0" cellpadding="0" border="0">
+						<tr>
+							<td>{% trans '資料筆數' %}</td>
+							<td>{% trans '色碼' %}</td>
+						</tr>
+						<tr>
+							<td>1 - 10</td>
+							<td>#ffffcc</td>
+						</tr>
+						<tr>
+							<td>10 - 100</td>
+							<td>#ffeda0</td>
+						</tr>
+						<tr>
+							<td>100 - 1000</td>
+							<td>#fed976</td>
+						</tr>
+						<tr>
+							<td>1000 - 5000</td>
+							<td>#feb24c</td>
+						</tr>
+						<tr>
+							<td>5000 - 10000</td>
+							<td>#fd8d3c</td>
+						</tr>
+						<tr>
+							<td>10000 - 50000</td>
+							<td>#fc4e2a</td>
+						</tr>
+						<tr>
+							<td>50000 - 100000</td>
+							<td>#e31a1c</td>
+						</tr>
+						<tr>
+							<td>100000+</td>
+							<td>#bd0026</td>
+						</tr>
+					</table>
+				</div>
+			</div>
 			<div class="item_one" id="common-area">
 				<div class="sec_title mb-30px">
 					<h3>{% trans '格式及共同參數說明' %}</h3>
@@ -935,6 +1072,10 @@
 				</div>
 				<ul class="li_style2">
 					<li>
+						<div class="flexbox">
+							<div class="dot"></div>
+							<h3>2025-02-05 ｜ {% if LANGUAGE_CODE == 'en-us' %}Add Map API{% else %}新增地圖API{% endif %}</h3>
+						</div>
 						<div class="flexbox">
 							<div class="dot"></div>
 							<h3>2024-12-13 ｜ {% if LANGUAGE_CODE == 'en-us' %}Add Dataset API{% else %}新增資料集API{% endif %}</h3>

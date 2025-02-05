@@ -328,7 +328,8 @@ function drawMapGrid(current_map, group, wkt_range){
 
     taxon_group = $('select[name=partner-spatial-taxonGroup]').find(':selected').val()
     
-    $('.loading_area').removeClass('d-none')
+    $('.loading_area_partial').removeClass('d-none')
+    $('.spatial-area-div').addClass('d-none')
     $(`.resultG_5_${group}`).remove()
 
 
@@ -341,7 +342,8 @@ function drawMapGrid(current_map, group, wkt_range){
     .done(function (response) {
 
         window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-        $('.loading_area').addClass('d-none')
+        $('.loading_area_partial').addClass('d-none')
+        $('.spatial-area-div').removeClass('d-none')
 
     })
     .fail(function (xhr, status, errorThrown) {
@@ -351,7 +353,9 @@ function drawMapGrid(current_map, group, wkt_range){
             alert(gettext('發生未知錯誤！請聯絡管理員'))
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        $('.loading_area').addClass('d-none')
+        $('.loading_area_partial').addClass('d-none')
+        $('.spatial-area-div').removeClass('d-none')
+    
     })
 
 }

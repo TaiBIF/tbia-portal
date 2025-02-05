@@ -49,8 +49,10 @@
 					<h3>{% trans '資料空間空缺狀況' %}</h3>
 
 					<div class="item d-flex-jc-sb margin-bottom-0">
+						  <!--loading-->
+
 						<div class="w-100p">
-							<div class="ml-20px mt-15px">
+							<div class="ml-20px mt-15px spatial-area-div">
 								<div class="d-flex">
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
 									<select class="panel-select" name="partner-spatial-taxonGroup">
@@ -73,14 +75,19 @@
 									<span class="ml-20px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">{% trans '匯出KML' %}</button></span>
 								</div>
 							</div>
-							<div class="map_img">
+							<div class="map_img spatial-area-div">
 								<div class="imgbox">
 									<div id="partner-map" class="img"></div>
 								</div>
-							</div>          
+							</div>  
+							<div class="loading_area_partial">
+								<div class="sc">
+								<div class="load"><span>L</span>ading</div>
+								</div>
+							</div>        
 						</div>
 					</div>
-					<div class="records-legend d-flex legend-fs-15px">
+					<div class="records-legend d-flex legend-fs-15px spatial-area-div">
 						{% trans '資料筆數' %}：
 						<div class="d-flex"><div class="count-1"></div>1 - 10</div>
 						<div class="d-flex"><div class="count-10"></div>10 - 100</div>
@@ -163,5 +170,5 @@
 
 
 {% block script %}
-<script src="{% static 'js/pages/datagap.js' %}?v2"></script>
+<script src="{% static 'js/pages/datagap.js' %}?v3"></script>
 {% endblock script %}

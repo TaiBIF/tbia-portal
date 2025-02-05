@@ -308,7 +308,7 @@
                         <div class="dottt"></div>所屬單位資料空間空缺狀況
                     </div>
                     <div class="ml-20px mt-15px">
-                        <div class="d-flex">
+                        <div class="d-flex  spatial-area-div">
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-spatial-taxonGroup">
                                 <option value="">-- 不限 --</option>
@@ -331,17 +331,22 @@
                         </div>
                     </div>
                     <div class="map_img">
-                        <div class="imgbox">
+                        <div class="imgbox spatial-area-div">
                             <div id="partner-map" class="img"></div>
                         </div>
-                    </div>          
+                    </div>  
+                    <div class="loading_area_partial">
+                        <div class="sc">
+                        <div class="load"><span>L</span>ading</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="w-50p">
                     <div class="box-title">
                         <div class="dottt"></div>入口網資料空間空缺狀況
                     </div>
                     <div class="ml-20px mt-15px">
-                        <div class="d-flex">
+                        <div class="d-flex total-spatial-area-div">
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="portal-spatial-taxonGroup">
                                 <option value="">-- 不限 --</option>
@@ -365,10 +370,16 @@
                     </div>
 
                     <div class="map_img">
-                        <div class="imgbox">
+                        <div class="imgbox total-spatial-area-div">
                             <div id="portal-map" class="img"></div>
                         </div>
                     </div>
+                    <div class="loading_area_partial total">
+                        <div class="sc">
+                        <div class="load"><span>L</span>ading</div>
+                        </div>
+                    </div>
+
                 </div>
                 
             </div>
@@ -479,5 +490,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/manager_partner.js' %}?v7"></script>
+<script src="{% static 'js/manager/manager_partner.js' %}?v8"></script>
 {% endblock script %}
