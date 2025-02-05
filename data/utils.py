@@ -92,7 +92,7 @@ def get_dataset_by_key(key_list):
     results = []
     conn = psycopg2.connect(**datahub_db_settings)
     
-    query = f''' select id, name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
+    query = f''' select "tbiaDatasetID", name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
 
     with conn.cursor() as cursor:
         cursor.execute(query, (tuple(key_list), ))
