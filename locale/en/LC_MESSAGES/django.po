@@ -2914,3 +2914,83 @@ msgstr "Vascular plants here do not include ferns."
 #:
 msgid "網頁維護中"
 msgstr "Maintenance"
+
+
+#:
+msgid "地圖 - map API"
+msgstr "map API"
+
+
+#:
+msgid "必填"
+msgstr "Required"
+
+
+#:
+msgid "必填，預設為1"
+msgstr "Required, default is 1"
+
+
+#:
+msgid "取得指定網格大小，提供1,5,10,100公里網格"
+msgstr "Retrieve grid data in specified grid size, providing 1, 5, 10, and 100 km grids."
+
+
+#:
+msgid "取得指定四邊形座標範圍內物種出現紀錄網格資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}"
+msgstr "Retrieve grid data by a bounding box. Specified by={max longitude},{max latitude},{min longitude},{min latitude}."
+
+
+#:
+msgid "取得指定TaiCOL物種編號的物種網格資料"
+msgstr "Retrieve grid data by TaiCOL taxon ID."
+
+
+#:
+msgid "取得含括指定物種類群的網格資料"
+msgstr "Retrieve grid data that include the specified taxon group"
+
+
+#:
+msgid "取得指定資料年份的網格資料，年份格式：yyyy。支援區間查詢"
+msgstr "Retrieve grid data by specified year in yyyy format. Supports range queries."
+
+
+#:
+msgid "因應效能考量，四邊形座標範圍需搭配網格大小(grid)使用，若您需要較大的地理範圍，請先切割成較小範圍分次取得"
+msgstr "Due to performance considerations, the bounding box range must be used in conjunction with the grid size. If you need to retrieve data in a larger geographical area, please split it into smaller sections and retrieve them separately."
+
+
+#:
+msgid "區間查詢請用半形逗號分隔起迄年份"
+msgstr "Range queries are given as a single parameter value by concatenating start year and end year with a comma."
+
+
+#:
+msgid "一公里網格每次可取得 1 度經緯度範圍，五公里網格可取得 10 度，十公里網格可取得 20 度，一百公里網格可取得 40 度"
+msgstr "A 1 km grid can retrieve a 1-degree latitude and longitude range per request, a 5 km grid can retrieve 10 degrees, a 10 km grid can retrieve 20 degrees, and a 100 km grid can retrieve 40 degrees."
+
+#:
+msgid "色碼"
+msgstr "Color Code"
+
+#:
+msgid "若您想繪製與入口網相同的地圖，可參考以下資料筆數對應的色碼代號："
+msgstr "If you want to create a map similar to TBIA portal, you can refer to the following number of records and corresponding color codes:"
+
+#:
+msgid "以GeoJSON格式回傳1,5,10或100公里網格化的多邊形，取得之GeoJSON可直接套疊於地圖上，每個feature代表一個網格，並帶有屬性："
+msgstr "Returns a 1, 5, 10, or 100 km gridded polygon in GeoJSON format. The retrieved GeoJSON can be directly overlaid on the map, with each feature representing a grid and containing attributes:"
+
+
+#:
+msgid "網格內資料筆數 (counts)"
+msgstr "Number of records in a grid"
+
+#:
+msgid "網格大小 (current_grid_level)"
+msgstr "grid size"
+
+#:
+msgid "網格編號 (current_grid)"
+msgstr "grid number"
