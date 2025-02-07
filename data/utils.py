@@ -1668,7 +1668,7 @@ def create_data_detail(id, user_id, record_type):
 
                     t_taxonID = t_rank.get(f"{r}_taxonID")
 
-                    current_str = f'<a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
+                    current_str = f'{r.capitalize()} <a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
                     path.append(current_str)
 
         path_str = ' > '.join(path)
