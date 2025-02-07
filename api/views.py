@@ -255,18 +255,21 @@ def occurrence(request):
         # except:
         #     offset = 0
 
-        # 限制型API
         fl_cols = download_cols
+
+
+        # 限制型API
+        has_api_key = False
+
         if apikey := req.get('apikey'):
             if APIkey.objects.filter(key=apikey,status='pass').exists():
+                has_api_key = True
                 fl_cols += sensitive_cols
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
         query = { "query": "*:*",
-                # "offset": offset,
-                # "cursorMask": cursor,
                 "params": {"cursorMark": cursor}, 
                 "limit": limit,
                 "filter": fq_list,
@@ -288,6 +291,9 @@ def occurrence(request):
         data = response['response']['docs']
 
         df = pd.DataFrame(data)
+
+        if not has_api_key:
+            df = df.drop(columns=sensitive_cols, errors='ignore')
 
         if len(df):
             # modified
