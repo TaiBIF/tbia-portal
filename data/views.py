@@ -339,7 +339,8 @@ def generate_sensitive_csv(query_id, scheme, host):
                 group = list(Partner.objects.filter(id__in=ps).values_list('group'))
                 group = [g for g in group[0]]
 
-            fl_cols = download_cols + sensitive_cols
+            fl_cols = download_cols_with_sensitive
+            # fl_cols = download_cols + sensitive_cols
             # 先取得筆數，export to csv
 
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
@@ -495,6 +496,7 @@ def return_geojson_query(request):
         # print(g_list)
         return JsonResponse({"polygon": [str(g_list)]}, safe=False)
 
+
 def send_download_request(request):
     if request.method == 'POST':
         if request.POST.get('from_full'):
@@ -514,7 +516,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols + sensitive_cols
+        # fl_cols = download_cols + sensitive_cols
+        fl_cols = download_cols_with_sensitive
     else:
         fl_cols = download_cols
 
@@ -724,7 +727,8 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 # 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols + sensitive_cols
+        # fl_cols = download_cols + sensitive_cols
+        fl_cols = download_cols_with_sensitive
     else:
         fl_cols = download_cols
     download_id = f"tbia_{str(ObjectId())}"
