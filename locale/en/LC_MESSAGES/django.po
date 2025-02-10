@@ -2601,8 +2601,8 @@ msgstr "Please provide detailed information on the research objectives, research
 
 
 #:
-msgid "是否有提供相關成果將作為往後的單次使用去模糊化敏感資料審核依據"
-msgstr "Whether providing relevant results will serve as the basis for reviewing subsequent one-time requests to non-blurred sensitive data."
+msgid "若未勾選將影響本次的單次使用去模糊化敏感資料申請，是否有提供相關成果亦將作為往後其他申請的審核依據"
+msgstr "If not selected, this may affect the application and future reviews."
 
 
 #:
@@ -2902,8 +2902,8 @@ msgstr "Viruses"
 
 
 #:
-msgid "物種數僅計算TaiCOL定義之臺灣物種"
-msgstr "The number of species is calculated based on Taiwan species defined by TaiCOL."
+msgid "僅計算TaiCOL定義之臺灣物種"
+msgstr "The number of species / records is calculated based on Taiwan species defined by TaiCOL."
 
 
 #:

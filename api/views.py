@@ -8,7 +8,7 @@ from django.http import (
 )
 import json
 from api.models import APIkey
-from data.utils import download_cols, sensitive_cols
+from data.utils import download_cols, sensitive_cols, download_cols_with_sensitive
 import requests
 from conf.settings import SOLR_PREFIX, datahub_db_settings
 from conf.utils import scheme
@@ -264,7 +264,8 @@ def occurrence(request):
         if apikey := req.get('apikey'):
             if APIkey.objects.filter(key=apikey,status='pass').exists():
                 has_api_key = True
-                fl_cols += sensitive_cols
+                fl_cols = download_cols_with_sensitive
+                # fl_cols += sensitive_cols
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
