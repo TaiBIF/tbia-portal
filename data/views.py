@@ -1384,6 +1384,9 @@ def get_map_grid(request):
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
+
+        if req_dict.get('from') == 'datagap':
+            query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
         
         if get_raw_map:
             facet_grid = f'grid_{grid}'

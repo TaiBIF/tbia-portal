@@ -2902,7 +2902,7 @@ msgstr "Viruses"
 
 
 #:
-msgid "僅計算TaiCOL定義之臺灣物種"
+msgid "僅計算TaiCOL定義之臺灣物種（種及種下）"
 msgstr "The number of species / records is calculated based on Taiwan species defined by TaiCOL."
 
 
