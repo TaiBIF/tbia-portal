@@ -982,14 +982,12 @@ $('select[name=partner-spatial-taxonGroup]').trigger('change')
 // TODO 這邊還要加上taxon group
 function drawMapGrid(current_map, group){
 
-    console.log('hey');
 
     // if (group == 'total'){
     //     taxon_group = $('select[name=portal-spatial-taxonGroup]').find(':selected').val()
     // } else {
     taxon_group = $('select[name=partner-spatial-taxonGroup]').find(':selected').val()
 
-    console.log(taxon_group)
     // }
     
     // $('.loading_area').removeClass('d-none')

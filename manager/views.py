@@ -2785,6 +2785,46 @@ def submit_sensitive_report(request):
             # response['url'] = file_name
             # response['filename'] = file_name.replace('resources/','')
 
+        # 系統管理員
+        # 夥伴單位 - 不用考慮機關委託計畫 因為一定會寄信給系統管理員
+
+        partners = list(SensitiveDataResponse.objects.filter(query_id=query_id).exclude(partner_id=None).values_list('partner_id', flat=True))
+        email_list = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id__in=partners)).values_list('email', flat=True)
+
+
+        # send email
+        html_content = f"""
+        您好：
+        <br>
+        <br>
+        敏感資料申請編號 {query_id} 已回報成果如下
+        <br>
+        成果描述：{content}
+        <br>
+        {f'成果檔案：{scheme}://{request.get_host()}/media/{file_name}' if file_name else ''}
+        <br>
+        <br>
+        """
+
+        signature = """
+                    <br>
+                    臺灣生物多樣性資訊聯盟
+                    <br>
+                    Taiwan Biodiversity Information Alliance
+                    """
+
+        html_content += signature
+
+        subject = '[TBIA 生物多樣性資料庫共通查詢系統] 敏感資料成果回報'
+
+        msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
+        msg.content_subtype = "html"  # Main content is now text/html
+        # 改成背景執行
+        task = threading.Thread(target=send_msg, args=(msg,))
+        # task.daemon = True
+        task.start()
+
+
 
         response = {'message': '回報成功'}
 
