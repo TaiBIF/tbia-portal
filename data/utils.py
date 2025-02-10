@@ -648,7 +648,7 @@ def create_query_display(search_dict,lang=None):
             if search_dict[k] == 'polygon':
                 geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
                 if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                    query += f"<br><b>{gettext('上傳polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
+                    query += f"<br><b>{gettext('上傳Polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
             elif search_dict[k] == 'circle':
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
                     query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {search_dict.get('circle_radius')} KM {gettext('中心點經度')} {search_dict.get('center_lon')} {gettext('中心點緯度')} {search_dict.get('center_lat')}" 

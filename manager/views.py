@@ -289,17 +289,19 @@ def change_manager_page(request):
             else:
                 ark = ''
             
-            # # TODO 待新增回報按鈕
-            # report = ''
-            # if s.status in ['pass','expired']:
-            #     report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }"=>{gettext("回報")}</a>'
+            # 回報按鈕
+            report = ''
+            if s.status in ['pass','expired']:
+                report_file, report_content = '', ''
+                if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
+                    report_file = SensitiveDataReport.objects.get(query_id=s.query_id).file
+                    report_content = SensitiveDataReport.objects.get(query_id=s.query_id).content
+                
+                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ report_file if report_file else "" }" data-report_content="{ report_content }">{gettext("回報")}</a>'
+                report_date = s.modified + relativedelta(years=2)
+                report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
+                # 就算已回報過也可以顯示 可重複回報
 
-            #     # if now - s.modified > timedelta(days=31) and now < s.modified + timedelta(days=63):
-            #     report_date = s.modified + relativedelta(years=2)
-            #     report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
-
-
-            # date = 'test'
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
@@ -307,7 +309,7 @@ def change_manager_page(request):
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': gettext(s.get_status_display()),
-                # 'report': report,
+                'report': report,
                 'link': link,
                 'ark': ark
             })
@@ -1333,7 +1335,17 @@ def get_request_detail(request):
         if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
             detail['applicant_email'] = SearchQuery.objects.get(query_id=query_id).user.email
-
+            detail['applicant_user_id'] = SearchQuery.objects.get(query_id=query_id).user.id
+            # final_refs = []
+            # if SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id).exists():
+            #     reports = SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id)
+            #     for r in reports:
+            #         final_refs.append({
+            #             'project_name': SensitiveDataRequest.objects.get(query_id=query_id).project_name,
+            #             'file': r.file,
+            #             'content': r.content
+            #         })
+            # detail['refs'] = final_refs
 
     if sdr_id := request.GET.get('sdr_id'):
         if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
@@ -2739,3 +2751,113 @@ def get_temporal_stat(request):
 #         pointIntervalUnit: 'year', // 以年為單位
 #     }]
 # });
+
+
+
+def submit_sensitive_report(request):
+    if request.method == 'POST':
+
+        # print(request.POST)
+        query_id = request.POST.get('report_query_id')
+        content = request.POST.get('report_content')
+
+        # print(query_id)
+
+        # 儲存檔案 / 文字
+
+        # 寄送email
+        file_name = None
+        if file := request.FILES.get('report_file'):
+            fs = FileSystemStorage()
+            file_name = fs.save(f'sensitive_report/' + file.name, file)
+
+
+        if  SensitiveDataReport.objects.filter(query_id=query_id).exists():
+            if file_name:
+                SensitiveDataReport.objects.filter(query_id=query_id).update(content=content, file=file_name, modified=timezone.now())
+            else:
+                SensitiveDataReport.objects.filter(query_id=query_id).update(content=content, modified=timezone.now())
+        else:
+            SensitiveDataReport.objects.create(query_id=query_id,user_id=request.user.id,
+                                content=content, file=file_name, created=timezone.now(), modified=timezone.now())
+
+            # response['url'] = file_name
+            # response['filename'] = file_name.replace('resources/','')
+
+
+        response = {'message': '回報成功'}
+
+        return JsonResponse(response, safe=False)
+
+
+
+
+# 包含申請人成果提供狀況的檔案下載
+def download_applicant_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
+
+    now = timezone.now() + timedelta(hours=8)
+    now = now.strftime('%Y-%m-%d')
+    df = pd.DataFrame()
+
+
+    if request.method == 'POST':
+
+        user_id = request.POST.get('applicant_user_id')
+        
+        # if len(sensitive_response):
+        # 申請請求
+        sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
+        for s in sensitive_query:
+
+            reported = False
+            if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
+                if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
+                    reported = True 
+
+            # 進階搜尋
+            search_dict = dict(parse.parse_qsl(s.query))
+            query = create_query_display(search_dict)
+            query = query.replace('<b>','').replace('</b>','')
+            query = query.replace('<br>','\n')
+
+            date = s.created + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+            # request
+            detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
+
+            users = []
+            for u in detail.users:
+                users.append(f"姓名：{u.get('user_name')}\n單位：{u.get('user_affiliation')}\n職稱：{u.get('user_job_title')}")
+
+
+            df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+                                                '檔案編號': s.query_id,
+                                                '搜尋條件': query,
+                                                '申請人姓名': detail.applicant,
+                                                '聯絡電話': detail.phone,
+                                                '聯絡地址': detail.address,
+                                                '申請人Email': s.user.email,
+                                                '申請人所屬單位': detail.affiliation,
+                                                '申請人職稱': detail.job_title,
+                                                '計畫類型': detail.get_type_display(),
+                                                '計畫名稱': detail.project_name,
+                                                '委託計畫單位': detail.project_affiliation,
+                                                '計畫主持人姓名': detail.principal_investigator,
+                                                '計畫摘要': detail.abstract,
+                                                '是否同意提供研究成果': detail.is_agreed_report,
+                                                '是否已回報成果': reported,
+                                                '此批申請資料其他使用者': '\n---\n'.join(users),
+                                                # '審查意見': comment_str,
+                                                # # '通過與否': ,
+                                                # '檔案狀態': s.get_status_display(),
+                                                }])],ignore_index=True)
+
+
+        response = HttpResponse(content_type='application/xlsx')
+        response['Content-Disposition'] = f'attachment; filename="tbia_applicant_report_{now}.xlsx"'
+        with pd.ExcelWriter(response) as writer:
+            df.to_excel(writer, sheet_name='Sheet1', index=None)
+
+    return response

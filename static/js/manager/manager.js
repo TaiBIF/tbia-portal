@@ -63,7 +63,17 @@ function changePage(page, menu) {
                     $(".submit_apply_ark").data('query_id', $(this).data('query_id'));
                 });
 
-            
+
+                $(".addReport").on("click", function(){            
+                    $(".report-pop").removeClass('d-none');
+                    $('input[name=report_query_id]').val($(this).data('query_id'))
+                    $('textarea[name=report_content]').val($(this).data('report_content'))
+                    if ($(this).data('report_file')){
+                        $('a.report_file_url').attr('href', '/media/' + $(this).data('report_file'))
+                        $('a.report_file_url').html($(this).data('report_file').replace('sensitive_report/',''))
+                    }
+                });
+
             }
         }
     });
@@ -92,6 +102,35 @@ function withdrawRequest(user_id) {
 }
 
 $(document).ready(function () {
+
+    $('.report-pop .send').on('click', function () {
+
+        if (($('textarea[name=report_content]').val()) || ($('input[name=report_file]').val()) ) {
+
+            $.ajax({
+                url: "/submit_sensitive_report",
+                data: new FormData($('#reportForm').get(0)),
+                type: 'POST',
+                contentType: false, 
+                processData: false,  
+              })
+                .done(function (response) {
+          
+                    alert(gettext(response.message))
+                    location.reload()
+                })
+                .fail(function (xhr, status, errorThrown) {
+                  alert(gettext('發生未知錯誤！請聯絡管理員'))
+                  console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                  $('.report-pop').addClass('d-none')
+                })
+          
+    
+        } else {
+            alert(gettext('未填入任何成果'))
+        }
+    })
+
 
     $(".hide_apply_ark_pop").on("click", function(){
         $(".apply-ark-pop").addClass("d-none");

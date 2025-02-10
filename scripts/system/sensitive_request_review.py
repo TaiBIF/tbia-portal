@@ -96,7 +96,7 @@ for d in data:
             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
             sdr.status = 'fail'
             sdr.reviewer_name = ''
-            sdr.comment = ''
+            sdr.comment = '未獲得資料管理單位同意'
             sdr.save()
         # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
         # 排除已轉移給各單位審核的機關計畫

@@ -348,6 +348,10 @@ $(document).ready(function () {
         }
     })
 
+    $('.applicant_refs').on('click', function(){
+        $("#downloadApplicantReport").submit()
+    })
+
 })
 
 
@@ -388,9 +392,9 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
     })
         .done(function (response) {
 
+
             $(".loading_area").addClass('d-none');
 
-            // console.log(response.partners)
             // 如果沒有sdr_id的話 只顯示申請詳細資訊
             $('.detail-pop .resp-box').removeClass('d-none')
             $('.detail-pop [class^="send-"]').removeClass('d-none')
@@ -417,6 +421,9 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
             $('.detail-pop input[name=job_title] ').val(response.detail.job_title)
             $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
             $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+            $('.detail-pop input[name=applicant_user_id] ').val(response.detail.applicant_user_id)
+            // $('.detail-pop .applicant_list').html('')
+            // $('.detail-pop .applicant_list').addClass('d-none')
             
             if (response.detail.is_agreed_report==true){
                 $('.detail-pop input[name=is_agreed_report]').prop('checked', true);
@@ -436,6 +443,29 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
                 $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
                 $('.detail-pop input[name=principal_investigator] ').val(response.detail.principal_investigator)
             }
+
+
+            // if (response.detail.refs.length > 0) {
+            //     for (rr of response.detail.refs){
+            //         if (rr['file']){
+            //             file = `<a class="search-again-a" href="/media/${rr['file']}">${ rr['file'].replace('sensitive_report/','')}</a>`
+            //         } else {
+            //             file = ''
+            //         }
+            //         $('.applicant_list').append(`
+                        
+            //             計畫名稱：${rr['project_name']}
+            //             <br>
+            //             成果描述：${rr['content']}
+            //             <br>
+            //             成果檔案：${file}
+            //             <hr>
+                        
+            //             `)
+            //     }
+            // } else {
+            //     $('.applicant_list').append('無')
+            // }
 
             $('.apply_peo .item_set1').remove()
             if (response.detail.users.length > 0) {

@@ -317,3 +317,8 @@
     color: #C65454;
     line-height: 32px;
 }
+
+.applicant_list hr {
+    border: 1px dashed lightgrey;
+}
+

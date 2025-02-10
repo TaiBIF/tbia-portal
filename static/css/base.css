@@ -987,6 +987,7 @@ div.count-1 {
     height: 17px;
     background-size: contain;
     margin-left: 3px;
+    margin-bottom: 2px;
 }
 
 .qmark-dark:hover {

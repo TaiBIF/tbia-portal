@@ -57,6 +57,9 @@ function showRequest(query_id, query, sdr_id) {
             $('.detail-pop input[name=job_title] ').val(response.detail.job_title)
             $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
             $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
+            $('.detail-pop input[name=applicant_user_id] ').val(response.detail.applicant_user_id)
+            // $('.detail-pop .applicant_list').html('')
+            // $('.detail-pop .applicant_list').addClass('d-none')
 
             if (response.detail.is_agreed_report == true) {
                 $('.detail-pop input[name=is_agreed_report]').prop('checked', true);
@@ -75,6 +78,29 @@ function showRequest(query_id, query, sdr_id) {
                 $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
                 $('.detail-pop input[name=principal_investigator] ').val(response.detail.principal_investigator)
             }
+
+            // if (response.detail.refs.length > 0) {
+            //     for (rr of response.detail.refs){
+            //         if (rr['file']){
+            //             file = `<a class="search-again-a" href="/media/${rr['file']}">${ rr['file'].replace('sensitive_report/','')}</a>`
+            //         } else {
+            //             file = ''
+            //         }
+            //         $('.applicant_list').append(`
+                        
+            //             計畫名稱：${rr['project_name']}
+            //             <br>
+            //             成果描述：${rr['content']}
+            //             <br>
+            //             成果檔案：${file}
+            //             <hr>
+                        
+            //             `)
+            //     }
+            // } else {
+            //     $('.applicant_list').append('無')
+            // }
+
 
             $('.apply_peo .item_set1').remove()
             if (response.detail.users.length > 0) {
@@ -127,7 +153,6 @@ function changePage(page, menu) {
         type: 'GET',
         success: function (response) {
 
-            console.log(response.data);
 
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
@@ -370,6 +395,11 @@ $(document).ready(function () {
     $(`a.${$('input[name=menu]').val()}`).addClass('now')
     $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();
     $(`.rightbox_content.${$('input[name=menu]').val()}`).removeClass('d-none')
+
+    $('.applicant_refs').on('click', function(){
+        $("#downloadApplicantReport").submit()
+    })
+
 })
 
 function update_user_status(current_id) {
