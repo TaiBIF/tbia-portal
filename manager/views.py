@@ -42,6 +42,8 @@ import subprocess
 import os
 import threading
 from data.utils import sensitive_cols
+from dateutil.relativedelta import relativedelta
+
 
 quality_map = {
     3: '金',
@@ -287,6 +289,17 @@ def change_manager_page(request):
             else:
                 ark = ''
             
+            # # TODO 待新增回報按鈕
+            # report = ''
+            # if s.status in ['pass','expired']:
+            #     report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }"=>{gettext("回報")}</a>'
+
+            #     # if now - s.modified > timedelta(days=31) and now < s.modified + timedelta(days=63):
+            #     report_date = s.modified + relativedelta(years=2)
+            #     report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
+
+
+            # date = 'test'
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
@@ -294,6 +307,7 @@ def change_manager_page(request):
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': gettext(s.get_status_display()),
+                # 'report': report,
                 'link': link,
                 'ark': ark
             })
@@ -1505,7 +1519,7 @@ def get_partner_stat(request):
                     db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
 
 
-            # 物種類群資料筆數
+            # 物種類群資料筆數 (圓餅圖)
             taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
             taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
 
@@ -1688,6 +1702,7 @@ def get_taxon_group_list(request):
         selected_name = selected_name[0]
     # selected_name = name
 
+    # 圓餅圖
     total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
     
     if current_group := request.GET.get('group'):
@@ -1706,7 +1721,7 @@ def get_taxon_group_list(request):
 
 def get_taxon_stat(request):
     # 資料空缺年的資料
-    # 物種類群資料筆數
+    # 物種類群資料筆數 圓餅圖
 
     taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
     taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
@@ -1777,7 +1792,7 @@ def get_system_stat(request):
         no_taxon = response.json()['response']['numFound']
 
 
-    # 物種類群資料筆數
+    # 物種類群資料筆數 圓餅圖
     taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
     taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
 
@@ -1788,7 +1803,11 @@ def get_system_stat(request):
     for h in top3_taxon_group.rights_holder.unique():
         data = []
         for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
-            data.append(f'{taxon_group_map_c[tt[0]]} ({tt[1]})')
+            # 維管束植物要加上蕨類
+            now_count = tt[1]
+            if tt[0] == 'Vascular Plants':
+                now_count += TaxonStat.objects.get(type='taxon_group',name='Ferns',rights_holder=h).count
+            data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
         top3_taxon_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
     top5_family_list = []
@@ -2540,12 +2559,16 @@ def get_temporal_stat(request):
         year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
+        # 維管束植物要加上蕨類
         selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
         if selected_name:
             selected_name = selected_name[0]
         else:
             selected_name = ''
-        year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
+        if selected_name == 'Vascular Plants':
+            year_taxon_query = year_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
+        else:
+            year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
     else:
         year_taxon_query = year_taxon_query.filter(type='temporal',name__isnull=True)
 
@@ -2606,12 +2629,17 @@ def get_temporal_stat(request):
         month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
+        # 維管束植物要加上蕨類
         selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
         if selected_name:
             selected_name = selected_name[0]
         else:
             selected_name = ''
-        month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
+
+        if selected_name == 'Vascular Plants':
+            month_taxon_query = month_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
+        else:
+            month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
         
     else:
         month_taxon_query = month_taxon_query.filter(type='temporal',name__isnull=True)

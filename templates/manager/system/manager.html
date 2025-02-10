@@ -201,7 +201,7 @@
                     <div class="highcharts-figure">
                         <div id="container-taxon_group-stat" class="h-100p"></div>
                     </div>
-                    <p class="expired-p ml-5px">*物種數僅計算TaiCOL定義之臺灣物種</p>
+                    <p class="expired-p ml-5px">*僅計算TaiCOL定義之臺灣物種（種及種下）</p>
                     <p class="expired-p ml-5px">*此處維管束植物不包含蕨類植物</p>
                     <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p>
                 </div>
@@ -547,5 +547,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/manager_system.js' %}?v8"></script>
+  <script src="{% static 'js/manager/manager_system.js' %}?v9"></script>
   {% endblock script %}

@@ -478,6 +478,84 @@ download_cols = [
 'genus_c'
 ]
 
+
+
+download_cols_with_sensitive = [
+'id',
+'created',
+'modified',
+'standardDate',
+'standardLatitude',
+'standardLongitude',
+'standardOrganismQuantity',
+'associatedMedia',
+'basisOfRecord',
+'catalogNumber',
+'coordinatePrecision',
+'coordinateUncertaintyInMeters',
+'dataGeneralizations',
+'datasetName',
+'tbiaDatasetID',
+'sourceDatasetID',
+'gbifDatasetID',
+'eventDate',
+'county',
+'municipality',
+'license',
+'locality',
+'mediaLicense',
+'occurrenceID',
+'organismQuantity',
+'organismQuantityType',
+'originalScientificName',
+'preservation',
+'recordedBy',
+'recordNumber',
+'references',
+'resourceContacts',
+'rightsHolder',
+'sensitiveCategory',
+'sourceCreated',
+'sourceModified',
+'sourceScientificName',
+'sourceVernacularName',
+'typeStatus',
+'verbatimCoordinateSystem',
+'verbatimLatitude',
+'verbatimLongitude',
+'verbatimSRS',
+'scientificNameID',
+'taxonID',
+'match_higher_taxon',
+# 'parentTaxonID',
+'scientificName',
+'name_author',
+'bioGroup',
+'taxonRank',
+'common_name_c',
+'alternative_name_c',
+'synonyms',
+'misapplied',
+'kingdom',
+'kingdom_c',
+'phylum',
+'phylum_c',
+'class',
+'class_c',
+'order',
+'order_c',
+'family',
+'family_c',
+'genus',
+'genus_c',
+'standardRawLatitude',
+'standardRawLongitude',
+'verbatimRawLatitude',
+'verbatimRawLongitude',
+'rawCounty',
+'rawMunicipality',
+]
+
 sensitive_cols = ['standardRawLatitude',
 'standardRawLongitude',
 'verbatimRawLatitude',
@@ -1668,7 +1746,7 @@ def create_data_detail(id, user_id, record_type):
 
                     t_taxonID = t_rank.get(f"{r}_taxonID")
 
-                    current_str = f'<a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
+                    current_str = f'{r.capitalize()} <a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
                     path.append(current_str)
 
         path_str = ' > '.join(path)

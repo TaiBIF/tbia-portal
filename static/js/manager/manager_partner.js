@@ -1098,7 +1098,7 @@ function drawMapGrid(current_map, group, wkt_range){
 
     $.ajax({
         url: "/get_map_grid",
-        data: `group=${group}&taxonGroup=${taxon_group}&grid=5&map_bound=` + wkt_range + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: `group=${group}&from=datagap&taxonGroup=${taxon_group}&grid=5&map_bound=` + wkt_range + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
     })

@@ -87,6 +87,7 @@
 							</div>        
 						</div>
 					</div>
+
 					<div class="records-legend d-flex legend-fs-15px spatial-area-div">
 						{% trans '資料筆數' %}：
 						<div class="d-flex"><div class="count-1"></div>1 - 10</div>
@@ -98,6 +99,8 @@
 						<div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
 						<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
 					</div>
+					<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
+
 					<hr>
 
 					<h3>{% trans '資料時間空缺狀況' %}</h3>
@@ -142,8 +145,11 @@
 							<div class="highcharts-figure">
 								<div id="container-partner-temporal-month-stat" class="h-100p"></div>
 							</div>
+
 						</div>
 					</div>
+					<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
+
 					<hr>
 					<h3>{% trans '物種類群資料筆數' %}</h3>
 
@@ -152,8 +158,8 @@
 							<div class="highcharts-figure">
 								<div id="container-taxon_group-stat" class="h-100p"></div>
 							</div>
-							<p class="expired-p ml-5px">*{% trans '物種數僅計算TaiCOL定義之臺灣物種' %}</p>
-							<p class="expired-p ml-5px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
+							<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
+							<p class="expired-p ml-10px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
 						</div>
 						<div class="w-50p">
 							<div id="taxon_group-stat-title">👈 {% trans '點擊圓餅圖' %}</div>
@@ -170,5 +176,5 @@
 
 
 {% block script %}
-<script src="{% static 'js/pages/datagap.js' %}?v3"></script>
+<script src="{% static 'js/pages/datagap.js' %}?v4"></script>
 {% endblock script %}

@@ -1002,7 +1002,7 @@ function drawMapGrid(current_map, group){
 
     $.ajax({
         url: "/get_map_grid",
-        data: `rights_holder=${$('select[name=spatial-stat-rightsholder]').find(':selected').val()}&taxonGroup=${taxon_group}&grid=5&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
+        data: `from=datagap&rights_holder=${$('select[name=spatial-stat-rightsholder]').find(':selected').val()}&taxonGroup=${taxon_group}&grid=5&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
     })
