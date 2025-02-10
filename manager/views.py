@@ -1799,6 +1799,7 @@ def get_system_stat(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
+
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
@@ -1818,7 +1819,7 @@ def get_system_stat(request):
             # 維管束植物要加上蕨類
             now_count = tt[1]
             if tt[0] == 'Vascular Plants':
-                now_count += TaxonStat.objects.get(type='taxon_group',name='Ferns',rights_holder=h).count
+                now_count += top3_taxon_group[(top3_taxon_group.rights_holder==h)&(top3_taxon_group.name=='Ferns')]['count'].sum()
             data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
         top3_taxon_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
