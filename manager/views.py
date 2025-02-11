@@ -2856,6 +2856,8 @@ def download_applicant_sensitive_report(request):
             if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
                 if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
                     reported = True 
+
+            report_date = ''
             
             if s.status in ['pass', 'expired']: # 通過才會有建議回報的時間ㄊ
                 report_date = s.modified + relativedelta(years=2)
