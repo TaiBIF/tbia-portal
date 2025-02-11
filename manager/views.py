@@ -2851,13 +2851,15 @@ def download_applicant_sensitive_report(request):
         sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
         for s in sensitive_query:
 
+
             reported = False
             if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
                 if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
                     reported = True 
-
-            report_date = s.modified + relativedelta(years=2)
-            report_date = report_date.strftime("%Y-%m-%d")
+            
+            if s.status in ['pass', 'expired']: # 通過才會有建議回報的時間ㄊ
+                report_date = s.modified + relativedelta(years=2)
+                report_date = report_date.strftime("%Y-%m-%d")
 
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
@@ -2890,13 +2892,13 @@ def download_applicant_sensitive_report(request):
                                                 '委託計畫單位': detail.project_affiliation,
                                                 '計畫主持人姓名': detail.principal_investigator,
                                                 '計畫摘要': detail.abstract,
+                                                '申請狀態': s.get_status_display(),
                                                 '是否同意提供研究成果': detail.is_agreed_report,
                                                 '建議回報完成時間': report_date,
                                                 '是否已回報成果': reported,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
                                                 # '審查意見': comment_str,
                                                 # # '通過與否': ,
-                                                # '檔案狀態': s.get_status_display(),
                                                 }])],ignore_index=True)
 
 
