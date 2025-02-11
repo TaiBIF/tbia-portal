@@ -2856,6 +2856,9 @@ def download_applicant_sensitive_report(request):
                 if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
                     reported = True 
 
+            report_date = s.modified + relativedelta(years=2)
+            report_date = report_date.strftime("%Y-%m-%d")
+
             # 進階搜尋
             search_dict = dict(parse.parse_qsl(s.query))
             query = create_query_display(search_dict)
@@ -2888,6 +2891,7 @@ def download_applicant_sensitive_report(request):
                                                 '計畫主持人姓名': detail.principal_investigator,
                                                 '計畫摘要': detail.abstract,
                                                 '是否同意提供研究成果': detail.is_agreed_report,
+                                                '建議回報完成時間': report_date,
                                                 '是否已回報成果': reported,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
                                                 # '審查意見': comment_str,
