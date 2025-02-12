@@ -723,7 +723,7 @@ def create_query_a(search_dict):
             elif search_dict[k] in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
                 query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
             elif search_dict[k] in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-                query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
+                query_a += f'&taxonGroup={old_taxon_group_map_c[search_dict[k]]}' # 改成中文
 
     for l in l_list:
         query_a += f'&locality={l}'
