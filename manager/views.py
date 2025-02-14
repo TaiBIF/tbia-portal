@@ -2801,7 +2801,7 @@ def submit_sensitive_report(request):
         <br>
         成果描述：{content}
         <br>
-        {f'成果檔案：{scheme}://{request.get_host()}/media/{file_name}' if file_name else ''}
+        {f'成果檔案：<a href="{scheme}://{request.get_host()}/media/{file_name}" target="_blank">{scheme}://{request.get_host()}/media/{file_name}</a>' if file_name else ''}
         <br>
         <br>
         """
@@ -2851,11 +2851,13 @@ def download_applicant_sensitive_report(request):
         sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
         for s in sensitive_query:
 
-
+            report_modified = ''
             reported = False
             if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
                 if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
                     reported = True 
+                    report_modified =  SensitiveDataReport.objects.get(query_id=s.query_id).modified 
+                    report_modified = report_modified.strftime("%Y-%m-%d")
 
             report_date = ''
             
@@ -2898,6 +2900,7 @@ def download_applicant_sensitive_report(request):
                                                 '是否同意提供研究成果': detail.is_agreed_report,
                                                 '建議回報完成時間': report_date,
                                                 '是否已回報成果': reported,
+                                                '實際回報完成時間': report_modified,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
                                                 # '審查意見': comment_str,
                                                 # # '通過與否': ,

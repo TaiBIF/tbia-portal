@@ -65,6 +65,10 @@ function changePage(page, menu) {
 
 
                 $(".addReport").on("click", function(){            
+
+                    $('a.report_file_url').html('')
+                    $('a.report_file_url').attr('href','')
+
                     $(".report-pop").removeClass('d-none');
                     $('input[name=report_query_id]').val($(this).data('query_id'))
                     $('textarea[name=report_content]').val($(this).data('report_content'))
