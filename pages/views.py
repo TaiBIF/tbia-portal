@@ -422,6 +422,7 @@ def get_ark_list(request):
     limit = 10
     
     query_obj = []
+    
 
     query_obj = Ark.objects.filter(type=type).order_by('-created')
 
@@ -433,7 +434,7 @@ def get_ark_list(request):
     offset = (current_page-1)*limit
 
     for x in query_obj[offset:offset+limit]:
-        modified = x.modified + timedelta(hours=8) if x.modified else x.modified
+        # modified = x.modified + timedelta(hours=8) if x.modified else x.modified
         created = x.created + timedelta(hours=8)
 
         if type == 'news':
@@ -446,7 +447,7 @@ def get_ark_list(request):
             'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
             'url': url,
             'created': created.strftime("%Y-%m-%d"),
-            'modified': modified.strftime("%Y-%m-%d"),    
+            # 'modified': modified.strftime("%Y-%m-%d"),    
         })
 
     response = {
