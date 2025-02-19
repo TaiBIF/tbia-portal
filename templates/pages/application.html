@@ -123,15 +123,15 @@
 			</div>
 		</div>
 		<div class="agreebox">
-			<input name="is_agreed_report" type="checkbox" class="chebox">
+			<input name="is_agreed_report" type="checkbox" checked="checked" class="chebox">
 			{% if LANGUAGE_CODE == 'en-us' %}
-			<p>I agree to provide a report on the research outcomes to the alliance email address: <a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a>, if there are relevant research results in the future.</p>
+			<p>I agree to provide a report on the research outcomes to the alliance, if there are relevant research results in the future.</p>
 			{% else %}
-			<p>我同意後續若有相關研究成果，將提供一份成果報告檔案至聯盟信箱：<a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a></p>
+			<p>我同意後續若有相關研究成果，將提供相關成果報告檔案</a></p>
 			{% endif %}
 		</div>
 		<div class="agreebox">
-			<small>{% trans '是否有提供相關成果將作為往後的單次使用去模糊化敏感資料審核依據' %}</small>
+			<small>{% trans '若未勾選將影響本次的單次使用去模糊化敏感資料申請，是否有提供相關成果亦將作為往後其他申請的審核依據' %}</small>
 		</div>
 		<div class="bt_center two">
 			<!--<button>回上一頁</button>-->

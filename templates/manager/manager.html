@@ -5,11 +5,45 @@
 {% block title %}{% trans '帳號後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v6" />
 {% endblock style %}
 
 {% block body %}
 {% csrf_token %}
+
+
+  <!--意見回饋popbox-->
+  <div class="popbg report-pop d-none">
+    <div class="ovhy">
+      <div class="wbox_center">
+        <div class="xx">
+        </div>
+        <div class="titlegreen">
+          {% trans '回報成果' %}
+        </div>
+        <p class="shortxt">
+        </p>
+        <div class="from_area">
+          <form id="reportForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="txt_area">
+            <p>{% trans '成果描述' %}</p>
+            <textarea name="report_content" class="h-250px"></textarea>
+          </div>
+          <div class="email_area">
+            <p>{% trans '檔案上傳' %}</p>
+            <input type="file" id="file" name="report_file" class="h-100p form-control">
+            <input type="hidden" name="report_query_id" value="">
+            <p class="fs-16px mt-10px">{% trans '目前已上傳檔案：' %}<a class="report_file_url"></a></p>
+            <span class="expired-notice">*{% trans '重複上傳將會取代前一次上傳的檔案，若有多個檔案請打包成壓縮檔上傳' %}</span>
+          </div>
+          </form>
+          <button class="send">{% trans '確認送出' %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 <div class="messageboxfix apply-ark-pop d-none">
     <div class="message_box">
@@ -239,7 +273,7 @@
                             <td>{% trans '搜尋條件' %}</td>
                             <td>{% trans '審查意見' %}</td>
                             <td>{% trans '狀態' %}</td>
-                            <td>{% trans '回報成果' %}</td>
+                            <td><span class="d-flex-ai-c-jc-c"><span>{% trans '回報成果' %}</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" target="_blank" class="qmark-dark"></a></span></td>
                             <td>{% trans '檔案連結' %}</td>
                             <td><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>
@@ -274,5 +308,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/manager.js' %}?v4"></script>
+<script src="{% static 'js/manager/manager.js' %}?v6"></script>
 {% endblock script %}

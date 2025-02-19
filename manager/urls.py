@@ -79,4 +79,7 @@ urlpatterns = [
     # path('get_partial_partner', views.get_partial_partner, name='get_partial_partner'),
     # 申請 ark
     path('submit_apply_ark', views.submit_apply_ark, name='submit_apply_ark'),
+    # 敏感資料成果提交
+    path('submit_sensitive_report', views.submit_sensitive_report, name='submit_sensitive_report'),
+    path('download_applicant_sensitive_report', views.download_applicant_sensitive_report, name='download_applicant_sensitive_report'),
 ]

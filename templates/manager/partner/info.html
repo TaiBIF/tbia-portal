@@ -4,7 +4,7 @@
 {% block title %}{% trans '單位後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v6" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_info.css' %}?v7" />
 {% endblock style %}
 
 {% block head %}
@@ -315,7 +315,12 @@
                         </div>
                         <div class="text_area">
                             <input type="checkbox" name="is_agreed_report" disabled>  是否同意提供研究成果</input>
+                            <a class="applicant_refs search-again-a">申請者曾提供成果參考 🔗</a>
                         </div>
+                        </form>
+                        <form id="downloadApplicantReport" action="{% url 'download_applicant_sensitive_report' %}" method="POST">
+                            <input type="hidden" name="applicant_user_id" value="">
+                            {% csrf_token %}
                         </form>
                         <div class="apply_peo">
                             <p class="title">此批申請資料其他使用者</p>
@@ -375,5 +380,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/partner_info.js' %}?v12"></script>
+<script src="{% static 'js/manager/partner_info.js' %}?v13"></script>
 {% endblock script %}

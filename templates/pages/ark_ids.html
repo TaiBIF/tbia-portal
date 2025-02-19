@@ -83,7 +83,7 @@
 					<td>{% trans '識別碼' %}</td>
 					<td>URL</td>
 					<td>{% trans '建立日期' %}</td>
-					<td>{% trans '更新日期' %}</td>
+					{% comment %} <td>{% trans '更新日期' %}</td> {% endcomment %}
 				</tr>
 			</table>						
 		</div>
@@ -95,5 +95,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/ark_ids.js' %}?v1"></script>
+<script src="{% static 'js/pages/ark_ids.js' %}?v2"></script>
 {% endblock script %}

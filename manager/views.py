@@ -289,17 +289,19 @@ def change_manager_page(request):
             else:
                 ark = ''
             
-            # # TODO 待新增回報按鈕
-            # report = ''
-            # if s.status in ['pass','expired']:
-            #     report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }"=>{gettext("回報")}</a>'
+            # 回報按鈕
+            report = ''
+            if s.status in ['pass','expired']:
+                report_file, report_content = '', ''
+                if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
+                    report_file = SensitiveDataReport.objects.get(query_id=s.query_id).file
+                    report_content = SensitiveDataReport.objects.get(query_id=s.query_id).content
+                
+                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ report_file if report_file else "" }" data-report_content="{ report_content }">{gettext("回報")}</a>'
+                report_date = s.modified + relativedelta(years=2)
+                report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
+                # 就算已回報過也可以顯示 可重複回報
 
-            #     # if now - s.modified > timedelta(days=31) and now < s.modified + timedelta(days=63):
-            #     report_date = s.modified + relativedelta(years=2)
-            #     report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
-
-
-            # date = 'test'
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
@@ -307,7 +309,7 @@ def change_manager_page(request):
                 'query':   query,
                 'comment': '<hr>'.join(comment) if comment else '',
                 'status': gettext(s.get_status_display()),
-                # 'report': report,
+                'report': report,
                 'link': link,
                 'ark': ark
             })
@@ -1333,7 +1335,17 @@ def get_request_detail(request):
         if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
             detail['applicant_email'] = SearchQuery.objects.get(query_id=query_id).user.email
-
+            detail['applicant_user_id'] = SearchQuery.objects.get(query_id=query_id).user.id
+            # final_refs = []
+            # if SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id).exists():
+            #     reports = SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id)
+            #     for r in reports:
+            #         final_refs.append({
+            #             'project_name': SensitiveDataRequest.objects.get(query_id=query_id).project_name,
+            #             'file': r.file,
+            #             'content': r.content
+            #         })
+            # detail['refs'] = final_refs
 
     if sdr_id := request.GET.get('sdr_id'):
         if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
@@ -1787,6 +1799,7 @@ def get_system_stat(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
+
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
@@ -1806,7 +1819,7 @@ def get_system_stat(request):
             # 維管束植物要加上蕨類
             now_count = tt[1]
             if tt[0] == 'Vascular Plants':
-                now_count += TaxonStat.objects.get(type='taxon_group',name='Ferns',rights_holder=h).count
+                now_count += top3_taxon_group[(top3_taxon_group.rights_holder==h)&(top3_taxon_group.name=='Ferns')]['count'].sum()
             data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
         top3_taxon_list.append({'rights_holder': h, 'data': ('、').join(data)})
 
@@ -2739,3 +2752,164 @@ def get_temporal_stat(request):
 #         pointIntervalUnit: 'year', // 以年為單位
 #     }]
 # });
+
+
+
+def submit_sensitive_report(request):
+    if request.method == 'POST':
+
+        # print(request.POST)
+        query_id = request.POST.get('report_query_id')
+        content = request.POST.get('report_content')
+
+        # print(query_id)
+
+        # 儲存檔案 / 文字
+
+        # 寄送email
+        file_name = None
+        if file := request.FILES.get('report_file'):
+            fs = FileSystemStorage()
+            file_name = fs.save(f'sensitive_report/' + file.name, file)
+
+
+        if  SensitiveDataReport.objects.filter(query_id=query_id).exists():
+            if file_name:
+                SensitiveDataReport.objects.filter(query_id=query_id).update(content=content, file=file_name, modified=timezone.now())
+            else:
+                SensitiveDataReport.objects.filter(query_id=query_id).update(content=content, modified=timezone.now())
+        else:
+            SensitiveDataReport.objects.create(query_id=query_id,user_id=request.user.id,
+                                content=content, file=file_name, created=timezone.now(), modified=timezone.now())
+
+            # response['url'] = file_name
+            # response['filename'] = file_name.replace('resources/','')
+
+        # 系統管理員
+        # 夥伴單位 - 不用考慮機關委託計畫 因為一定會寄信給系統管理員
+
+        partners = list(SensitiveDataResponse.objects.filter(query_id=query_id).exclude(partner_id=None).values_list('partner_id', flat=True))
+        email_list = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id__in=partners)).values_list('email', flat=True)
+
+
+        # send email
+        html_content = f"""
+        您好：
+        <br>
+        <br>
+        敏感資料申請編號 {query_id} 已回報成果如下
+        <br>
+        成果描述：{content}
+        <br>
+        {f'成果檔案：<a href="{scheme}://{request.get_host()}/media/{file_name}" target="_blank">{scheme}://{request.get_host()}/media/{file_name}</a>' if file_name else ''}
+        <br>
+        <br>
+        """
+
+        signature = """
+                    <br>
+                    臺灣生物多樣性資訊聯盟
+                    <br>
+                    Taiwan Biodiversity Information Alliance
+                    """
+
+        html_content += signature
+
+        subject = '[TBIA 生物多樣性資料庫共通查詢系統] 敏感資料成果回報'
+
+        msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
+        msg.content_subtype = "html"  # Main content is now text/html
+        # 改成背景執行
+        task = threading.Thread(target=send_msg, args=(msg,))
+        # task.daemon = True
+        task.start()
+
+
+
+        response = {'message': '回報成功'}
+
+        return JsonResponse(response, safe=False)
+
+
+
+
+# 包含申請人成果提供狀況的檔案下載
+def download_applicant_sensitive_report(request):
+    translation.activate('zh-hant') # 強制使用中文
+
+    now = timezone.now() + timedelta(hours=8)
+    now = now.strftime('%Y-%m-%d')
+    df = pd.DataFrame()
+
+
+    if request.method == 'POST':
+
+        user_id = request.POST.get('applicant_user_id')
+        
+        # if len(sensitive_response):
+        # 申請請求
+        sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
+        for s in sensitive_query:
+
+            report_modified = ''
+            reported = False
+            if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
+                if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
+                    reported = True 
+                    report_modified =  SensitiveDataReport.objects.get(query_id=s.query_id).modified 
+                    report_modified = report_modified.strftime("%Y-%m-%d")
+
+            report_date = ''
+            
+            if s.status in ['pass', 'expired']: # 通過才會有建議回報的時間ㄊ
+                report_date = s.modified + relativedelta(years=2)
+                report_date = report_date.strftime("%Y-%m-%d")
+
+            # 進階搜尋
+            search_dict = dict(parse.parse_qsl(s.query))
+            query = create_query_display(search_dict)
+            query = query.replace('<b>','').replace('</b>','')
+            query = query.replace('<br>','\n')
+
+            date = s.created + timedelta(hours=8)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+            # request
+            detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
+
+            users = []
+            for u in detail.users:
+                users.append(f"姓名：{u.get('user_name')}\n單位：{u.get('user_affiliation')}\n職稱：{u.get('user_job_title')}")
+
+
+            df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+                                                '檔案編號': s.query_id,
+                                                '搜尋條件': query,
+                                                '申請人姓名': detail.applicant,
+                                                '聯絡電話': detail.phone,
+                                                '聯絡地址': detail.address,
+                                                '申請人Email': s.user.email,
+                                                '申請人所屬單位': detail.affiliation,
+                                                '申請人職稱': detail.job_title,
+                                                '計畫類型': detail.get_type_display(),
+                                                '計畫名稱': detail.project_name,
+                                                '委託計畫單位': detail.project_affiliation,
+                                                '計畫主持人姓名': detail.principal_investigator,
+                                                '計畫摘要': detail.abstract,
+                                                '申請狀態': s.get_status_display(),
+                                                '是否同意提供研究成果': detail.is_agreed_report,
+                                                '建議回報完成時間': report_date,
+                                                '是否已回報成果': reported,
+                                                '實際回報完成時間': report_modified,
+                                                '此批申請資料其他使用者': '\n---\n'.join(users),
+                                                # '審查意見': comment_str,
+                                                # # '通過與否': ,
+                                                }])],ignore_index=True)
+
+
+        response = HttpResponse(content_type='application/xlsx')
+        response['Content-Disposition'] = f'attachment; filename="tbia_applicant_report_{now}.xlsx"'
+        with pd.ExcelWriter(response) as writer:
+            df.to_excel(writer, sheet_name='Sheet1', index=None)
+
+    return response

@@ -18,6 +18,9 @@
     font-size: 14px;
 }
 
+.applicant_list hr {
+    border: 1px dashed lightgrey;
+}
 
 
 
@@ -312,11 +315,11 @@ td hr {
     fill: #E2A460;
 }
 
-.search-again-a {
+.search-again-a, .applicant_report {
     color: #76A578;
 }
 
-.search-again-a:hover {
+.search-again-a:hover, .applicant_report:hover {
     color: #E2A460;
 }
 

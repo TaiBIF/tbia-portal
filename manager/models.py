@@ -200,6 +200,16 @@ class SensitiveDataResponse(models.Model):
     is_partial_transferred = models.BooleanField(default=False)
 
 
+# 敏感資料成果回報
+class SensitiveDataReport(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query_id = models.CharField(max_length=50, blank=True)
+    content = models.TextField(null=True, blank=True)
+    file = models.TextField( blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(null=True, blank=True)
+
+
 class About(models.Model):
     content = models.TextField(null=True, blank=True)
     content_en = models.TextField(null=True, blank=True)

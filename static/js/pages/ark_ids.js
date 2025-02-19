@@ -106,10 +106,10 @@ function updateArk(type, page) {
                 <td><a href="${response.rows[i].ark_href}" target="_blank">${response.rows[i].ark}</a></td>
                 <td><a href="${response.rows[i].url}" target="_blank">${response.rows[i].url}</a></td>
                 <td>${response.rows[i].created}</td>
-                <td>${response.rows[i].modified}</td>
               </tr>`
           )
         }
+                // <td>${response.rows[i].modified}</td>
 
 
       // 修改頁碼

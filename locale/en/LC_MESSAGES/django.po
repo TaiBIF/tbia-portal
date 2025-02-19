@@ -2994,3 +2994,48 @@ msgstr "grid size"
 #:
 msgid "網格編號 (current_grid)"
 msgstr "grid number"
+
+#:
+msgid "回報成果"
+msgstr "Report Results"
+
+#:
+msgid "成果描述"
+msgstr "Results Description"
+
+#:
+msgid "檔案上傳"
+msgstr "File Upload"
+
+#:
+msgid "目前已上傳檔案"
+msgstr "Currently Uploaded Files"
+
+#:
+msgid "重複上傳將會取代前一次上傳的檔案，若有多個檔案請打包成壓縮檔上傳"
+msgstr "Re-uploading will replace the previously uploaded file. If you have multiple files, please compress them into a zip file before uploading."
+
+
+#:
+msgid "選擇所屬夥伴單位"
+msgstr "Select an organization"
+
+#:
+msgid "建議回報完成時間"
+msgstr "Suggested Reporting Deadline"
+
+#:
+msgid "回報"
+msgstr "Report"
+
+
+#:
+msgid "等待審核"
+msgstr "Pending"
+
+
+#:
+msgid "未填入任何成果的英文"
+msgstr "No Results Entered"
+
+

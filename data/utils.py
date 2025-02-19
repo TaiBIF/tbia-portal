@@ -648,7 +648,7 @@ def create_query_display(search_dict,lang=None):
             if search_dict[k] == 'polygon':
                 geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
                 if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                    query += f"<br><b>{gettext('上傳polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
+                    query += f"<br><b>{gettext('上傳Polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
             elif search_dict[k] == 'circle':
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
                     query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {search_dict.get('circle_radius')} KM {gettext('中心點經度')} {search_dict.get('center_lon')} {gettext('中心點緯度')} {search_dict.get('center_lat')}" 
@@ -723,7 +723,7 @@ def create_query_a(search_dict):
             elif search_dict[k] in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
                 query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
             elif search_dict[k] in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-                query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
+                query_a += f'&taxonGroup={old_taxon_group_map_c[search_dict[k]]}' # 改成中文
 
     for l in l_list:
         query_a += f'&locality={l}'
