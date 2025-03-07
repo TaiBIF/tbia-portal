@@ -2333,6 +2333,11 @@ msgid "取得指定來源資料庫 / 典藏單位的物種出現紀錄資料"
 msgstr "List records by rights holder"
 
 #:
+msgid "使用本網站之資料集ID取得指定的物種出現紀錄資料"
+msgstr "List records by TBIA dataset ID"
+
+
+#:
 msgid "取得指定資料集的物種出現紀錄資料"
 msgstr "List records by dataset name"
 

@@ -77,6 +77,31 @@ def get_dataset_key(key):
     return results
 
 
+
+def get_dataset_key_return_id(key):
+    # 2024-12 修改為tbiaDatasetID
+    results = None
+    conn = psycopg2.connect(**datahub_db_settings)
+    try:
+        key = int(key)        
+        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "id" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    except:
+        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
+        with conn.cursor() as cursor:
+            cursor.execute(query, (key,))
+            results = cursor.fetchone()
+    conn.close()
+    if results:
+        results = results[0]
+    return results
+
+
+
+
+
 def get_species_images(taxon_id):
     conn = psycopg2.connect(**datahub_db_settings)
     query = "SELECT taieol_id, images FROM species_images WHERE taxon_id = %s"
@@ -864,25 +889,27 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if from_request:
         if val := req_dict.getlist('datasetName'):
             for v in val:
-                if d_name := get_dataset_key(v):
-                        d_list.append(d_name)
+                if d_id := get_dataset_key_return_id(v):
+                        d_list.append(d_id)
     else:
         if val := req_dict.get('datasetName'):
             if isinstance(val, str):
                 if val.startswith('['):
                     for d in eval(val):
-                        if d_name := get_dataset_key(d):
-                            d_list.append(d_name)
+                        if d_id := get_dataset_key_return_id(d):
+                            d_list.append(d_id)
                 else:
-                    if d_name := get_dataset_key(val):
-                        d_list.append(d_name)
+                    if d_id := get_dataset_key_return_id(val):
+                        d_list.append(d_id)
             else:
                 for d in list(val):
-                    if d_name := get_dataset_key(d):
-                        d_list.append(d_name)
+                    if d_id := get_dataset_key_return_id(d):
+                        d_list.append(d_id)
+
+    # 這邊要改成tbiaDatasetID才對
     if d_list:
         d_list_str = '" OR "'.join(d_list)
-        query_list += [f'datasetName:("{d_list_str}")']
+        query_list += [f'tbiaDatasetID:("{d_list_str}")']
 
     r_list = []
 
@@ -1926,12 +1953,12 @@ def check_map_bound(map_bound):
         map_min_lon = -180
     if map_min_lat < -90:
         map_min_lat = -90
-    if map_max_lon > -180 :
-        map_max_lon = -180
+    if map_max_lon > 180:
+        map_max_lon = 180
     if map_max_lat > 90:
         map_max_lat = 90
 
-    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon} ]'
+    new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon}]'
     return new_map_bound
 
 

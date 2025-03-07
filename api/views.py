@@ -95,7 +95,7 @@ def occurrence(request):
             # taxonID={string}
             # rightsHolder={string}
             # datasetName={string}
-            union_list = ['taxonID', 'rightsHolder','datasetName']
+            union_list = ['taxonID', 'rightsHolder','datasetName','tbiaDatasetID']
             for u in union_list:
                 if values := req.getlist(u):
                     values = [f'"{v}"' for v in values]
@@ -406,8 +406,6 @@ def dataset(request):
                 group_value = taxon_group_map_c[group_value]
             if group_value in old_taxon_group_map_c.keys():
                 group_value = old_taxon_group_map_c[group_value]
-            
-            
 
             if group_value == '維管束植物':
                 query_value.append('%維管束植物%')
