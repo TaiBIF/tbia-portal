@@ -3044,3 +3044,6 @@ msgid "未填入任何成果的英文"
 msgstr "No Results Entered"
 
 
+#:
+msgid "圖片無法正常顯示"
+msgstr "The image cannot be displayed properly."

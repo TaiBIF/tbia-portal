@@ -1846,7 +1846,8 @@ def create_data_table(docs, user_id, obv_str):
             docs.loc[i , 'eventDate'] = date
         else:
             if row.get('eventDate'):
-                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + row.get('eventDate') + '</small>'
+                date_str = gettext(f'原始{obv_str}日期')
+                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[{date_str}]' + row.get('eventDate') + '</small>'
 
         # 經緯度
         # 如果是正式會員直接給原始
@@ -1855,13 +1856,13 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
                 if row.get('verbatimRawLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + row.get('verbatimRawLatitude') + '</small>'
+                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimRawLatitude') + '</small>'
 
             if lon := row.get('standardRawLongitude'):
                 docs.loc[i , 'verbatimLongitude'] = lon[0]
             else:
                 if row.get('verbatimRawLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimRawLongitude') + '</small>'
+                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimRawLongitude') + '</small>'
 
             if row.get('rawCounty'):
                 docs.loc[i , 'county'] = row.get('rawCounty')
@@ -1874,13 +1875,13 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
                 if row.get('verbatimLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + row.get('verbatimLatitude') + '</small>'
+                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimLatitude') + '</small>'
 
             if lon := row.get('standardLongitude'):
                 docs.loc[i , 'verbatimLongitude'] = lon[0]
             else:
                 if row.get('verbatimLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimLongitude') + '</small>'
+                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimLongitude') + '</small>'
         # 數量
         if quantity := row.get('standardOrganismQuantity'):
             quantity = str(quantity[0])
@@ -1889,7 +1890,7 @@ def create_data_table(docs, user_id, obv_str):
             docs.loc[i , 'organismQuantity'] = quantity
         else:
             if row.get('organismQuantity'):
-                docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + row.get('organismQuantity') + '</small>'
+                docs.loc[i , 'organismQuantity'] = f'---<br><small class="color-silver">[{gettext("原始紀錄數量")}]' + row.get('organismQuantity') + '</small>'
         
         # 分類階層
         if row.get('taxonRank', ''):
@@ -1920,7 +1921,7 @@ def create_data_table(docs, user_id, obv_str):
 
             if len(media_list):
                 # 取第一張
-                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
+                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" src="{}">'.format(gettext("圖片無法正常顯示"),media_list[0])
 
 
     docs = docs.replace({np.nan: ''})

@@ -99,7 +99,7 @@
           {% for am in row.associatedMedia %}
           <div class="picbox mySlides fade">
             <div class="img-container">
-              <img class="imgarea" src="{{ am.img }}">
+              <img alt="{% trans '圖片無法正常顯示' %}" class="imgarea" src="{{ am.img }}">
               <p class="bottom-right">{% trans '影像授權' %}{% trans '：' %}{% if am.license %}{{ am.license }}{% else %}{% trans '無' %}{% endif %}</p>
             </div>
           </div>
