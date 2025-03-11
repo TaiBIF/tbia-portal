@@ -1937,7 +1937,7 @@ def create_data_table(docs, user_id, obv_str):
 
             if len(media_list):
                 # 取第一張
-                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(gettext("圖片無法正常顯示"),gettext("圖片無法正常顯示"),media_list[0])
+                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
 
 
     docs = docs.replace({np.nan: ''})

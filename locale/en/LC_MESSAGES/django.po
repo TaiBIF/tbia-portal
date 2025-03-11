@@ -3046,7 +3046,7 @@ msgstr "No Results Entered"
 
 #:
 msgid "圖片無法正常顯示"
-msgstr "The image cannot be displayed properly."
+msgstr "The image can't be displayed."
 
 
 #:

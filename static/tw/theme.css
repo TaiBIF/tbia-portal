@@ -8623,6 +8623,7 @@ body {
     padding-bottom: calc((260/435)*100%);*/
     object-fit: cover;
     height: 100%;
+    color: #3F5146;
 }
 
 .sc_de_top .rank_path {
