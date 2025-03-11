@@ -7745,7 +7745,7 @@ body {
     border-radius: 20px;
     width: 120px;
     height: 40px;
-    font-size: 18px;
+    font-size: 15px;
     border: 1px solid #3F5146;
     color: #3F5146;
     background: #FFF;
@@ -7774,7 +7774,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .result_inf_top .cate_btn {
-        font-size: 16px
+        font-size: 15px
     }
 }
 
@@ -8369,7 +8369,7 @@ body {
 
 .sc_result .rightmore .dw {
     padding: 0px 10px;
-    font-size: 16px;
+    font-size: 15px;
     color: #3F5146;
     height: 40px;
     transition: all .3s;
@@ -8385,7 +8385,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .sc_result .rightmore .dw {
-        font-size: 16px;
+        font-size: 15px;
         padding: 0 10px;
         height: 30px;
         margin-left: 0px;

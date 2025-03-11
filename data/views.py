@@ -59,8 +59,6 @@ rights_holder_map = {
     '臺灣魚類資料庫': 'ascdc',
 }
 
-
-
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
         sq = SearchQuery.objects.get(id=id)
@@ -1420,6 +1418,93 @@ def get_map_grid(request):
 
 
         return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
+
+def get_tw_grid(request):
+    if request.method == 'POST':
+
+        req_dict = request.POST
+
+        user_id = request.user.id if request.user.id else 0
+        get_raw_map =  if_raw_map(user_id)
+
+        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+
+        # 先把map bound轉成grid
+
+        map_bound = str(check_map_bound(req_dict.get('map_bound')))
+
+        map_bound = map_bound[1:-1]
+        map_bound_1 = map_bound.split(' TO ')[0]
+        map_bound_y1 = map_bound_1.split(',')[0]
+        map_bound_x1 = map_bound_1.split(',')[1]
+        map_bound_2 = map_bound.split(' TO ')[1]
+        map_bound_y2 = map_bound_2.split(',')[0]
+        map_bound_x2 = map_bound_2.split(',')[1]
+
+        bound_1 = convert_coor_to_grid(float(map_bound_x1),float(map_bound_y1),0.05)
+        bound_2 = convert_coor_to_grid(float(map_bound_x2),float(map_bound_y2),0.05)
+
+        facet_grid = f'grid_5'
+
+        if get_raw_map:
+            query_list += ['is_blurred:false','grid_x:[{} TO {}]'.format(bound_1[0], bound_2[0]), 'grid_y:[{} TO {}]'.format(bound_1[1], bound_2[1])]
+        else:
+            facet_grid = f'grid_5'
+            query_list += ['is_blurred:true','grid_x:[{} TO {}]'.format(bound_1[0], bound_2[0]), 'grid_y:[{} TO {}]'.format(bound_1[1], bound_2[1])]
+
+        query = { "query": "*:*",
+                "filter": query_list,
+                "limit": 0,
+                "facet": {
+                        facet_grid: {
+                            'field': facet_grid,
+                            'mincount': 1,
+                            "type": "terms",
+                            "limit": -1,
+                            'domain': { 'query': "*:*", 'filter': query_list},
+                            'facet':{
+                             'count' : "sum(total_count)"
+                            }
+                        },
+                }
+        }
+
+        if not query_list:
+            query.pop('filter')
+
+        query_req = json.dumps(query)
+        response = requests.post(f'{SOLR_PREFIX}tw_grid/select?', data=query_req, headers={'content-type': "application/json" })
+        resp = response.json()
+
+
+        map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=5)
+        map_geojson = map_geojson[f'grid_5']
+
+        # print(map_geojson)
+
+        return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
+
+
+def get_tbn_query(request):
+
+    req_dict = request.POST
+
+    tbn_error_str_list = []
+    tbn_query_str_list = []
+    tbn_url = ''
+
+    tbn_query_list, tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
+    tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+
+    response = {
+        'tbn_url': tbn_url,
+        'tbn_query': tbn_query_str_list,
+        'tbn_error': tbn_error_str_list
+    }
+    
+    return HttpResponse(json.dumps(response, default=str), content_type='application/json')
 
 
 def get_conditional_records(request):

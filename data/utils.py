@@ -99,9 +99,6 @@ def get_dataset_key_return_id(key):
     return results
 
 
-
-
-
 def get_species_images(taxon_id):
     conn = psycopg2.connect(**datahub_db_settings)
     query = "SELECT taieol_id, images FROM species_images WHERE taxon_id = %s"
@@ -183,6 +180,25 @@ taxon_group_map_e = {
     "細菌": "Bacteria",
     "真菌": "Fungi",
 }
+
+
+taxon_group_map_tbn = {
+    "昆蟲": "beetles,butterflies,moths,dragonflies,otherinsects",
+    "蜘蛛": "spiders",
+    "魚類": "fishes",
+    "爬蟲類": "reptiles",
+    "兩棲類": "amphibians",
+    "鳥類": "birds",
+    "哺乳類": "mammals",
+    "維管束植物": "lycophytes,gymnosperms,angiosperms,ferns",
+    "蕨類植物": "ferns",
+    "苔蘚植物": "ferns",
+    # "藻類": "Algae",
+    # "病毒": "Viruses",
+    # "細菌": "Bacteria",
+    "真菌": "fungi",
+}
+
 
 
 def convert_coor_to_grid(x, y, grid):
@@ -2110,3 +2126,159 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
         else:
             is_new_ark = True
     return new_ark
+
+
+
+
+def create_tbn_query(req_dict):
+
+    query_list = []
+    query_str_list = [] # 可以轉換的
+    error_str_list = [] # 無法轉換的
+
+    # 學名相關
+    if val := req_dict.get('name'):
+        val = val.strip()
+        # 去除重複空格
+        val = re.sub(' +', ' ', val)
+        # 去除頭尾空格
+        val = val.strip()
+        query_list.append('taxonbioname:{}'.format(val))
+        query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
+
+
+    # 有無影像
+    if has_image := req_dict.get('has_image'):
+        if has_image == 'y':
+            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('是')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('否')))
+
+    # 是否為原生種
+    if is_native := req_dict.get('is_native'):
+        if is_native == 'y':
+            query_list.append('nativeness:i')
+            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
+        elif is_native == 'n':
+            query_list.append('nativeness:v,n,a,o')
+            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
+
+
+    # 是否為保育類
+    if is_protected := req_dict.get('is_protected'):
+        if is_protected == 'y':
+            query_list.append('protectedstatus:y01,y02,y03,w01')
+            query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
+        elif is_protected == 'n':
+            error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
+
+
+    if val := req_dict.get('taxonGroup'):
+        if val in taxon_group_map_tbn.keys():
+            query_list.append('taxongroup:{}'.format(taxon_group_map_tbn[val]))
+            query_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+
+
+    if val := req_dict.get('taxonRank'):
+        if val == 'sub':
+            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext("種下")))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
+
+
+    if val := req_dict.get('datasetName'):
+        d_list = []
+
+        if isinstance(val, str):
+            if val.startswith('['):
+                for d in eval(val):
+                    d_list.append(get_dataset_key(d))
+            else:
+                d_list.append(get_dataset_key(val))
+        else:
+            for d in list(val):
+                d_list.append(get_dataset_key(d))
+
+        error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
+
+
+    if val := req_dict.get('locality'):
+        l_list = []
+        if isinstance(val, str):
+            if val.startswith('['):
+                l_list = eval(val)
+            else:
+                l_list.append(val)
+        else:
+            l_list = list(val)
+        error_str_list.append('{} = {}'.format(gettext('出現地'),','.join(l_list)))
+
+
+    if val := req_dict.get('rightsHolder'):
+        r_list = []
+        if isinstance(val, str):
+            if val.startswith('['):
+                r_list = eval(val)
+            else:
+                r_list.append(val)
+        else:
+            r_list = list(val)
+        error_str_list.append('{} = {}'.format(gettext('來源資料庫'),','.join(r_list)))
+
+
+    if val := req_dict.get('basisOfRecord'):
+
+        error_str_list.append('{} = {}'.format(gettext('紀錄類型'),gettext(basis_map[val])))
+
+
+    # TODO county, municipality 待確認對照表 先加到不可轉換
+
+    for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus',
+              'county', 'municipality','taxonID']:
+        if val := req_dict.get(i):
+            if val != 'undefined':
+                error_str_list.append('{} = {}'.format(gettext(map_occurrence[i]),gettext(val)))
+
+    if val := req_dict.get('higherTaxa'):
+        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
+        if response.status_code == 200:
+            resp = response.json()
+            if data := resp['response']['docs']:
+                data = data[0]
+                error_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
+
+    if req_dict.get('start_date') and req_dict.get('end_date'):
+        query_list.append('date:{},{}'.format(req_dict.get('start_date'),req_dict.get('end_date')))
+        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
+        query_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
+    elif req_dict.get('start_date'):
+        query_list.append('date:{}'.format(req_dict.get('start_date')))
+        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
+    elif req_dict.get('end_date'):
+        error_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
+
+
+
+    # 地圖框選
+    if req_dict.get('geo_type') == 'map':
+        if g_list := req_dict.get('polygon'): 
+            query_list.append('wkt:'.format(g_list))
+            query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
+
+
+    # 上傳polygon
+    if req_dict.get('geo_type') == 'polygon':
+        # error_str_list.append('geo_type:polygon')
+        error_str_list.append('{}'.format(gettext('上傳Polygon')))
+
+    # 圓中心框選
+    if req_dict.get('geo_type') == 'circle':
+        if circle_radius := req_dict.get('circle_radius'):
+            query_list.append('circle:{},{},{}'.format(req_dict.get('center_lon').strip(),req_dict.get('center_lat').strip(),int(circle_radius)*1000))
+            query_str_list.append('{} = {}'.format(gettext('圓中心框選'),f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"))
+
+
+    return query_list, query_str_list, error_str_list
+

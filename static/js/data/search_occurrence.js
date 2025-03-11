@@ -635,6 +635,49 @@ $(function () {
         $('.search_condition_are .submitSearch').trigger('click')
     });
 
+
+    $('.redirectTBN').on('click', function () {
+
+        $('.tbn-url').attr('href',''); 
+        $('.matched_tbn_search').html(''); 
+        $('.not_matched_tbn_search').html(''); 
+        let queryString = $(this).data('query')
+
+        $.ajax({
+            url: "/get_tbn_query",
+            data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,
+            type: 'POST',
+            dataType: 'json',
+        })
+        .done(function (response) {
+            // console.log(response.tbn_url)
+            $('.tbn_popup').removeClass('d-none');
+            $('.tbn-url').attr('href',response.tbn_url);
+
+            for (i of response.tbn_query ){
+
+                $('.matched_tbn_search').append(`<li>${i}</li>`)
+
+            }
+
+            for (i of response.tbn_error ){
+                $('.not_matched_tbn_search').append(`<li>${i}</li>`)
+            }
+            // alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+        })
+        .fail(function (xhr, status, errorThrown) {
+            if (xhr.status == 504) {
+                alert(gettext('要求連線逾時'))
+            } else {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+            }
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+    })
+
+
+
     $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
 
@@ -1144,6 +1187,7 @@ function changeAction() {
 function setTable(response, queryString, from, orderby, sort) {
 
     // 如果有資料回傳則顯示table
+    $('.redirectTBN').data('query', queryString)
     $('.downloadData').data('query', queryString)
     $('.downloadData').data('count', response.count)
     $('.downloadSensitive').data('query', queryString)

@@ -34,6 +34,8 @@ urlpatterns = [
     path('get_conditional_records', views.get_conditional_records, name='get_conditional_records'),
     path('get_conditional_dataset', views.get_conditional_dataset, name='get_conditional_dataset'),
     path('get_map_grid', views.get_map_grid, name='get_map_grid'),
+    path('get_tw_grid', views.get_tw_grid, name='get_tw_grid'),
+    path('get_tbn_query', views.get_tbn_query, name='get_tbn_query'),
     # 下載 / 敏感資料
     path('send_download_request', views.send_download_request, name='send_download_request'),
     path('send_sensitive_request', views.send_sensitive_request, name='send_sensitive_request'),
