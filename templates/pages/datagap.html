@@ -2,7 +2,7 @@
 {% load static %} 
 {% load i18n %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap.css' %}?v3" />
 <link rel="stylesheet" href="/static/nouislider/nouislider.css">
 
 {% endblock style %}
@@ -46,11 +46,10 @@
 		<div class="container_area">
 			<div class="main_1240"> 
 				<div class="w_bgr10 news_de">
+				<p class="expired-p text-right mb-5">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
 					<h3>{% trans '資料空間空缺狀況' %}</h3>
-
 					<div class="item d-flex-jc-sb margin-bottom-0">
 						  <!--loading-->
-
 						<div class="w-100p">
 							<div class="ml-20px mt-15px spatial-area-div">
 								<div class="d-flex">
@@ -87,7 +86,6 @@
 							</div>        
 						</div>
 					</div>
-
 					<div class="records-legend d-flex legend-fs-15px spatial-area-div">
 						{% trans '資料筆數' %}：
 						<div class="d-flex"><div class="count-1"></div>1 - 10</div>
@@ -99,12 +97,8 @@
 						<div class="d-flex"><div class="count-50000"></div>50,000 - 100,000</div>
 						<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
 					</div>
-					<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
-
 					<hr>
-
 					<h3>{% trans '資料時間空缺狀況' %}</h3>
-
 					<div class="item d-flex-jc-sb">
 						<div class="w-50p">
 							<div class="ml-20px">
@@ -148,17 +142,13 @@
 
 						</div>
 					</div>
-					<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
-
 					<hr>
 					<h3>{% trans '物種類群資料筆數' %}</h3>
-
 					<div class="item d-flex-jc-sb">
 						<div class="w-50p">
 							<div class="highcharts-figure">
 								<div id="container-taxon_group-stat" class="h-100p"></div>
 							</div>
-							<p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
 							<p class="expired-p ml-10px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
 						</div>
 						<div class="w-50p">
@@ -176,5 +166,5 @@
 
 
 {% block script %}
-<script src="{% static 'js/pages/datagap.js' %}?v4"></script>
+<script src="{% static 'js/pages/datagap.js' %}?v5"></script>
 {% endblock script %}

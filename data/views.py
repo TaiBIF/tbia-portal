@@ -1093,7 +1093,7 @@ def get_more_cards(request):
 
 def search_dataset(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 

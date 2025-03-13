@@ -201,7 +201,7 @@
                     <div class="highcharts-figure">
                         <div id="container-taxon_group-stat" class="h-100p"></div>
                     </div>
-                    <p class="expired-p ml-5px">*僅計算TaiCOL定義之臺灣物種（種及種下）</p>
+                    <p class="expired-p ml-5px">*僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料</p>
                     <p class="expired-p ml-5px">*此處維管束植物不包含蕨類植物</p>
                     <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p>
                 </div>
@@ -257,7 +257,7 @@
                     </div>
                 </div>                
             </div>
-            <p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
+            <p class="expired-p ml-10px">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
             <hr>
             <div class="item d-flex-jc-sb">
                 <div class="w-50p">
@@ -312,7 +312,7 @@
                     </div>
                 </div>
             </div>
-            <p class="expired-p ml-10px">*{% trans '僅計算TaiCOL定義之臺灣物種（種及種下）' %}</p>
+            <p class="expired-p ml-10px">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
             <hr>
             <div class="item d-flex-jc-sb" >
                 <div class="w-50p">
@@ -496,6 +496,7 @@
                 <ul id="rightsholder_taxon_group_top3" class="mt-5px ml-20px fs-16px">
                 </ul>
             </div>
+            <p class="expired-p ml-10px">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
             <hr>
             <div class="item" >
                 <div class="box-title">
@@ -548,5 +549,5 @@
   {% endblock %}
 
   {% block script %}
-  <script src="{% static 'js/manager/manager_system.js' %}?v9"></script>
+  <script src="{% static 'js/manager/manager_system.js' %}?v10"></script>
   {% endblock script %}

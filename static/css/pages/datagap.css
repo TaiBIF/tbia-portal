@@ -317,85 +317,7 @@ hr {
     margin-bottom: 0 !important;
 }
 
-/* 
-div.count-100000 {
-    border: none;
-    background: #bd0026;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
 
-
-div.count-50000 {
-    border: none;
-    background: #e31a1c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-10000 {
-    border: none;
-    background: #fc4e2a;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-5000 {
-    border: none;
-    background: #fd8d3c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-1000 {
-    border: none;
-    background: #feb24c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-100 {
-    border: none;
-    background: #fed976;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-10 {
-    border: none;
-    background: #ffeda0;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-1 {
-    border: none;
-    background: #ffffcc;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-} */
 
 .feedback_btn {
     color: #FFF;
@@ -432,4 +354,9 @@ div.count-1 {
 
 .mr-5px {
     margin-right: 5px;
+}
+
+
+.text-right {
+    text-align: right;
 }
