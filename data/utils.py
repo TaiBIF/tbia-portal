@@ -24,8 +24,7 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner, SearchStat, SearchQuery, Ark
 from pages.models import News
-# import time
-# from urllib import parse
+from data.models import Municipality
 import threading
 import random
 import string
@@ -2228,10 +2227,28 @@ def create_tbn_query(req_dict):
         error_str_list.append('{} = {}'.format(gettext('紀錄類型'),gettext(basis_map[val])))
 
 
-    # TODO county, municipality 待確認對照表 先加到不可轉換
+    # county, municipality 
 
-    for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus',
-              'county', 'municipality','taxonID']:
+    if req_dict.get('county') and req_dict.get('municipality'):
+        if Municipality.objects.filter(county=req_dict.get('county'),municipality=req_dict.get('municipality')).exists():
+            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality=req_dict.get('municipality')).tbn_id
+            query_list.append('adminareaidplus:{}'.format(tbn_id))
+            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+            query_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+            error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+
+    elif req_dict.get('county') and not req_dict.get('municipality'):
+        if Municipality.objects.filter(county=req_dict.get('county'),municipality__isnull=True).exists():
+            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality__isnull=True).tbn_id
+            query_list.append('adminareaidplus:{}'.format(tbn_id))
+            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+
+
+    for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus','taxonID']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 error_str_list.append('{} = {}'.format(gettext(map_occurrence[i]),gettext(val)))
