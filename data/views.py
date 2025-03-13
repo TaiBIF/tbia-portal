@@ -1671,33 +1671,33 @@ def get_conditional_records(request):
 
 def change_dataset(request):
     ds = []
-    results = []
+    d_list = []
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
-        # record_type = '&fq=record_type:col'
         record_type = '&fq=record_type:/.*col.*/'
 
     if datasetKey := request.GET.getlist('datasetKey'):
-        # datasetKey = [int(d) for d in datasetKey]
-        results = get_dataset_by_key(key_list=datasetKey)
-        for d in results:
-            ds += [{'value': d[0], 'text': d[1]}]
+        response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=1000000000&fq=tbiaDatasetID:({" OR ".join(datasetKey)})&fq=deprecated:false')
+        d_list = response.json()['response']['docs']
+
+
     elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
             response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=rights_holder:"{h}"&fq=deprecated:false')
             d_list = response.json()['response']['docs']
-            # solr內的id和datahub的postgres互通
-            for l in d_list:
-                if l['name'] not in [d['text'] for d in ds]:
-                    ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
+
     else:
         # 起始
         response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
         d_list = response.json()['response']['docs']
-        # solr內的id和datahub的postgres互通
-        for l in d_list:
-            if l['name'] not in [d['text'] for d in ds]:
+
+    # solr內的id和datahub的postgres互通
+    for l in d_list:
+        if l['name'] not in [d['text'] for d in ds]:
+            if l.get('is_duplicated_name'):
+                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+            else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
@@ -1818,7 +1818,10 @@ def get_dataset(request):
     # solr內的id和datahub的postgres互通
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
-            ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
+            if l.get('is_duplicated_name'):
+                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+            else:
+                ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
 
     return HttpResponse(json.dumps(ds), content_type='application/json')

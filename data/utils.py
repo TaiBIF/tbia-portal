@@ -56,29 +56,24 @@ basis_map = {
 }
 
 
-def get_dataset_key(key):
+def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
-    results = None
-    conn = psycopg2.connect(**datahub_db_settings)
-    try:
-        key = int(key)        
-        query = 'SELECT "name" FROM dataset WHERE "id" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    except:
-        query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    conn.close()
-    if results:
-        results = results[0]
-    return results
+    name = ''
+
+    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    d_list = response.json()['response']['docs']
+
+    # solr內的id和datahub的postgres互通
+    for l in d_list:
+        name = l['name'] 
+        if l.get('is_duplicated_name'):
+            name += ' ({})'.format(l['rights_holder'])
+    return name
 
 
 
-def get_dataset_key_return_id(key):
+def get_tbia_dataset_id(key):
     # 2024-12 修改為tbiaDatasetID
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
@@ -636,14 +631,14 @@ def create_query_display(search_dict,lang=None):
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
                         for d in eval(search_dict[k]):
-                            if d_name := get_dataset_key(d):
+                            if d_name := get_dataset_name(d):
                                 d_list.append(d_name)
                     else:
-                        if d_name := get_dataset_key(search_dict[k]):
+                        if d_name := get_dataset_name(search_dict[k]):
                             d_list.append(d_name)
                 else:
                     for d in list(search_dict[k]):
-                        if d_name := get_dataset_key(d):
+                        if d_name := get_dataset_name(d):
                             d_list.append(d_name)
             elif k == 'rightsHolder':
                 if isinstance(search_dict[k], str):
@@ -905,21 +900,21 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if from_request:
         if val := req_dict.getlist('datasetName'):
             for v in val:
-                if d_id := get_dataset_key_return_id(v):
+                if d_id := get_tbia_dataset_id(v):
                         d_list.append(d_id)
     else:
         if val := req_dict.get('datasetName'):
             if isinstance(val, str):
                 if val.startswith('['):
                     for d in eval(val):
-                        if d_id := get_dataset_key_return_id(d):
+                        if d_id := get_tbia_dataset_id(d):
                             d_list.append(d_id)
                 else:
-                    if d_id := get_dataset_key_return_id(val):
+                    if d_id := get_tbia_dataset_id(val):
                         d_list.append(d_id)
             else:
                 for d in list(val):
-                    if d_id := get_dataset_key_return_id(d):
+                    if d_id := get_tbia_dataset_id(d):
                         d_list.append(d_id)
 
     # 這邊要改成tbiaDatasetID才對
@@ -2194,12 +2189,12 @@ def create_tbn_query(req_dict):
         if isinstance(val, str):
             if val.startswith('['):
                 for d in eval(val):
-                    d_list.append(get_dataset_key(d))
+                    d_list.append(get_dataset_name(d))
             else:
-                d_list.append(get_dataset_key(val))
+                d_list.append(get_dataset_name(val))
         else:
             for d in list(val):
-                d_list.append(get_dataset_key(d))
+                d_list.append(get_dataset_name(d))
 
         error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
 
