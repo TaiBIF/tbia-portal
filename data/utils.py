@@ -2182,7 +2182,7 @@ def create_tbn_query(req_dict):
             error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
 
 
-    if val := req_dict.get('datasetName'):
+    if val := req_dict.getlist('datasetName'):
         d_list = []
 
         if isinstance(val, str):
@@ -2198,7 +2198,7 @@ def create_tbn_query(req_dict):
         error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
 
 
-    if val := req_dict.get('locality'):
+    if val := req_dict.getlist('locality'):
         l_list = []
         if isinstance(val, str):
             if val.startswith('['):
@@ -2207,10 +2207,11 @@ def create_tbn_query(req_dict):
                 l_list.append(val)
         else:
             l_list = list(val)
+
         error_str_list.append('{} = {}'.format(gettext('出現地'),','.join(l_list)))
 
 
-    if val := req_dict.get('rightsHolder'):
+    if val := req_dict.getlist('rightsHolder'):
         r_list = []
         if isinstance(val, str):
             if val.startswith('['):
@@ -2219,6 +2220,7 @@ def create_tbn_query(req_dict):
                 r_list.append(val)
         else:
             r_list = list(val)
+
         error_str_list.append('{} = {}'.format(gettext('來源資料庫'),','.join(r_list)))
 
 
