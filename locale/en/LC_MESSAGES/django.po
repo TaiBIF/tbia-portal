@@ -2907,8 +2907,12 @@ msgstr "Viruses"
 
 
 #:
-msgid "僅計算TaiCOL定義之臺灣物種（種及種下）"
+msgid "僅計算TaiCOL定義之種及種下臺灣物種"
 msgstr "The number of species / records is calculated based on Taiwan species defined by TaiCOL."
+
+#:
+msgid "僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料"
+msgstr "The number of species / records is calculated based on Taiwan species defined by TaiCOL within Taiwan's geographic range."
 
 
 #:
@@ -3044,3 +3048,26 @@ msgid "未填入任何成果的英文"
 msgstr "No Results Entered"
 
 
+#:
+msgid "圖片無法正常顯示"
+msgstr "The image can't be displayed."
+
+
+#:
+msgid "TBN資料視覺化"
+msgstr "TBN Data Visualization"
+
+
+#:
+msgid "確認前往TBN"
+msgstr "Go to TBN"
+
+
+#:
+msgid "可對應查詢"
+msgstr "Search conditions can be converted"
+
+
+#:
+msgid "不可對應查詢"
+msgstr "Search conditions cannot be converted"

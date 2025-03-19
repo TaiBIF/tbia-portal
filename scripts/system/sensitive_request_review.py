@@ -1,4 +1,5 @@
 from manager.models import SensitiveDataResponse, Workday
+from api.models import APIkey
 # from pages.models import Notification
 from django.db import connection
 from datetime import datetime, timedelta
@@ -29,8 +30,8 @@ else:
 # 夥伴單位 如果14天後狀態是pending的話就直接不通過
 
 
-today = datetime.today() + timedelta(hours=8)
-today = today.date()
+today_datetime = datetime.today() + timedelta(hours=8)
+today = today_datetime.date()
 
 # 系統管理員負責的
 query = """
@@ -103,3 +104,13 @@ for d in data:
         if not SensitiveDataResponse.objects.filter(query_id=d[2],status='pending').exclude(is_transferred=True).exists():
             task = threading.Thread(target=generate_sensitive_csv, args=(d[2],scheme,host))
             task.start()
+
+
+# API key
+api_keys = APIkey.objects.filter(status='pass')
+
+for k in api_keys:
+    expired_date = k.created + timedelta(days=365)
+    if today > expired_date.date():
+        k.status = 'expired'
+        k.save()

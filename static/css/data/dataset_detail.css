@@ -132,7 +132,7 @@ input.name_input::placeholder {
 
 .sc_result .rightmore .dwd {
     padding: 0px 10px;
-    font-size: 16px;
+    font-size: 15px;
     color: lightgrey;
     height: 40px;
     transition: all .3s;
@@ -149,7 +149,7 @@ input.name_input::placeholder {
 
 @media only screen and (max-width: 767px) {
     .sc_result .rightmore .dwd {
-        font-size: 16px;
+        font-size: 15px;
         padding: 0 10px;
         height: 30px;
         margin-left: 0px;
@@ -407,7 +407,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 .sc_result .rightmore .dwd {
     padding: 0px 10px;
-    font-size: 16px;
+    font-size: 15px;
     color: lightgrey;
     height: 40px;
     transition: all .3s;
@@ -424,7 +424,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 @media only screen and (max-width: 1150px) {
     .sc_result .rightmore .dwd {
-        font-size: 16px;
+        font-size: 15px;
         padding: 0 10px;
         height: 30px;
         margin-left: 0px;
@@ -458,7 +458,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 @media only screen and (max-width: 1150px) {
     .result_inf_top .cate_btn {
-        font-size: 16px
+        font-size: 15px
     }
 }
 
@@ -492,7 +492,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 @media only screen and (max-width: 1150px) {
     .sc_result .rightmore .dw {
-        font-size: 16px;
+        font-size: 15px;
         padding: 0 10px;
         height: 30px;
         margin-left: 0px;

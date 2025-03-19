@@ -886,7 +886,7 @@ function getColor(d) {
             d > 1000 ? '#feb24c' :
             d > 100 ? '#fed976' :
             d > 10 ? '#ffeda0' :
-                '#ffffcc';
+            d > 0 ?   '#ffffcc' : 'transparent';
 }
 
 
@@ -895,7 +895,7 @@ function style(feature) {
         fillColor: getColor(feature.properties.counts),
         weight: 1,
         fillOpacity: 0.7,
-        color: '#b2d2dd'
+        color: feature.properties.counts > 0 ? '#b2d2dd' : 'transparent'
     };
 }
 
@@ -999,8 +999,8 @@ function drawMapGrid(current_map, group){
 
 
     $.ajax({
-        url: "/get_map_grid",
-        data: `from=datagap&rights_holder=${$('select[name=spatial-stat-rightsholder]').find(':selected').val()}&taxonGroup=${taxon_group}&grid=5&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
+        url: "/get_tw_grid",
+        data: `rights_holder=${$('select[name=spatial-stat-rightsholder]').find(':selected').val()}&taxonGroup=${taxon_group}&map_bound=` + getWKTMap(current_map) + '&csrfmiddlewaretoken=' + $csrf_token,
         type: 'POST',
         dataType: 'json',
     })

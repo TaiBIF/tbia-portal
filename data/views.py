@@ -59,8 +59,6 @@ rights_holder_map = {
     '臺灣魚類資料庫': 'ascdc',
 }
 
-
-
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
         sq = SearchQuery.objects.get(id=id)
@@ -1095,7 +1093,7 @@ def get_more_cards(request):
 
 def search_dataset(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 
@@ -1281,7 +1279,7 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
-    county_list = Municipality.objects.all().order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'county_list': county_list })
@@ -1294,7 +1292,7 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-    county_list = Municipality.objects.all().order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
 
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list #'dataset_list': dataset_list
@@ -1420,6 +1418,93 @@ def get_map_grid(request):
 
 
         return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
+
+def get_tw_grid(request):
+    if request.method == 'POST':
+
+        req_dict = request.POST
+
+        user_id = request.user.id if request.user.id else 0
+        get_raw_map =  if_raw_map(user_id)
+
+        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+
+        # 先把map bound轉成grid
+
+        map_bound = str(check_map_bound(req_dict.get('map_bound')))
+
+        map_bound = map_bound[1:-1]
+        map_bound_1 = map_bound.split(' TO ')[0]
+        map_bound_y1 = map_bound_1.split(',')[0]
+        map_bound_x1 = map_bound_1.split(',')[1]
+        map_bound_2 = map_bound.split(' TO ')[1]
+        map_bound_y2 = map_bound_2.split(',')[0]
+        map_bound_x2 = map_bound_2.split(',')[1]
+
+        bound_1 = convert_coor_to_grid(float(map_bound_x1),float(map_bound_y1),0.05)
+        bound_2 = convert_coor_to_grid(float(map_bound_x2),float(map_bound_y2),0.05)
+
+        facet_grid = f'grid_5'
+
+        if get_raw_map:
+            query_list += ['is_blurred:false','grid_x:[{} TO {}]'.format(bound_1[0], bound_2[0]), 'grid_y:[{} TO {}]'.format(bound_1[1], bound_2[1])]
+        else:
+            facet_grid = f'grid_5'
+            query_list += ['is_blurred:true','grid_x:[{} TO {}]'.format(bound_1[0], bound_2[0]), 'grid_y:[{} TO {}]'.format(bound_1[1], bound_2[1])]
+
+        query = { "query": "*:*",
+                "filter": query_list,
+                "limit": 0,
+                "facet": {
+                        facet_grid: {
+                            'field': facet_grid,
+                            'mincount': 1,
+                            "type": "terms",
+                            "limit": -1,
+                            'domain': { 'query': "*:*", 'filter': query_list},
+                            'facet':{
+                             'count' : "sum(total_count)"
+                            }
+                        },
+                }
+        }
+
+        if not query_list:
+            query.pop('filter')
+
+        query_req = json.dumps(query)
+        response = requests.post(f'{SOLR_PREFIX}tw_grid/select?', data=query_req, headers={'content-type': "application/json" })
+        resp = response.json()
+
+
+        map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=5)
+        map_geojson = map_geojson[f'grid_5']
+
+        # print(map_geojson)
+
+        return HttpResponse(json.dumps(map_geojson, default=str), content_type='application/json')
+
+
+
+def get_tbn_query(request):
+
+    req_dict = request.POST
+
+    tbn_error_str_list = []
+    tbn_query_str_list = []
+    tbn_url = ''
+
+    tbn_query_list, tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
+    tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+
+    response = {
+        'tbn_url': tbn_url,
+        'tbn_query': tbn_query_str_list,
+        'tbn_error': tbn_error_str_list
+    }
+    
+    return HttpResponse(json.dumps(response, default=str), content_type='application/json')
 
 
 def get_conditional_records(request):
@@ -1586,33 +1671,33 @@ def get_conditional_records(request):
 
 def change_dataset(request):
     ds = []
-    results = []
+    d_list = []
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
-        # record_type = '&fq=record_type:col'
         record_type = '&fq=record_type:/.*col.*/'
 
     if datasetKey := request.GET.getlist('datasetKey'):
-        # datasetKey = [int(d) for d in datasetKey]
-        results = get_dataset_by_key(key_list=datasetKey)
-        for d in results:
-            ds += [{'value': d[0], 'text': d[1]}]
+        response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=1000000000&fq=tbiaDatasetID:({" OR ".join(datasetKey)})&fq=deprecated:false')
+        d_list = response.json()['response']['docs']
+
+
     elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
             response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=rights_holder:"{h}"&fq=deprecated:false')
             d_list = response.json()['response']['docs']
-            # solr內的id和datahub的postgres互通
-            for l in d_list:
-                if l['name'] not in [d['text'] for d in ds]:
-                    ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
+
     else:
         # 起始
         response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
         d_list = response.json()['response']['docs']
-        # solr內的id和datahub的postgres互通
-        for l in d_list:
-            if l['name'] not in [d['text'] for d in ds]:
+
+    # solr內的id和datahub的postgres互通
+    for l in d_list:
+        if l['name'] not in [d['text'] for d in ds]:
+            if l.get('is_duplicated_name'):
+                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+            else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
@@ -1622,7 +1707,7 @@ def change_municipality(request):
     if request.GET.get('county'):
         data = []
         lang = get_language()
-        for m in Municipality.objects.filter(county=request.GET.get('county')).order_by('municipality').values('municipality','municipality_en'):
+        for m in Municipality.objects.filter(county=request.GET.get('county'),municipality__isnull=False).order_by('municipality').values('municipality','municipality_en'):
             data.append({'text': m['municipality_en'] if lang == 'en-us' else m['municipality'], 'value': m['municipality']})
         return HttpResponse(json.dumps(data), content_type='application/json')
 
@@ -1733,7 +1818,10 @@ def get_dataset(request):
     # solr內的id和datahub的postgres互通
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
-            ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
+            if l.get('is_duplicated_name'):
+                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+            else:
+                ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
 
     return HttpResponse(json.dumps(ds), content_type='application/json')

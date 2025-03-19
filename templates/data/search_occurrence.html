@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v6" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v7" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -250,6 +250,7 @@
       <div class="result_inf_top">
         <button class="cate_btn popupField">{% trans '欄位選項' %} +</button>
         <div class="rightmore">
+        <button class="dw redirectTBN" data-query="">{% trans 'TBN資料視覺化' %}</button>
         <button class="dw downloadData" data-query="" data-count="">{% trans '資料下載' %}</button>
         <button class="dw downloadTaxon" data-query="">{% trans '名錄下載' %}</button>
         <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=14" target="_blank" class="qmark"></a>
@@ -500,10 +501,34 @@
 		</div>
 	</div>
 </div>
+
+
+<!--TBN popbox-->
+<div class="popbg tbn_popup d-none">
+	<div class="ovhy">
+		<div class="wbox_center">
+			<div class="xx"></div>
+			<div class="titlegreen">
+				{% trans 'TBN資料視覺化' %}
+			</div>
+        <a href="" target="_blank" class="tbn-url">👉 {% trans '確認前往TBN' %}</a>
+      <div class="p-10px">
+        <p>{% trans '可對應查詢' %}：</p>
+        <ul class="matched_tbn_search">
+        </ul>
+        <br>
+        <p>{% trans '不可對應查詢' %}：</p>
+        <ul class="not_matched_tbn_search">
+        </ul>
+      </div>
+    </div>
+	</div>
+</div>
+
 {% endblock body %}
 
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v22"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v23"></script>
 {% endblock script %}

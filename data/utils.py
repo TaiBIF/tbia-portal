@@ -24,8 +24,7 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner, SearchStat, SearchQuery, Ark
 from pages.models import News
-# import time
-# from urllib import parse
+from data.models import Municipality
 import threading
 import random
 import string
@@ -56,29 +55,24 @@ basis_map = {
 }
 
 
-def get_dataset_key(key):
+def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
-    results = None
-    conn = psycopg2.connect(**datahub_db_settings)
-    try:
-        key = int(key)        
-        query = 'SELECT "name" FROM dataset WHERE "id" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    except:
-        query = 'SELECT "name" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    conn.close()
-    if results:
-        results = results[0]
-    return results
+    name = ''
+
+    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    d_list = response.json()['response']['docs']
+
+    # solr內的id和datahub的postgres互通
+    for l in d_list:
+        name = l['name'] 
+        if l.get('is_duplicated_name'):
+            name += ' ({})'.format(l['rights_holder'])
+    return name
 
 
 
-def get_dataset_key_return_id(key):
+def get_tbia_dataset_id(key):
     # 2024-12 修改為tbiaDatasetID
     results = None
     conn = psycopg2.connect(**datahub_db_settings)
@@ -97,9 +91,6 @@ def get_dataset_key_return_id(key):
     if results:
         results = results[0]
     return results
-
-
-
 
 
 def get_species_images(taxon_id):
@@ -183,6 +174,25 @@ taxon_group_map_e = {
     "細菌": "Bacteria",
     "真菌": "Fungi",
 }
+
+
+taxon_group_map_tbn = {
+    "昆蟲": "beetles,butterflies,moths,dragonflies,otherinsects",
+    "蜘蛛": "spiders",
+    "魚類": "fishes",
+    "爬蟲類": "reptiles",
+    "兩棲類": "amphibians",
+    "鳥類": "birds",
+    "哺乳類": "mammals",
+    "維管束植物": "lycophytes,gymnosperms,angiosperms,ferns",
+    "蕨類植物": "ferns",
+    "苔蘚植物": "ferns",
+    # "藻類": "Algae",
+    # "病毒": "Viruses",
+    # "細菌": "Bacteria",
+    "真菌": "fungi",
+}
+
 
 
 def convert_coor_to_grid(x, y, grid):
@@ -620,14 +630,14 @@ def create_query_display(search_dict,lang=None):
                 if isinstance(search_dict[k], str):
                     if search_dict[k].startswith('['):
                         for d in eval(search_dict[k]):
-                            if d_name := get_dataset_key(d):
+                            if d_name := get_dataset_name(d):
                                 d_list.append(d_name)
                     else:
-                        if d_name := get_dataset_key(search_dict[k]):
+                        if d_name := get_dataset_name(search_dict[k]):
                             d_list.append(d_name)
                 else:
                     for d in list(search_dict[k]):
-                        if d_name := get_dataset_key(d):
+                        if d_name := get_dataset_name(d):
                             d_list.append(d_name)
             elif k == 'rightsHolder':
                 if isinstance(search_dict[k], str):
@@ -889,21 +899,21 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if from_request:
         if val := req_dict.getlist('datasetName'):
             for v in val:
-                if d_id := get_dataset_key_return_id(v):
+                if d_id := get_tbia_dataset_id(v):
                         d_list.append(d_id)
     else:
         if val := req_dict.get('datasetName'):
             if isinstance(val, str):
                 if val.startswith('['):
                     for d in eval(val):
-                        if d_id := get_dataset_key_return_id(d):
+                        if d_id := get_tbia_dataset_id(d):
                             d_list.append(d_id)
                 else:
-                    if d_id := get_dataset_key_return_id(val):
+                    if d_id := get_tbia_dataset_id(val):
                         d_list.append(d_id)
             else:
                 for d in list(val):
-                    if d_id := get_dataset_key_return_id(d):
+                    if d_id := get_tbia_dataset_id(d):
                         d_list.append(d_id)
 
     # 這邊要改成tbiaDatasetID才對
@@ -1846,7 +1856,8 @@ def create_data_table(docs, user_id, obv_str):
             docs.loc[i , 'eventDate'] = date
         else:
             if row.get('eventDate'):
-                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[原始{obv_str}日期]' + row.get('eventDate') + '</small>'
+                date_str = gettext(f'原始{obv_str}日期')
+                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[{date_str}]' + row.get('eventDate') + '</small>'
 
         # 經緯度
         # 如果是正式會員直接給原始
@@ -1855,13 +1866,13 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
                 if row.get('verbatimRawLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + row.get('verbatimRawLatitude') + '</small>'
+                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimRawLatitude') + '</small>'
 
             if lon := row.get('standardRawLongitude'):
                 docs.loc[i , 'verbatimLongitude'] = lon[0]
             else:
                 if row.get('verbatimRawLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimRawLongitude') + '</small>'
+                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimRawLongitude') + '</small>'
 
             if row.get('rawCounty'):
                 docs.loc[i , 'county'] = row.get('rawCounty')
@@ -1874,13 +1885,13 @@ def create_data_table(docs, user_id, obv_str):
                 docs.loc[i , 'verbatimLatitude'] = lat[0]
             else:
                 if row.get('verbatimLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = '---<br><small class="color-silver">[原始紀錄緯度]' + row.get('verbatimLatitude') + '</small>'
+                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimLatitude') + '</small>'
 
             if lon := row.get('standardLongitude'):
                 docs.loc[i , 'verbatimLongitude'] = lon[0]
             else:
                 if row.get('verbatimLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = '---<br><small class="color-silver">[原始紀錄經度]' + row.get('verbatimLongitude') + '</small>'
+                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimLongitude') + '</small>'
         # 數量
         if quantity := row.get('standardOrganismQuantity'):
             quantity = str(quantity[0])
@@ -1889,7 +1900,7 @@ def create_data_table(docs, user_id, obv_str):
             docs.loc[i , 'organismQuantity'] = quantity
         else:
             if row.get('organismQuantity'):
-                docs.loc[i , 'organismQuantity'] = '---<br><small class="color-silver">[原始紀錄數量]' + row.get('organismQuantity') + '</small>'
+                docs.loc[i , 'organismQuantity'] = f'---<br><small class="color-silver">[{gettext("原始紀錄數量")}]' + row.get('organismQuantity') + '</small>'
         
         # 分類階層
         if row.get('taxonRank', ''):
@@ -1920,7 +1931,7 @@ def create_data_table(docs, user_id, obv_str):
 
             if len(media_list):
                 # 取第一張
-                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" src="{}">'.format(media_list[0])
+                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(gettext('圖片無法正常顯示'),gettext('圖片無法正常顯示'),media_list[0])
 
 
     docs = docs.replace({np.nan: ''})
@@ -2109,3 +2120,179 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
         else:
             is_new_ark = True
     return new_ark
+
+
+
+
+def create_tbn_query(req_dict):
+
+    query_list = []
+    query_str_list = [] # 可以轉換的
+    error_str_list = [] # 無法轉換的
+
+    # 學名相關
+    if val := req_dict.get('name'):
+        val = val.strip()
+        # 去除重複空格
+        val = re.sub(' +', ' ', val)
+        # 去除頭尾空格
+        val = val.strip()
+        query_list.append('taxonbioname:{}'.format(val))
+        query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
+
+
+    # 有無影像
+    if has_image := req_dict.get('has_image'):
+        if has_image == 'y':
+            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('是')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('否')))
+
+    # 是否為原生種
+    if is_native := req_dict.get('is_native'):
+        if is_native == 'y':
+            query_list.append('nativeness:i')
+            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
+        elif is_native == 'n':
+            query_list.append('nativeness:v,n,a,o')
+            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
+
+
+    # 是否為保育類
+    if is_protected := req_dict.get('is_protected'):
+        if is_protected == 'y':
+            query_list.append('protectedstatus:y01,y02,y03,w01')
+            query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
+        elif is_protected == 'n':
+            error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
+
+
+    if val := req_dict.get('taxonGroup'):
+        if val in taxon_group_map_tbn.keys():
+            query_list.append('taxongroup:{}'.format(taxon_group_map_tbn[val]))
+            query_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+
+
+    if val := req_dict.get('taxonRank'):
+        if val == 'sub':
+            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext("種下")))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
+
+
+    if val := req_dict.getlist('datasetName'):
+        d_list = []
+
+        if isinstance(val, str):
+            if val.startswith('['):
+                for d in eval(val):
+                    d_list.append(get_dataset_name(d))
+            else:
+                d_list.append(get_dataset_name(val))
+        else:
+            for d in list(val):
+                d_list.append(get_dataset_name(d))
+
+        error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
+
+
+    if val := req_dict.getlist('locality'):
+        l_list = []
+        if isinstance(val, str):
+            if val.startswith('['):
+                l_list = eval(val)
+            else:
+                l_list.append(val)
+        else:
+            l_list = list(val)
+
+        error_str_list.append('{} = {}'.format(gettext('出現地'),','.join(l_list)))
+
+
+    if val := req_dict.getlist('rightsHolder'):
+        r_list = []
+        if isinstance(val, str):
+            if val.startswith('['):
+                r_list = eval(val)
+            else:
+                r_list.append(val)
+        else:
+            r_list = list(val)
+
+        error_str_list.append('{} = {}'.format(gettext('來源資料庫'),','.join(r_list)))
+
+
+    if val := req_dict.get('basisOfRecord'):
+
+        error_str_list.append('{} = {}'.format(gettext('紀錄類型'),gettext(basis_map[val])))
+
+
+    # county, municipality 
+
+    if req_dict.get('county') and req_dict.get('municipality'):
+        if Municipality.objects.filter(county=req_dict.get('county'),municipality=req_dict.get('municipality')).exists():
+            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality=req_dict.get('municipality')).tbn_id
+            query_list.append('adminareaidplus:{}'.format(tbn_id))
+            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+            query_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+            error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+
+    elif req_dict.get('county') and not req_dict.get('municipality'):
+        if Municipality.objects.filter(county=req_dict.get('county'),municipality__isnull=True).exists():
+            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality__isnull=True).tbn_id
+            query_list.append('adminareaidplus:{}'.format(tbn_id))
+            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+        else:
+            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+
+
+    for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus','taxonID']:
+        if val := req_dict.get(i):
+            if val != 'undefined':
+                error_str_list.append('{} = {}'.format(gettext(map_occurrence[i]),gettext(val)))
+
+    if val := req_dict.get('higherTaxa'):
+        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
+        if response.status_code == 200:
+            resp = response.json()
+            if data := resp['response']['docs']:
+                data = data[0]
+                error_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
+
+    if req_dict.get('start_date') and req_dict.get('end_date'):
+        query_list.append('date:{},{}'.format(req_dict.get('start_date'),req_dict.get('end_date')))
+        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
+        query_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
+    elif req_dict.get('start_date'):
+        query_list.append('date:{}'.format(req_dict.get('start_date')))
+        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
+    elif req_dict.get('end_date'):
+        error_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
+
+
+
+    # 地圖框選
+    if req_dict.get('geo_type') == 'map':
+        if g_list := req_dict.get('polygon'): 
+            query_list.append('wkt:'.format(g_list))
+            query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
+
+
+    # 上傳polygon
+    if req_dict.get('geo_type') == 'polygon':
+        # error_str_list.append('geo_type:polygon')
+        error_str_list.append('{}'.format(gettext('上傳Polygon')))
+
+    # 圓中心框選
+    if req_dict.get('geo_type') == 'circle':
+        if circle_radius := req_dict.get('circle_radius'):
+            query_list.append('circle:{},{},{}'.format(req_dict.get('center_lon').strip(),req_dict.get('center_lat').strip(),int(circle_radius)*1000))
+            query_str_list.append('{} = {}'.format(gettext('圓中心框選'),f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"))
+
+
+    return query_list, query_str_list, error_str_list
+
