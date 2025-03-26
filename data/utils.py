@@ -2278,7 +2278,7 @@ def create_tbn_query(req_dict):
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
         if g_list := req_dict.get('polygon'): 
-            query_list.append('wkt:'.format(g_list))
+            query_list.append('wkt:{}'.format(g_list))
             query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
 
 
