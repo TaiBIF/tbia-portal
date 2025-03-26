@@ -336,7 +336,7 @@ $(document).ready(function () {
             tooltip: {
                 // headerFormat: '<b>{point.x}</b><br/>',
                 // pointFormat: '{series.name}: {point.y}'
-                pointFormat: '<b>{point.y}筆</b>'
+                pointFormat: '<b>{point.y}次</b>'
             },
         }));
 
@@ -511,7 +511,7 @@ $(document).ready(function () {
             tooltip: {
                 // headerFormat: '<b>{point.x}</b><br/>',
                 // pointFormat: '{series.name}: {point.y}'
-                pointFormat: '<b>{point.y}筆</b>'
+                pointFormat: '<b>{point.y}次</b>'
             },
         }));
 
