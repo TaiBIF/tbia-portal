@@ -9,22 +9,18 @@ from manager.models import User
 from conf.utils import notif_map
 from django.utils.translation import get_language, gettext
 import pandas as pd
-from data.models import Variant
+import json
 
 register = template.Library()
 
 
+with open('/code/data/variants.json', 'r', encoding='utf-8') as f:
+    var_dict = json.load(f)
 
+var_df = pd.DataFrame([{'char': index, 'pattern': value} for index, value in var_dict.items() if len(index) == 1])
 
-# 產生javascript使用的dict
-# dict(zip(var_df.char, var_df.pattern))
-# dict(zip(var_df_2.char, var_df_2.pattern))
-
-
-var_df = pd.DataFrame(Variant.objects.filter(char_len=1).values('char','pattern'))
 var_df['idx'] = var_df.groupby(['pattern']).ngroup()
-
-var_df_2 = pd.DataFrame(Variant.objects.filter(char_len=2).values('char','pattern'))
+var_df_2 = pd.DataFrame([{'char': index, 'pattern': value} for index, value in var_dict.items() if len(index) == 2])
 
 # 先對一個字再對兩個字
 
@@ -49,7 +45,6 @@ def highlight(text, keyword, taxon_related=0):
     if taxon_related == '1':
         keyword = re.sub(' +', ' ', keyword)
     keyword = get_variants(re.escape(keyword))
-    # text_after = re.sub(regex_search_term, regex_replacement, text_before)
     new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)
     return mark_safe(new_value)
 
