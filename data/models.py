@@ -18,11 +18,11 @@ class Name(models.Model):
             models.UniqueConstraint(fields=['taxonID','taxon_name_id'], name='taxonID_taxon_name_id_unique')
         ]
 
-# for get_variants 異體字
-class Variant(models.Model):
-    char = models.CharField(blank=True, null=True, max_length=10)
-    pattern = models.CharField(blank=True, null=True, max_length=1000)
-    char_len = models.IntegerField(default=1)
+# # for get_variants 異體字
+# class Variant(models.Model):
+#     char = models.CharField(blank=True, null=True, max_length=10)
+#     pattern = models.CharField(blank=True, null=True, max_length=1000)
+#     char_len = models.IntegerField(default=1)
 
 
 # for county 
