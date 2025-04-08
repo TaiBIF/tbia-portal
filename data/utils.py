@@ -19,7 +19,7 @@ from shapely.geometry import MultiPolygon
 import json
 import re
 from data.solr_query import *
-from pages.templatetags.tags import highlight, get_variants
+from pages.templatetags.tags import highlight, process_text_variants
 from django.utils import timezone, translation
 from django.utils.translation import gettext
 from manager.models import User, Partner, SearchStat, SearchQuery, Ark
@@ -847,7 +847,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
                 keyword_reg = ''
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-                keyword_reg = get_variants(keyword_reg)
+                keyword_reg = process_text_variants(keyword_reg)
                 query_list += [f'{i}:/.*{keyword_reg}.*/']
 
     for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
@@ -1060,7 +1060,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         val = html.unescape(val)
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
+        keyword_reg = process_text_variants(keyword_reg)
         col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
@@ -1121,14 +1121,14 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     keyword = html.unescape(keyword)
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_reg = get_variants(keyword_reg)
+    keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
     keyword_name_reg = ''
     for j in keyword_name:
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_name_reg = get_variants(keyword_name_reg)
+    keyword_name_reg = process_text_variants(keyword_name_reg)
 
     if card_class.startswith('.col'):
         map_dict = map_collection
@@ -1392,14 +1392,14 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     keyword = html.unescape(keyword)
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_reg = get_variants(keyword_reg)
+    keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
     keyword_name_reg = ''
     for j in keyword_name:
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_name_reg = get_variants(keyword_name_reg)
+    keyword_name_reg = process_text_variants(keyword_name_reg)
     
     if is_sub == 'true':
         taxon_facet_list = {'facet': {k: v for k, v in taxon_facet_list['facet'].items() if k == key} }

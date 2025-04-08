@@ -11,7 +11,7 @@ from conf.utils import notif_map, scheme
 from datetime import datetime, timedelta
 from django.utils.translation import get_language, gettext
 import requests
-from pages.templatetags.tags import var_df, var_df_2
+from pages.templatetags.tags import process_text_variants
 
 
 news_type_map = {
@@ -35,18 +35,7 @@ news_type_c_map = {
 def get_variants(request):
   if request.method == 'GET':
     string = request.GET.get('string')
-    new_string = ''
-    # 單個異體字
-    for s in string:    
-      if len(var_df[var_df['char']==s]):
-        new_string += var_df[var_df['char']==s].pattern.values[0]
-      else:
-        new_string += s
-    # 兩個異體字
-    for i in var_df_2.index:
-      char = var_df_2.loc[i, 'char']
-      if char in new_string:
-        new_string = new_string.replace(char,f"{var_df_2.loc[i, 'pattern']}")
+    new_string = process_text_variants(string)
     return JsonResponse({'new_string': new_string}, safe=False) 
 
 
