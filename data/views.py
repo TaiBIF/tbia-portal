@@ -15,7 +15,7 @@ from django.http import (
     HttpResponse,
 )
 import json
-from pages.templatetags.tags import highlight, get_variants
+from pages.templatetags.tags import highlight, process_text_variants
 import math
 import time
 import requests
@@ -749,14 +749,14 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     keyword = html.unescape(keyword)
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_reg = get_variants(keyword_reg)
+    keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
     keyword_name_reg = ''
     for j in keyword_name:
         keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_name_reg = get_variants(keyword_name_reg)
+    keyword_name_reg = process_text_variants(keyword_name_reg)
 
     if key == 'taxonID':
         for k in taxon_facets:
@@ -897,7 +897,7 @@ def get_records(request): # 全站搜尋
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
+        keyword_reg = process_text_variants(keyword_reg)
 
         search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}&orderby={orderby}&sort={sort}&limit={limit}&page={page}&from={from_str}&get_record=true'
 
@@ -994,7 +994,7 @@ def get_more_docs(request):
         keyword = html.unescape(keyword)
         for j in keyword:    
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else re.escape(j)
-        keyword_reg = get_variants(keyword_reg)
+        keyword_reg = process_text_variants(keyword_reg)
 
         doc_type = request.POST.get('doc_type', '')
         offset = request.POST.get('offset', '')
@@ -1719,7 +1719,7 @@ def get_locality(request):
     keyword = html.unescape(keyword)
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_reg = get_variants(keyword_reg)
+    keyword_reg = process_text_variants(keyword_reg)
 
     record_type = ''
     if request.GET.get('record_type') == 'col':
@@ -1805,7 +1805,7 @@ def get_dataset(request):
     keyword_reg = ''
     for j in keyword:
         keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-    keyword_reg = get_variants(keyword_reg)
+    keyword_reg = process_text_variants(keyword_reg)
 
 
     # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
@@ -1833,7 +1833,7 @@ def get_higher_taxa(request):
     taxon_id = request.GET.get('taxon_id','')
     ds = '[]'
     if keyword_str := request.GET.get('keyword','').strip():
-        keyword_str = get_variants(keyword_str)
+        keyword_str = process_text_variants(keyword_str)
         # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
             query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
@@ -1927,7 +1927,7 @@ def search_full(request):
         keyword_reg = ''
         for j in keyword:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
-        keyword_reg = get_variants(keyword_reg)
+        keyword_reg = process_text_variants(keyword_reg)
 
         # news
         news = News.objects.filter(lang=lang,status='pass',type='news').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
