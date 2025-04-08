@@ -1,5 +1,9 @@
 version: '3.7'
 
+networks:
+  gateway:
+    external: true
+
 services:
   web:
     build: .
@@ -24,6 +28,20 @@ services:
       - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      # - internal
+      - gateway
+    labels:  # redirecting http to https and defining routers and using tcl certresolver
+      - "traefik.enable=true"
+      # - "traefik.docker.network: gateway2"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.web.entrypoints=web"
+      # - "traefik.http.routers.admin.rule=Host(`mk.getalice.ai`)"
+      # - "traefik.http.routers.admin.middlewares=redirect-https@docker"
+      - "traefik.http.routers.web.rule=Host(`tbiadata.tw`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=myresolver"
+
     # environment:
     #   - POSTGRES_HOST=postgres
     #   - POSTGRES_PORT=5432
@@ -43,19 +61,25 @@ services:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=tbia
       - PGDATA=/var/lib/postgresql/data/pgdata
-  nginx:
+    networks:
+      # - internal
+      - gateway
+  nginx-portal:
     image: nginx:1.19.10-alpine
+    container_name: nginx-portal
     restart: always
-    ports:
-      - 80:80
-      - 443:443
+    # ports:
+    #   - 80:80
+    #   - 443:443
     volumes:
       - ./scripts/nginx/production:/etc/nginx/conf.d
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/logs/nginx:/var/log/nginx
-      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
-      - ../tbia-volumes/certbot/www:/var/www/certbot
+      # - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+      # - ../tbia-volumes/certbot/www:/var/www/certbot
+    depends_on:
+      - web
     links:
       - web:web
     logging:
@@ -63,7 +87,12 @@ services:
       options:
         max-size: "1m"
         max-file: "3"
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-portal.rule=Host(`tbiadata.tw`)"
+      - "traefik.http.routers.nginx-portal.entrypoints=websecure"
+      - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
+    # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   # solr:
   #   restart: always
   #   build: ./solr-workspace
@@ -77,9 +106,9 @@ services:
   #     # - ./solr-workspace/solr.in.sh.orig:/opt/solr-8.11.1/bin/solr.in.sh.orig
   #   environment:
   #     - SOLR_JAVA_MEM=-Xms4g -Xmx4g
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ../tbia-volumes/certbot/conf:/etc/letsencrypt
-      - ../tbia-volumes/certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  # certbot:
+  #   image: certbot/certbot
+  #   volumes:
+  #     - ../tbia-volumes/certbot/conf:/etc/letsencrypt
+  #     - ../tbia-volumes/certbot/www:/var/www/certbot
+  #   entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
