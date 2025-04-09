@@ -21,7 +21,6 @@ services:
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/solr:/tbia-volumes/solr
-    # command: "./scripts/docker-web-entry.sh"
     command: "./scripts/wait-for-it.sh solr:8983 -t 5 -- ./scripts/docker-web-entry.sh"
     restart: always
     env_file:
@@ -29,25 +28,14 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      # - internal
       - gateway
     labels:  # redirecting http to https and defining routers and using tcl certresolver
       - "traefik.enable=true"
-      # - "traefik.docker.network: gateway2"
       - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
       - "traefik.http.routers.web.entrypoints=web"
-      # - "traefik.http.routers.admin.rule=Host(`mk.getalice.ai`)"
-      # - "traefik.http.routers.admin.middlewares=redirect-https@docker"
       - "traefik.http.routers.web.rule=Host(`dev.tbiadata.tw`)"
       - "traefik.http.routers.web.entrypoints=websecure"
       - "traefik.http.routers.web.tls.certresolver=myresolver"
-
-    # environment:
-    #   - POSTGRES_HOST=postgres
-    #   - POSTGRES_PORT=5432
-    #   - POSTGRES_USER=postgres
-    #   - POSTGRES_PASSWORD=example
-    #   - POSTGRES_DB=tbia
   postgres:
     image: postgres:13-alpine
     container_name: tbia-db-stag-container
@@ -63,7 +51,6 @@ services:
       - POSTGRES_DB=tbia
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
-      # - internal
       - gateway
   nginx-portal:  # nginx to serve static files
     image: nginx:latest
