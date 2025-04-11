@@ -1,24 +1,20 @@
-version: '3.7'
-
 services:
   web:
+    platform: linux/amd64
     build: .
     container_name: tbia-web-dev-container
     image: tbia-web-dev-image
     ports:
-      - 8006:8006
+      - 8000:8000
     depends_on:
       - postgres
-    # links:
-    #   - postgres:postgres
     volumes:
       - .:/code
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/solr:/tbia-volumes/solr
-    # command: "./scripts/wait-for-it.sh db:5432 -t 5 -- ./scripts/docker-web-dev-entry.sh"
-    #command: "./scripts/wait-for-it.sh db:5432 -t 5 -- ./scripts/docker-web-entry.sh"
+      - ../tbia-volumes/logs:/logs
     restart: always
     env_file:
       - .env
@@ -33,10 +29,12 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
   postgres:
-    # build: ./postgres
+    platform: linux/amd64
     container_name: tbia-db-container
     image: postgres:13-alpine
     restart: always
+    ports:
+      - 5431:5432
     volumes:
       - ../tbia-volumes/pgdata:/var/lib/postgresql/data/pgdata
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
@@ -44,20 +42,4 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=tbia
-      - PGDATA=/var/lib/postgresql/data/pgdata:Z
-  # redis:
-  #   image: redis:5-alpine
-  #   restart: always
-  solr:
-    build: ./solr-workspace
-    image: solr:8.11.1
-    container_name: tbia-solr
-    ports:
-      - "8983:8983"
-    restart: always
-    volumes:
-      - ../tbia-volumes/solr:/var/solr
-      - ./solr-workspace/:/workspace
-    command:
-      - solr-precreate
-      - tbia_records
+      - PGDATA=/var/lib/postgresql/data/pgdata

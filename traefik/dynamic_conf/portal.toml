@@ -1,7 +1,0 @@
-[http.routers.web]
-  rule = "Host(`tbiadata.tw`)"
-  entrypoints = ["websecure"]
-  service = "web@docker"
-  [http.routers.web.tls]
-    certResolver = "lets-encrypt"
-
