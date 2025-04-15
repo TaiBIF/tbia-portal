@@ -2607,6 +2607,7 @@ def get_temporal_stat(request):
                 if not len(df[df.year==yy]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'year': str(yy)}])])
             df = df.reset_index(drop=True)
+            df['year'] = df.year.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('year')['total_count'].to_list(), 'color': colors[0] })
 
         else:
@@ -2618,6 +2619,7 @@ def get_temporal_stat(request):
                     if not len(df[(df.rights_holder==x)&(df.year==yy)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'year': str(yy)}])])
                 df = df.reset_index(drop=True)
+                df['year'] = df.year.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year')['total_count'].to_list(), 'color': colors[c] })
                 c += 1
 
@@ -2674,10 +2676,9 @@ def get_temporal_stat(request):
                 if not len(df[df.month==mm]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'month': mm}])])
             df = df.reset_index(drop=True)
+            df['month'] = df.month.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('month')['total_count'].to_list(), 'color': colors[0] })
-
         else:
-
             r_list = df.rights_holder.unique()
             r_list.sort() # 確保同一個來源資料庫是同一個顏色
             c = 0
@@ -2686,6 +2687,7 @@ def get_temporal_stat(request):
                     if not len(df[(df.rights_holder==x)&(df.month==mm)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'month': mm}])])
                 df = df.reset_index(drop=True)
+                df['month'] = df.month.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('month')['total_count'].to_list(), 'color': colors[c] })
                 c += 1
 
