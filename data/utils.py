@@ -2105,12 +2105,12 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
         prefix_number = '1' # 正式站
     else:
         prefix_number = '2' # 測試站
-
     if data_type == 'news':
         prefix_char = 'n' # 文章
+    elif data_type == 'docs':
+        prefix_char = 'c' # 文件網站
     else:
         prefix_char = 'd' # 資料
-
     new_ark = prefix_char + prefix_number + ''.join(random.choice(chars) for _ in range(size))
     # 要確認有沒有存在在資料庫中
     is_new_ark = False

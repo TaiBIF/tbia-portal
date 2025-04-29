@@ -3071,3 +3071,8 @@ msgstr "Search conditions can be converted"
 #:
 msgid "不可對應查詢"
 msgstr "Search conditions cannot be converted"
+
+
+#:
+msgid "公開文件"
+msgstr "Documentations"
