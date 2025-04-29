@@ -428,6 +428,8 @@ def get_ark_list(request):
 
         if type == 'news':
             url = f"{scheme}://{request.get_host()}/news/detail/{x.model_id}"
+        elif type == 'docs':
+            url = f'https://tbia.github.io/docs/{x.model_id}/'
         else:
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
             
