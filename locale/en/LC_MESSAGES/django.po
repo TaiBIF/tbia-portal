@@ -2312,8 +2312,8 @@ msgid "限制回傳筆數。預設20筆，上限1000"
 msgstr "Controls the number of results in the page. By default limit is 20. The limit can be a maximum of 1000 for a single request."
 
 #:
-msgid "各查詢參數均可做聯集與交集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。"
-msgstr "Each query parameter can be used for union and intersection queries. When multiple values ​​are queried using the same parameter at the same time, the union will be taken; when different parameters are queried at the same time, the intersection will be taken."
+msgid "各查詢參數均可做交集查詢，部分參數可做聯集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。"
+msgstr "Each query parameter supports intersection queries, and some parameters also support union queries. When querying multiple values using the same parameter, a union will be applied; when querying different parameters at the same time, an intersection will be applied."
 
 
 #:
@@ -2321,25 +2321,66 @@ msgid "使用本網站之入口網ID取得指定的出現紀錄資料"
 msgstr "Get record by TBIA ID"
 
 #:
-msgid "取得指定TaiCOL物種編號的物種資料"
+msgid "取得指定紀錄類型的出現紀錄資料"
+msgstr "List records by basis of record"
+
+#:
+msgid "取得指定數量的出現紀錄資料"
+msgstr "List records by organism quantity"
+
+#:
+msgid "取得指定TaiCOL物種編號的出現紀錄資料"
 msgstr "List records by TaiCOL taxon ID"
+
+#:
+msgid "取得指定鑑定層級的出現紀錄資料，包含："
+msgstr "List records by taxon rank, including: "
+
+#:
+msgid "取得指定較高分類群的出現紀錄資料，請以TaiCOL物種編號指定"
+msgstr "List records by higher taxon (using TaiCOL taxon ID)"
 
 #:
 msgid "是否為自然史典藏資料，是=true，否=false"
 msgstr "List records by if the record is a natural history collection. Yes = true, No = false."
 
 #:
-msgid "取得指定來源資料庫 / 典藏單位的物種出現紀錄資料"
-msgstr "List records by rights holder"
+msgid "是否為原生種，是=true，否=false"
+msgstr "List records by if the record is a native species. Yes = true, No = false."
 
 #:
-msgid "使用本網站之資料集ID取得指定的物種出現紀錄資料"
-msgstr "List records by TBIA dataset ID"
+msgid "是否為保育類，是=true，否=false"
+msgstr "List records by if the record is a protected species. Yes = true, No = false."
+
+#:
+msgid "有無影像，是=true，否=false"
+msgstr "List records by if the record has associated media. Yes = true, No = false."
+
+#:
+msgid "取得指定來源資料庫 / 典藏單位的出現紀錄資料，可複數查詢"
+msgstr "List records by rights holder (Multiple values allowed)"
+
+#:
+msgid "取得指定學名/中文名/中文別名/同物異名/誤用名的出現紀錄資料"
+msgstr "List records by scientific name / common name / synonym / misapplied name"
 
 
 #:
-msgid "取得指定資料集的物種出現紀錄資料"
-msgstr "List records by dataset name"
+msgid "使用本網站之資料集ID取得指定的出現紀錄資料，可複數查詢"
+msgstr "List records by TBIA dataset ID (Multiple values allowed)"
+
+#:
+msgid "取得指定物種類群的出現紀錄資料"
+msgstr "List records by biological group"
+
+#:
+msgid "控制詞彙"
+msgstr "Controlled vocabularies"
+
+
+#:
+msgid "取得指定資料集的出現紀錄資料，可複數查詢"
+msgstr "List records by dataset name (Multiple values allowed)"
 
 #:
 msgid "紀錄日期，日期格式：yyyy-mm-dd。支援區間查詢"
@@ -2354,15 +2395,43 @@ msgid "資料更新時間，日期格式：yyyy-mm-dd。支援區間查詢"
 msgstr "List records by modified date (TBIA portal). Supports range queries."
 
 #:
-msgid "取得指定四邊形座標範圍內物種出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}"
+msgid "取得指定資料集聯絡人的出現紀錄資料"
+msgstr "List records by resource contacts"
+
+#:
+msgid "取得指定記錄者的出現紀錄資料"
+msgstr "List records by recorder"
+
+#:
+msgid "取得指定保存方式的出現紀錄資料"
+msgstr "List records by preservation"
+
+#:
+msgid "取得指定標本類型的出現紀錄資料（一般 / 模式）"
+msgstr "List records by type status"
+
+#:
+msgid "取得指定出現地的出現紀錄資料，可複數查詢"
+msgstr "List records by a locality (Multiple values allowed)"
+
+#:
+msgid "取得指定縣市的出現紀錄資料"
+msgstr "List records by a county"
+
+#:
+msgid "取得指定鄉鎮市區的出現紀錄資料"
+msgstr "List records by a municipality"
+
+#:
+msgid "取得指定四邊形座標範圍內出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}"
 msgstr "List records by a bounding box. Specified by={max longitude},{max latitude},{min longitude},{min latitude}."
 
 #:
-msgid "取得指定多邊形座標範圍內物種出現紀錄資料，僅支援WKT格式"
+msgid "取得指定多邊形座標範圍內出現紀錄資料，僅支援WKT格式"
 msgstr "List records by a polygon. Only WKT format is supported."
 
 #:
-msgid "取得指定圓形座標範圍內物種出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里"
+msgid "取得指定圓形座標範圍內出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里"
 msgstr "List records by a circle. Specified by={longitude of centre},{latitude of centre},{radius in KM}."
 
 #:
@@ -2579,10 +2648,14 @@ msgid "使用來源資料庫 / 典藏單位之物種出現紀錄ID取得指定�
 msgstr "Get record by occurrenceID"
 
 
-
 #:
 msgid "使用來源典藏單位之館藏號取得指定的出現紀錄資料"
 msgstr "Get record by catalogNumber"
+
+
+#:
+msgid "使用來源典藏單位之採集號取得指定的出現紀錄資料"
+msgstr "Get record by recordNumber"
 
 
 #:
@@ -2728,7 +2801,7 @@ msgstr "List dataset by dataset name, supporting partial matching"
 
 #:
 msgid "取得含括指定物種類群的資料集"
-msgstr "List dataset that include the specified taxon group"
+msgstr "List dataset that include the specified biological group"
 
 
 #:
@@ -2838,7 +2911,7 @@ msgstr "Dataset License"
 
 #:
 msgid "含括物種類群"
-msgstr "Taxonomic Groups Included in the Dataset"
+msgstr "Biological Groups Included in the Dataset"
 
 
 #:
@@ -2957,7 +3030,7 @@ msgstr "Retrieve grid data by TaiCOL taxon ID."
 
 #:
 msgid "取得含括指定物種類群的網格資料"
-msgstr "Retrieve grid data that include the specified taxon group"
+msgstr "Retrieve grid data that include the specified biological group"
 
 
 #:

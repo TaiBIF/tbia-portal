@@ -110,10 +110,40 @@
 							<td><a href="/api/v1/occurrence?catalogNumber=186874" target="_blank">/api/v1/occurrence?catalogNumber=186874</a></td>
 						</tr>
 						<tr>
+							<td>recordNumber</td>
+							<td>string</td>
+							<td>{% trans '使用來源典藏單位之採集號取得指定的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?recordNumber=218114" target="_blank">/api/v1/occurrence?recordNumber=218114</a></td>
+						</tr>
+						<tr>
+							<td>name</td>
+							<td>string</td>
+							<td>{% trans '取得指定學名/中文名/中文別名/同物異名/誤用名的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?name=小白鷺" target="_blank">/api/v1/occurrence?name=小白鷺</a></td>
+						</tr>
+						<tr>
 							<td>taxonID</td>
 							<td>string</td>
-							<td>{% trans '取得指定TaiCOL物種編號的物種資料' %}</td>
+							<td>{% trans '取得指定TaiCOL物種編號的出現紀錄資料' %}</td>
 							<td><a href="/api/v1/occurrence?taxonID=t0052516" target="_blank">/api/v1/occurrence?taxonID=t0052516</a></td>
+						</tr>
+						<tr>
+							<td>higherTaxon</td>
+							<td>string</td>
+							<td>{% trans '取得指定較高分類群的出現紀錄資料，請以TaiCOL物種編號指定' %}</td>
+							<td><a href="/api/v1/occurrence?higherTaxon=t0002476" target="_blank">/api/v1/occurrence?higherTaxon=t0002476</a></td>
+						</tr>
+						<tr>
+							<td>bioGroup</td>
+							<td>string</td>
+							<td>{% trans '取得指定物種類群的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?bioGroup=鳥類" target="_blank">/api/v1/occurrence?bioGroup=鳥類</a></td>
+						</tr>
+						<tr>
+							<td>taxonRank</td>
+							<td>string</td>
+							<td>{% trans '取得指定鑑定層級的出現紀錄資料，包含：' %}kingdom, phylum, class, order, family, genus, species, infraspecies</td>
+							<td><a href="/api/v1/occurrence?taxonRank=infraspecies" target="_blank">/api/v1/occurrence?taxonRank=infraspecies</a></td>
 						</tr>
 						<tr>
 							<td>isCollection</td>
@@ -122,31 +152,125 @@
 							<td><a href="/api/v1/occurrence?isCollection=true" target="_blank">/api/v1/occurrence?isCollection=true</a></td>
 						</tr>
 						<tr>
+							<td>isNative</td>
+							<td>boolean</td>
+							<td>{% trans '是否為原生種，是=true，否=false' %}</td>
+							<td><a href="/api/v1/occurrence?isNative=true" target="_blank">/api/v1/occurrence?isNative=true</a></td>
+						</tr>
+						<tr>
+							<td>isProtected</td>
+							<td>boolean</td>
+							<td>{% trans '是否為保育類，是=true，否=false' %}</td>
+							<td><a href="/api/v1/occurrence?isProtected=true" target="_blank">/api/v1/occurrence?isProtected=true</a></td>
+						</tr>
+						<tr>
+							<td>imagePresence</td>
+							<td>boolean</td>
+							<td>{% trans '有無影像，是=true，否=false' %}</td>
+							<td><a href="/api/v1/occurrence?imagePresence=true" target="_blank">/api/v1/occurrence?imagePresence=true</a></td>
+						</tr>
+						<tr>
 							<td>rightsHolder</td>
 							<td>string</td>
-							<td>{% trans  '取得指定來源資料庫 / 典藏單位的物種出現紀錄資料' %}</td>
+							<td>{% trans  '取得指定來源資料庫 / 典藏單位的出現紀錄資料，可複數查詢' %}</td>
 							<td><a href="/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a></td>
+						</tr>
+						<tr>
+							<td>recordedBy</td>
+							<td>string</td>
+							<td>{% trans  '取得指定記錄者的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?recordedBy=志工小組" target="_blank">/api/v1/occurrence?recordedBy=志工小組</a></td>
+						</tr>
+						<tr>
+							<td>resourceContacts</td>
+							<td>string</td>
+							<td>{% trans  '取得指定資料集聯絡人的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊" target="_blank">/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊</a></td>
 						</tr>
 						<tr>
 							<td>tbiaDatasetID</td>
 							<td>string</td>
-							<td>{% trans '使用本網站之資料集ID取得指定的物種出現紀錄資料' %}</td>
+							<td>{% trans '使用本網站之資料集ID取得指定的出現紀錄資料，可複數查詢' %}</td>
 							<td><a href="/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438" target="_blank">/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438</a></td>
 						</tr>
 						<tr>
 							<td>datasetName</td>
 							<td>string</td>
-							<td>{% trans '取得指定資料集的物種出現紀錄資料' %}</td>
+							<td>{% trans '取得指定資料集的出現紀錄資料，可複數查詢' %}</td>
 							<td><a href="/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）" target="_blank">/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）</a></td>
+						</tr>
+						<tr>
+							<td>basisOfRecord</td>
+							<td>string</td>
+							<td>{% trans '取得指定紀錄類型的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?basisOfRecord=HumanObservation" target="_blank">/api/v1/occurrence?basisOfRecord=HumanObservation</a></td>
 						</tr>
 						<tr>
 							<td>eventDate</td>
 							<td>date</td>
 							<td>{% trans '紀錄日期，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
 							<td><a href="/api/v1/occurrence?eventDate=2021-10-21" target="_blank">/api/v1/occurrence?eventDate=2021-10-21</a>
-								{% comment %} <br>
-								<a href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a> {% endcomment %}
 							</td>
+						</tr>
+						<tr>
+							<td>preservation</td>
+							<td>string</td>
+							<td>{% trans '取得指定保存方式的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?preservation=針插標本" target="_blank">/api/v1/occurrence?preservation=針插標本</a></td>
+						</tr>
+						<tr>
+							<td>typeStatus</td>
+							<td>string</td>
+							<td>{% trans '取得指定標本類型的出現紀錄資料（一般 / 模式）' %}</td>
+							<td><a href="/api/v1/occurrence?typeStatus=模式" target="_blank">/api/v1/occurrence?typeStatus=模式</a></td>
+						</tr>
+						<tr>
+							<td>organismQuantity</td>
+							<td>number</td>
+							<td>{% trans '取得指定數量的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?organismQuantity=100" target="_blank">/api/v1/occurrence?organismQuantity=100</a></td>
+						</tr>
+						<tr>
+							<td>locality</td>
+							<td>string</td>
+							<td>{% trans '取得指定出現地的出現紀錄資料，可複數查詢' %}</td>
+							<td><a href="/api/v1/occurrence?locality=高雄市" target="_blank">/api/v1/occurrence?locality=高雄市</a></td>
+						</tr>
+						<tr>
+							<td>county</td>
+							<td>string</td>
+							<td>{% trans '取得指定縣市的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?county=高雄市" target="_blank">/api/v1/occurrence?county=高雄市</a></td>
+						</tr>
+						<tr>
+							<td>municipality</td>
+							<td>string</td>
+							<td>{% trans '取得指定鄉鎮市區的出現紀錄資料' %}</td>
+							<td><a href="/api/v1/occurrence?municipality=楠梓區" target="_blank">/api/v1/occurrence?municipality=楠梓區</a></td>
+						</tr>
+						<tr>
+							<td>boundedBy</td>
+							<td>string</td>
+							<td>{% trans '取得指定四邊形座標範圍內出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}</td>
+							<td><a href="/api/v1/occurrence?boundedBy=122,24,121,23" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23</a></td>
+						</tr>
+						<tr>
+							<td>polygon</td>
+							<td>string</td>
+							<td>{% trans '取得指定多邊形座標範圍內出現紀錄資料，僅支援WKT格式' %}</td>
+							<td><a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a></td>
+						</tr>
+						<tr>
+							<td>circle</td>
+							<td>string</td>
+							<td>{% trans '取得指定圓形座標範圍內出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里' %}</td>
+							<td><a href="/api/v1/occurrence?circle=122.51,24.9,10" target="_blank">/api/v1/occurrence?circle=122.51,24.9,10</a></td>
+						</tr>
+						<tr>
+							<td>apikey</td>
+							<td>string</td>
+							<td>{% trans '限制型API金鑰' %}</td>
+							<td><a href="/api/v1/occurrence?apikey={yourAPIkey}" target="_blank">/api/v1/occurrence?apikey={yourAPIkey}</a></td>
 						</tr>
 						<tr>
 							<td>created</td>
@@ -159,30 +283,6 @@
 							<td>date</td>
 							<td>{% trans '資料更新時間，日期格式：yyyy-mm-dd。支援區間查詢' %}</td>
 							<td><a href="/api/v1/occurrence?modified=2023-05-09" target="_blank">/api/v1/occurrence?modified=2023-05-09</a></td>
-						</tr>
-						<tr>
-							<td>boundedBy</td>
-							<td>string</td>
-							<td>{% trans '取得指定四邊形座標範圍內物種出現紀錄資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}</td>
-							<td><a href="/api/v1/occurrence?boundedBy=122,24,121,23" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23</a></td>
-						</tr>
-						<tr>
-							<td>polygon</td>
-							<td>string</td>
-							<td>{% trans '取得指定多邊形座標範圍內物種出現紀錄資料，僅支援WKT格式' %}</td>
-							<td><a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a></td>
-						</tr>
-						<tr>
-							<td>circle</td>
-							<td>string</td>
-							<td>{% trans '取得指定圓形座標範圍內物種出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里' %}</td>
-							<td><a href="/api/v1/occurrence?circle=122.51,24.9,10" target="_blank">/api/v1/occurrence?circle=122.51,24.9,10</a></td>
-						</tr>
-						<tr>
-							<td>apikey</td>
-							<td>string</td>
-							<td>{% trans '限制型API金鑰' %}</td>
-							<td><a href="/api/v1/occurrence?apikey={yourAPIkey}" target="_blank">/api/v1/occurrence?apikey={yourAPIkey}</a></td>
 						</tr>
 					</table>
 					*{% trans '區間查詢請用半形逗號分隔起迄時間' %}
@@ -267,7 +367,7 @@
 							<td>basisOfRecord</td>
 							<td>{% trans '紀錄類型' %}</td>
 							<td>string</td>
-							<td></td>
+							<td>{% trans '控制詞彙' %}：HumanObservation, MachineObservation, PreservedSpecimen, MaterialSample, LivingSpecimen, FossilSpecimen, MaterialCitation, MaterialEntity, Taxon, Occurrence, Event</td>
 						</tr>
 						<tr>
 							<td>catalogNumber</td>
@@ -537,7 +637,7 @@
 							<td>bioGroup</td>
 							<td>{% trans '物種類群' %}</td>
 							<td>string</td>
-							<td></td>
+							<td>{% trans '控制詞彙' %}：昆蟲、蜘蛛、魚類、兩棲類、爬蟲類、鳥類、哺乳類、維管束植物、蕨類植物、苔蘚植物、藻類、病毒、真菌、細菌</td>
 						</tr>
 						<tr>
 							<td>taxonRank</td>
@@ -968,7 +1068,7 @@
 					<h4>{% trans '複合查詢' %}{% trans '：' %}</h4>
 				</div>
 				<div class="mb_scroll">
-					{% trans '各查詢參數均可做聯集與交集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。' %}
+					{% trans '各查詢參數均可做交集查詢，部分參數可做聯集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。' %}
 					<br>
 					{% trans '範例網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF</a>
 				</div>
