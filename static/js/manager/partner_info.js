@@ -408,7 +408,7 @@ function update_user_status(current_id) {
         data: {
             'user_id': current_id,
             'csrfmiddlewaretoken': $csrf_token,
-            'role': $('select[name=role]').find(':selected').val(),
+            'role': $(`select[name=role][data-id=${current_id}]`).find(':selected').val(),
             'status': $(`select[name="status"][data-id=${current_id}]`).val(),
         },
         type: 'POST',
