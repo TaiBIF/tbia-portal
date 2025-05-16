@@ -2082,3 +2082,56 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
             send_notification([u.id],content,'單次使用敏感資料申請通知')
+
+
+
+# 給工具使用的API
+def get_taxon_by_region(request):
+
+    is_in_taiwan = request.GET.get('is_in_taiwan')
+    exclude_cultured = request.GET.get('exclude_cultured')
+    county = request.GET.get('county')
+    municipality = request.GET.get('municipality')
+
+    query_list = []
+    # query_list.append('is_deleted:false')
+
+    if is_in_taiwan == 'yes':
+        query_list.append('is_in_taiwan:true')
+
+    if exclude_cultured == 'yes':
+        query_list.append('-alien_type:cultured')
+
+    if county:
+        query_list.append('county:"{}"'.format(county))
+
+    if municipality:
+        query_list.append('municipality:"{}"'.format(municipality))
+
+    # 階層要限定在科以下
+
+    selected_ranks = rank_list[rank_list.index('family'):]
+    query_list.append('taxonRank:({})'.format(' OR '.join(selected_ranks)))
+
+
+    query = { "query": "*:*",
+        "limit": 0,
+        "filter": query_list,
+        "facet": {"taxonID": {
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'mincount': 1,
+                        'limit': -1,
+                        'offset': 0,
+                        'allBuckets': False,
+                        'numBuckets': False
+                  }}
+    }
+
+    query_req = json.dumps(query)
+
+    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+    resp = resp.json()
+    taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
+
+    return HttpResponse(json.dumps(taxon_ids), content_type='application/json')
