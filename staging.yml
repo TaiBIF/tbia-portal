@@ -55,7 +55,7 @@ services:
       - gateway
       - app_network
   nginx-portal:  # nginx to serve static files
-    image: nginx:nginx:1.26.0-alpine
+    image: nginx:1.26.0-alpine
     container_name: nginx-portal
     restart: always
     volumes:
