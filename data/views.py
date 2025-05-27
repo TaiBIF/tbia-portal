@@ -15,7 +15,7 @@ from django.http import (
     HttpResponse,
 )
 import json
-from pages.templatetags.tags import highlight, process_text_variants
+from pages.templatetags.tags import highlight, process_text_variants, extract_text_summary
 import math
 import time
 import requests
@@ -1018,7 +1018,7 @@ def get_more_docs(request):
             for x in news[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
-                    'content': highlight(x.content,keyword),
+                    'content': extract_text_summary(highlight(x.content,keyword)),
                     'id': x.id
                 })
             has_more = True if news[offset+6:].count() > 0 else False
@@ -1936,18 +1936,24 @@ def search_full(request):
         for x in news[:6]:
             news_rows.append({
                 'title': x.title,
-                'content': x.content,
+                # 'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
+
+
         event = News.objects.filter(lang=lang,status='pass',type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_event = event.count()
         event_rows = []
         for x in event[:6]:
             event_rows.append({
                 'title': x.title,
-                'content': x.content,
+                # 'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
+
+
         project = News.objects.filter(lang=lang,status='pass',type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_project = project.count()
         project_rows = []
@@ -1957,6 +1963,8 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
+
+
         datathon = News.objects.filter(lang=lang,status='pass',type='datathon').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_datathon = datathon.count()
         datathon_rows = []

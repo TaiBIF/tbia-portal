@@ -9,6 +9,7 @@ from django.utils.translation import get_language, gettext
 import pandas as pd
 import json
 from typing import List, Dict
+from bs4 import BeautifulSoup
 
 register = template.Library()
 
@@ -80,6 +81,48 @@ def highlight(text, keyword, taxon_related=0):
     keyword = process_text_variants(re.escape(keyword))
     new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)
     return mark_safe(new_value)
+
+
+@register.simple_tag
+def extract_text_summary(html, context_len=40):
+    """
+    從 HTML 擷取第一個 <span class="col_red"> 及其前後 context_len 字，
+    其他 HTML 標籤會被移除，只保留該 span。
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    # 找到第一個 col_red 的 <span>
+    col_red_span = soup.find("span", class_="col_red")
+    if not col_red_span:
+        # 沒有就回傳純文字摘要（無高亮）
+        text = soup.get_text(separator=' ', strip=True)
+        return text[:context_len * 2] + "..." if len(text) > context_len * 2 else text
+
+    # 取得該 span 的文字
+    keyword = col_red_span.get_text(strip=True)
+
+    # 把整體轉為純文字（沒有 HTML tag）
+    full_text = soup.get_text(separator=' ', strip=True)
+
+    # 找該文字在純文字中的位置
+    keyword_pos = full_text.find(keyword)
+    if keyword_pos == -1:
+        return full_text[:context_len * 2] + "..." if len(full_text) > context_len * 2 else full_text
+
+    # 前後字數範圍
+    start = max(keyword_pos - context_len, 0)
+    end = keyword_pos + len(keyword) + context_len
+    snippet_before = full_text[start:keyword_pos]
+    snippet_after = full_text[keyword_pos + len(keyword):end]
+
+    # 重新組裝：保留 <span> 包裹的內容
+    keyword_html = f'<span class="col_red">{keyword}</span>'
+    result = snippet_before + keyword_html + snippet_after
+
+    if end < len(full_text):
+        result += "..."
+
+    return result
 
 
 @register.filter

@@ -490,7 +490,7 @@
           {% for i in news.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content keyword %}</p>
+            <p>{{ i.content | safe }}</p>
           </li>
           {% endfor %}
         </ul>
@@ -523,7 +523,7 @@
           {% for i in event.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content keyword %}</p>
+            <p>{{ i.content | safe }}</p>
           </li>
           {% endfor %}
         </ul>
@@ -556,7 +556,7 @@
           {% for i in project.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content keyword %}</p>
+            <p>{{ i.content | safe }}</p>
           </li>
           {% endfor %}
         </ul>
@@ -589,7 +589,7 @@
           {% for i in datathon.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content keyword %}</p>
+            <p>{{ i.content | safe }}</p>
           </li>
           {% endfor %}
         </ul>
@@ -622,7 +622,7 @@
           {% for i in themeyear.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content keyword %}</p>
+            <p>{{ i.content | safe }}</p>
           </li>
           {% endfor %}
         </ul>

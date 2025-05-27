@@ -1,7 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700&display=swap"); /* theme.css */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap");
-
-/* .img_link img, .img_link>.show_box, .img_link .span {
+/* 
+.img_link img, .img_link>.show_box, .img_link .span {
     display: inline-block;
     *display: inline;
     *zoom: 1
@@ -519,8 +519,7 @@ body {
 
 @media only screen and (min-width: 1000px) {
     ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 8px
     }
 
     ::-webkit-scrollbar-thumb {
@@ -546,7 +545,7 @@ body {
     background: #FFF;
     height: 100px;
     position: fixed;
-    z-index: 59;
+    z-index: 51;
     top: 0;
     left: 0
 }
@@ -874,7 +873,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0px 20px;
-    min-width: 140px;
+    min-width: 130px;
     color: #555;
     height: 100%;
     text-align: center;
@@ -893,7 +892,7 @@ body {
 
 @media only screen and (max-width: 1599px) {
     .header .right_menu li a.big_title {
-        /* min-width: 115px; */
+        min-width: 115px;
         padding: 0px 10px
     }
 }
@@ -1448,7 +1447,7 @@ body {
 @media only screen and (max-width: 999px) {
     .header .right_btn2 .top-search .searchbox {
         position: fixed;
-        width: 100%;
+        width: 100vw;
         top: 60px;
         left: 0;
         opacity: 1;
@@ -1797,14 +1796,14 @@ body {
 @media only screen and (max-width: 999px) {
     .section_1 {
         padding-top: 60px;
-        height: 600px
+        height: 660px
     }
 }
 
 @media only screen and (max-width: 767px) {
     .section_1 {
         padding-top: 60px;
-        height: 500px
+        height: initial
     }
 }
 
@@ -1835,12 +1834,13 @@ body {
     margin-top: -5%;
     position: relative;
     z-index: 6;
-    max-width: 800px
+    max-width: 860px
 }
 
 @media only screen and (max-width: 767px) {
     .section_1 .content_area {
-        padding: 0px 15px
+        padding: 32vw 15px 30vw 15px;
+        margin-bottom: 60px
     }
 }
 
@@ -1856,7 +1856,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_1 .content_area h2 {
-        font-size: 26px;
+        font-size: 6.3vw;
         line-height: 38px;
         margin-bottom: 10px
     }
@@ -1874,9 +1874,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_1 .content_area p {
-        font-size: 16px;
-        line-height: 20px;
-        margin-bottom: 10px
+        font-size: 16px
     }
 }
 
@@ -1953,7 +1951,7 @@ body {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s;
-    margin: 0px 10px;
+    margin: 0px 5px;
     margin-bottom: 10px
 }
 
@@ -1989,8 +1987,8 @@ body {
 }
 
 .section_1 .item_01 {
-    left: 0;
-    top: 0;
+    left: -5%;
+    top: -5%;
     position: absolute;
     width: calc((608/1920)*100%);
     z-index: 2
@@ -2132,14 +2130,14 @@ body {
 }
 
 .section_1 .item_08 {
-    left: 6.5%;
-    top: 47%;
+    left: 2%;
+    top: 40%;
     position: absolute;
-    width: calc((503/1920)*100%);
+    width: calc((450/1920)*100%);
     z-index: 1
 }
 
-@media only screen and (max-width: 1279px) {
+@media only screen and (max-width: 1599px) {
     .section_1 .item_08 {
         left: -7.5%
     }
@@ -2212,10 +2210,16 @@ body {
 
 .section_1 .topbox2 .main_center .itembox .bird {
     left: 6.5%;
-    top: -70%;
+    top: -75%;
     position: absolute;
     width: calc((346/590)*100%);
     z-index: 1
+}
+
+@media only screen and (max-width: 999px) {
+    .section_1 .topbox2 .main_center .itembox .bird {
+        width: 200px
+    }
 }
 
 @media only screen and (max-width: 767px) {
@@ -2351,11 +2355,11 @@ body {
     .section_2 .bg_rightline {
         width: 100%;
         right: 0;
-        bottom: 20%
+        bottom: 20%;
+        display: none
     }
 }
 
-/* TODO 確認這邊要不要修改 */
 .section_2 .bg_area {
     position: absolute;
     bottom: 0;
@@ -2460,7 +2464,9 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_2 .news_tab {
-        margin-bottom: 30px
+        margin-bottom: 30px;
+        width: 100%;
+        overflow: auto
     }
 }
 
@@ -2477,7 +2483,8 @@ body {
     .section_2 .news_tab li {
         margin: 0px 10px;
         font-size: 16px;
-        letter-spacing: 0
+        letter-spacing: 0;
+        white-space: nowrap
     }
 }
 
@@ -2500,6 +2507,17 @@ body {
     -o-transition: all .5s;
     -ms-transition: all .5s;
     -webkit-transition: all .5s
+}
+
+@media only screen and (max-width: 767px) {
+    .section_2 .news_tab li span {
+        bottom: 0;
+        height: 3px
+    }
+}
+
+.section_2 .news_tab li.now {
+    color: #3F5146
 }
 
 .section_2 .news_tab li.now span {
@@ -2611,8 +2629,8 @@ body {
 }
 
 .news_list li .imgbox .img_area {
-    /*background: url("/static/image/news_listdemo.jpg") no-repeat top center;
-    background-size: cover;*/
+    background: url("/static/image/news_listdemo.jpg") no-repeat top center;
+    background-size: cover;
     width: 100%;
     height: 100%;
     transition: all .3s;
@@ -2677,7 +2695,7 @@ body {
     min-width: 90px;
     height: 30px;
     text-align: center;
-    padding: 0px 5px;
+    padding: 0px 10px;
     border-radius: 15px;
     margin-right: 10px;
     font-size: 16px
@@ -2691,7 +2709,7 @@ body {
         font-size: 12px;
         min-width: 60px;
         margin-right: 5px;
-        /* padding: 0px 5px */
+        padding: 0px 5px
     }
 }
 
@@ -2835,7 +2853,7 @@ body {
 @media only screen and (max-width: 767px) {
     .section_3 {
         padding-top: 50px;
-        margin-bottom: 50px
+        margin-bottom: 20px
     }
 }
 
@@ -2891,7 +2909,7 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_3 .bg_area {
-        height: 450px
+        height: calc(100% - 70px)
     }
 }
 
@@ -2913,7 +2931,8 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_3 .bg_area .bg_item {
-        background-position: top left
+        background-position: bottom left;
+        background-size: 100% auto
     }
 }
 
@@ -3123,7 +3142,7 @@ body {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    /*max-height: 60px*/
+    /* max-height: 60px */
 }
 
 @media only screen and (max-width: 767px) {
@@ -3175,17 +3194,6 @@ body {
     line-height: 25px;
     text-transform: uppercase
 }
-
-/* .edu_list li .cate_dbox .cate-web {
-    height: 25px;
-    border-radius: 12px;
-    padding: 0px 10px;
-    margin-right: 10px;
-    font-size: 14px;
-    color: #FFF;
-    line-height: 25px;
-    text-transform: uppercase
-} */
 
 .edu_list li .cate_dbox .cate.pdf {
     background: #D22F2F
@@ -3289,22 +3297,21 @@ body {
     position: relative;
     width: 100%;
     overflow: hidden;
-    /* padding-bottom: 250px */
-    padding-bottom: 100px
+    padding-bottom: 390px
 }
 
-/* @media only screen and (max-width: 1279px) {
+@media only screen and (max-width: 1279px) {
     .section_4 {
-        padding-bottom: 100px
+        padding-bottom: 300px
     }
-} */
+}
 
 @media only screen and (max-width: 767px) {
     .section_4 {
-        padding-top: 0px;
-        padding-bottom: 50px
+        padding-top: 40px;
+        padding-bottom: 150px
     }
-} 
+}
 
 .section_4 .bg_rightline {
     position: absolute;
@@ -3362,8 +3369,10 @@ body {
 
 @media only screen and (max-width: 767px) {
     .section_4 .bg_area {
-        height: 350px;
-        top: initial;
+        height: 100%;
+        animation: none;
+        top: 0;
+        width: 100%;
         bottom: 12%
     }
 }
@@ -3382,6 +3391,13 @@ body {
     height: 100%;
     background: url("/static/image/section4bg.svg") no-repeat top center;
     background-size: cover
+}
+
+@media only screen and (max-width: 767px) {
+    .section_4 .bg_area .bg_item {
+        background-size: 100% auto;
+        background-position: bottom left
+    }
 }
 
 .section_4 .bg_area .ani {
@@ -3692,12 +3708,12 @@ body {
 }
 
 .section_1 {
-    min-height: 800px
+    min-height: 900px
 }
 
 @media only screen and (max-width: 999px) {
     .section_1 {
-        min-height: 660px
+        min-height: 700px
     }
 }
 
@@ -3708,22 +3724,23 @@ body {
 }
 
 .section_1 .topbox2 .main_center .itembox .bird .rel .event-message {
-    top: 80px;
     position: absolute;
     right: -250px;
     opacity: 0;
+    top: 80px;
+    font-size: 15px;
     animation: alphal20 0.5s 1.8s linear forwards
 }
 
 @media only screen and (max-width: 1599px) {
     .section_1 .topbox2 .main_center .itembox .bird .rel .event-message {
-        top: 80px
+        top: 50px
     }
 }
 
 @media only screen and (max-width: 999px) {
     .section_1 .topbox2 .main_center .itembox .bird .rel .event-message {
-        top: 50px
+        top: 30px
     }
 }
 
@@ -3760,7 +3777,7 @@ body {
     -webkit-transition: all .3s;
     border-radius: 30px;
     background: #C65454;
-    width: 260px;
+    width: 270px;
     position: relative;
     padding: 10px 15px;
     animation: eventbubble 0.5s 0s linear infinite
@@ -3798,7 +3815,7 @@ body {
 
 .section_1 .topbox2 .main_center .itembox .bird .rel .event-message .rel p {
     color: #FFF;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.4
 }
 
@@ -10037,6 +10054,137 @@ select[name=shownumber] {
 
 .qa_table td:nth-child(5) {
     width: 66px
+}
+
+.news-flexbox {
+    display: flex;
+    align-items: flex-start
+}
+
+@media only screen and (max-width: 767px) {
+    .news-flexbox {
+        flex-direction: column-reverse
+    }
+}
+
+.right-directory {
+    width: 260px;
+    flex: 0 0 auto;
+    margin-left: 20px;
+    max-height: 100%;
+    overflow: auto;
+    border-top: 2px solid #76A578;
+    top: 120px;
+    position: sticky;
+    background: #FFF;
+    border-radius: 10px;
+    padding: 15px
+}
+
+@media only screen and (max-width: 1599px) {
+    .right-directory {
+        width: 220px
+    }
+}
+
+@media only screen and (max-width: 999px) {
+    .right-directory {
+        width: 180px
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .right-directory {
+        width: 100%;
+        margin-bottom: 20px;
+        margin-left: 0;
+        position: relative;
+        top: initial
+    }
+}
+
+.right-directory .mb-cbtn {
+    display: none
+}
+
+@media only screen and (max-width: 767px) {
+    .right-directory .mb-cbtn {
+        display: flex;
+        justify-content: space-between
+    }
+
+    .right-directory .mb-cbtn p {
+        color: #76A578;
+        font-weight: bold
+    }
+}
+
+.right-directory .mb-cbtn.active {
+    margin-bottom: 10px
+}
+
+.right-directory .mb-cbtn.active .ardown {
+    transform: rotate(180deg)
+}
+
+.right-directory ul {
+    padding-left: 20px;
+    max-height: calc(100dvh - 200px)
+}
+
+@media only screen and (max-width: 767px) {
+    .right-directory ul {
+        display: none;
+        max-height: initial
+    }
+}
+
+.right-directory li {
+    list-style: disc;
+    margin-bottom: 5px
+}
+
+.right-directory li h2 {
+    font-size: 18px;
+    line-height: 1.4;
+    color: #3F5146;
+    margin-bottom: 3px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}
+
+@media only screen and (min-width: 1000px) {
+    .right-directory li h2:hover {
+        color: #76A578;
+        transition: all .3s;
+        -moz-transition: all .3s;
+        -o-transition: all .3s;
+        -ms-transition: all .3s;
+        -webkit-transition: all .3s
+    }
+}
+
+@media only screen and (max-width: 999px) {
+    .right-directory li h2 {
+        font-size: 16px
+    }
+}
+
+.right-directory li h3 {
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.4
+}
+
+.right-directory li .b-title {
+    display: block
+}
+
+.right-directory li .s-title {
+    display: block
 }
 
 @-webkit-keyframes item_01 {
