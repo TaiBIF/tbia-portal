@@ -274,31 +274,8 @@ $(document).ready(function () {
         $('.submit-transfer').removeClass('d-none')
     })
 
-
     $('.send-partial-transfer').on('click', function () {
-
-        // $.ajax({
-        //     url: "/get_partial_partner?query_id" + $('form#reviewForm input[name=query_id]').val(),
-        //     type: 'GET',
-        //     // data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
-        //     // dataType: 'json'
-        // })
-        //     .done(function (response) {
-        //         // alert('送出成功')
-        //         // window.location.reload()
-        //         for (p of response){
-        //             $('#partial-partner-select').html(``)
-        //         }
-
-                $('.partial-pop').removeClass('d-none')
-            // })
-            // .fail(function (xhr, status, errorThrown) {
-            //     alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-            //     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            // })
-
-
+        $('.partial-pop').removeClass('d-none')
     })
 
     $('.send-check').on('click', function () {
@@ -313,7 +290,7 @@ $(document).ready(function () {
             $('.submit-check').removeClass('d-none')
 
         } else {
-            alert('請完整填寫審查意見表格')
+            alert('請完整填寫審核意見表格')
         }
     })
 
@@ -515,7 +492,7 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
             
             if (sdr_id != ''){
 
-                // 審查意見
+                // 審核意見
                 if (is_transferred == 'True') {
                     $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted, .detail-pop .send-partial-transfer').addClass('d-none')
                     $('.send-transferred').removeClass('d-none')

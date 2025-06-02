@@ -16,6 +16,7 @@ urlpatterns = [
     path('manager/system/keyword', views.system_keyword, name='system_keyword'),
     path('manager/system/resource', views.system_resource, name='system_resource'),
     path('manager/system/qa', views.system_qa, name='system_qa'),
+    path('manager/apply/<query_id>', views.sensitive_apply_info, name='sensitive_apply_info'),
     # 登入 / 登出
     path('login', views.login_user, name='login'),
     path('logout', views.logout_user, name='logout'),

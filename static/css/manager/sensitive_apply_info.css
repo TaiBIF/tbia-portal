@@ -1,28 +1,3 @@
-.sensitive_apply_table td {
-    text-align: center !important;
-}
-
-
-.sensitive_apply_table td:nth-child(1), .sensitive_apply_table td:nth-child(2), .sensitive_apply_table td:nth-child(4), .sensitive_apply_table td:nth-child(5) , .sensitive_apply_table td:nth-child(6)  {
-    width: 16%;
-}
-
-.sensitive_apply_table td:nth-child(3) {
-    width: 20%;
-}
-
-/*
-.sensitive_apply_table td:nth-child(3) {
-    width: 30%;
-    font-size: 14px;
-    text-align: left;
-    word-break: break-all
-}
-
-
-.sensitive_apply_table td:nth-child(4) {
-    width: 20%;
-} */
 
 .send-submitted {
     background: #eee;
@@ -110,7 +85,7 @@
     background: #76A578;
     margin: auto 10px auto 0;
 }
-
+/* 
 .main_1240 input {
     padding: 0px 10px;
     border-radius: 5px;
@@ -119,7 +94,7 @@
     font-size: 16px;
     height: 35px;
     line-height: 35px;
-}
+} */
 
 .main_1240 select {
     padding: 0px 5px 0px;
@@ -183,7 +158,7 @@
 }
 
 .fs-14px {
-    font-size: 14px
+    font-size: 14px !important
 }
 
 .box-title {
@@ -198,16 +173,6 @@
 .mt-15px {
     margin-top: 15px
 }
-
-/* .table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
-}
-
-.table-flow .table_style1 {
-    width: max-content;
-    min-width: 100%;
-} */
 
 
 .form-flow {
@@ -330,3 +295,82 @@
 }
 
 
+
+.send-submitted {
+    background: #eee;
+    width: 100%;
+    font-size: 18px;
+    color: #444;
+    height: 50px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.send-transferred {
+    background: #eee;
+    width: 100%;
+    font-size: 18px;
+    color: #444;
+    height: 50px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+
+.send_bt {
+    width: 30%;
+}
+
+.table_style4 {
+    width: 100%
+}
+
+@media only screen and (max-width: 767px) {
+    .table_style4 {
+        width: 1000px
+    }
+}
+
+.table_style4 tr:first-child td {
+    border-bottom: 0px;
+    background: #3F5146;
+    color: #FFF;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px 10px
+}
+
+.table_style4 td {
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 10px 8px;
+    border-bottom: 1px solid #DDDDDD;
+    word-break: normal;
+    vertical-align: top;
+}
+
+@media only screen and (max-width: 1279px) {
+    .table_style4 td {
+        font-size: 14px
+    }
+}
+
+
+.table_style4 td:nth-child(1) {
+    width: 30%;
+
+}
+.table_style4 td:nth-child(2) {
+    width: 20%;
+
+}
+
+.table_style4 td:nth-child(3) {
+    width: 40%;
+    font-size: 14px;
+}
+
+
+.table_style4 td:nth-child(4) {
+    width: 20%;
+}

@@ -206,13 +206,14 @@
                     </div>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table once_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table">
                         <tr class="sensitive_apply_table_header">
                             <td>申請編號</td>
                             {% comment %} <td class="w-10p">檔案編號</td> {% endcomment %}
+                            <td>申請者</td>
                             <td>申請時間</td>
-                            <td>搜尋條件</td>
-                            <td>筆數</td>
+                            {% comment %} <td>搜尋條件</td>
+                            <td>筆數</td> {% endcomment %}
                             <td>狀態</td>
                             <td>申請資訊</td>
                             <td>檔案連結</td>
@@ -234,7 +235,7 @@
 </div>
 
 
-<!--審查意見popbox-->
+<!--審核意見popbox-->
 <div class="popbg detail-pop d-none">
 	<div class="ovhy"> 
 		<div class="wbox_center">
@@ -326,7 +327,7 @@
                             <p class="title">此批申請資料其他使用者</p>
                         </div>
                     </div>
-                    <button class="accordion fs-16px">審查意見</button>
+                    <button class="accordion fs-16px">審核意見</button>
                     <div class="form_box panel d-none form-flow fs-14px">
                         {% if not user.is_partner_admin %}
                         <fieldset disabled >

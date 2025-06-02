@@ -119,7 +119,7 @@ function showRequest(query_id, query, sdr_id) {
                 $('.apply_peo').append('<div class="item_set1 bg-transparent">無</div>')
             }
 
-            // 審查意見
+            // 審核意見
 
             if (response.review.status != 'pending') {
                 $('#reviewForm input[name=reviewer_name]').val(response.review.reviewer_name)
@@ -355,7 +355,7 @@ $(document).ready(function () {
         if (checked) {
             $('.submit-check').removeClass('d-none')
         } else {
-            alert('請完整填寫審查意見表格')
+            alert('請完整填寫審核意見表格')
         }
     })
 

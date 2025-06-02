@@ -870,23 +870,23 @@ msgid "下載名錄欄位說明文件"
 msgstr "Download Checklist Field Description Document"
 
 #: templates/manager/manager.html:328
-msgid "審查意見"
+msgid "審核意見"
 msgstr "Review Comments"
 
 #: templates/manager/manager.html:328
-msgid "審查結果"
+msgid "審核結果"
 msgstr "Review Outcome"
 
 #: templates/manager/manager.html:328
-msgid "審查單位"
+msgid "審核單位"
 msgstr "Reviewing Agency"
 
 #: templates/manager/manager.html:328
-msgid "審查者姓名"
+msgid "審核者姓名"
 msgstr "Reviewer"
 
 #: templates/manager/manager.html:328
-msgid "審查者結果"
+msgid "審核者結果"
 msgstr "Review Outcome"
 
 #: templates/manager/manager.html:398
@@ -3149,3 +3149,13 @@ msgstr "Search conditions cannot be converted"
 #:
 msgid "公開文件"
 msgstr "Documentations"
+
+
+#:
+msgid "同意上傳的話需要於兩年內回報"
+msgstr "If you agree to upload, please report within two years."
+
+
+#:
+msgid "申請資訊"
+msgstr "Apply Info"

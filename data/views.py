@@ -417,7 +417,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             # content_en = gettext(nn.get_type_display()).replace('0000', str(nn.content))
             content_en = f'The review of one-time sensitive data #{str(nn.content)} is finished. The review comments are as follows:<br><br>'
 
-            # 審查意見
+            # 審核意見
             comment = []
             comment_en = [] # 英文版
 
@@ -430,13 +430,13 @@ def generate_sensitive_csv(query_id, scheme, host):
                     partner_name_en = 'Taiwan Biodiversity Information Alliance'
                 comment.append(
                 f"""
-                <b>審查單位：</b>{partner_name}
+                <b>審核單位：</b>{partner_name}
                 <br>
-                <b>審查者姓名：</b>{sdr.reviewer_name}
+                <b>審核者姓名：</b>{sdr.reviewer_name}
                 <br>
-                <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+                <b>審核意見：</b>{sdr.comment if sdr.comment else "" }
                 <br>
-                <b>審查結果：</b>{sdr.get_status_display()}
+                <b>審核結果：</b>{sdr.get_status_display()}
                 """)
 
                 comment_en.append(
@@ -452,7 +452,7 @@ def generate_sensitive_csv(query_id, scheme, host):
 
             comment = '<hr>'.join(comment) if comment else ''
             comment_en = '<hr>'.join(comment_en) if comment_en else ''
-            content = content.replace('請至後台查看','審查意見如下：<br><br>')
+            content = content.replace('請至後台查看','審核意見如下：<br><br>')
             # content_en = content_en.replace(' Check your account panel.','The review comments are as follows:<br><br>')
             content += comment
             content_en += comment_en

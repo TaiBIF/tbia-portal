@@ -190,13 +190,14 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table once_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_apply_table">
                         <tr class="sensitive_apply_table_header">
                             <td>申請編號</td>
+                            <td>申請者</td>
                             <td>檔案編號</td>
                             <td>申請時間</td>
-                            <td>搜尋條件</td>
-                            <td>筆數</td>
+                            {% comment %} <td>搜尋條件</td> {% endcomment %}
+                            {% comment %} <td>筆數</td> {% endcomment %}
                             <td>狀態</td>
                             <td>申請資訊</td>
                             <td>檔案連結</td>
@@ -221,15 +222,17 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_track_table track_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_track_table">
                         <tr class="sensitive_track_table_header">
                             <td>申請編號</td>
+                            <td>申請者</td>
                             <td>檔案編號</td>
                             <td>申請時間</td>
-                            <td>搜尋條件</td>
-                            <td>審查意見</td>
-                            <td>檔案狀態</td>
-                            <td></td>
+                            <td>狀態</td>
+                            <td>申請資訊</td>
+                            {% comment %} <td>搜尋條件</td>
+                            <td>審查意見</td> {% endcomment %}
+                            {% comment %} <td></td> {% endcomment %}
                         </tr>
                     </table>
                 </div>
