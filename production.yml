@@ -54,7 +54,7 @@ services:
       - gateway
       - app_network
   nginx-portal:
-    image: nginx:1.19.10-alpine
+    image: nginx:1.26.0-alpine
     container_name: nginx-portal
     restart: always
     volumes:

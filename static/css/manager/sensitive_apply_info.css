@@ -1,114 +1,5 @@
 
-.sensitive_apply_table td, .sensitive_track_table td {
-    text-align: center !important;
-    word-break: break-all !important;
-}
-
-
-.sensitive_apply_table td:nth-child(1), .sensitive_apply_table td:nth-child(2), .sensitive_apply_table td:nth-child(4), .sensitive_apply_table td:nth-child(5) , .sensitive_apply_table td:nth-child(6)  {
-    width: 16%;
-}
-
-.sensitive_apply_table td:nth-child(3) {
-    width: 20%;
-}
-
-
-.sensitive_track_table td:nth-child(1), .sensitive_track_table td:nth-child(2), .sensitive_track_table td:nth-child(4), .sensitive_track_table td:nth-child(5)  {
-    width: 16%;
-}
-
-.sensitive_track_table td:nth-child(3) {
-    width: 20%;
-} 
-
-
-/* 
-.sensitive_apply_table td:nth-child(3) {
-    min-width: 125px;
-    max-width: 125px;
-
-}
-
-.sensitive_apply_table td:nth-child(4) {
-    width: 30%;
-    font-size: 14px;
-    text-align: left;
-    word-break: break-all
-}
-
-
-.sensitive_apply_table td:nth-child(5) {
-    width: 20%;
-    font-size: 14px;
-} */
-
-.applicant_list hr {
-    border: 1px dashed lightgrey;
-}
-
-
-
-/* 
-.feedback_table tr:not(:first-child) td:nth-child(6) {
-    white-space: pre-wrap;
-    text-align: left !important;
-}
-
- */
-
- .sensitive_track_table td:nth-child(2) {
-    min-width: 125px;
-    max-width: 125px;
-
-}
-
-
- .sensitive_track_table td:nth-child(3) {
-    text-align: center;
-    min-width: 150px;
-    max-width: 150px;
-}
-
-.sensitive_track_table td:nth-child(6),
-.sensitive_track_table td:nth-child(7)
- {
-    min-width: 95px
-}
-
-
-/* .sensitive_track_table tr:not(:first-child) td:nth-child(2), .sensitive_apply_table tr:not(:first-child) td:nth-child(2)  {
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-}
- */
-/* .track_table tr:not(:first-child) td:nth-child(1) {
-    word-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-} */
-/* 
-.sensitive_track_table tr:not(:first-child) td:nth-child(4), .sensitive_track_table tr:not(:first-child) td:nth-child(5) {
-    text-align: left
-}
- */
-
-td hr {
-    border-top: 1px dashed grey;
-}
-
 .send-submitted {
-    background: #eee;
-    width: 100%;
-    font-size: 18px;
-    color: #444;
-    height: 50px;
-    border-radius: 3px;
-    cursor: default;
-}
-
-.send-transferred {
     background: #eee;
     width: 100%;
     font-size: 18px;
@@ -121,7 +12,6 @@ td hr {
 .form_top .path_inf .riginf {
     display: block;
 }
-
 
 /* .accordion {
     background-color: #76A578;
@@ -136,29 +26,13 @@ td hr {
     transition: 0.4s;
     border-radius: 5px;
     margin-bottom: 10px;
-}
+} */
 
 .accordion.active, .accordion:hover {
     color: #FFF;
     background: #E2A460;
 
-} */
-
-/*
-.accordion::after {
-    content: '+';
-    font-size: 22px;
-    color: white;
-    margin-left: 5px;
 }
-
-.accordion:hover::after {
-    color: white;
-}
-
-.accordion.active:after {
-    content: "\2796";
-}*/
 
 
 .two_cont_area {
@@ -211,7 +85,7 @@ td hr {
     background: #76A578;
     margin: auto 10px auto 0;
 }
-
+/* 
 .main_1240 input {
     padding: 0px 10px;
     border-radius: 5px;
@@ -220,7 +94,7 @@ td hr {
     font-size: 16px;
     height: 35px;
     line-height: 35px;
-}
+} */
 
 .main_1240 select {
     padding: 0px 5px 0px;
@@ -279,8 +153,12 @@ td hr {
     }
 }
 
-.mt-15px {
-    margin-top: 15px
+.fs-16px {
+    font-size: 16px
+}
+
+.fs-14px {
+    font-size: 14px !important
 }
 
 .box-title {
@@ -288,19 +166,14 @@ td hr {
     color: black
 }
 
-/* .table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
+.w-50p {
+    width: 50%;
 }
 
-.table-flow .table_style1 {
-    width: max-content;
-    min-width: 100%;
-} */
-
-.a-left {
-    text-align: left
+.mt-15px {
+    margin-top: 15px
 }
+
 
 .form-flow {
     max-height: 300px;
@@ -315,22 +188,27 @@ td hr {
     background: transparent
 }
 
+.mt-15px {
+    margin-top: 15px
+}
+
+.mt-5px {
+    margin-top: 5px
+}
+
+.ml-20px {
+    margin-left: 20px
+}
+
 .fs-16px {
-    font-size: 16px !important
-}
-
-.fs-14px {
-    font-size: 14px !important
-}
-
-.f-italic {
-    font-style: italic;
+    font-size: 16px;
 }
 
 .search-again-icon {
     width: 12px;
     height: 12px;
 }
+
 
 .search-again-a path {
     fill: #76A578;
@@ -340,33 +218,12 @@ td hr {
     fill: #E2A460;
 }
 
-.search-again-a, .applicant_report {
+.search-again-a {
     color: #76A578;
 }
 
-.search-again-a:hover, .applicant_report:hover {
+.search-again-a:hover {
     color: #E2A460;
-}
-
-/* feedback表格內按鈕 */
-.feedback_btn {
-    color: #FFF;
-    background: #76A578;
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
-    border-radius: 5px;
-}
-
-.feedback_btn:hover {
-    background: #E2A460;
-    transition: all .3s;
-    -moz-transition: all .3s;
-    -o-transition: all .3s;
-    -ms-transition: all .3s;
-    -webkit-transition: all .3s;
 }
 
 .dow_btn {
@@ -398,9 +255,9 @@ td hr {
     .dow_btn {
         font-size: 14px;
         padding: 0 10px;
-        height: 30px;
+        height: 50px;
         margin-bottom: 5px;
-        min-width: initial
+        min-width: initial;
     }
 
     .dow_btn svg {
@@ -427,9 +284,93 @@ td hr {
     stroke: #FFFFFF
 }
 
-
 .expired-p {
     font-size: 14px;
     color: #C65454;
     line-height: 32px;
+}
+
+.applicant_list hr {
+    border: 1px dashed lightgrey;
+}
+
+
+
+.send-submitted {
+    background: #eee;
+    width: 100%;
+    font-size: 18px;
+    color: #444;
+    height: 50px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.send-transferred {
+    background: #eee;
+    width: 100%;
+    font-size: 18px;
+    color: #444;
+    height: 50px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+
+.send_bt {
+    width: 30%;
+}
+
+.table_style4 {
+    width: 100%
+}
+
+@media only screen and (max-width: 767px) {
+    .table_style4 {
+        width: 1000px
+    }
+}
+
+.table_style4 tr:first-child td {
+    border-bottom: 0px;
+    background: #3F5146;
+    color: #FFF;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px 10px
+}
+
+.table_style4 td {
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 10px 8px;
+    border-bottom: 1px solid #DDDDDD;
+    word-break: normal;
+    vertical-align: top;
+}
+
+@media only screen and (max-width: 1279px) {
+    .table_style4 td {
+        font-size: 14px
+    }
+}
+
+
+.table_style4 td:nth-child(1) {
+    width: 30%;
+
+}
+.table_style4 td:nth-child(2) {
+    width: 20%;
+
+}
+
+.table_style4 td:nth-child(3) {
+    width: 40%;
+    font-size: 14px;
+}
+
+
+.table_style4 td:nth-child(4) {
+    width: 20%;
 }

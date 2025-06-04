@@ -5,7 +5,7 @@
 {% block title %}{% trans '帳號後台' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v6" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v7" />
 {% endblock style %}
 
 {% block body %}
@@ -265,15 +265,22 @@
                     </a>
                 </div>
                 <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_table track_table">
+                    <table cellspacing="0" cellspacing="0" class="table_style3 sensitive_table once_table">
                         <tr class="sensitive_table_header">
                             <td>{% trans '下載編號' %}</td>
                             <td>{% trans '檔案編號' %}</td>
                             <td>{% trans '檔案產生日期' %}</td>
-                            <td>{% trans '搜尋條件' %}</td>
-                            <td>{% trans '審查意見' %}</td>
+                            {% comment %} <td>{% trans '搜尋條件' %}</td>
+                            <td>{% trans '審核意見' %}</td> {% endcomment %}
                             <td>{% trans '狀態' %}</td>
-                            <td><span class="d-flex-ai-c-jc-c"><span>{% trans '回報成果' %}</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=" target="_blank" class="qmark-dark"></a></span></td>
+                            <td>{% trans '申請資訊' %}</td>
+                            <td><span class="d-flex-ai-c-jc-c">
+                                <span>{% trans '回報成果' %} </span>
+                                    <a class="qmark-dark tooltip">
+                                        <span class="tooltiptext">{% trans '同意上傳的話需要於兩年內回報' %}</span>
+                                    </a>
+                                </span>
+                            </td>
                             <td>{% trans '檔案連結' %}</td>
                             <td><span class="d-flex-ai-c-jc-c"><span>ARK</span><a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="qmark-dark"></a></span></td>
                         </tr>

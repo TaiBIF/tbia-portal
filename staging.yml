@@ -1,6 +1,8 @@
 networks:
   gateway:
     external: true
+  app_network:
+    driver: bridge
 
 services:
   web:
@@ -27,6 +29,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - gateway
+      - app_network
     labels:  # redirecting http to https and defining routers and using tcl certresolver
       - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
@@ -50,8 +53,9 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
       - gateway
+      - app_network
   nginx-portal:  # nginx to serve static files
-    image: nginx:latest
+    image: nginx:1.26.0-alpine
     container_name: nginx-portal
     restart: always
     volumes:
@@ -62,6 +66,7 @@ services:
       - web
     networks:
       - gateway
+      - app_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx-portal.rule=Host(`dev.tbiadata.tw`)"

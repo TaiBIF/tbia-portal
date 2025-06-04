@@ -147,17 +147,17 @@ $(document).ready(function () {
         saveStatus(current_id)
     })
 
-    $('.hide_submit-check').on('click', function () {
-        $('.submit-check').addClass('d-none')
-    })
+    // $('.hide_submit-check').on('click', function () {
+    //     $('.submit-check').addClass('d-none')
+    // })
 
-    $('.hide_submit-transfer').on('click', function () {
-        $('.submit-transfer').addClass('d-none')
-    })
+    // $('.hide_submit-transfer').on('click', function () {
+    //     $('.submit-transfer').addClass('d-none')
+    // })
 
-    $('.hide_submit-partial-transfer').on('click', function () {
-        $('.partial-pop').addClass('d-none')
-    })
+    // $('.hide_submit-partial-transfer').on('click', function () {
+    //     $('.partial-pop').addClass('d-none')
+    // })
 
     $('.updateInfo').on('click', function () {
         // remove all notice first
@@ -206,53 +206,53 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    $('.showRequest').on('click', function () {
-        let query_id = $(this).data('query_id')
-        let query = $(this).data('query')
-        let sdr_id = $(this).data('sdr_id')
-        let is_transferred = $(this).data('is_transferred')
-        showRequest(query_id, query, sdr_id, is_transferred)
-    })
+    // $('.showRequest').on('click', function () {
+    //     let query_id = $(this).data('query_id')
+    //     let query = $(this).data('query')
+    //     let sdr_id = $(this).data('sdr_id')
+    //     let is_transferred = $(this).data('is_transferred')
+    //     showRequest(query_id, query, sdr_id, is_transferred)
+    // })
 
-    $('.transferRequest').on('click', function () {
-        $.ajax({
-            url: "/transfer_sensitive_response",
-            type: 'POST',
-            data: { 'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: $csrf_token },
-            dataType: 'json'
-        })
-            .done(function (response) {
-                alert('轉交成功')
-                window.location.reload()
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
+    // $('.transferRequest').on('click', function () {
+    //     $.ajax({
+    //         url: "/transfer_sensitive_response",
+    //         type: 'POST',
+    //         data: { 'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: $csrf_token },
+    //         dataType: 'json'
+    //     })
+    //         .done(function (response) {
+    //             alert('轉交成功')
+    //             window.location.reload()
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
-    })
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    // })
 
 
-    $('.partialTransferRequest').on('click', function () {
-        $.ajax({
-            url: "/partial_transfer_sensitive_response",
-            type: 'POST',
-            data: { 'query_id': $('#reviewForm input[name=query_id]').val(), 
-                    'partner_id': $('select[name=partial_partner_id]').find(":selected").val(),
-                    'is_last_one': $('select[name=partial_partner_id] option').length == 1 ? true : false,
-                    csrfmiddlewaretoken: $csrf_token },
-            dataType: 'json'
-        })
-            .done(function (response) {
-                alert('轉交成功')
-                window.location.reload()
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
+    // $('.partialTransferRequest').on('click', function () {
+    //     $.ajax({
+    //         url: "/partial_transfer_sensitive_response",
+    //         type: 'POST',
+    //         data: { 'query_id': $('#reviewForm input[name=query_id]').val(), 
+    //                 'partner_id': $('select[name=partial_partner_id]').find(":selected").val(),
+    //                 'is_last_one': $('select[name=partial_partner_id] option').length == 1 ? true : false,
+    //                 csrfmiddlewaretoken: $csrf_token },
+    //         dataType: 'json'
+    //     })
+    //         .done(function (response) {
+    //             alert('轉交成功')
+    //             window.location.reload()
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
-    })
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    // })
 
     $('.open-page').on('click', function () {
         window.location = $(this).data('href')
@@ -270,87 +270,64 @@ $(document).ready(function () {
         changePage($(this).data('page'), $(this).data('type'))
     })
 
-    $('.send-transfer').on('click', function () {
-        $('.submit-transfer').removeClass('d-none')
-    })
+    // $('.send-transfer').on('click', function () {
+    //     $('.submit-transfer').removeClass('d-none')
+    // })
 
+    // $('.send-partial-transfer').on('click', function () {
+    //     $('.partial-pop').removeClass('d-none')
+    // })
 
-    $('.send-partial-transfer').on('click', function () {
+    // $('.send-check').on('click', function () {
 
-        // $.ajax({
-        //     url: "/get_partial_partner?query_id" + $('form#reviewForm input[name=query_id]').val(),
-        //     type: 'GET',
-        //     // data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
-        //     // dataType: 'json'
-        // })
-        //     .done(function (response) {
-        //         // alert('送出成功')
-        //         // window.location.reload()
-        //         for (p of response){
-        //             $('#partial-partner-select').html(``)
-        //         }
+    //     let checked = true;
 
-                $('.partial-pop').removeClass('d-none')
-            // })
-            // .fail(function (xhr, status, errorThrown) {
-            //     alert(gettext('發生未知錯誤！請聯絡管理員'))
+    //     if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
+    //         checked = false;
+    //     }
 
-            //     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            // })
+    //     if (checked) {
+    //         $('.submit-check').removeClass('d-none')
 
+    //     } else {
+    //         alert('請完整填寫審核意見表格')
+    //     }
+    // })
 
-    })
+    // $('.send_review').on('click', function () {
+    //     $.ajax({
+    //         url: "/submit_sensitive_response",
+    //         type: 'POST',
+    //         data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
+    //         dataType: 'json'
+    //     })
+    //         .done(function (response) {
+    //             alert('送出成功')
+    //             window.location.reload()
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-    $('.send-check').on('click', function () {
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    // })
 
-        let checked = true;
+    // $('.accordion').on('click', function () {
+    //     if ($(this).hasClass('active')) {
+    //         $(this).removeClass('active')
+    //         $(this).next('.panel').addClass('d-none').removeClass('d-block')
+    //     } else {
+    //         // 
+    //         $('.accordion').not(this).removeClass('active')
+    //         $('.accordion').not(this).next('.panel').addClass('d-none').removeClass('d-block')
+    //         $(this).addClass('active')
+    //         $(this).next('.panel').removeClass('d-none').addClass('d-block')
+    //     }
+    // })
 
-        if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
-            checked = false;
-        }
-
-        if (checked) {
-            $('.submit-check').removeClass('d-none')
-
-        } else {
-            alert('請完整填寫審查意見表格')
-        }
-    })
-
-    $('.send_review').on('click', function () {
-        $.ajax({
-            url: "/submit_sensitive_response",
-            type: 'POST',
-            data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
-            dataType: 'json'
-        })
-            .done(function (response) {
-                alert('送出成功')
-                window.location.reload()
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
-    })
-
-    $('.accordion').on('click', function () {
-        if ($(this).hasClass('active')) {
-            $(this).removeClass('active')
-            $(this).next('.panel').addClass('d-none').removeClass('d-block')
-        } else {
-            // 
-            $('.accordion').not(this).removeClass('active')
-            $('.accordion').not(this).next('.panel').addClass('d-none').removeClass('d-block')
-            $(this).addClass('active')
-            $(this).next('.panel').removeClass('d-none').addClass('d-block')
-        }
-    })
-
-    $('.applicant_refs').on('click', function(){
-        $("#downloadApplicantReport").submit()
-    })
+    // $('.applicant_refs').on('click', function(){
+    //     $("#downloadApplicantReport").submit()
+    // })
 
 })
 
@@ -515,7 +492,7 @@ function showRequest(query_id, query, sdr_id, is_transferred) {
             
             if (sdr_id != ''){
 
-                // 審查意見
+                // 審核意見
                 if (is_transferred == 'True') {
                     $('.detail-pop .send-check, .detail-pop .send-transfer, .detail-pop .send-submitted, .detail-pop .send-partial-transfer').addClass('d-none')
                     $('.send-transferred').removeClass('d-none')

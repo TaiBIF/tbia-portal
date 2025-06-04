@@ -35,7 +35,7 @@ import pandas as pd
 from pathlib import Path
 from conf.utils import scheme
 import pytz
-from django.utils.translation import gettext #, get_language
+from django.utils.translation import gettext, get_language
 from django.db import connection
 from data.utils import ark_generator
 import subprocess
@@ -243,39 +243,39 @@ def change_manager_page(request):
                 date = ''
 
             # 進階搜尋
-            search_dict = dict(parse.parse_qsl(s.query))
-            query = create_query_display(search_dict, lang)
+            # search_dict = dict(parse.parse_qsl(s.query))
+            # query = create_query_display(search_dict, lang)
 
-            if search_dict.get("record_type") == 'col':
-                search_prefix = 'collection'
-            else:
-                search_prefix = 'occurrence'
+            # if search_dict.get("record_type") == 'col':
+            #     search_prefix = 'collection'
+            # else:
+            #     search_prefix = 'occurrence'
 
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
+            # tmp_a = create_query_a(search_dict)
+            # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
+            #     if i in search_dict.keys():
+            #         search_dict.pop(i)
 
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+            # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-            query = query_a_href(query,query_a)
+            # query = query_a_href(query,query_a)
 
-            # 審查意見
-            comment = []
+            # # 審核意見
+            # comment = []
 
-            # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-                if sdr.partner:
-                    if lang == 'en-us':
-                        partner_name = sdr.partner.select_title_en
-                    else:
-                        partner_name = sdr.partner.select_title 
-                else:
-                    if lang == 'en-us':
-                        partner_name = 'Taiwan Biodiversity Information Alliance'
-                    else:
-                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-                comment.append(f"""<b>{gettext("審查單位")}{gettext("：")}</b>{partner_name}<br><b>{gettext("審查者姓名")}{gettext("：")}</b>{sdr.reviewer_name}<br><b>{gettext("審查意見")}{gettext("：")}</b>{sdr.comment if sdr.comment else "" }<br><b>{gettext("審查結果")}{gettext("：")}</b>{gettext(sdr.get_status_display())}""")
+            # # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
+            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
+            #     if sdr.partner:
+            #         if lang == 'en-us':
+            #             partner_name = sdr.partner.select_title_en
+            #         else:
+            #             partner_name = sdr.partner.select_title 
+            #     else:
+            #         if lang == 'en-us':
+            #             partner_name = 'Taiwan Biodiversity Information Alliance'
+            #         else:
+            #             partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+            #     comment.append(f"""<b>{gettext("審核單位")}{gettext("：")}</b>{partner_name}<br><b>{gettext("審核者姓名")}{gettext("：")}</b>{sdr.reviewer_name}<br><b>{gettext("審核意見")}{gettext("：")}</b>{sdr.comment if sdr.comment else "" }<br><b>{gettext("審核結果")}{gettext("：")}</b>{gettext(sdr.get_status_display())}""")
 
             link = ''
             if s.status == 'pass' and s.status != 'expired':
@@ -306,9 +306,10 @@ def change_manager_page(request):
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
                 'date':  date,
-                'query':   query,
-                'comment': '<hr>'.join(comment) if comment else '',
+                # 'query':   query,
+                # 'comment': '<hr>'.join(comment) if comment else '',
                 'status': gettext(s.get_status_display()),
+                'info': f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ s.query_id }">{gettext("查看")}</a></td>',
                 'report': report,
                 'link': link,
                 'ark': ark
@@ -442,57 +443,65 @@ def change_manager_page(request):
             # else:
             #     date = ''
 
-            # 進階搜尋
-            # search_dict = dict(parse.parse_qsl(s.query))
+            # # 進階搜尋
+            # # search_dict = dict(parse.parse_qsl(s.query))
             sq = SearchQuery.objects.get(query_id=s.query_id)
-            search_dict = dict(parse.parse_qsl(sq.query))
-            query = create_query_display(search_dict)
+            # search_dict = dict(parse.parse_qsl(sq.query))
+            # query = create_query_display(search_dict)
 
-            if search_dict.get("record_type") == 'col':
-                search_prefix = 'collection'
-            else:
-                search_prefix = 'occurrence'
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
+            # if search_dict.get("record_type") == 'col':
+            #     search_prefix = 'collection'
+            # else:
+            #     search_prefix = 'occurrence'
+            # tmp_a = create_query_a(search_dict)
+            # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
+            #     if i in search_dict.keys():
+            #         search_dict.pop(i)
 
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+            # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
-            a = f'<a class="pointer showRequest btn-style1" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
-            query = query_a_href(query,query_a)
+            # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
+            a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ s.query_id }">查看</a></td>' 
+            
+            # query = query_a_href(query,query_a)
 
-            # 審查意見
-            comment = []
+            # # 審核意見
+            # comment = []
 
-            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
-            for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id,partner_id__isnull=False):
-                # if sdr.partner:
-                #     partner_name = sdr.partner.select_title 
-                # else:
-                #     partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+            # # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
+            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id,partner_id__isnull=False):
+            #     # if sdr.partner:
+            #     #     partner_name = sdr.partner.select_title 
+            #     # else:
+            #     #     partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
 
-                if sdr.partner:
-                    if lang == 'en-us':
-                        partner_name = sdr.partner.select_title_en
-                    else:
-                        partner_name = sdr.partner.select_title 
-                else:
-                    if lang == 'en-us':
-                        partner_name = 'Taiwan Biodiversity Information Alliance'
-                    else:
-                        partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+            #     if sdr.partner:
+            #         if lang == 'en-us':
+            #             partner_name = sdr.partner.select_title_en
+            #         else:
+            #             partner_name = sdr.partner.select_title 
+            #     else:
+            #         if lang == 'en-us':
+            #             partner_name = 'Taiwan Biodiversity Information Alliance'
+            #         else:
+            #             partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
                     
-                comment.append(f"<b>審查單位：</b>{partner_name}<br><b>審查者姓名：</b>{sdr.reviewer_name}<br><b>審查意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審查結果：</b>{sdr.get_status_display()}")
+            #     comment.append(f"<b>審核單位：</b>{partner_name}<br><b>審核者姓名：</b>{sdr.reviewer_name}<br><b>審核意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審核結果：</b>{sdr.get_status_display()}")
+           
+            link = ''
+            if sq.status == 'pass':
+                link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
 
             data.append({
                 'id': f"#{s.id}",
+                'name': sq.user.name,
                 'query_id': s.query_id,
                 'date':  date + '<br>審核期限：<br>' + due,
-                'query':   query,
-                'comment': '<hr>'.join(comment) if comment else '',
+                # 'query':   query,
+                # 'comment': '<hr>'.join(comment) if comment else '',
                 'status': sq.get_status_display(),
                 'a': a,
+                'link': link
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
@@ -517,36 +526,40 @@ def change_manager_page(request):
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-                    a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
+                    a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
+                    # TODO 這邊是不是有問題
                     if sdr.status == 'pass' and sdr.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 
-                    data_count = ''
+                    # data_count = ''
 
-                    if r.sensitive_stat:
-                        partner_info = Partner.objects.get(id=request.user.partner.id).info
-                        if len(partner_info) > 1:
-                            data_count = []
-                            for pp in partner_info:
-                                for stat in r.sensitive_stat:
-                                    if stat.get('val') == pp.get('dbname'):
-                                        data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
-                                        # data_count += stat.get('count')
-                            data_count = '<br>'.join(data_count)
-                        elif len(partner_info) == 1:
-                            for stat in r.sensitive_stat:
-                                if stat.get('val') == partner_info[0].get('dbname'):
-                                    data_count = stat.get('count')
+                    # if r.sensitive_stat:
+                    #     partner_info = Partner.objects.get(id=request.user.partner.id).info
+                    #     if len(partner_info) > 1:
+                    #         data_count = []
+                    #         for pp in partner_info:
+                    #             for stat in r.sensitive_stat:
+                    #                 if stat.get('val') == pp.get('dbname'):
+                    #                     data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
+                    #                     # data_count += stat.get('count')
+                    #         data_count = '<br>'.join(data_count)
+                    #     elif len(partner_info) == 1:
+                    #         for stat in r.sensitive_stat:
+                    #             if stat.get('val') == partner_info[0].get('dbname'):
+                    #                 data_count = stat.get('count')
 
-                    query = query_a_href(query,query_a)
+                    # query = query_a_href(query,query_a)
+
                     data.append({
                         'id': f'#{sdr.id}',
+                        'name': r.user.name,
                         # 'query_id': sdr.query_id,
                         'created':  created + '<br>審核期限：<br>'+due,
-                        'query':   query,
-                        'data_count': data_count,
+                        # 'query':   query,
+                        # 'data_count': data_count,
                         'status': sdr.get_status_display(),
                         'a': a,
                         'link': link
@@ -563,19 +576,19 @@ def change_manager_page(request):
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
-                    search_dict = dict(parse.parse_qsl(r.query))
-                    query = create_query_display(search_dict)
+                    # search_dict = dict(parse.parse_qsl(r.query))
+                    # query = create_query_display(search_dict)
                 
-                    if search_dict.get("record_type") == 'col':
-                        search_prefix = 'collection'
-                    else:
-                        search_prefix = 'occurrence'
-                    tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                        if i in search_dict.keys():
-                            search_dict.pop(i)
+                    # if search_dict.get("record_type") == 'col':
+                    #     search_prefix = 'collection'
+                    # else:
+                    #     search_prefix = 'occurrence'
+                    # tmp_a = create_query_a(search_dict)
+                    # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
+                    #     if i in search_dict.keys():
+                    #         search_dict.pop(i)
 
-                    query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+                    # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
 
 
                     if sdr.is_transferred:
@@ -591,26 +604,29 @@ def change_manager_page(request):
                     
                     # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
 
-                    a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+                    # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
+                    a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}&from_system=true">查看</a></td>' 
 
                     link = ''
+                    # TODO 這邊是不是有問題
                     if sdr.status == 'pass' and sdr.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 
 
-                    data_count = ''
+                    # data_count = ''
 
-                    if r.sensitive_stat:
-                        data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
-                        data_count = '<br>'.join(data_count)
-                    query = query_a_href(query,query_a)
+                    # if r.sensitive_stat:
+                    #     data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
+                    #     data_count = '<br>'.join(data_count)
+                    # query = query_a_href(query,query_a)
                     
                     data.append({
                         'id': f'#{sdr.id}',
+                        'name': r.user.name,
                         'query_id': sdr.query_id,
                         'created':  date,
-                        'query':   query,
-                        'data_count': data_count,
+                        # 'query':   query,
+                        # 'data_count': data_count,
                         'status': status,
                         'a': a,
                         'link': link,
@@ -1205,7 +1221,7 @@ def download_sensitive_report(request):
                         partner_name = sdr.partner.select_title 
                     else:
                         partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-                    comment.append(f"審查單位：{partner_name}\n審查者姓名：{sdr.reviewer_name}\n審查意見：{sdr.comment if sdr.comment else ''}\n審查結果：{sdr.get_status_display()}")
+                    comment.append(f"審核單位：{partner_name}\n審核者姓名：{sdr.reviewer_name}\n審核意見：{sdr.comment if sdr.comment else ''}\n審核結果：{sdr.get_status_display()}")
 
             comment_str = '\n---\n'.join(comment)
 
@@ -1225,7 +1241,7 @@ def download_sensitive_report(request):
                                                 '計畫摘要': detail.abstract,
                                                 '是否同意提供研究成果': detail.is_agreed_report,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
-                                                '審查意見': comment_str,
+                                                '審核意見': comment_str,
                                                 # '通過與否': ,
                                                 '檔案狀態': s.get_status_display(),
                                                 }])],ignore_index=True)
@@ -1336,17 +1352,7 @@ def get_request_detail(request):
             detail = SensitiveDataRequest.objects.filter(query_id=query_id).values()[0]
             detail['applicant_email'] = SearchQuery.objects.get(query_id=query_id).user.email
             detail['applicant_user_id'] = SearchQuery.objects.get(query_id=query_id).user.id
-            # final_refs = []
-            # if SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id).exists():
-            #     reports = SensitiveDataReport.objects.filter(user_id=SearchQuery.objects.get(query_id=query_id).user.id).exclude(query_id=query_id)
-            #     for r in reports:
-            #         final_refs.append({
-            #             'project_name': SensitiveDataRequest.objects.get(query_id=query_id).project_name,
-            #             'file': r.file,
-            #             'content': r.content
-            #         })
-            # detail['refs'] = final_refs
-
+            
     if sdr_id := request.GET.get('sdr_id'):
         if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
 
@@ -2904,7 +2910,7 @@ def download_applicant_sensitive_report(request):
                                                 '是否已回報成果': reported,
                                                 '實際回報完成時間': report_modified,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
-                                                # '審查意見': comment_str,
+                                                # '審核意見': comment_str,
                                                 # # '通過與否': ,
                                                 }])],ignore_index=True)
 
@@ -2915,3 +2921,180 @@ def download_applicant_sensitive_report(request):
             df.to_excel(writer, sheet_name='Sheet1', index=None)
 
     return response
+
+
+
+def sensitive_apply_info(request, query_id):
+    # 先確定有沒有權限
+    user_id = request.user.id if request.user.id else 0
+    from_system = request.GET.get('from_system')
+    lang = get_language()
+
+    # 確認是不是夥伴單位帳號
+
+    if User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exclude(partner__is_collaboration=True).exists():
+        partner_id = User.objects.get(id=user_id).partner_id
+    else:
+        partner_id = 0
+
+    is_authenticated = False
+    is_system_admin = False
+    is_partner = False
+    is_self = False
+
+    # 系統管理員 (包含給秘書處審核的) is_system_admin
+    if User.objects.filter(id=user_id, is_system_admin=True).exists():
+        is_authenticated = True
+        is_system_admin = True
+
+    # 本人申請的
+    if SearchQuery.objects.filter(user_id=user_id, query_id=query_id).exists():
+        is_authenticated = True
+        is_self = True
+
+    # 夥伴單位 (應該不用管轉交的情況 因為一定是秘書處轉交給夥伴單位)
+    if SensitiveDataResponse.objects.filter(query_id=query_id, partner_id=partner_id).exists():
+        is_authenticated = True
+        is_partner = True
+
+
+    comment = []
+    detail = {}
+    review = {}
+    partners = []
+    has_partial_transferred = False
+    already_transfer_partners = []
+
+    if SensitiveDataRequest.objects.filter(query_id=query_id).exists():
+        s = SensitiveDataRequest.objects.get(query_id=query_id)
+        detail = s.__dict__
+
+        r = SearchQuery.objects.get(query_id=query_id)
+        
+        detail['applicant_email'] = r.user.email
+        detail['applicant_user_id'] = r.user.id
+
+        is_transferred = True if SensitiveDataResponse.objects.filter(query_id=query_id, is_transferred=True) else False
+
+        # 進階搜尋
+        search_dict = dict(parse.parse_qsl(r.query))
+        query = create_query_display(search_dict, 'zh-hant')
+
+        if search_dict.get("record_type") == 'col':
+            search_prefix = 'collection'
+        else:
+            search_prefix = 'occurrence'
+
+        tmp_a = create_query_a(search_dict)
+        for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
+            if i in search_dict.keys():
+                search_dict.pop(i)
+
+        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+        query_str = query_a_href(query,query_a)
+
+        data_count = ''
+
+        if r.sensitive_stat:
+            if is_system_admin:
+
+                data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
+                data_count = '<br>'.join(data_count)
+            
+            elif is_partner:
+
+                partner_info = Partner.objects.get(id=request.user.partner.id).info
+                if len(partner_info) > 1:
+                    data_count = []
+                    for pp in partner_info:
+                        for stat in r.sensitive_stat:
+                            if stat.get('val') == pp.get('dbname'):
+                                data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
+                    data_count = '<br>'.join(data_count)
+                elif len(partner_info) == 1:
+                    for stat in r.sensitive_stat:
+                        if stat.get('val') == partner_info[0].get('dbname'):
+                            data_count = stat.get('count')
+
+    sdr_id = request.GET.get('sdr_id')
+
+    if sdr_id:
+        view_only = False
+        
+        # TODO 目前以下是for秘書處審核的
+        if SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).exists():
+            review = SensitiveDataResponse.objects.filter(id=sdr_id).exclude(is_transferred=True, partner_id__isnull=True).values()[0]
+
+        # 列出所有相關的partner
+        # 有可能之前只有存秘書處 這邊要重新query所有的夥伴單位
+
+        sq = SearchQuery.objects.get(query_id=query_id)
+        req_dict = dict(parse.parse_qsl(sq.query))
+
+        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+
+        query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
+                "offset": 0,
+                "limit": 0,
+                "filter": query_list,
+                "facet": {
+                    "group": {
+                        "type": "terms",
+                        "field": "group",
+                        "limit": -1,
+                        }
+                    }
+                }
+
+        if not query_list:
+            query.pop('filter')
+
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        group = response.json()['facets']['group']['buckets']
+        groups = []
+        for g in group:
+            groups.append(g['val'])
+
+        partners = Partner.objects.filter(group__in=groups).order_by('abbreviation','id')
+
+        # 要排除掉已經轉交過的partners
+        sdrss = SensitiveDataResponse.objects.filter(query_id=query_id,is_partial_transferred=True).exclude(partner_id__isnull=True).values_list('partner_id',flat=True)
+
+        if len(sdrss):
+            has_partial_transferred = True
+
+        already_transfer_partners = [p.select_title for p in partners if p.id in sdrss]
+
+        partners = [{'id': p.id, 'select_title': p.select_title} for p in partners if p.id not in sdrss]
+
+    else:
+        view_only = True
+        # 審核意見
+        comment = []
+
+        # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
+        for sdr in SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True, partner_id__isnull=True):
+            if sdr.partner:
+                if lang == 'en-us':
+                    partner_name = sdr.partner.select_title_en
+                else:
+                    partner_name = sdr.partner.select_title 
+            else:
+                if lang == 'en-us':
+                    partner_name = 'Taiwan Biodiversity Information Alliance'
+                else:
+                    partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
+            # 這裡可以改成table嗎
+            comment.append("""<tr>
+                <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
+            </tr>""".format(partner_name, sdr.reviewer_name,sdr.comment if sdr.comment else "", gettext(sdr.get_status_display())))
+
+
+    return render(request, 'manager/sensitive_apply_info.html', { 'is_self': is_self, 'is_partner': is_partner, 'is_system_admin': is_system_admin,
+                                                                  'query': query_str, 'is_authenticated': is_authenticated, 'data_count': data_count,
+                                                                  'detail': detail, 'review': review, 'partners': partners, 'has_partial_transferred': has_partial_transferred,
+                                                                  'already_transfer_partners': already_transfer_partners, 'comment': comment, 'view_only': view_only,
+                                                                  'is_transferred': is_transferred, 'from_system': from_system, 'sdr_id': sdr_id})

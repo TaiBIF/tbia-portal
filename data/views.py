@@ -15,7 +15,7 @@ from django.http import (
     HttpResponse,
 )
 import json
-from pages.templatetags.tags import highlight, process_text_variants
+from pages.templatetags.tags import highlight, process_text_variants, extract_text_summary
 import math
 import time
 import requests
@@ -417,7 +417,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             # content_en = gettext(nn.get_type_display()).replace('0000', str(nn.content))
             content_en = f'The review of one-time sensitive data #{str(nn.content)} is finished. The review comments are as follows:<br><br>'
 
-            # 審查意見
+            # 審核意見
             comment = []
             comment_en = [] # 英文版
 
@@ -430,13 +430,13 @@ def generate_sensitive_csv(query_id, scheme, host):
                     partner_name_en = 'Taiwan Biodiversity Information Alliance'
                 comment.append(
                 f"""
-                <b>審查單位：</b>{partner_name}
+                <b>審核單位：</b>{partner_name}
                 <br>
-                <b>審查者姓名：</b>{sdr.reviewer_name}
+                <b>審核者姓名：</b>{sdr.reviewer_name}
                 <br>
-                <b>審查意見：</b>{sdr.comment if sdr.comment else "" }
+                <b>審核意見：</b>{sdr.comment if sdr.comment else "" }
                 <br>
-                <b>審查結果：</b>{sdr.get_status_display()}
+                <b>審核結果：</b>{sdr.get_status_display()}
                 """)
 
                 comment_en.append(
@@ -452,7 +452,7 @@ def generate_sensitive_csv(query_id, scheme, host):
 
             comment = '<hr>'.join(comment) if comment else ''
             comment_en = '<hr>'.join(comment_en) if comment_en else ''
-            content = content.replace('請至後台查看','審查意見如下：<br><br>')
+            content = content.replace('請至後台查看','審核意見如下：<br><br>')
             # content_en = content_en.replace(' Check your account panel.','The review comments are as follows:<br><br>')
             content += comment
             content_en += comment_en
@@ -1018,7 +1018,7 @@ def get_more_docs(request):
             for x in news[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.title,keyword),
-                    'content': highlight(x.content,keyword),
+                    'content': extract_text_summary(highlight(x.content,keyword)),
                     'id': x.id
                 })
             has_more = True if news[offset+6:].count() > 0 else False
@@ -1936,18 +1936,24 @@ def search_full(request):
         for x in news[:6]:
             news_rows.append({
                 'title': x.title,
-                'content': x.content,
+                # 'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
+
+
         event = News.objects.filter(lang=lang,status='pass',type='event').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_event = event.count()
         event_rows = []
         for x in event[:6]:
             event_rows.append({
                 'title': x.title,
-                'content': x.content,
+                # 'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
+
+
         project = News.objects.filter(lang=lang,status='pass',type='project').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_project = project.count()
         project_rows = []
@@ -1957,6 +1963,8 @@ def search_full(request):
                 'content': x.content,
                 'id': x.id
             })
+
+
         datathon = News.objects.filter(lang=lang,status='pass',type='datathon').filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
         c_datathon = datathon.count()
         datathon_rows = []
@@ -2082,3 +2090,56 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
             send_notification([u.id],content,'單次使用敏感資料申請通知')
+
+
+
+# 給工具使用的API
+def get_taxon_by_region(request):
+
+    is_in_taiwan = request.GET.get('is_in_taiwan')
+    exclude_cultured = request.GET.get('exclude_cultured')
+    county = request.GET.get('county')
+    municipality = request.GET.get('municipality')
+
+    query_list = []
+    # query_list.append('is_deleted:false')
+
+    if is_in_taiwan == 'yes':
+        query_list.append('is_in_taiwan:true')
+
+    if exclude_cultured == 'yes':
+        query_list.append('-alien_type:cultured')
+
+    if county:
+        query_list.append('county:"{}"'.format(county))
+
+    if municipality:
+        query_list.append('municipality:"{}"'.format(municipality))
+
+    # 階層要限定在科以下
+
+    selected_ranks = rank_list[rank_list.index('family'):]
+    query_list.append('taxonRank:({})'.format(' OR '.join(selected_ranks)))
+
+
+    query = { "query": "*:*",
+        "limit": 0,
+        "filter": query_list,
+        "facet": {"taxonID": {
+                        'type': 'terms',
+                        'field': 'taxonID',
+                        'mincount': 1,
+                        'limit': -1,
+                        'offset': 0,
+                        'allBuckets': False,
+                        'numBuckets': False
+                  }}
+    }
+
+    query_req = json.dumps(query)
+
+    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+    resp = resp.json()
+    taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
+
+    return HttpResponse(json.dumps(taxon_ids), content_type='application/json')

@@ -23,9 +23,8 @@ from manager.models import SearchCount #, SearchStat
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql
-from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c, get_map_geojson
+from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c, get_map_geojson, create_search_query
 import threading
-
 
 
 def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
@@ -81,6 +80,7 @@ def occurrence(request):
     if request.method == 'GET':
         fq_list = []
         req = request.GET
+        url_query_string = parse.urlencode(req)
 
         # TODO 未來考慮把訊息寫在一起
 
@@ -92,18 +92,16 @@ def occurrence(request):
         else:
 
             # 可聯集參數
-            # taxonID={string}
-            # rightsHolder={string}
-            # datasetName={string}
-            union_list = ['taxonID', 'rightsHolder','datasetName','tbiaDatasetID']
+            union_list = ['tbiaDatasetID','rightsHolder','locality','datasetName']
             for u in union_list:
-                if values := req.getlist(u):
+                if values := req.get(u):
+                    values = values.split(',')
                     values = [f'"{v}"' for v in values]
                     fq_list.append(f'{u}: ({(" OR ").join(values)})')
 
-            for k in ['occurrenceID', 'catalogNumber']:
-                if req.get(k):
-                    fq_list.append(f'{k}:"{req.get(k)}"')
+            # for k in ['occurrenceID', 'catalogNumber']:
+            #     if req.get(k):
+            #         fq_list.append(f'{k}:"{req.get(k)}"')
 
             # eventDate, created, modified
             if eventDate := req.get('eventDate'):
@@ -125,7 +123,7 @@ def occurrence(request):
                     except:
                         final_response['status'] = {'code': 400, 'message': f'Invalid date format'}
                         return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
-            
+
             for k in ['created','modified']:
                 if k_date := req.get(k):
                     date_list = k_date.split(',')
@@ -151,26 +149,15 @@ def occurrence(request):
 
 
             # polygon
-            if polygon := req.getlist('polygon'):
+            if polygon := req.get('polygon'):
                 try:
-                    mp = MultiPolygon(map(wkt.loads, polygon))
+                    mp = wkt.loads(polygon)
+                    # TODO 如果是限制型API要修改成raw_location_rpt
                     fq_list += ['location_rpt: "Within(%s)"' % mp]
                 except:
                     final_response['status'] = {'code': 400, 'message': f'Invalid polygon format'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
-            # 上傳polygon - 對查詢來說是控制詞彙
-            # if g_id := request.POST.get('geojson_id'):
-            #     try:
-            #         with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-            #             geojson = json.loads(j.read())
-            #             geo_df = gpd.GeoDataFrame.from_features(geojson)
-            #             g_list = []
-            #             for i in geo_df.to_wkt()['geometry']:
-            #                 g_list += ['"Within(%s)"' % i]
-            #             query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
-            #     except:
-            #         pass
 
             # 圓中心框選 - 對查詢來說是控制詞彙
             if circle := req.get('circle'):
@@ -213,6 +200,7 @@ def occurrence(request):
                     except:
                         final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
                         return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+                    # TODO 如果是限制型API要修改成raw_location_rpt
                     fq_list += [f'location_rpt:[{minLat},{minLon} TO {maxLat},{maxLon}]']
                 else:
                     final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
@@ -228,11 +216,6 @@ def occurrence(request):
                     final_response['status'] = {'code': 400, 'message': f'Invalid isCollection value'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
-        
-            # # is_deleted={boolean}
-            # if is_deleted := req.get('isDeleted'):
-            #     if is_deleted in ['true', 'false']:
-            #         fq_list.append({'is_deleted', is_deleted})
 
 
         limit = req.get('limit', 20)
@@ -258,6 +241,40 @@ def occurrence(request):
         fl_cols = download_cols
 
 
+        now_dict = dict(req)
+
+        for k in now_dict.keys():
+            if len(now_dict[k])==1:
+                now_dict[k] = now_dict[k][0]
+
+
+        # req_dict = dict(req)
+        # # 修改成對應的參數名 & 參數值
+        if now_dict.get('bioGroup'):
+            now_dict['taxonGroup'] = now_dict.get('bioGroup')
+            now_dict.pop('bioGroup')
+
+        if now_dict.get('higherTaxon'):
+            now_dict['higherTaxa'] = now_dict.get('higherTaxon')
+            now_dict.pop('higherTaxon')
+
+        if now_dict.get('isNative'):
+            now_dict['is_native'] =  now_dict.get('isNative')
+            now_dict.pop('isNative')
+
+        if now_dict.get('isProtected'):
+            now_dict['is_protected'] = now_dict.get('isProtected')
+            now_dict.pop('isProtected')
+
+        if now_dict.get('imagePresence'):
+            now_dict['has_image'] = now_dict.get('imagePresence')
+            now_dict.pop('imagePresence')
+
+        for k in ['rightsHolder','locality','datasetName']:
+            if k in now_dict.keys():
+                now_dict.pop(k)
+
+
         # 限制型API
         has_api_key = False
 
@@ -265,10 +282,16 @@ def occurrence(request):
             if APIkey.objects.filter(key=apikey,status='pass').exists():
                 has_api_key = True
                 fl_cols = download_cols_with_sensitive
-                # fl_cols += sensitive_cols
+                # 部分統一使用create_search_query
+                
+                fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
+        else:
+            fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+
 
         query = { "query": "*:*",
                 "params": {"cursorMark": cursor}, 
@@ -323,26 +346,22 @@ def occurrence(request):
 
             df = df.replace({np.nan: None})
 
-        now_dict = dict(req)
-
-        for k in now_dict.keys():
-            if len(now_dict[k])==1:
-                now_dict[k] = now_dict[k][0]
-
         aaa = now_dict.pop('cursor', None)
+    
+        
         query_string = parse.urlencode(now_dict)
 
         next_url = ''
 
         # 確認還有沒有下一頁
         if next_cursor != cursor and len(df) == limit:
-            if query_string:
-                next_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + query_string + '&cursor=' + next_cursor
+            if url_query_string:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + url_query_string + '&cursor=' + next_cursor
             else:
                 next_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + next_cursor
 
-        if query_string:
-            now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + query_string + '&cursor=' + cursor
+        if url_query_string:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + url_query_string + '&cursor=' + cursor
         else:
             now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + cursor
 

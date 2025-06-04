@@ -1,30 +1,51 @@
 
-.download_table td:nth-child(2), .download_taxon_table td:nth-child(2), .sensitive_table td:nth-child(2) {
+.sensitive_table td {
+    text-align: center !important;
+} 
+
+.sensitive_table td:nth-child(1),  .sensitive_table td:nth-child(2),   .sensitive_table td:nth-child(3) {
+    width: 12.5% !important;
+} 
+
+.sensitive_table td:nth-child(4), .sensitive_table td:nth-child(5), .sensitive_table td:nth-child(7), .sensitive_table td:nth-child(8){
+    width: 10% !important;
+} 
+
+.sensitive_table td:nth-child(6) {
+    width: 12.5% !important;
+} 
+
+.download_table td:nth-child(2), .download_taxon_table td:nth-child(2)
+/* , .sensitive_table td:nth-child(2)  */
+{
     min-width: 125px;
     max-width: 125px;
 
 }
 
 
-.download_table td:nth-child(3), .download_taxon_table td:nth-child(3), .sensitive_table td:nth-child(3) {
+.download_table td:nth-child(3), .download_taxon_table td:nth-child(3)
+/* , .sensitive_table td:nth-child(3)  */
+{
     text-align: center;
     min-width: 150px;
     max-width: 150px;
 }
 
-.download_table td:nth-child(5), .download_taxon_table td:nth-child(5), .sensitive_table td:nth-child(6),
+.download_table td:nth-child(5), .download_taxon_table td:nth-child(5), 
+/* .sensitive_table td:nth-child(6), */
 .download_table td:nth-child(6), .download_taxon_table td:nth-child(6) 
 /* , .sensitive_table td:nth-child(7) */
  {
     min-width: 95px
 }
 
-
+/* 
 .sensitive_table td:nth-child(7)
 {
     min-width: 140px
 
-}
+} */
 
 .notification_table tr:not(:first-child) td:nth-child(2n) {
     text-align: left
@@ -374,3 +395,28 @@ td hr {
 .fs-16px {
     font-size: 16px;
 }
+
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+  
+.tooltip .tooltiptext {
+    font-size: 14px;
+    visibility: hidden !important;
+    width: 150px;
+    background-color: darkgrey;
+    color: #fff;
+    text-align: start;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    left: 26px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible !important;
+}
+  

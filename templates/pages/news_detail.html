@@ -2,7 +2,7 @@
 {% load static %} 
 {% load i18n %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news_detail.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news_detail.css' %}?v3" />
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -30,43 +30,55 @@
 		<div class="container_area">
 			<div class="main_1240"> 
 			{% if n.status == 'pass' or is_authorized %}
-				<div class="w_bgr10 news_de">
-					<div class="nstitlebox">
-						<div class="tag_date">
-							<div class="tag {{ color }}">
-								{% trans n.get_type_display %}
-							</div> 
-							<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
-						</div>
-						<h3>{{ n.title }}</h3>
-						<p><i class="icon-size fa-solid fa-pen"></i>
-							{% if n.partner and n.author_use_tbia != True %}
-								{% if LANGUAGE_CODE == 'en-us' %}
-									{{ n.partner.select_title_en }}
-								{% else %}
-									{{ n.partner.select_title }}
+				<div class="news-flexbox">
+					<div class="news_de">
+						<div class="w_bgr10">
+							<div class="nstitlebox">
+								<div class="tag_date">
+									<div class="tag {{ color }}">
+										{% trans n.get_type_display %}
+									</div> 
+									<div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
+								</div>
+								<h3>{{ n.title }}</h3>
+								<p class="mt-10px"><i class="icon-size fa-solid fa-pen"></i>
+									{% if n.partner and n.author_use_tbia != True %}
+										{% if LANGUAGE_CODE == 'en-us' %}
+											{{ n.partner.select_title_en }}
+										{% else %}
+											{{ n.partner.select_title }}
+										{% endif %}
+									{% else %}
+										{% if LANGUAGE_CODE == 'en-us' %}
+											TBIA Secretariat
+										{% else %}
+											臺灣生物多樣性資訊聯盟秘書處
+										{% endif %}
+									{% endif %}
+								</p>
+							</div>
+							<div class="editor">
+								<!-- 這邊放代表圖片 -->
+								{% if n.image %}
+								<div class="center marb_20">
+									<img src="/media/{{ n.image }}" >
+								</div>
 								{% endif %}
-							{% else %}
-								{% if LANGUAGE_CODE == 'en-us' %}
-									TBIA Secretariat
-								{% else %}
-									臺灣生物多樣性資訊聯盟秘書處
-								{% endif %}
-							{% endif %}
-						</p>
-					</div>
-					<div class="editor">
-						<!-- 這邊放代表圖片 -->
-						{% if n.image %}
-						<div class="center marb_20">
-							<img src="/media/{{ n.image }}" >
-						</div>
-						{% endif %}
-						<div class=" ql-editor">
-						{{ n.content|safe }}
+								<div class="ql-editor" id="content">
+								{{ n.content|safe }}
+								</div>
+							</div>
 						</div>
 					</div>
-				</div> 
+					<div class="right-directory">
+						<div class="mb-cbtn">
+							<p>目錄</p>
+							<img class="ardown" src="/static/image/ardown.svg">
+						</div>
+						<ul id="toc">
+						</ul>
+					</div>
+				</div>
 				<!--
 				<div class="btn_three">
 					<a href="#">
@@ -97,8 +109,12 @@
 			{% else %}
 			<p>{% trans '無資料' %}</p>
 			{% endif %}
-			</div>
 
+			</div>
 		</div>
 
 {% endblock body %}	
+
+{% block script %}
+<script src="{% static 'js/pages/news_detail.js' %}?v2"></script>
+{% endblock script %}

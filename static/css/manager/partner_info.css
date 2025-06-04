@@ -1,10 +1,17 @@
-
-.sensitive_apply_table td:nth-child(2) {
-    min-width: 125px;
-    max-width: 125px;
-
+.sensitive_apply_table td {
+    text-align: center !important;
 }
 
+
+.sensitive_apply_table td:nth-child(1), .sensitive_apply_table td:nth-child(2), .sensitive_apply_table td:nth-child(4), .sensitive_apply_table td:nth-child(5) , .sensitive_apply_table td:nth-child(6)  {
+    width: 16%;
+}
+
+.sensitive_apply_table td:nth-child(3) {
+    width: 20%;
+}
+
+/*
 .sensitive_apply_table td:nth-child(3) {
     width: 30%;
     font-size: 14px;
@@ -15,9 +22,9 @@
 
 .sensitive_apply_table td:nth-child(4) {
     width: 20%;
-}
+} */
 
-.send-submitted {
+/* .send-submitted {
     background: #eee;
     width: 100%;
     font-size: 18px;
@@ -25,13 +32,13 @@
     height: 50px;
     border-radius: 3px;
     cursor: default;
-}
+} */
 
 .form_top .path_inf .riginf {
     display: block;
 }
 
-.accordion {
+/* .accordion {
     background-color: #76A578;
     color: white;
     cursor: pointer;
@@ -50,7 +57,7 @@
     color: #FFF;
     background: #E2A460;
 
-}
+} */
 
 
 .two_cont_area {
@@ -321,4 +328,5 @@
 .applicant_list hr {
     border: 1px dashed lightgrey;
 }
+
 

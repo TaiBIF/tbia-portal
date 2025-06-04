@@ -45,4 +45,6 @@ urlpatterns = [
     path('transfer_sensitive_response', views.transfer_sensitive_response, name='transfer_sensitive_response'),
     path('partial_transfer_sensitive_response', views.partial_transfer_sensitive_response, name='partial_transfer_sensitive_response'),
     path('download_dataset_results', views.download_dataset_results, name='download_dataset_results'),
+    # 給工具的API
+    path('get_taxon_by_region', views.get_taxon_by_region, name='get_taxon_by_region'),
 ]

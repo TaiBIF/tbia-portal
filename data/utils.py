@@ -622,7 +622,7 @@ def create_query_display(search_dict,lang=None):
     for k in search_dict.keys():
         if k in map_dict.keys():
             if k == 'taxonRank':
-                if search_dict[k] == 'sub':
+                if search_dict[k] in ['sub','infraspecies']:
                     query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext("種下")}'
                 else:
                     query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
@@ -697,11 +697,11 @@ def create_query_display(search_dict,lang=None):
         elif k == 'name':
             query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
-            query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') == 'y' else gettext('無影像')}" 
+            query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') in ['y','true'] else gettext('無影像')}" 
         elif k == 'is_protected':
-            query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') == 'y' else gettext('否')}" 
+            query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') in ['y','true'] else gettext('否')}" 
         elif k == 'is_native':
-            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_native') == 'y' else gettext('否')}" 
+            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_native') in ['y','true'] else gettext('否')}" 
     if r_list:
         r_list = [gettext(r) for r in r_list]
         query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
@@ -798,24 +798,24 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     # 有無影像
     if has_image := req_dict.get('has_image'):
-        if has_image == 'y':
+        if has_image in ['y','true']:
             query_list += ['associatedMedia:*']
-        elif has_image == 'n':
+        elif has_image in ['n','false']:
             query_list += ['-associatedMedia:*']
 
     # 是否為原生種
     if is_native := req_dict.get('is_native'):
-        if is_native == 'y':
+        if is_native in ['y','true']:
             query_list += ['alien_type:native']
-        elif is_native == 'n':
+        elif is_native in ['n','false']:
             query_list += ['alien_type:(naturalized OR invasive OR cultured)']
 
 
     # 是否為保育類
     if is_protected := req_dict.get('is_protected'):
-        if is_protected == 'y':
+        if is_protected in ['y','true']:
             query_list += ['protected:*']
-        elif is_protected == 'n':
+        elif is_protected in ['n','false']:
             query_list += ['-protected:*']
 
 
@@ -889,7 +889,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if val := req_dict.get(i):
             if i == 'sensitiveCategory' and val == '無':
                 query_list += [f'-(-{i}:{val} {i}:*)']
-            elif i == 'taxonRank' and val == 'sub':
+            elif i == 'taxonRank' and val in ['sub','infraspecies']:
                 query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
             else:
                 query_list += [f'{i}:{val}']
@@ -2143,27 +2143,27 @@ def create_tbn_query(req_dict):
 
     # 有無影像
     if has_image := req_dict.get('has_image'):
-        if has_image == 'y':
+        if has_image in ['y','true']:
             error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('是')))
         else:
             error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('否')))
 
     # 是否為原生種
     if is_native := req_dict.get('is_native'):
-        if is_native == 'y':
+        if is_native == ['y','true']:
             query_list.append('nativeness:i')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
-        elif is_native == 'n':
+        elif is_native in ['n','false']:
             query_list.append('nativeness:v,n,a,o')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
 
 
     # 是否為保育類
     if is_protected := req_dict.get('is_protected'):
-        if is_protected == 'y':
+        if is_protected in ['y','true']:
             query_list.append('protectedstatus:y01,y02,y03,w01')
             query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
-        elif is_protected == 'n':
+        elif is_protected in ['n','false']:
             error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
 
 
