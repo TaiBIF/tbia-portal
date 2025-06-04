@@ -2104,10 +2104,10 @@ def get_taxon_by_region(request):
     
     query_list = []
     # query_list.append('is_deleted:false')
-    if bioGroup == '維管束植物':
-        bioGroup = '(維管束植物 OR 蕨類植物)'
-
-    query_list.append('bioGroup:{}'.format(bioGroup))
+    if bioGroup:
+        if bioGroup == '維管束植物':
+            bioGroup = '(維管束植物 OR 蕨類植物)'
+        query_list.append('bioGroup:{}'.format(bioGroup))
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')
