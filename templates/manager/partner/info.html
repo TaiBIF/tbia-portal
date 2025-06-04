@@ -210,7 +210,7 @@
                         <tr class="sensitive_apply_table_header">
                             <td>申請編號</td>
                             {% comment %} <td class="w-10p">檔案編號</td> {% endcomment %}
-                            <td>申請者</td>
+                            <td>申請人姓名</td>
                             <td>申請時間</td>
                             {% comment %} <td>搜尋條件</td>
                             <td>筆數</td> {% endcomment %}
@@ -235,139 +235,7 @@
 </div>
 
 
-<!--審核意見popbox-->
-<div class="popbg detail-pop d-none">
-	<div class="ovhy"> 
-		<div class="wbox_center">
-			<div class="xx">
-			</div>
-			<div class="titlegreen">
-			</div>
-			<p class="shortxt">
-			</p>
-			<div class="from_area">
-                <div class="w_border10_box application_form panel">
-                    <div class="form_top">
-                        <!--
-                        <div class="apply_date">
-                            申請時間：{{ today }}
-                        </div>-->
-                    </div>
-                    <button class="accordion fs-16px">申請詳細資訊</button>
-                    <div class="form_box panel d-none form-flow fs-14px">
-                        <form id="detailForm">
-                        {% csrf_token %}
-                        <div class="path_inf">
-                            <p>搜尋條件</p>
-                            <div class="riginf">
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="inpu_3">
-                            <div class="input_item">
-                                <p>申請人姓名</p>
-                                <input name="applicant" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>聯絡電話</p>
-                                <input name="phone" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>聯絡地址</p>
-                                <input name="address" type="text" disabled>
-                            </div> 
-                        </div>
-                        <div class="inpu_3">
-                            <div class="input_item">
-                                <p>申請人Email</p>
-                                <input name="applicant_email" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>申請人所屬單位</p>
-                                <input name="affiliation" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>申請人職稱</p>
-                                <input name="job_title" type="text" disabled>
-                            </div>
-                        </div>
-                        <div class="inpu_2">
-                            <div class="input_item">
-                                <p>計畫類型</p>
-                                <input name="type" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p class="project_type">個人研究計畫名稱</p>
-                                <input name="project_name" type="text" disabled>
-                            </div>
-                            <div class="input_item p_affli d-none">
-                                <p>委託計畫單位</p>
-                                <input name="project_affiliation" type="text" disabled>
-                            </div>
-                            <!-- 夥伴單位不會有這項才對 -->
-                            {% comment %} <div class="input_item p_principal d-none">
-                                <p>計畫主持人姓名</p>
-                                <input name="principal_investigator" type="text" disabled>
-                            </div> {% endcomment %}
-                        </div>
-                        <div class="text_area">
-                            <p>計畫摘要</p>
-                            <textarea name="abstract" disabled></textarea>
-                        </div>
-                        <div class="text_area">
-                            <input type="checkbox" name="is_agreed_report" disabled>  是否同意提供研究成果</input>
-                            <a class="applicant_refs search-again-a">申請者曾提供成果參考 🔗</a>
-                        </div>
-                        </form>
-                        <form id="downloadApplicantReport" action="{% url 'download_applicant_sensitive_report' %}" method="POST">
-                            <input type="hidden" name="applicant_user_id" value="">
-                            {% csrf_token %}
-                        </form>
-                        <div class="apply_peo">
-                            <p class="title">此批申請資料其他使用者</p>
-                        </div>
-                    </div>
-                    <button class="accordion fs-16px">審核意見</button>
-                    <div class="form_box panel d-none form-flow fs-14px">
-                        {% if not user.is_partner_admin %}
-                        <fieldset disabled >
-                        {% endif %}
-                        <form id="reviewForm">
-                        {% csrf_token %}
-                        <div class="inpu_2">
-                            <input type="hidden" name="query_id">
-                            <input type="hidden" name="sdr_id">
-                            <div class="input_item">
-                                <p>審核者姓名</p>
-                                <input name="reviewer_name" type="text" value="{{ request.user.name }}">
-                            </div>
-                        </div>
-                        <div class="text_area">
-                            <p>審核意見</p>
-                            <textarea name="comment" placeholder=""></textarea>
-                        </div>
-                        <div class="inpu_2">
-                            <div class="input_item">
-                                <p>通過與否</p>
-                                <select name="status">
-                                    <option value="pass">通過</option>
-                                    <option value="fail">不通過</option>
-                                </select>
-                            </div>
-                        </div>
-                        </form>
-                    </div>                
-                    {% if user.is_partner_admin %}
-                    <button class="send send-check mt-15px">確認送出</button>
-                    <button class="send-submitted d-none mt-15px" disabled>審核已完成不得修改</button>
-                    {% endif %}
-                </div>
-			</div>
-		</div>
-	</div>
-</div>
-
-<!--確認送出pop-->
+{% comment %} <!--確認送出pop-->
 <div class="messageboxfix submit-check d-none">
     <div class="message_box">
         <div class="informationicon">!</div>
@@ -377,7 +245,7 @@
             <button class="send_review">確認</button>
         </div>
     </div>
-</div>
+</div> {% endcomment %}
 {% endblock %}
 
 {% block script %}

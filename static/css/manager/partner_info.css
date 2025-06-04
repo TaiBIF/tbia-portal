@@ -24,7 +24,7 @@
     width: 20%;
 } */
 
-.send-submitted {
+/* .send-submitted {
     background: #eee;
     width: 100%;
     font-size: 18px;
@@ -32,13 +32,13 @@
     height: 50px;
     border-radius: 3px;
     cursor: default;
-}
+} */
 
 .form_top .path_inf .riginf {
     display: block;
 }
 
-.accordion {
+/* .accordion {
     background-color: #76A578;
     color: white;
     cursor: pointer;
@@ -57,7 +57,7 @@
     color: #FFF;
     background: #E2A460;
 
-}
+} */
 
 
 .two_cont_area {

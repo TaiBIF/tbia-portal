@@ -345,48 +345,48 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    $('.send-check').on('click', function () {
-        let checked = true;
+    // $('.send-check').on('click', function () {
+    //     let checked = true;
 
-        if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
-            checked = false;
-        }
+    //     if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
+    //         checked = false;
+    //     }
 
-        if (checked) {
-            $('.submit-check').removeClass('d-none')
-        } else {
-            alert('請完整填寫審核意見表格')
-        }
-    })
+    //     if (checked) {
+    //         $('.submit-check').removeClass('d-none')
+    //     } else {
+    //         alert('請完整填寫審核意見表格')
+    //     }
+    // })
 
-    $('.send_review').on('click', function () {
-        $.ajax({
-            url: "/submit_sensitive_response",
-            type: 'POST',
-            data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
-            dataType: 'json'
-        })
-        .done(function (response) {
-            alert('送出成功')
-            window.location.reload()
-        })
-        .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
-    })
+    // $('.send_review').on('click', function () {
+    //     $.ajax({
+    //         url: "/submit_sensitive_response",
+    //         type: 'POST',
+    //         data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
+    //         dataType: 'json'
+    //     })
+    //     .done(function (response) {
+    //         alert('送出成功')
+    //         window.location.reload()
+    //     })
+    //     .fail(function (xhr, status, errorThrown) {
+    //         alert(gettext('發生未知錯誤！請聯絡管理員'))
+    //         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //     })
+    // })
 
-    $('.accordion').on('click', function () {
-        if ($(this).hasClass('active')) {
-            $(this).removeClass('active')
-            $(this).next('.panel').removeClass('d-block').addClass('d-none')
-        } else {
-            $('.accordion').not(this).removeClass('active')
-            $('.accordion').not(this).next('.panel').removeClass('d-block').addClass('d-none')
-            $(this).addClass('active')
-            $(this).next('.panel').addClass('d-block').removeClass('d-none')
-        }
-    })
+    // $('.accordion').on('click', function () {
+    //     if ($(this).hasClass('active')) {
+    //         $(this).removeClass('active')
+    //         $(this).next('.panel').removeClass('d-block').addClass('d-none')
+    //     } else {
+    //         $('.accordion').not(this).removeClass('active')
+    //         $('.accordion').not(this).next('.panel').removeClass('d-block').addClass('d-none')
+    //         $(this).addClass('active')
+    //         $(this).next('.panel').addClass('d-block').removeClass('d-none')
+    //     }
+    // })
 
     $('.save_btn').on('click', function () {
         update_user_status($(this).data('id'))

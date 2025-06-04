@@ -487,6 +487,10 @@ def change_manager_page(request):
             #             partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
                     
             #     comment.append(f"<b>審核單位：</b>{partner_name}<br><b>審核者姓名：</b>{sdr.reviewer_name}<br><b>審核意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審核結果：</b>{sdr.get_status_display()}")
+           
+            link = ''
+            if sq.status == 'pass':
+                link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
 
             data.append({
                 'id': f"#{s.id}",
@@ -497,6 +501,7 @@ def change_manager_page(request):
                 # 'comment': '<hr>'.join(comment) if comment else '',
                 'status': sq.get_status_display(),
                 'a': a,
+                'link': link
             })
 
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
@@ -525,6 +530,7 @@ def change_manager_page(request):
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
+                    # TODO 這邊是不是有問題
                     if sdr.status == 'pass' and sdr.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 
@@ -602,6 +608,7 @@ def change_manager_page(request):
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}&from_system=true">查看</a></td>' 
 
                     link = ''
+                    # TODO 這邊是不是有問題
                     if sdr.status == 'pass' and sdr.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
 

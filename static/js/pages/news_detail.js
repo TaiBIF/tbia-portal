@@ -20,7 +20,17 @@ $(document).ready(function() {
       const $h2 = $('<h2></h2>').text(text);
       $a.append($h2).on('click', function (e) {
         e.preventDefault();
-        $('html, body').animate({ scrollTop: $('#' + id).offset().top - 85 }, 400);
+
+        if ($(window).width() <= 767) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 65 }, 400);
+        } else if ($(window).width() <= 999) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 65 }, 400);
+        } else if ($(window).width() <= 1599) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 85 }, 400);
+        } else {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 105 }, 400);
+        }
+
       });
       $currentLi.append($a);
       $tocList.append($currentLi);
@@ -32,7 +42,17 @@ $(document).ready(function() {
       const $h3 = $('<h3></h3>').text(text);
       $a.append($h3).on('click', function (e) {
         e.preventDefault();
-        $('html, body').animate({ scrollTop: $('#' + id).offset().top - 85 }, 400);
+
+        if ($(window).width() <= 767) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 65 }, 400);
+        } else if ($(window).width() <= 999) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 65 }, 400);
+        } else if ($(window).width() <= 1599) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 85 }, 400);
+        } else {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 105 }, 400);
+        }
+
       });
       $currentLi.append($a);
     }
