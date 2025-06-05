@@ -1960,7 +1960,7 @@ def search_full(request):
         for x in project[:6]:
             project_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
@@ -1971,7 +1971,7 @@ def search_full(request):
         for x in datathon[:6]:
             datathon_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
@@ -1981,7 +1981,7 @@ def search_full(request):
         for x in themeyear[:6]:
             themeyear_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
