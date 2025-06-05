@@ -116,10 +116,11 @@ function changePage(page, menu) {
   ]
 
   var quill = new Quill('#editor', {
-    theme: 'snow', modules: {
-      'toolbar': toolbarOptions,
-      'imageResize': {
-        modules: ['Resize', 'DisplaySize', 'Toolbar']
+      theme: 'snow', 
+      modules: {
+        'toolbar': toolbarOptions,
+        'imageResize': {
+          modules: ['Resize', 'DisplaySize', 'Toolbar']
       },
       imageUploader: {
         upload: file => {

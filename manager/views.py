@@ -8,7 +8,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str 
-from manager.utils import generate_token, check_due
+from manager.utils import generate_token, check_due, clean_quill_html
 import threading
 from django.http import (
     JsonResponse,
@@ -1947,6 +1947,7 @@ def system_keyword(request):
     return render(request, 'manager/system/keyword.html', {'keywords':keywords,'keywords_en': keywords_en})
 
 
+
 def submit_news(request):
     if request.method == 'POST':
         current_user = request.user
@@ -1955,6 +1956,10 @@ def submit_news(request):
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
+
+        # 清理content
+        content = clean_quill_html(content)
+
         publish_date = request.POST.get('publish_date')
         lang = request.POST.get('news_lang')
 
