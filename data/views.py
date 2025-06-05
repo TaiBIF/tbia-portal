@@ -2121,9 +2121,9 @@ def get_taxon_by_region(request):
     if municipality:
         query_list.append('municipality:"{}"'.format(municipality))
 
-    # 階層要限定在科以下
+    # 階層只撈種&種下 再往上補階層到科
 
-    selected_ranks = rank_list[rank_list.index('family'):]
+    selected_ranks = rank_list[rank_list.index('species'):]
     query_list.append('taxonRank:({})'.format(' OR '.join(selected_ranks)))
 
 
@@ -2146,5 +2146,10 @@ def get_taxon_by_region(request):
     resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
     resp = resp.json()
     taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
+
+    # 從這邊再去取得這些階層的科&屬
+
+    taxon_ids += get_family_taxon_ids(taxon_ids)
+    taxon_ids = list(set(taxon_ids))
 
     return HttpResponse(json.dumps(taxon_ids), content_type='application/json')
