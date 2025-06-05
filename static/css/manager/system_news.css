@@ -341,3 +341,17 @@ li.check-list  .chebox:checked {
 .news_apply_table td:last-child {
     font-size: 14px
 }
+
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+  all: unset;
+  display: block;
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
+  padding: 0;
+}

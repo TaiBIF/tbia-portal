@@ -1960,7 +1960,7 @@ def search_full(request):
         for x in project[:6]:
             project_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
@@ -1971,7 +1971,7 @@ def search_full(request):
         for x in datathon[:6]:
             datathon_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
@@ -1981,7 +1981,7 @@ def search_full(request):
         for x in themeyear[:6]:
             themeyear_rows.append({
                 'title': x.title,
-                'content': x.content,
+                'content': extract_text_summary(highlight(x.content,keyword)),
                 'id': x.id
             })
 
@@ -2100,9 +2100,14 @@ def get_taxon_by_region(request):
     exclude_cultured = request.GET.get('exclude_cultured')
     county = request.GET.get('county')
     municipality = request.GET.get('municipality')
-
+    bioGroup = request.GET.get('bioGroup')
+    
     query_list = []
     # query_list.append('is_deleted:false')
+    if bioGroup:
+        if bioGroup == '維管束植物':
+            bioGroup = '(維管束植物 OR 蕨類植物)'
+        query_list.append('bioGroup:{}'.format(bioGroup))
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')

@@ -2,7 +2,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
 from manager.models import Workday #Partner, 
 from django.db.models import Max
-
+from bs4 import BeautifulSoup
 from datetime import timedelta #, datetime, tzinfo,
 # import pandas as pd
 # from os.path import exists
@@ -28,3 +28,12 @@ def check_due(checked_date, review_days): # 日期, 審核期限
                 final_due = final_due.strftime('%Y-%m-%d')
                 c += 1
     return final_due
+
+
+def clean_quill_html(html: str) -> str:
+    soup = BeautifulSoup(html, 'html.parser')
+    # 移除所有 h1~h6，保留內文
+    for i in range(1, 7):
+        for tag in soup.find_all(f'h{i}'):
+            tag.name = 'p' 
+    return str(soup)
