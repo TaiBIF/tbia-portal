@@ -2096,7 +2096,7 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
 # 給工具使用的API
 def get_taxon_by_region(request):
 
-    is_in_taiwan = request.GET.get('is_in_taiwan')
+    is_in_taiwan = request.GET.get('only_in_taiwan')
     exclude_cultured = request.GET.get('exclude_cultured')
     county = request.GET.get('county')
     municipality = request.GET.get('municipality')
