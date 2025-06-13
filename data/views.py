@@ -2096,7 +2096,7 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
 # 給工具使用的API
 def get_taxon_by_region(request):
 
-    is_in_taiwan = request.GET.get('is_in_taiwan')
+    is_in_taiwan = request.GET.get('only_in_taiwan')
     exclude_cultured = request.GET.get('exclude_cultured')
     county = request.GET.get('county')
     municipality = request.GET.get('municipality')
@@ -2121,9 +2121,9 @@ def get_taxon_by_region(request):
     if municipality:
         query_list.append('municipality:"{}"'.format(municipality))
 
-    # 階層要限定在科以下
+    # 階層只撈種&種下 再往上補階層到科
 
-    selected_ranks = rank_list[rank_list.index('family'):]
+    selected_ranks = rank_list[rank_list.index('species'):]
     query_list.append('taxonRank:({})'.format(' OR '.join(selected_ranks)))
 
 
@@ -2146,5 +2146,10 @@ def get_taxon_by_region(request):
     resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
     resp = resp.json()
     taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
+
+    # 從這邊再去取得這些階層的科&屬
+
+    taxon_ids += get_family_taxon_ids(taxon_ids)
+    taxon_ids = list(set(taxon_ids))
 
     return HttpResponse(json.dumps(taxon_ids), content_type='application/json')

@@ -2296,3 +2296,28 @@ def create_tbn_query(req_dict):
 
     return query_list, query_str_list, error_str_list
 
+
+
+
+def get_family_taxon_ids(taxon_ids):
+
+    subset_taxon_list = []
+    ids = [f"id:{d}" for d in taxon_ids]
+
+    for tt in range(0, len(taxon_ids), 20):
+        taxa_query = {'query': " OR ".join(ids[tt:tt+20]), 'limit': 20, 'fields': ['family_taxonID','genus_taxonID','species_taxonID']}
+        response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(taxa_query), headers={'content-type': "application/json" })
+        if response.status_code == 200:
+            resp = response.json()
+            if data := resp['response']['docs']:
+                subset_taxon_list += data
+
+    taxon = pd.DataFrame(subset_taxon_list)
+
+    final_taxon_ids = []
+
+    for k in ['family_taxonID','genus_taxonID','species_taxonID']:
+        if k in taxon.keys():
+            final_taxon_ids += taxon[k].to_list()
+
+    return list(set(final_taxon_ids))
