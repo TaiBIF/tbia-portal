@@ -2150,6 +2150,7 @@ def get_taxon_by_region(request):
     # 從這邊再去取得這些階層的科&屬
 
     taxon_ids += get_family_taxon_ids(taxon_ids)
+    taxon_ids = [x for x in taxon_ids if x and str(x).strip().lower() != 'nan']
     taxon_ids = list(set(taxon_ids))
 
     return HttpResponse(json.dumps(taxon_ids), content_type='application/json')
