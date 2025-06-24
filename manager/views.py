@@ -134,6 +134,31 @@ def send_feedback(request):
         return JsonResponse({'status': 'success'}, safe=False)
 
 
+def send_issue(request):
+    if request.method == 'POST':
+
+        email = request.POST.get('email')
+        content = request.POST.get('content')
+        url = request.POST.get('url')
+        type = int(request.POST.get('type'))
+
+        type_map = {
+            2: '座標錯誤',
+            3: '其他'
+        }
+
+        # 寄通知給系統管理員
+        for u in User.objects.filter(is_system_admin=True):
+            email_content = f"有新的問題回報<br>"
+            email_content += f"<br><b>問題類型：</b>{type_map[type]}"
+            email_content += f"<br><b>問題描述：</b>{content}"
+            email_content += f"<br><b>頁面連結：</b>{url}"
+            email_content += f"<br><b>回報者email：</b>{email}"
+            send_notification([u.id],email_content,'問題回報通知')
+
+        return JsonResponse({'status': 'success'}, safe=False)
+
+
 def update_feedback(request):
     if request.method == 'POST':
         # print(request.POST)

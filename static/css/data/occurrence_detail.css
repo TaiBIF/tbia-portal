@@ -158,3 +158,81 @@ max-width: 100%;
 .pres-flex {
     display: flex;
 }
+
+
+.issue_button {
+    font-size: 16px;
+    color: #FFF;
+    background: #76A578;
+    bottom: 30px;
+    left: 30px;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 1.2;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    white-space: normal; /* ✅ 改為 normal，讓 <br> 換行 */
+}
+
+@media only screen and (max-width: 999px) {
+    .issue_button {
+        font-size: 14px
+    }
+}
+
+.issue_button:hover {
+    background: #EAD065;
+    color: #FFF;
+
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}
+
+
+/* 網站捷徑 */
+.issue-menu-wrapper {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    z-index: 1030;
+}
+
+
+.issue-pop a {
+    cursor: pointer;
+    color: #417991;
+}
+
+.issue-pop a:hover {
+    color: #76A578;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}
+
+
+.pt-30px {
+    padding-top: 30px
+}
+
+
+.issue-pop .wbox_center {
+    min-height: 300px;
+}
