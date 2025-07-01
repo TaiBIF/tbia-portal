@@ -68,6 +68,8 @@ urlpatterns = [
     # feedback 通知 / 管理
     path('send_feedback', views.send_feedback, name='send_feedback'),
     path('update_feedback', views.update_feedback, name='update_feedback'),
+    # 問題回報
+    path('send_issue', views.send_issue, name='send_issue'),
     # QA 管理
     path('submit_qa', views.submit_qa, name='submit_qa'),
     path('delete_qa', views.delete_qa, name='delete_qa'),

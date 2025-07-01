@@ -241,7 +241,7 @@ $(function () {
         .fail(function (xhr, status, errorThrown) {
           alert(gettext('發生未知錯誤！請聯絡管理員'))
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-          $('.login_pop').addClass('d-none')
+          $('.feedback-pop').addClass('d-none')
 
         })
     }

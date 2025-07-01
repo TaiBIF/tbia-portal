@@ -24,7 +24,7 @@
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
     <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
     <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit{% if LANGUAGE_CODE == 'en-us' %}&hl=en{% endif %}" async defer></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v12" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v13" />
     <script src="{% static 'js/GA/ga_head.js' %}"></script>
     <script src="{% static 'js/tokml.js' %}"></script>
     <!-- use django template in js -->
@@ -692,6 +692,6 @@
   <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
   {% endif %}
   </body>
-  <script src="{% static 'js/base.js' %}?v5"></script>
+  <script src="{% static 'js/base.js' %}?v6"></script>
   {% block script %}{% endblock script %}
 </html>

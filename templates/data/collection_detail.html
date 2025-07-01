@@ -18,12 +18,65 @@
 {% block title %}{% trans '自然史典藏' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v5" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/collection_detail.css' %}?v6" />
 {% endblock style %}
 
 {% block body %}
 <input type="hidden" name="lat" value="{{ row.lat }}">
 <input type="hidden" name="lon" value="{{ row.lon }}">
+
+<!-- shortcut begin -->
+<div class="issue-menu-wrapper">
+  <a class="btn issue_button">
+      {% trans '問題<br>回報' %}
+  </a>
+</div>
+
+<!--問題回報popbox-->
+<div class="popbg issue-pop">
+  <div class="ovhy">
+    <div class="wbox_center">
+      <div class="xx">
+      </div>
+      <div class="titlegreen">
+        {% trans '問題回報' %}
+      </div>
+      <div class="from_area pt-30px">
+        <form id="issue_form">
+        {% csrf_token %}
+        <div class="txt_area"> 
+          <select class="w-50" name="type" id="issue_type" placeholder="{% trans '請選擇問題類型' %}">
+            <option value="1">{% trans '學名錯誤' %}</option>
+            <option value="2">{% trans '座標錯誤' %}</option>
+            <option value="3">{% trans '其他' %}</option>
+          </select>				
+        </div>
+        <div class="txt_area content_area d-none">
+          <p>{% trans '問題描述' %}</p>
+          <textarea name="content"></textarea>
+        </div>
+        <p class="shortxt" id="issue_message"></p>
+        <div class="email_area d-none">
+          <p>{% trans '您的電⼦郵件' %}
+          <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
+        </div>
+        {% if not user.is_authenticated %}
+          <div
+            class="g-recaptcha g-recaptcha-style d-none"
+            data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
+            data-theme="light" 
+            data-size="normal"
+            data-callback="validateCaptcha"
+            data-expired-callback="handleCaptchaExpired"
+            data-error-callback="handleCaptchaExpired">
+          </div>
+        {% endif %}
+        </form>
+        <button class="send d-none">{% trans '確認送出' %}</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="popbg taxon-pop d-none" >
 	<div class="ovhy">
@@ -266,5 +319,5 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/data/collection_detail.js' %}?v1"></script>
+<script src="{% static 'js/data/collection_detail.js' %}?v2"></script>
 {% endblock script %}
