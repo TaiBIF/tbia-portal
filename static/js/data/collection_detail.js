@@ -2,7 +2,7 @@
 let slideIndex = 1;
 
 const issue_messages = {
-  '1': gettext("請協助確認您所搜尋的學名、本筆資料顯示的學名、以及來源資料庫使⽤學名是否皆已在<a href='taicol.tw' target='_blank'>臺灣物種名錄</a>中收錄，若無收錄，請至臺灣物種名錄進行<a href='https://taicol.tw/submit' target='_blank'>物種登錄</a>。如您的問題與學名是否收收錄至臺灣物種名錄無關，問題類型請選擇「其他」選項進行回報"),
+  '1': gettext("請協助確認您所搜尋的學名、本筆資料顯示的學名、以及來源資料庫使⽤學名是否皆已在<a href='https://taicol.tw' target='_blank'>臺灣物種名錄</a>中收錄，若無收錄，請至臺灣物種名錄進行<a href='https://taicol.tw/submit' target='_blank'>物種登錄</a>。如您的問題與學名是否收收錄至臺灣物種名錄無關，問題類型請選擇「其他」選項進行回報"),
   '2': gettext('請提供詳細座標錯誤說明'),
   '3': gettext('請提供詳細問題說明')
 };
@@ -56,7 +56,7 @@ $(function () {
 
     $('.issue-pop .send').on('click', function(){
 
-        if ((!$('#issue_form input[name=is_authenticated]').val() && !window.has_grecaptcha) | 
+        if ((!$('input[name=is_authenticated]').val() && !window.has_grecaptcha) | 
             (!validateEmail($('#issue_form input[name=email]').val()) ) |
             (!$('#issue_form textarea[name=content]').val())) {
             alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
