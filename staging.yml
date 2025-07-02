@@ -1,6 +1,8 @@
 networks:
   gateway:
     external: true
+  datahub:
+    external: true
   app_network:
     driver: bridge
 
