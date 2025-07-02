@@ -66,6 +66,7 @@ services:
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/logs/nginx:/var/log/nginx
+    entrypoint: ["/bin/sh", "/nginx-entrypoint.sh"]
     depends_on:
       - web
     networks:
