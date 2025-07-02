@@ -41,8 +41,8 @@ services:
     image: postgres:13-alpine
     container_name: tbia-db-stag-container
     restart: always
-    ports:
-      - 5431:5432
+    # ports:
+    #   - 5431:5432
     volumes:
       - ../tbia-volumes/pgdata:/var/lib/postgresql/data/pgdata
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
@@ -54,6 +54,7 @@ services:
     networks:
       - gateway
       - app_network
+      - datahub
   nginx-portal:  # nginx to serve static files
     image: nginx:1.26.0-alpine
     container_name: nginx-portal
@@ -62,6 +63,7 @@ services:
       - ./scripts/nginx/stag/stag.conf:/etc/nginx/conf.d/default.conf
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/logs/nginx:/var/log/nginx
     depends_on:
       - web
     networks:
@@ -72,3 +74,14 @@ services:
       - "traefik.http.routers.nginx-portal.rule=Host(`dev.tbiadata.tw`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
+
+      # == 限流 router: 限制所有 /api 的路徑 ==
+      - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`dev.tbiadata.tw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.nginx-portal-api-limit.entrypoints=websecure"
+      - "traefik.http.routers.nginx-portal-api-limit.tls.certresolver=myresolver"
+      - "traefik.http.routers.nginx-portal-api-limit.middlewares=ratelimit-api"
+      - "traefik.http.routers.nginx-api-nolimit.service=nginx-portal"
+
+      # == rate limit middleware 設定 ==
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.average=8"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=10"
