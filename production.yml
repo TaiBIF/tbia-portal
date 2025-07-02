@@ -1,6 +1,8 @@
 networks:
   gateway:
     external: true
+  datahub:
+    external: true
   app_network:
     driver: bridge
 
@@ -53,22 +55,35 @@ services:
     networks:
       - gateway
       - app_network
+      - datahub
   nginx-portal:
     image: nginx:1.26.0-alpine
     container_name: nginx-portal
     restart: always
     volumes:
       - ./scripts/nginx/production/production.conf:/etc/nginx/conf.d/default.conf
+      - ./scripts/nginx/nginx-entrypoint.sh:/nginx-entrypoint.sh
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/logs/nginx:/var/log/nginx
     depends_on:
       - web
+    networks:
+      - gateway
+      - app_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx-portal.rule=Host(`tbiadata.tw`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
-    networks:
-      - gateway
-      - app_network
+
+      # == 限流 router: 限制所有 /api 的路徑 ==
+      - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`tbiadata.tw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.nginx-portal-api-limit.entrypoints=websecure"
+      - "traefik.http.routers.nginx-portal-api-limit.tls.certresolver=myresolver"
+      - "traefik.http.routers.nginx-portal-api-limit.middlewares=ratelimit-api"
+      - "traefik.http.routers.nginx-api-nolimit.service=nginx-portal"
+
+      # == rate limit middleware 設定 ==
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.average=8"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=10"
