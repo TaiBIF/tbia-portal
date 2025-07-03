@@ -1279,7 +1279,7 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
-    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'county_list': county_list })
@@ -1292,7 +1292,7 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
 
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list #'dataset_list': dataset_list
