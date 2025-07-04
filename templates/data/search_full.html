@@ -233,6 +233,12 @@
               <div class="arr"></div>
             </a>
           </li>
+          <li class="li-item_qa">
+            <a class="big_link rd_click focusComponent" data-item_class="item_qa" data-go_back="false">
+              <p>{% trans '常見Q&A' %}</p>
+              <div class="arr"></div>
+            </a>
+          </li>
           <li class="li-item_resource">
             <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
               <p>{% trans '開放資料相關資源' %}</p>
@@ -244,6 +250,14 @@
     </div>
 
     <div class="rightbox_content">
+
+      {% if all_empty %}
+          <div class="no_data">{% trans '無資料' %}</div> 
+
+      {% endif %}
+
+
+      {% if taxon.count > 0 %}
       <!----- 所有結果 內容欄 ----->
 					<div class="item item_spe"  id="item_spe">
 						<div class="titlebox_line">
@@ -252,7 +266,6 @@
 								<div class="line"></div>
 							</div>
 						</div>
-            {% if taxon.count > 0 %}
 						<ul class="card_list_2 species_list taxon-card">
               {% for i in taxon.card %}
 							<li>
@@ -298,10 +311,7 @@
 									</div>
                   {% endif %}
 								</div>
-
                 {% comment %} justify-content: center {% endcomment %}
-
-                
                 <div class="btn_area">
                   {% if i.taieol_id %}                  
                   <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">
@@ -327,9 +337,8 @@
 							</li>
               {% endfor %}
 						</ul>
-            {% else %}
-            <div class="no_data">{% trans '無資料' %}</div>
-            {% endif %}
+            {% comment %} {% else %}
+            <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
             <!--超過4個才有更多按鈕-->
             {% if taxon.more %}
             <a class="more taxon_more getMoreCards" 
@@ -343,9 +352,11 @@
             </div>    
             {% endif %}
 					</div>
+            {% endif %}
 
 
       <!----- 物種出現紀錄 ----->
+        {% if occurrence.count > 0 %}
       <div class="item item_occ" id="item_occ">
         <div class="titlebox_line">
           <div class="title">
@@ -353,7 +364,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if occurrence.count > 0 %}
           <ul class="card_list_1 occ-card">
             {% for i in occurrence.card %}
               <li class="getRecords" 
@@ -392,10 +402,9 @@
               </li>
             {% endfor %}
           </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %}
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         <!--超過9個才有更多按鈕-->
         {% if occurrence.more %}
         <a class="more occ_more getMoreCards" 
@@ -409,9 +418,11 @@
         </div>
         {% endif %}
       </div>
+        {% endif %}
 
 
       <!----- 自然史典藏 ----->
+        {% if collection.count > 0 %}
       <div class="item item_col" id="item_col">
         <div class="titlebox_line">
           <div class="title">
@@ -419,7 +430,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if collection.count > 0 %}
           <ul class="card_list_1 col-card">
             {% for i in collection.card %}
             <li class="getRecords" 
@@ -458,10 +468,9 @@
             </li>
             {% endfor %}
           </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %}
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         <!--超過9個才有更多按鈕-->
         {% if collection.more %}
         <a class="more col_more getMoreCards" 
@@ -475,9 +484,11 @@
         </div>
         {% endif %}
       </div>
+        {% endif %}
 
 
       <!-- 新聞公告 -->
+        {% if news.count > 0 %}
       <div class="item item_news" id="item_news">
         <div class="titlebox_line">
           <div class="title">
@@ -485,7 +496,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if news.count > 0 %}
         <ul class="card_list_2 news-card">
           {% for i in news.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
@@ -494,10 +504,9 @@
           </li>
           {% endfor %}
         </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %}
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         <!--超過6個才有更多按鈕-->
         {% if news.count > 6 %}
         <a class="more more_news getMoreDocs" 
@@ -508,9 +517,11 @@
         <input type="hidden" id="news_offset" value="6">
         {% endif %}
       </div>
+        {% endif %}
 
 
       <!-- 活動訊息 -->
+        {% if event.count > 0 %}
       <div class="item item_event" id="item_event">
         <div class="titlebox_line">
           <div class="title">
@@ -518,7 +529,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if event.count > 0 %}
         <ul class="card_list_2 event-card">
           {% for i in event.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
@@ -527,10 +537,9 @@
           </li>
           {% endfor %}
         </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %}
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         <!--超過6個才有更多按鈕-->
         {% if event.count > 6 %}
         <a class="more more_event getMoreDocs" 
@@ -541,9 +550,11 @@
         <input type="hidden" id="event_offset" value="6">
         {% endif %}
       </div>
+        {% endif %}
 
 
       <!----- 徵求公告 ----->
+        {% if project.count > 0 %}
       <div class="item item_project" id="item_project">
         <div class="titlebox_line">
           <div class="title">
@@ -551,7 +562,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if project.count > 0 %}
         <ul class="card_list_2 project-card">
           {% for i in project.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
@@ -560,10 +570,9 @@
           </li>
           {% endfor %}
         </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %} 
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         {% if project.count > 6 %}
         <!--超過6個才有更多按鈕-->
         <a class="more more_project getMoreDocs" 
@@ -574,9 +583,11 @@
         <input type="hidden" id="project_offset" value="6">
         {% endif %}
       </div>
+        {% endif %} 
 
 
       <!----- 數據松成果 ----->
+        {% if datathon.count > 0 %}
       <div class="item item_datathon" id="item_datathon">
         <div class="titlebox_line">
           <div class="title">
@@ -584,7 +595,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if datathon.count > 0 %}
         <ul class="card_list_2 datathon-card">
           {% for i in datathon.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
@@ -593,10 +603,9 @@
           </li>
           {% endfor %}
         </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %} 
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         {% if datathon.count > 6 %}
         <!--超過6個才有更多按鈕-->
         <a class="more more_datathon getMoreDocs" 
@@ -607,9 +616,11 @@
         <input type="hidden" id="datathon_offset" value="6">
         {% endif %}
       </div>
+        {% endif %} 
 
 
       <!----- 主題年活動 ----->
+        {% if themeyear.count > 0 %}
       <div class="item item_themeyear" id="item_themeyear">
         <div class="titlebox_line">
           <div class="title">
@@ -617,7 +628,6 @@
             <div class="line"></div>
           </div>
         </div>
-        {% if themeyear.count > 0 %}
         <ul class="card_list_2 themeyear-card">
           {% for i in themeyear.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
@@ -626,10 +636,9 @@
           </li>
           {% endfor %}
         </ul>
-        {% else %}
+        {% comment %} {% else %}
         <!--無資時料顯示-->
-        <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %} 
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
         {% if themeyear.count > 6 %}
         <!--超過6個才有更多按鈕-->
         <a class="more more_themeyear getMoreDocs" 
@@ -640,9 +649,43 @@
         <input type="hidden" id="themeyear_offset" value="6">
         {% endif %}
       </div>
+        {% endif %} 
+
+      <!----- QA ----->
+        {% if qa.count > 0 %}
+      <div class="item item_qa" id="item_qa">
+        <div class="titlebox_line">
+          <div class="title">
+            <p>{% trans '常見Q&A' %} ({{ qa.count }})</p>
+            <div class="line"></div>
+          </div>
+        </div>
+        <ul class="card_list_2 qa-card">
+          {% for i in qa.rows %}
+          <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/qa?qa_id={{ i.id }}">
+            <div class="nstitle">{% highlight i.title keyword %}</div>
+            <p>{{ i.content | safe }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% comment %} {% else %}
+        <!--無資時料顯示-->
+        <div class="no_data">{% trans '無資料' %}</div> {% endcomment %}
+        {% if qa.count > 6 %}
+        <!--超過6個才有更多按鈕-->
+        <a class="more more_qa getMoreDocs" 
+          data-doc_type="qa"
+          data-offset_value="#qa_offset"
+          data-more_class=".more_qa"
+          data-card_class=".qa-card">{% trans '更多結果' %} </a>
+        <input type="hidden" id="qa_offset" value="6">
+        {% endif %}
+      </div>
+        {% endif %} 
 
 
       <!----- 開放資料相關資源 ----->
+      {% if resource.count > 0 %} 
       <div class="item item_resource" id="item_resource">
         <div class="titlebox_line">
           <div class="title">
@@ -651,7 +694,6 @@
           </div>
         </div>
         <ul class="edu_list three_set resource-card">
-          {% if resource.count > 0 %} 
             {% for i in resource.rows %}
             <li>
               <div class="item items h-100p">
@@ -669,9 +711,8 @@
             </li>
             {% endfor %}
         </ul>
-        {% else %}
-        <div class="no_data w-100p">{% trans '無資料' %}</div>
-        {% endif %} 
+        {% comment %} {% else %}
+        <div class="no_data w-100p">{% trans '無資料' %}</div> {% endcomment %}
         {% if resource.count > 6 %}
         <a class="more more_resource getMoreDocs" 
           data-doc_type="resource"
@@ -681,6 +722,8 @@
         <input type="hidden" id="resource_offset" value="6">
         {% endif %}
       </div>
+      {% endif %} 
+
     </div>
 
 
