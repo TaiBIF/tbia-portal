@@ -1242,10 +1242,17 @@ msgstr "Failed! Please check if the format of coordinates is correct."
 msgid "框選失敗！請檢查經緯度數值是否正確"
 msgstr "Failed! Please check if the value of coordinates is correct."
 
+
 #: static/js/data/search_collection.js:561
 #: static/js/data/search_occurrence.js:475
-msgid "上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限"
-msgstr "Failed!  Please check if the GeoJSON is invalid or the file exceeds maximum size (2.5MB)."
+msgid "上傳失敗！請檢查GeoJSON格式是否正確"
+msgstr "Failed!  Please check if the GeoJSON is correct."
+
+
+#: static/js/data/search_collection.js:561
+#: static/js/data/search_occurrence.js:475
+msgid "GeoJSON超過大小上限，請先簡化圖形後再上傳（上限15MB）"
+msgstr "The GeoJSON exceeds the maximum file size. Please simplify the geometry before uploading (limit: 15MB)."
 
 
 #: static/js/data/search_collection.js:842
