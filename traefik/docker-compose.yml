@@ -22,6 +22,6 @@ services:
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "../../tbia-volumes/logs/nginx-traefik:/var/log/traefik" 
+      - "../../tbia-volumes/logs/traefik:/var/log/traefik" 
     networks:
       - gateway
