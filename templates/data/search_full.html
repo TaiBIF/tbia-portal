@@ -664,7 +664,7 @@
           {% for i in qa.rows %}
           <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/qa?qa_id={{ i.id }}">
             <div class="nstitle">{% highlight i.title keyword %}</div>
-            <p>{% highlight i.content | safe %}</p>
+            <p>{% highlight i.content|safe %}{% endhighlight %}</p>
           </li>
           {% endfor %}
         </ul>
