@@ -1017,7 +1017,7 @@ def get_more_docs(request):
             for x in qa[offset:offset+6]:
                 rows.append({
                     'title': highlight(x.question,keyword),
-                    'content': extract_text_summary(highlight(x.answer,keyword)),
+                    'content': highlight(x.answer,keyword),
                     'id': x.id
                 })
             has_more = True if qa[offset+6:].count() > 0 else False
@@ -2001,7 +2001,7 @@ def search_full(request):
         for x in qa[:6]:
             qa_rows.append({
                 'title': x.question,
-                'content': extract_text_summary(highlight(x.answer,keyword)),
+                'content': x.answer,
                 'id': x.id
             })
 
