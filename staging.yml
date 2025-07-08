@@ -3,8 +3,7 @@ networks:
     external: true
   datahub:
     external: true
-  app_network:
-    driver: bridge
+
 
 services:
   web:
@@ -29,7 +28,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - gateway
-      - app_network
       - datahub
   postgres-web:
     image: postgres:13-alpine
@@ -46,7 +44,6 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
       - gateway
-      - app_network
       - datahub
   nginx-portal:  # nginx to serve static files
     image: nginx:1.26.0-alpine
@@ -63,7 +60,6 @@ services:
       - web
     networks:
       - gateway
-      - app_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx-portal.rule=Host(`dev.tbiadata.tw`)"
