@@ -29,7 +29,7 @@ import subprocess
 import os
 import threading
 from manager.models import SearchQuery, User, SensitiveDataRequest, SensitiveDataResponse, Partner
-from pages.models import Notification
+from pages.models import Notification, Qa
 from urllib import parse
 from manager.views import send_notification
 from django.utils import timezone
@@ -463,19 +463,17 @@ def generate_sensitive_csv(query_id, scheme, host):
                               content_en=content_en)
 
 
-
 def save_geojson(request):
     if request.method == 'POST':
         geojson = request.POST.get('geojson_text')
         geojson = gpd.read_file(geojson, driver='GeoJSON')
-        # geojson = geojson.dissolve()
         geojson = geojson.to_json()
 
         oid = str(ObjectId())
         with open(f'/tbia-volumes/media/geojson/{oid}.json', 'w') as f:
             json.dump(json.loads(geojson), f)
-        return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
+        return JsonResponse({"geojson_id": oid, "geojson": geojson}, safe=False)
 
 
 def return_geojson_query(request):
@@ -997,6 +995,7 @@ def get_more_docs(request):
         keyword_reg = process_text_variants(keyword_reg)
 
         doc_type = request.POST.get('doc_type', '')
+
         offset = request.POST.get('offset', '')
         if offset:
             offset = int(offset)
@@ -1013,7 +1012,17 @@ def get_more_docs(request):
                     'date': x.publish_date.strftime("%Y-%m-%d")
                 })
             has_more = True if resource[offset+6:].count() > 0 else False
+        elif doc_type == 'qa':
+            qa = Qa.objects.filter(Q(question__regex=keyword_reg)|Q(answer__regex=keyword_reg)).order_by('order')
+            for x in qa[offset:offset+6]:
+                rows.append({
+                    'title': highlight(x.question,keyword),
+                    'content': highlight(x.answer,keyword),
+                    'id': x.id
+                })
+            has_more = True if qa[offset+6:].count() > 0 else False
         else:
+
             news = News.objects.filter(status='pass',type=doc_type,lang=lang).filter(Q(title__regex=keyword_reg)|Q(content__regex=keyword_reg)).order_by('-publish_date')
             for x in news[offset:offset+6]:
                 rows.append({
@@ -1279,7 +1288,7 @@ def search_collection(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
-    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'county_list': county_list })
@@ -1292,7 +1301,7 @@ def search_occurrence(request):
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
-    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('county').values('county','county_en').distinct()
+    county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
 
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list #'dataset_list': dataset_list
@@ -1985,6 +1994,17 @@ def search_full(request):
                 'id': x.id
             })
 
+
+        qa = Qa.objects.filter(Q(question__regex=keyword_reg)|Q(answer__regex=keyword_reg)).order_by('order')
+        c_qa = qa.count()
+        qa_rows = []
+        for x in qa[:6]:
+            qa_rows.append({
+                'title': x.question,
+                'content': x.answer,
+                'id': x.id
+            })
+
         # resource
         resource = Resource.objects.filter(lang=lang,title__regex=keyword_reg).order_by('-publish_date')
         c_resource = resource.count()
@@ -2011,6 +2031,9 @@ def search_full(request):
             'datathon': {'rows': datathon_rows, 'count': c_datathon},
             'resource': {'rows': resource_rows, 'count': c_resource},
             'themeyear': {'rows': themeyear_rows, 'count': c_themeyear},
+            'qa': {'rows': qa_rows, 'count': c_qa},
+            'all_empty': all(not lst for lst in [taxon_rows, occurrence_rows, collection_rows, news_rows, event_rows, project_rows,
+                                                 datathon_rows, resource_rows, themeyear_rows, qa_rows])
             }
     else:
         response = {
@@ -2024,6 +2047,8 @@ def search_full(request):
             'datathon': {'count': 0},
             'resource': {'count': 0},
             'themeyear': {'count': 0},
+            'qa': {'count': 0},
+            'all_empty': True,
         }
 
     return render(request, 'data/search_full.html', response)

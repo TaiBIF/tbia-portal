@@ -32,7 +32,7 @@
 {% endblock head %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v7" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/search_occurrence.css' %}?v8" />
 {% endblock style %}
 
 {% block title %}{% trans '物種出現紀錄查詢' %}｜{% endblock %}
@@ -446,17 +446,23 @@
 				<div class="txt_area">
 					<textarea id="geojson_textarea" class="h-300px"></textarea>
 				</div>
-				<p class="shortxt note-text">
-				*{% trans '上限2.5 MB' %}
-				</p>
-				<p class="shortxt text-right">
+				<p class="polygon-txt">
 					{% if LANGUAGE_CODE == 'en-us' %}
-						You can use <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> to convert KML or shapefile into GeoJSON.
-					{% else %}
-						可使用 <a target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a> 進行KML、shapefile等格式轉換
+						You can use <a class="mr-5px" target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a> to convert KML or shapefile into GeoJSON.
+            <br>
+            ⚠️ The GeoJSON upload limit is 15 MB. If your file exceeds this limit, we recommend the following:
+            <br>
+            Use Mapshaper to simplify the geometry by reducing the number of polygon vertices, or clip the data to the area of interest to keep only the necessary features.
+          {% else %}
+						可使用 <a class="mr-5px" target="_blank" href="https://mapshaper.org/">mapshaper <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a> 進行KML、shapefile等格式轉換
+            <br>
+            ⚠️ GeoJSON 上限為 15 MB，如果超過大小限制，建議您：
+            <br>
+            使用 mapshaper 將圖形簡化，減少多邊形的頂點數量，或者裁剪至需要的區域，只保留必要的範圍
 					{% endif %}
 				</p>
 				<button class="send geojson_send">{% trans '確認送出' %}</button>
+
 			</div>
 		</div>
 	</div>
@@ -530,5 +536,5 @@
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/search_occurrence.js' %}?v23"></script>
+<script src="{% static 'js/data/search_occurrence.js' %}?v24"></script>
 {% endblock script %}

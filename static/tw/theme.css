@@ -892,7 +892,7 @@ body {
 
 @media only screen and (max-width: 1599px) {
     .header .right_menu li a.big_title {
-        min-width: 115px;
+        /* min-width: 115px; */
         padding: 0px 10px
     }
 }
@@ -901,7 +901,8 @@ body {
     .header .right_menu li a.big_title {
         font-size: 16px;
         padding: 0px 10px;
-        min-width: 20px
+        min-width: 20px;
+
     }
 
     .header .right_menu li a.big_title br {

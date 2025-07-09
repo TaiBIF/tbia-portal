@@ -500,3 +500,22 @@ input[type='number']::-webkit-outer-spin-button {
 .p-10px {
     padding: 15px
 }
+
+.polygon-txt {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.geojson_popup a {
+    cursor: pointer;
+    color: #417991;
+}
+
+.geojson_popup a:hover {
+    color: #76A578;
+    transition: all .3s;
+    -moz-transition: all .3s;
+    -o-transition: all .3s;
+    -ms-transition: all .3s;
+    -webkit-transition: all .3s
+}

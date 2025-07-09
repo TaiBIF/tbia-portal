@@ -3,8 +3,7 @@ networks:
     external: true
   datahub:
     external: true
-  app_network:
-    driver: bridge
+
 
 services:
   web:
@@ -14,9 +13,7 @@ services:
     expose:
       - 8001
     depends_on:
-      - postgres
-    links:
-      - postgres:postgres
+      - postgres-web
     volumes:
       - .:/code
       - ../tbia-volumes/static:/tbia-volumes/static
@@ -31,15 +28,8 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - gateway
-      - app_network
-    labels:  # redirecting http to https and defining routers and using tcl certresolver
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.web.entrypoints=web"
-      - "traefik.http.routers.web.rule=Host(`tbiadata.tw`)"
-      - "traefik.http.routers.web.entrypoints=websecure"
-      - "traefik.http.routers.web.tls.certresolver=myresolver"
-  postgres:
+      - datahub
+  postgres-web:
     image: postgres:13-alpine
     container_name: tbia-db-prod-container
     restart: always
@@ -48,13 +38,13 @@ services:
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
       - ../tbia-volumes/datahub_bucket:/datahub_bucket
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=example
-      - POSTGRES_DB=tbia
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
       - gateway
-      - app_network
       - datahub
   nginx-portal:
     image: nginx:1.26.0-alpine
@@ -71,12 +61,12 @@ services:
       - web
     networks:
       - gateway
-      - app_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nginx-portal.rule=Host(`tbiadata.tw`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
 
       # == 限流 router: 限制所有 /api 的路徑 ==
       - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`tbiadata.tw`) && PathPrefix(`/api`)"

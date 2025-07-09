@@ -32,3 +32,4 @@ class Municipality(models.Model):
     municipality = models.CharField(blank=True, null=True, max_length=1000)
     municipality_en = models.CharField(blank=True, null=True, max_length=1000)
     tbn_id = models.CharField(blank=True, null=True, max_length=1000) # TBN的縣市代碼 for 串接TBN使用
+    order = models.IntegerField(blank=True, null=True) # 縣市由北至南

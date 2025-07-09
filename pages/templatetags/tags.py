@@ -74,8 +74,17 @@ def process_text_variants(text: str) -> str:
     return result
 
 
+def strip_html_tags(html):
+    # 把 html 解析成純文字，保留內部文字，但去除所有標籤
+    return ''.join(BeautifulSoup(html, "html.parser").stripped_strings)
+
+
 @register.simple_tag
 def highlight(text, keyword, taxon_related=0):
+    
+    # 先移除所有 HTML 標籤，只保留純文字
+    text = strip_html_tags(text)
+
     if taxon_related == '1':
         keyword = re.sub(' +', ' ', keyword)
     keyword = process_text_variants(re.escape(keyword))

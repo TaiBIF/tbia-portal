@@ -834,41 +834,59 @@ $(function () {
     })
 
     $('.geojson_send').click(function () {
+
+        let geoStr = $('#geojson_textarea').val();
+        let geoObj;
+
+        try {
+            geoObj = JSON.parse(geoStr);
+        } catch (e) {
+            alert(gettext('上傳失敗！請檢查GeoJSON格式是否正確'));
+            return;
+        }
+
+        // 格式正確 → 檢查大小
+        let geoSizeBytes = new Blob([geoStr]).size;
+        let maxSizeBytes = 15 * 1024 * 1024;  // 15 MB
+
+        if (geoSizeBytes > maxSizeBytes) {
+            alert(gettext('GeoJSON超過大小上限，請先簡化圖形後再上傳（上限15MB）'));
+            return;
+        }
+
         // 先把舊的移除
         $('.addG, [class^=resultG_], .addC, .addM').remove()
-        try {
-            let geoObj = JSON.parse($('#geojson_textarea').val());
-            $.ajax({
-                url: "/save_geojson",
-                data: {
-                    geojson_text: JSON.stringify(geoObj),
-                    csrfmiddlewaretoken: $csrf_token
-                },
-                type: 'POST',
-                dataType: 'json',
-            })
-            .done(function (response) {
-                $('input[name=geojson_id]').val(response.geojson_id)
-                geoJSON = L.geoJSON(JSON.parse(response.geojson), { className: 'addG' }).addTo(map);
-                window.has_map = false
-                map.fitBounds(geoJSON.getBounds());
-                $('p.active').removeClass('active')
-                $(".geojson_popup").addClass('d-none')
-                $('.popupGeo').addClass('active');
-                drawnItems.clearLayers();
-            })
-            .fail(function (xhr, status, errorThrown) {
-                if (xhr.status == 504) {
-                    alert(gettext('要求連線逾時'))
-                } else {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                }
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
-        } catch (e) {
-            alert(gettext('上傳失敗！請檢查GeoJSON格式是否正確或檔案是否超過大小上限'))
-        }
+        $.ajax({
+            url: "/save_geojson",
+            data: {
+                geojson_text: JSON.stringify(geoObj),
+                csrfmiddlewaretoken: $csrf_token
+            },
+            type: 'POST',
+            dataType: 'json',
+        })
+        .done(function (response) {
+            $('input[name=geojson_id]').val(response.geojson_id)
+            geoJSON = L.geoJSON(JSON.parse(response.geojson), { className: 'addG' }).addTo(map);
+            window.has_map = false
+            map.fitBounds(geoJSON.getBounds());
+            $('p.active').removeClass('active')
+            $(".geojson_popup").addClass('d-none')
+            $('.popupGeo').addClass('active');
+            drawnItems.clearLayers();
+        })
+        .fail(function (xhr, status, errorThrown) {
+            if (xhr.status == 504) {
+                alert(gettext('要求連線逾時'))
+            } else {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+            }
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+
+
     })
 
     // 如果按上下一頁
