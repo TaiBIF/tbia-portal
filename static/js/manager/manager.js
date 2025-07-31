@@ -141,7 +141,10 @@ $(document).ready(function () {
     })
 
     $(".submit_apply_ark").on("click", function(){
-        $(".apply-ark-pop").addClass("d-none");
+
+            $(".loading_area").removeClass('d-none');
+
+            $(".apply-ark-pop").addClass("d-none");
 
             $.ajax({
                 url: "/submit_apply_ark",
@@ -154,10 +157,15 @@ $(document).ready(function () {
                 if (response.message.includes('申請完成')) {
                     window.location = '/manager'
                 }
+                
+                $(".loading_area").addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+
+                $(".loading_area").addClass('d-none');
+
             })
 
     })
