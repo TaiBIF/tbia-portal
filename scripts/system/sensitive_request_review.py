@@ -55,7 +55,7 @@ for d in data:
             if Workday.objects.get(date=row_date).is_dayoff == 0:
                 due = row_date
                 c += 1
-    if today >= due:
+    if today > due:
         sdr_id = d[0]
         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
@@ -91,7 +91,7 @@ for d in data:
             if Workday.objects.get(date=row_date).is_dayoff == 0:
                 due = row_date
                 c += 1
-    if today >= due:
+    if today > due:
         sdr_id = d[0]
         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
