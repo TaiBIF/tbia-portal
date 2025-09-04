@@ -15,7 +15,7 @@ class Name(models.Model):
     modified = models.DateTimeField(null=True, blank=True, auto_now=True)
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['taxonID','taxon_name_id'], name='taxonID_taxon_name_id_unique')
+            models.UniqueConstraint(fields=['taxonID','taxon_name_id','name_status'], name='taxonID_taxon_name_id_unique')
         ]
 
 # # for get_variants 異體字
