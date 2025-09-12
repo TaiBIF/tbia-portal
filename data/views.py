@@ -57,6 +57,7 @@ rights_holder_map = {
     '海洋保育資料倉儲系統': 'oca',
     '科博典藏 (NMNS Collection)': 'nmns',
     '臺灣魚類資料庫': 'ascdc',
+    '國家海洋資料庫及共享平台': 'namr',
 }
 
 def get_geojson(request,id):
@@ -1504,8 +1505,23 @@ def get_tbn_query(request):
     tbn_query_str_list = []
     tbn_url = ''
 
-    tbn_query_list, tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
-    tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+    
+
+    # sss = create_search_query(req_dict=req_dict)
+    # print(sss)
+    tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
+    # tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','offset']
+    filtered_params = {k: v for k, v in request.POST.items() 
+                        if k not in not_query}
+    
+    # 轉換成 query string
+    query_string = parse.urlencode(filtered_params, doseq=True)
+        
+
+    tbn_url = 'https://www.tbn.org.tw/data/query_by_tbia?' + query_string
+
 
     response = {
         'tbn_url': tbn_url,
