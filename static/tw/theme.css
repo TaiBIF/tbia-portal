@@ -7211,9 +7211,11 @@ body {
     color: #FFF
 }
 
-.two_cont_area .left_menu li:hover .big_link p a.qusemark, .two_cont_area .left_menu li.now .big_link p a.qusemark {
-    background: url("/static/image/quesmarkw.svg") no-repeat center
+.two_cont_area .left_menu li:hover .big_link p a.qusemark svg, .two_cont_area .left_menu li.now .big_link p a.qusemark svg {
+    /* background: url("/static/image/quesmarkw.svg") no-repeat center */
+    fill: white
 }
+
 
 .two_cont_area .left_menu li:hover .big_link .arr, .two_cont_area .left_menu li.now .big_link .arr {
     background: url("/static/image/nextw.svg") no-repeat center
@@ -7257,13 +7259,14 @@ body {
     display: inline-block
 }
 
-.two_cont_area .big_link p a.qusemark {
+.two_cont_area .big_link p a.qusemark svg {
     position: absolute;
     display: block;
     width: 24px;
     height: 24px;
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    right: -30px;
+    /* background: url("/static/image/quesmark.svg") no-repeat center; */
+    fill: #76A578;
+    right: -28px;
     top: 2px;
     z-index: 2
 }
@@ -8330,15 +8333,26 @@ body {
 }
 
 .qmark {
+    /* display: inline-block; */
+    /* background: url("/static/image/circle-info-solid.svg") no-repeat center; */
+    width: 24px;
+    height: 24px;
+    /* flex: 0 0 22px;  */
+    fill: #76A578;
+}
+/* 
+.qmark {
     display: inline-block;
     background: url("/static/image/quesmark.svg") no-repeat center;
     width: 24px;
     height: 25px;
     flex: 0 0 25px
-}
+} */
 
 .qmark:hover {
-    background: url("/static/image/quesmarkg.svg") no-repeat center
+    fill: #3F5146;
+    /* cursor: pointer; */
+    /* background: url("/static/image/quesmarkg.svg") no-repeat center */
 }
 
 .sc_result {

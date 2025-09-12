@@ -967,33 +967,37 @@ div.count-1 {
 
 
 .qmark-dark {
-    display: inline-block;
-    background: url("/static/image/quesmarkw.svg") no-repeat center;
-    width: 17px;
-    height: 17px;
+    /* display: inline-block; */
+    /* background: url("/static/image/quesmarkw.svg") no-repeat center; */
+    width: 16px;
+    height: 16px;
     background-size: contain;
     margin-left: 3px;
     margin-bottom: 2px;
+    fill: white
 }
 
 .qmark-dark:hover {
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain;
-
+    /* background: url("/static/image/quesmark.svg") no-repeat center; */
+    /* background-size: contain; */
+    fill: #76A578
 }
 
 
 .qmark-small {
-    display: inline-block;
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain;
+    /* display: inline-block; */
+    /* background: url("/static/image/quesmark.svg") no-repeat center;
+    background-size: contain; */
     width: 20px;
     height: 20px;
+    margin-left: 2px;
+    fill: #76A578
 }
 
 .qmark-small:hover {
-    background: url("/static/image/quesmarkg.svg") no-repeat center;
-    background-size: contain;
+    /* background: url("/static/image/quesmarkg.svg") no-repeat center;
+    background-size: contain; */
+    fill: #3F5146
 }
 
 
@@ -1004,17 +1008,19 @@ div.count-1 {
 
 
 .qmark-small-dark {
-    display: inline-block;
-    background: url("/static/image/quesmarkw.svg") no-repeat center;
+    /* display: inline-block;
+    background: url("/static/image/quesmarkw.svg") no-repeat center; */
     width: 20px;
     height: 20px;
-    background-size: contain;
+    margin-left: 2px;
+    fill: white
+    /* background-size: contain; */
 }
 
 .qmark-small-dark:hover {
-    background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain;
-
+    /* background: url("/static/image/quesmark.svg") no-repeat center;
+    background-size: contain; */
+    fill: #76A578
 }
 
 
