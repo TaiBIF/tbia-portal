@@ -1,4 +1,4 @@
-from django.shortcuts import render #, redirect
+from django.shortcuts import render, redirect
 from conf.settings import  MEDIA_ROOT, SOLR_PREFIX #STATIC_ROOT,
 from conf.utils import scheme
 from pages.models import Resource, News
@@ -1790,32 +1790,25 @@ def get_locality_init(request):
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
-# 併到change_dataset中
-# def get_dataset_init(request):
-
-#     record_type = ''
-#     if request.GET.get('record_type') == 'col':
-#         record_type = '&fq=recordType:col'
-#     else:
-#         record_type = ''
-
-#     ds = []
-#     response = requests.get(f'{SOLR_PREFIX}dataset/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0{record_type}')
-#     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-#     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-#     if len(dataset_list):
-#         dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
-
-#         for l in dataset_list:
-#             ds.append({'text': l[1], 'value': l[0]})
-
-#     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 def get_dataset(request):
 
-    keyword = request.GET.get('keyword')
+    keyword = request.GET.get('keyword', '')
+
+
     rights_holder = request.GET.getlist('holder')
     h_str = ''
+    
+    if not keyword:
+        params = {}
+        if rights_holder:
+            params['holder'] = rights_holder
+        
+        if params:
+            query_string = parse.urlencode(params, doseq=True)  # doseq=True 處理列表參數
+            return redirect(f'/change_dataset?{query_string}')
+        else:
+            return redirect('change_dataset')
 
     if len(rights_holder) > 1:
         rights_holder = ' OR '.join(rights_holder)
@@ -1873,7 +1866,8 @@ def get_higher_taxa(request):
             else:
                 ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
 
-            ds = ds[['text','value']].to_json(orient='records')
+        ds = ds[['text','value']].to_json(orient='records')
+
     elif taxon_id and taxon_id != 'null':
         # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
@@ -1894,7 +1888,6 @@ def get_higher_taxa(request):
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             ds = ds[['text','value']].to_json(orient='records')
-        
 
     return HttpResponse(ds, content_type='application/json')
 

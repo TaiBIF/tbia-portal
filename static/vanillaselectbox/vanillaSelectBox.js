@@ -103,6 +103,36 @@ let VSBoxCounter = function () {
     };
 }();
 
+// // 在 vanillaSelectBox.js 中
+// vanillaSelectBox.prototype.updateNoResultsMessage = function() {
+//     const noResultLi = document.createElement('li');
+//     noResultLi.className = 'vsb-no-results';
+//     noResultLi.style.color = '#888';
+//     noResultLi.style.pointerEvents = 'none';
+//     noResultLi.textContent = this.userOptions.noResultText;
+//     this.ul.appendChild(noResultLi);
+// };
+
+vanillaSelectBox.prototype.updateNoResultsMessage = function() {
+    let self = this;
+    
+    // 先清除已存在的無結果訊息
+    const existingNoResult = self.ul.querySelector('.vsb-no-results');
+    if (existingNoResult) {
+        existingNoResult.remove();
+    }
+
+    const noResultLi = document.createElement('li');
+    noResultLi.className = 'vsb-no-results';
+    noResultLi.style.color = '#888';
+    noResultLi.style.pointerEvents = 'none';
+    noResultLi.style.textAlign = 'center';
+    noResultLi.style.padding = '10px';
+    noResultLi.style.fontStyle = 'italic';
+    noResultLi.textContent = self.userOptions.noResultText || gettext('沒有符合的項目');
+    self.ul.appendChild(noResultLi);
+};
+
 function vanillaSelectBox(domSelector, options) {
     let self = this;
     this.instanceOffset = VSBoxCounter.set(self);
@@ -147,7 +177,8 @@ function vanillaSelectBox(domSelector, options) {
         placeHolder: "",
         stayOpen: false,
         disableSelectAll: false,
-        buttonItemsSeparator : ","
+        buttonItemsSeparator : ",",
+        noResultText: gettext('沒有符合的項目')
     }
     this.keepInlineStyles = true;
     // this.keepInlineCaretStyles = true;
@@ -274,7 +305,7 @@ function vanillaSelectBox(domSelector, options) {
             self.onInit("",self.onInitSize)
                 .then(function (data) {
                     self.buildSelect(data);
-                    self.createTree();
+                    self.createTree();                    
                     if (self.domSelector=='#higherTaxa'){
                         if (data.length==2){ // 不限 + 指定taxonID
                             self.setValue(data[1]['value'])
@@ -578,7 +609,15 @@ function vanillaSelectBox(domSelector, options) {
                 let selectAll = null;
                 if (self.isSearchRemote) {
                     if (searchValueLength == 0) {
-                        self.remoteSearchIntegrate(null);
+                        // 當搜尋為空時，也調用 onSearch 來恢復初始狀態
+                        self.onSearch("", self.onInitSize || 10)
+                            .then(function (data) {
+                                self.remoteSearchIntegrate(data);
+                            })
+                            .catch(function(error) {
+                                console.error('Search error:', error);
+                                self.remoteSearchIntegrate(null);
+                            });
                     } else if (searchValueLength >= 1) {
                         self.onSearch(searchValue)
                             .then(function (data) {
@@ -615,6 +654,14 @@ function vanillaSelectBox(domSelector, options) {
                             }
                         });
                     }
+
+                    const nodesToRemove = self.ul.querySelectorAll('li.vsb-no-results');
+                    nodesToRemove.forEach(node => node.remove());
+
+                    if (nrFound === 0) {
+                        self.updateNoResultsMessage();
+                    }
+
                     if (selectAll) {
                         if (nrFound === 0) {
                             selectAll.classList.add('disabled');
@@ -631,8 +678,9 @@ function vanillaSelectBox(domSelector, options) {
                             selectAll.setAttribute('data-selected', 'true')
                         }
                     }
-                }
                 
+                }
+
             })
 
             // 非注音的輸入
@@ -647,16 +695,41 @@ function vanillaSelectBox(domSelector, options) {
                     let nrChecked = 0;
                     let selectAll = null;
                     if (self.isSearchRemote) {
-                        if (searchValueLength == 0) {
-                            self.remoteSearchIntegrate(null);
-                        } else if (searchValueLength >= 1) {
-                            self.onSearch(searchValue)
-                                .then(function (data) {
-                                    self.remoteSearchIntegrate(data);
-                                });
-                            e.stopPropagation()
-                            e.preventDefault();
-                        }
+                        // if (searchValueLength == 0) {
+                        //     self.remoteSearchIntegrate(null);
+                        // } else if (searchValueLength >= 1) {
+                        //     self.onSearch(searchValue)
+                        //         .then(function (data) {
+                        //             self.remoteSearchIntegrate(data);
+                        //         });
+                        //     e.stopPropagation()
+                        //     e.preventDefault();
+                        // }
+
+
+
+                        // if (self.isSearchRemote) {
+                            if (searchValueLength == 0) {
+                                // 當搜尋為空時，也調用 onSearch 來恢復初始狀態
+                                self.onSearch("", self.onInitSize || 10)
+                                    .then(function (data) {
+                                        self.remoteSearchIntegrate(data);
+                                    })
+                                    .catch(function(error) {
+                                        console.error('Search error:', error);
+                                        self.remoteSearchIntegrate(null);
+                                    });
+                            } else if (searchValueLength >= 1) {
+                                self.onSearch(searchValue)
+                                    .then(function (data) {
+                                        self.remoteSearchIntegrate(data);
+                                    });
+                                e.stopPropagation()
+                                e.preventDefault();
+                            }
+                        // }
+
+
                     } else {
                         if (searchValueLength < 1) {
                             Array.prototype.slice.call(self.listElements).forEach(function (x) {
@@ -687,6 +760,14 @@ function vanillaSelectBox(domSelector, options) {
                                 }
                             });
                         }
+
+                        const nodesToRemove = self.ul.querySelectorAll('li.vsb-no-results');
+                        nodesToRemove.forEach(node => node.remove());
+
+                        if (nrFound === 0) {
+                            self.updateNoResultsMessage();
+                        }
+
                         if (selectAll) {
                             if (nrFound === 0) {
                                 selectAll.classList.add('disabled');
@@ -976,37 +1057,123 @@ vanillaSelectBox.prototype.buildSelect = function (data) {
 vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
     let self = this;
 
-    if (data == null || data.length == 0) {
+    if (data == null || data.length < 1) {
         let dataChecked = self.optionsCheckedToData();
-        if(dataChecked)
+        
+        // 如果有搜尋詞但無結果，保留已選項目並顯示無結果訊息
+        if (self.inputBox && self.inputBox.value.trim() !== "" && dataChecked && dataChecked.length > 0) {
+            // 保留已選項目
             data = dataChecked.slice(0);
-        self.remoteSearchIntegrateIt(data);
+            self.remoteSearchIntegrateIt(data);
+            
+            // 延遲一點時間後清除非已選項目並顯示無結果訊息
+            setTimeout(function() {
+                let lis = self.ul.querySelectorAll("li:not(.vsb-js-search-zone):not(.active)");
+                if (lis != null) {
+                    for (var i = lis.length - 1; i >= 0; i--) {
+                        self.ul.removeChild(lis[i]);
+                    }
+                }
+                self.updateNoResultsMessage();
+            }, 10);
+            
+        } else if (dataChecked && dataChecked.length > 0) {
+            // 沒有搜尋詞或搜尋詞為空時，顯示已選項目
+            data = dataChecked.slice(0);
+            self.remoteSearchIntegrateIt(data);
+        } else {
+            // 沒有已選項目，顯示無結果（如果有搜尋詞）
+            self.remoteSearchIntegrateIt(data);
+            if (self.inputBox && self.inputBox.value.trim() !== "") {
+                self.updateNoResultsMessage();
+            }
+        }
     } else {
         let dataChecked = self.optionsCheckedToData();
-        /*
-        if (dataChecked.length > 0){
-            for (var i = data.length - 1; i >= 0; i--) {
-                if(dataChecked.indexOf(data[i].id) !=-1){
-                    data.slice(i,1);
-                }
-            }
-        }*/
-        let dc_value = Array()
-        for (dc of dataChecked){
-            dc_value = dc_value.concat(dc['value'])
-        }
-        let final_data = Array()
-        for (dd of data){
-            if (!dc_value.includes(dd['value'])){
-                final_data = final_data.concat(dd)
+        let dc_value = [];
+        let defaultOption = null;
+        
+        if (dataChecked) {
+            for (let dc of dataChecked) {
+                dc_value.push(dc['value']);
             }
         }
         
-        //data = final_data.concat(dataChecked);
-        data = dataChecked.concat(final_data);
-        self.remoteSearchIntegrateIt(data);
+        // 特殊處理：先找出預設選項（-- 不限 --）
+        let defaultOptionFromData = null;
+        let otherData = [];
+        
+        for (let dd of data) {
+            if (dd['value'] === '' && (dd['text'] === gettext('-- 不限 --') || dd['text'] === '-- 不限 --')) {
+                defaultOptionFromData = dd;
+            } else {
+                if (!dc_value.includes(dd['value'])) {
+                    otherData.push(dd);
+                }
+            }
+        }
+        
+        // 重新組合資料：預設選項 + 已選項目 + 其他新資料
+        let finalData = [];
+        
+        // 1. 先加入預設選項（如果存在）
+        if (defaultOptionFromData) {
+            finalData.push(defaultOptionFromData);
+        }
+        
+        // 2. 再加入已選項目（排除預設選項）
+        if (dataChecked) {
+            for (let dc of dataChecked) {
+                if (dc['value'] !== '') {  // 排除預設選項
+                    finalData.push(dc);
+                }
+            }
+        }
+        
+        // 3. 最後加入其他新資料
+        finalData = finalData.concat(otherData);
+        
+        self.remoteSearchIntegrateIt(finalData);
     }
 }
+
+// vanillaSelectBox.prototype.remoteSearchIntegrate = function (data) {
+//     let self = this;
+
+//     if (data == null || data.length == 0) {
+//         let dataChecked = self.optionsCheckedToData();
+//         if(dataChecked)
+//             data = dataChecked.slice(0);
+//         self.remoteSearchIntegrateIt(data);
+//     } else {
+//         let dataChecked = self.optionsCheckedToData();
+//         /*
+//         if (dataChecked.length > 0){
+//             for (var i = data.length - 1; i >= 0; i--) {
+//                 if(dataChecked.indexOf(data[i].id) !=-1){
+//                     data.slice(i,1);
+//                 }
+//             }
+//         }*/
+//         let dc_value = Array()
+//         for (dc of dataChecked){
+//             dc_value = dc_value.concat(dc['value'])
+//         }
+//         let final_data = Array()
+//         for (dd of data){
+//             if (!dc_value.includes(dd['value'])){
+//                 final_data = final_data.concat(dd)
+//             }
+//         }
+        
+//         //data = final_data.concat(dataChecked);
+//         data = dataChecked.concat(final_data);
+//         self.remoteSearchIntegrateIt(data);
+//     }
+// }
+
+
+
 
 vanillaSelectBox.prototype.optionsCheckedToData = function () {
     let self = this;
@@ -1067,15 +1234,95 @@ vanillaSelectBox.prototype.changeTree = function (data, options) {
     self.listElements = this.drop.querySelectorAll("li:not(.grouped-option)");
 }
 
+// vanillaSelectBox.prototype.remoteSearchIntegrateIt = function (data) {
+//     let self = this;
+//     // if (data == null || data.length == 0) return;
+//         // 如果沒有資料，清空並顯示無結果訊息
+//     if (data == null || data.length == 0) {
+//         while(self.root.firstChild)
+//             self.root.removeChild(self.root.firstChild);
+        
+//         // 清空 ul 中的選項（保留搜尋框）
+//         let lis = self.ul.querySelectorAll("li:not(.vsb-js-search-zone)");
+//         if (lis != null) {
+//             for (var i = lis.length - 1; i >= 0; i--) {
+//                 self.ul.removeChild(lis[i]);
+//             }
+//         }
+//         // 顯示無結果訊息
+//         self.updateNoResultsMessage();
+//         return;
+//     }
+
+//     while(self.root.firstChild)
+//     self.root.removeChild(self.root.firstChild);
+    
+//     self.buildSelect(data);
+//     self.reloadTree();
+// }
+
+
 vanillaSelectBox.prototype.remoteSearchIntegrateIt = function (data) {
     let self = this;
-    if (data == null || data.length == 0) return;
+    
+    // 如果沒有資料且有搜尋詞，保留已選項目並顯示無結果訊息
+    if ((data == null || data.length == 0) && self.inputBox && self.inputBox.value.trim() !== "") {
+        // 保留已選中的項目
+        let dataChecked = self.optionsCheckedToData();
+        
+        // 清空 root 並重建
+        while(self.root.firstChild)
+            self.root.removeChild(self.root.firstChild);
+        
+        if (dataChecked && dataChecked.length > 0) {
+            // 有已選項目，保留它們
+            self.buildSelect(dataChecked);
+        }
+        
+        self.reloadTree();
+        
+        // 清空非搜尋框和已選項目的其他選項
+        let lis = self.ul.querySelectorAll("li:not(.vsb-js-search-zone):not(.active)");
+        if (lis != null) {
+            for (var i = lis.length - 1; i >= 0; i--) {
+                self.ul.removeChild(lis[i]);
+            }
+        }
+        
+        // 顯示無結果訊息
+        self.updateNoResultsMessage();
+        return;
+    }
+    
+    // 如果沒有資料且沒有搜尋詞，正常處理
+    if (data == null || data.length == 0) {
+        while(self.root.firstChild)
+            self.root.removeChild(self.root.firstChild);
+        
+        let lis = self.ul.querySelectorAll("li:not(.vsb-js-search-zone)");
+        if (lis != null) {
+            for (var i = lis.length - 1; i >= 0; i--) {
+                self.ul.removeChild(lis[i]);
+            }
+        }
+        
+        // 如果沒有搜尋詞，不顯示無結果訊息
+        if (!self.inputBox || self.inputBox.value.trim() === "") {
+            return;
+        }
+        
+        self.updateNoResultsMessage();
+        return;
+    }
+
+    // 正常情況：有資料
     while(self.root.firstChild)
-    self.root.removeChild(self.root.firstChild);
+        self.root.removeChild(self.root.firstChild);
     
     self.buildSelect(data);
     self.reloadTree();
 }
+
 
 vanillaSelectBox.prototype.reloadTree = function () {
     let self = this;
