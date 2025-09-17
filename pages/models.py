@@ -38,6 +38,7 @@ class News(models.Model):
         ('zh-hant', '中文'),
     ]
     type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
+    tag = models.CharField(max_length=10000, blank=True, null=True) 
     lang = models.CharField(max_length=10, choices=lang_choice, default='zh-hant') # en-us, zh-hant
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)

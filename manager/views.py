@@ -2002,6 +2002,7 @@ def submit_news(request):
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
+        tag = request.POST.get('tag')
 
         # 清理content
         content = clean_quill_html(content)
@@ -2065,6 +2066,7 @@ def submit_news(request):
             n.publish_date = publish_date
             n.modified = timezone.now()
             n.lang = lang
+            n.tag = tag
             n.save()
 
             if ori_status != 'pass' and status == 'pass':
@@ -2101,6 +2103,7 @@ def submit_news(request):
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
+                    tag=tag
                 )
             else:
                 n = News.objects.create(
@@ -2112,6 +2115,7 @@ def submit_news(request):
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
+                    tag=tag
                 )
 
             # 一新增就直接是通過

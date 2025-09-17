@@ -137,6 +137,8 @@ def news(request):
 def news_detail(request, news_id):
     if News.objects.filter(id=news_id).exists():
         n = News.objects.get(id=news_id)
+        tags = n.tag if n.tag else ''
+        tags = tags.split(',')
         color = news_type_map[n.type]
         # 系統管理員, 單位帳號, 單位管理者
         is_authorized = False
@@ -149,7 +151,7 @@ def news_detail(request, news_id):
             elif u.partner_id == n.partner_id:
                 is_authorized = True
                 
-        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized})
+        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized, 'tags': tags})
 
 
 def get_news_list(request):
