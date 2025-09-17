@@ -119,7 +119,10 @@ class Notification(models.Model):
         (5,'有新的單位帳號 #0000 申請，請至後台審核'),
         (6,'申請單位帳號審核已完成，結果為：0000'),
         (7,'有新的消息 #0000 發布申請，請至後台審核'),
-        (8,'消息 #0000 發布審核已完成，請至後台查看')]
+        (8,'消息 #0000 發布審核已完成，請至後台查看'),
+        (9,'單位帳號申請 #0000 已撤回'),
+        (10,'單位帳號申請 #0000 不通過'),
+        ]
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)

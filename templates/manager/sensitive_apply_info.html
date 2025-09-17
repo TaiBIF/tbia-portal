@@ -101,7 +101,11 @@
                             {% endif %}
                         </div>
                         <div class="text_area">
-                            <p>計畫摘要</p>
+                            <p>計畫摘要
+                                {% if detail.research_proposal %}
+                                    <a class="ml-5px search-again-a" target="_blank" href="/media/{{ detail.research_proposal }}">研究計畫書 🔗</a>
+                                {% endif %}
+                            </p>
                             <textarea name="abstract" disabled>{{ detail.abstract }}</textarea>
                         </div>
                         <div class="text_area">

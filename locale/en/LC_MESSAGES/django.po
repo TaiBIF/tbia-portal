@@ -993,11 +993,11 @@ msgstr "Commissioned work project"
 
 #: templates/pages/application.html:81
 msgid "個人研究計畫名稱"
-msgstr "Project Name"
+msgstr "Project name"
 
 #: templates/pages/application.html:81
 msgid "委辦工作計畫名稱"
-msgstr "Project Name"
+msgstr "Project name"
 
 #: templates/pages/application.html:81
 msgid "計畫主持人姓名"
@@ -3211,3 +3211,8 @@ msgstr "Issue<br>Report"
 #:
 msgid "沒有符合的項目"
 msgstr "No results found"
+
+
+#:
+msgid "研究計畫書"
+msgstr "Research proposal"

@@ -39,6 +39,7 @@ import html
 from django.utils.translation import get_language, gettext
 import shapely
 from csp.decorators import csp_update
+from django.core.files.storage import FileSystemStorage
 
 
 rights_holder_map = {
@@ -144,7 +145,14 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator']
+
+
+        file_name = ''
+        if file := request.FILES.get('research_proposal'):
+            fs = FileSystemStorage()
+            file_name = fs.save(f'research_proposal/' + file.name, file)
+
+        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator','research_proposal']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -182,6 +190,7 @@ def submit_sensitive_request(request):
             type = request.POST.get('type'),
             users = json.loads(request.POST.get('users')),
             abstract = request.POST.get('abstract'),
+            research_proposal = file_name,
             query_id = query_id
         )
 

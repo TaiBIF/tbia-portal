@@ -176,6 +176,7 @@ class SensitiveDataRequest(models.Model):
     # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆
     created = models.DateTimeField(auto_now_add=True) # 申請時間
     query_id = models.CharField(max_length=50, blank=True)
+    research_proposal = models.CharField(max_length=1000, blank=True)
 
 
 
