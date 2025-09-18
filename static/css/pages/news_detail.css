@@ -32,5 +32,14 @@
     color: grey;
     background-color: #EFF2EF;
     border-radius: 10px;
-    margin-bottom: 10px;
+}
+
+.tag-div {
+    margin-bottom: 30px
+}
+
+@media only screen and (max-width: 767px) {
+    .tag-div {
+        margin-bottom: 20px
+    }
 }

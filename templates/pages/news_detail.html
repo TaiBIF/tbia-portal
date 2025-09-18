@@ -57,9 +57,13 @@
 									{% endif %}
 								</p>
 							</div>
+							{% if tags|length > 0 %}
+							<div class="tag-div">
 							{% for tag in tags %}
 							<span class="tag-news">#{{ tag }}</span>
 							{% endfor %}
+							</div>
+							{% endif %}
 							<div class="editor">
 								<!-- 這邊放代表圖片 -->
 								{% if n.image %}
