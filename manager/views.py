@@ -2281,7 +2281,7 @@ def update_user_status(request):
                         user = uu
                     )
                     content = nn.get_type_display().replace('0000', str(nn.content))
-                    send_notification([u.id],content,'單位帳號申請結果不通過')
+                    send_notification([uu.id],content,'單位帳號申請結果不通過')
                     
 
         return JsonResponse({"status": 'success',"exceed_ten": exceed_ten}, safe=False)
