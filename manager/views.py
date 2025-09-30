@@ -2521,7 +2521,7 @@ def submit_apply_ark(request):
         return JsonResponse(response, safe=False)
 
 
-# # 永久保存資料
+# 永久保存資料
 def generate_storage_csv(query_id, ark):
 
     if SearchQuery.objects.filter(query_id=query_id).exists():
