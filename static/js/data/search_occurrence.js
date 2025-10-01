@@ -48,10 +48,10 @@ $('#rightsHolder').on('change', function (e) {
 
 let selectBox2 = new vanillaSelectBox("#datasetName",
     {
-        "search": true,
+        search: true,
         placeHolder: gettext("資料集名稱"),
-        "disableSelectAll": true,
-        "remote": {
+        disableSelectAll: true,
+        remote: {
             "onSearch": doSearchDataset, // used for search and init
             "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
             "onInit": initDataset,
@@ -82,10 +82,10 @@ let selectBox7 = new vanillaSelectBox("#has_image", {
 
 let selectBox8 = new vanillaSelectBox("#higherTaxa",
     {
-        "search": true,
+        search: true,
         placeHolder: gettext("較高分類群"),
-        "disableSelectAll": true,
-        "remote": {
+        disableSelectAll: true,
+        remote: {
             "onSearch": doSearch, // used for search and init
             "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
             "onInit": inithigherTaxa,
@@ -98,10 +98,10 @@ let selectBox9 = new vanillaSelectBox("#taxonGroup", {
 
 let selectBox10 = new vanillaSelectBox("#locality",
     {
-        "search": true,
+        search: true,
         placeHolder: gettext("出現地"),
-        "disableSelectAll": true,
-        "remote": {
+        disableSelectAll: true,
+        remote: {
             "onSearch": doSearchLocality, // used for search and init
             "onInitSize": 10, // if > 0 onSearch is used for init to populate le select element with the {onInitSize} first elements
             "onInit": initLocality,
@@ -166,10 +166,14 @@ let selectBox14 = new vanillaSelectBox("#municipality", {
     placeHolder: gettext("鄉鎮市區"), search: false, disableSelectAll: true,
 });
 
-
 function doSearchLocality(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
+
+    // 如果搜尋關鍵字為空，直接調用初始化邏輯
+    if (what === "" || what === undefined) {
+        return initLocality("", 10); 
+    }
 
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
@@ -178,28 +182,21 @@ function doSearchLocality(what, datasize) {
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
+                let processedData = [];
 
-                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                    data = data.slice(0, datasize);
-                    data = data.map(function (x) {
-                        return {
-                            value: x[valueProperty],
-                            text: x[textProperty]
-                        }
-                    });
-                } else {
-                    data = data.filter(function (x) {
-                        let name = x[textProperty].toLowerCase();
-                        what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
-                            return {
-                                value: x[valueProperty],
-                                text: x[textProperty]
-                            }
-                    });
-                }
-                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
-                resolve(data);
+                // 有輸入關鍵字時，只返回搜尋結果，不包含預設選項
+                processedData = data.filter(function (x) {
+                    let name = x[textProperty].toLowerCase();
+                    what = what.toLowerCase();
+                    return name.slice(what).search(getVariants(escapeRegExp(what))) != -1;
+                }).map(function (x) {
+                    return {
+                        value: x[valueProperty],
+                        text: x[textProperty]
+                    };
+                });
+
+                resolve(processedData);
             } else {
                 reject({
                     status: this.status,
@@ -220,37 +217,41 @@ function doSearchLocality(what, datasize) {
 function initLocality(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
-    let urlParams = new URLSearchParams(window.location.search);
-    let keyword_list = urlParams.getAll('locality')
+    // let urlParams = new URLSearchParams(window.location.search);
+    // let keyword_list = urlParams.getAll('locality')
 
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType("application/json");
-        xhr.open('GET', '/get_locality_init?locality=' + keyword_list.join('&locality='), true);
+        // xhr.open('GET', '/get_locality_init?locality=' + keyword_list.join('&locality='), true);
+        xhr.open('GET', '/get_locality_init', true);
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
-                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                    data = data.slice(0, datasize);
-                    data = data.map(function (x) {
+                let processedData = [];
+
+                if (what == "" && datasize != undefined && datasize > 0) {
+                    processedData = data.slice(0, datasize).map(function (x) {
                         return {
                             value: x[valueProperty],
                             text: x[textProperty]
-                        }
+                        };
                     });
                 } else {
-                    data = data.filter(function (x) {
+                    // 這裡是搜尋邏輯，不包含預設選項
+                    processedData = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
-                            return {
-                                value: x[valueProperty],
-                                text: x[textProperty]
-                            }
+                        return name.slice(what).search(getVariants(escapeRegExp(what))) != -1;
+                    }).map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        };
                     });
                 }
-                //data = [{'value': '', 'text': '-- 不限 --'}].concat(data)
-                resolve(data);
+
+                resolve(processedData);
             } else {
                 reject({
                     status: this.status,
@@ -572,6 +573,7 @@ function initDataset(what, datasize) {
 function doSearchDataset(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
+
     // 要限制來源資料庫
     let res = selectBox.getResult()
     let h_str = ''
@@ -946,7 +948,61 @@ $(function () {
 });
 
 
+function doSearch(what, datasize) {
+    let valueProperty = "value";
+    let textProperty = "text";
 
+    // 如果搜尋關鍵字為空，直接調用初始化邏輯
+    if (what === "" || what === undefined) {
+        return inithigherTaxa("", 10);
+    }
+
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType("application/json");
+        xhr.open('GET', `/get_higher_taxa?keyword=${what}&lang=${$lang}`, true);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                var data = JSON.parse(xhr.response);
+
+                // 搜尋並過濾資料
+                let filteredData = data.filter(function (x) {
+                    let name = x[textProperty].toLowerCase();
+                    what = what.toLowerCase();
+                    return name.search(getVariants(escapeRegExp(what))) !== -1;
+                });
+
+                let processedData = filteredData.map(function (x) {
+                    return {
+                        value: x[valueProperty],
+                        text: x[textProperty]
+                    };
+                });
+
+                // 重要：只有當有搜尋結果時才加入「-- 不限 --」
+                // 如果沒有搜尋結果，就不加入，讓 vanillaSelectBox 知道要顯示「沒有符合的項目」
+                if (processedData.length > 0) {
+                    processedData = [{ 'value': '', 'text': gettext('-- 不限 --') }].concat(processedData);
+                }
+                
+                resolve(processedData);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+// 修改 inithigherTaxa 函數 - 加入預設選項（但保留原始邏輯）
 function inithigherTaxa(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
@@ -964,27 +1020,32 @@ function inithigherTaxa(what, datasize) {
         xhr.onload = function () {
             if (this.status >= 200 && this.status < 300) {
                 var data = JSON.parse(xhr.response);
-                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                    data = data.slice(0, datasize);
-                    data = data.map(function (x) {
+                let processedData = [];
+
+                if (what == "" && datasize != undefined && datasize > 0) {
+                    processedData = data.slice(0, datasize).map(function (x) {
                         return {
                             value: x[valueProperty],
                             text: x[textProperty]
-                        }
+                        };
                     });
                 } else {
-                    data = data.filter(function (x) {
+                    processedData = data.filter(function (x) {
                         let name = x[textProperty].toLowerCase();
                         what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
-                            return {
-                                value: x[valueProperty],
-                                text: x[textProperty]
-                            }
+                        return name.slice(what).search(getVariants(escapeRegExp(what))) != -1;
+                    }).map(function (x) {
+                        return {
+                            value: x[valueProperty],
+                            text: x[textProperty]
+                        };
                     });
                 }
-                data = [{ 'value': '', 'text': gettext('-- 不限 --') }].concat(data)
-                resolve(data);
+
+                // 加入預設選項（這邊原本就有，保持不變）
+                processedData = [{ 'value': '', 'text': gettext('-- 不限 --') }].concat(processedData);
+                
+                resolve(processedData);
             } else {
                 reject({
                     status: this.status,
@@ -1001,57 +1062,6 @@ function inithigherTaxa(what, datasize) {
         xhr.send();
     });
 }
-
-function doSearch(what, datasize) {
-    let valueProperty = "value";
-    let textProperty = "text";
-
-    return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.overrideMimeType("application/json");
-        xhr.open('GET', `/get_higher_taxa?keyword=${what}&lang=${$lang}`, true);
-        xhr.onload = function () {
-            if (this.status >= 200 && this.status < 300) {
-                var data = JSON.parse(xhr.response);
-
-                if (what == "" && datasize != undefined && datasize > 0) { // for init to show some data
-                    data = data.slice(0, datasize);
-                    data = data.map(function (x) {
-                        return {
-                            value: x[valueProperty],
-                            text: x[textProperty]
-                        }
-                    });
-                } else {
-                    data = data.filter(function (x) {
-                        let name = x[textProperty].toLowerCase();
-                        what = what.toLowerCase();
-                        if (name.slice(what).search(getVariants(escapeRegExp(what))) != -1)
-                            return {
-                                value: x[valueProperty],
-                                text: x[textProperty]
-                            }
-                    });
-                }
-                data = [{ 'value': '', 'text': gettext('-- 不限 --') }].concat(data)
-                resolve(data);
-            } else {
-                reject({
-                    status: this.status,
-                    statusText: xhr.statusText
-                });
-            }
-        };
-        xhr.onerror = function () {
-            reject({
-                status: this.status,
-                statusText: xhr.statusText
-            });
-        };
-        xhr.send();
-    });
-}
-
 
 function changeAction() {
 

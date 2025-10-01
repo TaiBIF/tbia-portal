@@ -5,7 +5,7 @@ from manager.models import TaxonStat
 from numpy import nan
 import json
 import math
-from data.utils import taxon_group_map_c
+# from data.utils import taxon_group_map_c
 from datetime import datetime
 now = datetime.now()
 
@@ -17,10 +17,11 @@ now = datetime.now()
 
 # 以 group + rightsHolder 為單位
 
+
 rights_holder_map = {
     'GBIF': 'gbif',
-    '中央研究院生物多樣性中心動物標本館': 'asiz',
     '中央研究院生物多樣性中心植物標本資料庫': 'hast',
+    '中央研究院生物多樣性中心動物標本館': 'asiz',
     '台灣生物多樣性網絡 TBN': 'tbri',
     '國立臺灣博物館典藏': 'ntm',
     '林業試驗所昆蟲標本館': 'fact',
@@ -33,24 +34,13 @@ rights_holder_map = {
     '海洋保育資料倉儲系統': 'oca',
     '科博典藏 (NMNS Collection)': 'nmns',
     '臺灣魚類資料庫': 'ascdc',
+    '國家海洋資料庫及共享平台': 'namr',
+    '農業部農村發展及水土保持署': 'ardswc',
     'total': 'total'
 }
 
 
 # # 這邊改用bioGroup
-
-# taxon_group_map = {
-#     'Insects' : [{'key': 'class', 'value': 'Insecta'}],
-#     'Fishes' : [{'key': 'superclass', 'value': 'Actinopterygii'},{'key': 'superclass', 'value': 'Chondrichthyes'},{'key': 'class', 'value': 'Myxini'}],
-#     'Reptiles' : [{'key': 'class', 'value': 'Reptilia'}],
-#     'Fungi' : [{'key': 'kingdom', 'value': 'Fungi'}],
-#     'Plants' : [{'key': 'kingdom', 'value': 'Plantae'}],
-#     'Birds' : [{'key': 'class', 'value': 'Aves'}],
-#     'Mammals' : [{'key': 'class', 'value': 'Mammalia'}],
-#     'Amphibians' : [{'key': 'class', 'value': 'Amphibia'}],
-#     'Bacteria' : [{'key': 'kingdom', 'value': 'Bacteria'}],
-#     'Others' : [{'key': 'class', 'value': ''}],
-# }
 
 taxon_group_map_e = {
     "昆蟲": "Insects",
@@ -74,6 +64,7 @@ taxon_group_map_e = {
 
 # 第一個month應該也要加上1~12的限制
 # 確認一下現在 year & month 的值有哪些樣態
+# v 要加上台灣範圍 
 
 stat_list = []
 
@@ -83,7 +74,7 @@ for k in rights_holder_map.keys():
     else:
         fq_query = f'fq=rightsHolder:"{k}"&'
     # 1. 先計算有 year + month 的
-    url = f'{SOLR_PREFIX}tbia_records/select?{fq_query}q.op=OR&q=*:*&facet.pivot=year,month&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
+    url = f'{SOLR_PREFIX}tbia_records/select?{fq_query}q.op=OR&q=*:*&fq=(county:* OR rawCounty:*)&facet.pivot=year,month&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
     data = requests.get(url).json()
     for dd in data['facet_counts']['facet_pivot']['year,month']:
         now_year = dd['value']
@@ -99,7 +90,7 @@ for k in rights_holder_map.keys():
                     'group': rights_holder_map[k]
                 })
     # 2. 再計算沒有 month 的 
-    url = f'{SOLR_PREFIX}tbia_records/select?{fq_query}q=-month:*&q.op=OR&facet.field=year&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
+    url = f'{SOLR_PREFIX}tbia_records/select?{fq_query}q=-month:*&fq=(county:* OR rawCounty:*)&q.op=OR&facet.field=year&facet=true&rows=0&start=0&facet.limit=-1&facet.mincount=1'
     data = requests.get(url).json()
     data = data['facet_counts']['facet_fields']['year']
     for i in range(0, len(data), 2):
@@ -112,7 +103,7 @@ for k in rights_holder_map.keys():
                     'count': int(float(now_count)),
                     'rights_holder': k,
                     'group': rights_holder_map[k]
-                })   
+                }) 
 
 
 stat_df = pd.DataFrame(stat_list)
@@ -125,19 +116,30 @@ stat_df = stat_df[stat_df.year.isin([r for r in range(1900, now.year + 1)])]
 stat_df = stat_df.groupby(['year', 'month', 'rights_holder', 'group'], as_index=False).sum()
 stat_df['type'] = 'temporal' # 時間空缺
 
+
+# 需要把之前的都刪掉 不然有可能沒辦法更新到
+# TODO 可以改其他方式的刪除嗎？不然要一次更新很多 怕中間會斷掉
+# TODO 可以改成一個by group的方式刪除 & 更新?
+
+TaxonStat.objects.filter(type='temporal').delete()
+
+c = 0
 for ss in stat_df.to_dict('records'):
-    # 存在則update
-    if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group']).exists():
-        ts_obj = TaxonStat.objects.get(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group'])
-        ts_obj.count = ss['count']
-        ts_obj.save()
-    # 不存在則新增
-    else:
-        ts_obj = TaxonStat.objects.create(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group'],
-                                count=ss['count'])
+    c += 1
+    if c % 100 == 0:
+        print(c)
+    # # 存在則update
+    # if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
+    #                             rights_holder=ss['rights_holder'], group=ss['group']).exists():
+    #     ts_obj = TaxonStat.objects.get(type=ss['type'],year=ss['year'],month=ss['month'],
+    #                             rights_holder=ss['rights_holder'], group=ss['group'])
+    #     ts_obj.count = ss['count']
+    #     ts_obj.save()
+    # # 不存在則新增
+    # else:
+    ts_obj = TaxonStat.objects.create(type=ss['type'],year=ss['year'],month=ss['month'],
+                            rights_holder=ss['rights_holder'], group=ss['group'],
+                            count=ss['count'])
 
 
 # 以下為區分類群
@@ -145,19 +147,11 @@ for ss in stat_df.to_dict('records'):
 
 taxon_stat_list = []
 
+# v 要加上台灣範圍 
 
 for tt in taxon_group_map_e.keys():
     query_list = []
-    # vv_list = []
-    # if tt == 'Others':
-    #     for vv in taxon_group_map.keys():
-    #         if vv != 'Others':
-    #             for vvv in taxon_group_map[vv]:
-    #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
-    # else:
-    #     for vv in taxon_group_map[tt]:
-    #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-    # query_list += [" OR ".join(vv_list)]
+    query_list = ['county:* OR rawCounty:*']
     if tt == '其他':
         query_list += ['-bioGroup:*']
     else:
@@ -230,26 +224,35 @@ taxon_stat_df = taxon_stat_df.groupby(['year', 'month', 'rights_holder', 'group'
 taxon_stat_df['type'] = 'taxon_group'
 
 
+
+# 需要把之前的都刪掉 不然有可能沒辦法更新到
+# TODO 可以改其他方式的刪除嗎？不然要一次更新很多 怕中間會斷掉
+# TODO 可以改成一個by group的方式刪除 & 更新?
+
+TaxonStat.objects.filter(type='taxon_group').delete()
+
+
 c = 0
 for ss in taxon_stat_df.to_dict('records'):
     c += 1
     if c % 100 == 0:
         print(c)
-    # 存在則update
-    if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group'],name=ss['name']).exists():
-        ts_obj = TaxonStat.objects.get(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group'], name=ss['name'])
-        ts_obj.count = ss['count']
-        ts_obj.save()
-    # 不存在則新增
-    else:
-        ts_obj = TaxonStat.objects.create(type=ss['type'],year=ss['year'],month=ss['month'],
-                                rights_holder=ss['rights_holder'], group=ss['group'],
-                                name=ss['name'], count=ss['count'])
+    # # 存在則update
+    # if TaxonStat.objects.filter(type=ss['type'],year=ss['year'],month=ss['month'],
+    #                             rights_holder=ss['rights_holder'], group=ss['group'],name=ss['name']).exists():
+    #     ts_obj = TaxonStat.objects.get(type=ss['type'],year=ss['year'],month=ss['month'],
+    #                             rights_holder=ss['rights_holder'], group=ss['group'], name=ss['name'])
+    #     ts_obj.count = ss['count']
+    #     ts_obj.save()
+    # # 不存在則新增
+    # else:
+    ts_obj = TaxonStat.objects.create(type=ss['type'],year=ss['year'],month=ss['month'],
+                            rights_holder=ss['rights_holder'], group=ss['group'],
+                            name=ss['name'], count=ss['count'])
 
 
 # 以下為區分 family
+# 不需要區分台灣範圍
 # 只需要取前五
 # 用taxon group區分
 
@@ -299,25 +302,18 @@ for r in rights_holder_map.keys():
 # 可以點選文字後下載TaiCOL所有臺灣鳥類名錄，檔案中標明哪些是單位內有收錄的物種（計算的時候跟TaiCOL一樣只算到種，但是在名錄裡面會有種和種以下，另外多提供分類階層的欄位）
 # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
 
+
+# v 要加上台灣範圍 
 taicol_df = pd.DataFrame()
 
 # 先從taxa取得清單
 for tt in taxon_group_map_e.keys():
     query_list = []
+    # query_list = ['county:* OR rawCounty:*']
     if tt == '其他':
         query_list += ['-bioGroup:*']
     else:
         query_list += [f'bioGroup:{tt}']
-    # vv_list = []
-    # if tt == 'Others':
-    #     for vv in taxon_group_map.keys():
-    #         if vv != 'Others':
-    #             for vvv in taxon_group_map[vv]:
-    #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
-    # else:
-    #     for vv in taxon_group_map[tt]:
-    #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-    # query_list += [" OR ".join(vv_list)]
     query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
     query_list += ['is_in_taiwan:1']
     query = { "query": "*:*",
@@ -326,6 +322,7 @@ for tt in taxon_group_map_e.keys():
             "filter": query_list,
             "fields": ['id','scientificName','common_name_c','taxonRank']
             }
+    # "http://host.docker.internal:8983/solr/taxa/select?q=*:*"
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     data = response.json()['response']['docs']
     df = pd.DataFrame(data)
@@ -346,16 +343,6 @@ for tt in taxon_group_map_e.keys():
             query_list += ['-bioGroup:*']
         else:
             query_list += [f'bioGroup:{tt}']
-        # vv_list = []
-        # if tt == 'Others':
-        #     for vv in taxon_group_map.keys():
-        #         if vv != 'Others':
-        #             for vvv in taxon_group_map[vv]:
-        #                 vv_list.append(f'''-{vvv['key']}:"{vvv['value']}"''')
-        # else:
-        #     for vv in taxon_group_map[tt]:
-        #         vv_list.append(f'''{vv['key']}:"{vv['value']}"''')
-        # query_list += [" OR ".join(vv_list)]
         query_list += [f'taxonRank:(species OR subspecies OR nothosubspecies OR variety OR subvariety OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
         query_list += ['is_in_taiwan:1']
         #  這邊應該要用facet才對
@@ -382,7 +369,10 @@ for tt in taxon_group_map_e.keys():
         # if taicol_len:
         taicol_len = len(now_taicol_df[(now_taicol_df.taxon_group==taxon_group_map_e[tt])&(now_taicol_df.taxonRank=='species')])
         partner_len = len(now_taicol_df[(now_taicol_df.taxonRank=='species')&(now_taicol_df['count'].notna())])
-        tw_percentage = round((partner_len / taicol_len) * 100, 2)
+        if taicol_len==0 and partner_len==0:
+            tw_percentage = 0
+        else:
+            tw_percentage = round((partner_len / taicol_len) * 100, 2) 
         print(k, tt, tw_percentage)
         # 存在則update
         if TaxonStat.objects.filter(type='taiwan_percentage',

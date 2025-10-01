@@ -275,6 +275,13 @@
 }
 
 
+.tag-warning {
+    font-size: 14px;
+    color: #C65454;
+    margin-left: 5px;
+}
+
+
 .news_table td:nth-child(5) {
     width: 5%;
     font-size: 16px;
@@ -297,4 +304,22 @@
   font-weight: inherit;
   margin: 0;
   padding: 0;
+}
+
+.ql-divider::after {
+  content: "―"; 
+  font-size: 18px;
+  color: black;
+  position: relative;
+  top: -4px;
+}
+
+.ql-divider:hover::after {
+  color: blue;
+}
+
+
+.ql-toolbar button.ql-imageLink::after {
+    content: "🔗"; /* 按鈕圖示 */
+    font-size: 14px;
 }

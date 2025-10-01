@@ -105,22 +105,81 @@ function changePage(page, menu) {
 }
 
 (function () {
+
   Quill.register("modules/imageUploader", ImageUploader);
+
+  const BlockEmbed = Quill.import('blots/block/embed');
+
+  class DividerBlot extends BlockEmbed {
+    static create() {
+      let node = super.create();
+      return node;
+    }
+  }
+  DividerBlot.blotName = 'divider';
+  DividerBlot.tagName = 'hr';
+
+  Quill.register(DividerBlot);
 
   var toolbarOptions = [
     [{ 'size': [] }],
-    ['bold', 'italic', 'underline', 'strike'],
+    ['bold', 'italic', 'underline', 'strike', 'blockquote', 'divider'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'align': [] }],
-    ['link', 'image', 'video'],
-  ]
+    ['link', 'image', 'video']   // ✅ 移除 imageLink，只留 link
+  ];
 
   var quill = new Quill('#editor', {
-      theme: 'snow', 
-      modules: {
-        'toolbar': toolbarOptions,
-        'imageResize': {
-          modules: ['Resize', 'DisplaySize', 'Toolbar']
+    theme: 'snow',
+    modules: {
+      toolbar: {
+        container: toolbarOptions,
+        handlers: {
+          divider: function () {
+            let range = this.quill.getSelection();
+            if (range) {
+              this.quill.insertEmbed(range.index, 'divider', true, Quill.sources.USER);
+            }
+          },
+          link: function () {
+            let range = this.quill.getSelection();
+            if (!range) return;
+
+            let [blot] = this.quill.getLeaf(range.index);
+            let value = prompt("請輸入連結網址（留空則移除）");
+
+            if (blot && blot.domNode && blot.domNode.tagName === "IMG") {
+              // === 選中圖片 ===
+              const img = blot.domNode;
+              if (img.parentNode.tagName === "A") {
+                if (value) {
+                  img.parentNode.setAttribute("href", value);
+                } else {
+                  // 移除 <a> 保留圖片
+                  const parent = img.parentNode;
+                  parent.parentNode.insertBefore(img, parent);
+                  parent.remove();
+                }
+              } else if (value) {
+                const linkNode = document.createElement("a");
+                linkNode.setAttribute("href", value);
+                linkNode.setAttribute("target", "_blank");
+                img.parentNode.insertBefore(linkNode, img);
+                linkNode.appendChild(img);
+              }
+            } else {
+              // === 選中文字 ===
+              if (value) {
+                this.quill.format('link', value);
+              } else {
+                this.quill.format('link', false);
+              }
+            }
+          }
+        }
+      },
+      imageResize: {
+        modules: ['Resize', 'DisplaySize', 'Toolbar']
       },
       imageUploader: {
         upload: file => {
@@ -129,13 +188,10 @@ function changePage(page, menu) {
             formData.append("image", file);
             formData.append("csrfmiddlewaretoken", $csrf_token);
 
-            fetch(
-              "/save_news_image",
-              {
-                method: "POST",
-                body: formData
-              }
-            )
+            fetch("/save_news_image", {
+              method: "POST",
+              body: formData
+            })
               .then(response => response.json())
               .then(result => {
                 resolve('/media/' + result.data.url);
@@ -148,7 +204,6 @@ function changePage(page, menu) {
         }
       }
     }
-
   });
 
   if ($('input[name=news_id]').val()) {

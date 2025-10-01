@@ -2,7 +2,7 @@
 {% load static %} 
 {% load i18n %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news_detail.css' %}?v3" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news_detail.css' %}?v4" />
 <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
 <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
@@ -57,6 +57,13 @@
 									{% endif %}
 								</p>
 							</div>
+							{% if tags|length > 0 %}
+							<div class="tag-div">
+							{% for tag in tags %}
+							<span class="tag-news">#{{ tag }}</span>
+							{% endfor %}
+							</div>
+							{% endif %}
 							<div class="editor">
 								<!-- 這邊放代表圖片 -->
 								{% if n.image %}

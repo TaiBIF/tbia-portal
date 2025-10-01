@@ -129,7 +129,7 @@
               <p>{% trans '原始紀錄物種' %}{% trans '：' %}{{ row.originalScientificName }}</p>
             </div>
             {% if row.taxonID %}
-            <a class="code" target="_blank" href="http://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}{% trans '：' %}{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+            <a class="code" target="_blank" href="https://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}{% trans '：' %}{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
             {% else %}
             <div class="yellow-btn">{% trans '臺灣物種名錄未收錄或無法對應' %}</div>
             {% endif %}
@@ -224,7 +224,14 @@
               <p>{{ row.locality }}</p>
             </li>            
             <li>
-              <h3 class="pres-flex">{% trans '授權狀況' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=29" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+              <h3 class="pres-flex">{% trans '授權狀況' %}
+              <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=29" target="_blank" class="d-flex">
+                <svg class="qmark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                </svg>
+              </a>
+              {% trans '：' %}</h3>
               <p>{{ row.license }}</p>
             </li>
             <li>
@@ -289,15 +296,30 @@
             <p>{{ row.verbatimCoordinateSystem }}</p>
           </li>
           <li>
-            <h3 class="pres-flex">{% trans '座標模糊化程度' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=28" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+            <h3 class="pres-flex">{% trans '座標模糊化程度' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=28" target="_blank" class="d-flex">
+                <svg class="qmark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                </svg>
+              </a>{% trans '：' %}</h3>
             <p>{{ row.coordinatePrecision }}</p>
           </li>
           <li>
-            <h3 class="pres-flex">{% trans '縣市' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=32" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+            <h3 class="pres-flex">{% trans '縣市' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=32" target="_blank" class="d-flex">
+                <svg class="qmark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                </svg>
+              </a>{% trans '：' %}</h3>
             <p>{{ row.county }}</p>
           </li>
           <li>
-            <h3 class="pres-flex">{% trans '鄉鎮市區' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=32" class="qmark" target="_blank"></a>{% trans '：' %}</h3>
+            <h3 class="pres-flex">{% trans '鄉鎮市區' %}<a href="/{{ LANGUAGE_CODE }}/qa?qa_id=32" target="_blank" class="d-flex">
+                <svg class="qmark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                </svg>
+              </a>{% trans '：' %}</h3>
             <p>{{ row.municipality }}</p>
           </li>
         </ul>

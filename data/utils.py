@@ -2126,7 +2126,7 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
 
 def create_tbn_query(req_dict):
 
-    query_list = []
+    # query_list = []
     query_str_list = [] # 可以轉換的
     error_str_list = [] # 無法轉換的
 
@@ -2137,7 +2137,7 @@ def create_tbn_query(req_dict):
         val = re.sub(' +', ' ', val)
         # 去除頭尾空格
         val = val.strip()
-        query_list.append('taxonbioname:{}'.format(val))
+        # query_list.append('taxonbioname:{}'.format(val))
         query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
 
 
@@ -2151,17 +2151,17 @@ def create_tbn_query(req_dict):
     # 是否為原生種
     if is_native := req_dict.get('is_native'):
         if is_native == ['y','true']:
-            query_list.append('nativeness:i')
+            # query_list.append('nativeness:i')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
         elif is_native in ['n','false']:
-            query_list.append('nativeness:v,n,a,o')
+            # query_list.append('nativeness:v,n,a,o')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
 
 
     # 是否為保育類
     if is_protected := req_dict.get('is_protected'):
         if is_protected in ['y','true']:
-            query_list.append('protectedstatus:y01,y02,y03,w01')
+            # query_list.append('protectedstatus:y01,y02,y03,w01')
             query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
         elif is_protected in ['n','false']:
             error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
@@ -2169,7 +2169,7 @@ def create_tbn_query(req_dict):
 
     if val := req_dict.get('taxonGroup'):
         if val in taxon_group_map_tbn.keys():
-            query_list.append('taxongroup:{}'.format(taxon_group_map_tbn[val]))
+            # query_list.append('taxongroup:{}'.format(taxon_group_map_tbn[val]))
             query_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
         else:
             error_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
@@ -2230,24 +2230,30 @@ def create_tbn_query(req_dict):
 
 
     # county, municipality 
+    # NOTE 這邊先改為不支援
+    if req_dict.get('county'):
+        error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
 
-    if req_dict.get('county') and req_dict.get('municipality'):
-        if Municipality.objects.filter(county=req_dict.get('county'),municipality=req_dict.get('municipality')).exists():
-            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality=req_dict.get('municipality')).tbn_id
-            query_list.append('adminareaidplus:{}'.format(tbn_id))
-            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-            query_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
-        else:
-            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-            error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+    if req_dict.get('municipality'):
+        error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
 
-    elif req_dict.get('county') and not req_dict.get('municipality'):
-        if Municipality.objects.filter(county=req_dict.get('county'),municipality__isnull=True).exists():
-            tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality__isnull=True).tbn_id
-            query_list.append('adminareaidplus:{}'.format(tbn_id))
-            query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-        else:
-            error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+    # if req_dict.get('county') and req_dict.get('municipality'):
+    #     if Municipality.objects.filter(county=req_dict.get('county'),municipality=req_dict.get('municipality')).exists():
+    #         tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality=req_dict.get('municipality')).tbn_id
+    #         query_list.append('adminareaidplus:{}'.format(tbn_id))
+    #         query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+    #         query_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+    #     else:
+    #         error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+    #         error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
+
+    # elif req_dict.get('county') and not req_dict.get('municipality'):
+    #     if Municipality.objects.filter(county=req_dict.get('county'),municipality__isnull=True).exists():
+    #         tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality__isnull=True).tbn_id
+    #         query_list.append('adminareaidplus:{}'.format(tbn_id))
+    #         query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
+    #     else:
+    #         error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
 
 
     for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus','taxonID']:
@@ -2255,20 +2261,22 @@ def create_tbn_query(req_dict):
             if val != 'undefined':
                 error_str_list.append('{} = {}'.format(gettext(map_occurrence[i]),gettext(val)))
 
+    # NOTE 改為支援
     if val := req_dict.get('higherTaxa'):
         response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:
                 data = data[0]
-                error_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
+                query_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
+                # error_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
-        query_list.append('date:{},{}'.format(req_dict.get('start_date'),req_dict.get('end_date')))
+        # query_list.append('date:{},{}'.format(req_dict.get('start_date'),req_dict.get('end_date')))
         query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
         query_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
     elif req_dict.get('start_date'):
-        query_list.append('date:{}'.format(req_dict.get('start_date')))
+        # query_list.append('date:{}'.format(req_dict.get('start_date')))
         query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
     elif req_dict.get('end_date'):
         error_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
@@ -2278,7 +2286,7 @@ def create_tbn_query(req_dict):
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
         if g_list := req_dict.get('polygon'): 
-            query_list.append('wkt:{}'.format(g_list))
+            # query_list.append('wkt:{}'.format(g_list))
             query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
 
 
@@ -2290,11 +2298,11 @@ def create_tbn_query(req_dict):
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            query_list.append('circle:{},{},{}'.format(req_dict.get('center_lon').strip(),req_dict.get('center_lat').strip(),int(circle_radius)*1000))
+            # query_list.append('circle:{},{},{}'.format(req_dict.get('center_lon').strip(),req_dict.get('center_lat').strip(),int(circle_radius)*1000))
             query_str_list.append('{} = {}'.format(gettext('圓中心框選'),f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"))
 
 
-    return query_list, query_str_list, error_str_list
+    return query_str_list, error_str_list
 
 
 

@@ -355,3 +355,29 @@ li.check-list  .chebox:checked {
   margin: 0;
   padding: 0;
 }
+
+
+
+.tag-warning {
+    font-size: 14px;
+    color: #C65454;
+    margin-left: 5px;
+}
+
+
+.ql-divider::after {
+  content: "―"; 
+  font-size: 18px;
+  color: black;
+  position: relative;
+  top: -4px;
+}
+
+.ql-divider:hover::after {
+  color: blue;
+}
+
+.ql-toolbar button.ql-imageLink::after {
+    content: "🔗";
+    font-size: 14px;
+}

@@ -232,7 +232,7 @@ li.short {
 	color: rgb(52, 31, 112);
 }
 
-.vsb-menu .multi li:not(.grouped-option)::before {
+.vsb-menu .multi li:not(.grouped-option,.vsb-no-results)::before {
 	content: "";
 	display: inline-block;
 	font-size: inherit;

@@ -1157,9 +1157,30 @@ def send_partner_request(request):
 
 def withdraw_partner_request(request):
     user_id = request.POST.get('user_id')
-    User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False,partner_id=None)
-    response = {'message': '申請已撤回'}
-    return JsonResponse(response, safe=False)
+
+    if User.objects.filter(id=user_id).exists():
+        user = User.objects.get(id=user_id)
+        partner_id = user.partner_id
+
+        user.status='withdraw'
+        user.is_partner_account=False
+        user.is_partner_admin=False
+        user.partner_id=None
+        user.save()
+
+        # user = User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False,partner_id=None)
+        # 寄信通知夥伴單位 & 系統管理員申請已撤回
+        for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)):
+            nn = Notification.objects.create(
+                type = 9,
+                content = user_id,
+                user = u
+            )
+            content = nn.get_type_display().replace('0000', str(nn.content))
+            send_notification([u.id],content,'單位帳號申請撤回通知')
+
+        response = {'message': '申請已撤回'}
+        return JsonResponse(response, safe=False)
 
 
 def partner_news(request):
@@ -1981,6 +2002,7 @@ def submit_news(request):
         news_id = request.POST.get('news_id') if request.POST.get('news_id') else 0
         status = request.POST.get('status','pending')
         content = request.POST.get('content')
+        tag = request.POST.get('tag')
 
         # 清理content
         content = clean_quill_html(content)
@@ -2044,6 +2066,7 @@ def submit_news(request):
             n.publish_date = publish_date
             n.modified = timezone.now()
             n.lang = lang
+            n.tag = tag
             n.save()
 
             if ori_status != 'pass' and status == 'pass':
@@ -2080,6 +2103,7 @@ def submit_news(request):
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
+                    tag=tag
                 )
             else:
                 n = News.objects.create(
@@ -2091,6 +2115,7 @@ def submit_news(request):
                     status = status,
                     publish_date = publish_date,
                     lang=lang,
+                    tag=tag
                 )
 
             # 一新增就直接是通過
@@ -2246,6 +2271,18 @@ def update_user_status(request):
                 )
                 content = nn.get_type_display().replace('0000', str(nn.content))
                 send_notification([u.id],content,'單位帳號申請結果通知')
+
+            if status == 'fail':
+                # 如果結果是fail 要通知系統管理員
+                for uu in User.objects.filter(is_system_admin=True):
+                    nn = Notification.objects.create(
+                        type = 10,
+                        content = u.id,
+                        user = uu
+                    )
+                    content = nn.get_type_display().replace('0000', str(nn.content))
+                    send_notification([uu.id],content,'單位帳號申請結果不通過')
+                    
 
         return JsonResponse({"status": 'success',"exceed_ten": exceed_ten}, safe=False)
 
@@ -2447,6 +2484,7 @@ def submit_apply_ark(request):
         sq = SearchQuery.objects.get(query_id=query_id)
         # sq.save()
 
+        # TODO 這邊先確認是不是會產生兩個
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
 
@@ -2483,7 +2521,7 @@ def submit_apply_ark(request):
         return JsonResponse(response, safe=False)
 
 
-# # 永久保存資料
+# 永久保存資料
 def generate_storage_csv(query_id, ark):
 
     if SearchQuery.objects.filter(query_id=query_id).exists():

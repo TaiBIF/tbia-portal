@@ -1,4 +1,4 @@
-from django.shortcuts import render #, redirect
+from django.shortcuts import render, redirect
 from conf.settings import  MEDIA_ROOT, SOLR_PREFIX #STATIC_ROOT,
 from conf.utils import scheme
 from pages.models import Resource, News
@@ -39,6 +39,7 @@ import html
 from django.utils.translation import get_language, gettext
 import shapely
 from csp.decorators import csp_update
+from django.core.files.storage import FileSystemStorage
 
 
 rights_holder_map = {
@@ -57,6 +58,8 @@ rights_holder_map = {
     '海洋保育資料倉儲系統': 'oca',
     '科博典藏 (NMNS Collection)': 'nmns',
     '臺灣魚類資料庫': 'ascdc',
+    '國家海洋資料庫及共享平台': 'namr',
+    '農業部農村發展及水土保持署': 'ardswc',
 }
 
 def get_geojson(request,id):
@@ -143,7 +146,14 @@ def send_sensitive_request(request):
 def submit_sensitive_request(request):
     if request.method == 'POST':
         req_dict = dict(request.POST)
-        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator']
+
+
+        file_name = ''
+        if file := request.FILES.get('research_proposal'):
+            fs = FileSystemStorage()
+            file_name = fs.save(f'research_proposal/' + file.name, file)
+
+        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator','research_proposal']
         for nq in not_query:
             if nq in req_dict.keys():
                 req_dict.pop(nq)
@@ -181,6 +191,7 @@ def submit_sensitive_request(request):
             type = request.POST.get('type'),
             users = json.loads(request.POST.get('users')),
             abstract = request.POST.get('abstract'),
+            research_proposal = file_name,
             query_id = query_id
         )
 
@@ -1504,8 +1515,23 @@ def get_tbn_query(request):
     tbn_query_str_list = []
     tbn_url = ''
 
-    tbn_query_list, tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
-    tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+    
+
+    # sss = create_search_query(req_dict=req_dict)
+    # print(sss)
+    tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
+    # tbn_url = 'https://www.tbn.org.tw/data/query?ft=' + ','.join(tbn_query_list)
+
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','offset']
+    filtered_params = {k: v for k, v in request.POST.items() 
+                        if k not in not_query}
+    
+    # 轉換成 query string
+    query_string = parse.urlencode(filtered_params, doseq=True)
+        
+
+    tbn_url = 'https://www.tbn.org.tw/data/query_by_tbia?' + query_string
+
 
     response = {
         'tbn_url': tbn_url,
@@ -1774,32 +1800,25 @@ def get_locality_init(request):
 
     return HttpResponse(json.dumps(ds), content_type='application/json')
 
-# 併到change_dataset中
-# def get_dataset_init(request):
-
-#     record_type = ''
-#     if request.GET.get('record_type') == 'col':
-#         record_type = '&fq=recordType:col'
-#     else:
-#         record_type = ''
-
-#     ds = []
-#     response = requests.get(f'{SOLR_PREFIX}dataset/select?facet.field=datasetName&facet.mincount=1&facet.limit=20&facet=true&q.op=OR&q=*%3A*&rows=0{record_type}')
-#     d_list = response.json()['facet_counts']['facet_fields']['datasetName']
-#     dataset_list = [d_list[x] for x in range(0, len(d_list),2)]
-#     if len(dataset_list):
-#         dataset_list = get_dataset_list(dataset_list=dataset_list,record_type=None)
-
-#         for l in dataset_list:
-#             ds.append({'text': l[1], 'value': l[0]})
-
-#     return HttpResponse(json.dumps(ds), content_type='application/json')
 
 def get_dataset(request):
 
-    keyword = request.GET.get('keyword')
+    keyword = request.GET.get('keyword', '')
+
+
     rights_holder = request.GET.getlist('holder')
     h_str = ''
+    
+    if not keyword:
+        params = {}
+        if rights_holder:
+            params['holder'] = rights_holder
+        
+        if params:
+            query_string = parse.urlencode(params, doseq=True)  # doseq=True 處理列表參數
+            return redirect(f'/change_dataset?{query_string}')
+        else:
+            return redirect('change_dataset')
 
     if len(rights_holder) > 1:
         rights_holder = ' OR '.join(rights_holder)
@@ -1857,7 +1876,8 @@ def get_higher_taxa(request):
             else:
                 ds['text'] = ds.apply(lambda x: x['name'] + f" ({x['text']} {name_status_map[x['name_status']]})" if x['name_status'] != 'accepted' else x['text'], axis=1)
 
-            ds = ds[['text','value']].to_json(orient='records')
+        ds = ds[['text','value']].to_json(orient='records')
+
     elif taxon_id and taxon_id != 'null':
         # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
@@ -1878,7 +1898,6 @@ def get_higher_taxa(request):
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             ds = ds[['text','value']].to_json(orient='records')
-        
 
     return HttpResponse(ds, content_type='application/json')
 

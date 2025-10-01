@@ -163,6 +163,10 @@
                                     <option value="themeyear">主題年活動</option>
                                 </select>
                             </li>
+                            <li>標籤<span class="tag-warning">*有多個標籤時，請以「半型」逗號分隔，中間不需有空格</span></li>
+                            <li>
+                                <input type="text" name="tag" value="{{ n.tag|default_if_none:'' }}">
+                            </li>
                             <li>語言</li>
                             <li>
                                 <select name="news_lang">
@@ -223,5 +227,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{% static 'js/manager/system_news.js' %}?v4"></script>
+<script src="{% static 'js/manager/system_news.js' %}?v5"></script>
 {% endblock script %}
