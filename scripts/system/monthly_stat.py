@@ -64,7 +64,7 @@ rights_holder_map = {
     '科博典藏 (NMNS Collection)': 'nmns',
     '臺灣魚類資料庫': 'ascdc',
     '國家海洋資料庫及共享平台': 'namr',
-    '農業部農村發展及水土保持署': 'ardswc',
+    '集水區友善環境生態資料庫': 'ardswc',
 }
 
 ss = SearchStat.objects.filter(created__contains=current_year_month)

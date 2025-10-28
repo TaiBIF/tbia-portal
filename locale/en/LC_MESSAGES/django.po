@@ -2632,6 +2632,26 @@ msgid "自然科學博物館"
 msgstr "National Museum of Natural Science"
 
 #:
+msgid "集水區友善環境生態資料庫"
+msgstr "Watershed Eco-Friendly Practices and Ecological Database"
+
+#:
+msgid "科博典藏 (NMNS Collection)"
+msgstr "NMNS Collection"
+
+#:
+msgid "臺灣魚類資料庫"
+msgstr "The Fish Database of Taiwan"
+
+#:
+msgid "國家海洋資料庫及共享平台"
+msgstr "National Ocean Database And Sharing System(NODASS)"
+
+#:
+msgid "中央研究院生物多樣性中心動物標本館"
+msgstr "Biodiversity Research Museum, Academia Sinica"
+
+#:
 msgid "您的權限不足"
 msgstr "Permission denied."
 
