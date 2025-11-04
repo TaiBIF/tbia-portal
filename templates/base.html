@@ -492,7 +492,9 @@
             {% if index_collaborates|length > 0 %}
             <a href="{% url 'about' %}#collaboration" class="sma_link">{% trans '合作夥伴' %}</a>
             {% endif %}
-            <a href="{% url 'qa' %}" class="big_link mt-10px">{% trans '常見Q&A' %}</a>
+            <a href="{% url 'qa' %}" class="big_link mt-10px mb-0">{% trans '常見Q&A' %}</a>
+            <a href="{% url 'terms' %}" class="big_link mb-0">{% trans '使用條款' %}</a>
+            <a href="{% url 'policy' %}" class="big_link mb-0">{% trans '隱私權政策' %}</a>
           </li>
         </ul>
         <div class="right_inf">
@@ -509,9 +511,9 @@
           </div>
         </div>
       </div>
-      <div class="copy d-flex-ai-c-jc-c">
+      {% comment %} <div class="copy d-flex-ai-c-jc-c">
         <a href="{% url 'terms' %}">{% trans '使用條款' %}</a> | <a href="{% url 'policy' %}">{% trans '隱私權政策' %}</a>
-      </div>
+      </div> {% endcomment %}
       <div class="copy">
         <h6>Copyright © TBIA {% trans '臺灣生物多樣性資訊聯盟' %}</h6>
       </div>
