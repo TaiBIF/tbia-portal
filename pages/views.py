@@ -139,6 +139,7 @@ def news_detail(request, news_id):
         n = News.objects.get(id=news_id)
         tags = n.tag if n.tag else ''
         tags = tags.split(',')
+        tags = [t for t in tags if t]
         color = news_type_map[n.type]
         # 系統管理員, 單位帳號, 單位管理者
         is_authorized = False

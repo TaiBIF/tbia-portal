@@ -1049,11 +1049,11 @@ msgstr "All"
 
 #: templates/pages/index.html:287
 msgid "生物多樣性資料庫共通查詢系統教學說明"
-msgstr "Teaching Guidance of the Biodiversity Database Portal System"
+msgstr "Teaching Guidance of the Biodiversity Database Portal"
 
 #: templates/pages/index.html
 msgid "生物多樣性資料庫共通查詢系統"
-msgstr "Biodiversity Database Portal System"
+msgstr "Biodiversity Database Portal"
 
 #: templates/pages/index.html:309 templates/pages/resources_link.html:33
 msgid "國內外各大資料庫及推薦網站連結"
@@ -1097,7 +1097,7 @@ msgstr ""
 
 msgid ""
 "歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能或網頁最上方的放大鏡功能，搜尋任何您想得到的內容。"
-msgstr "Welcome to the &quot;Biodiversity Database Portal System&quot;!<br>If this is your first time using this system, we recommend that you utilize the keyword search feature on the homepage or the magnifying glass icon at the top of the webpage to find the information you are looking for."
+msgstr "Welcome to the &quot;Biodiversity Database Portal&quot;!<br>If this is your first time using this system, we recommend that you utilize the keyword search feature on the homepage or the magnifying glass icon at the top of the webpage to find the information you are looking for."
 
 msgid ""
 "關鍵字查詢結果頁面的左側選單除了呈現結果的分類外，也可以針對您所查詢的關鍵"
@@ -2630,6 +2630,26 @@ msgstr "National Parks of Taiwan Biodiversity Database"
 #:
 msgid "自然科學博物館"
 msgstr "National Museum of Natural Science"
+
+#:
+msgid "集水區友善環境生態資料庫"
+msgstr "Watershed Eco-Friendly Practices and Ecological Database"
+
+#:
+msgid "科博典藏 (NMNS Collection)"
+msgstr "NMNS Collection"
+
+#:
+msgid "臺灣魚類資料庫"
+msgstr "The Fish Database of Taiwan"
+
+#:
+msgid "國家海洋資料庫及共享平台"
+msgstr "National Ocean Database And Sharing System(NODASS)"
+
+#:
+msgid "中央研究院生物多樣性中心動物標本館"
+msgstr "Biodiversity Research Museum, Academia Sinica"
 
 #:
 msgid "您的權限不足"
