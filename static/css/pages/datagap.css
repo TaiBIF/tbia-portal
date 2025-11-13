@@ -164,12 +164,20 @@ h3 {
     margin-top: 15px
 }
 
+.mb-15px {
+    margin-bottom: 15px
+}
+
 .mt-5px {
     margin-top: 5px
 }
 
 .ml-20px {
     margin-left: 20px
+}
+
+.ml-15px {
+    margin-left: 15px
 }
 
 .ml-5px {
@@ -359,4 +367,8 @@ hr {
 
 .text-right {
     text-align: right;
+}
+
+.link {
+    color: #76A578;
 }
