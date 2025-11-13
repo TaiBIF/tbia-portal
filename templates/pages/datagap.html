@@ -21,10 +21,10 @@
 <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
 
 
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/modules/export-data.js"></script>
-<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="/static/highcharts/highcharts.js"></script>
+<script src="/static/highcharts/modules/exporting.js"></script>
+<script src="/static/highcharts/modules/export-data.js"></script>
+<script src="/static/highcharts/modules/accessibility.js"></script>
 
 <script src="/static/nouislider/nouislider.js"></script>
 
@@ -46,11 +46,32 @@
 		<div class="container_area">
 			<div class="main_1240"> 
 				<div class="w_bgr10 news_de">
-				<p class="expired-p text-right mb-5">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
-					<h3>{% trans '資料空間空缺狀況' %}</h3>
+
+					<div class="ml-15px mb-15px">
+
+					{% if LANGUAGE_CODE == 'en-us' %}
+					The visualization below presents occurrence records compiled from TBIA partner databases. Data can be filtered by biological group and time. 
+					Both the bar chart and pie chart are interactive—click to view the number of records. 
+					<br>
+					For more information about the thematic year on data gaps, <a class="link" href="/news?type=themeyear">please click here</a>.
+					{% else %}以下為 TBIA 資料庫網站整合聯盟各夥伴單位物種出現紀錄資料之視覺化呈現，可依類群與時間篩選，長條圖與圓餅圖皆可點選查看資料筆數。
+					想了解資料空缺主題年活動<a class="link" href="/news?type=themeyear">請點此</a>。
+
+					{% endif %}
+					</div>
+
+					<p class="expired-p text-right mb-5">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
+					<h3><b>{% trans '資料空間空缺狀況' %}</b></h3>
 					<div class="item d-flex-jc-sb margin-bottom-0">
 						  <!--loading-->
 						<div class="w-100p">
+							<p class="ml-15px">
+								{% if LANGUAGE_CODE == 'en-us' %}
+								A map displays the geographic distribution of various biological groups within 5×5 km grid cells, providing an overview of spatial coverage and identifying geographic data gaps across taxa.
+								{% else %}
+								以地圖形式呈現不同物種類群在 5×5 公里網格中的地理紀錄分布，用以評估各類群生物資料的地理覆蓋度與空間資料空缺狀態。
+								{% endif %}
+							</p>
 							<div class="ml-20px mt-15px spatial-area-div">
 								<div class="d-flex">
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
@@ -98,7 +119,14 @@
 						<div class="d-flex"><div class="count-100000"></div>> 100,000</div> 
 					</div>
 					<hr>
-					<h3>{% trans '資料時間空缺狀況' %}</h3>
+					<h3><b>{% trans '資料時間空缺狀況' %}</b></h3>
+					<p class="ml-15px mb-15px">
+						{% if LANGUAGE_CODE == 'en-us' %}
+						Side-by-side bar charts show the number of records across different years and months, illustrating the continuity and completeness of data over time, and helping to identify temporal data gaps.
+						{% else %}
+						左右相互對照的長條圖呈現不同年份與月份的資料筆數，可顯示資料在時間軸上的連續性與完整性，並用以了解時間上的資料空缺狀態。
+						{% endif %}
+					</p>
 					<div class="item d-flex-jc-sb">
 						<div class="w-50p">
 							<div class="ml-20px">
@@ -143,7 +171,14 @@
 						</div>
 					</div>
 					<hr>
-					<h3>{% trans '物種類群資料筆數' %}</h3>
+					<h3><b>{% trans '物種類群資料筆數' %}</b></h3>
+					<p class="ml-15px mb-15px">
+						{% if LANGUAGE_CODE == 'en-us' %}
+						Clicking on the pie chart reveals the number of records for each biological group and the proportion of recorded species relative to the corresponding species listed in the Taiwan Catalogue of Life (TaiCOL). Clicking on the percentage text allows you to download the TaiCOL species list for that group, making it easy to identify which species are not yet included in the TBIA database.
+						{% else %}
+						點選圓餅圖可顯示各物種類群的資料筆數，以及其物種數相較於臺灣物種名錄（TaiCOL）中對應類群物種數的比例；點選比例文字則可下載 TaiCOL 對應物種類群清單，以了解目前 TBIA 資料庫中尚未收錄的物種資料。
+						{% endif %}
+					</p>
 					<div class="item d-flex-jc-sb">
 						<div class="w-50p">
 							<div class="highcharts-figure">
