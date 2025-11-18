@@ -70,6 +70,7 @@
 						</p>
 						<p>{% trans '資料集發布者' %}：{{ resp.datasetPublisher|default_if_none:"" }}</p>
 						<p>{% trans '資料集聯絡人' %}：{{ resp.resourceContacts|default_if_none:"" }}</p>
+						<p>{% trans '資料集授權狀況' %}：{{ resp.datasetLicense|default_if_none:"" }}</p>
 						<p>{% trans '涵蓋日期起始' %}：{{ resp.datasetDateStart|default_if_none:"" }}</p>
 						<p>{% trans '涵蓋日期結束' %}：{{ resp.datasetDateEnd|default_if_none:"" }}</p>
 					</div>
