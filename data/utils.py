@@ -1953,7 +1953,7 @@ def get_resource_cate(extension):
     return cate
 
 
-def check_map_bound(map_bound):
+def check_map_bound(map_bound, add_buffer=True):
 
     map_str = map_bound.split(' TO ')
     map_min_lat =  float(map_str[0].split(',')[0])
@@ -1968,6 +1968,12 @@ def check_map_bound(map_bound):
         map_max_lon = 180
     if map_max_lat > 90:
         map_max_lat = 90
+
+    if add_buffer:
+        map_min_lat -= 0.1
+        map_min_lon -= 0.1
+        map_max_lat += 0.1
+        map_max_lon += 0.1
 
     new_map_bound = f'[{map_min_lat},{map_min_lon} TO {map_max_lat},{map_max_lon}]'
     return new_map_bound
