@@ -79,12 +79,40 @@ def strip_html_tags(html):
     return ''.join(BeautifulSoup(html, "html.parser").stripped_strings)
 
 
+
+def strip_html_tags_except_italic(html):
+    """移除 HTML 標籤但保留斜體標籤 <i> 和 <em>"""
+    if not html:
+        return html
+    
+    # 先保護斜體標籤
+    italic_placeholders = {}
+    counter = 0
+    text = str(html)
+    
+    # 找出所有斜體標籤（包含屬性）並用佔位符替換
+    for tag in ['i', 'em']:
+        pattern = f'<{tag}[^>]*>(.*?)</{tag}>'
+        matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
+        for match in matches:
+            placeholder = f'__ITALIC_PLACEHOLDER_{counter}__'
+            italic_placeholders[placeholder] = match.group(0)
+            text = text.replace(match.group(0), placeholder)
+            counter += 1
+    
+    # 使用 BeautifulSoup 移除其他 HTML 標籤
+    text = ''.join(BeautifulSoup(text, "html.parser").stripped_strings)
+
+    # 還原斜體標籤
+    for placeholder, original in italic_placeholders.items():
+        text = text.replace(placeholder, original)
+        
+    return text
+
 @register.simple_tag
 def highlight(text, keyword, taxon_related=0):
-    
     # 先移除所有 HTML 標籤，只保留純文字
-    text = strip_html_tags(text)
-
+    text = strip_html_tags_except_italic(text)
     if taxon_related == '1':
         keyword = re.sub(' +', ' ', keyword)
     keyword = process_text_variants(re.escape(keyword))
