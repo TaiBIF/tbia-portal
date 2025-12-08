@@ -1979,9 +1979,9 @@ def check_map_bound(map_bound, add_buffer=True):
     return new_map_bound
 
 
-def create_search_stat(query_list):
+def create_search_stat(query_list, q="*:*"):
 
-    stat_query = { "query": "*:*",
+    stat_query = { "query": q,
             "offset": 0,
             "limit": 0,
             "filter": query_list,
@@ -2021,9 +2021,11 @@ def backgroud_search_stat(query_list,record_type,query_string):
     SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
 
 
-def create_sensitive_partner_stat(query_list):
+def create_sensitive_partner_stat(query_list, q="*:*"):
 
-    query = { "query": "raw_location_rpt:*",
+    query_list.append("raw_location_rpt:*")
+
+    query = { "query": q,
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -2056,9 +2058,9 @@ def create_sensitive_partner_stat(query_list):
     return stat_rightsHolder
 
 
-def create_dataset_stat(query_list):
+def create_dataset_stat(query_list, q="*:*"):
 
-    query = { "query": "*:*",
+    query = { "query": q,
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -2075,17 +2077,17 @@ def create_dataset_stat(query_list):
             }
 
     if not query_list:
-        query.pop('filter')
+        query.pop('filter', None)
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
 
+    # 不一定會有資料
     stat_tbiaDatasetID = []
-
-    stat_tbiaDatasetID = facets['stat_tbiaDatasetID']['buckets']
+    if facets.get('stat_tbiaDatasetID'):
+        stat_tbiaDatasetID = facets['stat_tbiaDatasetID']['buckets']
 
     for row in stat_tbiaDatasetID:
-        
 
         conn = psycopg2.connect(**datahub_db_settings)
         query = 'UPDATE dataset set "downloadCount" = "downloadCount" + 1 WHERE "tbiaDatasetID" = %s'

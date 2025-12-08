@@ -842,12 +842,12 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
 
     # 儲存到下載統計
     
-    stat_rightsHolder = create_search_stat(query_list=fq_list)
+    stat_rightsHolder = create_search_stat(query_list=fq_list, q=q)
 
     # 如果是正式會員的話 記錄是否有下載敏感資料
     sensitive_stat_rightsHolder = []
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=fq_list, q=q)
 
     sq.stat = stat_rightsHolder
     sq.sensitive_stat = sensitive_stat_rightsHolder
@@ -856,7 +856,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     sq.save()
 
     # 資料集統計
-    create_dataset_stat(query_list=query_list)
+    create_dataset_stat(query_list=fq_list, q=q)
 
     # 寄送通知
     nn = Notification.objects.create(
