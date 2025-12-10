@@ -471,6 +471,9 @@ def generate_sensitive_csv(query_id, scheme, host):
             if sq.status == 'pass':
                 content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/sensitive/{download_id}.zip"
                 content_en += f"<br><br>Download Link: {scheme}://{host}/media/download/sensitive/{download_id}.zip"
+                content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+                content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+            # 欄位說明
             send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知 Your application of non-blurred sensitive data for one-time use is completed',
                               content_en=content_en)
 
@@ -608,6 +611,9 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
+    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    # 欄位說明
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 
 
@@ -729,6 +735,9 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
+    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E5%90%8D%E9%8C%84%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E5%90%8D%E9%8C%84%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    # 欄位說明
     send_notification([user_id],content,'下載名錄已完成通知 Your TBIA checklist download is ready', content_en=content_en)
 
 
@@ -833,12 +842,12 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
 
     # 儲存到下載統計
     
-    stat_rightsHolder = create_search_stat(query_list=fq_list)
+    stat_rightsHolder = create_search_stat(query_list=fq_list, q=q)
 
     # 如果是正式會員的話 記錄是否有下載敏感資料
     sensitive_stat_rightsHolder = []
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=fq_list, q=q)
 
     sq.stat = stat_rightsHolder
     sq.sensitive_stat = sensitive_stat_rightsHolder
@@ -847,7 +856,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     sq.save()
 
     # 資料集統計
-    create_dataset_stat(query_list=query_list)
+    create_dataset_stat(query_list=fq_list, q=q)
 
     # 寄送通知
     nn = Notification.objects.create(
@@ -861,6 +870,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip <br>"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
+    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    # 欄位說明
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 
 
