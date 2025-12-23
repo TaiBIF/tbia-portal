@@ -118,36 +118,85 @@ $(document).ready(function () {
                 }
 
 
+                // $('#container').highcharts(Highcharts.merge(commonOptions, {
+                //     chart: {
+                //         type: 'pie'
+                //     },
+                //     tooltip: {
+                //         pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                //     },
+                //     accessibility: {
+                //         point: {
+                //             valueSuffix: '%'
+                //         }
+                //     },
+                //     plotOptions: {
+                //         pie: {
+                //             size: '100%',
+                //             allowPointSelect: true,
+                //             cursor: 'pointer',
+                //             dataLabels: {
+                //                 enabled: false,
+                //             }
+                //         }
+                //     },
+                //     series: [{
+                //         name: '',
+                //         colorByPoint: true,
+                //         data: response.data_total
+                //     }]
+                // }));
+
+                const data_total_total = response.data_total.reduce((sum, p) => sum + p.y, 0);
+
                 $('#container').highcharts(Highcharts.merge(commonOptions, {
                     chart: {
-                        type: 'pie'
+                        type: 'bar',
+                        height: 400
                     },
+                    xAxis: {
+                        type: 'category',
+                    },
+
+                    yAxis: {
+                        min: 0,
+                        labels: {
+                        formatter() { return Highcharts.numberFormat(this.value, 0); }
+                        }
+                    },
+
+                    legend: {
+                        enabled: false
+                    },
+
                     tooltip: {
-                        pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
-                    },
-                    accessibility: {
-                        point: {
-                            valueSuffix: '%'
+                        formatter() {
+                        return `${this.point.name}<br> <b>${Highcharts.numberFormat(this.point.y,0)} (${((this.point.y/data_total_total)*100).toFixed(1)}%)</b>`;
                         }
                     },
                     plotOptions: {
-                        pie: {
-                            size: '100%',
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: false,
+                        series: {
+                        dataLabels: {
+                            enabled: true,
+                            formatter() {
+                            return `${Highcharts.numberFormat(this.y,0)} (${((this.y/data_total_total)*100).toFixed(1)}%)`;
                             }
+                        },
+                        pointPadding: 0.1,
+                        groupPadding: 0
                         }
                     },
+
                     series: [{
-                        name: '',
-                        colorByPoint: true,
-                        data: response.data_total
-                    }]
+                        // name: '資料筆數',
+                        data: response.data_total,
+                        color: "#3B8D70",
+                    }],
+
+                    credits: {
+                        enabled: false
+                    }
                 }));
-
-
 
                 // 資料查詢次數
                 $('#container-search-times-stat').highcharts(Highcharts.merge(commonOptions, {
@@ -353,34 +402,86 @@ $(document).ready(function () {
     
 
                 // 影像資料筆數
+
+                const image_data_total_total = response.image_data_total.reduce((sum, p) => sum + p.y, 0);
+
                 $('#container-image-stat').highcharts(Highcharts.merge(commonOptions, {
-                    chart: {
-                        type: 'pie'
-                    },
-                    tooltip: {
-                        pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
-                    },
-                    accessibility: {
-                        point: {
-                            valueSuffix: '%'
+                chart: {
+                    type: 'bar',
+                    height: 400
+                },
+                xAxis: {
+                    type: 'category',
+                },
+
+                yAxis: {
+                    min: 0,
+                    labels: {
+                    formatter() { return Highcharts.numberFormat(this.value, 0); }
+                    }
+                },
+
+                legend: {
+                    enabled: false
+                },
+
+                tooltip: {
+                    formatter() {
+                    return `${this.point.name}<br> <b>${Highcharts.numberFormat(this.point.y,0)} (${((this.point.y/data_total_total)*100).toFixed(1)}%)</b>`;
+                    }
+                },
+                plotOptions: {
+                    series: {
+                    dataLabels: {
+                        enabled: true,
+                        formatter() {
+                        return `${Highcharts.numberFormat(this.y,0)} (${((this.y/data_total_total)*100).toFixed(1)}%)`;
                         }
                     },
-                    plotOptions: {
-                        pie: {
-                            size: '100%',
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: false,
-                            }
-                        }
-                    },
-                    series: [{
-                        name: '',
-                        colorByPoint: true,
-                        data: response.image_data_total
-                    }]
+                    pointPadding: 0.1,
+                    groupPadding: 0
+                    }
+                },
+
+                series: [{
+                    data: response.image_data_total,
+                    color: "#3B8D70",
+                }],
+
+                credits: {
+                    enabled: false
+                }
                 }));
+
+
+                // $('#container-image-stat').highcharts(Highcharts.merge(commonOptions, {
+                //     chart: {
+                //         type: 'pie'
+                //     },
+                //     tooltip: {
+                //         pointFormat: '<b>{point.y}筆 ({point.percentage:.1f}%)</b>'
+                //     },
+                //     accessibility: {
+                //         point: {
+                //             valueSuffix: '%'
+                //         }
+                //     },
+                //     plotOptions: {
+                //         pie: {
+                //             size: '100%',
+                //             allowPointSelect: true,
+                //             cursor: 'pointer',
+                //             dataLabels: {
+                //                 enabled: false,
+                //             }
+                //         }
+                //     },
+                //     series: [{
+                //         name: '',
+                //         colorByPoint: true,
+                //         data: response.image_data_total
+                //     }]
+                // }));
 
                 // TaiCOL對應狀況
                 $('#container2').highcharts(Highcharts.merge(commonOptions, {
