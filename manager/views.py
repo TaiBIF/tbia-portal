@@ -1819,13 +1819,15 @@ def get_system_stat(request):
                 p_count = fp.get('count')
                 
                 if Partner.objects.filter(group=p_group).exists():
-                    for pp in Partner.objects.get(group=p_group).info:
-                        if pp['dbname'] == p_dbname:
-                            p_color = pp['color']
-                            break
-                    data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                    # for pp in Partner.objects.get(group=p_group).info:
+                    #     if pp['dbname'] == p_dbname:
+                    #         p_color = pp['color']
+                    #         break
+                    # data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                    data_total.append({'name': p_dbname,'y': p_count})
                 elif p_group == 'gbif':
-                    data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
+                    # data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
+                    data_total.append({'name': 'GBIF','y': p_count,})
     # 影像資料筆數
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
     image_data = requests.get(url).json()
@@ -1837,13 +1839,15 @@ def get_system_stat(request):
                 p_dbname = fp.get('value')
                 p_count = fp.get('count')
                 if Partner.objects.filter(group=p_group).exists():
-                    for pp in Partner.objects.get(group=p_group).info:
-                        if pp['dbname'] == p_dbname:
-                            p_color = pp['color']
-                            break
-                    image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                    # for pp in Partner.objects.get(group=p_group).info:
+                    #     if pp['dbname'] == p_dbname:
+                    #         p_color = pp['color']
+                    #         break
+                    # image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
+                    image_data_total.append({'name': p_dbname,'y': p_count})
                 elif p_group == 'gbif':
-                    image_data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
+                    # image_data_total.append({'name': 'GBIF','y': p_count, 'color': "#ccc"})
+                    image_data_total.append({'name': 'GBIF','y': p_count})
 
 
     # TaiCOL對應狀況

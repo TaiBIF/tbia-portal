@@ -427,7 +427,7 @@ $(document).ready(function () {
 
                 tooltip: {
                     formatter() {
-                    return `${this.point.name}<br> <b>${Highcharts.numberFormat(this.point.y,0)} (${((this.point.y/data_total_total)*100).toFixed(1)}%)</b>`;
+                    return `${this.point.name}<br> <b>${Highcharts.numberFormat(this.point.y,0)} (${((this.point.y/image_data_total_total)*100).toFixed(1)}%)</b>`;
                     }
                 },
                 plotOptions: {
@@ -435,7 +435,7 @@ $(document).ready(function () {
                     dataLabels: {
                         enabled: true,
                         formatter() {
-                        return `${Highcharts.numberFormat(this.y,0)} (${((this.y/data_total_total)*100).toFixed(1)}%)`;
+                        return `${Highcharts.numberFormat(this.y,0)} (${((this.y/image_data_total_total)*100).toFixed(1)}%)`;
                         }
                     },
                     pointPadding: 0.1,
