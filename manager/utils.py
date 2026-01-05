@@ -15,9 +15,9 @@ class TokenGenerator(PasswordResetTokenGenerator):
 
 generate_token = TokenGenerator()
 
-max_day = Workday.objects.all().aggregate(Max('date'))['date__max']
 
 def check_due(checked_date, review_days): # 日期, 審核期限
+    max_day = Workday.objects.all().aggregate(Max('date'))['date__max']
     final_due = ''
     c = 0
     while c < review_days:

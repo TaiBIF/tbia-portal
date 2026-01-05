@@ -76,6 +76,11 @@
     width: 40% !important;
 }
 
+.highcharts-figure-large {
+    height: 450px;
+    margin-top: 20px;
+}
+
 @media only screen and (max-width: 767px) {
     .panel-select {
         width: 100% !important;
@@ -144,6 +149,14 @@
     width: 50%;
 }
 
+.w-66p {
+    width: 66%;
+}
+
+.w-33p {
+    width: 33%;
+}
+
 
 .mt-15px {
     margin-top: 15px
@@ -163,6 +176,10 @@
 
 .fs-16px {
     font-size: 16px;
+}
+
+.fs-18px {
+    font-size: 18px;
 }
 
 
@@ -417,4 +434,9 @@ div.count-1 {
 
 .mr-5px {
     margin-right: 5px;
+}
+
+
+.first_td_table tr td:first-child {
+    text-align: left;
 }

@@ -23,6 +23,30 @@ window.onpopstate = function (e) {
     }
 };
 
+
+function extendDue(sdr_id){
+
+    $(".loading_area").removeClass('d-none');
+
+    $.ajax({
+        url: "/manager/extend/" + sdr_id,
+        type: 'GET',
+    })
+    .done(function (response) {
+
+        alert('修改完成')
+        window.location.reload()
+
+    })
+    .fail(function (xhr, status, errorThrown) {
+        $(".loading_area").addClass('d-none');
+
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+}
+
 function showRequest(query_id, query, sdr_id) {
 
     $(".loading_area").removeClass('d-none');
@@ -226,6 +250,12 @@ function changePage(page, menu) {
                     let query = $(this).data('query');
                     let sdr_id = $(this).data('sdr_id');
                     showRequest(query_id, query, sdr_id)
+                })
+
+                $('.extendDue').off('click')
+                $('.extendDue').on('click', function () {
+                    let sdr_id = $(this).data('sdr_id');
+                    extendDue(sdr_id)
                 })
             }
         }

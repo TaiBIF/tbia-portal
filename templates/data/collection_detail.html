@@ -57,7 +57,7 @@
         </div>
         <p class="shortxt" id="issue_message"></p>
         <div class="email_area d-none">
-          <p>{% trans '您的電⼦郵件' %}
+           <p>{% trans '您的電⼦郵件' %}</p>
           <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
         </div>
         {% if not user.is_authenticated %}

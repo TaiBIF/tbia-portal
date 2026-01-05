@@ -19,7 +19,7 @@
   <!-- shortcut begin -->
   <div class="shortcut-menu-wrapper">
     <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdeIBSV6YkGlCSQV63EaM33H2Hg0tp_tAdCPUtm4upId78ZxA/viewform" target="_blank" data-toggle="dropdown" aria-expanded="false">
-        <img src="{% static 'image/actpeople.png' %}" alt="" class="stamp">
+        <img loading="lazy" src="{% static 'image/actpeople.png' %}" alt="" class="stamp">
         {% trans "填寫問卷" %}
     </a>
   </div>
@@ -54,7 +54,7 @@
 			</div>
 				<div class="tech_pic">
 					<!--565*340或者兩倍大小1130*680-->
-					<img src="/static/image/tutorial/pic1.png?v1">
+					<img loading="lazy" src="/static/image/tutorial/pic1.png?v1">
 				</div>
 				<!--盡量不要超過三行-->
 				<p class="text_tec"></p>
@@ -84,7 +84,7 @@
 			<div class="techbox">
 				<div class="tech_pic">
 					<!--565*340或者兩倍大小1130*680-->
-					<img src="/static/image/tutorial/pic1.png?v1">
+					<img loading="lazy" src="/static/image/tutorial/pic1.png?v1">
 				</div>
 				<!--盡量不要超過三行-->
 				<p class="text_tec"></p>
@@ -167,15 +167,14 @@
           <div class="bird">
             <div class="rel">
               <div class="img"></div>
-              <!--
-              <a href="#" class="event-message">
+              <a href="/datagap" class="event-message">
                 <div class="rel">
-                  <p>最新活動最新活動最新活動 ></p>
+                  <p>誰是填補資料空缺的隱形英雄？一起探索生物的未知篇章！ ></p>
                   <svg xmlns="http://www.w3.org/2000/svg" width="29.635" height="30.767" viewBox="0 0 29.635 30.767">
                     <path id="Path_22130" data-name="Path 22130" d="M10.287,1.034a2.021,2.021,0,0,1,3.527,0L23.841,18.957a2.021,2.021,0,0,1-1.763,3.007H2.024A2.021,2.021,0,0,1,.26,18.957Z" transform="matrix(-0.391, -0.921, 0.921, -0.391, 9.417, 30.767)" fill="#c65454"/>
                   </svg>
                 </div>
-              </a>-->
+              </a>
             </div>							
           </div>
           <div class="icon_area index-search-box" data-href="{% url 'search_occurrence' %}">
@@ -224,13 +223,13 @@
 <div class="gray_bg">
   <div class="section_2">
     <div class="bg_rightline">
-      <img src="{% static 'image/s2line.svg' %}" />
+      <img loading="lazy" src="{% static 'image/s2line.svg' %}" />
     </div>
     <div class="bg_area">
       <div class="rel">
         <div class="bg_item"></div>
         <div class="flower">
-          <img src="{% static 'image/s2flower.svg' %}" />
+          <img loading="lazy" src="{% static 'image/s2flower.svg' %}" />
         </div>
       </div>
     </div>
@@ -250,7 +249,7 @@
           {% for n in news_list %}
           <li>
             <a href="{% url 'news_detail' n.id %}" target="_blank" class="imgbox">
-              <img class="img_area" src="{{ n.image }}">
+              <img loading="lazy" class="img_area" src="{{ n.image }}">
             </a>
             <div class="infbox">
               <div class="center_box">
@@ -289,13 +288,13 @@
   </div>
   <div class="section_3">
     <div class="wave">
-      <img src="{% static 'image/s3wavw.svg' %}" />
+      <img loading="lazy" src="{% static 'image/s3wavw.svg' %}" />
     </div>
     <div class="bg_area">
       <div class="rel">
         <div class="bg_item"></div>
         <div class="shark">
-          <img src="{% static 'image/sharrrk.svg' %}" />
+          <img loading="lazy" src="{% static 'image/sharrrk.svg' %}" />
         </div>
       </div>
     </div>
@@ -385,14 +384,14 @@
   <div class="section_4">
     <div class="bg_rightline">
       <div class="rel">
-        <div class="mask"><img src="{% static 'image/s4line.svg' %}" /></div>
+        <div class="mask"><img loading="lazy" src="{% static 'image/s4line.svg' %}" /></div>
       </div>
     </div>
     <div class="bg_area">
       <div class="rel">
         <div class="bg_item"></div>
         <div class="ani">
-          <img src="{% static 'image/s4ani.svg' %}" />
+          <img loading="lazy" src="{% static 'image/s4ani.svg' %}" />
         </div>
       </div>
     </div>
@@ -403,7 +402,7 @@
         <li>
           <a href="{% url 'partner' p.abbreviation %}">
             <div class="imgbox">
-              <img src="/static/image/partner/{{ p.logo }}" />
+              <img loading="lazy" src="/static/image/partner/{{ p.logo }}" />
             </div>
           </a>
         </li>
@@ -418,7 +417,7 @@
         <li>
           <a href="{% url 'partner' p.abbreviation %}">
             <div class="imgbox">
-              <img src="/static/image/partner/{{ p.logo }}" />
+              <img loading="lazy" src="/static/image/partner/{{ p.logo }}" />
             </div>
           </a>
         </li>
