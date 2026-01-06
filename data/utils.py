@@ -73,6 +73,7 @@ rights_holder_map = {
     '國家海洋資料庫及共享平台': 'namr',
     '集水區友善環境生態資料庫': 'ardswc',
     '中油生態地圖': 'cpc',
+    '作物種原資訊系統': 'npgrc'
 }
 
 rights_holder_list = list(rights_holder_map.values())
