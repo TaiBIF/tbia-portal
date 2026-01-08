@@ -323,15 +323,10 @@ def generate_sensitive_csv(query_id, scheme, host):
         process = None
         file_done = False
 
+
+
         # 這邊就會包含partial_transferred的資料
         if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
-        #     group = ['*']
-        # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
-        #     group = []
-        # else:
-            # 不給沒通過的
-            # NOTE 2026-01 改成不通過的給模糊化的資料
-
             # 篩選出沒有通過的單位
             fs = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
             if fs:
@@ -339,83 +334,212 @@ def generate_sensitive_csv(query_id, scheme, host):
                 fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
                 fail_groups = [g for g in fail_groups[0]]
 
-            # ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
-            # if ps:
-            #     ps = [p for p in ps[0]]
-            #     pass_groups = list(Partner.objects.filter(id__in=ps).values_list('group'))
-            #     pass_groups = [g for g in group[0]]
-
-            # fl_cols = download_cols_with_sensitive
-            # fl_cols = download_cols + sensitive_cols
-            # 先取得筆數，export to csv
-
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
-
-            # query_list1 = query_list
-            # query_list2 = query_list
+            query_list_b = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
 
             # 排除掉不同意的單位
             if fail_groups:
                 fail_groups = [ f'group:{g}' for g in fail_groups ]
                 fail_groups_str = ' OR '.join( fail_groups )
-                # query_list1 += [ '-(' + fail_groups_str + ')' ]
-                # query_list2 += [ '(' + fail_groups_str + ')']
+                
+                query_list1 = query_list + [ '-(' + fail_groups_str + ')' ]
+                query_list2 = query_list_b + [ '(' + fail_groups_str + ')' ]
+                
+                # 準備兩組查詢參數
+                query1 = {
+                    "query": "*:*",
+                    "offset": 0,
+                    "limit": 2140000000,
+                    "filter": query_list1,
+                    "fields": download_cols_with_sensitive   
+                }
+
+                query2 = {
+                    "query": "*:*",
+                    "offset": 0,
+                    "limit": 2140000000,
+                    "filter": query_list2,  
+                    "fields": download_cols  
+                }
+
+                csv_folder = os.path.join(MEDIA_ROOT, 'download')
+                csv_folder = os.path.join(csv_folder, 'sensitive')
+                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+                temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
+                temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
+                zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+                # 執行兩個查詢並合併結果
+                commands = f"""
+                curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
+                curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
+                cat {temp_file1} > {csv_file_path}
+                tail -n +2 {temp_file2} >> {csv_file_path}
+                zip -j {zip_file_path} {csv_file_path}
+                rm {csv_file_path} {temp_file1} {temp_file2}
+                """
+            else:
+                # 沒有不同意的單位，直接用原本的單一查詢
+                query = {
+                    "query": "*:*",
+                    "offset": 0,
+                    "limit": 2140000000,
+                    "filter": query_list,
+                    "fields": download_cols_with_sensitive
+                }
+                
+                if not query_list:
+                    query.pop('filter')
+
+                csv_folder = os.path.join(MEDIA_ROOT, 'download')
+                csv_folder = os.path.join(csv_folder, 'sensitive')
+                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+                zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+                commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
+
+            sq.status = 'pass'
             
-            # if pass_groups:
-            #     pass_groups = [ f'group:{g}' for g in pass_groups ]
-            #     pass_groups_str = ' OR '.join( pass_groups )
-            #     query_list2 += ['(' + pass_groups_str + ')']
-
-            query_list1 = query_list + [ '-(' + fail_groups_str + ')' ] if fail_groups_str else query_list
-            query_list2 = query_list + [ '(' + fail_groups_str + ')' ] if fail_groups_str else query_list
-
-            # 準備兩組查詢參數
-            # 第一組: 同意的單位
-            query1 = {
+        else:
+            # 沒有帳號通過 - 全部給模糊化後的資料
+            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            
+            query = {
                 "query": "*:*",
                 "offset": 0,
                 "limit": 2140000000,
-                # "filter": query_list + [ '-(' + fail_groups_str + ')' ] if fail_groups_str else query_list,
-                "filter": query_list1,
-                "fields": download_cols_with_sensitive   
+                "filter": query_list,
+                "fields": download_cols
             }
-
-            # 第二組: 不同意的單位
-            query2 = {
-                "query": "*:*",
-                "offset": 0,
-                "limit": 2140000000,
-                "filter": query_list2,  
-                "filter": query_list + [ '(' + fail_groups_str + ')' ] if fail_groups_str else query_list,
-                "fields": download_cols  
-            }
-
-            # # 處理空的查詢條件
-            # if not query_list1:
-            #     query1.pop('filter')
-            # if not query_list2:
-            #     query2.pop('filter')
+            
+            if not query_list:
+                query.pop('filter')
 
             csv_folder = os.path.join(MEDIA_ROOT, 'download')
             csv_folder = os.path.join(csv_folder, 'sensitive')
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
-            temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
-            temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
-            # 執行兩個查詢並合併結果
-            commands = f"""
-            curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
-            curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
-            cat {temp_file1} > {csv_file_path}
-            tail -n +2 {temp_file2} >> {csv_file_path}
-            zip -j {zip_file_path} {csv_file_path}
-            rm {csv_file_path} {temp_file1} {temp_file2}
-            """
-
+            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process.communicate()
+            
+            sq.status = 'pass'
+
+        file_done = True
+
+        # 儲存到下載統計
+        stat_rightsHolder = create_search_stat(query_list=query_list)
+        sq.stat = stat_rightsHolder
+
+        # 敏感資料統計
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+        sq.sensitive_stat = sensitive_stat_rightsHolder
+
+        sq.modified = timezone.now()
+        sq.save()
+
+        # 資料集統計
+        create_dataset_stat(query_list=query_list)
+
+
+        # # 這邊就會包含partial_transferred的資料
+        # if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
+        # #     group = ['*']
+        # # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
+        # #     group = []
+        # # else:
+        #     # 不給沒通過的
+        #     # NOTE 2026-01 改成不通過的給模糊化的資料
+
+        #     # 篩選出沒有通過的單位
+        #     fs = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
+        #     if fs:
+        #         fs = [p for p in fs[0]]
+        #         fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
+        #         fail_groups = [g for g in fail_groups[0]]
+
+        #     # ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
+        #     # if ps:
+        #     #     ps = [p for p in ps[0]]
+        #     #     pass_groups = list(Partner.objects.filter(id__in=ps).values_list('group'))
+        #     #     pass_groups = [g for g in group[0]]
+
+        #     # fl_cols = download_cols_with_sensitive
+        #     # fl_cols = download_cols + sensitive_cols
+        #     # 先取得筆數，export to csv
+
+        #     query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+
+        #     # query_list1 = query_list
+        #     # query_list2 = query_list
+
+        #     # 排除掉不同意的單位
+        #     if fail_groups:
+        #         fail_groups = [ f'group:{g}' for g in fail_groups ]
+        #         fail_groups_str = ' OR '.join( fail_groups )
+        #         # query_list1 += [ '-(' + fail_groups_str + ')' ]
+        #         # query_list2 += [ '(' + fail_groups_str + ')']
+            
+        #     # if pass_groups:
+        #     #     pass_groups = [ f'group:{g}' for g in pass_groups ]
+        #     #     pass_groups_str = ' OR '.join( pass_groups )
+        #     #     query_list2 += ['(' + pass_groups_str + ')']
+
+        #     query_list1 = query_list + [ '-(' + fail_groups_str + ')' ] if fail_groups_str else query_list
+        #     query_list2 = query_list + [ '(' + fail_groups_str + ')' ] if fail_groups_str else query_list
+
+        #     # 準備兩組查詢參數
+        #     # 第一組: 同意的單位
+        #     query1 = {
+        #         "query": "*:*",
+        #         "offset": 0,
+        #         "limit": 2140000000,
+        #         "filter": query_list1,
+        #         "fields": download_cols_with_sensitive   
+        #     }
+
+        #     # 第二組: 不同意的單位
+        #     query2 = {
+        #         "query": "*:*",
+        #         "offset": 0,
+        #         "limit": 2140000000,
+        #         "filter": query_list2,  
+        #         "fields": download_cols  
+        #     }
+
+        #     # # 處理空的查詢條件
+        #     # if not query_list1:
+        #     #     query1.pop('filter')
+        #     # if not query_list2:
+        #     #     query2.pop('filter')
+
+        #     csv_folder = os.path.join(MEDIA_ROOT, 'download')
+        #     csv_folder = os.path.join(csv_folder, 'sensitive')
+        #     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+        #     temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
+        #     temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
+        #     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+        #     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+        #     # 執行兩個查詢並合併結果
+        #     commands = f"""
+        #     curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
+        #     curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
+        #     cat {temp_file1} > {csv_file_path}
+        #     tail -n +2 {temp_file2} >> {csv_file_path}
+        #     zip -j {zip_file_path} {csv_file_path}
+        #     rm {csv_file_path} {temp_file1} {temp_file2}
+        #     """
+
+        #     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     process.communicate()
 
             # query = { "query": "*:*",
             #         "offset": 0,
@@ -438,38 +562,38 @@ def generate_sensitive_csv(query_id, scheme, host):
             # process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # process.communicate()
 
-            file_done = True
+        #     file_done = True
 
-            # 儲存到下載統計
+        #     # 儲存到下載統計
 
-            stat_rightsHolder = create_search_stat(query_list=query_list)
-            sq.stat = stat_rightsHolder
+        #     stat_rightsHolder = create_search_stat(query_list=query_list)
+        #     sq.stat = stat_rightsHolder
 
-            # 敏感資料統計
-            sensitive_stat_rightsHolder = []
-            sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+        #     # 敏感資料統計
+        #     sensitive_stat_rightsHolder = []
+        #     sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
 
-            sq.sensitive_stat = sensitive_stat_rightsHolder
+        #     sq.sensitive_stat = sensitive_stat_rightsHolder
 
-            # 要排除掉轉交的情況
-            # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
-            # if len(tmp) == len(tmp.filter(status='pass')):
-            #     sq.status = 'pass'
-            # else:
-            #     sq.status = 'partial'
-            sq.status = 'pass'
-            sq.modified = timezone.now()
-            sq.save()
+        #     # 要排除掉轉交的情況
+        #     # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+        #     # if len(tmp) == len(tmp.filter(status='pass')):
+        #     #     sq.status = 'pass'
+        #     # else:
+        #     #     sq.status = 'partial'
+        #     sq.status = 'pass'
+        #     sq.modified = timezone.now()
+        #     sq.save()
 
-            # 資料集統計
-            create_dataset_stat(query_list=query_list)
+        #     # 資料集統計
+        #     create_dataset_stat(query_list=query_list)
 
-        else:
-            # 沒有帳號通過
-            sq.status = 'fail'
-            sq.modified = timezone.now()
-            sq.save()
-            file_done = True
+        # else:
+        #     # 沒有帳號通過
+        #     sq.status = 'fail'
+        #     sq.modified = timezone.now()
+        #     sq.save()
+        #     file_done = True
 
 
         if file_done:
