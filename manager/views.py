@@ -3384,11 +3384,17 @@ def sensitive_extend_review(request, sdr_id):
     # 先確定有沒有權限
     user_id = request.user.id if request.user.id else 0
 
-    if User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exclude(partner__is_collaboration=True).exists():
+    sdr = []
+
+    if request.GET.get('from_system'):
+        if User.objects.filter(is_system_admin=True,status='pass',id=user_id).exists():
+            sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id__isnull=True)
+
+    elif User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exclude(partner__is_collaboration=True).exists():
         partner_id = User.objects.get(id=user_id).partner_id
         sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id=partner_id)
-    elif User.objects.filter(is_system_admin=True,status='pass',id=user_id).exists():
-        sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id__isnull=True)
+    # elif User.objects.filter(is_system_admin=True,status='pass',id=user_id).exists():
+    #     sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id__isnull=True)
 
     if sdr.exists():
 

@@ -30,7 +30,7 @@ function extendDue(sdr_id){
     $(".loading_area").removeClass('d-none');
 
     $.ajax({
-        url: "/manager/extend/" + sdr_id,
+        url: "/manager/extend/" + sdr_id + '?from_system=true',
         type: 'GET',
     })
     .done(function (response) {
