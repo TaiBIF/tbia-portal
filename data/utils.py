@@ -87,7 +87,7 @@ def get_dataset_name(key):
     name = ''
 
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
-    print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    # print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -2009,8 +2009,6 @@ def check_map_bound(map_bound, add_buffer=True):
 
 def create_search_stat(query_list, q="*:*"):
 
-    print(query_list, q)
-
     stat_query = { "query": q,
             "offset": 0,
             "limit": 0,
@@ -2029,8 +2027,6 @@ def create_search_stat(query_list, q="*:*"):
     
     if not query_list:
         stat_query.pop('filter', None)
-
-    print(stat_query)
 
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" })
     facets = response.json()['facets']

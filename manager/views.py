@@ -1950,8 +1950,6 @@ def get_user_download_stat(request):
         resp['data'] = series_data
         resp['categories'] = [ f'{year}-{"{:02d}".format(i)}' for i in range(1, 13)]
 
-        print(resp)
-
     return JsonResponse(resp, safe=False)
 
 def manager_system(request):
@@ -3389,7 +3387,7 @@ def sensitive_extend_review(request, sdr_id):
     if User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exclude(partner__is_collaboration=True).exists():
         partner_id = User.objects.get(id=user_id).partner_id
         sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id=partner_id)
-    elif User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exists():
+    elif User.objects.filter(is_system_admin=True,status='pass',id=user_id).exists():
         sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id__isnull=True)
 
     if sdr.exists():
