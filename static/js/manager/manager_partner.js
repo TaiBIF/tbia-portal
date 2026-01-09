@@ -37,7 +37,10 @@ var SliderFormat = {
 
 
 function updatePartnerStat(){
-            $.ajax({
+
+        $('.loader_partner_stat').removeClass('d-none');
+        
+        $.ajax({
             // url: "/get_partner_stat?partner_id=" + $('input[name=partner_id]').val(),
             url: "/get_partner_stat?rights_holder=" + $('select[name=rightsholder-select]').find(':selected').val(),
             type: 'GET',
@@ -48,7 +51,6 @@ function updatePartnerStat(){
             $('.download_taxon_a').attr('href', response.download_url)
 
             // 資料品質左側圓餅圖
-
 
             $('#container-data-quality').highcharts(Highcharts.merge(commonOptions, {
                 chart: {
@@ -279,7 +281,6 @@ function updatePartnerStat(){
                     }
                 },
                 series: [{
-                    name: 'Brands',
                     colorByPoint: true,
                     data: [{
                         name: '有對應',
@@ -311,7 +312,6 @@ function updatePartnerStat(){
                         chart.xAxis[0].labelGroup.element.childNodes.forEach(function(label, index) {
                             $(label).css('cursor', 'pointer')
                                 .on('click', function() {
-                                    console.log('hi');
                                     var category = categories[index];
                                     var allPoints = [];
                                     
@@ -551,9 +551,10 @@ function updatePartnerStat(){
                 }]
             }));
 
-            
+            $('.loader_partner_stat').addClass('d-none');
         })
         .fail(function (xhr, status, errorThrown) {
+            $('.loader_partner_stat').addClass('d-none');
             alert(gettext('發生未知錯誤！請聯絡管理員'))
             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
         })
@@ -635,7 +636,6 @@ $(document).ready(function () {
     // if ($('input[name=is_partner]').val() == 'True') {
 
 
-
         // 使用者下載統計
         $('#container-user-download-stat').highcharts(Highcharts.merge(commonOptions, {
             chart: {
@@ -671,6 +671,8 @@ $(document).ready(function () {
         }));
 
         $('select[name=user-download-stat-year],select[name=user-download-stat-type]').on('change', function(){
+            $('#loader_user_download').removeClass('d-none');
+
             $.ajax({
                 // url:  `/get_data_stat?type=search_times&year=${$('select[name=search-times-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_user_download_stat?type=${$('select[name=user-download-stat-type]').find(':selected').val()}&year=${$('select[name=user-download-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -689,9 +691,10 @@ $(document).ready(function () {
                     user_download_stat_chart.addSeries(i)
                 }
 
-
+                $('#loader_user_download').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_user_download').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -700,10 +703,6 @@ $(document).ready(function () {
 
         // 起始狀態
         $('select[name=user-download-stat-year]').trigger('change')
-
-
-
-
 
 
 
@@ -737,6 +736,8 @@ $(document).ready(function () {
         }));
 
         $('select[name=search-times-stat-year]').on('change', function(){
+            $('#loader_search_times').removeClass('d-none');
+
             $.ajax({
                 // url:  `/get_data_stat?type=search_times&year=${$('select[name=search-times-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_data_stat?type=search_times&year=${$('select[name=search-times-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -755,9 +756,10 @@ $(document).ready(function () {
                     search_times_chart.addSeries(i)
                 }
 
-
+                $('#loader_search_times').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_search_times').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -798,6 +800,8 @@ $(document).ready(function () {
         }));
 
         $('select[name=search-stat-year]').on('change', function(){
+
+            $('#loader_search_stat').removeClass('d-none');
             $.ajax({
                 // url:  `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -815,10 +819,11 @@ $(document).ready(function () {
                 for (i of response.data ) {
                     search_chart.addSeries(i)
                 }
-
+                $('#loader_search_stat').addClass('d-none');
 
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_search_stat').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -860,6 +865,7 @@ $(document).ready(function () {
         }));
 
         $('select[name=download-stat-year]').on('change', function(){
+            $('#loader_download_stat').removeClass('d-none');
             $.ajax({
                 // url:  `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -877,8 +883,10 @@ $(document).ready(function () {
                 for (i of response.data ) {
                     download_chart.addSeries(i)
                 }
+                $('#loader_download_stat').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_download_stat').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -918,11 +926,13 @@ $(document).ready(function () {
         }));
 
         $('select[name=download-times-stat-year]').on('change', function(){
+            $('#loader_download_times').removeClass('d-none');
             $.ajax({
                 url:  `/get_data_stat?type=download_times&year=${$('select[name=download-times-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
                 type: 'GET',
             })
             .done(function(response){
+
                 let download_times_chart = $('#container-download-times-stat').highcharts()
 
                 while (download_times_chart.series.length) {
@@ -934,8 +944,10 @@ $(document).ready(function () {
                 for (i of response.data ) {
                     download_times_chart.addSeries(i)
                 }
+                $('#loader_download_times').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_download_times').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -980,6 +992,7 @@ $(document).ready(function () {
         }));
 
         $('select[name=data-stat-year]').on('change', function(){
+            $('#loader_data_stat').removeClass('d-none');
             $.ajax({
                 // url:  `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -998,8 +1011,10 @@ $(document).ready(function () {
                 for (i of response.data ) {
                     data_chart.addSeries(i)
                 }
+                $('#loader_data_stat').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_data_stat').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -1038,6 +1053,7 @@ $(document).ready(function () {
         }));
 
         $('select[name=sensitive-stat-year]').on('change', function(){
+            $('#loader_sensitive').removeClass('d-none');
             $.ajax({
                 // url:  `/get_data_stat?type=sensitive&year=${$('select[name=sensitive-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_data_stat?type=sensitive&year=${$('select[name=sensitive-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}`,
@@ -1056,8 +1072,11 @@ $(document).ready(function () {
                 for (i of response.data ) {
                     sensitive_chart.addSeries(i)
                 }
+
+                $('#loader_sensitive').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_sensitive').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -1222,6 +1241,9 @@ $(document).ready(function () {
 
 
 function updatePartnerTemporal(PartnerTemporalYearSlider){
+
+    $('#loader_partner_temporal_year, #loader_partner_temporal_month').removeClass('d-none');
+
     $.ajax({
         // url:  `/get_temporal_stat?group=${$('input[name=current_group]').val()}&taxon_group=${$('select[name=partner-temporal-taxonGroup]').find(':selected').val()}&start_year=${PartnerTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PartnerTemporalYearSlider.noUiSlider.get()[1]}`,
         url:  `/get_temporal_stat?rights_holder=${$('select[name=rightsholder-select]').find(':selected').val()}&taxon_group=${$('select[name=partner-temporal-taxonGroup]').find(':selected').val()}&start_year=${PartnerTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PartnerTemporalYearSlider.noUiSlider.get()[1]}`,
@@ -1257,8 +1279,11 @@ function updatePartnerTemporal(PartnerTemporalYearSlider){
             partner_temporal_month_chart.addSeries(i)
         }
 
+        $('#loader_partner_temporal_year, #loader_partner_temporal_month').addClass('d-none');
+
     })
     .fail(function (xhr, status, errorThrown) {
+        $('#loader_partner_temporal_year, #loader_partner_temporal_month').addClass('d-none');
         alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
@@ -1266,6 +1291,7 @@ function updatePartnerTemporal(PartnerTemporalYearSlider){
 }
 
 function updatePortalTemporal(PortalTemporalYearSlider){
+    $('#loader_portal_temporal_year, #loader_portal_temporal_month').removeClass('d-none');
     $.ajax({
         url:  `/get_temporal_stat?group=total&taxon_group=${$('select[name=portal-temporal-taxonGroup]').find(':selected').val()}&start_year=${PortalTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PortalTemporalYearSlider.noUiSlider.get()[1]}`,
         type: 'GET',
@@ -1299,9 +1325,10 @@ function updatePortalTemporal(PortalTemporalYearSlider){
         for (i of response.month_data ) {
             portal_temporal_month_chart.addSeries(i)
         }
-
+        $('#loader_portal_temporal_year, #loader_portal_temporal_month').addClass('d-none');
     })
     .fail(function (xhr, status, errorThrown) {
+        $('#loader_portal_temporal_year, #loader_portal_temporal_month').addClass('d-none');
         alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
@@ -1453,11 +1480,11 @@ $('select[name=partner-spatial-taxonGroup]').trigger('change')
 function drawMapGrid(current_map, group, wkt_range){
 
     if (group == 'total'){
-        $('.total.loading_area_partial').removeClass('d-none')
+        $('.total.loader_spatial_stat').removeClass('d-none')
         $('.total-spatial-area-div').addClass('d-none')
         taxon_group = $('select[name=portal-spatial-taxonGroup]').find(':selected').val()
     } else {
-        $('.loading_area_partial').not('.total').removeClass('d-none')
+        $('.loader_spatial_stat').not('.total').removeClass('d-none')
         $('.spatial-area-div').addClass('d-none')
 
         taxon_group = $('select[name=partner-spatial-taxonGroup]').find(':selected').val()
@@ -1475,11 +1502,11 @@ function drawMapGrid(current_map, group, wkt_range){
     .done(function (response) {
         if (group == 'total'){
             window.portal_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-            $('.total.loading_area_partial').addClass('d-none')
+            $('.total.loader_spatial_stat').addClass('d-none')
             $('.total-spatial-area-div').removeClass('d-none')
         } else {
             window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-            $('.loading_area_partial').not('.total').addClass('d-none')
+            $('.loader_spatial_stat').not('.total').addClass('d-none')
             $('.spatial-area-div').removeClass('d-none')
         }
     })
@@ -1491,7 +1518,7 @@ function drawMapGrid(current_map, group, wkt_range){
 
         }
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        $('.loading_area_partial, .total.loading_area_partial').addClass('d-none')
+        $('.loader_spatial_stat, .total.loader_spatial_stat').addClass('d-none')
         $('.spatial-area-div').removeClass('d-none')
     })
 
@@ -1543,7 +1570,10 @@ function generateCategoryInfo(category, points, chart) {
         var unitPercentage = unitPoints[0].series.options.unitPercentage || 0;
         var taiwanPercentage = unitPoints[0].series.options.taiwanPercentage || 0;
         html += `<p><b>來源資料庫：</b><br>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
-        html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br><b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
+        if ($('select[name=rightsholder-select]').find(':selected').val() != 'total'){
+            html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br>`;
+        }
+        html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
     }
     
     html += `<br><a href="/media/taxon_stat/${$('select[name=rightsholder-select]').find(':selected').val()}_${category}.csv">📥 下載比對結果清單</a>`;

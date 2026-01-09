@@ -58,85 +58,225 @@ $(document).ready(function () {
         updatePartnerTemporal(PartnerTemporalYearSlider);
     });
 
+
+
     $.ajax({
-        url: "/get_taxon_stat",
+        url: "/get_taxon_group_stat?rights_holder=total",
         type: 'GET',
     })
-    .done(function (response) {
-    
+    .done(function(response){
+
         $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
             chart: {
-                type: 'pie'
-            }, 
-            tooltip: {
-                formatter:function(){
-                    return `<b>${gettext(this.point.name)}</b><br/>${this.point.y} ${gettext('筆')} (${this.point.percentage.toFixed(2)} %)`;
+                type: 'bar',
+                events: {
+                    load: function() {
+                        
+                        var chart = this;
+                        var categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
+                                        '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                        
+                        // 為 x 軸標籤添加點擊事件
+                        chart.xAxis[0].labelGroup.element.childNodes.forEach(function(label, index) {
+                            $(label).css('cursor', 'pointer')
+                                .on('click', function() {
+                                    var category = categories[index];
+                                    var allPoints = [];
+                                    
+                                    // 取得該類別的所有 series 資料
+                                    chart.series.forEach(function(series) {
+                                        if (series.data[index] && series.data[index].y > 0) {
+                                            allPoints.push(series.data[index]);
+                                        }
+                                    });
+                                    
+                                    // 產生與原 tooltip 相同的內容
+                                    var html = generateCategoryInfo(category, allPoints, chart);
+                                    
+                                    // 顯示到指定的 container
+                                    $('#taxon_group-stat-content').html(html).show();
+                                });
+                        });
                     }
+                },            
+            },
+
+            tooltip: {
+                shared: true,
+                formatter: function() {
+                    const categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
+                                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                    
+                    let category = categories[this.x];
+                    
+                    let systemPoints = this.points.filter(p => p.series.name.includes('-系統') && p.y > 0);
+                    let unitPoints = this.points.filter(p => p.series.name.includes('-單位') && p.y > 0);
+                    
+                    let html = `${gettext(category)}<br/>`;
+                    
+                    // 計算所有系統總數
+                    let totalSystemCount = 0;
+                    this.points.forEach(p => {
+                        if (p.series.name.includes('-系統')) {
+                            totalSystemCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+                        }
+                    });
+                    
+                    // 計算所有單位總數
+                    let totalUnitCount = 0;
+                    this.points.forEach(p => {
+                        if (p.series.name.includes('-單位')) {
+                            totalUnitCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+                        }
+                    });
+                    
+                    if (systemPoints.length > 0) {
+                        let systemCount = systemPoints[0].y;
+                        let systemPercentage = (systemCount / totalSystemCount * 100).toFixed(2);
+                        html += `<br><b>系統整體：</b><br>${Highcharts.numberFormat(systemCount, 0)} 筆 (${systemPercentage}%)<br>`;
+                    }
+                    
+                    if (unitPoints.length > 0) {
+                        let unitCount = unitPoints[0].y;
+                        let unitTotalPercentage = (unitCount / totalUnitCount * 100).toFixed(2);
+                        html += `<br>${Highcharts.numberFormat(unitCount, 0)} ${gettext('筆')} (${unitTotalPercentage}%)<br>`;
+                    }
+
+                    return html;
+                }
             },
             accessibility: {
                 point: {
                     valueSuffix: '%'
                 }
             },
-            plotOptions: {
-                pie: {
-                    size: '90%',
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        formatter: function () {
-                            return gettext(this.point.name)
-                        },
-                        padding: 0,
-                        style: {
-                            fontSize: '10px'
-                        }
-                    }
+            xAxis: {
+                categories: [gettext('昆蟲'), gettext('蜘蛛'), gettext('魚類'), gettext('爬蟲類'), gettext('兩棲類'), gettext('鳥類'), gettext('哺乳類'), 
+                            gettext('維管束植物'), gettext('蕨類植物'), gettext('苔蘚植物'), gettext('藻類'), gettext('病毒'), gettext('細菌'), gettext('真菌'), gettext('其他')],
+                title: {
+                    text: null
                 },
+                crosshair: true,  // 啟用十字線
             },
-            series: [{
-                name: '',
-                colorByPoint: true,
-                colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
-                '#555','#3B86C0','#304237','#C65454','#ccc' ],
-                data: response.taxon_group_stat,
-                cursor: 'pointer',
-                point: {
-                    events: {
-                        click: function () {
-                            let now_name = this.name
-                            $.ajax({
-                                url:  `/get_taxon_group_list?name=${now_name}&group=total`,
-                                type: 'GET',
-                            })
-                            .done(function(resp){
-                                $('#taxon_group-stat-title').html('[ ' + gettext(now_name) + ' ]')
-                                $('#taxon_group-stat-list').html('')
-                                if (resp.length > 0){
-                                    for (i of resp){
-                                        if ($lang == 'en-us'){
-                                            percent_string = `${i.taiwan_percent}% of TaiCOL ${gettext(now_name)} Species in Taiwan`
-                                        } else {
-                                            percent_string = `佔TaiCOL臺灣${now_name}物種數 ${i.taiwan_percent}%`
-                                        }
-                                        $('#taxon_group-stat-list').append(`<li>${gettext('共')} ${i.count} ${gettext('筆')}<br><span class="small-gray-text"><a href="/media/taxon_stat/total_${now_name}.csv">${percent_string}</a></span></li>`)
-                                    }
-                                } else {
-                                    $('#taxon_group-stat-list').html(gettext('無資料'))
-                                }
-                            })
-                            .fail(function (xhr, status, errorThrown) {
-                                alert(gettext('發生未知錯誤！請聯絡管理員'))
-                                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                            })
-            
-                        }
-                    }
+            yAxis: {
+                breaks: [{
+                    from: 6000000,
+                    to: 18000000,
+                    breakSize: 1
+                }],
+                labels: {
+                    step: 2,              // 每隔一個刻度顯示
+                },
+                title: {
+                    text: gettext('資料筆數')
                 }
-                }]
-            }));
+            },
 
-        })
+            legend: {
+                align: 'center',
+                verticalAlign: 'bottom'
+            },
+            plotOptions: {
+                bar: {
+                    pointWidth: 8, // 固定寬度（像素）
+                    groupPadding: 0.1, // 組間距離（0-1）
+                    pointPadding: 0.05, // bar間距離（0-1）
+                    dataLabels: {
+                        enabled: false
+                    },
+                    
+                }
+            },
+            series: response.taxon_group_stat
+        }));
+    })
+    .fail(function (xhr, status, errorThrown) {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    })
+
+
+
+
+    // $.ajax({
+    //     url: "/get_taxon_stat",
+    //     type: 'GET',
+    // })
+    // .done(function (response) {
+    
+    //     $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
+    //         chart: {
+    //             type: 'pie'
+    //         }, 
+    //         tooltip: {
+    //             formatter:function(){
+    //                 return `<b>${gettext(this.point.name)}</b><br/>${this.point.y} ${gettext('筆')} (${this.point.percentage.toFixed(2)} %)`;
+    //                 }
+    //         },
+    //         accessibility: {
+    //             point: {
+    //                 valueSuffix: '%'
+    //             }
+    //         },
+    //         plotOptions: {
+    //             pie: {
+    //                 size: '90%',
+    //                 allowPointSelect: true,
+    //                 cursor: 'pointer',
+    //                 dataLabels: {
+    //                     formatter: function () {
+    //                         return gettext(this.point.name)
+    //                     },
+    //                     padding: 0,
+    //                     style: {
+    //                         fontSize: '10px'
+    //                     }
+    //                 }
+    //             },
+    //         },
+    //         series: [{
+    //             name: '',
+    //             colorByPoint: true,
+    //             colors: ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065',
+    //             '#555','#3B86C0','#304237','#C65454','#ccc' ],
+    //             data: response.taxon_group_stat,
+    //             cursor: 'pointer',
+    //             point: {
+    //                 events: {
+    //                     click: function () {
+    //                         let now_name = this.name
+    //                         $.ajax({
+    //                             url:  `/get_taxon_group_list?name=${now_name}&group=total`,
+    //                             type: 'GET',
+    //                         })
+    //                         .done(function(resp){
+    //                             $('#taxon_group-stat-title').html('[ ' + gettext(now_name) + ' ]')
+    //                             $('#taxon_group-stat-list').html('')
+    //                             if (resp.length > 0){
+    //                                 for (i of resp){
+    //                                     if ($lang == 'en-us'){
+    //                                         percent_string = `${i.taiwan_percent}% of TaiCOL ${gettext(now_name)} Species in Taiwan`
+    //                                     } else {
+    //                                         percent_string = `佔TaiCOL臺灣${now_name}物種數 ${i.taiwan_percent}%`
+    //                                     }
+    //                                     $('#taxon_group-stat-list').append(`<li>${gettext('共')} ${i.count} ${gettext('筆')}<br><span class="small-gray-text"><a href="/media/taxon_stat/total_${now_name}.csv">${percent_string}</a></span></li>`)
+    //                                 }
+    //                             } else {
+    //                                 $('#taxon_group-stat-list').html(gettext('無資料'))
+    //                             }
+    //                         })
+    //                         .fail(function (xhr, status, errorThrown) {
+    //                             alert(gettext('發生未知錯誤！請聯絡管理員'))
+    //                             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //                         })
+            
+    //                     }
+    //                 }
+    //             }
+    //             }]
+    //         }));
+
+    //     })
 
 
         // 資料時間空缺 - 年 - 所屬單位
@@ -372,3 +512,62 @@ function exportToKML(layer) {
     link.click();
 }
 
+
+
+
+
+function generateCategoryInfo(category, points, chart) {
+    var systemPoints = points.filter(p => p.series.name.includes('-系統') && p.y > 0);
+    var unitPoints = points.filter(p => p.series.name.includes('-單位') && p.y > 0);
+    
+    var html = `<p class="fs-18px">[ ${gettext(category)} ]</p>`;
+    
+    // 計算總數的邏輯...
+    var totalSystemCount = 0;
+    var totalUnitCount = 0;
+    
+    chart.series.forEach(function(series) {
+        if (series.name.includes('-系統')) {
+            totalSystemCount += series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+        }
+        if (series.name.includes('-單位')) {
+            totalUnitCount += series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+        }
+    });
+    
+    if (systemPoints.length > 0) {
+        var systemCount = systemPoints[0].y;
+        var systemPercentage = (systemCount / totalSystemCount * 100).toFixed(2);
+        html += `<p class="mt-5px"><b>系統整體：</b><br>${Highcharts.numberFormat(systemCount, 0)} 筆 (${systemPercentage}%)</p>`;
+    }
+    
+    if (unitPoints.length > 0) {
+        var unitCount = unitPoints[0].y;
+        var unitTotalPercentage = (unitCount / totalUnitCount * 100).toFixed(2);
+        var unitPercentage = unitPoints[0].series.options.unitPercentage || 0;
+        var taiwanPercentage = unitPoints[0].series.options.taiwanPercentage || 0;
+        // if ($('select[name=taxon-group-stat-rightsholder]').find(':selected').val() != 'total'){
+        //     html += `<p><b>來源資料庫：</b><br>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
+        // // }
+        // // if ($('select[name=taxon-group-stat-rightsholder]').find(':selected').val() != 'total'){
+        //     html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br>`;
+        // }
+
+        if ($lang == 'en-us'){
+            html += `<p>${Highcharts.numberFormat(unitCount, 0)} records (${unitTotalPercentage}%)<br>`;
+            html += `${taiwanPercentage}% of TaiCOL ${gettext(category)} Species in Taiwan</p>`
+            html += `<br><a href="/media/taxon_stat/total_${category}.csv">📥 Download comparison list</a>`;
+        } else {
+            html += `<p>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
+            html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
+            html += `<br><a href="/media/taxon_stat/total_${category}.csv">📥 下載比對結果清單</a>`;
+        }
+
+
+        // html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br><b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
+    }
+    
+    
+    return html;
+
+}

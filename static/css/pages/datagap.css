@@ -372,3 +372,18 @@ hr {
 .link {
     color: #76A578;
 }
+
+
+.w-66p {
+    width: 66%;
+}
+
+.w-33p {
+    width: 33%;
+}
+
+
+.highcharts-figure-large {
+    height: 450px;
+    margin-top: 20px;
+}

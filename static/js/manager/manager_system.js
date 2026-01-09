@@ -64,6 +64,159 @@ $(document).ready(function () {
     if ($('input[name=is_admin]').val() == 'True') {
 
 
+        // 物種類群
+
+        $('select[name=taxon-group-stat-rightsholder]').on('change', function(){
+
+            $('#taxon_group-stat-content').html(' 👈 點擊左側類群名稱取得更多資訊 '); // 先移除內容
+
+            $('#loader_taxon_group').removeClass('d-none');
+
+            $.ajax({
+                url: "/get_taxon_group_stat?rights_holder=" + $('select[name=taxon-group-stat-rightsholder]').find(':selected').val(),
+                type: 'GET',
+            })
+            .done(function(response){
+
+                $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
+                    chart: {
+                        type: 'bar',
+                        events: {
+                            load: function() {
+                                
+                                var chart = this;
+                                var categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
+                                                '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                                
+                                // 為 x 軸標籤添加點擊事件
+                                chart.xAxis[0].labelGroup.element.childNodes.forEach(function(label, index) {
+                                    $(label).css('cursor', 'pointer')
+                                        .on('click', function() {
+                                            var category = categories[index];
+                                            var allPoints = [];
+                                            
+                                            // 取得該類別的所有 series 資料
+                                            chart.series.forEach(function(series) {
+                                                if (series.data[index] && series.data[index].y > 0) {
+                                                    allPoints.push(series.data[index]);
+                                                }
+                                            });
+                                            
+                                            // 產生與原 tooltip 相同的內容
+                                            var html = generateCategoryInfo(category, allPoints, chart);
+                                            
+                                            // 顯示到指定的 container
+                                            $('#taxon_group-stat-content').html(html).show();
+                                        });
+                                });
+                            }
+                        },            
+                    },
+
+                    tooltip: {
+                        shared: true,
+                        formatter: function() {
+                            const categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
+                                            '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                            
+                            let category = categories[this.x];
+                            
+                            let systemPoints = this.points.filter(p => p.series.name.includes('-系統') && p.y > 0);
+                            let unitPoints = this.points.filter(p => p.series.name.includes('-單位') && p.y > 0);
+                            
+                            let html = `${category}<br/>`;
+                            
+                            // 計算所有系統總數
+                            let totalSystemCount = 0;
+                            this.points.forEach(p => {
+                                if (p.series.name.includes('-系統')) {
+                                    totalSystemCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+                                }
+                            });
+                            
+                            // 計算所有單位總數
+                            let totalUnitCount = 0;
+                            this.points.forEach(p => {
+                                if (p.series.name.includes('-單位')) {
+                                    totalUnitCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
+                                }
+                            });
+                            
+                            if (systemPoints.length > 0) {
+                                let systemCount = systemPoints[0].y;
+                                let systemPercentage = (systemCount / totalSystemCount * 100).toFixed(2);
+                                html += `<br><b>系統整體：</b><br>${Highcharts.numberFormat(systemCount, 0)} 筆 (${systemPercentage}%)<br>`;
+                            }
+                            
+                            if (unitPoints.length > 0) {
+                                let unitCount = unitPoints[0].y;
+                                let unitTotalPercentage = (unitCount / totalUnitCount * 100).toFixed(2);
+                                html += `<br>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
+                            }
+
+                            return html;
+                        }
+                    },
+                    accessibility: {
+                        point: {
+                            valueSuffix: '%'
+                        }
+                    },
+                    xAxis: {
+                        categories: ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
+                                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'],
+                        title: {
+                            text: null
+                        },
+                        crosshair: true,  // 啟用十字線
+                    },
+                    yAxis: {
+                        breaks: [{
+                            from: 6000000,
+                            to: 18000000,
+                            breakSize: 1
+                        }],
+                        labels: {
+                            step: 2,              // 每隔一個刻度顯示
+                        },
+                        title: {
+                            text: '資料筆數'
+                        }
+                    },
+
+                    legend: {
+                        align: 'center',
+                        verticalAlign: 'bottom'
+                    },
+                    plotOptions: {
+                        bar: {
+                            pointWidth: 8, // 固定寬度（像素）
+                            groupPadding: 0.1, // 組間距離（0-1）
+                            pointPadding: 0.05, // bar間距離（0-1）
+                            dataLabels: {
+                                enabled: false
+                            },
+                            
+                        }
+                    },
+                    series: response.taxon_group_stat
+                }));
+
+                $('#loader_taxon_group').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+
+                $('#loader_taxon_group').addClass('d-none');
+
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+
+        })
+
+        $('select[name=taxon-group-stat-rightsholder]').trigger('change')
+
+
 
         // 使用者下載統計
         $('#container-user-download-stat').highcharts(Highcharts.merge(commonOptions, {
@@ -100,6 +253,9 @@ $(document).ready(function () {
         }));
 
         $('select[name=user-download-stat-year],select[name=user-download-stat-type],select[name=user-download-stat-rightsholder]').on('change', function(){
+            
+            $('#loader_user_download').removeClass('d-none');
+
             $.ajax({
                 // url:  `/get_data_stat?type=search_times&year=${$('select[name=search-times-stat-year]').find(':selected').val()}&group=${$('input[name=current_group]').val()}`,
                 url:  `/get_user_download_stat?type=${$('select[name=user-download-stat-type]').find(':selected').val()}&year=${$('select[name=user-download-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=user-download-stat-rightsholder]').find(':selected').val()}`,
@@ -118,9 +274,11 @@ $(document).ready(function () {
                     user_download_stat_chart.addSeries(i)
                 }
 
+                $('#loader_user_download').addClass('d-none');
 
             })
             .fail(function (xhr, status, errorThrown) {
+                $('#loader_user_download').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
@@ -131,7 +289,7 @@ $(document).ready(function () {
         $('select[name=user-download-stat-year]').trigger('change')
 
 
-
+        $('.loader_system_stat').removeClass('d-none');
 
 
         $.ajax({
@@ -260,6 +418,7 @@ $(document).ready(function () {
                     }
                     
                     $('#rightsholder_family_top5_table').append(row);
+                    
                 });
 
 
@@ -386,6 +545,8 @@ $(document).ready(function () {
 
                 $('select[name=search-times-stat-year], select[name=search-times-stat-rightsholder]').on('change', function(){
 
+                    $('#loader_search_times').removeClass('d-none');
+
                     if ($('select[name=search-times-stat-rightsholder]').find(':selected').val() == 'total'){
                         partner_str = '&group=total'
                     } else {
@@ -408,10 +569,11 @@ $(document).ready(function () {
                         for (i of response.data ) {
                             search_times_chart.addSeries(i)
                         }
-
+                        $('#loader_search_times').addClass('d-none');
 
                     })
                     .fail(function (xhr, status, errorThrown) {
+                        $('#loader_search_times').addClass('d-none');
                         alert(gettext('發生未知錯誤！請聯絡管理員'))
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                     })
@@ -460,7 +622,7 @@ $(document).ready(function () {
                         partner_str = '&rights_holder=' + $('select[name=download-times-stat-rightsholder]').find(':selected').val() 
                     }
 
-
+                    $('#loader_download_times').removeClass('d-none');
                     $.ajax({
                         url:  `/get_data_stat?type=download_times&year=${$('select[name=download-times-stat-year]').find(':selected').val()}${partner_str}`,
                         type: 'GET',
@@ -477,8 +639,10 @@ $(document).ready(function () {
                         for (i of response.data ) {
                             download_times_chart.addSeries(i)
                         }
+                        $('#loader_download_times').addClass('d-none');
                     })
                     .fail(function (xhr, status, errorThrown) {
+                        $('#loader_download_times').addClass('d-none');
                         alert(gettext('發生未知錯誤！請聯絡管理員'))
                         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                     })
@@ -487,151 +651,6 @@ $(document).ready(function () {
 
                 // 起始狀態
                 $('select[name=download-times-stat-year]').trigger('change')
-
-
-                // 物種類群
-
-
-                $('select[name=taxon-group-stat-rightsholder]').on('change', function(){
-
-                    $.ajax({
-                        url: "/get_taxon_group_stat?rights_holder=" + $('select[name=taxon-group-stat-rightsholder]').find(':selected').val(),
-                        type: 'GET',
-                    })
-                    .done(function(response){
-
-                        $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
-                            chart: {
-                                type: 'bar',
-                                events: {
-                                    load: function() {
-                                        
-                                        var chart = this;
-                                        var categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                                                        '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
-                                        
-                                        // 為 x 軸標籤添加點擊事件
-                                        chart.xAxis[0].labelGroup.element.childNodes.forEach(function(label, index) {
-                                            $(label).css('cursor', 'pointer')
-                                                .on('click', function() {
-                                                    var category = categories[index];
-                                                    var allPoints = [];
-                                                    
-                                                    // 取得該類別的所有 series 資料
-                                                    chart.series.forEach(function(series) {
-                                                        if (series.data[index] && series.data[index].y > 0) {
-                                                            allPoints.push(series.data[index]);
-                                                        }
-                                                    });
-                                                    
-                                                    // 產生與原 tooltip 相同的內容
-                                                    var html = generateCategoryInfo(category, allPoints, chart);
-                                                    
-                                                    // 顯示到指定的 container
-                                                    $('#taxon_group-stat-content').html(html).show();
-                                                });
-                                        });
-                                    }
-                                },            
-                            },
-
-                            tooltip: {
-                                shared: true,
-                                formatter: function() {
-                                    const categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                                                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
-                                    
-                                    let category = categories[this.x];
-                                    
-                                    let systemPoints = this.points.filter(p => p.series.name.includes('-系統') && p.y > 0);
-                                    let unitPoints = this.points.filter(p => p.series.name.includes('-單位') && p.y > 0);
-                                    
-                                    let html = `${category}<br/>`;
-                                    
-                                    // 計算所有系統總數
-                                    let totalSystemCount = 0;
-                                    this.points.forEach(p => {
-                                        if (p.series.name.includes('-系統')) {
-                                            totalSystemCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
-                                        }
-                                    });
-                                    
-                                    // 計算所有單位總數
-                                    let totalUnitCount = 0;
-                                    this.points.forEach(p => {
-                                        if (p.series.name.includes('-單位')) {
-                                            totalUnitCount += p.series.data.reduce((sum, point) => sum + (point.y || 0), 0);
-                                        }
-                                    });
-                                    
-                                    if (systemPoints.length > 0) {
-                                        let systemCount = systemPoints[0].y;
-                                        let systemPercentage = (systemCount / totalSystemCount * 100).toFixed(2);
-                                        html += `<br><b>系統整體：</b><br>${Highcharts.numberFormat(systemCount, 0)} 筆 (${systemPercentage}%)<br>`;
-                                    }
-                                    
-                                    if (unitPoints.length > 0) {
-                                        let unitCount = unitPoints[0].y;
-                                        let unitTotalPercentage = (unitCount / totalUnitCount * 100).toFixed(2);
-                                        html += `<br>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
-                                    }
-
-                                    return html;
-                                }
-                            },
-                            accessibility: {
-                                point: {
-                                    valueSuffix: '%'
-                                }
-                            },
-                            xAxis: {
-                                categories: ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                                            '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'],
-                                title: {
-                                    text: null
-                                },
-                                crosshair: true,  // 啟用十字線
-                            },
-                            yAxis: {
-                                breaks: [{
-                                    from: 6000000,
-                                    to: 18000000,
-                                    breakSize: 1
-                                }],
-                                labels: {
-                                    step: 2,              // 每隔一個刻度顯示
-                                },
-                                title: {
-                                    text: '資料筆數'
-                                }
-                            },
-
-                            legend: {
-                                align: 'center',
-                                verticalAlign: 'bottom'
-                            },
-                            plotOptions: {
-                                bar: {
-                                    pointWidth: 8, // 固定寬度（像素）
-                                    groupPadding: 0.1, // 組間距離（0-1）
-                                    pointPadding: 0.05, // bar間距離（0-1）
-                                    dataLabels: {
-                                        enabled: false
-                                    },
-                                    
-                                }
-                            },
-                            series: response.taxon_group_stat
-                        }));
-                    })
-                    .fail(function (xhr, status, errorThrown) {
-                        alert(gettext('發生未知錯誤！請聯絡管理員'))
-                        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                    })
-
-                })
-
-                $('select[name=taxon-group-stat-rightsholder]').trigger('change')
 
 
                 // $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
@@ -802,61 +821,71 @@ $(document).ready(function () {
                             valueSuffix: '%'
                         }
                     },
-                    // plotOptions: {
-                    //     pie: {
-                    //         size: '100%',
-                    //         colors: ['#C65454','#ddd'],
-                    //         allowPointSelect: true,
-                    //         cursor: 'pointer',
-                    //         dataLabels: {
-                    //             enabled: true,
-                    //             format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                    //         }
-                    //     }
-
-
-
-                    // },
-                    plotOptions: {
-                        pie: {
-                            size: '100%',
-                            innerSize: '50%', // 甜甜圈內圈大小
-                            colors: ['#E6B8C4','#ddd'],
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: true,
-                                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                            },
-                            center: ['50%', '50%'],
-                            slicedOffset: 0, // 片段不會移動
+                plotOptions: {
+                    pie: {
+                        size: '100%',
+                        innerSize: '50%', // 甜甜圈內圈大小
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: false,
+                        },
+                        center: ['50%', '50%'],
+                        slicedOffset: 0, // 片段不會移動
+                        point: {
+                            events: {
+                                click: function () {
+                                    // 移除之前的中間文字
+                                    if (this.series.chart.centerText) {
+                                        this.series.chart.centerText.destroy();
+                                    }
+                                    // 在中間顯示點擊的片段資訊
+                                    this.series.chart.centerText = this.series.chart.renderer.text(
+                                        this.name + '<br/>' + this.y + '筆<br/>(' + this.percentage.toFixed(1) + '%)',
+                                        this.series.chart.plotLeft + this.series.chart.plotWidth / 2,
+                                        this.series.chart.plotTop + this.series.chart.plotHeight / 2 - 10,
+                                        true
+                                    ).attr({
+                                        align: 'center'
+                                    }).css({
+                                        fontSize: '14px',
+                                        fontWeight: 'bold',
+                                        color: '#333',
+                                        textAlign: 'center'
+                                    }).add();
+                                }
+                            }
                         }
-
-                    },
-                    
-                    series: [{
-                        name: 'Brands',
-                        colorByPoint: true,
-                        data: [{
-                            name: '有對應',
-                            y: response.has_taxon,
-                            sliced: true,
-                            selected: true
-                        }, {
-                            name: '無對應',
-                            y: response.no_taxon
-                        }]
+                    }
+                },
+                series: [{
+                    colorByPoint: true,
+                    data: [{
+                        name: '有對應',
+                        y: response.has_taxon,
+                        sliced: true,
+                        selected: true,
+                        color: '#E6B8C4',
+                    }, {
+                        name: '無對應',
+                        y: response.no_taxon,
+                        color: '#ddd'
                     }]
+                }]
                 }));
 
-
+                $('.loader_system_stat').addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
+                $('.loader_system_stat').addClass('d-none');
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             })
 
             // 關鍵字
+
+            $('#loader_keyword').removeClass('d-none');
+
             $('select[name=keyword-stat-year], select[name=keyword-stat-month]').on('change', function(){
                 $.ajax({
                     url:  `/get_keyword_stat?year=${$('select[name=keyword-stat-year]').find(':selected').val()}&month=${$('select[name=keyword-stat-month]').find(':selected').val()}`,
@@ -871,8 +900,11 @@ $(document).ready(function () {
                     } else {
                         $('#keyword-stat-list').html('無資料')
                     }
+
+                    $('#loader_keyword').addClass('d-none');
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_keyword').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -911,6 +943,7 @@ $(document).ready(function () {
             }));
 
             $('select[name=checklist-stat-year]').on('change', function(){
+                $('#loader_checklist').removeClass('d-none');
                 $.ajax({
                     url:  `/get_checklist_stat?year=${$('select[name=checklist-stat-year]').find(':selected').val()}`,
                     type: 'GET',
@@ -919,8 +952,10 @@ $(document).ready(function () {
                     checklist_chart = $('#container-checklist-stat').highcharts()
                     checklist_chart.update({series: [{ data: response.data }]});
                     checklist_chart.xAxis[0].update({categories: response.categories});
+                    $('#loader_checklist').addClass('d-none');
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_checklist').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -962,6 +997,9 @@ $(document).ready(function () {
             }));
 
             $('select[name=data-stat-year], select[name=data-stat-rightsholder]').on('change', function(){
+                
+                $('#loader_data_stat').removeClass('d-none');
+
                 $.ajax({
                     url:  `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=data-stat-rightsholder]').find(':selected').val()}`,
                     type: 'GET',
@@ -970,8 +1008,10 @@ $(document).ready(function () {
                     let data_chart = $('#container-data-stat').highcharts()
                     data_chart.update({series: [{ data: response.data }]});
                     data_chart.xAxis[0].update({categories: response.categories});
+                    $('#loader_data_stat').addClass('d-none');
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_data_stat').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -1011,6 +1051,7 @@ $(document).ready(function () {
             }));
 
             $('select[name=search-stat-year], select[name=search-stat-rightsholder]').on('change', function(){
+                $('#loader_search_stat').removeClass('d-none');
                 $.ajax({
                     url:  `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=search-stat-rightsholder]').find(':selected').val()}`,
                     type: 'GET',
@@ -1019,8 +1060,10 @@ $(document).ready(function () {
                     let search_chart = $('#container-search-stat').highcharts()
                     search_chart.update({series: [{ data: response.data }]});
                     search_chart.xAxis[0].update({categories: response.categories});
+                    $('#loader_search_stat').addClass('d-none');
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_search_stat').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -1059,6 +1102,7 @@ $(document).ready(function () {
             }));
 
             $('select[name=download-stat-year], select[name=download-stat-rightsholder]').on('change', function(){
+                $('#loader_download_stat').removeClass('d-none');
                 $.ajax({
                     url:  `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=download-stat-rightsholder]').find(':selected').val()}`,
                     type: 'GET',
@@ -1067,8 +1111,10 @@ $(document).ready(function () {
                     let download_chart = $('#container-download-stat').highcharts()
                     download_chart.update({series: [{ data: response.data }]});
                     download_chart.xAxis[0].update({categories: response.categories});
+                    $('#loader_download_stat').addClass('d-none');
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_download_stat').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -1117,6 +1163,8 @@ $(document).ready(function () {
                     partner_str = '&rights_holder=' + $('select[name=sensitive-stat-rightsholder]').find(':selected').val() 
                 }
 
+                $('#loader_sensitive').removeClass('d-none');
+
                 $.ajax({
                     url:  `/get_data_stat?type=sensitive&year=${$('select[name=sensitive-stat-year]').find(':selected').val()}${partner_str}`,
                     type: 'GET',
@@ -1134,8 +1182,12 @@ $(document).ready(function () {
                     for (i of response.data ) {
                         sensitive_chart.addSeries(i)
                     }
+
+                    $('#loader_sensitive').addClass('d-none');
+
                 })
                 .fail(function (xhr, status, errorThrown) {
+                    $('#loader_sensitive').addClass('d-none');
                     alert(gettext('發生未知錯誤！請聯絡管理員'))
                     console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
                 })
@@ -1252,6 +1304,8 @@ function updatePartnerTemporal(PartnerTemporalYearSlider){
         partner_str = 'rights_holder=' + $('select[name=temporal-stat-rightsholder]').find(':selected').val() 
     }
 
+     $('#loader_temporal_year').removeClass('d-none');
+     $('#loader_temporal_month').removeClass('d-none');
 
     $.ajax({
         url:  `/get_temporal_stat?where=system&rights_holder=${$('select[name=temporal-stat-rightsholder]').find(':selected').val() }&taxon_group=${$('select[name=partner-temporal-taxonGroup]').find(':selected').val()}&start_year=${PartnerTemporalYearSlider.noUiSlider.get()[0]}&end_year=${PartnerTemporalYearSlider.noUiSlider.get()[1]}`,
@@ -1287,8 +1341,14 @@ function updatePartnerTemporal(PartnerTemporalYearSlider){
             partner_temporal_month_chart.addSeries(i)
         }
 
+         $('#loader_temporal_year').addClass('d-none');
+         $('#loader_temporal_month').addClass('d-none');
+
     })
     .fail(function (xhr, status, errorThrown) {
+
+         $('#loader_temporal_year').addClass('d-none');
+         $('#loader_temporal_month').addClass('d-none');
         alert(gettext('發生未知錯誤！請聯絡管理員'))
         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
@@ -1420,7 +1480,7 @@ function drawMapGrid(current_map, group){
     
     // $('.loading_area').removeClass('d-none')
 
-    $('.loading_area_partial').removeClass('d-none')
+    $('.loader_spatial_stat').removeClass('d-none')
     $('.spatial-area-div').addClass('d-none')
 
     $(`.resultG_5_${group}`).remove()
@@ -1434,7 +1494,7 @@ function drawMapGrid(current_map, group){
     })
     .done(function (response) {
         window.partner_layer = L.geoJSON(response, {className: `resultG_5_${group}`, style: style }).addTo(current_map);
-        $('.loading_area_partial').addClass('d-none')
+        $('.loader_spatial_stat').addClass('d-none')
         $('.spatial-area-div').removeClass('d-none')
     })
     .fail(function (xhr, status, errorThrown) {
@@ -1499,7 +1559,14 @@ function generateCategoryInfo(category, points, chart) {
         var unitPercentage = unitPoints[0].series.options.unitPercentage || 0;
         var taiwanPercentage = unitPoints[0].series.options.taiwanPercentage || 0;
         html += `<p>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
-        html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br><b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
+        if ($('select[name=taxon-group-stat-rightsholder]').find(':selected').val() != 'total'){
+            html += `<p><b>來源資料庫：</b><br>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
+        // }
+        // if ($('select[name=taxon-group-stat-rightsholder]').find(':selected').val() != 'total'){
+            html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br>`;
+        }
+        html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
+        // html += `<b>佔入口網臺灣${category}資料筆數：</b><br>${unitPercentage}%<br><b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
     }
     
     html += `<br><a href="/media/taxon_stat/${$('select[name=taxon-group-stat-rightsholder]').find(':selected').val()}_${category}.csv">📥 下載比對結果清單</a>`;

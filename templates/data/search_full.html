@@ -43,7 +43,7 @@
                 <form id="user_stat_form">
                     {% csrf_token %}
                     <div class="select_onebox">
-                        <p><span class="color_red">*</span> <b>所屬單位</b></p>
+                        <p><span class="color_red">*</span> <b>{%  trans '所屬單位' %}</b></p>
                         <div class="radio-grid">
                             {% for option in affiliation_options %}
                                 <div class="radio-item">
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div class="select_onebox mt-10px">
-                        <p><span class="color_red">*</span> <b>身份</b></p>
+                        <p><span class="color_red">*</span> <b>{%  trans '身份' %}</b></p>
                         <div class="radio-grid">
                             {% for option in role_options %}
                                 <div class="radio-item">
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <div class="select_onebox mt-10px">
-                        <p><span class="color_red">*</span> <b>使用用途</b></p>
+                        <p><span class="color_red">*</span> <b>{%  trans '使用用途' %}</b></p>
                         <div class="radio-grid">
                             {% for option in purpose_options %}
                                 <div class="radio-item">
