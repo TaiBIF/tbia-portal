@@ -300,7 +300,7 @@ def change_manager_page(request):
             result = get_sensitive_status(s.query_id)
 
             link = ''
-            if result in ['通過','部分通過','不通過'] and s.status != 'expired':
+            if result in ['通過','部分通過','不通過'] and s.status != 'expired' and os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ s.query_id }.zip'):
                 link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
             elif result != '等待審核':
                 link = gettext(s.get_status_display())
@@ -531,7 +531,7 @@ def change_manager_page(request):
             result = get_sensitive_status(sq.query_id)
 
             link = ''
-            if result in ['通過','部分通過','不通過'] and sq.status != 'expired':
+            if result in ['通過','部分通過','不通過'] and sq.status != 'expired' and os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ sq.query_id }.zip'):
                 link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
             elif result != '等待審核':
                 link = gettext(sq.get_status_display())
