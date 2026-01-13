@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
-from manager.models import Workday #Partner, 
+from manager.models import Workday, SensitiveDataResponse #Partner, 
 from django.db.models import Max
 from bs4 import BeautifulSoup
 from datetime import timedelta #, datetime, tzinfo,
@@ -37,3 +37,29 @@ def clean_quill_html(html: str) -> str:
         for tag in soup.find_all(f'h{i}'):
             tag.name = 'p' 
     return str(soup)
+
+
+def get_sensitive_status(query_id):
+    # 通過、不通過、部分通過
+    SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+
+    qs = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+
+    # 2. 取出所有 status 並轉為不重複的集合 (Set)
+    # flat=True 會讓結果變成 ['pass', 'fail', 'pass'...] 而不是 tuple 列表
+    status_set = set(qs.values_list('status', flat=True))
+
+    # 3. 邏輯判斷
+    if not status_set:
+        result = '' # 處理沒有 query_id 的情況
+    elif status_set == {'pass'}:
+        result = "通過"
+    elif status_set == {'fail'}:
+        result = "不通過"
+    elif 'pass' in status_set and 'fail' in status_set:
+        result = "部分通過"
+    else:
+        # 這裡處理防呆，例如如果有 'pending' 或其他狀態混在裡面
+        result = "等待審核"
+
+    return result

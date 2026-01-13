@@ -177,7 +177,7 @@
             <div class="item">
                 <div class="box-title "><div class="dottt"></div>單次使用去模糊化敏感資料申請</div>
                 <div class="d-flex-jc-sb">
-                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
+                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}<br>*{% trans '針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本' %}</p>
                     <a class="dow_btn downloadReport">
                         <form action="{% url 'download_sensitive_report' %}" method="POST">
                         {% csrf_token %}
@@ -228,7 +228,7 @@
                             <td>申請人姓名</td>
                             <td>檔案編號</td>
                             <td>申請時間</td>
-                            <td>狀態</td>
+                            <td>審核結果</td>
                             <td>申請資訊</td>
                             <td>檔案連結</td>
                             {% comment %} <td>搜尋條件</td>

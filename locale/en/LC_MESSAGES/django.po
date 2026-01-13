@@ -823,6 +823,10 @@ msgid "通過"
 msgstr "Succeeded"
 
 #: manager
+msgid "部分通過"
+msgstr "Partially approved"
+
+#: manager
 msgid "不通過"
 msgstr "Failed"
 
@@ -2580,6 +2584,10 @@ msgstr "GBIF"
 msgid "臺灣物種名錄"
 msgstr "Catalogue of Life in Taiwan"
 
+#:
+msgid "綠島長期社會生態核心觀測站"
+msgstr "LTSER LYUDAO"
+
 
 # 來源資料庫
 
@@ -2718,6 +2726,11 @@ msgstr "Exceeding the system's accessible page limit, please try using the resul
 #:
 msgid "下載檔案連結將保留三個月"
 msgstr "The download link will be valid for three months."
+
+
+#:
+msgid "針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本"
+msgstr "For applications with a review result of 'Not Approved' or 'Partially Approved', the system will still provide a fuzzed version of the data."
 
 
 #:

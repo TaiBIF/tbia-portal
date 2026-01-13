@@ -8,7 +8,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str 
-from manager.utils import generate_token, check_due, clean_quill_html
+from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status
 import threading
 from django.http import (
     JsonResponse,
@@ -297,44 +297,13 @@ def change_manager_page(request):
             else:
                 date = ''
 
-            # 進階搜尋
-            # search_dict = dict(parse.parse_qsl(s.query))
-            # query = create_query_display(search_dict, lang)
-
-            # if search_dict.get("record_type") == 'col':
-            #     search_prefix = 'collection'
-            # else:
-            #     search_prefix = 'occurrence'
-
-            # tmp_a = create_query_a(search_dict)
-            # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-            #     if i in search_dict.keys():
-            #         search_dict.pop(i)
-
-            # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-            # query = query_a_href(query,query_a)
-
-            # # 審核意見
-            # comment = []
-
-            # # 要 is_transferred + is_partial_transferred 都為 True 才排除掉
-            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True, partner_id__isnull=True):
-            #     if sdr.partner:
-            #         if lang == 'en-us':
-            #             partner_name = sdr.partner.select_title_en
-            #         else:
-            #             partner_name = sdr.partner.select_title 
-            #     else:
-            #         if lang == 'en-us':
-            #             partner_name = 'Taiwan Biodiversity Information Alliance'
-            #         else:
-            #             partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-            #     comment.append(f"""<b>{gettext("審核單位")}{gettext("：")}</b>{partner_name}<br><b>{gettext("審核者姓名")}{gettext("：")}</b>{sdr.reviewer_name}<br><b>{gettext("審核意見")}{gettext("：")}</b>{sdr.comment if sdr.comment else "" }<br><b>{gettext("審核結果")}{gettext("：")}</b>{gettext(sdr.get_status_display())}""")
+            result = get_sensitive_status(s.query_id)
 
             link = ''
-            if s.status == 'pass' and s.status != 'expired':
+            if result in ['通過','部分通過','不通過'] and s.status != 'expired':
                 link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ s.query_id }.zip">{gettext("下載")}</a>'
+            elif result != '等待審核':
+                link = gettext(s.get_status_display())
 
             if Ark.objects.filter(model_id=s.id, type='data').exists():
                 now_ark_id = Ark.objects.get(model_id=s.id, type='data').ark
@@ -346,7 +315,10 @@ def change_manager_page(request):
             
             # 回報按鈕
             report = ''
-            if s.status in ['pass','expired']:
+            # 全部都不通過的話 就不要顯示回報按鈕
+
+
+            if s.status in ['pass','expired'] and result != '不通過':
                 report_file, report_content = '', ''
                 if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
                     report_file = SensitiveDataReport.objects.get(query_id=s.query_id).file
@@ -356,16 +328,18 @@ def change_manager_page(request):
                 report_date = s.modified + relativedelta(years=2)
                 report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
                 # 就算已回報過也可以顯示 可重複回報
+            
 
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
-                'date':  date,
                 # 'query':   query,
                 # 'comment': '<hr>'.join(comment) if comment else '',
-                'status': gettext(s.get_status_display()),
+                # 'status': gettext(s.get_status_display()),
                 'info': f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ s.query_id }">{gettext("查看")}</a></td>',
+                'result': result,
                 'report': report,
+                'date':  date,
                 'link': link,
                 'ark': ark
             })
@@ -545,9 +519,23 @@ def change_manager_page(request):
                     
             #     comment.append(f"<b>審核單位：</b>{partner_name}<br><b>審核者姓名：</b>{sdr.reviewer_name}<br><b>審核意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審核結果：</b>{sdr.get_status_display()}")
            
+            # link = ''
+            # # if sq.status == 'pass':
+            # #     link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
+
+            # if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ sq.query_id }.zip') and sq.status != 'expired':
+            #     link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
+
+
+
+            result = get_sensitive_status(sq.query_id)
+
             link = ''
-            if sq.status == 'pass':
+            if result in ['通過','部分通過','不通過'] and sq.status != 'expired':
                 link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
+            elif result != '等待審核':
+                link = gettext(sq.get_status_display())
+
 
             data.append({
                 'id': f"#{s.id}",
@@ -556,7 +544,7 @@ def change_manager_page(request):
                 'date':  date + '<br>審核期限：<br>' + due,
                 # 'query':   query,
                 # 'comment': '<hr>'.join(comment) if comment else '',
-                'status': sq.get_status_display(),
+                'status': result,
                 'a': a,
                 'link': link
             })
@@ -588,9 +576,12 @@ def change_manager_page(request):
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
-                    # TODO 這邊是不是有問題
-                    if sdr.status == 'pass' and sdr.status != 'expired':
-                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
+                    # # TODO 這邊是不是有問題
+                    # if sdr.status == 'pass' and sdr.status != 'expired':
+                    if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ r.query_id }.zip') and r.status != 'expired':
+                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
+                    elif r.status == 'expired':
+                        link = gettext(r.get_status_display())
 
                     # data_count = ''
 
@@ -674,9 +665,11 @@ def change_manager_page(request):
 
                     link = ''
                     # TODO 這邊是不是有問題
-                    if sdr.status == 'pass' and sdr.status != 'expired':
-                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sdr.query_id }.zip">{gettext("下載")}</a>'
-
+                    # if sdr.status == 'pass' and sdr.status != 'expired':
+                    if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ r.query_id }.zip') and r.status != 'expired':
+                        link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
+                    elif r.status == 'expired':
+                        link = gettext(r.get_status_display())
 
                     # data_count = ''
 
@@ -3326,7 +3319,7 @@ def download_applicant_sensitive_report(request):
 
             report_date = ''
             
-            if s.status in ['pass', 'expired']: # 通過才會有建議回報的時間ㄊ
+            if s.status in ['pass', 'expired']: # 通過才會有建議回報的時間
                 report_date = s.modified + relativedelta(years=2)
                 report_date = report_date.strftime("%Y-%m-%d")
 
