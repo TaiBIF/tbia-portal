@@ -9865,19 +9865,19 @@ select[name=shownumber] {
     padding: 10px 10px
 }
 
-.accouunt_table td:nth-child(1) {
+.account_table td:nth-child(1) {
     white-space: nowrap
 }
 
 @media only screen and (max-width: 1279px) {
-    .accouunt_table td:nth-child(2) {
+    .account_table td:nth-child(2) {
         width: 20%;
         word-break: break-all
     }
 }
 
 @media only screen and (max-width: 1279px) {
-    .accouunt_table td:nth-child(3) {
+    .account_table td:nth-child(3) {
         width: 20%
     }
 }

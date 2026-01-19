@@ -5,6 +5,7 @@ from pages.models import Resource, News
 from django.db.models import Q, Max
 from django.db import connection
 from data.utils import *
+from manager.utils import check_due
 import pandas as pd
 import numpy as np
 from django.http import (
@@ -28,7 +29,7 @@ from bson.objectid import ObjectId
 import subprocess
 import os
 import threading
-from manager.models import SearchQuery, User, SensitiveDataRequest, SensitiveDataResponse, Partner
+from manager.models import SearchQuery, User, SensitiveDataRequest, SensitiveDataResponse, Partner, UserDownloadStat
 from pages.models import Notification, Qa
 from urllib import parse
 from manager.views import send_notification
@@ -41,27 +42,6 @@ import shapely
 from csp.decorators import csp_update
 from django.core.files.storage import FileSystemStorage
 
-
-rights_holder_map = {
-    'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
-    '中央研究院生物多樣性中心動物標本館': 'asiz',
-    '台灣生物多樣性網絡 TBN': 'tbri',
-    '國立臺灣博物館典藏': 'ntm',
-    '林業試驗所昆蟲標本館': 'fact',
-    '林業試驗所植物標本資料庫': 'taif',
-    '河川環境資料庫': 'wra',
-    '濕地環境資料庫': 'nps',
-    '生態調查資料庫系統': 'forest',
-    '臺灣國家公園生物多樣性資料庫': 'nps',
-    '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
-    '海洋保育資料倉儲系統': 'oca',
-    '科博典藏 (NMNS Collection)': 'nmns',
-    '臺灣魚類資料庫': 'ascdc',
-    '國家海洋資料庫及共享平台': 'namr',
-    '集水區友善環境生態資料庫': 'ardswc',
-    '中油生態地圖': 'cpc',
-}
 
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
@@ -256,12 +236,15 @@ def transfer_sensitive_response(request):
             groups = []
             for g in group:
                 groups.append(g['val'])
+
+            now = datetime.now() + timedelta(hours=8)
         
             for p in Partner.objects.filter(group__in=groups):
                 new_sdr = SensitiveDataResponse.objects.create(
                     partner_id = p.id,
                     status = 'pending',
-                    query_id = query_id
+                    query_id = query_id,
+                    due = check_due(now.date(),14) 
                 )       
                 # 寄送通知給系統管理員 & 單位管理員
                 usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
@@ -284,11 +267,15 @@ def partial_transfer_sensitive_response(request):
         partner_id = request.POST.get('partner_id')
 
         # for p in Partner.objects.filter(group__in=groups):
+
+        now = datetime.now() + timedelta(hours=8)
+        
         new_sdr = SensitiveDataResponse.objects.create(
             partner_id = partner_id,
             status = 'pending',
             query_id = query_id,
             is_partial_transferred = True,
+            due = check_due(now.date(),14) 
         )
 
 
@@ -336,41 +323,100 @@ def generate_sensitive_csv(query_id, scheme, host):
         process = None
         file_done = False
 
+
+
         # 這邊就會包含partial_transferred的資料
         if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
-        #     group = ['*']
-        # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
-        #     group = []
-        # else:
-            # 不給沒通過的
-            ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
-            if ps:
-                ps = [p for p in ps[0]]
-                group = list(Partner.objects.filter(id__in=ps).values_list('group'))
-                group = [g for g in group[0]]
-
-            fl_cols = download_cols_with_sensitive
-            # fl_cols = download_cols + sensitive_cols
-            # 先取得筆數，export to csv
+            # 篩選出沒有通過的單位
+            fs = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
+            if fs:
+                fs = [p for p in fs[0]]
+                fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
+                fail_groups = [g for g in fail_groups[0]]
 
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+            query_list_b = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
 
             # 排除掉不同意的單位
-            if group:
-                group = [ f'group:{g}' for g in group ]
-                group_str = ' OR '.join( group )
-                query_list += [ '-(' + group_str + ')' ]
-            # 
-
-            query = { "query": "*:*",
+            if fail_groups:
+                fail_groups = [ f'group:{g}' for g in fail_groups ]
+                fail_groups_str = ' OR '.join( fail_groups )
+                
+                query_list1 = query_list + [ '-(' + fail_groups_str + ')' ]
+                query_list2 = query_list_b + [ '(' + fail_groups_str + ')' ]
+                
+                # 準備兩組查詢參數
+                query1 = {
+                    "query": "*:*",
                     "offset": 0,
-                    # "limit": req_dict.get('total_count'),
+                    "limit": 2140000000,
+                    "filter": query_list1,
+                    "fields": download_cols_with_sensitive   
+                }
+
+                query2 = {
+                    "query": "*:*",
+                    "offset": 0,
+                    "limit": 2140000000,
+                    "filter": query_list2,  
+                    "fields": download_cols  
+                }
+
+                csv_folder = os.path.join(MEDIA_ROOT, 'download')
+                csv_folder = os.path.join(csv_folder, 'sensitive')
+                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+                temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
+                temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
+                zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+                # 執行兩個查詢並合併結果
+                commands = f"""
+                curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
+                curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
+                cat {temp_file1} > {csv_file_path}
+                tail -n +2 {temp_file2} >> {csv_file_path}
+                zip -j {zip_file_path} {csv_file_path}
+                rm {csv_file_path} {temp_file1} {temp_file2}
+                """
+            else:
+                # 沒有不同意的單位，直接用原本的單一查詢
+                query = {
+                    "query": "*:*",
+                    "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list,
-                    # "sort":  "scientificName asc",
-                    "fields": fl_cols
-                    }
+                    "fields": download_cols_with_sensitive
+                }
+                
+                if not query_list:
+                    query.pop('filter')
 
+                csv_folder = os.path.join(MEDIA_ROOT, 'download')
+                csv_folder = os.path.join(csv_folder, 'sensitive')
+                csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+                zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+                commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+
+            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
+
+            sq.status = 'pass'
+            
+        else:
+            # 沒有帳號通過 - 全部給模糊化後的資料
+            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            
+            query = {
+                "query": "*:*",
+                "offset": 0,
+                "limit": 2140000000,
+                "filter": query_list,
+                "fields": download_cols
+            }
+            
             if not query_list:
                 query.pop('filter')
 
@@ -380,43 +426,174 @@ def generate_sensitive_csv(query_id, scheme, host):
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
             solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
-            # 等待檔案完成
             commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
             process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process.communicate()
-
-            file_done = True
-
-            # 儲存到下載統計
-
-            stat_rightsHolder = create_search_stat(query_list=query_list)
-            sq.stat = stat_rightsHolder
-
-            # 敏感資料統計
-            sensitive_stat_rightsHolder = []
-            sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
-
-            sq.sensitive_stat = sensitive_stat_rightsHolder
-
-            # 要排除掉轉交的情況
-            # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
-            # if len(tmp) == len(tmp.filter(status='pass')):
-            #     sq.status = 'pass'
-            # else:
-            #     sq.status = 'partial'
+            
             sq.status = 'pass'
-            sq.modified = timezone.now()
-            sq.save()
 
-            # 資料集統計
-            create_dataset_stat(query_list=query_list)
+        file_done = True
 
-        else:
-            # 沒有帳號通過
-            sq.status = 'fail'
-            sq.modified = timezone.now()
-            sq.save()
-            file_done = True
+        # 儲存到下載統計
+        stat_rightsHolder = create_search_stat(query_list=query_list)
+        sq.stat = stat_rightsHolder
+
+        # 敏感資料統計
+        sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+        sq.sensitive_stat = sensitive_stat_rightsHolder
+
+        sq.modified = timezone.now()
+        sq.save()
+
+        # 資料集統計
+        create_dataset_stat(query_list=query_list)
+
+
+        # # 這邊就會包含partial_transferred的資料
+        # if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
+        # #     group = ['*']
+        # # elif SensitiveDataResponse.objects.filter(query_id=query_id,status='fail',is_transferred=False, partner_id=None).exists():
+        # #     group = []
+        # # else:
+        #     # 不給沒通過的
+        #     # NOTE 2026-01 改成不通過的給模糊化的資料
+
+        #     # 篩選出沒有通過的單位
+        #     fs = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
+        #     if fs:
+        #         fs = [p for p in fs[0]]
+        #         fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
+        #         fail_groups = [g for g in fail_groups[0]]
+
+        #     # ps = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').values_list('partner_id'))
+        #     # if ps:
+        #     #     ps = [p for p in ps[0]]
+        #     #     pass_groups = list(Partner.objects.filter(id__in=ps).values_list('group'))
+        #     #     pass_groups = [g for g in group[0]]
+
+        #     # fl_cols = download_cols_with_sensitive
+        #     # fl_cols = download_cols + sensitive_cols
+        #     # 先取得筆數，export to csv
+
+        #     query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+
+        #     # query_list1 = query_list
+        #     # query_list2 = query_list
+
+        #     # 排除掉不同意的單位
+        #     if fail_groups:
+        #         fail_groups = [ f'group:{g}' for g in fail_groups ]
+        #         fail_groups_str = ' OR '.join( fail_groups )
+        #         # query_list1 += [ '-(' + fail_groups_str + ')' ]
+        #         # query_list2 += [ '(' + fail_groups_str + ')']
+            
+        #     # if pass_groups:
+        #     #     pass_groups = [ f'group:{g}' for g in pass_groups ]
+        #     #     pass_groups_str = ' OR '.join( pass_groups )
+        #     #     query_list2 += ['(' + pass_groups_str + ')']
+
+        #     query_list1 = query_list + [ '-(' + fail_groups_str + ')' ] if fail_groups_str else query_list
+        #     query_list2 = query_list + [ '(' + fail_groups_str + ')' ] if fail_groups_str else query_list
+
+        #     # 準備兩組查詢參數
+        #     # 第一組: 同意的單位
+        #     query1 = {
+        #         "query": "*:*",
+        #         "offset": 0,
+        #         "limit": 2140000000,
+        #         "filter": query_list1,
+        #         "fields": download_cols_with_sensitive   
+        #     }
+
+        #     # 第二組: 不同意的單位
+        #     query2 = {
+        #         "query": "*:*",
+        #         "offset": 0,
+        #         "limit": 2140000000,
+        #         "filter": query_list2,  
+        #         "fields": download_cols  
+        #     }
+
+        #     # # 處理空的查詢條件
+        #     # if not query_list1:
+        #     #     query1.pop('filter')
+        #     # if not query_list2:
+        #     #     query2.pop('filter')
+
+        #     csv_folder = os.path.join(MEDIA_ROOT, 'download')
+        #     csv_folder = os.path.join(csv_folder, 'sensitive')
+        #     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+        #     temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
+        #     temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
+        #     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+        #     solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+        #     # 執行兩個查詢並合併結果
+        #     commands = f"""
+        #     curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
+        #     curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
+        #     cat {temp_file1} > {csv_file_path}
+        #     tail -n +2 {temp_file2} >> {csv_file_path}
+        #     zip -j {zip_file_path} {csv_file_path}
+        #     rm {csv_file_path} {temp_file1} {temp_file2}
+        #     """
+
+        #     process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     process.communicate()
+
+            # query = { "query": "*:*",
+            #         "offset": 0,
+            #         "limit": 2140000000,
+            #         "filter": query_list,
+            #         "fields": fl_cols
+            #         }
+
+            # if not query_list:
+            #     query.pop('filter')
+
+            # csv_folder = os.path.join(MEDIA_ROOT, 'download')
+            # csv_folder = os.path.join(csv_folder, 'sensitive')
+            # csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
+            # zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
+            # solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+
+            # # 等待檔案完成
+            # commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
+            # process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # process.communicate()
+
+        #     file_done = True
+
+        #     # 儲存到下載統計
+
+        #     stat_rightsHolder = create_search_stat(query_list=query_list)
+        #     sq.stat = stat_rightsHolder
+
+        #     # 敏感資料統計
+        #     sensitive_stat_rightsHolder = []
+        #     sensitive_stat_rightsHolder = create_sensitive_partner_stat(query_list=query_list)
+
+        #     sq.sensitive_stat = sensitive_stat_rightsHolder
+
+        #     # 要排除掉轉交的情況
+        #     # tmp = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
+        #     # if len(tmp) == len(tmp.filter(status='pass')):
+        #     #     sq.status = 'pass'
+        #     # else:
+        #     #     sq.status = 'partial'
+        #     sq.status = 'pass'
+        #     sq.modified = timezone.now()
+        #     sq.save()
+
+        #     # 資料集統計
+        #     create_dataset_stat(query_list=query_list)
+
+        # else:
+        #     # 沒有帳號通過
+        #     sq.status = 'fail'
+        #     sq.modified = timezone.now()
+        #     sq.save()
+        #     file_done = True
 
 
         if file_done:
@@ -536,15 +713,37 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
+    user_stat = []
+
+    # req_dict = dict(req_dict)
+    # not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','user_affiliation','user_role','user_purpose']
+    # for nq in not_query:
+    #     if nq in ['user_affiliation','user_role','user_purpose']:
+    #         user_stat.append(req_dict[nq])
+    #     if nq in req_dict.keys():
+    #         req_dict.pop(nq)
+    # for k in req_dict.keys():
+    #     if len(req_dict[k])==1:
+    #         req_dict[k] = req_dict[k][0]
+    # query_string = parse.urlencode(req_dict)
+
+
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid']
-    for nq in not_query:
-        if nq in req_dict.keys():
-            req_dict.pop(nq)
-    for k in req_dict.keys():
-        if len(req_dict[k])==1:
-            req_dict[k] = req_dict[k][0]
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','user_affiliation','user_role','user_purpose']
+
+    # 處理 user_stat 並移除 not_query 欄位
+    for key in ['user_affiliation','user_role','user_purpose']:
+        if key in req_dict:
+            user_stat.append(req_dict[key][0])
+
+    for key in not_query:
+        req_dict.pop(key, None)
+
+    # 扁平化單元素列表
+    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
+
     query_string = parse.urlencode(req_dict)
+
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -555,7 +754,8 @@ def generate_download_csv(req_dict, user_id, scheme, host):
         status = 'pending',
         type = 'record',
         query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id
+        personal_id = current_personal_id,
+        user_stat = user_stat
     )
 
     # 
@@ -626,15 +826,34 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     get_raw_map = if_raw_map(user_id)
     query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
 
+    # req_dict = dict(req_dict)
+    # not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
+    # for nq in not_query:
+    #     if nq in req_dict.keys():
+    #         req_dict.pop(nq)
+    # for k in req_dict.keys():
+    #     if len(req_dict[k])==1:
+    #         req_dict[k] = req_dict[k][0]
+    # query_string = parse.urlencode(req_dict)
+
+    user_stat = []
+
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
-    for nq in not_query:
-        if nq in req_dict.keys():
-            req_dict.pop(nq)
-    for k in req_dict.keys():
-        if len(req_dict[k])==1:
-            req_dict[k] = req_dict[k][0]
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound','user_affiliation','user_role','user_purpose']
+
+    # 處理 user_stat 並移除 not_query 欄位
+    for key in ['user_affiliation','user_role','user_purpose']:
+        if key in req_dict:
+            user_stat.append(req_dict[key][0])
+
+    for key in not_query:
+        req_dict.pop(key, None)
+
+    # 扁平化單元素列表
+    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
+
     query_string = parse.urlencode(req_dict)
+
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='taxon').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -645,7 +864,8 @@ def generate_species_csv(req_dict, user_id, scheme, host):
         status = 'pending',
         type = 'taxon',
         query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id
+        personal_id = current_personal_id,
+        user_stat = user_stat
     )
 
     # 
@@ -743,19 +963,48 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 
 # 全站搜尋資料下載
 def generate_download_csv_full(req_dict, user_id, scheme, host):
+
+
+    req_dict = dict(req_dict)
+
+    user_stat = []
+    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
+
+    # 處理 user_stat 並移除 not_query 欄位
+    for key in ['user_affiliation','user_role','user_purpose']:
+        if key in req_dict:
+            user_stat.append(req_dict[key][0])
+
+    # 移除 not_query 欄位
+    for key in not_query:
+        req_dict.pop(key, None)
+
+    # 扁平化單元素列表
+    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
+
+
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         # fl_cols = download_cols + sensitive_cols
         fl_cols = download_cols_with_sensitive
     else:
         fl_cols = download_cols
-    download_id = f"tbia_{str(ObjectId())}"
-    req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
 
-    keyword = req_dict_query.get('keyword', '')
-    key = req_dict_query.get('key', '')
-    value = req_dict_query.get('value', '')
-    record_type = req_dict_query.get('record_type', 'occ')
-    scientific_name = req_dict_query.get('scientific_name', '')
+    download_id = f"tbia_{str(ObjectId())}"
+    # req_dict_query = dict(parse.parse_qsl(req_dict.get('search_str')))
+
+    # print(req_dict_query)
+
+    keyword = req_dict.get('keyword', '')
+    key = req_dict.get('key', '')
+    value = req_dict.get('value', '')
+    record_type = req_dict.get('record_type', 'occ')
+    scientific_name = req_dict.get('scientific_name', '')
+
+    # keyword = req_dict_query.get('keyword', '')
+    # key = req_dict_query.get('key', '')
+    # value = req_dict_query.get('value', '')
+    # record_type = req_dict_query.get('record_type', 'occ')
+    # scientific_name = req_dict_query.get('scientific_name', '')
 
     # only facet selected field
     query_list = []
@@ -794,14 +1043,15 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     if scientific_name and scientific_name != 'undefined':
         fq_list.append(f'scientificName:{scientific_name}')
 
-    req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
-    for nq in not_query:
-        if nq in req_dict.keys():
-            req_dict.pop(nq)
-    for k in req_dict.keys():
-        if len(req_dict[k])==1:
-            req_dict[k] = req_dict[k][0]
+
+    # req_dict = dict(req_dict)
+    # not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
+    # for nq in not_query:
+    #     if nq in req_dict.keys():
+    #         req_dict.pop(nq)
+    # for k in req_dict.keys():
+    #     if len(req_dict[k])==1:
+    #         req_dict[k] = req_dict[k][0]
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -814,7 +1064,8 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         status = 'pending',
         type = 'record',
         query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id
+        personal_id = current_personal_id,
+        user_stat = user_stat
     )
 
     query = { "query": q,
@@ -1313,9 +1564,19 @@ def search_collection(request):
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
+    user_stat_options = UserDownloadStat.option_choice
+    affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
+    role_options = [u for u in user_stat_options if u[0].startswith('b')]
+    purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
+
 
     return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'county_list': county_list })
+        'rank_list': rank_list, 'county_list': county_list,
+        'affiliation_options': affiliation_options,
+        'role_options': role_options,
+        'purpose_options': purpose_options,
+        })
+
     
 
 @csp_update(IMG_SRC=get_media_rule())
@@ -1326,9 +1587,17 @@ def search_occurrence(request):
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
+    user_stat_options = UserDownloadStat.option_choice
+    affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
+    role_options = [u for u in user_stat_options if u[0].startswith('b')]
+    purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
+
 
     return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
-        'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list #'dataset_list': dataset_list
+        'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list, #'dataset_list': dataset_list
+        'affiliation_options': affiliation_options,
+        'role_options': role_options,
+        'purpose_options': purpose_options,
         })
 
 @csp_update(IMG_SRC=get_media_rule())
@@ -1351,6 +1620,11 @@ def collection_detail(request, id):
 
 @csp_update(IMG_SRC=get_media_rule())
 def dataset_detail(request, id):
+
+    user_stat_options = UserDownloadStat.option_choice
+    affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
+    role_options = [u for u in user_stat_options if u[0].startswith('b')]
+    purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
     link, logo = '', ''
     dataset_prefix = None
@@ -1399,7 +1673,9 @@ def dataset_detail(request, id):
 
     conn.close()
 
-    return render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix})
+    return render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
+                'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })
+
 
 
 def get_map_grid(request):
@@ -2050,7 +2326,11 @@ def search_full(request):
                 'date': x.publish_date.strftime("%Y-%m-%d")
             })
         
-        # taxon_more = True if taxon_card_len > 4 else False
+        user_stat_options = UserDownloadStat.option_choice
+        affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
+        role_options = [u for u in user_stat_options if u[0].startswith('b')]
+        purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
+
 
         response = {
             'keyword': keyword,
@@ -2065,7 +2345,8 @@ def search_full(request):
             'themeyear': {'rows': themeyear_rows, 'count': c_themeyear},
             'qa': {'rows': qa_rows, 'count': c_qa},
             'all_empty': all(not lst for lst in [taxon_rows, occurrence_rows, collection_rows, news_rows, event_rows, project_rows,
-                                                 datathon_rows, resource_rows, themeyear_rows, qa_rows])
+                                                 datathon_rows, resource_rows, themeyear_rows, qa_rows]),
+            'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options
             }
     else:
         response = {
@@ -2115,11 +2396,14 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
             for g in group:
                 groups.append(g['val'])
 
+        now = datetime.now() + timedelta(hours=8)
+
         for p in Partner.objects.filter(group__in=groups):
             sdr = SensitiveDataResponse.objects.create(
                 partner_id = p.id,
                 status = 'pending',
-                query_id = query_id
+                query_id = query_id,
+                due = check_due(now.date(),14) 
             )       
             # 寄送通知給系統管理員 & 單位管理員
             usrs = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=p.id)) # 個人研究計畫
@@ -2127,16 +2411,18 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
                 nn = Notification.objects.create(
                     type = 3,
                     content = sdr.id,
-                    user = u
+                    user = u,
                 )
                 content = nn.get_type_display().replace('0000', str(nn.content))
                 send_notification([u.id],content,'單次使用敏感資料申請通知')
 
     else:
         # 委辦工作計畫
+        now = datetime.now() + timedelta(hours=8)
         sdr = SensitiveDataResponse.objects.create(
                     status = 'pending',
-                    query_id = query_id
+                    query_id = query_id,
+                    due = check_due(now.date(),7) 
                 )     
         usrs = User.objects.filter(is_system_admin=True) 
         for u in usrs:

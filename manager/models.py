@@ -149,6 +149,7 @@ class SearchQuery(models.Model):
     # 使用者個人下載編號id
     personal_id = models.IntegerField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True) # 記錄各單位筆數
+    user_stat = models.JSONField(null=True, blank=True) # 記錄使用者資訊
     sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數, 若是申請通過的敏感資料統計也會計算在這
     # ark = models.CharField(max_length=50, null=True, blank=True)
 
@@ -197,6 +198,7 @@ class SensitiveDataResponse(models.Model):
     query_id = models.CharField(max_length=50, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(null=True, blank=True)
+    due = models.DateField(null=True, blank=True)
     is_transferred = models.BooleanField(default=False)
     is_partial_transferred = models.BooleanField(default=False)
 
@@ -272,6 +274,50 @@ class DataStat(models.Model):
 class ChecklistStat(models.Model):
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     count = models.IntegerField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+# 使用者類型統計 (下載資料時)
+class UserDownloadStat(models.Model):
+    type_choice = [
+        ('affiliation', '所屬單位'), # a1-a7
+        ('role', '身份'), # b1-b9
+        ('purpose', '使用用途'), # c1-c11
+    ]
+    option_choice = [
+        ('a1', '民間公司'),
+        ('a2', 'NGO'),
+        ('a3', '學術單位及大專院校'),
+        ('a4', '國高中及小學'),
+        ('a5', '政府單位'),
+        ('a6', '自然史典藏單位'),
+        ('a7', '其他'),
+        ('b1', '學生'),
+        ('b2', '教職人員'),
+        ('b3', '公務人員'),
+        ('b4', '研究相關從事人員（如：研究助理）'),
+        ('b5', '環境顧問業人員'),
+        ('b6', '外包資訊廠商人員'),
+        ('b7', '其他工商業人員'),
+        ('b8', '非營利組織人員'),
+        ('b9', '其他'),
+        ('c1', '生態/環社檢核或環境影響評估/監測'),
+        ('c2', '永續發展或企業責任指標應用（如SDGs/ESG）'),
+        ('c3', '推廣、寫作或應用競賽活動'),
+        ('c4', '展覽或展示設計'),
+        ('c5', '生態系服務或棲地復育評估'),
+        ('c6', '政策規劃'),
+        ('c7', '環境教育教材'),
+        ('c8', '生態相關領域研究'),
+        ('c9', '其他領域研究'),
+        ('c10', '學校課程作業'),
+        ('c11', '其他'),
+    ]
+    type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
+    option = models.CharField(choices=option_choice,max_length=20, blank=True, db_index=True)
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    count = models.IntegerField(null=True, blank=True)
+    group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
+    rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
     created = models.DateTimeField(auto_now_add=True)
 
 

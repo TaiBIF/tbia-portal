@@ -174,22 +174,23 @@
 					<h3><b>{% trans '物種類群資料筆數' %}</b></h3>
 					<p class="ml-15px mb-15px">
 						{% if LANGUAGE_CODE == 'en-us' %}
-						Clicking on the pie chart reveals the number of records for each biological group and the proportion of recorded species relative to the corresponding species listed in the Taiwan Catalogue of Life (TaiCOL). Clicking on the percentage text allows you to download the TaiCOL species list for that group, making it easy to identify which species are not yet included in the TBIA database.
+						Clicking on the bar chart reveals the number of records for each biological group and the proportion of recorded species relative to the corresponding species listed in the Taiwan Catalogue of Life (TaiCOL). Clicking on the group name on the left allows you to download the TaiCOL comparison list for that group, making it easy to identify which species are not yet included in the TBIA database.
 						{% else %}
-						點選圓餅圖可顯示各物種類群的資料筆數，以及其物種數相較於臺灣物種名錄（TaiCOL）中對應類群物種數的比例；點選比例文字則可下載 TaiCOL 對應物種類群清單，以了解目前 TBIA 資料庫中尚未收錄的物種資料。
+						點選長條圖可顯示各物種類群的資料筆數，以及其物種數相較於臺灣物種名錄（TaiCOL）中對應類群物種數的比例；點選左側類群名稱後，則可下載 TaiCOL 對應物種類群比對結果清單，以了解目前 TBIA 資料庫中尚未收錄的物種資料。
 						{% endif %}
 					</p>
 					<div class="item d-flex-jc-sb">
-						<div class="w-50p">
-							<div class="highcharts-figure">
+						<div class="w-66p">
+							<div class="highcharts-figure-large">
 								<div id="container-taxon_group-stat" class="h-100p"></div>
 							</div>
 							<p class="expired-p ml-10px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
 						</div>
-						<div class="w-50p">
-							<div id="taxon_group-stat-title">👈 {% trans '點擊圓餅圖' %}</div>
+						<div class="w-33p">
+							<div class="mt-15px fs-16px" id="taxon_group-stat-content"> 👈 {% trans '點擊左側類群名稱取得更多資訊' %} </div>
+							{% comment %} <div id="taxon_group-stat-title">👈 {% trans '點擊左側類群名稱取得更多資訊' %}</div>
 							<ul id="taxon_group-stat-list" class="mt-5px ml-20px fs-16px">
-							</ul>
+							</ul> {% endcomment %}
 						</div>
 					</div>
 

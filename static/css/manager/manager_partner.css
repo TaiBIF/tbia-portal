@@ -125,14 +125,17 @@
     font-size: 16px
 }
 
+.fs-18px {
+    font-size: 18px
+}
+
 .box-title {
     display: flex; 
     color: black
 }
 
-.download_taxon_a {
+a {
     cursor: pointer; 
-    margin-left: 5px
 }
 
 .h-300px {
@@ -142,6 +145,14 @@
 
 .w-50p {
     width: 50%;
+}
+
+.w-66p {
+    width: 66%;
+}
+
+.w-33p {
+    width: 33%;
 }
 
 
@@ -175,6 +186,11 @@
 
 .highcharts-figure {
     height: 300px;
+    margin-top: 20px;
+}
+
+.highcharts-figure-large {
+    height: 450px;
     margin-top: 20px;
 }
 

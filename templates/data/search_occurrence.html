@@ -39,6 +39,60 @@
 
 {% block body %}
 {% csrf_token %}
+
+
+<!--使用者統計popbox-->
+<div class="popbg user-stat-pop d-none" id="userStatModal">
+    <div class="ovhy">
+        <div class="wbox_center">
+            <div class="xx">
+            </div>
+            <div class="titlegreen">
+                {% trans '下載' %}
+            </div>
+            <div class="from_area">
+                <form id="user_stat_form">
+                    {% csrf_token %}
+                    <div class="select_onebox">
+                        <p><span class="color_red">*</span> <b>{%  trans '所屬單位' %}</b></p>
+                        <div class="radio-grid">
+                            {% for option in affiliation_options %}
+                                <div class="radio-item">
+                                    <input type="radio" name="user_affiliation" value="{{ option.0 }}" id="affiliation_{{ option.0 }}" />
+                                    <label for="affiliation_{{ option.0 }}">{% trans option.1 %}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="select_onebox mt-10px">
+                        <p><span class="color_red">*</span> <b>{%  trans '身份' %}</b></p>
+                        <div class="radio-grid">
+                            {% for option in role_options %}
+                                <div class="radio-item">
+                                    <input type="radio" name="user_role" value="{{ option.0 }}" id="role_{{ option.0 }}" />
+                                    <label for="role_{{ option.0 }}">{% trans option.1 %}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="select_onebox mt-10px">
+                        <p><span class="color_red">*</span> <b>{%  trans '使用用途' %}</b></p>
+                        <div class="radio-grid">
+                            {% for option in purpose_options %}
+                                <div class="radio-item">
+                                    <input type="radio" name="user_purpose" value="{{ option.0 }}" id="purpose_{{ option.0 }}" />
+                                    <label for="purpose_{{ option.0 }}">{% trans option.1 %}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+                <button class="send mt-30px" id="userStatConfirm">{% trans '確認送出' %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="path">
   <div class="main_1240">
     <a href="{% url 'index' %}" class="home"></a> <span>></span>

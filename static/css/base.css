@@ -312,6 +312,30 @@ input {
 }
 
 
+.popbg .wbox_center .from_area .select_onebox .vsb-main {
+     width: 100%;
+
+}
+
+.popbg .wbox_center .from_area .select_onebox .vsb-main button {
+    padding: 0px 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    width: 100%;
+    height: 50px;
+    font-size: 16px
+}
+
+@media only screen and (max-width: 767px) {
+    .popbg .wbox_center .from_area .select_onebox .vsb-main button {
+        /*font-size: 14px;*/
+        height: 40px;
+        width: 100%;
+        margin-bottom: 10px
+    }
+}
+
+
 .black {
     color: black !important;
 }
@@ -413,6 +437,11 @@ input {
 
 .mt-10px {
     margin-top: 10px;
+}
+
+
+.mt-30px {
+    margin-top: 30px;
 }
 
 
@@ -1057,4 +1086,38 @@ div.count-1 {
     margin-bottom: 5px !important;
     margin-top: 5px !important;
     padding-left: 16px !important;
+}
+
+.user-stat-pop {
+    min-height: 80% !important;
+}
+
+.radio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.radio-item input[type="radio"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.radio-item label {
+  line-height: 1.4;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+
+.popbg.user-stat-pop .wbox_center {
+    max-height: 90%;
+    overflow: auto
 }

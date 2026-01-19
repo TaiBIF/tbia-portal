@@ -823,6 +823,10 @@ msgid "通過"
 msgstr "Succeeded"
 
 #: manager
+msgid "部分通過"
+msgstr "Partially approved"
+
+#: manager
 msgid "不通過"
 msgstr "Failed"
 
@@ -2580,6 +2584,10 @@ msgstr "GBIF"
 msgid "臺灣物種名錄"
 msgstr "Catalogue of Life in Taiwan"
 
+#:
+msgid "綠島長期社會生態核心觀測站"
+msgstr "LTSER LYUDAO"
+
 
 # 來源資料庫
 
@@ -2718,6 +2726,11 @@ msgstr "Exceeding the system's accessible page limit, please try using the resul
 #:
 msgid "下載檔案連結將保留三個月"
 msgstr "The download link will be valid for three months."
+
+
+#:
+msgid "針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本"
+msgstr "For applications with a review result of 'Not Approved' or 'Partially Approved', the system will still provide a fuzzed version of the data."
 
 
 #:
@@ -3236,3 +3249,117 @@ msgstr "No results found"
 #:
 msgid "研究計畫書"
 msgstr "Research proposal"
+
+
+#: UserDownloadStat option choices
+msgid "民間公司"
+msgstr "Private Companies"
+
+#: UserDownloadStat option choices
+msgid "NGO"
+msgstr "NGO"
+
+#: UserDownloadStat option choices
+msgid "學術單位及大專院校"
+msgstr "Academic Institutions & Universities"
+
+#: UserDownloadStat option choices
+msgid "國高中及小學"
+msgstr "Primary & Secondary Schools"
+
+#: UserDownloadStat option choices
+msgid "政府單位"
+msgstr "Government Agencies"
+
+#: UserDownloadStat option choices
+msgid "自然史典藏單位"
+msgstr "Natural History Museums"
+
+
+#: UserDownloadStat option choices
+msgid "學生"
+msgstr "Students"
+
+#: UserDownloadStat option choices
+msgid "教職人員"
+msgstr "Faculty & Teaching Staff"
+
+#: UserDownloadStat option choices
+msgid "公務人員"
+msgstr "Civil Servants"
+
+#: UserDownloadStat option choices
+msgid "研究相關從事人員（如：研究助理）"
+msgstr "Research Personnel (e.g., Research Assistants)"
+
+#: UserDownloadStat option choices
+msgid "環境顧問業人員"
+msgstr "Environmental Consultants"
+
+#: UserDownloadStat option choices
+msgid "外包資訊廠商人員"
+msgstr "IT Contractors"
+
+#: UserDownloadStat option choices
+msgid "其他工商業人員"
+msgstr "Other Business Personnel"
+
+#: UserDownloadStat option choices
+msgid "非營利組織人員"
+msgstr "Non-profit Organization Staff"
+
+#: UserDownloadStat option choices
+msgid "生態/環社檢核或環境影響評估/監測"
+msgstr "Ecological/Environmental Impact Assessment & Monitoring"
+
+#: UserDownloadStat option choices
+msgid "永續發展或企業責任指標應用（如SDGs/ESG）"
+msgstr "Sustainable Development & Corporate Responsibility (e.g., SDGs/ESG)"
+
+#: UserDownloadStat option choices
+msgid "推廣、寫作或應用競賽活動"
+msgstr "Outreach, Writing & Competition Activities"
+
+#: UserDownloadStat option choices
+msgid "展覽或展示設計"
+msgstr "Exhibition & Display Design"
+
+#: UserDownloadStat option choices
+msgid "生態系服務或棲地復育評估"
+msgstr "Ecosystem Services & Habitat Restoration Assessment"
+
+#: UserDownloadStat option choices
+msgid "政策規劃"
+msgstr "Policy Planning"
+
+#: UserDownloadStat option choices
+msgid "環境教育教材"
+msgstr "Environmental Education Materials"
+
+#: UserDownloadStat option choices
+msgid "生態相關領域研究"
+msgstr "Ecology-related Research"
+
+#: UserDownloadStat option choices
+msgid "其他領域研究"
+msgstr "Other Field Research"
+
+#: UserDownloadStat option choices
+msgid "學校課程作業"
+msgstr "School Coursework"
+
+#: 
+msgid "身份"
+msgstr "Role"
+
+#: 
+msgid "使用用途"
+msgstr "Purpose"
+
+#: 
+msgid "所屬單位"
+msgstr "Affiliation"
+
+#: 
+msgid "點擊左側類群名稱取得更多資訊"
+msgstr "Click on the group name on the left for more information."

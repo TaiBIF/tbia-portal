@@ -87,7 +87,6 @@ $(function () {
             let orderby = $('.sort-icon-active').parent().data('orderby');
             let sort = $('.sort-icon-active').parent().data('sort');
 
-
             $('#searchForm').append(
                 $('<input>', {type: 'hidden', name: 'orderby', value: orderby}),
                 $('<input>', {type: 'hidden', name: 'sort', value: sort}),

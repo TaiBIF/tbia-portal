@@ -54,13 +54,40 @@ basis_map = {
     "Event":"調查活動"
 }
 
+rights_holder_map = {
+    'GBIF': 'gbif',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
+    '中央研究院生物多樣性中心動物標本館': 'asiz',
+    '台灣生物多樣性網絡 TBN': 'tbri',
+    '國立臺灣博物館典藏': 'ntm',
+    '林業試驗所昆蟲標本館': 'fact',
+    '林業試驗所植物標本資料庫': 'taif',
+    '河川環境資料庫': 'wra',
+    '濕地環境資料庫': 'nps',
+    '生態調查資料庫系統': 'forest',
+    '臺灣國家公園生物多樣性資料庫': 'nps',
+    '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
+    '海洋保育資料倉儲系統': 'oca',
+    '科博典藏 (NMNS Collection)': 'nmns',
+    '臺灣魚類資料庫': 'ascdc',
+    '國家海洋資料庫及共享平台': 'namr',
+    '集水區友善環境生態資料庫': 'ardswc',
+    '中油生態地圖': 'cpc',
+    '作物種原資訊系統': 'npgrc'
+}
+
+rights_holder_list = list(rights_holder_map.values())
+
+
+rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
+
 
 def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
     name = ''
 
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
-    print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    # print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -173,6 +200,7 @@ taxon_group_map_e = {
     "病毒": "Viruses",
     "細菌": "Bacteria",
     "真菌": "Fungi",
+    "其他": "Others"
 }
 
 

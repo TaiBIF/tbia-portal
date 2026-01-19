@@ -128,22 +128,23 @@
         </div>
 
         <div class="rightbox_content dashboard">
-            <div class="item d-flex-jc-sb">
-                <div class="w-50p">
-                    <div class="box-title">
-                        <div class="dottt"></div>資料筆數
-                    </div>
-                    <div class="highcharts-figure">
-                        <div id="container" class="h-100p"></div>
-                    </div>
+            <div class="item">
+                <div class="box-title">
+                    <div class="dottt"></div>資料筆數
                 </div>
-                <div class="w-50p">
-                    <div class="box-title">
-                        <div class="dottt"></div>影像資料筆數
-                    </div>
-                    <div class="highcharts-figure">
-                        <div id="container-image-stat" class="h-100p"></div>
-                    </div>
+                <div class="highcharts-figure">
+                    <div class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
+                    <div id="container" class="h-100p"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="item">
+                <div class="box-title">
+                    <div class="dottt"></div>影像資料筆數
+                </div>
+                <div class="highcharts-figure">
+                    <div class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
+                    <div id="container-image-stat" class="h-100p"></div>
                 </div>
             </div>
             <hr>
@@ -165,6 +166,7 @@
                 </div>
                 <div class="d-flex-jc-sb">
                     <div class="w-50p">
+                        <div class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <figure class="highcharts-figure h-300px">
                             <div id="container-data-quality" class="h-100p"></div>
                         </figure>
@@ -173,6 +175,14 @@
                     <div class="w-50p mt-15px ml-20px">
                         <ul id="quality-stat-list" class="mt-5px ml-20px fs-16px">
                         </ul>
+                        <table cellspacing="0" cellspacing="0" class="table_style3 first_td_table" id="quality-stat_table">
+                            <tr>
+                                <td>來源資料庫</td>
+                                <td>金級</td>
+                                <td>銀級</td>
+                                <td>銅級</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -181,11 +191,12 @@
                 <div class="d-flex-jc-sb">
                     <div class="w-50p">
                         <div class="highcharts-figure">
+                            <div class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                             <div id="container2" class="h-100p"></div>
                         </div>
                     </div>
                     <div class="w-50p ml-20px">
-                        <p>下載各來源資料庫學名比對結果清單 <a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank" >(學名比對欄位說明文件)</a></p>
+                        <p>各來源資料庫學名比對結果清單 <br><a class="fs-16px" href="/media/學名比對欄位說明文件.pdf"  target="_blank" >📥 學名比對欄位說明文件</a></p>
                         <ul class="mt-5px ml-20px fs-16px">
                             {% for i in match_logs %}
                             <li>
@@ -198,21 +209,26 @@
             </div>
             <hr>
             <div class="item d-flex-jc-sb">
-                <div class="w-50p">
+                <div class="w-66p">
                     <div class="box-title">
                         <div class="dottt"></div>物種類群資料筆數
                     </div>
-                    <div class="highcharts-figure">
+
+                    <div class="highcharts-figure-large">
+                        <div id="loader_taxon_group" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-taxon_group-stat" class="h-100p"></div>
                     </div>
                     <p class="expired-p ml-5px">*僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料</p>
                     <p class="expired-p ml-5px">*此處維管束植物不包含蕨類植物</p>
-                    <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p>
+                    {% comment %} <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p> {% endcomment %}
                 </div>
-                <div class="w-50p">
-                    <div id="taxon_group-stat-title">👈點擊圓餅圖取得各來源資料庫筆數</div>
-                    <ul id="taxon_group-stat-list" class="mt-5px ml-20px fs-16px">
-                    </ul>
+                <div class="w-33p">
+                    <select class="w-100p" name="taxon-group-stat-rightsholder">
+                        {% for r in holder_list %}
+                        <option value="{{ r }}" {% if r == 'total' %} selected {% endif %}>{% if r == 'total' %}全部{% else %}{{ r }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="mt-15px fs-16px" id="taxon_group-stat-content"> 👈 點擊左側類群名稱取得更多資訊 </div>
                 </div>
             </div>
             <hr>
@@ -254,7 +270,7 @@
                             <div id="partner-map" class="img"></div>
                         </div>
                     </div>
-                    <div class="loading_area_partial">
+                    <div class="loader_spatial_stat loading_area_partial">
                         <div class="sc">
                         <div class="load"><span>L</span>ading</div>
                         </div>
@@ -277,6 +293,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_temporal_year" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-partner-temporal-year-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -312,6 +329,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_temporal_month" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-partner-temporal-month-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -338,6 +356,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_data_stat" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-data-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -351,6 +370,7 @@
                         {% endfor %}
                     </select> <span class="ml-5px">年</span>
                     <div class="highcharts-figure">
+                        <div id="loader_checklist" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-checklist-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -376,6 +396,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_search_stat" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-search-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -398,6 +419,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_download_stat" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-download-stat" class="h-100p"></div>
                     </div>
                 </div>            
@@ -423,6 +445,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_search_times" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-search-times-stat" class="h-100p"></div>
                     </div>
                 </div>
@@ -445,6 +468,7 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_download_times" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-download-times-stat" class="h-100p"></div>
                     </div>
                 </div>          
@@ -487,18 +511,55 @@
                         </div>
                     </div>
                     <div class="highcharts-figure">
+                        <div id="loader_sensitive" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <div id="container-sensitive-stat" class="h-100p"></div>
                     </div>
                 </div>
             </div>
             <hr>
-  
+            <div class="item">
+                <div class="box-title"><div class="dottt"></div>每月資料下載使用者統計<p class="expired-p ml-5px">*不包含敏感資料申請者</p></div>
+                    <div class="ml-20px mt-15px w-50p">
+                        <div class="d-flex">
+                            <select class="panel-select" name="user-download-stat-year">
+                                {% for y in stat_year %}
+                                <option value="{{ y }}" {% if y == data_year %} selected {% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select> <span class="ml-5px">年</span>
+                            <select class="panel-select panel-select-rightsholder ml-20px" name="user-download-stat-type">
+                                <option value="affiliation">所屬單位</option>
+                                <option value="role">身份</option>
+                                <option value="purpose">使用用途</option>
+                            </select>
+                            <select class="panel-select panel-select-rightsholder ml-20px" name="user-download-stat-rightsholder">
+                                {% for r in holder_list %}
+                                <option value="{{ r }}" {% if r == 'total' %} selected {% endif %}>{% if r == 'total' %}全部{% else %}{{ r }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="highcharts-figure">
+                        <div id="loader_user_download" class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
+                        <div id="container-user-download-stat" class="h-100p"></div>
+                    </div>
+            </div>
+            <hr>
             <div class="item" >
                 <div class="box-title">
                     <div class="dottt"></div>各來源資料庫前三類群
                 </div>
                 <ul id="rightsholder_taxon_group_top3" class="mt-5px ml-20px fs-16px">
                 </ul>
+                <div id="loader_taxon_group_top3" class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
+                <table cellspacing="0" cellspacing="0" class="table_style3 first_td_table" id="rightsholder_taxon_group_top3_table">
+                    <tr>
+                        <td>來源資料庫</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+
             </div>
             <p class="expired-p ml-10px">*{% trans '僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料' %}</p>
             <hr>
@@ -506,8 +567,19 @@
                 <div class="box-title">
                     <div class="dottt"></div>各來源資料庫前五科名
                 </div>
-                <ul id="rightsholder_family_top5" class="mt-5px ml-20px fs-16px">
-                </ul>
+                {% comment %} <ul id="rightsholder_family_top5" class="mt-5px ml-20px fs-16px">
+                </ul> {% endcomment %}
+                <div id="loader_family" class="loader_system_stat loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
+                <table cellspacing="0" cellspacing="0" class="table_style3 first_td_table" id="rightsholder_family_top5_table">
+                <tr>
+                    <td>來源資料庫</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </table>
             </div>
             <hr>
             <div class="item d-flex-jc-sb" >
@@ -528,6 +600,7 @@
                                 {% endfor %}
                             </select> <span class="ml-5px">月</span>
                         </div>
+                        <div id="loader_keyword" class="loading_area_partial d-none"><div class="sc"><div class="load"><span>L</span>ading</div></div></div>
                         <ol id="keyword-stat-list">
                         </ol>
                     </div>

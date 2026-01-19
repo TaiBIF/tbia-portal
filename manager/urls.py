@@ -17,6 +17,7 @@ urlpatterns = [
     path('manager/system/resource', views.system_resource, name='system_resource'),
     path('manager/system/qa', views.system_qa, name='system_qa'),
     path('manager/apply/<query_id>', views.sensitive_apply_info, name='sensitive_apply_info'),
+    path('manager/extend/<sdr_id>', views.sensitive_extend_review, name='sensitive_extend_review'),
     # 登入 / 登出
     path('login', views.login_user, name='login'),
     path('logout', views.logout_user, name='logout'),
@@ -45,6 +46,8 @@ urlpatterns = [
     path('update_tbia_about', views.update_tbia_about, name='update_tbia_about'),
     # 取得資料 後台統計圖 / 敏感資料申請內容
     path('get_partner_stat', views.get_partner_stat, name='get_partner_stat'),
+    path('get_taxon_group_stat', views.get_taxon_group_stat, name='get_taxon_group_stat'),
+    path('get_user_download_stat', views.get_user_download_stat, name='get_user_download_stat'),
     path('get_system_stat', views.get_system_stat, name='get_system_stat'),
     path('get_taxon_stat', views.get_taxon_stat, name='get_taxon_stat'),
     path('get_request_detail', views.get_request_detail, name='get_request_detail'), 

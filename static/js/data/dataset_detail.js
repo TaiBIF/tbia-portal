@@ -258,57 +258,141 @@ $(document).ready(function () {
 
     $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
-
+        
         if ($('input[name=is_authenticated]').val() == 'True') {
-            $.ajax({
-                url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,
-                type: 'POST',
-                dataType: 'json',
-            })
-            .done(function (response) {
-                alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-            })
-            .fail(function (xhr, status, errorThrown) {
-                if (xhr.status == 504) {
-                    alert(gettext('要求連線逾時'))
-                } else {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                }
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
+            // 清除選項並顯示 pop box
+            clearUserStatForm();
+            $('#userStatModal').removeClass('d-none');
+            
+            // 暫存原本的 query string
+            $('#userStatModal').data('original-query', queryString);
         } else {
             alert(gettext('請先登入'))
         }
     })
-
 
     $('.downloadTaxon').on('click', function () {
         let queryString = $(this).data('query')
+        queryString += '&taxon=yes'
+        
         if ($('input[name=is_authenticated]').val() == 'True') {
-            $.ajax({
-                url: "/send_download_request",
-                data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&taxon=yes',
-                type: 'POST',
-                dataType: 'json',
-            })
-            .done(function (result) {
-                alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-            })
-            .fail(function (xhr, status, errorThrown) {
-                if (xhr.status == 504) {
-                    alert(gettext('要求連線逾時'))
-                } else {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-                }
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
+            // 清除選項並顯示 pop box
+            clearUserStatForm();
+            $('#userStatModal').removeClass('d-none');
+            
+            // 暫存原本的 query string
+            $('#userStatModal').data('original-query', queryString);
         } else {
             alert(gettext('請先登入'))
         }
     })
+
+    // 清除表單選項
+    function clearUserStatForm() {
+        $('input[name="user_affiliation"]').prop('checked', false);
+        $('input[name="user_role"]').prop('checked', false);
+        $('input[name="user_purpose"]').prop('checked', false);
+    }
+
+    // 確認送出按鈕
+    $('#userStatConfirm').on('click', function () {
+        // 檢查是否都有選取
+        let affiliation = $('input[name="user_affiliation"]:checked').val();
+        let role = $('input[name="user_role"]:checked').val();
+        let purpose = $('input[name="user_purpose"]:checked').val();
+        
+        if (!affiliation || !role || !purpose) {
+            alert('請完成所有必填項目');
+            return;
+        }
+        
+        // 組合 query string
+        let originalQuery = $('#userStatModal').data('original-query');
+        let userStatQuery = `&user_affiliation=${affiliation}&user_role=${role}&user_purpose=${purpose}`;
+        let finalQuery = originalQuery + userStatQuery;
+        
+        // 關閉 modal
+        // $('#userStatModal').hide();
+        $('#userStatModal').addClass('d-none');
+        // 執行原本的下載流程
+        executeDownload(finalQuery);
+    });
+
+    // 執行下載
+    function executeDownload(queryString) {
+        // console.log(queryString);
+        $.ajax({
+            url: "/send_download_request",
+            data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,
+            type: 'POST',
+            dataType: 'json',
+        })
+        .done(function (response) {
+            alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+        })
+        .fail(function (xhr, status, errorThrown) {
+            if (xhr.status == 504) {
+                alert(gettext('要求連線逾時'))
+            } else {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+            }
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
+    }
+
+    // $('.downloadData').on('click', function () {
+    //     let queryString = $(this).data('query')
+
+    //     if ($('input[name=is_authenticated]').val() == 'True') {
+    //         $.ajax({
+    //             url: "/send_download_request",
+    //             data: queryString + '&csrfmiddlewaretoken=' + $csrf_token,
+    //             type: 'POST',
+    //             dataType: 'json',
+    //         })
+    //         .done(function (response) {
+    //             alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             if (xhr.status == 504) {
+    //                 alert(gettext('要求連線逾時'))
+    //             } else {
+    //                 alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+    //             }
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    //     } else {
+    //         alert(gettext('請先登入'))
+    //     }
+    // })
+
+
+    // $('.downloadTaxon').on('click', function () {
+    //     let queryString = $(this).data('query')
+    //     if ($('input[name=is_authenticated]').val() == 'True') {
+    //         $.ajax({
+    //             url: "/send_download_request",
+    //             data: queryString + '&csrfmiddlewaretoken=' + $csrf_token + '&taxon=yes',
+    //             type: 'POST',
+    //             dataType: 'json',
+    //         })
+    //         .done(function (result) {
+    //             alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+    //         })
+    //         .fail(function (xhr, status, errorThrown) {
+    //             if (xhr.status == 504) {
+    //                 alert(gettext('要求連線逾時'))
+    //             } else {
+    //                 alert(gettext('發生未知錯誤！請聯絡管理員'))
+
+    //             }
+    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+    //         })
+    //     } else {
+    //         alert(gettext('請先登入'))
+    //     }
+    // })
 
     $('.downloadSensitive').on('click', function () {
         let queryString = $(this).data('query')

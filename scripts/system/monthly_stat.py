@@ -6,6 +6,7 @@ import pandas as pd
 from django.utils import timezone
 # from datetime import timedelta
 import dateutil.relativedelta
+from data.utils import rights_holder_map
 
 # 先找出前一個月
 now = timezone.now()
@@ -46,27 +47,7 @@ ChecklistStat.objects.create(
 
 
 # 每月資料被查詢
-    
-rights_holder_map = {
-    'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
-    '中央研究院生物多樣性中心動物標本館': 'asiz',
-    '台灣生物多樣性網絡 TBN': 'tbri',
-    '國立臺灣博物館典藏': 'ntm',
-    '林業試驗所昆蟲標本館': 'fact',
-    '林業試驗所植物標本資料庫': 'taif',
-    '河川環境資料庫': 'wra',
-    '濕地環境資料庫': 'nps',
-    '生態調查資料庫系統': 'forest',
-    '臺灣國家公園生物多樣性資料庫': 'nps',
-    '臺灣生物多樣性資訊機構 TaiBIF': 'brcas',
-    '海洋保育資料倉儲系統': 'oca',
-    '科博典藏 (NMNS Collection)': 'nmns',
-    '臺灣魚類資料庫': 'ascdc',
-    '國家海洋資料庫及共享平台': 'namr',
-    '集水區友善環境生態資料庫': 'ardswc',
-    '中油生態地圖': 'cpc',
-}
+# 在stat裡面會有total的筆數
 
 ss = SearchStat.objects.filter(created__contains=current_year_month)
 stat_list = []
@@ -80,18 +61,26 @@ stat_df = stat_df.groupby(['rights_holder'], as_index=False).sum().sort_values([
 for s in stat_df.to_dict('records'):
     if s['rights_holder'] in rights_holder_map.keys():
         group = rights_holder_map[s['rights_holder']]
-    else:
-        group = 'total'
-    DataStat.objects.create(
-        year_month = current_year_month,
-        count = s['count'],
-        group = group,
-        rights_holder= s['rights_holder'],
-        type = 'search'
-    )
+        DataStat.objects.create(
+            year_month = current_year_month,
+            count = s['count'],
+            group = group,
+            rights_holder= s['rights_holder'],
+            type = 'search'
+        )
+    elif s['rights_holder'] == 'total':
+        # 全部
+        DataStat.objects.create(
+            year_month = current_year_month,
+            count = s['count'],
+            group = group,
+            rights_holder= 'total',
+            type = 'search'
+        )
 
 
 # 每月資料被下載
+# 在stat裡面會有total的筆數
 
 ss = SearchQuery.objects.filter(type='record',created__contains=current_year_month)
 stat_list = []
@@ -106,15 +95,22 @@ if len(stat_list):
     for s in stat_df.to_dict('records'):
         if s['rights_holder'] in rights_holder_map.keys():
             group = rights_holder_map[s['rights_holder']]
-        else:
-            group = 'total'
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = group,
-            rights_holder= s['rights_holder'],
-            type = 'download'
-        )
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= s['rights_holder'],
+                type = 'download'
+            )
+        elif s['rights_holder'] == 'total':
+            # 全部
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= 'total',
+                type = 'download'
+            )
 
 
 
@@ -123,6 +119,8 @@ if len(stat_list):
 # 每月累積被查詢次數
 
 ss = SearchStat.objects.filter(created__contains=current_year_month)
+# 在stat裡面會有total的筆數
+
 stat_list = []
 for s in ss:
     for sst in s.stat:
@@ -131,28 +129,34 @@ for s in ss:
 stat_df = pd.DataFrame(stat_list)
 stat_df = stat_df.groupby(['year_month','rights_holder']).size().reset_index(name='count').sort_values('year_month')
 
-# stat_df[stat_df.rights_holder=='total']
-
 
 for s in stat_df.to_dict('records'):
     if s['rights_holder'] in rights_holder_map.keys():
         group = rights_holder_map[s['rights_holder']]
-    else:
-        group = 'total'
-    DataStat.objects.create(
-        year_month = current_year_month,
-        count = s['count'],
-        group = group,
-        rights_holder= s['rights_holder'],
-        type = 'search_times'
-    )
+        DataStat.objects.create(
+            year_month = current_year_month,
+            count = s['count'],
+            group = group,
+            rights_holder= s['rights_holder'],
+            type = 'search_times'
+        )
+    elif s['rights_holder'] == 'total':
+        # 全部
+        DataStat.objects.create(
+            year_month = current_year_month,
+            count = s['count'],
+            group = 'total',
+            rights_holder= 'total',
+            type = 'search_times'
+        )
 
 
 
 # ('download_times', '累積被下載次數'),
 
-
 ss = SearchQuery.objects.filter(type='record',created__contains=current_year_month)
+# 在stat裡面會有total的筆數
+
 stat_list = []
 for s in ss:
     if s.stat:
@@ -165,27 +169,35 @@ if len(stat_list):
     for s in stat_df.to_dict('records'):
         if s['rights_holder'] in rights_holder_map.keys():
             group = rights_holder_map[s['rights_holder']]
-        else:
-            group = 'total'
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = group,
-            rights_holder= s['rights_holder'],
-            type = 'download_times'
-        )
-
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= s['rights_holder'],
+                type = 'download_times'
+            )
+        elif s['rights_holder'] == 'total':
+            # 全部
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = 'total',
+                rights_holder= 'total',
+                type = 'download_times'
+            )
 
 # ('sensitive', '累積敏感資料被下載筆數'),
 
 
 ss = SearchQuery.objects.filter(type__in=['sensitive','record'],created__contains=current_year_month)
+# 在stat裡面會有total的筆數
+
 stat_list = []
 for s in ss:
     if s.sensitive_stat:
         for sst in s.sensitive_stat:
-            if sst['val'] in rights_holder_map.keys():
-                stat_list.append({'rights_holder': sst['val'],'count': sst['count'],'year_month': current_year_month})
+            # if sst['val'] in rights_holder_map.keys():
+            stat_list.append({'rights_holder': sst['val'],'count': sst['count'],'year_month': current_year_month})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -193,13 +205,19 @@ if len(stat_list):
     for s in stat_df.to_dict('records'):
         if s['rights_holder'] in rights_holder_map.keys():
             group = rights_holder_map[s['rights_holder']]
-        else:
-            group = 'total'
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = group,
-            rights_holder= s['rights_holder'],
-            type = 'sensitive'
-        )
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= s['rights_holder'],
+                type = 'sensitive'
+            )
+        elif s['rights_holder'] == 'total':
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = 'total',
+                rights_holder= 'total',
+                type = 'sensitive'
+            )
 
