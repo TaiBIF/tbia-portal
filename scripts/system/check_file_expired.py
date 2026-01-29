@@ -20,7 +20,16 @@ for sq in SearchQuery.objects.filter(modified__lt=exp).exclude(status='fail'):
 exp = datetime.now() - timedelta(days=66)
 # 如果更新日期 比過期的日期還小(早)的話 代表已過期
 
-for sq in SearchQuery.objects.filter(modified__lt=exp, status='expired'):
-    path = f'/tbia-volumes/media/download/{sq.type}/tbia_{ sq.query_id }.zip'
-    my_file = Path(path)
-    my_file.unlink(missing_ok=True)
+# for sq in SearchQuery.objects.filter(modified__lt=exp, status='expired'):
+#     path = f'/tbia-volumes/media/download/{sq.type}/tbia_{ sq.query_id }.zip'
+#     my_file = Path(path)
+#     my_file.unlink(missing_ok=True)
+
+
+for folder in ['record', 'taxon', 'sensitive']:
+    dir_path = Path(f'/tbia-volumes/media/download/{folder}')
+    if dir_path.exists():
+        for f in dir_path.iterdir():
+            if f.is_file() and datetime.fromtimestamp(f.stat().st_mtime) < exp:
+                print(f, datetime.fromtimestamp(f.stat().st_mtime))
+                f.unlink()
