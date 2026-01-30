@@ -1,10 +1,8 @@
 # 每月更新後台儀表板統計
 from manager.models import *
-# import json
 import urllib.parse
 import pandas as pd
 from django.utils import timezone
-# from datetime import timedelta
 import dateutil.relativedelta
 from data.utils import rights_holder_map
 
@@ -73,7 +71,7 @@ for s in stat_df.to_dict('records'):
         DataStat.objects.create(
             year_month = current_year_month,
             count = s['count'],
-            group = group,
+            group = 'total',
             rights_holder= 'total',
             type = 'search'
         )
@@ -107,7 +105,7 @@ if len(stat_list):
             DataStat.objects.create(
                 year_month = current_year_month,
                 count = s['count'],
-                group = group,
+                group = 'total',
                 rights_holder= 'total',
                 type = 'download'
             )
@@ -221,3 +219,48 @@ if len(stat_list):
                 type = 'sensitive'
             )
 
+
+# 使用者統計
+
+ss = SearchQuery.objects.filter(type__in=['record','taxon'], created__contains=current_year_month)
+
+stat_list = []
+for s in ss:
+    if s.user_stat and s.stat:
+        for option in s.user_stat:
+            for sst in s.stat:
+                stat_list.append({
+                    'option': option,
+                    'rights_holder': sst['val']
+                })
+
+if len(stat_list):
+    stat_df = pd.DataFrame(stat_list)
+    stat_df = stat_df.groupby(['option', 'rights_holder']).size().reset_index(name='count')
+    for s in stat_df.to_dict('records'):
+        option = s['option']
+        rights_holder = s['rights_holder']
+        # 判斷 type
+        if option.startswith('a'):
+            stat_type = 'affiliation'
+        elif option.startswith('b'):
+            stat_type = 'role'
+        elif option.startswith('c'):
+            stat_type = 'purpose'
+        else:
+            continue
+        # 判斷 group
+        if rights_holder in rights_holder_map.keys():
+            group = rights_holder_map[rights_holder]
+        elif rights_holder == 'total':
+            group = 'total'
+        else:
+            continue
+        UserDownloadStat.objects.create(
+            year_month=current_year_month,
+            count=s['count'],
+            type=stat_type,
+            option=option,
+            group=group,
+            rights_holder=rights_holder,
+        )
