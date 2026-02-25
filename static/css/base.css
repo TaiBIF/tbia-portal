@@ -1121,3 +1121,50 @@ div.count-1 {
     max-height: 90%;
     overflow: auto
 }
+
+/* 容器保持彈性 */
+.tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Tooltip 本體：從中點開始向右延伸 */
+.tooltip-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    
+    /* 定位設定 */
+    top: -10px;           /* 向上偏移，不擋住圖片 */
+    left: 50%;            /* 從圖片的中心點開始 */
+    /* 注意：這裡不寫 transform: translateX(-50%) */
+    
+    /* 視覺樣式 */
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    white-space: nowrap;  /* 強制文字向右單向延伸，不換行 */
+    z-index: 9999;
+    
+    /* --- 動畫核心設定 --- */
+    opacity: 0;                /* 初始透明 */
+    visibility: hidden;        /* 初始隱藏（防止滑鼠誤觸） */
+    pointer-events: none;
+    
+    /* 轉場設定：只針對 opacity，不加任何位移屬性 */
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Hover 觸發 */
+.tooltip-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 強制解除父層遮擋 (重要！) */
+.logo_area, .cont_padbox, .left_area {
+    overflow: visible !important;
+}

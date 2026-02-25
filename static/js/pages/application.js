@@ -11,7 +11,7 @@ $(function () {
         if ($('#appilcationForm .inpu_3 .input_item select[name=type]').val() == '1') {
             $('.p_affli').removeClass('d-none')
             $('.p_principal').removeClass('d-none')
-            $('.project_type').html(`<span class="color_red">*</span>${gettext('委辦工作計畫名稱')}`)
+            $('.project_type').html(`<span class="color_red">*</span>${gettext('委辦工作或補助計畫名稱')}`)
         } else {
             $('.p_affli').addClass('d-none')
             $('.p_principal').addClass('d-none')
@@ -83,7 +83,7 @@ function sendRequest() {
             }
         })
 
-        // 這邊要依據 是個人計畫還是委辦工作計畫 來判斷必填欄位有哪些
+        // 這邊要依據 是個人計畫還是委辦工作或補助計畫 來判斷必填欄位有哪些
         let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name', 'research_proposal']
         cols.forEach(function (c) {
             if (!$(`#appilcationForm input[name=${c}]`).val()) {
@@ -197,7 +197,7 @@ function sendRequest() {
 //             }
 //         })
 
-//         // 這邊要依據 是個人計畫還是委辦工作計畫 來判斷必填欄位有哪些
+//         // 這邊要依據 是個人計畫還是委辦工作或補助計畫 來判斷必填欄位有哪些
 //         let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name', 'research_proposal']
 //         cols.forEach(function (c) {
 //             if (!$(`#appilcationForm input[name=${c}]`).val()) {

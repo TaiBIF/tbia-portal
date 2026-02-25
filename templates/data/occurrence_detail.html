@@ -117,7 +117,9 @@
         <div class="cont_padbox">
           <div class="logo_area">
             {% if logo %}
-            <img src="/static/image/{{ logo }}" {% if row.references %}data-ref="{{ row.references }}" class="pointer open-ref" {% endif %}>
+            <div class="tooltip-wrapper mt-30px" data-tooltip="{% trans '點擊查看更多來源資料庫資訊' %}">
+              <img src="/static/image/{{ logo }}"  {% if row.references %}data-ref="{{ row.references }}" class="pointer open-ref"{% endif %}>
+            </div>
             {% endif %}
           </div>
           <h2>{% trans '中⽂名' %}{% trans '：' %}{{ row.common_name_c }}</h2>
@@ -129,7 +131,12 @@
               <p>{% trans '原始紀錄物種' %}{% trans '：' %}{{ row.originalScientificName }}</p>
             </div>
             {% if row.taxonID %}
-            <a class="code" target="_blank" href="https://taicol.tw/taxon/{{ row.taxonID }}">{% trans '物種編號' %}{% trans '：' %}{{ row.taxonID }} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
+            <div class="tooltip-wrapper" data-tooltip="{% trans '點擊查看此物種的分類資訊' %}">
+                <a class="code" target="_blank" href="https://taicol.tw/taxon/{{ row.taxonID }}">
+                    {% trans 'TaiCOL物種編號' %}{% trans '：' %}{{ row.taxonID }} 
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i>
+                </a>
+            </div>
             {% else %}
             <div class="yellow-btn">{% trans '臺灣物種名錄未收錄或無法對應' %}</div>
             {% endif %}
@@ -248,7 +255,9 @@
             </li>
           </ul>
           {% if row.references != '' and  row.references != None %}
-          <a href="{{ row.references }}" target="_blank" class="from_data pointer">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.rightsHolder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+          <div class="tooltip-wrapper mt-30px" data-tooltip="{% trans '點擊查看更多來源資料庫資訊' %}">
+            <a href="{{ row.references }}" target="_blank" class="from_data pointer" >{% trans '來源資料庫' %}{% trans '：' %}{% trans row.rightsHolder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+          </div>
           {% else %}
           <a class="from_data">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.rightsHolder %}</a>
           {% endif %}

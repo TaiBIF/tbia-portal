@@ -79,10 +79,10 @@
                         <div class="{% if  detail.type == '1' %}inpu_3{% else %}inpu_2{% endif %}">
                             <div class="input_item">
                                 <p>計畫類型</p>
-                                <input name="type" value="{% if detail.type == '0' %}個人研究計畫{% else %}委辦工作計畫{% endif %}" type="text" disabled>
+                                <input name="type" value="{% if detail.type == '0' %}個人研究計畫{% else %}委辦工作或補助計畫{% endif %}" type="text" disabled>
                             </div>
                             <div class="input_item">
-                                <p class="project_type">{% if detail.type == '0' %}個人研究計畫名稱{% else %}委辦工作計畫{% endif %}</p>
+                                <p class="project_type">{% if detail.type == '0' %}個人研究計畫名稱{% else %}委辦工作或補助計畫{% endif %}</p>
                                 <input name="project_name" value="{{ detail.project_name }}" type="text" disabled>
                             </div>
                             {% if  detail.type == '1' %}

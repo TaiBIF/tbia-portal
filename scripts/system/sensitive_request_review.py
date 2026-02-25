@@ -1,15 +1,9 @@
 from manager.models import SensitiveDataResponse, Workday
 from api.models import APIkey
-# from pages.models import Notification
 from django.db import connection
 from datetime import datetime, timedelta
-# import pandas as pd
-# from os.path import exists
-# from manager.views import send_notification
 from data.views import generate_sensitive_csv
 import threading
-# import glob
-# import os
 from conf.settings import env
 from django.db.models import Max
 
@@ -33,8 +27,12 @@ else:
 today_datetime = datetime.today() + timedelta(hours=8)
 today = today_datetime.date()
 
+SPECIAL_COMMENTS = { 
+    7: '您好，如需申請海保署敏感性資料請至「海洋保育資料倉儲系統」（https://iocean.oca.gov.tw/OCA_DataHUB/index.aspx ）重新選擇欲申請資料集並填寫相關表單，如有相關疑問可洽「海洋保育署 海洋生物保育組 陳玉婷技士 (07)3382057#262233」。', # 海保署
+}
 
 # 取得所有過期的 pending 申請
+
 overdue_requests = SensitiveDataResponse.objects.filter(
     is_transferred=False,
     status='pending',
@@ -44,7 +42,9 @@ overdue_requests = SensitiveDataResponse.objects.filter(
 for sdr in overdue_requests:
     sdr.status = 'fail'
     sdr.reviewer_name = ''
-    sdr.comment = '未獲得資料管理單位同意'
+    # sdr.comment = '未獲得資料管理單位同意'
+    sdr.comment = SPECIAL_COMMENTS.get(sdr.partner_id, '未獲得資料管理單位同意')
+
     sdr.save()
     
     # 確認是不是最後一個單位審核，如果是的話產生下載檔案
