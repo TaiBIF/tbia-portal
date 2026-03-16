@@ -2417,7 +2417,7 @@ def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
                 send_notification([u.id],content,'單次使用敏感資料申請通知')
 
     else:
-        # 委辦工作計畫
+        # 委辦工作或補助計畫
         now = datetime.now() + timedelta(hours=8)
         sdr = SensitiveDataResponse.objects.create(
                     status = 'pending',

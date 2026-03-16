@@ -14,6 +14,7 @@ class UserManager(BaseUserManager):
         """
         user = self.model(
             email=self.normalize_email(email),
+            username=self.normalize_email(email),
             name=kwargs['name'],
             is_email_verified=kwargs['is_email_verified'],
             is_active=kwargs['is_active'],
@@ -159,7 +160,7 @@ class SensitiveDataRequest(models.Model):
 
     type_choice = [
         ('0', '個人研究計畫'),
-        ('1', '委辦工作計畫'),
+        ('1', '委辦工作或補助計畫'),
     ]
 
     applicant =  models.CharField(max_length=100, blank=True)

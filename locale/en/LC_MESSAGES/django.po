@@ -992,15 +992,15 @@ msgid "個人研究計畫"
 msgstr "Individual research project"
 
 #: templates/pages/application.html:73
-msgid "委辦工作計畫"
-msgstr "Commissioned work project"
+msgid "委辦工作或補助計畫"
+msgstr "Commissioned work or grant project"
 
 #: templates/pages/application.html:81
 msgid "個人研究計畫名稱"
 msgstr "Project name"
 
 #: templates/pages/application.html:81
-msgid "委辦工作計畫名稱"
+msgid "委辦工作或補助計畫名稱"
 msgstr "Project name"
 
 #: templates/pages/application.html:81
@@ -3363,3 +3363,11 @@ msgstr "Affiliation"
 #: 
 msgid "點擊左側類群名稱取得更多資訊"
 msgstr "Click on the group name on the left for more information."
+
+#: 
+msgid "點擊查看此物種的分類資訊"
+msgstr "Click to view the taxonomic information for this species"
+
+#: 
+msgid "點擊查看更多來源資料庫資訊"
+msgstr "Click to view more information for the rights holder"

@@ -8532,10 +8532,24 @@ body {
     margin-bottom: 15px
 }
 
-.sc_de_top .left_area .cont_padbox .logo_area img {
+/* .sc_de_top .left_area .cont_padbox .logo_area img {
     max-width: 100%;
     max-height: 100%;
     display: block
+} */
+
+.sc_de_top .left_area .cont_padbox .logo_area .tooltip-wrapper {
+    height: 100%;
+    display: flex;       /* 讓裡面的 <a> 或 <img> 也能垂直居中 */
+    align-items: center;
+}
+
+/* 3. 修正圖片路徑，確保它填滿 wrapper */
+.sc_de_top .left_area .cont_padbox .logo_area .tooltip-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    margin-bottom: 20px;
 }
 
 .sc_de_top .left_area .cont_padbox h2 {

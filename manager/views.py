@@ -1062,7 +1062,6 @@ def register(request):
         request.session['email'] = email
         name = request.POST.get('name')
         password = request.POST.get('password')
-        
         # make sure email is unique
         if User.objects.filter(email=email,is_email_verified=True).exists():
             # messages.add_message(request, messages.ERROR, '此信箱已註冊過')
@@ -1842,32 +1841,10 @@ def get_taxon_group_stat(request):
 
         # 佔入口網臺灣鳥類資料筆數 0.24%，佔TaiCOL臺灣鳥類物種數 48.89%
 
-
         taxon_group_stat = []
-        # # 第一階段：先加入所有系統的 series
-        # for i, group in enumerate(taxon_groups):
-
-            # total_system_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=taxon_group_map_e[group], group='total').count
-            # system_count = system_dict.get(group, 0)
-            # system_percentage = round((system_count / total_system_count) * 100, 2) if total_system_count else 0
-            
-        #     system_data = [0] * len(taxon_groups)
-        #     system_data[i] = system_count
-            
-        #     taxon_group_stat.append({
-        #         'name': f'{group}-系統',
-        #         'data': system_data,
-        #         'color': taxon_group_color_map[group]['dark'],
-        #         # 'systemPercentage': system_percentage
-        #     })
-
-        # 第二階段：再加入所有單位的 series
-        # 某單位資料
-        # if rights_holder != 'total':
 
         taxon_query_holder = list(TaxonStat.objects.filter(year='x', month='x', rights_holder=rights_holder,type='taxon_group').order_by('-count').values('name','count'))
         holder_dict = {taxon_group_map_c[d['name']]: d['count'] for d in taxon_query_holder}
-
 
         for i, group in enumerate(taxon_groups):
             holder_count = holder_dict.get(group, 0)
@@ -1884,7 +1861,7 @@ def get_taxon_group_stat(request):
                 'unitPercentage': unit_percentage,
                 'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count
             })
-
+        
     response = {
         'taxon_group_stat': taxon_group_stat,
     }

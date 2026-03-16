@@ -491,3 +491,23 @@ $('.login_pop').on('show', function () {
 })
 
 
+
+
+document.querySelectorAll('.tooltip-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('mouseenter', () => {
+        const rect = wrapper.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        
+        // 預估 Tooltip 寬度（約 150px，或動態取得）
+        const estimatedWidth = 150; 
+
+        // 如果圖片右邊距離邊界的距離，小於預估寬度
+        if (windowWidth - rect.right < estimatedWidth) {
+            wrapper.classList.remove('pos-right');
+            wrapper.classList.add('pos-left');
+        } else {
+            wrapper.classList.remove('pos-left');
+            wrapper.classList.add('pos-right');
+        }
+    });
+});
