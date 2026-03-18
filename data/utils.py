@@ -641,12 +641,11 @@ def get_media_html(url):
     if main_type == 'image':
         return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
     elif main_type == 'video':
-        return '<video class="icon-size-50" controls><source src="{}" type="{}">{}</video>'.format(url, mime_type, err_msg)
+        return '<video class="icon-size-50" controls><source src="{}">{}</video>'.format(url, err_msg)
     elif main_type == 'audio':
-        return '<audio controls><source src="{}" type="{}">{}</audio>'.format(url, mime_type, err_msg)
+        return '<audio controls><source src="{}">{}</audio>'.format(url, err_msg)
     else:
         return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
-
 
 # 整理搜尋條件
 def create_query_display(search_dict,lang=None):
@@ -844,7 +843,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     query_list = []
 
-    # 有無影像
+    # 有無多媒體
     if has_image := req_dict.get('has_image'):
         if has_image in ['y','true']:
             query_list += ['associatedMedia:*']
@@ -2202,7 +2201,7 @@ def create_tbn_query(req_dict):
         query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
 
 
-    # 有無影像
+    # 有無多媒體
     if has_image := req_dict.get('has_image'):
         if has_image in ['y','true']:
             error_str_list.append('{} = {}'.format(gettext('有無多媒體'),gettext('是')))
