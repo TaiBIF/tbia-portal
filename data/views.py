@@ -1556,7 +1556,7 @@ def get_media_rule():
         results = []
 
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_collection(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
@@ -1579,7 +1579,7 @@ def search_collection(request):
 
     
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_occurrence(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
@@ -1600,7 +1600,7 @@ def search_occurrence(request):
         'purpose_options': purpose_options,
         })
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def occurrence_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
@@ -1609,7 +1609,7 @@ def occurrence_detail(request, id):
     return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def collection_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
@@ -1618,7 +1618,7 @@ def collection_detail(request, id):
     return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def dataset_detail(request, id):
 
     user_stat_options = UserDownloadStat.option_choice
@@ -2191,7 +2191,7 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
-@csp_update(IMG_SRC=get_media_rule())
+@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')

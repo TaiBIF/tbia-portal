@@ -416,8 +416,8 @@ msgstr "Currently Not available"
 
 #: templates/data/collection_detail.html:118
 #: templates/data/occurrence_detail.html:119
-msgid "無照片或照片未提供授權"
-msgstr "No Image or Image not Provided with Authorization"
+msgid "無多媒體或多媒體未提供授權"
+msgstr "No associated media or unauthorized access"
 
 #: templates/data/collection_detail.html:194
 #: templates/data/occurrence_detail.html:183
