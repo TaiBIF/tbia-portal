@@ -54,10 +54,11 @@ basis_map = {
     "Event":"調查活動"
 }
 
+
 rights_holder_map = {
     'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '中央研究院生物多樣性中心動物標本館': 'asiz',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '台灣生物多樣性網絡 TBN': 'tbri',
     '國立臺灣博物館典藏': 'ntm',
     '林業試驗所昆蟲標本館': 'fact',
@@ -73,7 +74,8 @@ rights_holder_map = {
     '國家海洋資料庫及共享平台': 'namr',
     '集水區友善環境生態資料庫': 'ardswc',
     '中油生態地圖': 'cpc',
-    '作物種原資訊系統': 'npgrc'
+    '作物種原資訊系統': 'npgrc',
+    '國立海洋生物博物館生物典藏管理系統': 'nmmba',
 }
 
 rights_holder_list = list(rights_holder_map.values())
@@ -646,6 +648,14 @@ def get_media_html(url):
         return '<audio controls><source src="{}">{}</audio>'.format(url, err_msg)
     else:
         return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
+
+
+def get_media_type(url):
+    mime_type, _ = mimetypes.guess_type(url.split('?')[0])
+    if mime_type:
+        return mime_type.split('/')[0]
+    return 'image'
+
 
 # 整理搜尋條件
 def create_query_display(search_dict,lang=None):
@@ -1733,14 +1743,14 @@ def create_data_detail(id, user_id, record_type):
                 mls = row.get('mediaLicense').split(';')
                 if len(mls) == 1:
                     for a in ams:
-                        am.append({'img': a, 'license': row.get('mediaLicense')})
+                        am.append({'img': a, 'license': row.get('mediaLicense'), 'media_type': get_media_type(a)})
                 else:
                     img_len = len(ams)
                     for i in range(img_len):
-                        am.append({'img': ams[i], 'license': mls[i]})
+                        am.append({'img': ams[i], 'license': mls[i], 'media_type': get_media_type(ams[i])})
             else:
                 for a in ams:
-                    am.append({'img': a, 'license': ''})
+                    am.append({'img': a, 'license': '', 'media_type': get_media_type(a)})
         row.update({'associatedMedia': am})
 
         if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
