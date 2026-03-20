@@ -54,10 +54,11 @@ basis_map = {
     "Event":"調查活動"
 }
 
+
 rights_holder_map = {
     'GBIF': 'gbif',
-    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '中央研究院生物多樣性中心動物標本館': 'asiz',
+    '中央研究院生物多樣性中心植物標本資料庫': 'hast',
     '台灣生物多樣性網絡 TBN': 'tbri',
     '國立臺灣博物館典藏': 'ntm',
     '林業試驗所昆蟲標本館': 'fact',
@@ -73,7 +74,8 @@ rights_holder_map = {
     '國家海洋資料庫及共享平台': 'namr',
     '集水區友善環境生態資料庫': 'ardswc',
     '中油生態地圖': 'cpc',
-    '作物種原資訊系統': 'npgrc'
+    '作物種原資訊系統': 'npgrc',
+    '國立海洋生物博物館生物典藏管理系統': 'nmmba',
 }
 
 rights_holder_list = list(rights_holder_map.values())
@@ -282,7 +284,7 @@ def get_key(val, my_dict):
     return "key doesn't exist"
 
 map_occurrence = {
-    'associatedMedia': '影像',
+    'associatedMedia': '多媒體',
     'domain'	:'域',
     'superkingdom'	:'總界',
     'kingdom'	:'界',
@@ -627,6 +629,33 @@ sensitive_cols = ['standardRawLatitude',
 'rawMunicipality',
 ]
 
+import mimetypes
+
+def get_media_html(url):
+    mime_type, _ = mimetypes.guess_type(url.split('?')[0])
+    if mime_type:
+        main_type = mime_type.split('/')[0]
+    else:
+        main_type = 'image'
+
+    err_msg = gettext('多媒體無法正常顯示')
+
+    if main_type == 'image':
+        return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
+    elif main_type == 'video':
+        return '<video class="icon-size-50" controls><source src="{}">{}</video>'.format(url, err_msg)
+    elif main_type == 'audio':
+        return '<audio controls><source src="{}">{}</audio>'.format(url, err_msg)
+    else:
+        return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
+
+
+def get_media_type(url):
+    mime_type, _ = mimetypes.guess_type(url.split('?')[0])
+    if mime_type:
+        return mime_type.split('/')[0]
+    return 'image'
+
 
 # 整理搜尋條件
 def create_query_display(search_dict,lang=None):
@@ -725,7 +754,7 @@ def create_query_display(search_dict,lang=None):
         elif k == 'name':
             query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
-            query += f"<br><b>{gettext('有無影像')}</b>{gettext('：')}{gettext('有影像') if search_dict.get('has_image') in ['y','true'] else gettext('無影像')}" 
+            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{gettext('有多媒體') if search_dict.get('has_image') in ['y','true'] else gettext('無多媒體')}" 
         elif k == 'is_protected':
             query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') in ['y','true'] else gettext('否')}" 
         elif k == 'is_native':
@@ -824,7 +853,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     query_list = []
 
-    # 有無影像
+    # 有無多媒體
     if has_image := req_dict.get('has_image'):
         if has_image in ['y','true']:
             query_list += ['associatedMedia:*']
@@ -1714,14 +1743,14 @@ def create_data_detail(id, user_id, record_type):
                 mls = row.get('mediaLicense').split(';')
                 if len(mls) == 1:
                     for a in ams:
-                        am.append({'img': a, 'license': row.get('mediaLicense')})
+                        am.append({'img': a, 'license': row.get('mediaLicense'), 'media_type': get_media_type(a)})
                 else:
                     img_len = len(ams)
                     for i in range(img_len):
-                        am.append({'img': ams[i], 'license': mls[i]})
+                        am.append({'img': ams[i], 'license': mls[i], 'media_type': get_media_type(ams[i])})
             else:
                 for a in ams:
-                    am.append({'img': a, 'license': ''})
+                    am.append({'img': a, 'license': '', 'media_type': get_media_type(a)})
         row.update({'associatedMedia': am})
 
         if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
@@ -1948,19 +1977,24 @@ def create_data_table(docs, user_id, obv_str):
             if row.get('basisOfRecord') in basis_map.keys():
                 docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
 
+        # if media_list := row.get('associatedMedia'):
+
+        #     if ';' in media_list:
+        #         img_sep = ';'
+        #     else:
+        #         img_sep = '|'
+
+        #     media_list = media_list.split(img_sep)
+
+            # if len(media_list):
+            #     # 取第一張
+            #     docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(gettext('圖片無法正常顯示'),gettext('圖片無法正常顯示'),media_list[0])
+
         if media_list := row.get('associatedMedia'):
-
-            if ';' in media_list:
-                img_sep = ';'
-            else:
-                img_sep = '|'
-
+            img_sep = ';' if ';' in media_list else '|'
             media_list = media_list.split(img_sep)
-
             if len(media_list):
-                # 取第一張
-                docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(gettext('圖片無法正常顯示'),gettext('圖片無法正常顯示'),media_list[0])
-
+                docs.loc[i, 'associatedMedia'] = get_media_html(media_list[0].strip())
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
@@ -2177,12 +2211,12 @@ def create_tbn_query(req_dict):
         query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
 
 
-    # 有無影像
+    # 有無多媒體
     if has_image := req_dict.get('has_image'):
         if has_image in ['y','true']:
-            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('是')))
+            error_str_list.append('{} = {}'.format(gettext('有無多媒體'),gettext('是')))
         else:
-            error_str_list.append('{} = {}'.format(gettext('有影像'),gettext('否')))
+            error_str_list.append('{} = {}'.format(gettext('有無多媒體'),gettext('否')))
 
     # 是否為原生種
     if is_native := req_dict.get('is_native'):

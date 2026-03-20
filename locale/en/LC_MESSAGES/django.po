@@ -416,8 +416,8 @@ msgstr "Currently Not available"
 
 #: templates/data/collection_detail.html:118
 #: templates/data/occurrence_detail.html:119
-msgid "無照片或照片未提供授權"
-msgstr "No Image or Image not Provided with Authorization"
+msgid "無多媒體或多媒體未提供授權"
+msgstr "No associated media or unauthorized access"
 
 #: templates/data/collection_detail.html:194
 #: templates/data/occurrence_detail.html:183
@@ -460,12 +460,12 @@ msgstr "Type"
 
 #: templates/data/search_collection.html:123
 #: templates/data/search_occurrence.html:116
-msgid "有影像"
+msgid "有多媒體"
 msgstr "Present"
 
 #: templates/data/search_collection.html:124
 #: templates/data/search_occurrence.html:117
-msgid "無影像"
+msgid "無多媒體"
 msgstr "Absent"
 
 #: templates/data/search_collection.html:132
@@ -1174,11 +1174,11 @@ msgstr ""
 
 msgid ""
 "每一筆資料的詳細內容頁面除了呈現物種分類階層與共通欄位的內容外，如來源資料"
-"庫有提供影像及座標點位亦會呈現。<br>除此之外，也可從資料詳細內容頁面外連至"
+"庫有提供多媒體及座標點位亦會呈現。<br>除此之外，也可從資料詳細內容頁面外連至"
 "來源資料庫查看更完整的資訊。"
 msgstr ""
 "The detailed content page of each entry not only displays the species "
-"classification hierarchy and common fields but also includes images and "
+"classification hierarchy and common fields but also includes associated media and "
 "coordinate points if provided by the source database. <br>In addition, "
 "you can also follow external links from the data details page to view "
 "more comprehensive information from the source database."
@@ -1197,8 +1197,8 @@ msgstr " items"
 
 #: static/js/data/search_collection.js:56
 #: static/js/data/search_occurrence.js:61
-msgid "有無影像"
-msgstr "Image Presence"
+msgid "有無多媒體"
+msgstr "Has associated media"
 
 #: static/js/data/search_collection.js:61
 #: static/js/data/search_occurrence.js:69
@@ -1415,7 +1415,7 @@ msgstr "Taxon ID"
 
 #: templates/data/collection_detail.html:109
 #: templates/data/occurrence_detail.html:110
-msgid "影像授權"
+msgid "多媒體授權"
 msgstr "Media License"
 
 #: templates/data/collection_detail.html:128
@@ -2364,7 +2364,7 @@ msgid "是否為保育類，是=true，否=false"
 msgstr "List records by if the record is a protected species. Yes = true, No = false."
 
 #:
-msgid "有無影像，是=true，否=false"
+msgid "有無多媒體，是=true，否=false"
 msgstr "List records by if the record has associated media. Yes = true, No = false."
 
 #:
@@ -2494,7 +2494,7 @@ msgid "標準化數量"
 msgstr "Standardized Organization Quantity"
 
 #:
-msgid "影像URL"
+msgid "多媒體URL"
 msgstr "Associated Media"
 
 #:
@@ -2960,7 +2960,7 @@ msgstr "Number of Records Included in the Dataset"
 
 
 #:
-msgid "影像"
+msgid "多媒體"
 msgstr "Associated Media"
 
 
@@ -3164,6 +3164,11 @@ msgstr "No Results Entered"
 #:
 msgid "圖片無法正常顯示"
 msgstr "The image can't be displayed."
+
+
+#:
+msgid "多媒體無法正常顯示"
+msgstr "Media cannot be displayed."
 
 
 #:

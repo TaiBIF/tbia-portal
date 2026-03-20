@@ -75,7 +75,7 @@ let selectBox6 = new vanillaSelectBox("#circle_radius", {
 selectBox6.setValue('1')
 
 let selectBox7 = new vanillaSelectBox("#has_image", {
-    placeHolder: gettext("有無影像"), search: false, disableSelectAll: true,
+    placeHolder: gettext("有無多媒體"), search: false, disableSelectAll: true,
 });
 
 
