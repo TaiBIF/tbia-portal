@@ -1423,11 +1423,11 @@ legend.onAdd = function (map) {
 
 legend.addTo(partner_map);
 
-// L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+// L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 //     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 // }).addTo(portal_map);
 
-L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(partner_map);
 

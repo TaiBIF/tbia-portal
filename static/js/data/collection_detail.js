@@ -128,13 +128,13 @@ let redIcon = new L.Icon({
 
 if (($('input[name="lat"]').val()!="None")&($('input[name="lon"]').val()!="None")) {
     let map = L.map('map').setView([$('input[name="lat"]').val(), $('input[name="lon"]').val()],6);
-    L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     L.marker([$('input[name="lat"]').val(), $('input[name="lon"]').val()], {icon: redIcon}).addTo(map);
 } else {
     let map = L.map('map').setView([23.5, 121.2], 7);
-    L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 }

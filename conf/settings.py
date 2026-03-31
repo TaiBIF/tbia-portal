@@ -285,9 +285,7 @@ CSP_STYLE_SRC = ["'self'",
 CSP_IMG_SRC = ("'self'",
                "data: http://www.w3.org/2000/svg",
                # 地圖
-               "https://a.tile.osm.org/",
-               "https://b.tile.osm.org/",
-               "https://c.tile.osm.org/",
+               "https://tile.openstreetmap.org/",
                "https://www.googletagmanager.com/",
                "https://cdnjs.cloudflare.com/ajax/libs/leaflet/",
                "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/",
@@ -336,3 +334,4 @@ CSP_SCRIPT_SRC = ["'self'",
 
 # <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"

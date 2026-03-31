@@ -113,7 +113,7 @@ function getDist(taxonID) {
 
 
 let map = L.map('map').setView([23.5, 121.2], 7);
-L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
