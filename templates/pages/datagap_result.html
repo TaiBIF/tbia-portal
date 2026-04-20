@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/pages/datagap_result.css' %}?v6" />
+<link rel="stylesheet" href="/static/nouislider/nouislider.css">
+{% endblock style %}
+{% block head %}
+
+<link rel="stylesheet" href="/static/leaflet/leaflet.css" />
+<script src="/static/leaflet/leaflet.js"></script>
+<script src="/static/leaflet/leaflet.draw.js"></script>
+<link rel="stylesheet" href="/static/leaflet/leaflet.draw.css" />
+<link rel="stylesheet" href="/static/leaflet/leaflet-gesture-handling.min.css" type="text/css">
+<script src="/static/leaflet/leaflet-gesture-handling.min.js"></script>
+
+<script src="/static/highcharts/highcharts.js"></script>
+<script src="/static/highcharts/modules/exporting.js"></script>
+<script src="/static/highcharts/modules/export-data.js"></script>
+<script src="/static/highcharts/modules/accessibility.js"></script>
+
+<script src="/static/nouislider/nouislider.js"></script>
+<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+
+{% endblock head %}
+
+{% block title %}{% trans '2025 年度資料空缺填補成果' %}｜{% endblock %}
+
+{% block body %}
+<div class="path">
+	<div class="main_1240">
+		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '2025 年度資料空缺填補成果' %}</p>
+	</div>
+</div>
+<div class="in_bn resource_bn">
+	<div class="title">
+		<h2>{% trans '2025 年度資料空缺填補成果' %}</h2>
+	</div>
+</div>
+<div class="container_area">
+	<div class="main_1240">
+		<div class="news_de datagap-wrapper">
+
+			<!-- ① 統計卡片 -->
+			<section class="stat-cards">
+				<div class="stat-card">
+					<div class="stat-card__text">
+						<div class="stat-card__label">🧩 {% trans '已填補網格數' %}</div>
+						<div class="stat-card__value" id="stat-filled-grids">—</div>
+						<div class="stat-card__sub" id="stat-filled-grids-sub"></div>
+					</div>
+					<div class="stat-card__icon stat-card__icon--green">🗺️</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-card__text">
+						<div class="stat-card__label">🛡️ {% trans '包含保育類資料' %}</div>
+						<div class="stat-card__value"><span id="stat-conservation-records">—</span> <span class="unit"> {% trans '筆' %}</span></div>
+						<div class="stat-card__sub">{% trans '含一級保育類、二級保育類、三級保育類及珍貴稀有植物' %}</div>
+					</div>
+					<div class="stat-card__icon stat-card__icon--dark">🛡️</div>
+				</div>
+			</section>
+
+			<!-- ② 空間空缺填補概況 -->
+			<section class="section-card">
+				<div class="section-card__top">
+					<div class="section-card__top-main">
+						<h3>🗺️ {% trans '空間空缺填補概況' %}</h3>
+						<p>
+						{% if LANGUAGE_CODE == 'en-us' %}
+						A map displays the geographic distribution of various biological groups within 5×5 km grid cells, providing an overview of spatial coverage and identifying geographic data gaps across taxa.
+						{% else %}
+						以地圖形式呈現不同物種類群在 5×5 公里網格中的地理紀錄分布，用以評估各類群生物資料的地理覆蓋度與空間資料空缺狀態。
+						<br>
+						<span id="stat-filled-delta-text"></span>
+						{% endif %}
+						</p>
+					</div>
+				</div>
+
+				<div class="map-controls">
+					<div class="year-toggle">
+						<button type="button" class="year-toggle__btn" data-mode="before">{% trans '2024 年度' %}</button>
+						<button type="button" class="year-toggle__btn active" data-mode="after">{% trans '2025 年度' %}</button>
+					</div>
+					<div class="control-group">
+						<span class="control-label">{% trans '物種類群' %}</span>
+						<select class="panel-select" name="partner-spatial-taxonGroup">
+							<option value="">{% trans '-- 不限 --' %}</option>
+							<option value="昆蟲">{% trans "昆蟲" %}</option>
+							<option value="蜘蛛">{% trans "蜘蛛" %}</option>
+							<option value="魚類">{% trans "魚類" %}</option>
+							<option value="兩棲類">{% trans "兩棲類" %}</option>
+							<option value="爬蟲類">{% trans "爬蟲類" %}</option>
+							<option value="鳥類">{% trans "鳥類" %}</option>
+							<option value="哺乳類">{% trans "哺乳類" %}</option>
+							<option value="維管束植物">{% trans "維管束植物" %}</option>
+							<option value="蕨類植物">{% trans "蕨類植物" %}</option>
+							<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+							<option value="藻類">{% trans "藻類" %}</option>
+							<option value="病毒">{% trans "病毒" %}</option>
+							<option value="真菌">{% trans "真菌" %}</option>
+							<option value="細菌">{% trans "細菌" %}</option>
+						</select>
+					</div>
+					<div class="metric-badge metric-badge--inline">
+						<span class="metric-badge__label">{% trans '目前空缺率' %}</span>
+						<span class="metric-badge__value">—</span>
+					</div>
+				</div>
+
+				<div class="map-layout spatial-area-div">
+					<div class="map-layout__main">
+						<div class="map-box">
+							<div id="partner-map"></div>
+							<div class="loading_area_partial">
+								<div class="sc">
+									<div class="load"><span>L</span>ading</div>
+								</div>
+							</div>
+						</div>
+						<div class="records-legend">
+							<span class="legend-title">{% trans '資料筆數' %}：</span>
+							<div class="legend-item"><div class="count-5000"></div>5,000 - 10,000</div>
+							<div class="legend-item"><div class="count-10000"></div>10,000 - 50,000</div>
+							<div class="legend-item"><div class="count-50000"></div>50,000 - 100,000</div>
+							<div class="legend-item"><div class="legend-new-growth"></div>{% trans '2025 年度新增網格' %}</div>
+						</div>
+					</div>
+					<aside class="map-layout__side" id="map-detail-container">
+						<div class="detail-panel detail-panel--empty" id="map-detail-empty">
+							<div class="detail-panel__icon">🗺️</div>
+							<p>{% trans '選取地圖網格查看空間填補詳情' %}</p>
+						</div>
+						<div class="detail-panel-filled is-hidden" id="map-detail-filled">
+							<button type="button" class="detail-panel__close" id="map-detail-close">×</button>
+							<div class="detail-panel__total">
+								<span id="map-detail-total">0</span>
+								<span class="unit"> {% trans '筆資料' %}</span>
+							</div>
+							<div id="map-detail-composition"></div>
+						</div>
+					</aside>
+				</div>
+			</section>
+
+			<!-- ③ 主要物種類群填補概況 -->
+			<section class="section-card">
+				<div class="section-heading">
+					<h3>🔎 {% trans '主要物種類群填補概況' %}</h3>
+				</div>
+				<div class="taxa-grid">
+					<!-- 由 JS renderTaxaCards() 動態填入 -->
+				</div>
+			</section>
+
+			<!-- ④ 時間空缺填補概況 -->
+			<section class="section-card">
+				<div class="section-card__heading">
+					<h3>⏱ {% trans '時間空缺填補概況' %}</h3>
+					<p>
+					{% if LANGUAGE_CODE == 'en-us' %}
+					Side-by-side bar charts show the number of records across different years and months, illustrating the continuity and completeness of data over time, and helping to identify temporal data gaps.
+					{% else %}
+					左右相互對照的長條圖呈現不同年份與月份的資料筆數，可顯示資料在時間軸上的連續性與完整性，並用以了解時間上的資料空缺狀態。
+					{% endif %}
+					</p>
+				</div>
+
+				<div class="temporal-controls">
+					<div class="control-group">
+						<span class="control-label">{% trans '年份區間' %}</span>
+						<div class="panel-range-select">
+							<div id="partner-temporal-year-slider"></div>
+						</div>
+					</div>
+					<div class="control-group">
+						<span class="control-label">{% trans '物種類群' %}</span>
+						<select class="panel-select" name="partner-temporal-taxonGroup">
+							<option value="">{% trans '-- 不限 --' %}</option>
+							<option value="昆蟲">{% trans "昆蟲" %}</option>
+							<option value="蜘蛛">{% trans "蜘蛛" %}</option>
+							<option value="魚類">{% trans "魚類" %}</option>
+							<option value="兩棲類">{% trans "兩棲類" %}</option>
+							<option value="爬蟲類">{% trans "爬蟲類" %}</option>
+							<option value="鳥類">{% trans "鳥類" %}</option>
+							<option value="哺乳類">{% trans "哺乳類" %}</option>
+							<option value="維管束植物">{% trans "維管束植物" %}</option>
+							<option value="蕨類植物">{% trans "蕨類植物" %}</option>
+							<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
+							<option value="藻類">{% trans "藻類" %}</option>
+							<option value="病毒">{% trans "病毒" %}</option>
+							<option value="真菌">{% trans "真菌" %}</option>
+							<option value="細菌">{% trans "細菌" %}</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="temporal-layout">
+					<div class="temporal-layout__charts">
+						<div class="temporal-chart">
+							<div class="temporal-chart__title">🕓 {% trans '年份分佈' %}</div>
+							<div id="container-partner-temporal-year-stat" class="chart-canvas"></div>
+						</div>
+						<div class="temporal-chart">
+							<div class="temporal-chart__title">📅 <span id="temporal-month-title">{% trans '月份分布' %}</span></div>
+							<div id="container-partner-temporal-month-stat" class="chart-canvas"></div>
+						</div>
+					</div>
+					<aside class="temporal-layout__side">
+						<div class="detail-panel detail-panel--empty" id="temporal-detail-empty">
+							<div class="detail-panel__icon">⏱️</div>
+							<p>{% trans '點擊圖表長條查看時間填補詳情' %}</p>
+						</div>
+						<div class="detail-panel-light is-hidden" id="temporal-detail-filled">
+							<button type="button" class="detail-panel__close" id="temporal-detail-close">×</button>
+							<div class="detail-panel__total">
+								<span id="temporal-detail-title"></span>
+								<span id="temporal-detail-records">0</span>
+								<span class="unit"> {% trans '筆資料' %}</span>
+								<span class="detail-panel__total-delta" id="temporal-detail-delta"></span>
+							</div>
+							<div id="temporal-detail-composition"></div>
+						</div>
+					</aside>
+				</div>
+			</section>
+
+			<!-- ⑤ 物種類群資料筆數 -->
+			<section class="section-card">
+				<div class="section-card__heading">
+					<h3>📊 {% trans '物種類群資料筆數' %}</h3>
+					<p>
+					{% if LANGUAGE_CODE == 'en-us' %}
+					Clicking on the bar chart reveals the number of records for each biological group and the proportion of recorded species relative to the corresponding species listed in the Taiwan Catalogue of Life (TaiCOL).
+					{% else %}
+					點選長條圖可顯示各物種類群的資料筆數，以及其物種數相較於臺灣物種名錄（TaiCOL）中對應類群物種數的比例。此處維管束植物不包含蕨類植物。
+					{% endif %}
+					</p>
+				</div>
+				<div class="taxon-group-layout">
+					<div class="taxon-group-layout__chart">
+						<div id="container-taxon_group-stat"></div>
+					</div>
+					<div class="taxon-group-layout__side">
+						<div class="detail-panel detail-panel--empty" id="taxon-detail-empty">
+							<div class="detail-panel__icon">📊</div>
+							<p>{% trans '點擊圖表長條查看類群資料詳情' %}</p>
+						</div>
+						<div class="detail-panel-info is-hidden" id="taxon_group-stat-content">
+							<button type="button" class="detail-panel__close" id="taxon-detail-close">×</button>
+							<div id="taxon-detail-inner"></div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+		</div>
+	</div>
+</div>
+
+{% endblock body %}
+
+{% block script %}
+<script src="{% static 'js/pages/datagap_result.js' %}?v9"></script>
+{% endblock script %}

@@ -1,0 +1,702 @@
+/* ============================================================
+   Datagap 2025 改版 - 保留既有主綠配色 (#76A578 / #3F5146)
+   ============================================================ */
+
+/* ─────────────────────────────────────────────
+   變數 / Utility
+   ───────────────────────────────────────────── */
+.datagap-wrapper {
+  --dg-green: #76A578;
+  --dg-green-dark: #3F5146;
+  --dg-green-light: #e9f2e9;
+  --dg-orange: #E2A460;
+  --dg-red: #C65454;
+  --dg-y2024: #7FA89E;
+  --dg-y2025: #D29478;
+  --dg-y2024-decline: #D3D3D3;
+  --dg-y2025-decline: #808080;
+  --dg-slate-900: #1e293b;
+  --dg-slate-700: #334155;
+  --dg-slate-500: #64748b;
+  --dg-slate-400: #94a3b8;
+  --dg-slate-300: #cbd5e1;
+  --dg-slate-200: #e2e8f0;
+  --dg-slate-100: #f1f5f9;
+  --dg-slate-50: #f8fafc;
+}
+
+.datagap-wrapper > * + * { margin-top: 40px; }
+.datagap-wrapper .is-hidden { display: none !important; }
+
+.datagap-wrapper h3 {
+  font-size: 22px;
+  color: var(--dg-green-dark);
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.expired-p {
+  font-size: 14px;
+  color: #C65454;
+  line-height: 20px;
+  text-align: right;
+}
+
+.spatial-stat-number {
+  font-weight: bold;
+  color: #76A578;
+  text-decoration: underline;
+}
+
+/* ─────────────────────────────────────────────
+   共用：section-card
+   ───────────────────────────────────────────── */
+.section-card {
+  background: #fff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 20px;
+  padding: 32px;
+  margin-top: 40px;
+}
+@media only screen and (max-width: 767px) {
+  .section-card { padding: 18px; border-radius: 14px; }
+}
+
+.section-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+.section-card__top-main { flex: 1; min-width: 0; }
+.section-card__top-main h3 { margin-bottom: 10px; }
+.section-card__top-main p {
+  color: var(--dg-slate-500);
+  line-height: 1.7;
+  margin: 0;
+  font-size: 15px;
+}
+@media only screen and (max-width: 767px) {
+  .section-card__top { flex-direction: column; gap: 18px; }
+}
+
+.section-card__heading {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--dg-slate-100);
+}
+.section-card__heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.section-card__heading p {
+  color: var(--dg-slate-500);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+.section-heading h3 { white-space: nowrap; }
+
+/* ─────────────────────────────────────────────
+   共用：控制列元件 (select / control-group)
+   ───────────────────────────────────────────── */
+.main_1240 select {
+  padding: 0px 5px 0px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  width: 50%;
+  height: 35px;
+  font-size: 15px;
+}
+.control-group { display: flex; align-items: center; gap: 10px; }
+.control-label {
+  font-weight: 700;
+  color: var(--dg-slate-700);
+  line-height: 35px;
+  white-space: nowrap;
+}
+.datagap-wrapper .panel-select {
+  width: 200px !important;
+  height: 35px;
+  padding: 0 10px;
+}
+@media only screen and (max-width: 767px) {
+  .datagap-wrapper .panel-select { width: 100% !important; }
+}
+
+/* ─────────────────────────────────────────────
+   共用：徽章 & 年份切換
+   ───────────────────────────────────────────── */
+.metric-badge {
+  background: var(--dg-green-dark);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(63, 81, 70, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+.metric-badge__label {
+  font-size: 14px;
+  letter-spacing: 2px;
+  opacity: 0.8;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.metric-badge__value { font-size: 28px; font-weight: 900; }
+
+.metric-badge--inline {
+  margin-left: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.metric-badge--inline .metric-badge__label {
+  font-size: 13px;
+  letter-spacing: 1px;
+  margin-bottom: 0;
+}
+.metric-badge--inline .metric-badge__value { font-size: 20px; }
+
+.year-toggle {
+  display: flex;
+  background: #fff;
+  border: 1px solid var(--dg-slate-200);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+}
+.year-toggle__btn {
+  flex: 1;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dg-slate-500);
+  letter-spacing: 1px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.year-toggle__btn:hover { background: var(--dg-slate-50); }
+.year-toggle__btn.active {
+  background: var(--dg-green);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(118, 165, 120, 0.4);
+}
+
+/* ─────────────────────────────────────────────
+   共用：詳情面板 (empty / filled / close)
+   ───────────────────────────────────────────── */
+.detail-panel {
+  background: #fff;
+  border: 2px dashed var(--dg-slate-200);
+  border-radius: 20px;
+  padding: 40px 30px;
+  height: 100%;
+  min-height: 300px;
+  color: var(--dg-slate-500);
+  line-height: 1.7;
+}
+.detail-panel--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.detail-panel__icon { font-size: 42px; margin-bottom: 20px; opacity: 0.5; }
+.detail-panel--empty p {
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--dg-slate-400);
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-panel-light,
+.detail-panel-info,
+.detail-panel-filled {
+  position: relative;
+}
+
+.detail-panel-filled {
+  background: #fff;
+  border: 1px solid var(--dg-slate-200);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+}
+
+.detail-panel__close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: var(--dg-slate-400);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .2s;
+  line-height: 1;
+}
+.detail-panel__close:hover { background: var(--dg-slate-100); color: var(--dg-slate-700); }
+
+.detail-panel__total {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--dg-slate-900);
+  line-height: 1.2;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+.detail-panel__total .unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dg-slate-400);
+  font-style: italic;
+}
+.detail-panel__total-delta {
+  font-size: 15px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+.detail-panel__total-delta.delta-growth { color: #b8680a; }
+.detail-panel__total-delta.delta-decline { color: #888; }
+
+/* ─────────────────────────────────────────────
+   共用：composition-row (地圖 & 時間面板表格列)
+   ───────────────────────────────────────────── */
+.composition-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--dg-slate-700);
+  border-bottom: 1px solid var(--dg-slate-100);
+}
+.comp-col-name {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.comp-col-num {
+  width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.comp-col-delta { font-weight: 600; }
+
+.composition-row--header {
+  font-weight: 600;
+  color: var(--dg-slate-400);
+  border-bottom: 2px solid var(--dg-slate-200);
+  font-size: 12px;
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+}
+
+.composition-row--growth { color: #b8680a; }
+.composition-row--growth .comp-col-delta { color: #16a34a; }
+.composition-row--decline { color: #888; }
+.composition-row--decline .comp-col-delta { color: #dc2626; }
+
+.composition-row--highlight {
+  background: linear-gradient(90deg, #e0f7fa 0%, #80deea 100%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  color: #006064;
+  font-weight: 900;
+  justify-content: center;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+
+/* ─────────────────────────────────────────────
+   ① 統計卡片
+   ───────────────────────────────────────────── */
+.stat-cards { display: flex; gap: 20px; }
+@media only screen and (max-width: 767px) {
+  .stat-cards { flex-direction: column; }
+}
+
+.stat-card {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.stat-card__label {
+  font-size: 14px;
+  color: var(--dg-slate-500);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.stat-card__value {
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--dg-slate-900);
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+.stat-card__value .unit {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dg-slate-400);
+  margin-left: 2px;
+}
+.stat-card__sub {
+  color: var(--dg-green);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.stat-card__icon {
+  font-size: 28px;
+  padding: 14px;
+  border-radius: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.stat-card__icon--green { background: var(--dg-green-light); color: var(--dg-green); }
+.stat-card__icon--dark { background: #eef2f4; color: var(--dg-green-dark); }
+
+/* ─────────────────────────────────────────────
+   ② 空間填補互動地圖
+   ───────────────────────────────────────────── */
+.map-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+  margin-bottom: 18px;
+}
+.map-controls .year-toggle {
+  width: 220px;
+  flex-shrink: 0;
+  margin: 0;
+}
+@media only screen and (max-width: 767px) {
+  .map-controls { flex-wrap: wrap; }
+  .map-controls .year-toggle { width: 100%; }
+}
+
+.map-layout { display: flex; gap: 24px; }
+@media only screen and (max-width: 999px) {
+  .map-layout { flex-direction: column; }
+}
+.map-layout__main { flex: 1; min-width: 0; }
+.map-layout__side { width: 400px; flex-shrink: 0; }
+@media only screen and (max-width: 999px) {
+  .map-layout__side { width: 100%; }
+}
+
+.map-box {
+  background: #fff;
+  border: 1px solid var(--dg-slate-200);
+  border-radius: 16px;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.datagap-wrapper #partner-map {
+  height: 450px;
+  margin: 0;
+  border-radius: 10px;
+}
+
+.map-box .loading_area_partial {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  border-radius: 10px;
+  height: 100%;
+}
+
+.records-legend {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 14px;
+  color: var(--dg-slate-700);
+  padding: 0 8px;
+  align-items: center;
+}
+.records-legend .legend-title { font-weight: 700; color: var(--dg-slate-900); }
+.records-legend .legend-item { display: flex; align-items: center; gap: 6px; }
+
+.legend-new-growth {
+  border: none;
+  background: #00FFFF;
+  width: 25px;
+  height: 25px;
+  border-radius: 100px;
+  transform: scale(0.5, 0.5);
+}
+
+#map-detail-composition { padding: 0 4px; }
+
+/* ─────────────────────────────────────────────
+   ③ 主要類群修補紀錄 (taxa-card)
+   ───────────────────────────────────────────── */
+.taxa-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+@media only screen and (max-width: 999px) {
+  .taxa-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media only screen and (max-width: 599px) {
+  .taxa-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.taxa-card {
+  background: var(--dg-slate-50);
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 18px;
+  padding: 22px 16px 18px;
+  text-align: center;
+  transition: all .2s ease;
+}
+.taxa-card:hover {
+  background: #fff;
+  border-color: var(--dg-green);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.taxa-card__icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  line-height: 1;
+}
+.taxa-card__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dg-slate-700);
+  margin-bottom: 6px;
+}
+.taxa-card__value {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--dg-slate-900);
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+.taxa-card__meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dg-slate-400);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.taxa-card__bar {
+  width: 100%;
+  height: 6px;
+  background: var(--dg-slate-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.taxa-card__bar-fill {
+  height: 100%;
+  background: var(--dg-green);
+  border-radius: 3px;
+  transition: width .6s ease;
+}
+
+/* 各類群卡片配色 */
+.taxa-card--amphibian .taxa-card__icon { background: #e0ecee; color: #2e7986; }
+.taxa-card--bird .taxa-card__icon { background: #e3ecf5; color: #3F6B8F; }
+.taxa-card--fern .taxa-card__icon { background: #e9f2e9; color: #76A578; }
+.taxa-card--mammal .taxa-card__icon { background: #eee6f0; color: #775289; }
+.taxa-card--fish .taxa-card__icon { background: #e0f2fe; color: #0284c7; }
+
+/* ─────────────────────────────────────────────
+   ④ 時間空缺填補
+   ───────────────────────────────────────────── */
+.temporal-controls {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 14px;
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.temporal-controls .panel-range-select {
+  width: 300px;
+  height: 35px;
+  display: grid;
+  align-items: center;
+}
+@media only screen and (max-width: 767px) {
+  .temporal-controls { flex-direction: column; align-items: stretch; gap: 16px; }
+  .temporal-controls .panel-range-select { width: 100%; }
+  .temporal-controls .control-group { flex-wrap: wrap; }
+}
+
+.temporal-layout { display: flex; gap: 24px; }
+@media only screen and (max-width: 1199px) {
+  .temporal-layout { flex-direction: column; }
+}
+.temporal-layout__charts {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 20px;
+  padding: 24px;
+  min-width: 0;
+}
+@media only screen and (max-width: 767px) {
+  .temporal-layout__charts { flex-direction: column; }
+}
+.temporal-chart { flex: 1; min-width: 0; }
+.temporal-chart__title {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--dg-slate-500);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-canvas { height: 400px; }
+
+.temporal-layout__side { width: 400px; flex-shrink: 0; }
+@media only screen and (max-width: 1199px) {
+  .temporal-layout__side { width: 100%; }
+}
+
+/* 時間詳情面板 (Light) */
+.detail-panel-light {
+  background: #ffffff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 20px;
+  padding: 28px;
+  height: 100%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+}
+
+#temporal-detail-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dg-slate-400);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+/* ─────────────────────────────────────────────
+   ⑤ 物種類群資料筆數
+   ───────────────────────────────────────────── */
+.taxon-group-layout { display: flex; gap: 24px; }
+@media only screen and (max-width: 999px) {
+  .taxon-group-layout { flex-direction: column; }
+}
+.taxon-group-layout__chart {
+  flex: 2;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 16px;
+  padding: 20px;
+}
+.taxon-group-layout__chart #container-taxon_group-stat { height: 560px; }
+.taxon-group-layout__chart .expired-p { margin-top: 10px; margin-left: 10px; }
+.taxon-group-layout__side { flex: 1; min-width: 280px; }
+
+.detail-panel-info {
+  background: #fff;
+  border: 1px solid var(--dg-slate-100);
+  border-radius: 16px;
+  padding: 24px;
+  font-size: 16px;
+  color: var(--dg-slate-700);
+  line-height: 1.8;
+  min-height: 200px;
+}
+.detail-panel-info .fs-18px {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dg-slate-900);
+  margin-bottom: 8px;
+}
+.detail-panel-info a { color: var(--dg-green); font-weight: 700; }
+.detail-panel-info a:hover { color: var(--dg-orange); }
+.detail-panel-info .delta-growth {
+  color: var(--dg-y2025);
+  font-weight: 900;
+}
+.detail-panel-info .delta-decline {
+  color: var(--dg-y2025-decline);
+  font-weight: 900;
+}
+#taxon-detail-inner { padding-top: 10px; }
+
+/* ─────────────────────────────────────────────
+   元件覆寫：nouislider
+   ───────────────────────────────────────────── */
+#partner-temporal-year-slider { height: 10px; }
+#partner-temporal-year-slider .noUi-connect { background: #72A0C1; }
+#partner-temporal-year-slider .noUi-handle {
+  height: 18px;
+  width: 18px;
+  top: -5px;
+  right: -9px;
+  border-radius: 9px;
+}
