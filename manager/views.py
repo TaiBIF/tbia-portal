@@ -2038,22 +2038,18 @@ def get_data_stat(request):
 
     elif type in ['search_times', 'download_times', 'sensitive', 'data', 'search', 'download'] and rights_holder != 'total':
 
-
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
         df['count'] = df['count'].astype('int')
 
-        new_data_list = []
         for mm in month_list:
             now_year_month = f'{year}-{"{:02d}".format(mm)}'
             if not len(df[df.year_month==now_year_month]):
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': rights_holder, 'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
-        # new_data_list.append({'name': rights_holder, 'data': df.sort_values('year_month')['count'].to_list(), 'color': colors[0] })
-        new_data_list.append({'name': rights_holder, 'data': df.sort_values('year_month')['count'].to_list()})
 
-        resp['data'] = new_data_list
+        resp['data'] = df.sort_values('year_month')['count'].to_list()
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
+        
     else:
 
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
