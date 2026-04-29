@@ -1556,7 +1556,7 @@ def get_media_rule():
         results = []
 
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_collection(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col')
@@ -1569,17 +1569,29 @@ def search_collection(request):
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
-
-    return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+    # return render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+    #     'rank_list': rank_list, 'county_list': county_list,
+    #     'affiliation_options': affiliation_options,
+    #     'role_options': role_options,
+    #     'purpose_options': purpose_options,
+    #     })
+    response = render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'county_list': county_list,
         'affiliation_options': affiliation_options,
         'role_options': role_options,
         'purpose_options': purpose_options,
         })
+    
+    media_rule = get_media_rule()
+    response._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return response
 
     
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_occurrence(request):
 
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
@@ -1592,33 +1604,65 @@ def search_occurrence(request):
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
+    # return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
+    #     'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list, #'dataset_list': dataset_list
+    #     'affiliation_options': affiliation_options,
+    #     'role_options': role_options,
+    #     'purpose_options': purpose_options,
+    #     })
 
-    return render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
+    response = render(request, 'data/search_occurrence.html', {'holder_list': holder_list, # 'sensitive_list': sensitive_list,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list, #'dataset_list': dataset_list
         'affiliation_options': affiliation_options,
         'role_options': role_options,
         'purpose_options': purpose_options,
         })
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+    media_rule = get_media_rule()
+    response._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return response
+
+
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def occurrence_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
     row, path_str, logo = create_data_detail(id, user_id, 'occ')
 
-    return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+    # return render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+    response = render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+
+    media_rule = get_media_rule()
+    response._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return response
 
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def collection_detail(request, id):
 
     user_id = request.user.id if request.user.id else 0
     row, path_str, logo = create_data_detail(id, user_id, 'col')
 
-    return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
+    # return render(request, 'data/collection_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
+    response = render(request, 'data/collection_detail.html', {
+        'row': row, 'path_str': path_str, 'logo': logo
+    })
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+    media_rule = get_media_rule()
+    response._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return response
+
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def dataset_detail(request, id):
 
     user_stat_options = UserDownloadStat.option_choice
@@ -1673,9 +1717,18 @@ def dataset_detail(request, id):
 
     conn.close()
 
-    return render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
+    # return render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
+    #             'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })
+
+    response = render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
                 'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })
 
+    media_rule = get_media_rule()
+    response._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return response
 
 
 def get_map_grid(request):
@@ -2192,7 +2245,7 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
-@csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
+# @csp_update(IMG_SRC=get_media_rule(), MEDIA_SRC=get_media_rule())
 def search_full(request):
     # s = time.time()
     keyword = request.GET.get('keyword', '')
@@ -2365,8 +2418,15 @@ def search_full(request):
             'all_empty': True,
         }
 
-    return render(request, 'data/search_full.html', response)
+    # return render(request, 'data/search_full.html', response)
+    resp =  render(request, 'data/search_full.html', response)
 
+    media_rule = get_media_rule()
+    resp._csp_update = {
+        'img-src': media_rule,
+        'media-src': media_rule,
+    }
+    return resp
 
 def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
     if project_type == '0':
