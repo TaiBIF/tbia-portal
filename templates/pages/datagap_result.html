@@ -46,6 +46,16 @@
 	<div class="main_1240">
 		<div class="news_de datagap-wrapper">
 
+			<!-- 前言 -->
+			<section class="intro-card">
+				{% if LANGUAGE_CODE == 'en-us' %}
+				{% else %}
+				<p>TBIA 於 2025 年啟動資料空缺填補主題計畫，與聯盟各夥伴單位攜手合作，針對不同類型的空缺進行補充，包含物種空缺（Taxonomic Gaps）、空間空缺（Spatial Gaps）、時間空缺（Temporal Gaps）。本年度共填補了 <span id="intro-filled-grids">—</span> 個網格，其中成功新填補了 <span id="intro-filled-delta">—</span> 個網格！資料填補全台覆蓋率達 <span id="intro-coverage-rate">—</span>。其中包含 <span id="intro-conservation">—</span> 筆保育類資料,前五大類群為 <span id="intro-top-taxa">—</span>。</p>
+				<br>
+				<p>以下為2025年度資料空缺填補成果互動區，為確保空缺填補成果之完整性，所有於2025年產出之調查紀錄，統一於2026年2月底完成最終統計。</p>
+				{% endif %}
+			</section>
+
 			<!-- ① 統計卡片 -->
 			<section class="stat-cards">
 				<div class="stat-card">
@@ -60,9 +70,23 @@
 					<div class="stat-card__text">
 						<div class="stat-card__label">🛡️ {% trans '包含保育類資料' %}</div>
 						<div class="stat-card__value"><span id="stat-conservation-records">—</span> <span class="unit"> {% trans '筆' %}</span></div>
-						<div class="stat-card__sub">{% trans '含一級保育類、二級保育類、三級保育類及珍貴稀有植物' %}</div>
+						<div class="stat-card__sub">
+							{% trans '含' %}<span class="conservation-tag" data-key="一級保育類">{% trans '一級保育類' %}</span>、<span class="conservation-tag" data-key="二級保育類">{% trans '二級保育類' %}</span>、<span class="conservation-tag" data-key="三級保育類">{% trans '三級保育類' %}</span>{% trans '及' %}<span class="conservation-tag" data-key="珍貴稀有植物">{% trans '珍貴稀有植物' %}</span>
+						</div>
 					</div>
 					<div class="stat-card__icon stat-card__icon--dark">🛡️</div>
+				</div>
+			</section>
+			{% comment %} <div class="datagap-note">
+				📌 {% trans '本頁所有數據為「截至該年度底」之系統累積狀態，非該年度新增量' %}
+			</div> {% endcomment %}
+			<!-- ③ 主要物種類群填補概況 -->
+			<section class="section-card">
+				<div class="section-heading">
+					<h3>🔎 {% trans '主要物種類群填補概況' %}</h3>
+				</div>
+				<div class="taxa-grid">
+					<!-- 由 JS renderTaxaCards() 動態填入 -->
 				</div>
 			</section>
 
@@ -73,11 +97,16 @@
 						<h3>🗺️ {% trans '空間空缺填補概況' %}</h3>
 						<p>
 						{% if LANGUAGE_CODE == 'en-us' %}
-						A map displays the geographic distribution of various biological groups within 5×5 km grid cells, providing an overview of spatial coverage and identifying geographic data gaps across taxa.
+						Geographic distribution of records using 5×5 km grid cells, used to evaluate the geographic coverage and spatial filling status of each biological group. The 2024/2025 comparison feature visualizes annual progress and spatial distribution changes. Color intensity indicates record counts; blue cells highlight "newly added grids in 2025". <span id="stat-filled-delta-text"></span>
 						{% else %}
-						以地圖形式呈現不同物種類群在 5×5 公里網格中的地理紀錄分布，用以評估各類群生物資料的地理覆蓋度與空間資料空缺狀態。
-						<br>
-						<span id="stat-filled-delta-text"></span>
+						使用單位為 5×5 公里網格的地理紀錄分布，用以評估各類群生物資料的地理覆蓋度與空間填補狀態，並提供 2024 與 2025 年度對比功能,直觀呈現年度地理填補的進程與空間分布變化，透過顏色深淺區分資料筆數的多寡，其中藍色區塊為「2025 年度新增網格」。<span id="stat-filled-delta-text"></span>
+						{% endif %}
+						</p>
+						<p class="section-note">
+						{% if LANGUAGE_CODE == 'en-us' %}
+						<strong>Grid filling definition:</strong> A grid is considered "successfully filled" when its accumulated records reach 5,000 or more.
+						{% else %}
+						<strong>網格填補定義：</strong>網格內資料累積筆數達 5,000 筆以上，即定義為「網格填補成功」。
 						{% endif %}
 						</p>
 					</div>
@@ -85,8 +114,8 @@
 
 				<div class="map-controls">
 					<div class="year-toggle">
-						<button type="button" class="year-toggle__btn" data-mode="before">{% trans '2024 年度' %}</button>
-						<button type="button" class="year-toggle__btn active" data-mode="after">{% trans '2025 年度' %}</button>
+						<button type="button" class="year-toggle__btn" data-mode="before">{% trans '截至 2024 年底' %}</button>
+						<button type="button" class="year-toggle__btn active" data-mode="after">{% trans '截至 2025 年底' %}</button>
 					</div>
 					<div class="control-group">
 						<span class="control-label">{% trans '物種類群' %}</span>
@@ -129,7 +158,7 @@
 							<div class="legend-item"><div class="count-5000"></div>5,000 - 10,000</div>
 							<div class="legend-item"><div class="count-10000"></div>10,000 - 50,000</div>
 							<div class="legend-item"><div class="count-50000"></div>50,000 - 100,000</div>
-							<div class="legend-item"><div class="legend-new-growth"></div>{% trans '2025 年度新增網格' %}</div>
+							<div class="legend-item"><div class="legend-new-growth"></div>{% trans '截至 2025 年底新增網格' %}</div>
 						</div>
 					</div>
 					<aside class="map-layout__side" id="map-detail-container">
@@ -149,25 +178,18 @@
 				</div>
 			</section>
 
-			<!-- ③ 主要物種類群填補概況 -->
-			<section class="section-card">
-				<div class="section-heading">
-					<h3>🔎 {% trans '主要物種類群填補概況' %}</h3>
-				</div>
-				<div class="taxa-grid">
-					<!-- 由 JS renderTaxaCards() 動態填入 -->
-				</div>
-			</section>
-
 			<!-- ④ 時間空缺填補概況 -->
 			<section class="section-card">
 				<div class="section-card__heading">
 					<h3>⏱ {% trans '時間空缺填補概況' %}</h3>
 					<p>
 					{% if LANGUAGE_CODE == 'en-us' %}
-					Side-by-side bar charts show the number of records across different years and months, illustrating the continuity and completeness of data over time, and helping to identify temporal data gaps.
+
 					{% else %}
-					左右相互對照的長條圖呈現不同年份與月份的資料筆數，可顯示資料在時間軸上的連續性與完整性，並用以了解時間上的資料空缺狀態。
+
+					時間空缺表示某些時期內的資料不足，透過典藏資料數位化或加強開放過往調查或研究調查，皆能填補時間軸上的資料斷層。左右相互對照的長條圖呈現不同年份與月份的資料筆數，可顯示資料在時間軸上的連續性與完整性，並用以了解時間上的資料空缺狀態。
+					<br>
+					點擊長條圖可查看年度填補的歷史資料分布。
 					{% endif %}
 					</p>
 				</div>
@@ -234,18 +256,37 @@
 			<!-- ⑤ 物種類群資料筆數 -->
 			<section class="section-card">
 				<div class="section-card__heading">
-					<h3>📊 {% trans '物種類群資料筆數' %}</h3>
+					<h3>📊 {% trans '物種類群填補概況' %}</h3>
 					<p>
 					{% if LANGUAGE_CODE == 'en-us' %}
-					Clicking on the bar chart reveals the number of records for each biological group and the proportion of recorded species relative to the corresponding species listed in the Taiwan Catalogue of Life (TaiCOL).
 					{% else %}
-					點選長條圖可顯示各物種類群的資料筆數，以及其物種數相較於臺灣物種名錄（TaiCOL）中對應類群物種數的比例。此處維管束植物不包含蕨類植物。
+					待調整
 					{% endif %}
 					</p>
+				</div>
+				<div class="taxon-mode-controls">
+					<div class="year-toggle">
+						<button type="button" class="taxon-mode-btn active" data-mode="ratio">{% trans '物種填補率' %}</button>
+						<button type="button" class="taxon-mode-btn" data-mode="records">{% trans '資料筆數' %}</button>
+					</div>
 				</div>
 				<div class="taxon-group-layout">
 					<div class="taxon-group-layout__chart">
 						<div id="container-taxon_group-stat"></div>
+						<div class="taxon-chart-legend">
+							<div class="legend-item">
+								<span class="taxon-swatch taxon-swatch--y2025"></span>
+								{% trans '截至 2025 年底' %}
+							</div>
+							<div class="legend-item">
+								<span class="taxon-swatch taxon-swatch--y2024"></span>
+								{% trans '截至 2024 年底' %}
+							</div>
+							<div class="legend-item">
+								<span class="taxon-swatch taxon-swatch--decline"></span>
+								{% trans '較 2024 年底減少（2024 顯示為虛框）' %}
+							</div>
+						</div>
 					</div>
 					<div class="taxon-group-layout__side">
 						<div class="detail-panel detail-panel--empty" id="taxon-detail-empty">
@@ -259,7 +300,47 @@
 					</div>
 				</div>
 			</section>
-
+			<!-- 合作夥伴致謝 -->
+			<section class="section-card ack-section">
+				<div class="section-card__heading">
+					<h3>🤝 {% trans '合作夥伴致謝' %}</h3>
+					<p>{% trans '感謝以下夥伴單位於 2025 年度資料空缺填補計畫中的貢獻' %}</p>
+				</div>
+				<div class="ack-groups">
+					<div class="ack-group">
+						<div class="ack-group__title">{% trans '公家機關' %}</div>
+						<div class="ack-group__items">
+							<div class="ack-item">{% trans '農業部生物多樣性研究所' %}</div>
+							<div class="ack-item">{% trans '農業部水產試驗所' %}</div>
+							<div class="ack-item">{% trans '內政部國土管理署' %}</div>
+							<div class="ack-item">{% trans '基隆市政府' %}</div>
+						</div>
+					</div>
+					<div class="ack-group">
+						<div class="ack-group__title">{% trans '民間團體 / 公民科學社群' %}</div>
+						<div class="ack-group__items">
+							<div class="ack-item">{% trans '社團法人中華民國野鳥學會' %}</div>
+							<div class="ack-item">eBird Taiwan</div>
+							<div class="ack-item">{% trans '社團法人基隆市野鳥學會' %}</div>
+							<div class="ack-item">{% trans '台灣石虎保育協會' %}</div>
+						</div>
+					</div>
+					<div class="ack-group">
+						<div class="ack-group__title">{% trans '企業' %}</div>
+						<div class="ack-group__items">
+							<div class="ack-item">{% trans '羽林生態股份有限公司' %}</div>
+							<div class="ack-item">{% trans '研海生態顧問股份有限公司' %}</div>
+							<div class="ack-item">{% trans '浸水營生態顧問有限公司' %}</div>
+						</div>
+					</div>
+					<div class="ack-group">
+						<div class="ack-group__title">{% trans '學術單位 / 實驗室' %}</div>
+						<div class="ack-group__items">
+							<div class="ack-item">{% trans '中央研究院—綠島長期社會核心觀測站' %}</div>
+						</div>
+					</div>
+				</div>
+			</section>
 		</div>
 	</div>
 </div>

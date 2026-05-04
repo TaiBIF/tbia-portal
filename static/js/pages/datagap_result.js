@@ -38,6 +38,8 @@ var TEMPORAL_DATA = null;
 var GRID_DATA = null;
 
 window.CURRENT_MAP_MODE = 'after';
+window.CURRENT_MAP_MODE = 'after';
+window.CURRENT_TAXON_MODE = 'ratio'; // 'ratio' or 'records'
 
 
 // ============================================================
@@ -193,15 +195,36 @@ function fetchSpatialData(taxonGroup) {
 function renderSummaryCards(data) {
     $('#stat-filled-grids').text(Highcharts.numberFormat(data.filled_grids, 0));
     $('#stat-filled-grids-sub').text(
-        gettext('成功新填補') + ' ' + data.filled_grids_delta + ' ' + gettext('個空間網格缺口')
+        gettext('較 2024 年底新填補') + ' ' + data.filled_grids_delta + ' ' + gettext('個空間網格缺口')
     );
+
     $('#stat-conservation-records').text(Highcharts.numberFormat(data.conservation_records, 0));
     $('#stat-coverage-rate').text(data.coverage_rate + '%');
     $('#stat-filled-delta-text').html(
-        '2025 ' + gettext('年共填補了') + ' <span class="spatial-stat-number">' + data.filled_grids_delta + '</span> ' +
+        gettext('截至 2025 年底共填補了') + ' <span class="spatial-stat-number">' + data.filled_grids_delta + '</span> ' +
         gettext('個網格缺口。全台覆蓋率達') + ' <span class="spatial-stat-number">' + data.coverage_rate + '%</span>。'
     );
+
     $('.metric-badge__value').text(data.gap_rate + '%');
+
+    // 保育類細項 tooltip
+    if (data.conservation_breakdown) {
+        $('.conservation-tag').each(function() {
+            var key = $(this).data('key');
+            var count = data.conservation_breakdown[key];
+            if (count != null) {
+                $(this).attr('data-count',
+                    gettext(key) + '：' + Highcharts.numberFormat(count, 0) + ' ' + gettext('筆')
+                );
+            }
+        });
+    }
+
+    // 前言數字
+    $('#intro-filled-grids').text(Highcharts.numberFormat(data.filled_grids, 0));
+    $('#intro-filled-delta').text(data.filled_grids_delta);
+    $('#intro-coverage-rate').text(data.coverage_rate + '%');
+    $('#intro-conservation').text(Highcharts.numberFormat(data.conservation_records, 0));
 }
 
 
@@ -241,6 +264,10 @@ function renderTaxaCards(data) {
         html += '</div>';
         $grid.append(html);
     });
+
+    // 前言：前五大類群
+    var separator = ($lang === 'en-us') ? ', ' : '、';
+    $('#intro-top-taxa').text(cards.map(function(t) { return gettext(t.name); }).join(separator));
 }
 
 
@@ -374,9 +401,10 @@ function showMapGridDetail(gridcode, d) {
 
     if (isNewGrowth) {
         html += '<div class="composition-row composition-row--highlight">';
-        html +=   '<span>✨ ' + gettext('2025 新增突破區域') + '</span>';
+        html +=   '<span>✨ ' + gettext('截至 2025 年底新增填補網格') + '</span>';
         html += '</div>';
     }
+
     $box.html(html);
 
     $('#map-detail-empty').addClass('is-hidden');
@@ -388,13 +416,34 @@ function showMapGridDetail(gridcode, d) {
 // ⑤ 物種類群長條圖 (2024 vs 2025)
 // ============================================================
 function renderTaxonChart() {
-    var sorted = TAXON_DATA.slice().sort(function(a, b) { return a.ratio_2025 - b.ratio_2025; });
+    var mode = window.CURRENT_TAXON_MODE;
+    var isRatio = (mode === 'ratio');
 
+    // 依模式排序
+    var sorted = TAXON_DATA.slice().sort(function(a, b) {
+        return isRatio ? (a.ratio_2025 - b.ratio_2025)
+                       : (a.records_2025 - b.records_2025);
+    });
+
+    // 依模式取值與判斷增減
     var data2024 = sorted.map(function(t) {
-        return { y: t.ratio_2024, color: t.ratio_2025 < t.ratio_2024 ? COLOR_2024_DECLINE : COLOR_2024 };
+        var v24 = isRatio ? t.ratio_2024 : t.records_2024;
+        var v25 = isRatio ? t.ratio_2025 : t.records_2025;
+        if (v25 < v24) {
+            // 減少：透明填色 + 邊框，讓 2025 從底下透出來
+            return {
+                y: v24,
+                color: 'rgba(0,0,0,0)',
+                borderColor: COLOR_2024_DECLINE,
+                borderWidth: 2
+            };
+        }
+        return { y: v24, color: COLOR_2024 };
     });
     var data2025 = sorted.map(function(t) {
-        return { y: t.ratio_2025, color: t.ratio_2025 < t.ratio_2024 ? COLOR_2025_DECLINE : COLOR_2025 };
+        var v24 = isRatio ? t.ratio_2024 : t.records_2024;
+        var v25 = isRatio ? t.ratio_2025 : t.records_2025;
+        return { y: v25, color: v25 < v24 ? COLOR_2025_DECLINE : COLOR_2025 };
     });
 
     $('#container-taxon_group-stat').highcharts(Highcharts.merge(commonOptions, {
@@ -406,18 +455,20 @@ function renderTaxonChart() {
             labels: { style: { fontSize: '13px', fontWeight: 'bold', color: '#334155' } },
         },
         yAxis: {
-            title: { text: gettext('資料筆數'), style: { color: '#64748b', fontSize: '12px' } },
-            max: 100,
+            title: {
+                text: isRatio ? gettext('物種填補率') : gettext('資料筆數'),
+                style: { color: '#64748b', fontSize: '12px' }
+            },
+            max: isRatio ? 100 : null,
             gridLineDashStyle: 'Dash',
             gridLineColor: '#e2e8f0',
-            labels: { rotation: -20, format: '{value}%', style: { color: '#94a3b8', fontSize: '12px' } },
+            labels: {
+                rotation: -20,
+                format: isRatio ? '{value}%' : '{value:,.0f}',
+                style: { color: '#94a3b8', fontSize: '12px' }
+            },
         },
-        legend: {
-            enabled: true,
-            align: 'center',
-            verticalAlign: 'bottom',
-            itemStyle: { fontSize: '12px', fontWeight: 'bold' },
-        },
+        legend: { enabled: false },
         tooltip: {
             shared: true,
             backgroundColor: '#1e293b',
@@ -426,12 +477,21 @@ function renderTaxonChart() {
             style: { color: '#fff' },
             formatter: function() {
                 var t = sorted[this.x];
-                var d = (t.ratio_2025 - t.ratio_2024).toFixed(2);
-                var sign = d >= 0 ? '+' : '';
-                return '<b>' + gettext(t.name) + '</b><br/>' +
-                       '2024: ' + t.ratio_2024.toFixed(2) + '%<br/>' +
-                       '2025: ' + t.ratio_2025.toFixed(2) + '%<br/>' +
-                       gettext('變化') + ': ' + sign + d + ' ' + gettext('百分點');
+                if (isRatio) {
+                    var d = (t.ratio_2025 - t.ratio_2024).toFixed(2);
+                    var sign = d >= 0 ? '+' : '';
+                    return '<b>' + gettext(t.name) + '</b><br/>' +
+                        gettext('截至 2024 年底') + ': ' + t.ratio_2024.toFixed(2) + '%<br/>' +
+                        gettext('截至 2025 年底') + ': ' + t.ratio_2025.toFixed(2) + '%<br/>' +
+                        gettext('變化') + ': ' + sign + d + ' ' + gettext('百分點');
+                } else {
+                    var rd = t.records_2025 - t.records_2024;
+                    var rsign = rd >= 0 ? '+' : '';
+                    return '<b>' + gettext(t.name) + '</b><br/>' +
+                        gettext('截至 2024 年底') + ': ' + Highcharts.numberFormat(t.records_2024, 0) + ' ' + gettext('筆') + '<br/>' +
+                        gettext('截至 2025 年底') + ': ' + Highcharts.numberFormat(t.records_2025, 0) + ' ' + gettext('筆') + '<br/>' +
+                        gettext('變化') + ': ' + rsign + Highcharts.numberFormat(rd, 0) + ' ' + gettext('筆');
+                }
             }
         },
         plotOptions: {
@@ -449,34 +509,41 @@ function renderTaxonChart() {
             }
         },
         series: [
-            { name: '2025', data: data2025, pointPadding: 0, color: COLOR_2025 },
-            { name: '2024', data: data2024, pointPadding: 0, color: COLOR_2024 }
+            { name: gettext('截至 2025 年底'), data: data2025, pointPadding: 0, color: COLOR_2025 },
+            { name: gettext('截至 2024 年底'), data: data2024, pointPadding: 0, color: COLOR_2024 }
         ]
     }));
 }
+
 
 function showTaxonDetail(t) {
     $('#taxon-detail-empty').addClass('is-hidden');
     $('#taxon_group-stat-content').removeClass('is-hidden');
 
-    var delta = (t.ratio_2025 - t.ratio_2024).toFixed(2);
-    var recordDelta = t.records_2025 - t.records_2024;
-    var sign = delta >= 0 ? '+' : '';
-    var deltaClass = t.ratio_2025 < t.ratio_2024 ? 'delta-decline' : 'delta-growth';
-    var recordSign = recordDelta >= 0 ? '+' : '';
-    var recordClass = recordDelta >= 0 ? 'delta-growth' : 'delta-decline';
-
+    var mode = window.CURRENT_TAXON_MODE;
     var html = '';
     html += '<p class="fs-18px">[ ' + gettext(t.name) + ' ]</p>';
-    html += '<p class="mt-5px"><b>2024 ' + gettext('填補率') + '：</b>' + t.ratio_2024.toFixed(2) + '%</p>';
-    html += '<p><b>2025 ' + gettext('填補率') + '：</b>' + t.ratio_2025.toFixed(2) + '%</p>';
-    html += '<p><b>' + gettext('年度變化') + '：</b><span class="' + deltaClass + '">' + sign + delta + ' ' + gettext('百分點') + '</span></p>';
-    html += '<p class="mt-5px"><b>2024 ' + gettext('資料筆數') + '：</b>' + Highcharts.numberFormat(t.records_2024, 0) + '</p>';
-    html += '<p><b>2025 ' + gettext('資料筆數') + '：</b>' + Highcharts.numberFormat(t.records_2025, 0) + '</p>';
-    html += '<p><b>' + gettext('筆數增長') + '：</b><span class="' + recordClass + '">' + recordSign + Highcharts.numberFormat(recordDelta, 0) + '</span></p>';
+
+    if (mode === 'ratio') {
+        var delta = (t.ratio_2025 - t.ratio_2024).toFixed(2);
+        var sign = delta >= 0 ? '+' : '';
+        var deltaClass = t.ratio_2025 < t.ratio_2024 ? 'delta-decline' : 'delta-growth';
+
+        html += '<p class="mt-5px"><b>2024 ' + gettext('填補率') + '：</b>' + t.ratio_2024.toFixed(2) + '%</p>';
+        html += '<p><b>2025 ' + gettext('填補率') + '：</b>' + t.ratio_2025.toFixed(2) + '%</p>';
+        html += '<p><b>' + gettext('年度變化') + '：</b><span class="' + deltaClass + '">' + sign + delta + ' ' + gettext('百分點') + '</span></p>';
+    } else {
+        var recordDelta = t.records_2025 - t.records_2024;
+        var recordSign = recordDelta >= 0 ? '+' : '';
+        var recordClass = recordDelta >= 0 ? 'delta-growth' : 'delta-decline';
+
+        html += '<p class="mt-5px"><b>2024 ' + gettext('資料筆數') + '：</b>' + Highcharts.numberFormat(t.records_2024, 0) + '</p>';
+        html += '<p><b>2025 ' + gettext('資料筆數') + '：</b>' + Highcharts.numberFormat(t.records_2025, 0) + '</p>';
+        html += '<p><b>' + gettext('筆數增長') + '：</b><span class="' + recordClass + '">' + recordSign + Highcharts.numberFormat(recordDelta, 0) + '</span></p>';
+    }
+
     $('#taxon-detail-inner').html(html);
 }
-
 
 // ============================================================
 // ④ 時間圖：年（依年份區間 slice）
@@ -486,7 +553,7 @@ function renderTemporalYearChart() {
     if (!sliced) return;
 
     $('#container-partner-temporal-year-stat').highcharts(Highcharts.merge(commonOptions, {
-        chart: { type: 'column', backgroundColor: 'transparent', spacing: [8, 0, 8, 0] },
+        chart: { type: 'column', backgroundColor: 'transparent', spacing: [8, 20, 8, 0] },
         xAxis: {
             categories: sliced.categories,
             lineColor: 'transparent',
@@ -528,8 +595,8 @@ function renderTemporalYearChart() {
             }
         },
         series: [
-            { name: '2025', data: sliced.data_2025.slice(), color: COLOR_2025, pointPadding: 0 },
-            { name: '2024', data: sliced.data_2024.slice(), color: COLOR_2024, pointPadding: 0 }
+            { name: gettext('截至 2025 年底'), data: sliced.data_2025.slice(), color: COLOR_2025, pointPadding: 0 },
+            { name: gettext('截至 2024 年底'), data: sliced.data_2024.slice(), color: COLOR_2024, pointPadding: 0 }
         ]
     }));
 }
@@ -587,8 +654,8 @@ function renderTemporalMonthChart() {
             }
         },
         series: [
-            { name: '2025', data: agg.data_2025.slice(), color: COLOR_2025, pointPadding: 0 },
-            { name: '2024', data: agg.data_2024.slice(), color: COLOR_2024, pointPadding: 0 }
+            { name: gettext('截至 2025 年底'), data: agg.data_2025.slice(), color: COLOR_2025, pointPadding: 0 },
+            { name: gettext('截至 2024 年底'), data: agg.data_2024.slice(), color: COLOR_2024, pointPadding: 0 }
         ]
     }));
 }
@@ -671,13 +738,12 @@ function updateTemporalDetail(year, month) {
 // ============================================================
 function buildCompositionTable(entries, emptyMsg) {
     var html = '';
-    html += '<div class="composition-row composition-row--header">';
-    html +=   '<span class="comp-col-name">' + gettext('類群') + '</span>';
-    html +=   '<span class="comp-col-num">2024</span>';
-    html +=   '<span class="comp-col-num">2025</span>';
-    html +=   '<span class="comp-col-num">' + gettext('變化') + '</span>';
-    html += '</div>';
-
+        html += '<div class="composition-row composition-row--header">';
+        html +=   '<span class="comp-col-name">' + gettext('類群') + '</span>';
+        html +=   '<span class="comp-col-num">' + gettext('2024 年底') + '</span>';
+        html +=   '<span class="comp-col-num">' + gettext('2025 年底') + '</span>';
+        html +=   '<span class="comp-col-num">' + gettext('變化') + '</span>';
+        html += '</div>';
     if (entries.length === 0) {
         html += '<div class="composition-row"><span style="color:#94a3b8">' + emptyMsg + '</span></div>';
     } else {
@@ -733,6 +799,21 @@ $(document).ready(function() {
         window.CURRENT_MAP_MODE = $(this).data('mode');
         refreshGridStyles();
     });
+
+    // 物種類群模式切換 (填補率 / 資料筆數)
+    $('.taxon-mode-btn').on('click', function() {
+        if ($(this).hasClass('active')) return;
+        $('.taxon-mode-btn').removeClass('active');
+        $(this).addClass('active');
+        window.CURRENT_TAXON_MODE = $(this).data('mode');
+
+        // 重新渲染圖表
+        renderTaxonChart();
+        // 關閉詳情面板（資料維度變了）
+        $('#taxon_group-stat-content').addClass('is-hidden');
+        $('#taxon-detail-empty').removeClass('is-hidden');
+    });
+
 
     // 面板關閉
     $('#map-detail-close').on('click', function() {
