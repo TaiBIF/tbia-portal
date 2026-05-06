@@ -49,10 +49,13 @@
 			<!-- 前言 -->
 			<section class="intro-card">
 				{% if LANGUAGE_CODE == 'en-us' %}
-				{% else %}
-				<p>TBIA 於 2025 年啟動資料空缺填補主題計畫，與聯盟各夥伴單位攜手合作，針對不同類型的空缺進行補充，包含物種空缺（Taxonomic Gaps）、空間空缺（Spatial Gaps）、時間空缺（Temporal Gaps）。本年度共填補了 <span id="intro-filled-grids">—</span> 個網格，其中成功新填補了 <span id="intro-filled-delta">—</span> 個網格！資料填補全台覆蓋率達 <span id="intro-coverage-rate">—</span>。其中包含 <span id="intro-conservation">—</span> 筆保育類資料,前五大類群為 <span id="intro-top-taxa">—</span>。</p>
+				In 2025, the Taiwan Biodiversity Information Alliance (TBIA) launched a thematic project dedicated to filling data gaps. Working hand in hand with its partner organizations, the alliance targeted different types of deficiencies, including taxonomic gaps, spatial gaps, and temporal gaps. This year, a total of 852 grid cells were filled, including 36 newly completed grid cells! The overall data coverage across Taiwan has now reached 78.97%. The dataset includes 3,838,564 records of protected species, with the top five taxonomic groups being amphibians, birds, ferns, mammals, and fish.
 				<br>
-				<p>以下為2025年度資料空缺填補成果互動區，為確保空缺填補成果之完整性，所有於2025年產出之調查紀錄，統一於2026年2月底完成最終統計。</p>
+				Below is the interactive section showcasing the results of the 2025 data gap-filling initiative. To ensure the integrity of the results, final statistics for all survey records generated in 2025 were compiled and finalized by the end of February 2026.
+				{% else %}
+				TBIA於2025年啟動資料空缺填補主題計畫，與聯盟各夥伴單位攜手合作，針對不同類型的空缺進行補充，包含物種空缺(Taxonomic Gaps)、空間空缺(Spatial Gaps)、時間空缺(Temporal Gaps)。本年度共填補了852個網格，其中成功新填補了36個網格！資料填補全台覆蓋率達78.97%。其中包含3,838,564筆保育類資料，前五大類群為兩棲類、鳥類、蕨類植物、哺乳類、魚類。
+				<br>
+				以下為2025年度資料空缺填補成果互動區，為確保空缺填補成果之完整性，所有於2025年產出之調查紀錄，統一於2026年2月底完成最終統計。
 				{% endif %}
 			</section>
 
@@ -77,14 +80,19 @@
 					<div class="stat-card__icon stat-card__icon--dark">🛡️</div>
 				</div>
 			</section>
-			{% comment %} <div class="datagap-note">
-				📌 {% trans '本頁所有數據為「截至該年度底」之系統累積狀態，非該年度新增量' %}
-			</div> {% endcomment %}
 			<!-- ③ 主要物種類群填補概況 -->
 			<section class="section-card">
-				<div class="section-heading">
-					<h3>🔎 {% trans '主要物種類群填補概況' %}</h3>
+				<div class="section-card__top">
+					<div class="section-card__top-main">
+						<h3>🔎 {% trans '主要物種類群填補概況' %}</h3>
+						<p>{% if LANGUAGE_CODE == 'en-us' %}
+						The species coverage rate for the top five taxonomic groups, representing the number of species recorded in our data relative to the total number of species for those corresponding groups in the Taiwan Catalogue of Life (TaiCOL).
+						{% else %}
+						比例前五高的物種類群物種數相較於臺灣物種名錄(TaiCOL)中對應類群物種數的比例。
+						{% endif %}</p>
+					</div>
 				</div>
+
 				<div class="taxa-grid">
 					<!-- 由 JS renderTaxaCards() 動態填入 -->
 				</div>
@@ -184,12 +192,9 @@
 					<h3>⏱ {% trans '時間空缺填補概況' %}</h3>
 					<p>
 					{% if LANGUAGE_CODE == 'en-us' %}
-
+					Temporal gaps indicate a lack of data during specific periods. These data discontinuities along the timeline can be filled by digitizing archival collections or by promoting the open access of historical and research surveys. The side-by-side bar charts compare the data counts across different years and months, demonstrating the continuity and completeness of the data over time, while also illustrating the current status of temporal data gaps.
 					{% else %}
-
 					時間空缺表示某些時期內的資料不足，透過典藏資料數位化或加強開放過往調查或研究調查，皆能填補時間軸上的資料斷層。左右相互對照的長條圖呈現不同年份與月份的資料筆數，可顯示資料在時間軸上的連續性與完整性，並用以了解時間上的資料空缺狀態。
-					<br>
-					點擊長條圖可查看年度填補的歷史資料分布。
 					{% endif %}
 					</p>
 				</div>
@@ -251,6 +256,13 @@
 						</div>
 					</aside>
 				</div>
+				<p class="section-note">
+				{% if LANGUAGE_CODE == 'en-us' %}
+				Select 'As of the end of 2024' or 'As of the end of 2025' to toggle the annual data display. Click on any bar in the chart to view the historical details of the data filled.
+				{% else %}
+				點選 截至2024年底 或 截至2025年底 可控制呈現年度資料結果，點擊圖表長條圖可查看年度填補的歷史資料詳情。
+				{% endif %}
+				</p>
 			</section>
 
 			<!-- ⑤ 物種類群資料筆數 -->
@@ -259,8 +271,13 @@
 					<h3>📊 {% trans '物種類群填補概況' %}</h3>
 					<p>
 					{% if LANGUAGE_CODE == 'en-us' %}
+					Select "Species Coverage Rate" or "Number of Records" to toggle between different annual statistical results. Clicking on a bar for a specific taxonomic group allows you to further examine the annual variations and data growth.
+					<br>
+					Note: A gray bar in the chart indicates that the number of species recorded for that taxonomic group in that specific year has decreased compared to its proportion of the total species count in the Taiwan Catalogue of Life (TaiCOL) from the previous year. However, a decrease in the number of species does not equate to a change in the total number of records; it simply reflects that the species recorded in that year were more concentrated.
 					{% else %}
-					待調整
+					點選「物種填補率」與「資料筆數」可切換查看年度統計成果；點擊特定類群長條圖，則可進一步檢視資料年度變化與筆數增長狀況。
+					<br>
+					備註：長條圖顯示為灰色，代表此類群該年度的物種數較前一年所占的同一類群TaiCOL總物種數下降。但物種數量的減少並不等同於資料筆數的增減，僅反映該年度記錄到的物種種類較為集中。
 					{% endif %}
 					</p>
 				</div>
@@ -304,13 +321,18 @@
 			<section class="section-card ack-section">
 				<div class="section-card__heading">
 					<h3>🤝 {% trans '合作夥伴致謝' %}</h3>
-					<p>{% trans '感謝以下夥伴單位於 2025 年度資料空缺填補計畫中的貢獻' %}</p>
+					<p>
+					{% if LANGUAGE_CODE == 'en-us' %}
+					Open data is more than just numbers; it is the vital foundation supporting research and conservation actions. Beyond the TBIA partner organizations, biodiversity data also relies heavily on the open data contributed by various institutions and groups. We sincerely thank the following government agencies, citizen groups, academic institutions, and corporate partners for their collective efforts in promoting the accumulation and sharing of biodiversity data in 2025 (listed by category):
+					{% else %}
+					開放資料不只是數字，更是支撐研究與保育行動的重要基礎，除了TBIA夥伴單位外，生物多樣性資料亦仰賴各不同單位與團體提供的開放資料。感謝以下政府機關、公民團體、學術單位及企業夥伴，在2025年度共同促進生物多樣性資料的累積與分享（依性質排序）：
+					{% endif %}
+					</p>
 				</div>
 				<div class="ack-groups">
 					<div class="ack-group">
 						<div class="ack-group__title">{% trans '公家機關' %}</div>
 						<div class="ack-group__items">
-							<div class="ack-item">{% trans '農業部生物多樣性研究所' %}</div>
 							<div class="ack-item">{% trans '農業部水產試驗所' %}</div>
 							<div class="ack-item">{% trans '內政部國土管理署' %}</div>
 							<div class="ack-item">{% trans '基隆市政府' %}</div>

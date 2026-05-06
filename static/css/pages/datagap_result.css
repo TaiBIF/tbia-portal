@@ -855,18 +855,12 @@
 }
 .ack-item {
   background: #fff;
-  border: 1px solid var(--dg-slate-200);
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 14px;
   font-weight: 600;
   color: var(--dg-slate-700);
   transition: all .2s;
-}
-.ack-item:hover {
-  border-color: var(--dg-green);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 .section-note {
   margin-top: 12px !important;

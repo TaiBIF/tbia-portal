@@ -92,7 +92,12 @@ function getAggregatedMonthData() {
 
     var ym = TEMPORAL_DATA.year_month;
     var range = getYearRange();
-    var categories = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    var categories = [
+        gettext('1月'), gettext('2月'), gettext('3月'), gettext('4月'),
+        gettext('5月'), gettext('6月'), gettext('7月'), gettext('8月'),
+        gettext('9月'), gettext('10月'), gettext('11月'), gettext('12月')
+    ];
+
     var data_2024 = [0,0,0,0,0,0,0,0,0,0,0,0];
     var data_2025 = [0,0,0,0,0,0,0,0,0,0,0,0];
     var breakdown = [{},{},{},{},{},{},{},{},{},{},{},{}];
@@ -689,9 +694,8 @@ function updateTemporalDetail(year, month) {
         // 月份：使用年份區間彙整後的資料
         var agg = getAggregatedMonthData();
         if (!agg) return;
-
-        var monthIndex = parseInt(String(month).replace(/[^0-9]/g, '')) - 1;
-        if (monthIndex < 0 || monthIndex > 11) monthIndex = 0;
+        var monthIndex = agg.categories.indexOf(String(month));
+        if (monthIndex < 0) monthIndex = 0;
         val2024 = agg.data_2024[monthIndex];
         val2025 = agg.data_2025[monthIndex];
         breakdown = agg.taxon_breakdown[monthIndex];
@@ -752,7 +756,7 @@ function buildCompositionTable(entries, emptyMsg) {
             var cls = d >= 0 ? 'composition-row--growth' : 'composition-row--decline';
             var sign = d >= 0 ? '+' : '';
             html += '<div class="composition-row ' + cls + '">';
-            html +=   '<span class="comp-col-name">' + e.name + '</span>';
+            html +=   '<span class="comp-col-name">' + gettext(e.name) + '</span>';
             html +=   '<span class="comp-col-num">' + Highcharts.numberFormat(e.c2024, 0) + '</span>';
             html +=   '<span class="comp-col-num">' + Highcharts.numberFormat(e.c2025, 0) + '</span>';
             html +=   '<span class="comp-col-num comp-col-delta">' + sign + Highcharts.numberFormat(d, 0) + '</span>';
