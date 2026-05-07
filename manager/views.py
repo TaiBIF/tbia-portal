@@ -1621,9 +1621,7 @@ def get_partner_stat(request):
                             'color': quality_color_map_holder[q],
                             'y': 0
                         })
-
                         quality_str_list.append('{}級 0 筆'.format(quality_map[q]))
-                        
                 db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
 
 
@@ -1660,14 +1658,11 @@ def get_partner_stat(request):
         taxon_group_stat = []
         # 第一階段：先加入所有系統的 series
         for i, group in enumerate(taxon_groups):
-
             total_system_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=taxon_group_map_e[group], group='total').count
             system_count = system_dict.get(group, 0)
             # system_percentage = round((system_count / total_system_count) * 100, 2) if total_system_count else 0
-            
             system_data = [0] * len(taxon_groups)
             system_data[i] = system_count
-            
             taxon_group_stat.append({
                 'name': f'{group}-系統',
                 'data': system_data,
@@ -1680,16 +1675,14 @@ def get_partner_stat(request):
             holder_count = holder_dict.get(group, 0)
             system_count = system_dict.get(group, 0)
             unit_percentage = round((holder_count / system_count) * 100, 2) if system_count else 0 # 佔入口網鳥類
-            
             holder_data = [0] * len(taxon_groups)
             holder_data[i] = holder_count
-            
             taxon_group_stat.append({
                 'name': f'{group}-單位',
                 'data': holder_data,
                 'color': taxon_group_color_map[group]['light'],
                 'unitPercentage': unit_percentage,
-                'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count
+                'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count if TaxonStat.objects.filter(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).exists() else 0
             })
 
         # print(rights_holder)
@@ -2045,22 +2038,18 @@ def get_data_stat(request):
 
     elif type in ['search_times', 'download_times', 'sensitive', 'data', 'search', 'download'] and rights_holder != 'total':
 
-
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
         df['count'] = df['count'].astype('int')
 
-        new_data_list = []
         for mm in month_list:
             now_year_month = f'{year}-{"{:02d}".format(mm)}'
             if not len(df[df.year_month==now_year_month]):
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': rights_holder, 'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
-        # new_data_list.append({'name': rights_holder, 'data': df.sort_values('year_month')['count'].to_list(), 'color': colors[0] })
-        new_data_list.append({'name': rights_holder, 'data': df.sort_values('year_month')['count'].to_list()})
 
-        resp['data'] = new_data_list
+        resp['data'] = df.sort_values('year_month')['count'].to_list()
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
+        
     else:
 
         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])

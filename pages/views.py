@@ -455,5 +455,8 @@ def get_ark_list(request):
 
 
 def datagap(request):
-    # type = request.GET.get('type', 'all')
     return render(request, 'pages/datagap.html')
+
+
+def datagap_result(request):
+    return render(request, 'pages/datagap_result.html')
