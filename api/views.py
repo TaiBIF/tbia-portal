@@ -23,7 +23,9 @@ from manager.models import SearchCount #, SearchStat
 # from conf.settings import 
 import psycopg2
 from psycopg2 import sql
-from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c, get_map_geojson, create_search_query
+from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
+                        backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c,
+                        split_group_map, get_map_geojson, create_search_query)
 import threading
 
 
@@ -70,7 +72,8 @@ def check_coor(lon,lat):
     
 
 def api_doc(request):
-    return render(request, 'pages/api_doc.html')
+    from data.utils import rights_holder_map
+    return render(request, 'pages/api_doc.html', {'rights_holder_list': rights_holder_map.keys()})
 
 
 def occurrence(request):
@@ -252,6 +255,7 @@ def occurrence(request):
         # # 修改成對應的參數名 & 參數值
         if now_dict.get('bioGroup'):
             now_dict['taxonGroup'] = now_dict.get('bioGroup')
+            print(now_dict.get('bioGroup'))
             now_dict.pop('bioGroup')
 
         if now_dict.get('higherTaxon'):
@@ -266,10 +270,14 @@ def occurrence(request):
             now_dict['is_protected'] = now_dict.get('isProtected')
             now_dict.pop('isProtected')
 
-        if now_dict.get('imagePresence'):
+        if now_dict.get('hasMedia'):
+            now_dict['has_image'] = now_dict.get('hasMedia')
+            now_dict.pop('hasMedia')
+        # 向後相容舊參數名
+        elif now_dict.get('imagePresence'):
             now_dict['has_image'] = now_dict.get('imagePresence')
             now_dict.pop('imagePresence')
-
+            
         for k in ['rightsHolder','locality','datasetName']:
             if k in now_dict.keys():
                 now_dict.pop(k)
@@ -419,23 +427,22 @@ def dataset(request):
 
 
         # 這邊會改成用中文搜尋 但要讓中英文都可以通
-        if group_value := req.get('datasetTaxonGroup'):
+        group_values = req.getlist('datasetTaxonGroup')
+        if group_values:
+            expanded = []
+            for gv in group_values:
+                if gv in taxon_group_map_c:
+                    gv = taxon_group_map_c[gv]
+                elif gv in old_taxon_group_map_c:
+                    gv = old_taxon_group_map_c[gv]
+                expanded.extend(split_group_map.get(gv, [gv]))
 
-            if group_value in taxon_group_map_c.keys():
-                group_value = taxon_group_map_c[group_value]
-            if group_value in old_taxon_group_map_c.keys():
-                group_value = old_taxon_group_map_c[group_value]
-
-            if group_value == '維管束植物':
-                query_value.append('%維管束植物%')
-                query_value.append('%蕨類植物%')
-                query_pair.append('({} like %s OR {} like %s)')
+            clauses = []
+            for tv in expanded:
+                clauses.append('{} like %s')
+                query_value.append(f'%{tv}%')
                 query_identifier.append('datasetTaxonGroup')
-                query_identifier.append('datasetTaxonGroup')
-            else:
-                query_value.append('%{}%'.format(group_value))
-                query_pair.append('{} like %s')
-                query_identifier.append('datasetTaxonGroup')
+            query_pair.append('(' + ' OR '.join(clauses) + ')')
 
         for k in ['datasetName', 'rightsHolder']:
             tmp_list = []
@@ -600,20 +607,13 @@ def map(request):
         if group_values := req.getlist('bioGroup'):
             values = []
             for group_value in group_values:
-
-                if group_value in taxon_group_map_c.keys():
+                if group_value in taxon_group_map_c:
                     group_value = taxon_group_map_c[group_value]
-                if group_value in old_taxon_group_map_c.keys():
+                elif group_value in old_taxon_group_map_c:
                     group_value = old_taxon_group_map_c[group_value]
-
-
-                if group_value == '維管束植物':
-                    values.append('維管束植物')
-                    values.append('蕨類植物')
-                else:
-                    values.append(group_value)
-            fq_list.append(f'bioGroup: ({(" OR ").join(values)})')
-
+                values.extend(split_group_map.get(group_value, [group_value]))
+            fq_list.append(f'bioGroup: ({" OR ".join(values)})')
+    
         #  年份區間
         if year := req.get('year'):
             year_list = year.split(',')

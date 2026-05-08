@@ -72,7 +72,7 @@ let selectBox5 = new vanillaSelectBox("#taxonRank", {
 let selectBox6 = new vanillaSelectBox("#circle_radius", {
     placeHolder: gettext("半徑"), search: false, disableSelectAll: true,
 });
-selectBox6.setValue('1')
+selectBox6.setValue('0.2')
 
 let selectBox7 = new vanillaSelectBox("#has_image", {
     placeHolder: gettext("有無多媒體"), search: false, disableSelectAll: true,
@@ -93,6 +93,16 @@ let selectBox8 = new vanillaSelectBox("#higherTaxa",
 
 let selectBox9 = new vanillaSelectBox("#taxonGroup", {
     placeHolder: gettext("物種類群"), search: false, disableSelectAll: true,
+});
+
+document.getElementById('btn-group-taxonGroup').addEventListener('click', function(e) {
+    const li = e.target.closest('li.grouped-option');
+    if (li) {
+        if (e.target.tagName === 'B') {
+            selectBox9.checkUncheckFromParent(li);
+        }
+        e.stopPropagation();
+    }
 });
 
 let selectBox10 = new vanillaSelectBox("#locality",
@@ -903,7 +913,7 @@ $(function () {
         } else {
             try {
                 let circle = L.circle([$('input[name=center_lat]').val(), $('input[name=center_lon]').val()],
-                    parseInt($('select[name=circle_radius]').val(), 10) * 1000, { className: 'addC' }).addTo(map);
+                            parseFloat($('select[name=circle_radius]').val()) * 1000, { className: 'addC' }).addTo(map);
                 drawnItems.clearLayers();
                 drawnItems.addLayer(circle);
                 // 這邊要重設
@@ -1132,6 +1142,7 @@ function changeAction() {
         let d_list = Array();
         let r_list = Array();
         let l_list = Array();
+        let tg_list = Array();
         let county;
 
         for (const [key, value] of entries) {
@@ -1159,7 +1170,7 @@ function changeAction() {
             } else if (key == 'higherTaxa') {
                 console.log(value)
             } else if (key == 'taxonGroup') {
-                selectBox9.setValue(value)
+                tg_list.push(value)
             } else if (key == 'locality') {
                 l_list.push(value)
                 //selectBox10.setValue(value)
@@ -1173,7 +1184,7 @@ function changeAction() {
                     // 把地圖畫上去
                     if (urlParams.get('geo_type') == 'circle') {
                         let circle = L.circle([urlParams.get('center_lat'), urlParams.get('center_lon')],
-                            parseInt(urlParams.get('circle_radius'), 10) * 1000, { className: 'addC' }).addTo(map);
+                            parseFloat(urlParams.get('circle_radius')) * 1000, { className: 'addC' }).addTo(map);
                         selectBox6.setValue(urlParams.get('circle_radius'))
                         $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
                         drawnItems.addLayer(circle);
@@ -1217,6 +1228,21 @@ function changeAction() {
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
         selectBox10.setValue(l_list);
+
+        // 舊父類群值展開（向後兼容）
+        const tg_split_map = {
+            '昆蟲': ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲'],
+            '維管束植物': ['被子植物', '裸子植物', '蕨類植物'],
+        }
+        let tg_expanded = []
+        for (let v of tg_list) {
+            if (tg_split_map[v]) {
+                tg_expanded = tg_expanded.concat(tg_split_map[v])
+            } else {
+                tg_expanded.push(v)
+            }
+        }
+        if (tg_expanded.length > 0) selectBox9.setValue(tg_expanded)
 
         selectBox13.setValue(county)
         $("#county").change();

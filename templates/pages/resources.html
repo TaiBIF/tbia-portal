@@ -54,7 +54,7 @@
 
 
 
-<input type="hidden" name="resource_type" value="{{ type }}">
+<input type="hidden" name="content_type" value="{{ type }}">
 <div class="path"> 
 	<div class="main_1240"> 
 		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '開放資料相關資源' %}</p>
@@ -167,5 +167,5 @@
 
 {% block script %}
 <script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/resources.js' %}?v5"></script>
+<script src="{% static 'js/pages/resources.js' %}?v6"></script>
 {% endblock script %}

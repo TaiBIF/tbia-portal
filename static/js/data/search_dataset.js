@@ -10,7 +10,15 @@ let selectBox1 = new vanillaSelectBox("#taxonGroup", {
     placeHolder: gettext("物種類群"), search: false, disableSelectAll: true,
 });
 
-
+document.getElementById('btn-group-taxonGroup').addEventListener('click', function(e) {
+    const li = e.target.closest('li.grouped-option');
+    if (li) {
+        if (e.target.tagName === 'B') {
+            selectBox1.checkUncheckFromParent(li);
+        }
+        e.stopPropagation();
+    }
+});
 
 $(function () {
 

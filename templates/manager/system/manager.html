@@ -216,8 +216,6 @@
                         <div id="container-taxon_group-stat" class="h-100p"></div>
                     </div>
                     <p class="expired-p ml-5px">*僅計算臺灣地理範圍內TaiCOL定義之種及種下臺灣物種資料</p>
-                    <p class="expired-p ml-5px">*此處維管束植物不包含蕨類植物</p>
-                    {% comment %} <p class="expired-p ml-5px">*圓餅圖為系統整體資料狀況</p> {% endcomment %}
                 </div>
                 <div class="w-33p">
                     <select class="w-100p" name="taxon-group-stat-rightsholder">
@@ -239,19 +237,26 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-spatial-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="甲蟲類">{% trans "甲蟲類" %}</option>
+                                <option value="蛾類">{% trans "蛾類" %}</option>
+                                <option value="蝶類">{% trans "蝶類" %}</option>
+                                <option value="蜻蛉類">{% trans "蜻蛉類" %}</option>
+                                <option value="其他昆蟲">{% trans "其他昆蟲" %}</option>
                                 <option value="蜘蛛">{% trans "蜘蛛" %}</option>
                                 <option value="魚類">{% trans "魚類" %}</option>
                                 <option value="兩棲類">{% trans "兩棲類" %}</option>
                                 <option value="爬蟲類">{% trans "爬蟲類" %}</option>
                                 <option value="鳥類">{% trans "鳥類" %}</option>
                                 <option value="哺乳類">{% trans "哺乳類" %}</option>
-                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蝸牛與貝類">{% trans "蝸牛與貝類" %}</option>
+                                <option value="蝦蟹類">{% trans "蝦蟹類" %}</option>
+                                <option value="被子植物">{% trans "被子植物" %}</option>
+                                <option value="裸子植物">{% trans "裸子植物" %}</option>
                                 <option value="蕨類植物">{% trans "蕨類植物" %}</option>
                                 <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
                                 <option value="藻類">{% trans "藻類" %}</option>
-                                <option value="病毒">{% trans "病毒" %}</option>
                                 <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
                                 <option value="細菌">{% trans "細菌" %}</option>
                             </select>
                             <select class="panel-select panel-select-rightsholder ml-20px" name="spatial-stat-rightsholder">
@@ -303,19 +308,26 @@
                             <span class="mr-5px panel-select-text ">類群篩選</span>
                             <select class="panel-select" name="partner-temporal-taxonGroup">
                                 <option value="">-- 不限 --</option>
-                                <option value="昆蟲">{% trans "昆蟲" %}</option>
+                                <option value="甲蟲類">{% trans "甲蟲類" %}</option>
+                                <option value="蛾類">{% trans "蛾類" %}</option>
+                                <option value="蝶類">{% trans "蝶類" %}</option>
+                                <option value="蜻蛉類">{% trans "蜻蛉類" %}</option>
+                                <option value="其他昆蟲">{% trans "其他昆蟲" %}</option>
                                 <option value="蜘蛛">{% trans "蜘蛛" %}</option>
                                 <option value="魚類">{% trans "魚類" %}</option>
                                 <option value="兩棲類">{% trans "兩棲類" %}</option>
                                 <option value="爬蟲類">{% trans "爬蟲類" %}</option>
                                 <option value="鳥類">{% trans "鳥類" %}</option>
                                 <option value="哺乳類">{% trans "哺乳類" %}</option>
-                                <option value="維管束植物">{% trans "維管束植物" %}</option>
+                                <option value="蝸牛與貝類">{% trans "蝸牛與貝類" %}</option>
+                                <option value="蝦蟹類">{% trans "蝦蟹類" %}</option>
+                                <option value="被子植物">{% trans "被子植物" %}</option>
+                                <option value="裸子植物">{% trans "裸子植物" %}</option>
                                 <option value="蕨類植物">{% trans "蕨類植物" %}</option>
                                 <option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
                                 <option value="藻類">{% trans "藻類" %}</option>
-                                <option value="病毒">{% trans "病毒" %}</option>
                                 <option value="真菌">{% trans "真菌" %}</option>
+                                <option value="病毒">{% trans "病毒" %}</option>
                                 <option value="細菌">{% trans "細菌" %}</option>
                             </select> 
                             <select class="panel-select panel-select-rightsholder ml-20px" name="temporal-stat-rightsholder">

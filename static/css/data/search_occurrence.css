@@ -143,10 +143,9 @@ input[type='number']::-webkit-outer-spin-button {
     text-align: right;
 }
 
-.mh-380px {
-    max-height: 380px
+.mh-400px {
+    max-height: 400px
 }
-
 .w-110px {
     width: 110px
 }
@@ -518,4 +517,58 @@ input[type='number']::-webkit-outer-spin-button {
     -o-transition: all .3s;
     -ms-transition: all .3s;
     -webkit-transition: all .3s
+}
+
+/* 隱藏 span（開合 toggle）*/
+#btn-group-taxonGroup .vsb-menu li.grouped-option > span {
+    display: none !important;
+}
+
+/* <i> 改成和 ::before checkbox 一樣的樣式 */
+#btn-group-taxonGroup .vsb-menu li.grouped-option > i {
+    display: inline-block !important;
+    float: none !important;
+    margin-left: 0 !important;
+    margin-right: 6px !important;
+    /* margin-top: 0.3em !important; */
+    vertical-align: middle !important;
+    border: 1px solid #ddd !important;
+    border-radius: 3px !important;
+    padding: 7px !important;
+    height: auto !important;
+    width: auto !important;
+    color: transparent !important;
+}
+
+/* checked 時和 active::before 一樣用 checkmark.svg + 綠底 */
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i {
+    background: url("/static/image/checkmark.svg") no-repeat center !important;
+    background-color: #76A578 !important;
+    background-size: 70% !important;
+    border-color: #76A578 !important;
+}
+
+/* 拿掉原本的 ::after border-trick（會跑到框外）*/
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i::after {
+    display: none !important;
+}
+
+/* <b> 位置對齊 */
+#btn-group-taxonGroup .vsb-menu li.grouped-option > b {
+    transform: none !important;
+    margin-left: 6px !important;
+    font-size: 14px !important;
+}
+
+/* 子項目縮排 */
+#btn-group-taxonGroup .vsb-menu li[data-parent] {
+    padding-left: 26px !important;
+}
+
+/* optgroup label 背景 */
+#btn-group-taxonGroup .vsb-menu li.grouped-option {
+    font-weight: 600;
+    color: #3F5146;
+    background: #f2f5f2;
+    cursor: pointer;
 }

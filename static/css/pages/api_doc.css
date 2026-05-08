@@ -1,0 +1,202 @@
+/* ===== 型值 badge ===== */
+.api-editer .type-badge {
+    display: inline-block;
+    font-family: monospace;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 2px 9px;
+    font-size: 13px;
+}
+.api-editer .type-string  { background: #E6F1FB; color: #0C447C; }
+.api-editer .type-integer,
+.api-editer .type-number,
+.api-editer .type-float   { background: #E1F5EE; color: #085041; }
+.api-editer .type-boolean { background: #EEEDFE; color: #3C3489; }
+.api-editer .type-date    { background: #FAEEDA; color: #633806; }
+
+/* ===== 必填 tag ===== */
+.api-editer .req-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    background: #FCEBEB;
+    color: #B22222;
+    vertical-align: middle;
+}
+
+/* ===== 格式 inline code ===== */
+.api-editer .inline-code {
+    display: inline-block;
+    padding: 1px 6px;
+    margin: 0 2px;
+    font-family: monospace;
+    font-size: 13px;
+    background: #F4F4F2;
+    border: 1px solid #E5E5E0;
+    border-radius: 4px;
+    color: #3F5146;
+}
+
+/* ===== 狀態碼配色 ===== */
+.api-editer .status-code {
+    display: inline-block;
+    padding: 2px 10px;
+    font-family: monospace;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 4px;
+}
+.api-editer .status-2xx { background: #EAF3DE; color: #27500A; }
+.api-editer .status-4xx { background: #FAEEDA; color: #633806; }
+.api-editer .status-5xx { background: #FCEBEB; color: #791F1F; }
+
+/* ===== 色碼表色塊 ===== */
+.api-editer .color-swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    vertical-align: middle;
+    margin-right: 8px;
+}
+.api-editer .color-hex {
+    font-family: monospace;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+/* ===== JSON 高亮 ===== */
+.api-editer .gray-box pre code .j-key     { color: #2F5496; }
+.api-editer .gray-box pre code .j-comment { color: #8E8E8E; font-style: italic; }
+
+/* === 4 範例網址過長：自動斷行不撐破表格 === */
+.api-editer table.table_style2 td:last-child {
+    max-width: 380px;
+    word-break: break-all;
+}
+
+/* === 6 8 個色塊 class（不用 inline style） === */
+.api-editer .swatch-1 { background-color: #ffffcc; }
+.api-editer .swatch-2 { background-color: #ffeda0; }
+.api-editer .swatch-3 { background-color: #fed976; }
+.api-editer .swatch-4 { background-color: #feb24c; }
+.api-editer .swatch-5 { background-color: #fd8d3c; }
+.api-editer .swatch-6 { background-color: #fc4e2a; }
+.api-editer .swatch-7 { background-color: #e31a1c; }
+.api-editer .swatch-8 { background-color: #bd0026; }
+
+/* === 5 控制詞彙附錄列表 === */
+.api-editer .vocab-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 12px 0 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.api-editer .vocab-list li {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #F4F4F2;
+    border: 1px solid #E5E5E0;
+    border-radius: 14px;
+    font-size: 13px;
+}
+
+/* ===== callout（提醒區塊） ===== */
+.api-editer .api-note {
+    margin: 12px 0 0;
+    padding: 13px 16px 13px 42px;
+    background: #FCF7E6;
+    border-left: 3px solid #D9A93C;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #5C4A1A;
+    position: relative;
+}
+.api-editer .api-note::before {
+    content: '!';
+    position: absolute;
+    left: 16px; top: 14px;
+    width: 18px; height: 18px;
+    background: #D9A93C;
+    color: #FFF;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: monospace;
+}
+.api-editer .api-note p { margin: 0; }
+.api-editer .api-note p + p { margin-top: 6px; }
+.api-editer .api-note ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+}
+.api-editer .api-note ul li { margin-bottom: 2px; }
+.api-editer .api-note strong { color: #3F5146; }
+.api-editer .api-note code {
+    padding: 0 5px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* ===== callout 內對照表（網格規則） ===== */
+.api-editer .api-note .grid-table {
+    margin-top: 10px;
+    border-collapse: collapse;
+    background: #FFF;
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.api-editer .api-note .grid-table th,
+.api-editer .api-note .grid-table td {
+    padding: 9px 12px;
+    text-align: left;
+    font-size: 14px;
+    border-bottom: 0.5px solid #EFE6CB;
+}
+.api-editer .api-note .grid-table thead th {
+    background: #F8F1DC;
+    font-weight: 500;
+    color: #5C4A1A;
+}
+.api-editer .api-note .grid-table tbody tr:last-child td { border-bottom: none; }
+.api-editer .api-note .grid-table .grid-cell {
+    font-family: monospace;
+    font-weight: 500;
+}
+.api-editer .api-note .grid-table .url-cell a {
+    font-family: monospace;
+    font-size: 13px;
+    color: #185FA5;
+    word-break: break-all;
+}
+
+/* ===== 屬性清單 ===== */
+.api-editer .attr-list {
+    margin: 10px 0 16px;
+    padding-left: 24px;
+    list-style: disc;
+    line-height: 1.8;
+}
+.api-editer .attr-list li { margin-bottom: 4px; }
+.api-editer .attr-list code {
+    padding: 1px 6px;
+    background: #F4F4F2;
+    border: 1px solid #E5E5E0;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 14px;
+    color: #3F5146;
+}

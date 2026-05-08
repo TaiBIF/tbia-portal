@@ -34,7 +34,6 @@
 <div class="in_bn resource_bn">
 	<div class="title">
 		<h2>{% trans 'ARK服務' %}</h2>
-		{% comment %} <h3>Resources</h3> {% endcomment %}
 	</div>
 </div>
 <div class="container_area">
@@ -54,40 +53,18 @@
 					<p>{% trans '公開文件' %}</p>
 					<div class="arr"></div>
 				</li>
+				<li class="li-resource-resource updateArk" data-type="resource">
+					<p>{% trans '開放資料相關資源' %}</p>
+					<div class="arr"></div>
+				</li>
 			</ul> 
 		</div>
-
-		{% comment %} <div class="date_select">
-			<p>{% trans '篩選' %}</p>
-			<div class="input_item"> 
-                <input name="start_date" id="start_date" type="text" value="{% now 'Y-m-d' %}" />
-                <a class="dateicon show_start"></a>
-			</div>
-			<span>~</span>
-			<div class="input_item">
-                <input name="end_date" id="end_date" type="text" value="{% now 'Y-m-d' %}" />
-                <a class="dateicon show_end"></a>
-			</div>
-			<button class="search_btn">{% trans '送出' %}</button>
-		</div>
-		<div class="already_selected" data-filter="no">
-			<ul class="d-none">
-				<li>
-					<p class="date-range"></p>
-					<button class="xx">
-						<img src="/static/image/xx_w.svg" >
-					</button>
-				</li>
-			</ul>
-		</div> {% endcomment %}
-
 		<div class="result_table flow-x-auto">
 			<table cellspacing="0" cellspacing="0" class="table_style1 ark_table">
 				<tr class="first-row">
 					<td>{% trans '識別碼' %}</td>
 					<td>URL</td>
 					<td>{% trans '建立日期' %}</td>
-					{% comment %} <td>{% trans '更新日期' %}</td> {% endcomment %}
 				</tr>
 			</table>						
 		</div>

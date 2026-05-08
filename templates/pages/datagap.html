@@ -74,19 +74,26 @@
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
 									<select class="panel-select" name="partner-spatial-taxonGroup">
 										<option value="">{% trans '-- 不限 --' %}</option>
-										<option value="昆蟲">{% trans "昆蟲" %}</option>
+										<option value="甲蟲類">{% trans "甲蟲類" %}</option>
+										<option value="蛾類">{% trans "蛾類" %}</option>
+										<option value="蝶類">{% trans "蝶類" %}</option>
+										<option value="蜻蛉類">{% trans "蜻蛉類" %}</option>
+										<option value="其他昆蟲">{% trans "其他昆蟲" %}</option>
 										<option value="蜘蛛">{% trans "蜘蛛" %}</option>
 										<option value="魚類">{% trans "魚類" %}</option>
 										<option value="兩棲類">{% trans "兩棲類" %}</option>
 										<option value="爬蟲類">{% trans "爬蟲類" %}</option>
 										<option value="鳥類">{% trans "鳥類" %}</option>
 										<option value="哺乳類">{% trans "哺乳類" %}</option>
-										<option value="維管束植物">{% trans "維管束植物" %}</option>
+										<option value="蝸牛與貝類">{% trans "蝸牛與貝類" %}</option>
+										<option value="蝦蟹類">{% trans "蝦蟹類" %}</option>
+										<option value="被子植物">{% trans "被子植物" %}</option>
+										<option value="裸子植物">{% trans "裸子植物" %}</option>
 										<option value="蕨類植物">{% trans "蕨類植物" %}</option>
 										<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
 										<option value="藻類">{% trans "藻類" %}</option>
-										<option value="病毒">{% trans "病毒" %}</option>
 										<option value="真菌">{% trans "真菌" %}</option>
+										<option value="病毒">{% trans "病毒" %}</option>
 										<option value="細菌">{% trans "細菌" %}</option>
 									</select>
 									<span class="ml-20px panel-select-text"> <button class="feedback_btn w-100p exportPartnerKML">{% trans '匯出KML' %}</button></span>
@@ -144,19 +151,26 @@
 									<span class="mr-5px panel-select-text ">{% trans '物種類群' %}</span>
 									<select class="panel-select w-50p" name="partner-temporal-taxonGroup">
 										<option value="">{% trans '-- 不限 --' %}</option>
-										<option value="昆蟲">{% trans "昆蟲" %}</option>
+										<option value="甲蟲類">{% trans "甲蟲類" %}</option>
+										<option value="蛾類">{% trans "蛾類" %}</option>
+										<option value="蝶類">{% trans "蝶類" %}</option>
+										<option value="蜻蛉類">{% trans "蜻蛉類" %}</option>
+										<option value="其他昆蟲">{% trans "其他昆蟲" %}</option>
 										<option value="蜘蛛">{% trans "蜘蛛" %}</option>
 										<option value="魚類">{% trans "魚類" %}</option>
 										<option value="兩棲類">{% trans "兩棲類" %}</option>
 										<option value="爬蟲類">{% trans "爬蟲類" %}</option>
 										<option value="鳥類">{% trans "鳥類" %}</option>
 										<option value="哺乳類">{% trans "哺乳類" %}</option>
-										<option value="維管束植物">{% trans "維管束植物" %}</option>
+										<option value="蝸牛與貝類">{% trans "蝸牛與貝類" %}</option>
+										<option value="蝦蟹類">{% trans "蝦蟹類" %}</option>
+										<option value="被子植物">{% trans "被子植物" %}</option>
+										<option value="裸子植物">{% trans "裸子植物" %}</option>
 										<option value="蕨類植物">{% trans "蕨類植物" %}</option>
 										<option value="苔蘚植物">{% trans "苔蘚植物" %}</option>
 										<option value="藻類">{% trans "藻類" %}</option>
-										<option value="病毒">{% trans "病毒" %}</option>
 										<option value="真菌">{% trans "真菌" %}</option>
+										<option value="病毒">{% trans "病毒" %}</option>
 										<option value="細菌">{% trans "細菌" %}</option>
 									</select> 
 								</div>
@@ -181,13 +195,9 @@
 							<div class="highcharts-figure-large">
 								<div id="container-taxon_group-stat" class="h-100p"></div>
 							</div>
-							<p class="expired-p ml-10px">*{% trans '此處維管束植物不包含蕨類植物' %}</p>
 						</div>
 						<div class="w-33p">
 							<div class="mt-15px fs-16px" id="taxon_group-stat-content"> 👈 {% trans '點擊左側類群名稱取得更多資訊' %} </div>
-							{% comment %} <div id="taxon_group-stat-title">👈 {% trans '點擊左側類群名稱取得更多資訊' %}</div>
-							<ul id="taxon_group-stat-list" class="mt-5px ml-20px fs-16px">
-							</ul> {% endcomment %}
 						</div>
 					</div>
 

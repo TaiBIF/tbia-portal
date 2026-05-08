@@ -1401,17 +1401,31 @@ def get_conditional_dataset(request):
         # taxonGroup
         # 這邊要讓新舊互通 因為舊的會需要再次查詢 但資料集好像沒有存search query?
         query_list = ["deprecated = 'f'"]
-        if taxonGroup := req_dict.get('taxonGroup'):
-            # 改成統一用中文查詢
-            # 如果輸入英文的話 轉成中文
-            if taxonGroup in taxon_group_map_c.keys():
-                taxonGroup = taxon_group_map_c[taxonGroup]
-            # 只需要處理維管束植物要包含蕨類
-            if taxonGroup == '維管束植物':
-                query_list.append('''( "datasetTaxonGroup" like '%維管束植物%' OR "datasetTaxonGroup" like '%蕨類植物%')''')
-            else:
-                query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
-        
+        # if taxonGroup := req_dict.get('taxonGroup'):
+        #     # 改成統一用中文查詢
+        #     # 如果輸入英文的話 轉成中文
+        #     if taxonGroup in taxon_group_map_c.keys():
+        #         taxonGroup = taxon_group_map_c[taxonGroup]
+        #     # 只需要處理維管束植物要包含蕨類
+        #     if taxonGroup == '維管束植物':
+        #         query_list.append('''( "datasetTaxonGroup" like '%維管束植物%' OR "datasetTaxonGroup" like '%蕨類植物%')''')
+        #     else:
+        #         query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
+
+
+        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        if taxon_vals_raw:
+            expanded = []
+            for tv in taxon_vals_raw:
+                if tv in taxon_group_map_c:
+                    tv = taxon_group_map_c[tv]
+                elif tv in old_taxon_group_map_c:
+                    tv = old_taxon_group_map_c[tv]
+                expanded.extend(split_group_map.get(tv, [tv]))
+            like_clauses = ['''\"datasetTaxonGroup\" like '%{}%' '''.format(tv) for tv in expanded]
+            query_list.append('({})'.format(' OR '.join(like_clauses)))
+
+
         # datasetName
         if name := req_dict.get('name'):
             query_list.append('''( "name" like '%{}%')'''.format(name))
@@ -1492,15 +1506,18 @@ def download_dataset_results(request):
 
         # taxonGroup
         query_list = ["deprecated = 'f'"]
-        if taxonGroup := req_dict.get('taxonGroup'):
-            if taxonGroup in taxon_group_map_c.keys():
-                taxonGroup = taxon_group_map_c[taxonGroup]
-            # 只需要處理維管束植物要包含蕨類
-            if taxonGroup == '維管束植物':
-                query_list.append('''( "datasetTaxonGroup" like '%維管束植物%' OR "datasetTaxonGroup" like '%蕨類植物%')''')
-            else:
-                query_list.append('''( "datasetTaxonGroup" like '%{}%')'''.format(taxonGroup))
         
+        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        if taxon_vals_raw:
+            expanded = []
+            for tv in taxon_vals_raw:
+                if tv in taxon_group_map_c:
+                    tv = taxon_group_map_c[tv]
+                elif tv in old_taxon_group_map_c:
+                    tv = old_taxon_group_map_c[tv]
+                expanded.extend(split_group_map.get(tv, [tv]))
+            like_clauses = ['''\"datasetTaxonGroup\" like '%{}%' '''.format(tv) for tv in expanded]
+            query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName
         if name := req_dict.get('name'):
@@ -1691,14 +1708,22 @@ def dataset_detail(request, id):
 
             new_taxon_stat = {}
 
-            for t in resp['datasetTaxonStat'].keys():
-                if t in taxon_group_map_c.keys():
-                    new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
-                elif t in old_taxon_group_map_c.keys():
-                    new_taxon_stat[old_taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
-                elif t == 'Others':
-                    new_taxon_stat['其他'] = resp['datasetTaxonStat'][t]
+            # for t in resp['datasetTaxonStat'].keys():
+            #     if t in taxon_group_map_c.keys():
+            #         new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+            #     elif t in old_taxon_group_map_c.keys():
+            #         new_taxon_stat[old_taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+            #     elif t == 'Others':
+            #         new_taxon_stat['其他'] = resp['datasetTaxonStat'][t]
 
+            for t in resp['datasetTaxonStat']:
+                if t in taxon_group_map_c:
+                    new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+                elif t in old_taxon_group_map_c:
+                    key = old_taxon_group_map_c[t]
+                    new_taxon_stat[key] = new_taxon_stat.get(key, 0) + resp['datasetTaxonStat'][t]
+                else:
+                    new_taxon_stat[t] = resp['datasetTaxonStat'][t]
 
             resp['datasetTaxonStat'] = new_taxon_stat
                 
@@ -1865,9 +1890,18 @@ def get_tbn_query(request):
     not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','offset']
     # filtered_params = {k: v for k, v in request.POST.items() 
     #                     if k not in not_query}
-    filtered_params = {k: (taxon_group_map_e[v] if k == 'taxonGroup' else v) 
-                   for k, v in request.POST.items() 
-                   if k not in not_query}
+    filtered_params = {}
+    for k, v in request.POST.items():
+        if k in not_query:
+            continue
+        if k == 'taxonGroup':
+            filtered_params[k] = taxon_group_map_e.get(v, v)
+        else:
+            filtered_params[k] = v
+    # 多值 taxonGroup 補處理
+    tg_vals = request.POST.getlist('taxonGroup')
+    if len(tg_vals) > 1:
+        filtered_params['taxonGroup'] = [taxon_group_map_e.get(v, v) for v in tg_vals]
 
     # 轉換成 query string
     query_string = parse.urlencode(filtered_params, doseq=True)
@@ -2504,14 +2538,13 @@ def get_taxon_by_region(request):
     exclude_cultured = request.GET.get('exclude_cultured')
     county = request.GET.get('county')
     municipality = request.GET.get('municipality')
-    bioGroup = request.GET.get('bioGroup')
+    # bioGroup = request.GET.get('bioGroup')
     
     query_list = []
     # query_list.append('is_deleted:false')
-    if bioGroup:
-        if bioGroup == '維管束植物':
-            bioGroup = '(維管束植物 OR 蕨類植物)'
-        query_list.append('bioGroup:{}'.format(bioGroup))
+    if bioGroup := request.GET.get('bioGroup'):
+        groups = split_group_map.get(bioGroup, [bioGroup])
+        query_list.append(f'bioGroup:({" OR ".join(groups)})')
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')

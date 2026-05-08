@@ -69,23 +69,28 @@ quality_color_map_holder = {
 }
 
 taxon_group_color_map = {
-    '昆蟲': { 'dark': '#5B8A5C', 'light': '#8BBF8D' },
-    '蜘蛛': { 'dark': '#B8C7B8', 'light': '#E4EDE4' },
-    '魚類': { 'dark': '#2A3B2F', 'light': '#556C5A' },
-    '爬蟲類': { 'dark': '#C19540', 'light': '#E8C575' },
-    '兩棲類': { 'dark': '#D3C5A0', 'light': '#F2E8CB' },
-    '鳥類': { 'dark': '#666', 'light': '#AAA' },
-    '哺乳類': { 'dark': '#C7A545', 'light': '#E8D575' },
-    '維管束植物': { 'dark': '#333', 'light': '#777' },
-    '蕨類植物': { 'dark': '#2C6A98', 'light': '#5A98C8' },
-    '苔蘚植物': { 'dark': '#1E2B1F', 'light': '#4A574B' },
-    '藻類': { 'dark': '#A24040', 'light': '#D27070' },
-    '病毒': { 'dark': '#999', 'light': '#CCC' },
-    '細菌': { 'dark': '#7A5B2A', 'light': '#AA855A' },
-    '真菌': { 'dark': '#42364B', 'light': '#72667B' },
-    '其他': { 'dark': '#856242', 'light': '#B59272' }
-};
-
+    '甲蟲類':    { 'dark': '#4A7A4B', 'light': '#7AAF7C' },
+    '蛾類':      { 'dark': '#6B9E6C', 'light': '#9BCF9D' },
+    '蝶類':      { 'dark': '#5B8A5C', 'light': '#8BBF8D' },
+    '蜻蛉類':    { 'dark': '#3D6E3E', 'light': '#6D9E6F' },
+    '其他昆蟲':  { 'dark': '#7AAE7B', 'light': '#AADEAD' },
+    '蜘蛛':      { 'dark': '#B8C7B8', 'light': '#E4EDE4' },
+    '魚類':      { 'dark': '#2A3B2F', 'light': '#556C5A' },
+    '兩棲類':    { 'dark': '#D3C5A0', 'light': '#F2E8CB' },
+    '爬蟲類':    { 'dark': '#C19540', 'light': '#E8C575' },
+    '鳥類':      { 'dark': '#666',    'light': '#AAA'    },
+    '哺乳類':    { 'dark': '#C7A545', 'light': '#E8D575' },
+    '蝸牛與貝類':{ 'dark': '#7A9AAA', 'light': '#AACADA' },
+    '蝦蟹類':    { 'dark': '#C07850', 'light': '#E0A880' },
+    '被子植物':  { 'dark': '#2B2B2B', 'light': '#666666' },
+    '裸子植物':  { 'dark': '#444444', 'light': '#888888' },
+    '蕨類植物':  { 'dark': '#2C6A98', 'light': '#5A98C8' },
+    '苔蘚植物':  { 'dark': '#1E2B1F', 'light': '#4A574B' },
+    '藻類':      { 'dark': '#A24040', 'light': '#D27070' },
+    '真菌':      { 'dark': '#42364B', 'light': '#72667B' },
+    '病毒':      { 'dark': '#999',    'light': '#CCC'    },
+    '細菌':      { 'dark': '#7A5B2A', 'light': '#AA855A' },
+}
 
 class NewsForm(forms.ModelForm):
     content = RichTextField()
@@ -833,12 +838,11 @@ def change_manager_page(request):
             })
     elif menu == 'resource':
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
-            # url = r.url.split('resources/')[1] if 'resources/' in r.url else r.url
             data.append({
                 'title': r.title,
-                'type': r.get_type_display(),
+                'resource_type': r.get_resource_type_display(),
+                'content_type': r.get_content_type_display(),
                 'lang': r.get_lang_display(),
-                # 'filename': f"<a href='/media/{r.url}' target='_blank'>{url}</a>",
                 'publish_date': r.publish_date.strftime('%Y-%m-%d'),
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>'),
                 'edit': f'<a class="btn-style1" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
@@ -848,7 +852,7 @@ def change_manager_page(request):
     elif menu == 'qa':
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
-                'type': q.get_type_display(),
+                'content_type': q.get_content_type_display(),
                 'order': q.order,
                 'question': q.question,
                 'edit': f'<a class="btn-style1" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
@@ -1646,8 +1650,11 @@ def get_partner_stat(request):
         holder_dict = {taxon_group_map_c[d['name']]: d['count'] for d in taxon_query_holder}
 
         # 建立類群順序
-        taxon_groups = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他']
+        taxon_groups = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                '蝸牛與貝類', '蝦蟹類',
+                '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                '藻類', '真菌', '病毒', '細菌']
 
         # 格式化成 bar chart 需要的格式
         # 系統整體資料
@@ -1826,8 +1833,11 @@ def get_taxon_group_stat(request):
         system_dict = {taxon_group_map_c[d['name']]: d['count'] for d in taxon_query_system}
 
         # 建立類群順序
-        taxon_groups = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他']
+        taxon_groups = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                '蝸牛與貝類', '蝦蟹類',
+                '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                '藻類', '真菌', '病毒', '細菌']
 
         # 格式化成 bar chart 需要的格式
         # 系統整體資料
@@ -2173,8 +2183,11 @@ def get_system_stat(request):
 
 
     # 建立類群順序
-    taxon_groups = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類', 
-                '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他']
+    taxon_groups = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                '蝸牛與貝類', '蝦蟹類',
+                '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                '藻類', '真菌', '病毒', '細菌']
 
     # 格式化成 bar chart 需要的格式
     # 系統整體資料
@@ -2207,11 +2220,13 @@ def get_system_stat(request):
     for h in top3_taxon_group.rights_holder.unique():
         data = []
         for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
-            # 維管束植物要加上蕨類
-            now_count = tt[1]
-            if tt[0] == 'Vascular Plants':
-                now_count += top3_taxon_group[(top3_taxon_group.rights_holder==h)&(top3_taxon_group.name=='Ferns')]['count'].sum()
-            data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
+            data.append(f'{taxon_group_map_c[tt[0]]} ({tt[1]})')
+        # for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
+        #     # 維管束植物要加上蕨類
+        #     now_count = tt[1]
+        #     if tt[0] == 'Vascular Plants':
+        #         now_count += top3_taxon_group[(top3_taxon_group.rights_holder==h)&(top3_taxon_group.name=='Ferns')]['count'].sum()
+        #     data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
         top3_taxon_list.append({'rights_holder': h, 'data': data})
 
     top5_family_list = []
@@ -2312,7 +2327,7 @@ def system_info(request):
 def system_resource(request):
     menu = request.GET.get('menu','resource')
 
-    type_choice = Resource._meta.get_field('type').choices
+    content_type_choice = Resource._meta.get_field('content_type').choices
 
     current_r = []
     if request.GET.get('resource_id'):
@@ -2323,7 +2338,7 @@ def system_resource(request):
             else:
                 current_r.filename =  current_r.url
 
-    return render(request, 'manager/system/resource.html', {'menu': menu, 'type_choice': type_choice, 'current_r': current_r })
+    return render(request, 'manager/system/resource.html', {'menu': menu, 'content_type_choice': content_type_choice, 'current_r': current_r })
 
 
 def system_keyword(request):
@@ -2354,15 +2369,9 @@ def submit_news(request):
 
 
         if request.POST.get('from_system'):
-            # status = 'pass'
             partner_id = None
         else:
-            # status = 'pending'
             partner_id = current_user.partner
-
-        # form = NewsForm(request.POST)
-        # if form.is_valid():
-        #     content = form.cleaned_data['content']
 
         image_name = None
         if image := request.FILES.get('image'):
@@ -2382,12 +2391,6 @@ def submit_news(request):
                 else:
                     n.author_use_tbia = False
 
-            # if status == 'pass' and ori_status != 'pass':
-            #     publish_date = timezone.now() + timedelta(hours=8)
-            # elif status == 'pass' and ori_status == 'pass':
-            #     publish_date = n.publish_date
-            # else:
-            #     publish_date = None
             if n.image and not image_name: # 原本就有的
                 image_name = n.image
             elif image_name:
@@ -2426,10 +2429,6 @@ def submit_news(request):
 
             # 新增 news
             ori_status = 'pending'
-            # if status == 'pass':
-            #     publish_date = timezone.now() + timedelta(hours=8)
-            # else:
-            #     publish_date = None
 
             if image_name:
                 n = News.objects.create(
@@ -2465,9 +2464,9 @@ def submit_news(request):
                 ark_url = f"{scheme}://{request.get_host()}/news/detail/{ark_obj.model_id}"
                 r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
                                     data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
-                                            'naan': env("ARK_NAAN"),
-                                            'url': ark_url,
-                                            'shoulder': '/' + ark_obj.ark[:2]})
+                                           'naan': env("ARK_NAAN"),
+                                           'url': ark_url,
+                                           'shoulder': '/' + ark_obj.ark[:2]})
 
         if request.POST.get('from_system'):
             if ori_status =='pending' and status in ['pass', 'fail']:
@@ -2637,44 +2636,142 @@ def save_resource_file(request):
     return JsonResponse(response, safe=False)
 
 
+
+def _build_file_url(request, resource_url):
+    """檔案的 full URL：{scheme}://{host}/media + resource.url"""
+    scheme = 'https' if request.is_secure() else 'http'
+    return f"{scheme}://{request.get_host()}/media{resource_url}"
+
+
+
+def _insert_ark(ark_id, target_url):
+    """向 arklet 註冊新 ARK"""
+    api_url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
+    requests.post(
+        api_url,
+        headers={'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}'},
+        data={
+            'ark': f'ark:/{env("ARK_NAAN")}/{ark_id}',
+            'naan': env("ARK_NAAN"),
+            'url': target_url,
+            'shoulder': '/' + ark_id[:2],
+        },
+    )
+
+
+def _update_ark(ark_id, target_url):
+    """更新 arklet 中已存在 ARK 的 url（注意是 PUT + JSON body）"""
+    api_url = f"{env('TBIA_ARKLET_INTERNAL')}update"
+    requests.put(
+        api_url,
+        headers={
+            'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}',
+            'Content-Type': 'application/json',
+        },
+        json={
+            'ark': f'ark:/{env("ARK_NAAN")}/{ark_id}',
+            'url': target_url,
+        },
+    )
+
+
+def _sync_resource_ark(resource, resource_type, file_url, doc_url, extension):
+    """
+    file:     兩筆 Ark（base + .ext）
+    doc-link: 一筆 Ark（base）
+    base ARK 指向：有 doc_url 用 doc_url，否則用 file_url
+    .ext ARK 指向：永遠是 file_url
+    """
+    base_target = doc_url if doc_url else file_url
+
+    arks = list(Ark.objects.filter(type='resource', model_id=resource.id))
+    base_ark = next((a for a in arks if '.' not in a.ark), None)
+
+    # base ARK
+    if base_ark is None:
+        base_ark = Ark.objects.create(
+            type='resource',
+            ark=ark_generator(data_type='resource'),
+            model_id=resource.id,
+        )
+        _insert_ark(base_ark.ark, base_target)
+    else:
+        _update_ark(base_ark.ark, base_target)
+
+    # .ext ARK（僅 file 類型）
+    if resource_type == 'file':
+        ext_ark_id = f'{base_ark.ark}.{extension}'
+        ext_ark = next((a for a in arks if a.ark == ext_ark_id), None)
+        if ext_ark is None:
+            Ark.objects.create(
+                type='resource',
+                ark=ext_ark_id,
+                model_id=resource.id,
+            )
+            _insert_ark(ext_ark_id, file_url)
+        else:
+            _update_ark(ext_ark_id, file_url)
+
+
+
 def submit_resource(request):
     if request.method == 'POST':
         now = timezone.now() + timedelta(hours=8)
         url = request.POST.get('url')
-        # url = 'resources/' + filename
-        if request.POST.get('file_type') == 'link':
-            extension = 'link'
-        else:
-            extension = url.split('.')[-1]
+        doc_url = request.POST.get('doc_url')
+
         if request.POST.get('resource_id'):
             resource_id = int(request.POST.get('resource_id'))
         else:
             resource_id = 0
 
-        if Resource.objects.filter(id=resource_id).exists():
+        existing = Resource.objects.filter(id=resource_id).first()
+
+        # resource_type 鎖住：編輯時用既有值，不從 POST 取
+        if existing:
+            resource_type = existing.resource_type
+        else:
+            resource_type = request.POST.get('resource_type')
+
+        if resource_type == 'file':
+            extension = url.split('.')[-1]
+        else:
+            extension = resource_type
+
+        if existing:
             Resource.objects.filter(id=resource_id).update(
-                type = request.POST.get('type'),
-                title = request.POST.get('title'),
-                lang = request.POST.get('lang'),
-                publish_date = request.POST.get('publish_date'),
-                url = url,
-                doc_url = request.POST.get('doc_url'),
-                extension = extension,
-                modified = now
+                # 不更新 resource_type
+                content_type=request.POST.get('content_type'),
+                title=request.POST.get('title'),
+                lang=request.POST.get('lang'),
+                publish_date=request.POST.get('publish_date'),
+                url=url,
+                doc_url=doc_url,
+                extension=extension,
+                modified=now,
             )
-        else: 
-            Resource.objects.create(
-                type = request.POST.get('type'),
-                title = request.POST.get('title'),
-                lang = request.POST.get('lang'),
-                publish_date = request.POST.get('publish_date'),
-                url = url,
-                doc_url = request.POST.get('doc_url'),
-                extension = extension,
-                created = now,
-                modified = now
+            resource = Resource.objects.get(id=resource_id)
+        else:
+            resource = Resource.objects.create(
+                resource_type=resource_type,
+                content_type=request.POST.get('content_type'),
+                title=request.POST.get('title'),
+                lang=request.POST.get('lang'),
+                publish_date=request.POST.get('publish_date'),
+                url=url,
+                doc_url=doc_url,
+                extension=extension,
+                created=now,
+                modified=now,
             )
+
+        # ARK 同步（ext-link 不處理）
+        if resource_type != 'ext-link':
+            file_url = _build_file_url(request, url) if resource_type == 'file' else url
+            _sync_resource_ark(resource, resource_type, file_url, doc_url, extension)
+
         return redirect('system_resource')
+
 
 
 def delete_resource(request):
@@ -2682,19 +2779,16 @@ def delete_resource(request):
         if resource_id := request.POST.get('resource_id'):
             if Resource.objects.filter(id=resource_id).exists():
                 r = Resource.objects.get(id=resource_id)
-                my_file = Path(os.path.join('/tbia-volumes/media',r.url))
-                my_file.unlink(missing_ok=True)
+                if r.resource_type == 'file':
+                    my_file = Path(os.path.join('/tbia-volumes/media',r.url))
+                    my_file.unlink(missing_ok=True)
                 r.delete()
                 return JsonResponse({}, safe=False)
 
 
 def edit_link(request):
     if request.method == 'POST':
-        # content = ''
         content = request.POST.get('content')
-        # form = LinkForm(request.POST)
-        # if form.is_valid():
-        #     content = form.cleaned_data['content']      
 
         if Link.objects.exists():
             n = Link.objects.all().first()
@@ -2994,16 +3088,19 @@ def get_temporal_stat(request):
         #     color = '#76A578'
 
     if taxon_group := request.GET.get('taxon_group'):
-        # 維管束植物要加上蕨類
-        selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        selected_name = taxon_group_map_e.get(taxon_group, '')
         if selected_name:
-            selected_name = selected_name[0]
-        else:
-            selected_name = ''
-        if selected_name == 'Vascular Plants':
-            year_taxon_query = year_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
-        else:
-            year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
+            year_taxon_query = year_taxon_query.filter(type='taxon_group', name=selected_name)
+        # 維管束植物要加上蕨類
+        # selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        # if selected_name:
+        #     selected_name = selected_name[0]
+        # else:
+        #     selected_name = ''
+        # if selected_name == 'Vascular Plants':
+        #     year_taxon_query = year_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
+        # else:
+        #     year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
     else:
         year_taxon_query = year_taxon_query.filter(type='temporal',name__isnull=True)
 
@@ -3066,17 +3163,21 @@ def get_temporal_stat(request):
         month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
-        # 維管束植物要加上蕨類
-        selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        selected_name = taxon_group_map_e.get(taxon_group, '')
         if selected_name:
-            selected_name = selected_name[0]
-        else:
-            selected_name = ''
+            month_taxon_query = month_taxon_query.filter(type='taxon_group', name=selected_name)
 
-        if selected_name == 'Vascular Plants':
-            month_taxon_query = month_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
-        else:
-            month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
+        # # 維管束植物要加上蕨類
+        # selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
+        # if selected_name:
+        #     selected_name = selected_name[0]
+        # else:
+        #     selected_name = ''
+
+        # if selected_name == 'Vascular Plants':
+        #     month_taxon_query = month_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
+        # else:
+        #     month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
         
     else:
         month_taxon_query = month_taxon_query.filter(type='temporal',name__isnull=True)

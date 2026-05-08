@@ -3,15 +3,15 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $(document).ready(function () {
 
-  $('.index-search-box').on('click', function(){
+  $('.index-search-box').on('click', function () {
     window.location = $(this).data('href')
   })
 
-  $('.search_full_button').on('click', function(){
+  $('.search_full_button').on('click', function () {
     $('#search_full_form').submit()
   })
 
-  $('#search_full_form').on('submit', function(event){
+  $('#search_full_form').on('submit', function (event) {
     event.preventDefault()
 
     if ($('.search_full_keyword').val().length > 2000) {
@@ -31,7 +31,6 @@ $(document).ready(function () {
   ScrollTrigger.create({
     trigger: ".section_2",
     start: "top-=45% top",
-    // markers: true,
     onEnter: function () {
       $(".section_2").addClass("vivi");
     },
@@ -56,11 +55,11 @@ $(document).ready(function () {
 
   $('.edu_tag li').click(function () {
     let li_element = $(this)
-    let type = this.id
+    let content_type = this.id
     $.ajax({
       url: "/get_resource_list",
       data: {
-        type: type,
+        content_type: content_type,
         lang: $lang,
         csrfmiddlewaretoken: $csrf_token,
       },
@@ -74,7 +73,7 @@ $(document).ready(function () {
         // remove all resources first
         $('.edu_list li').remove()
         // append rows
-        if (type == 'all') {
+        if (content_type == 'all') {
           $('.edu_list').append(`
             <li>
             <div class="item">
@@ -106,33 +105,23 @@ $(document).ready(function () {
 
         if (response.rows.length > 0) {
           for (let i = 0; i < response.rows.length; i++) {
+            const row = response.rows[i];
+            const isLink = row.cate == 'link';
+            const fileUrl = isLink ? row.url : `/media/${row.url}`;
 
-           if (response.rows[i].cate == 'link'){
-              $('.edu_list').append(`
-              <li>
-                <div class="item">
-                <div class="cate_dbox">
-                  <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-      
-                  <div class="date">${response.rows[i].date}</div>
-                </div>
-                <a href="${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
-                </div>
-              </li>`)
-            } else {
-              $('.edu_list').append(`
-              <li>
-                <div class="item">
-                  <div class="cate_dbox">
-                    <div class="cate ${response.rows[i].cate}">${response.rows[i].extension}</div>
-                    ${ response.rows[i].doc_url ? `<div class="cate web"><a href="${response.rows[i].doc_url}" target="_blank" >WEB <i class="fa-solid fa-link"></i></a></div>` : '' }      
-                    <div class="date">${response.rows[i].date}</div>
-                  </div>
-                  <a href="/media/${response.rows[i].url}" class="title" target="_blank">${gettext(response.rows[i].title)}</a>
-                  <a href="/media/${response.rows[i].url}" download class="dow_btn"> </a>
-                </div>
-              </li>`)
-            }
+            $('.edu_list').append(`
+            <li>
+              <div class="item">
+              <div class="cate_dbox">
+                <div class="cate ${row.cate}">${row.extension}</div>
+                ${row.doc_url ? `<div class="cate web"><a href="${row.doc_url}" target="_blank">WEB <i class="fa-solid fa-link"></i></a></div>` : ''}
+                <div class="date">${row.date}</div>
+              </div>
+              <a href="${fileUrl}" class="title" target="_blank">${gettext(row.title)}</a>
+              ${!isLink ? `<a href="${fileUrl}" download class="dow_btn"> </a>` : ''}
+              </div>
+            </li>`);
+
           }
         } else {
           // if no row, show '無資料'

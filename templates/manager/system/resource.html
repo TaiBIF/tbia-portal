@@ -121,8 +121,8 @@
                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
                         <li>類型</li>
                         <li>
-                            <select name="resource_type">
-                                {% for t in type_choice %}
+                            <select name="content_type">
+                                {% for t in content_type_choice %}
                                     {% if t.0 == current_r.type %}
                                         <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
                                     {% else %}
@@ -155,19 +155,14 @@
                         </li>
                         <li>資源本身為</li>
                         <li>
-                            <select id="file_type">
-                                {% if current_r.id %}
-                                <option value="file" {% if current_r.extension != "link" %} selected {% endif %}>檔案</option>
-                                <option value="link" {% if current_r.extension == "link" %} selected {% endif %}>連結</option>
-                                {% else %}
-                                <option value="file" selected>檔案</option>
-                                <option value="link">連結</option>
-
-                                {% endif %}
+                            <select name="resource_type" {% if current_r.id %} disabled {% endif %}>
+                                <option value="file" {% if not current_r.id or current_r.resource_type == "file" %} selected {% endif %}>檔案</option>
+                                <option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %} selected {% endif %}>外部連結</option>
+                                <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %} selected {% endif %}>文件網站連結</option>
                             </select>
                         </li>
-                        <li class="file_field">文件網站連結</li>
-                        <li class="file_field">
+                        <li class="doc-link_field">文件網站連結</li>
+                        <li class="doc-link_field">
                             <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
                         </li>
                         <li class="file_field">檔案</li>        
@@ -216,9 +211,9 @@
                     <table cellspacing="0" cellspacing="0" class="table_style3 resource_table edu_table">
                         <tr class="resource_table_header">
                             <td>標題</td>
-                            <td>類型</td>
+                            <td>資源類型</td>
+                            <td>內容類型</td>
                             <td>語言</td>
-                            {% comment %} <td class="w-20p">檔名</td> {% endcomment %}
                             <td>發布日期</td>
                             <td>最近修改</td>
                             <td></td> 
