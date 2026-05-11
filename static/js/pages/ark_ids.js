@@ -10,13 +10,12 @@ $(function () {
     updateArk($('input[name=ark_type]').val(), 1)
   }
 
-
   // 起始類型
   if ($('input[name=ark_type]').val() != '') {
     $(`.news_tab_in .li-resource-${$('input[name=ark_type]').val()}`).addClass('now')
     updateArk($('input[name=ark_type]').val(), 1)
 
-  }
+  }Ｆ
 
   $('.updateArk').on('click', function () {
     updateArk($(this).data('type'), 1)
@@ -24,13 +23,10 @@ $(function () {
 
 });
 
-
 function updateArk(type, page) {
-
 
   $('.news_tab_in li').removeClass('now')
   $(`.li-resource-${type}`).addClass('now')
-
 
   let query;
   if ($('.already_selected').data('filter') == 'no') {
@@ -84,8 +80,6 @@ function updateArk(type, page) {
           <a class="next">${gettext('下一頁')}<span></span></a>
           <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
         `)
-        //}		
-
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
@@ -119,7 +113,6 @@ function updateArk(type, page) {
         $('.changePage').on('click', function () {
           updateArk($(this).data('type'), $(this).data('page'))
         })
-
 
       }
 

@@ -31,11 +31,11 @@ $(function () {
   // 起始類型
   if ($('input[name=news_type]').val() != '') {
     $(`.news_tab_in .li-news-${$('input[name=news_type]').val()}`).addClass('now')
-    updateNews($('input[name=news_type]').val(), 1) 
+    updateNews($('input[name=news_type]').val(), 1)
 
   } else {
     $(`.news_tab_in .li-news-all`).addClass('now')
-    updateNews('all', 1) 
+    updateNews('all', 1)
   }
 
   $('.date_select .search_btn').on('click', function () {
@@ -45,17 +45,13 @@ $(function () {
     $('.news_tab_in li.now').trigger('click')
   })
 
-
   $('.already_selected ul li button.xx').on('click', function () {
     $('.already_selected ul').addClass('d-none');
     $('.already_selected').data('filter', 'no');
-    //$('.already_selected p').html(`${$( "#start_date" ).val()}~${$( "#end_date" ).val()}`);
     $('.news_tab_in li.now').trigger('click')
   })
 
 });
-
-
 
 function changePage(page, type) {
   let current_page = parseInt($('a.num.now').html())
@@ -64,7 +60,6 @@ function changePage(page, type) {
     updateNews(type, page)
   }
 }
-
 
 function updateNews(type, page) {
   $('.news_tab_in li').removeClass('now')
@@ -87,7 +82,7 @@ function updateNews(type, page) {
     headers: { 'X-CSRFToken': $csrf_token },
     data: query,
     success: function (response, status) {
-      
+
       $('.page_number').remove()
 
       if (response.data.length > 0) {
@@ -112,11 +107,9 @@ function updateNews(type, page) {
                     </li>`)
         }
 
-        
         $('ul.news_list').after(`<div class="page_number"></div>`)
 
         // 修改頁碼
-        //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
         $(`.page_number`).append(
           `
                       <a class="num changePage" data-page="1" data-type="${type}">1</a>
@@ -124,7 +117,6 @@ function updateNews(type, page) {
                       <a class="next">${gettext('下一頁')}<span></span></a>
                       <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
                   `)
-        //}		
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
@@ -139,7 +131,6 @@ function updateNews(type, page) {
 
         // 如果有下一頁，改掉next的onclick
         if (response.current_page < response.total_page) {
-          //$('.next').attr('onclick',`changePage(${response.current_page+1}, '${type}')`);
           $('.next').addClass('changePage')
           $('.next').data('page', response.current_page + 1)
           $('.next').data('type', type)
@@ -147,13 +138,11 @@ function updateNews(type, page) {
           $('.next').addClass('pt-none')
         }
 
-
         // 如果有上一頁，改掉prev的onclick  
         if (response.current_page - 1 > 0) {
           $('.pre').addClass('changePage')
           $('.pre').data('page', response.current_page - 1)
           $('.pre').data('type', type)
-          //$('.pre').attr('onclick',`changePage(${response.current_page-1}, '${type}')`);
         } else {
           $('.pre').addClass('pt-none')
         }

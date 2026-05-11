@@ -11,7 +11,6 @@ $(document).ready(function () {
     $(this).closest("li").find(".second_menu").slideToggle();
   });
 
-
   $(".second_menu a").on("click", function (event) {
     $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
     $(".second_menu a").removeClass("now");
@@ -49,7 +48,6 @@ $(document).ready(function () {
       $('input[name=keyword_en_3]').next('.noticbox').removeClass('d-none')
       checked = false
     }
-
 
     if (checked) {
       $.ajax({

@@ -16,7 +16,7 @@
 {% block title %}{% trans '物種出現紀錄' %}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}?v4" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/occurrence_detail.css' %}" />
 {% endblock style %}
 
 {% block body %}
@@ -272,8 +272,6 @@
       <div class="right_area">
         <div class="map_img">
           <div class="imgbox">
-            <!--435*390 or 870*780 用background-image替換連結-->
-            <!--<div class="img"></div>-->
             <div id="map" class="img"></div>
           </div>
         </div>
@@ -345,5 +343,5 @@
 {% endblock body %}
 
 {% block script %}
-<script src="{% static 'js/data/occurrence_detail.js' %}?v4"></script>
+<script src="{% static 'js/data/occurrence_detail.js' %}"></script>
 {% endblock script %}

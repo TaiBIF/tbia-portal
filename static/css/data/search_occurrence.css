@@ -4,14 +4,13 @@
     color: #3F5146
 }
 
-
 input.name_input::placeholder {
-    font-size: 11px 
+    font-size: 11px
 }
 
 @media only screen and (max-width: 767px) {
     input.name_input::placeholder {
-        font-size: 15px 
+        font-size: 15px
     }
 }
 
@@ -99,19 +98,15 @@ input.name_input::placeholder {
     cursor: pointer
 }
 
-
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-
-
 .mt-5p {
     margin-top: 5%
 }
-
 
 .bd-0 {
     border: 0
@@ -122,20 +117,18 @@ input[type='number']::-webkit-outer-spin-button {
     width: auto !important;
 }
 
-
 @media only screen and (max-width: 999px) {
     .imgbox {
-        height: 430px !important;    
+        height: 430px !important;
     }
 }
-
 
 .h-300px {
     height: 300px
 }
 
 .note-text {
-    text-align: right; 
+    text-align: right;
     color: #C65454
 }
 
@@ -146,6 +139,7 @@ input[type='number']::-webkit-outer-spin-button {
 .mh-400px {
     max-height: 400px
 }
+
 .w-110px {
     width: 110px
 }
@@ -159,7 +153,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .choice-flow {
-    max-height: 100%; 
+    max-height: 100%;
     overflow-y: auto
 }
 
@@ -171,22 +165,17 @@ input[type='number']::-webkit-outer-spin-button {
     margin-left: 20px
 }
 
-/* .w-200px {
-    width: 200px
-} */
-
 .flow-x-auto {
     overflow-x: auto;
 }
 
-
 .page-jump {
     -webkit-appearance: none;
-    text-align: center; 
-    margin-right: 5px; 
+    text-align: center;
+    margin-right: 5px;
     margin-left: 5px;
-    width: 60px; 
-    border:1px; 
+    width: 60px;
+    border: 1px;
     border-bottom-style: solid;
     border-top-style: none;
     border-left-style: none;
@@ -221,7 +210,7 @@ input[type='number']::-webkit-outer-spin-button {
 @media only screen and (max-width: 767px) {
     .res_flex {
         flex-direction: column;
-        align-items: flex-start; 
+        align-items: flex-start;
     }
 }
 
@@ -279,15 +268,11 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
 @media only screen and (max-width: 767px) {
     .vsb-menu .multi li:not(.grouped-option)::before {
         margin-top: 0.4em !important;
     }
- }
-
-
-
+}
 
 .page-inf {
     display: flex;
@@ -301,7 +286,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 @media only screen and (max-width: 1599px) {
-     .page-inf {
+    .page-inf {
         flex-direction: column;
         justify-content: center
     }
@@ -311,21 +296,16 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
 /* 欄位選項 */
 .popbg.occ-choice .wbox_center {
     max-height: 90%;
     overflow: auto
 }
 
-
-/* 欄位選項 */
 .popbg.col-choice .wbox_center {
     max-height: 90%;
     overflow: auto
 }
-
-
 
 /* 下方表格 */
 
@@ -356,14 +336,11 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
 @media only screen and (max-width: 1150px) {
     .result_inf_top {
         flex-wrap: wrap
     }
 }
-
-
 
 @media only screen and (max-width: 1150px) {
     .result_inf_top .cate_btn {
@@ -371,31 +348,11 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
-/*
-@media only screen and (max-width: 999px) {
-    .result_inf_top .cate_btn {
-        position: absolute;
-        top: -20px
-    }
-}*/
-
 @media only screen and (max-width: 1150px) {
     .result_inf_top .cate_btn {
         font-size: 15px
     }
 }
-
-/* 
-@media only screen and (max-width: 1150px) {
-    .result_inf_top p.datenum {
-        position: absolute;
-        right: 15px;
-        top: 30px
-    }
-}
-
- */
 
 @media only screen and (max-width: 1150px) {
     .sc_result .result_inf_top {
@@ -424,7 +381,6 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
 @media only screen and (max-width: 1150px) {
     .sc_result .rightmore .qmark {
         margin-left: -5px;
@@ -432,17 +388,11 @@ input[type='number']::-webkit-outer-spin-button {
     }
 }
 
-
-
-
 .result_inf_top .cate_btn {
     padding: 0 10px;
     min-width: 160px;
     width: auto;
 }
-
-
-
 
 .result_inf_top_1 p.datenum {
     color: #888;
@@ -450,12 +400,10 @@ input[type='number']::-webkit-outer-spin-button {
     text-align: right
 }
 
-
 .result_inf_top_1 {
     margin-bottom: 10px;
     align-items: end;
 }
-
 
 .per_page {
     font-size: 16px;
@@ -495,7 +443,6 @@ input[type='number']::-webkit-outer-spin-button {
     color: #E2A460 !important;
 }
 
-
 .p-10px {
     padding: 15px
 }
@@ -520,12 +467,12 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* 隱藏 span（開合 toggle）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option > span {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>span {
     display: none !important;
 }
 
 /* <i> 改成和 ::before checkbox 一樣的樣式 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option > i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>i {
     display: inline-block !important;
     float: none !important;
     margin-left: 0 !important;
@@ -541,7 +488,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* checked 時和 active::before 一樣用 checkmark.svg + 綠底 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i {
     background: url("/static/image/checkmark.svg") no-repeat center !important;
     background-color: #76A578 !important;
     background-size: 70% !important;
@@ -549,12 +496,12 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* 拿掉原本的 ::after border-trick（會跑到框外）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i::after {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i::after {
     display: none !important;
 }
 
 /* <b> 位置對齊 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option > b {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>b {
     transform: none !important;
     margin-left: 6px !important;
     font-size: 14px !important;

@@ -1,98 +1,94 @@
-{% extends 'base.html' %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% load static %}
 {% load i18n %}
 {% block head %}
-<link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
-<script src="/static/datepicker/air-datepicker.js" ></script>
-{% if LANGUAGE_CODE == 'en-us' %}
-<script src="/static/datepicker/en.js" ></script>
-{% else %}
-<script src="/static/datepicker/zh.js" ></script>
-{% endif %}
+    <link href="/static/datepicker/air-datepicker.css" rel="stylesheet" />
+    <script src="/static/datepicker/air-datepicker.js"></script>
+    {% if LANGUAGE_CODE == 'en-us' %}
+        <script src="/static/datepicker/en.js"></script>
+    {% else %}
+        <script src="/static/datepicker/zh.js"></script>
+    {% endif %}
 {% endblock head %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}?v1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pages/news.css' %}" />
 {% endblock style %}
-
-
-{% block title %}{% trans '最新消息' %}｜{% endblock %}
-
-
+{% block title %}
+    {% trans '最新消息' %}｜
+{% endblock %}
 {% block body %}
-{% csrf_token %}
-<input type="hidden" name="news_type" value="{{ type }}">
-<div class="path"> 
-	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '最新消息' %}</p>
-	</div>
-</div>
-<div class="in_bn news_bn">
-	<div class="title">
-		<h2>{% trans '最新消息' %}</h2>
-		{% comment %} <h3>NEWS</h3> {% endcomment %}
-	</div>
-</div>
-<div class="container_area">
-	<div class="main_1240"> 
-		<div class="tab_scromb">
-			<!--目前位置給class>now-->
-			<ul class="news_tab_in">
-				<li class="li-news-all updateNews" data-type="all">
-					<p>{% trans '所有消息' %}</p>
-					<div class="arr"></div>
-				</li>
-				<li class="li-news-news updateNews" data-type="news">
-					<p>{% trans '新聞公告' %}</p>
-					<div class="arr"></div>
-				</li>
-				<li class="li-news-event updateNews" data-type="event">
-					<p>{% trans '活動訊息' %}</p>
-					<div class="arr"></div>
-				</li>
-				<li class="li-news-project updateNews" data-type="project">
-					<p>{% trans '徵求公告' %}</p>
-					<div class="arr"></div>
-				</li>
-				<li class="li-news-datathon updateNews" data-type="datathon">
-					<p>{% trans '數據松成果' %}</p>
-					<div class="arr"></div>
-				</li>
-				<li class="li-news-themeyear updateNews" data-type="themeyear">
-					<p>{% trans '主題年活動' %}</p>
-					<div class="arr"></div>
-				</li>
-			</ul> 
-		</div>
-
-		<div class="date_select">
-			<p>{% trans '篩選' %}</p>
-			<div class="input_item"> 
-				<input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
-				<a class="dateicon show_start"></a>		
-			</div>
-			<span>~</span>
-			<div class="input_item">
-				<input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
-				<a class="dateicon show_end"></a>		
-			</div>				
-			<button class="search_btn">{% trans '送出' %}</button>
-		</div>
-		<div class="already_selected" data-filter="no">
-			<ul class="d-none">
-				<li>
-					<p class="date-range"></p>
-					<button class="xx">
-						<img src="/static/image/xx_w.svg" >
-					</button>
-				</li>
-			</ul>
-		</div>
-		<ul class="news_list">
-		</ul>
-	</div>
-</div>
-{% endblock body %}	
-
+    {% csrf_token %}
+    <input type="hidden" name="news_type" value="{{ type }}">
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '最新消息' %}</p>
+        </div>
+    </div>
+    <div class="in_bn news_bn">
+        <div class="title">
+            <h2>{% trans '最新消息' %}</h2>
+        </div>
+    </div>
+    <div class="container_area">
+        <div class="main_1240">
+            <div class="tab_scromb">
+                <!--目前位置給class>now-->
+                <ul class="news_tab_in">
+                    <li class="li-news-all updateNews" data-type="all">
+                        <p>{% trans '所有消息' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                    <li class="li-news-news updateNews" data-type="news">
+                        <p>{% trans '新聞公告' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                    <li class="li-news-event updateNews" data-type="event">
+                        <p>{% trans '活動訊息' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                    <li class="li-news-project updateNews" data-type="project">
+                        <p>{% trans '徵求公告' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                    <li class="li-news-datathon updateNews" data-type="datathon">
+                        <p>{% trans '數據松成果' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                    <li class="li-news-themeyear updateNews" data-type="themeyear">
+                        <p>{% trans '主題年活動' %}</p>
+                        <div class="arr"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="date_select">
+                <p>{% trans '篩選' %}</p>
+                <div class="input_item">
+                    <input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
+                    <a class="dateicon show_start"></a>
+                </div>
+                <span>~</span>
+                <div class="input_item">
+                    <input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
+                    <a class="dateicon show_end"></a>
+                </div>
+                <button class="search_btn">{% trans '送出' %}</button>
+            </div>
+            <div class="already_selected" data-filter="no">
+                <ul class="d-none">
+                    <li>
+                        <p class="date-range"></p>
+                        <button class="xx">
+                            <img src="/static/image/xx_w.svg">
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <ul class="news_list">
+            </ul>
+        </div>
+    </div>
+{% endblock body %}
 {% block script %}
-<script src="{% static 'js/pages/news.js' %}?v3"></script>
+    <script src="{% static 'js/pages/news.js' %}"></script>
 {% endblock script %}

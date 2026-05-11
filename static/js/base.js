@@ -21,7 +21,6 @@ $(window).on('resize', function () {
   toggleSearchBox();
 });
 
-
 function showLogin() {
 
   if ($('input[name=is_authenticated]').val() != 'True') {
@@ -33,7 +32,6 @@ function showLogin() {
 
 // 背景更新通知
 function getCurrentNotif() {
-  // your function code here
   $.ajax({
     url: "/get_current_notif?lang=" + $lang,
     type: 'GET',
@@ -68,21 +66,17 @@ if ($('input[name=is_authenticated]').val() == 'True') {
   getCurrentNotif();
 }
 
-
 function isOverflown(element) {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
-
-var handleCaptchaExpired = function(){
+var handleCaptchaExpired = function () {
   window.has_grecaptcha = false;
 }
 
-
-var validateCaptcha = function(){
+var validateCaptcha = function () {
   window.has_grecaptcha = true;
 }
-
 
 var CaptchaCallback = function () {
   jQuery('.g-recaptcha').each(function (index, el) {
@@ -97,11 +91,11 @@ var CaptchaCallback = function () {
 
 $(function () {
 
-  $('.top_search_full_button').on('click', function(){
+  $('.top_search_full_button').on('click', function () {
     $('#search_full_form_top').submit()
   })
 
-  $('#search_full_form_top').on('submit', function(event){
+  $('#search_full_form_top').on('submit', function (event) {
     event.preventDefault()
 
     if ($('.top_search_full_keyword').val().length > 2000) {
@@ -112,18 +106,15 @@ $(function () {
 
   })
 
-
   $('.language-item').on('click', function (event) {
     $('input[name=language]').val($(this).data('value'))
-    console.log( $('input[name=language]').val())
+    console.log($('input[name=language]').val())
     $('#language-selected').submit()
   });
-
 
   if (!isOverflown($('.message_list')[0])) {
     $('.message_list li:last-child').addClass('box-radius-10px')
   }
-
 
   let selectBoxFP = new vanillaSelectBox("#feedback_partner", {
     "placeHolder": $('#feedback_partner').attr('placeholder'), search: false, disableSelectAll: true,
@@ -132,7 +123,6 @@ $(function () {
   let selectBoxFT = new vanillaSelectBox("#feedback_type", {
     "placeHolder": $('#feedback_type').attr('placeholder'), search: false, disableSelectAll: true,
   });
-
 
   $('#feedback_partner').on('change', function () {
     if ($('#btn-group-feedback_partner .vsb-menu ul li.active').length > 0) {
@@ -149,7 +139,6 @@ $(function () {
       $('#btn-group-feedback_type button span.title').addClass('color-707070').removeClass('black')
     }
   })
-
 
   $('.back-to-index').on('click', function () {
     window.location.href = '/'
@@ -177,7 +166,6 @@ $(function () {
     window.location = $(this).data('href')
   })
 
-
   $('.redirectToAdmin').on('click', function () {
 
     let n_id = $(this).data('nid')
@@ -199,7 +187,6 @@ $(function () {
     });
   })
 
-
   $('.showFeedback').on('click', function () {
     $('.feedback-pop').removeClass('d-none')
   })
@@ -218,14 +205,13 @@ $(function () {
 
   $('.feedback-pop .send').on('click', function () {
 
-
     // 如果登入的話就不用再驗證recaptcha
 
     if ((!$('input[name=is_authenticated]').val() && !window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
       alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
-      
+
     } else {
 
       $.ajax({
@@ -257,12 +243,10 @@ $(function () {
       next_url = window.location.pathname + '?' + searchParams.toString();
     }
 
-    $('#googleForm').attr('action', "/accounts/google/login/?next="+ "/login/google/callback?next2=" + encodeURIComponent(next_url))
+    $('#googleForm').attr('action', "/accounts/google/login/?next=" + "/login/google/callback?next2=" + encodeURIComponent(next_url))
     $('#googleForm').submit()
 
   })
-
-
 
   $('.resetbtn').on('click', function () {
     $.ajax({
@@ -271,24 +255,22 @@ $(function () {
       type: 'POST',
       dataType: 'json',
     })
-    .done(function (response) {
-      alert(gettext(response.message))
-    })
-    .fail(function (xhr, status, errorThrown) {
-      alert(gettext('發生未知錯誤！請聯絡管理員'))
-      console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-      $('.login_pop').addClass('d-none')
+      .done(function (response) {
+        alert(gettext(response.message))
+      })
+      .fail(function (xhr, status, errorThrown) {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        $('.login_pop').addClass('d-none')
 
-    })
+      })
   })
-
 
   gsap.registerPlugin(ScrollTrigger);
 
   ScrollTrigger.create({
     trigger: ".section_2",
     start: "top-=45% top",
-    // markers: true,
     onEnter: function () {
       $(".section_2").addClass("vivi");
     },
@@ -296,7 +278,6 @@ $(function () {
   ScrollTrigger.create({
     trigger: ".section_3",
     start: "top-=80% top",
-    // markers: true,
     onEnter: function () {
       $(".section_3").addClass("vivi");
     },
@@ -304,20 +285,14 @@ $(function () {
   ScrollTrigger.create({
     trigger: ".section_4",
     start: "top-=80% top",
-    // markers: true,
     onEnter: function () {
       $(".section_4").addClass("vivi");
     },
   });
 });
 
-
-
-
 window.addEventListener('error', function (event) {
   $(".loading_area").addClass('d-none');
-  // clearTimeout(ajaxLoadTimeout);
-  // alert('發生未知錯誤！請通知管理員')
 })
 
 $(function () {
@@ -334,7 +309,6 @@ $(function () {
   });
 });
 
-
 $('.ringbox').on('click', function () {
   if ($(this).hasClass('mb_open')) {
     $(this).removeClass('mb_open');
@@ -344,7 +318,6 @@ $('.ringbox').on('click', function () {
 }).children('.messagebox .message_list').click(function () {
   return false;
 });
-
 
 $('.rd_mb_two_menu_li').on('click', function (event) {
   event.preventDefault();
@@ -386,7 +359,6 @@ function checkPasswordStr(inputText) {
   }
 }
 
-
 function login() {
 
   // remove all notice first
@@ -398,7 +370,6 @@ function login() {
     $('#loginForm input[name=email]').next('.noticbox').removeClass('d-none')
     checked = false
   }
-
 
   if (!window.has_grecaptcha) { // check robot
     $('#loginForm .g-recaptcha').next('.noticbox').removeClass('d-none')
@@ -490,24 +461,21 @@ $('.login_pop').on('show', function () {
   $('.login_pop .noticbox').addClass('d-none')
 })
 
-
-
-
 document.querySelectorAll('.tooltip-wrapper').forEach(wrapper => {
-    wrapper.addEventListener('mouseenter', () => {
-        const rect = wrapper.getBoundingClientRect();
-        const windowWidth = window.innerWidth;
-        
-        // 預估 Tooltip 寬度（約 150px，或動態取得）
-        const estimatedWidth = 150; 
+  wrapper.addEventListener('mouseenter', () => {
+    const rect = wrapper.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
 
-        // 如果圖片右邊距離邊界的距離，小於預估寬度
-        if (windowWidth - rect.right < estimatedWidth) {
-            wrapper.classList.remove('pos-right');
-            wrapper.classList.add('pos-left');
-        } else {
-            wrapper.classList.remove('pos-left');
-            wrapper.classList.add('pos-right');
-        }
-    });
+    // 預估 Tooltip 寬度（約 150px，或動態取得）
+    const estimatedWidth = 150;
+
+    // 如果圖片右邊距離邊界的距離，小於預估寬度
+    if (windowWidth - rect.right < estimatedWidth) {
+      wrapper.classList.remove('pos-right');
+      wrapper.classList.add('pos-left');
+    } else {
+      wrapper.classList.remove('pos-left');
+      wrapper.classList.add('pos-right');
+    }
+  });
 });

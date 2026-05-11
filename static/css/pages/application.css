@@ -4,13 +4,12 @@
 
 .chebox:checked {
     background: url("/static/image/checkmark.svg") no-repeat center;
-    background-color:  #76A578;
-    color: #FFF ;
-    /*display: block;*/
+    background-color: #76A578;
+    color: #FFF;
 }
 
 .chebox {
-    background-color:  #FFF;
+    background-color: #FFF;
     width: 25px;
     height: 25px;
     border-radius: 5px;
@@ -21,7 +20,6 @@
     margin-right: 12px;
     flex: 0 0 25px
 }
-
 
 .agreebox {
     margin-bottom: 10px !important;
@@ -85,9 +83,6 @@
     -webkit-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
     transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
 }
-
-
-
 
 .file_area {
     margin-bottom: 20px;

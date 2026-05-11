@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load socialaccount %}
 {% load tags %}
-
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
   <head>
@@ -11,39 +10,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />  
-    <title>{% block title %}{% endblock title %}TBIA</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}?v24" />
+    <meta http-equiv="Expires" content="0" />
+    <title>
+      {% block title %}
+      {% endblock title %}
+    TBIA</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'tw/theme.css' %}" />
     <script src="/static/js/jquery-3.7.1.min.js"></script>
     <script src="{% static 'js/gsap.min.js' %}"></script>
     <script src="{% static 'js/ScrollTrigger.min.js' %}"></script>
-    <link href="/static/vanillaselectbox/vanillaSelectBox.css?v1" rel="stylesheet" />
-    <script src="/static/vanillaselectbox/vanillaSelectBox.js?v2"></script>
+    <link href="/static/vanillaselectbox/vanillaSelectBox.css" rel="stylesheet" />
+    <script src="/static/vanillaselectbox/vanillaSelectBox.js"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'image/favicon-32x32.png' %}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'image/favicon-16x16.png' %}" />
     <link rel="shortcut icon" href="{% static 'image/favicon.ico' %}" />
-    <!--  <script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
     <script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit{% if LANGUAGE_CODE == 'en-us' %}&hl=en{% endif %}" async defer></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}?v16" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
     <script src="{% static 'js/GA/ga_head.js' %}"></script>
     <script src="{% static 'js/tokml.js' %}"></script>
     <!-- use django template in js -->
     <script src="{% url 'javascript-catalog' %}"></script>
-    {% block head %}{% endblock head %}
-    {% block style %}{% endblock style %}
+    {% block head %}
+    {% endblock head %}
+    {% block style %}
+    {% endblock style %}
   </head>
   <body>
-  <input type="hidden" name="lang" value="{{ LANGUAGE_CODE }}">
-
-  <!--loading-->
-  <div class="loading_area d-none">
-    <div class="sc">
-      <div class="load"><span>L</span>ading</div>
+    <input type="hidden" name="lang" value="{{ LANGUAGE_CODE }}">
+    <!--loading-->
+    <div class="loading_area d-none">
+      <div class="sc">
+        <div class="load">
+          <span>L</span>ading
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!--通用訊息匡pop-->
-  <!--
+    <!--通用訊息匡pop-->
+    <!--
   <div class="messageboxfix d-none">
     <div class="message_box">
       <div class="informationicon">!</div>
@@ -54,402 +57,395 @@
       </div>
     </div>
   </div>
-  -->
-  
-  <!--意見回饋popbox-->
-  <div class="popbg feedback-pop d-none">
-    <div class="ovhy">
-      <div class="wbox_center">
-        <div class="xx">
-        </div>
-        <div class="titlegreen">
-          {% trans '意見回饋' %}
-        </div>
-        <p class="shortxt">
-          {% trans '請填寫下列表格，我們將會儘快回覆' %}
-        </p>
-        <div class="from_area">
-          <form id="feedback_form">
-          {% csrf_token %}
-          <div class="select_twobox"> 
-            <select name="partner_id" id="feedback_partner" placeholder="{% trans '請選擇回饋對象' %}">
-              <option value="">{% trans '-- 重設 --' %}</option>
-              <option value="0">{% if LANGUAGE_CODE == 'en-us' %}Taiwan Biodiversity Information Alliance{% else %}TBIA 臺灣生物多樣性資訊聯盟{% endif %}</option>
-              {% for p in partners %} 
-                <option value='{{ p.id }}'>
-                  {% if LANGUAGE_CODE == 'en-us' and p.select_title_en %}
-                    {{ p.select_title_en }}
-                  {% else %}
-                    {{ p.select_title }}
-                  {% endif %}
-                </option>
-              {% endfor %}
-            </select>
-            <select name="type" id="feedback_type" placeholder="{% trans '請選擇問題類型' %}">
-              <option value="">{% trans '-- 重設 --' %}</option>
-              <option value="1">{% trans '網頁操作' %}</option>
-              <option value="2">{% trans '網頁內容' %}</option>
-              <option value="3">{% trans '聯盟相關' %}</option>
-            </select>				
+-->
+    <!--意見回饋popbox-->
+    <div class="popbg feedback-pop d-none">
+      <div class="ovhy">
+        <div class="wbox_center">
+          <div class="xx"></div>
+          <div class="titlegreen">{% trans '意見回饋' %}</div>
+          <p class="shortxt">{% trans '請填寫下列表格，我們將會儘快回覆' %}</p>
+          <div class="from_area">
+            <form id="feedback_form">
+              {% csrf_token %}
+              <div class="select_twobox">
+                <select name="partner_id" id="feedback_partner" placeholder="{% trans '請選擇回饋對象' %}">
+                  <option value="">{% trans '-- 重設 --' %}</option>
+                  <option value="0">
+                    {% if LANGUAGE_CODE == 'en-us' %}
+                      Taiwan Biodiversity Information Alliance
+                    {% else %}
+                      TBIA 臺灣生物多樣性資訊聯盟
+                    {% endif %}
+                  </option>
+                  {% for p in partners %}
+                    <option value='{{ p.id }}'>
+                      {% if LANGUAGE_CODE == 'en-us' and p.select_title_en %}
+                        {{ p.select_title_en }}
+                      {% else %}
+                        {{ p.select_title }}
+                      {% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+                <select name="type" id="feedback_type" placeholder="{% trans '請選擇問題類型' %}">
+                  <option value="">{% trans '-- 重設 --' %}</option>
+                  <option value="1">{% trans '網頁操作' %}</option>
+                  <option value="2">{% trans '網頁內容' %}</option>
+                  <option value="3">{% trans '聯盟相關' %}</option>
+                </select>
+              </div>
+              <div class="txt_area">
+                <p>{% trans '問題描述' %}</p>
+                <textarea name="content"></textarea>
+              </div>
+              <div class="email_area">
+                <p>{% trans '您的電⼦郵件' %}</p>
+                <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
+              </div>
+              {% if not user.is_authenticated %}
+                <div class="g-recaptcha g-recaptcha-style"
+                     data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
+                     data-theme="light"
+                     data-size="normal"
+                     data-callback="validateCaptcha"
+                     data-expired-callback="handleCaptchaExpired"
+                     data-error-callback="handleCaptchaExpired"></div>
+              {% endif %}
+            </form>
+            <button class="send">{% trans '確認送出' %}</button>
           </div>
-          <div class="txt_area">
-            <p>{% trans '問題描述' %}</p>
-            <textarea name="content"></textarea>
-          </div>
-          <div class="email_area">
-            <p>{% trans '您的電⼦郵件' %}</p>
-            <input name="email" type="text" value="{{ request.user.email|default_if_none:'' }}">
-          </div>
-          {% if not user.is_authenticated %}
-            <div
-              class="g-recaptcha g-recaptcha-style"
-              data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
-              data-theme="light" 
-              data-size="normal"
-              data-callback="validateCaptcha"
-              data-expired-callback="handleCaptchaExpired"
-              data-error-callback="handleCaptchaExpired">
-            </div>
-          {% endif %}
-          </form>
-          <button class="send">{% trans '確認送出' %}</button>
         </div>
       </div>
     </div>
-  </div>
-
-
-  <div class="header clearfix">
-    <div class="main_1240">
-      <a href="{% url 'index' %}" class="logo_area">
-        <img src="{% static 'image/logo_top.svg' %}" />
-      </a>
-
-      <div class="right_mbhambuger">
-        <div class="hmenu hmenu-2">
-          <span></span>
+    <div class="header clearfix">
+      <div class="main_1240">
+        <a href="{% url 'index' %}" class="logo_area">
+          <img src="{% static 'image/logo_top.svg' %}" />
+        </a>
+        <div class="right_mbhambuger">
+          <div class="hmenu hmenu-2">
+            <span></span>
+          </div>
         </div>
-      </div>
-    
-      <!--手機選單-->
-      <div class="mb_bmenu">
-        <div class="ovh">
-          <ul>
-            {% if user.is_authenticated %}
-            <li class="rd_mb_two_menu_li">
-              <a class="one_set">
-                <p class="gres">Hello, {{ user.name }}</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" >
-              </a>
-              <div class="mbmu2">
-                <a href="{% url 'manager' %}" class="s_title">
-                  <p>{% trans '帳號後台' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>
-                {% if user.is_partner_admin or user.is_partner_account %}
-                <a href="{% url 'manager_partner' %}" class="s_title">
-                  <p>{% trans '單位後台' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>
-                {% endif %}
-                {% if user.is_system_admin %}
-                <a href="{% url 'manager_system' %}" class="s_title">
-                  <p>{% trans '系統管理後台' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>
-                {% endif %}
-                <a href="{% url 'logout' %}" class="s_title">
-                  <p>{% trans '登出' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </a>						
-              </div>
-            </li>   
-            {% else %}
-            <li>
-              <a class="one_set showLogin">
-                <p>{% trans '會員登入' %}</p>
-                <img class="arright" src="{% static 'image/next.svg' %}" />
-              </a>
-            </li>
-            {% endif %}
-            <li class="rd_mb_two_menu_li">
-              <a href="{% url 'about' %}" class="one_set rd_mb_two_menu">
-                <p>{% trans '關於TBIA' %}</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" />
-              </a>
-              <div class="mbmu2">
-                <a href="{% url 'about' %}#about" class="s_title">
-                  <p>{% trans '聯盟簡介' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'about' %}#partner" class="s_title">
-                  <p>{% trans '正式會員' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                {% if index_collaborates|length > 0 %}
-                <a href="{% url 'about' %}#collaboration" class="s_title">
-                  <p>{% trans '合作夥伴' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                {% endif %}
-              </div>
-            </li>
-            <li class="rd_mb_two_menu_li">
-              <a href="{% url 'search_occurrence' %}" class="one_set rd_mb_two_menu">
-                <p>{% trans '進階搜尋' %}</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" />
-              </a>
-              <div class="mbmu2">
-                <a href="{% url 'search_occurrence' %}" class="s_title">
-                  <p>{% trans '物種出現紀錄查詢' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'search_collection' %}" class="s_title">
-                  <p>{% trans '自然史典藏查詢' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'search_dataset' %}" class="s_title">
-                  <p>{% trans '資料集查詢' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'api_doc' %}" class="s_title">
-                  <p>{% trans 'API' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-              </div>
-            </li>
-            <li class="rd_mb_two_menu_li">
-              <a href="{% url 'news' %}" class="one_set rd_mb_two_menu">
-                <p>{% trans '最新消息' %}</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" />
-              </a>
-              <div class="mbmu2">
-                <a href="{% url 'news' %}?type=news" class="s_title">
-                  <p>{% trans '新聞公告' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'news' %}?type=event" class="s_title">
-                  <p>{% trans '活動訊息' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'news' %}?type=project" class="s_title">
-                  <p>{% trans '徵求公告' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'news' %}?type=datathon" class="s_title">
-                  <p>{% trans '數據松成果' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'news' %}?type=themeyear" class="s_title">
-                  <p>{% trans '主題年活動' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-              </div>
-            </li>
-            <li class="rd_mb_two_menu_li">
-              <a href="{% url 'resources' %}" class="one_set rd_mb_two_menu">
-                <p>{% trans '開放資料相關資源' %}</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" />
-              </a>
-              <div class="mbmu2">
-                <a href="{% url 'resources' %}?type=strategy" class="s_title">
-                  <p>{% trans 'TBIA 策略文件' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'resources' %}?type=guide" class="s_title">
-                  <p>{% trans '開放資料指引' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'resources' %}?type=tool" class="s_title">
-                  <p>{% trans '參考文件/工具' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'resources' %}?type=tutorial" class="s_title">
-                  <p>{% trans '教學文件' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-                <a href="{% url 'ark_ids' %}" class="s_title">
-                  <p>{% trans 'ARK服務' %}</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" />
-                </a>
-              </div>
-            </li>
-            <li>
-              <a href="{% url 'qa' %}" class="one_set">
-                <p>{% trans '常見Q&A' %}</p>
-                <img class="arright" src="{% static 'image/next.svg' %}" />
-              </a>
-            </li>
-            <li>
-              <a class="one_set showFeedback">
-                <p>{% trans '意見回饋' %}</p>
-              </a>
-            </li>
-            <li class="rd_mb_two_menu_li">
-              <a class="one_set rd_mb_two_menu">
-                <p>Language</p>
-                <img class="ardown" src="{% static 'image/ardown.svg' %}" >
-              </a>
-              <div class="mbmu2">
-                <form id="language-selected" action="{% url 'set_language' %}" method="post">
-                  {% csrf_token %}
-                  <input name="next" type="hidden" value="{{ redirect_to }}" />
-                  <input name="language" type="hidden"/>
-                </form>
-                <span class="s_title language-item" data-value="zh-hant">
-                  <p>繁體中文</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </span>
-                <span class="s_title language-item" data-value="en-us">
-                  <p>English</p>
-                  <img class="arright" src="{% static 'image/next.svg' %}" >
-                </span>
-              </div>
-            </li>    
-          </ul>
-        </div>
-      </div>
-      <!--主選單-->
-      <div class="right_menu">
-        <ul>
-          <li>
-            <a href="{% url 'about' %}" class="big_title">{% trans '關於TBIA' %}</a>
-            <div class="line"></div>
-            <div class="menu_2">
-              <div class="item">
-                <a href="{% url 'about' %}#about" class="s_title">{% trans '聯盟簡介' %}</a>
-              </div>
-              <div class="item">
-                <a href="{% url 'about' %}#partner" class="s_title">{% trans '正式會員' %}</a>
-              </div>
-              {% if index_collaborates|length > 0 %}
-              <div class="item">
-                <a href="{% url 'about' %}#collaboration" class="s_title">{% trans '合作夥伴' %}</a>
-              </div>
-              {% endif %}
-            </div>
-          </li>
-          <li>
-            <a href="{% url 'search_occurrence' %}" class="big_title">{% trans '進階搜尋' %}</a>
-            <div class="line"></div>
-            <div class="menu_2">
-              <div class="item">
-                <a href="{% url 'search_occurrence' %}" class="s_title">{% trans '物種出現紀錄<br>查詢' %}</a>
-                <a href="{% url 'search_collection' %}" class="s_title">{% trans '自然史典藏<br>查詢' %}</a>
-                <a href="{% url 'search_dataset' %}" class="s_title">{% trans '資料集查詢' %}</a>
-                <a href="{% url 'api_doc' %}" class="s_title">API</a>
-              </div>
-            </div>
-          </li>
-          <li>
-            <a href="{% url 'news' %}" class="big_title">{% trans '最新消息' %}</a>
-            <div class="line"></div>
-            <div class="menu_2">
-              <div class="item">
-                <a href="{% url 'news' %}?type=news" class="s_title">{% trans '新聞公告' %}</a>
-                <a href="{% url 'news' %}?type=event" class="s_title">{% trans '活動訊息' %}</a>
-                <a href="{% url 'news' %}?type=project" class="s_title">{% trans '徵求公告' %}</a>
-                <a href="{% url 'news' %}?type=datathon" class="s_title">{% trans '數據松成果' %}</a>
-                <a href="{% url 'news' %}?type=themeyear" class="s_title">{% trans '主題年活動' %}</a>
-              </div>
-            </div>
-          </li>
-          <li>
-            <a href="{% url 'resources' %}" class="big_title">{% trans '開放資料相關資源' %}</a>
-            <div class="line"></div>
-            <div class="menu_2">
-              <div class="item">
-                <a href="{% url 'resources' %}?type=strategy" class="s_title">{% trans 'TBIA 策略文件' %}</a>
-                <a href="{% url 'resources' %}?type=guide" class="s_title">{% trans '開放資料指引' %}</a>
-                <a href="{% url 'resources' %}?type=tool" class="s_title">{% trans '參考文件/工具' %}</a>
-                <a href="{% url 'resources' %}?type=tutorial" class="s_title">{% trans '教學文件' %}</a>
-                <a href="{% url 'ark_ids' %}" class="s_title">{% trans 'ARK服務' %}</a>
-              </div>
-            </div>
-          </li>
-          <li>
-            <a href="{% url 'qa' %}" class="big_title">{% trans '常見Q&A' %}</a>
-            <div class="line"></div>
-          </li>
-        </ul>
-      </div>
-      <div class="right_btn2 {% if user.is_authenticated %} login_done {% endif %}" >
-      <div class="top-search">
-        <button class="top-toggle-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
-            <g id="loupe" transform="translate(0.038 0.035)">
-              <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
-                <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146"/>
-              </g>
-            </g>
-          </svg>
-        </button>
-        <div class="searchbox">
-            <div class="wbox">
-          <form id="search_full_form_top" action="{% url 'search_full' %}" method="GET">
-            {% csrf_token %}
-            <input type="text" placeholder="{% trans '請輸入關鍵字' %}" class="top_search_full_keyword" name="keyword">
-          </form>
-              <button class="mb-btn top_search_full_button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
-                  <g id="loupe" transform="translate(0.038 0.035)">
-                    <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
-                      <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146"/>
-                    </g>
-                  </g>
-                </svg>
-              </button>
-            </div>
-        </div>
-      </div>
-        <div class="feedback showFeedback"></div>
-        <div class="languagebox">
-          <div class="slimenu">
+        <!--手機選單-->
+        <div class="mb_bmenu">
+          <div class="ovh">
             <ul>
-              <li class="language-item" data-value="zh-hant">繁體中文</li>
-              <li class="language-item" data-value="en-us">English</li>
+              {% if user.is_authenticated %}
+                <li class="rd_mb_two_menu_li">
+                  <a class="one_set">
+                    <p class="gres">Hello, {{ user.name }}</p>
+                    <img class="ardown" src="{% static 'image/ardown.svg' %}">
+                  </a>
+                  <div class="mbmu2">
+                    <a href="{% url 'manager' %}" class="s_title">
+                      <p>{% trans '帳號後台' %}</p>
+                      <img class="arright" src="{% static 'image/next.svg' %}">
+                    </a>
+                    {% if user.is_partner_admin or user.is_partner_account %}
+                      <a href="{% url 'manager_partner' %}" class="s_title">
+                        <p>{% trans '單位後台' %}</p>
+                        <img class="arright" src="{% static 'image/next.svg' %}">
+                      </a>
+                    {% endif %}
+                    {% if user.is_system_admin %}
+                      <a href="{% url 'manager_system' %}" class="s_title">
+                        <p>{% trans '系統管理後台' %}</p>
+                        <img class="arright" src="{% static 'image/next.svg' %}">
+                      </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="s_title">
+                      <p>{% trans '登出' %}</p>
+                      <img class="arright" src="{% static 'image/next.svg' %}">
+                    </a>
+                  </div>
+                </li>
+              {% else %}
+                <li>
+                  <a class="one_set showLogin">
+                    <p>{% trans '會員登入' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                </li>
+              {% endif %}
+              <li class="rd_mb_two_menu_li">
+                <a href="{% url 'about' %}" class="one_set rd_mb_two_menu">
+                  <p>{% trans '關於TBIA' %}</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}" />
+                </a>
+                <div class="mbmu2">
+                  <a href="{% url 'about' %}#about" class="s_title">
+                    <p>{% trans '聯盟簡介' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'about' %}#partner" class="s_title">
+                    <p>{% trans '正式會員' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  {% if index_collaborates|length > 0 %}
+                    <a href="{% url 'about' %}#collaboration" class="s_title">
+                      <p>{% trans '合作夥伴' %}</p>
+                      <img class="arright" src="{% static 'image/next.svg' %}" />
+                    </a>
+                  {% endif %}
+                </div>
+              </li>
+              <li class="rd_mb_two_menu_li">
+                <a href="{% url 'search_occurrence' %}" class="one_set rd_mb_two_menu">
+                  <p>{% trans '進階搜尋' %}</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}" />
+                </a>
+                <div class="mbmu2">
+                  <a href="{% url 'search_occurrence' %}" class="s_title">
+                    <p>{% trans '物種出現紀錄查詢' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'search_collection' %}" class="s_title">
+                    <p>{% trans '自然史典藏查詢' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'search_dataset' %}" class="s_title">
+                    <p>{% trans '資料集查詢' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'api_doc' %}" class="s_title">
+                    <p>{% trans 'API' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                </div>
+              </li>
+              <li class="rd_mb_two_menu_li">
+                <a href="{% url 'news' %}" class="one_set rd_mb_two_menu">
+                  <p>{% trans '最新消息' %}</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}" />
+                </a>
+                <div class="mbmu2">
+                  <a href="{% url 'news' %}?type=news" class="s_title">
+                    <p>{% trans '新聞公告' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'news' %}?type=event" class="s_title">
+                    <p>{% trans '活動訊息' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'news' %}?type=project" class="s_title">
+                    <p>{% trans '徵求公告' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'news' %}?type=datathon" class="s_title">
+                    <p>{% trans '數據松成果' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'news' %}?type=themeyear" class="s_title">
+                    <p>{% trans '主題年活動' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                </div>
+              </li>
+              <li class="rd_mb_two_menu_li">
+                <a href="{% url 'resources' %}" class="one_set rd_mb_two_menu">
+                  <p>{% trans '開放資料相關資源' %}</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}" />
+                </a>
+                <div class="mbmu2">
+                  <a href="{% url 'resources' %}?type=strategy" class="s_title">
+                    <p>{% trans 'TBIA 策略文件' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'resources' %}?type=guide" class="s_title">
+                    <p>{% trans '開放資料指引' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'resources' %}?type=tool" class="s_title">
+                    <p>{% trans '參考文件/工具' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'resources' %}?type=tutorial" class="s_title">
+                    <p>{% trans '教學文件' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                  <a href="{% url 'ark_ids' %}" class="s_title">
+                    <p>{% trans 'ARK服務' %}</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}" />
+                  </a>
+                </div>
+              </li>
+              <li>
+                <a href="{% url 'qa' %}" class="one_set">
+                  <p>{% trans '常見Q&A' %}</p>
+                  <img class="arright" src="{% static 'image/next.svg' %}" />
+                </a>
+              </li>
+              <li>
+                <a class="one_set showFeedback">
+                  <p>{% trans '意見回饋' %}</p>
+                </a>
+              </li>
+              <li class="rd_mb_two_menu_li">
+                <a class="one_set rd_mb_two_menu">
+                  <p>Language</p>
+                  <img class="ardown" src="{% static 'image/ardown.svg' %}">
+                </a>
+                <div class="mbmu2">
+                  <form id="language-selected" action="{% url 'set_language' %}" method="post">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ redirect_to }}" />
+                    <input name="language" type="hidden" />
+                  </form>
+                  <span class="s_title language-item" data-value="zh-hant">
+                    <p>繁體中文</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}">
+                  </span>
+                  <span class="s_title language-item" data-value="en-us">
+                    <p>English</p>
+                    <img class="arright" src="{% static 'image/next.svg' %}">
+                  </span>
+                </div>
+              </li>
             </ul>
           </div>
         </div>
-        <div class="ringbox">
-          <div class="num_message {% if user.id|get_notif_count <= 0 %} d-none {% endif %}">{{ user.id|get_notif_count }}</div>
-          <div class="messagebox">
-            <div class="wbox">
-              <div class="titlebox">
-                <p>{% trans '最近10筆通知' %}</p>
-                <div>
-                  <button class="updateIsRead">{% trans '全部已讀' %}</button>
-                  <a href="{% url 'manager' %}?menu=notification">{% trans '查看全部' %}</a>
+        <!--主選單-->
+        <div class="right_menu">
+          <ul>
+            <li>
+              <a href="{% url 'about' %}" class="big_title">{% trans '關於TBIA' %}</a>
+              <div class="line"></div>
+              <div class="menu_2">
+                <div class="item">
+                  <a href="{% url 'about' %}#about" class="s_title">{% trans '聯盟簡介' %}</a>
+                </div>
+                <div class="item">
+                  <a href="{% url 'about' %}#partner" class="s_title">{% trans '正式會員' %}</a>
+                </div>
+                {% if index_collaborates|length > 0 %}
+                  <div class="item">
+                    <a href="{% url 'about' %}#collaboration" class="s_title">{% trans '合作夥伴' %}</a>
+                  </div>
+                {% endif %}
+              </div>
+            </li>
+            <li>
+              <a href="{% url 'search_occurrence' %}" class="big_title">{% trans '進階搜尋' %}</a>
+              <div class="line"></div>
+              <div class="menu_2">
+                <div class="item">
+                  <a href="{% url 'search_occurrence' %}" class="s_title">{% trans '物種出現紀錄<br>查詢' %}</a>
+                  <a href="{% url 'search_collection' %}" class="s_title">{% trans '自然史典藏<br>查詢' %}</a>
+                  <a href="{% url 'search_dataset' %}" class="s_title">{% trans '資料集查詢' %}</a>
+                  <a href="{% url 'api_doc' %}" class="s_title">API</a>
                 </div>
               </div>
-              <ul class="message_list">
-                {{ user.id|get_notif }}
+            </li>
+            <li>
+              <a href="{% url 'news' %}" class="big_title">{% trans '最新消息' %}</a>
+              <div class="line"></div>
+              <div class="menu_2">
+                <div class="item">
+                  <a href="{% url 'news' %}?type=news" class="s_title">{% trans '新聞公告' %}</a>
+                  <a href="{% url 'news' %}?type=event" class="s_title">{% trans '活動訊息' %}</a>
+                  <a href="{% url 'news' %}?type=project" class="s_title">{% trans '徵求公告' %}</a>
+                  <a href="{% url 'news' %}?type=datathon" class="s_title">{% trans '數據松成果' %}</a>
+                  <a href="{% url 'news' %}?type=themeyear" class="s_title">{% trans '主題年活動' %}</a>
+                </div>
+              </div>
+            </li>
+            <li>
+              <a href="{% url 'resources' %}" class="big_title">{% trans '開放資料相關資源' %}</a>
+              <div class="line"></div>
+              <div class="menu_2">
+                <div class="item">
+                  <a href="{% url 'resources' %}?type=strategy" class="s_title">{% trans 'TBIA 策略文件' %}</a>
+                  <a href="{% url 'resources' %}?type=guide" class="s_title">{% trans '開放資料指引' %}</a>
+                  <a href="{% url 'resources' %}?type=tool" class="s_title">{% trans '參考文件/工具' %}</a>
+                  <a href="{% url 'resources' %}?type=tutorial" class="s_title">{% trans '教學文件' %}</a>
+                  <a href="{% url 'ark_ids' %}" class="s_title">{% trans 'ARK服務' %}</a>
+                </div>
+              </div>
+            </li>
+            <li>
+              <a href="{% url 'qa' %}" class="big_title">{% trans '常見Q&A' %}</a>
+              <div class="line"></div>
+            </li>
+          </ul>
+        </div>
+        <div class="right_btn2 {% if user.is_authenticated %}login_done{% endif %}">
+          <div class="top-search">
+            <button class="top-toggle-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
+                <g id="loupe" transform="translate(0.038 0.035)">
+                <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
+                <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146" />
+                </g>
+                </g>
+              </svg>
+            </button>
+            <div class="searchbox">
+              <div class="wbox">
+                <form id="search_full_form_top" action="{% url 'search_full' %}" method="GET">
+                  {% csrf_token %}
+                  <input type="text" placeholder="{% trans '請輸入關鍵字' %}" class="top_search_full_keyword" name="keyword">
+                </form>
+                <button class="mb-btn top_search_full_button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20.147" height="20.149" viewBox="0 0 20.147 20.149">
+                    <g id="loupe" transform="translate(0.038 0.035)">
+                    <g id="Group_13" data-name="Group 13" transform="translate(-0.038 -0.035)">
+                    <path id="Path_54" data-name="Path 54" d="M19.864,18.682l-5.72-5.72a7.978,7.978,0,1,0-1.185,1.185l5.72,5.722a.838.838,0,0,0,1.185-1.185ZM7.959,14.245A6.286,6.286,0,1,1,14.242,7.96,6.286,6.286,0,0,1,7.959,14.245Z" transform="translate(0.038 0.035)" fill="#3f5146" />
+                    </g>
+                    </g>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="feedback showFeedback"></div>
+          <div class="languagebox">
+            <div class="slimenu">
+              <ul>
+                <li class="language-item" data-value="zh-hant">繁體中文</li>
+                <li class="language-item" data-value="en-us">English</li>
               </ul>
             </div>
           </div>
-        </div>
-        <div class="member_login showLogin">
-
-        {% comment %} <div onclick="$('.login_pop').show(); $('.login_pop .loginbox').css('display', 'none'); $('.login_pop .login_area').css('display', '')" class="member_login"> {% endcomment %}
-          <div class="icon"></div>
+          <div class="ringbox">
+            <div class="num_message {% if user.id|get_notif_count <= 0 %}d-none{% endif %}">{{ user.id|get_notif_count }}</div>
+            <div class="messagebox">
+              <div class="wbox">
+                <div class="titlebox">
+                  <p>{% trans '最近10筆通知' %}</p>
+                  <div>
+                    <button class="updateIsRead">{% trans '全部已讀' %}</button>
+                    <a href="{% url 'manager' %}?menu=notification">{% trans '查看全部' %}</a>
+                  </div>
+                </div>
+                <ul class="message_list">
+                  {{ user.id|get_notif }}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="member_login showLogin">
+            <div class="icon"></div>
             <p>{% trans '登入' %}</p>
             <div class="member_slimenu">
               <ul>
                 <li data-href="{% url 'manager' %}">{% trans '帳號後台' %}</li>
                 {% if user.is_partner_admin or user.is_partner_account %}
-                <li data-href="{% url 'manager_partner' %}">{% trans '單位後台' %}</li>
+                  <li data-href="{% url 'manager_partner' %}">{% trans '單位後台' %}</li>
                 {% endif %}
                 {% if user.is_system_admin %}
-                <li data-href="{% url 'manager_system' %}">{% trans '系統管理後台' %}</li>
+                  <li data-href="{% url 'manager_system' %}">{% trans '系統管理後台' %}</li>
                 {% endif %}
                 <li data-href="/logout">{% trans '登出' %}</li>
               </ul>
-            </div>        
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-    {% block body %}{% endblock body %}
+    {% block body %}
+    {% endblock body %}
     <script src="{% static 'js/GA/ga_head.js' %}"></script>
     <div class="footer">
       <div class="main_1240">
@@ -459,7 +455,9 @@
               <img src="{% static 'image/logo_w.svg' %}" alt="{% trans '臺灣生物多樣性資訊聯盟' %}" />
             </a>
           </div>
-          <div class="inf">Email：<a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a></div>
+          <div class="inf">
+            Email：<a href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a>
+          </div>
         </div>
         <ul class="footer_menu">
           <li>
@@ -490,7 +488,7 @@
             <a href="{% url 'about' %}#about" class="sma_link">{% trans '聯盟簡介' %}</a>
             <a href="{% url 'about' %}#partner" class="sma_link">{% trans '正式會員' %}</a>
             {% if index_collaborates|length > 0 %}
-            <a href="{% url 'about' %}#collaboration" class="sma_link">{% trans '合作夥伴' %}</a>
+              <a href="{% url 'about' %}#collaboration" class="sma_link">{% trans '合作夥伴' %}</a>
             {% endif %}
             <a href="{% url 'qa' %}" class="big_link mt-10px mb-0">{% trans '常見Q&A' %}</a>
             <a href="{% url 'terms' %}" class="big_link mb-0">{% trans '使用條款' %}</a>
@@ -511,83 +509,65 @@
           </div>
         </div>
       </div>
-      {% comment %} <div class="copy d-flex-ai-c-jc-c">
-        <a href="{% url 'terms' %}">{% trans '使用條款' %}</a> | <a href="{% url 'policy' %}">{% trans '隱私權政策' %}</a>
-      </div> {% endcomment %}
       <div class="copy">
         <h6>Copyright © TBIA {% trans '臺灣生物多樣性資訊聯盟' %}</h6>
       </div>
     </div>
-
-  <!--會員登入/註冊/忘記密碼-->
-  <div class="popbg login_pop d-none">
-    <div class="bgt">
-      <img src="{% static 'image/bgt.svg' %}" >
-    </div>
-    <div class="bgb">
-      <img src="{% static 'image/bgb.svg' %}" >
-    </div>
-    <div class="bgi">
-      <img src="{% static 'image/bgi.svg' %}" >
-    </div>
-    <div class="bga"> 
-      <img src="{% static 'image/bga.svg' %}" >
-    </div>
-    <div class="ovhy"> 
-      <div class="wbox_center login">
-        <div class="xx">
-        </div>
-        <div class="left_bg"> 
-          <img src="{% static 'image/loginbga.svg' %}" > 
-        </div>
-        <!--會員登入-->
-        <div class="loginbox login_area">				
-          <div class="right_cont">
-            <div class="alcont_center">
-              <div class="titlegreen">
-                {% trans '會員登入' %}
-                <!-- <span>Login</span> -->
-              </div>
-              <form id="loginForm">
-                {% csrf_token %}
-                <div class="input_item">
-                  <input type="text" name="email" placeholder="{% trans '請輸入您的帳號(Email)' %}" autocomplete="username">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '請輸入正確信箱' %}</p>
+    <!--會員登入/註冊/忘記密碼-->
+    <div class="popbg login_pop d-none">
+      <div class="bgt">
+        <img src="{% static 'image/bgt.svg' %}">
+      </div>
+      <div class="bgb">
+        <img src="{% static 'image/bgb.svg' %}">
+      </div>
+      <div class="bgi">
+        <img src="{% static 'image/bgi.svg' %}">
+      </div>
+      <div class="bga">
+        <img src="{% static 'image/bga.svg' %}">
+      </div>
+      <div class="ovhy">
+        <div class="wbox_center login">
+          <div class="xx"></div>
+          <div class="left_bg">
+            <img src="{% static 'image/loginbga.svg' %}">
+          </div>
+          <!--會員登入-->
+          <div class="loginbox login_area">
+            <div class="right_cont">
+              <div class="alcont_center">
+                <div class="titlegreen">{% trans '會員登入' %}</div>
+                <form id="loginForm">
+                  {% csrf_token %}
+                  <div class="input_item">
+                    <input type="text" name="email" placeholder="{% trans '請輸入您的帳號(Email)' %}" autocomplete="username">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '請輸入正確信箱' %}</p>
+                    </div>
                   </div>
-                </div>
-                <div class="input_item">
-                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
+                  <div class="input_item">
+                    <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '請輸入6~10位英文或數字' %}</p>
+                    </div>
                   </div>
-                </div>
-
-                <div  class="input_item">
-                  <div
-                    class="g-recaptcha"
-                    data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ"
-                    data-theme="light" data-size="normal"
-                    data-callback="validateCaptcha"
-                    data-expired-callback="handleCaptchaExpired"
-                    data-error-callback="handleCaptchaExpired">
+                  <div class="input_item">
+                    <div class="g-recaptcha" data-sitekey="6Ld1yBIiAAAAABc7fK4tpQvBb6QL4S32CHeFZbNZ" data-theme="light" data-size="normal" data-callback="validateCaptcha" data-expired-callback="handleCaptchaExpired" data-error-callback="handleCaptchaExpired">
                     </div>
                     <div class="noticbox d-none">
-                      {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
                       <p>{% trans '登入前請完成驗證' %}</p>
                     </div>
                   </div>
-                <div class="checkbox_area">
-                  <div class="flex_center">
-                    <input type="checkbox" name="rememberme">
-                    <p>{% trans '記住我的帳號' %}</p>
+                  <div class="checkbox_area">
+                    <div class="flex_center">
+                      <input type="checkbox" name="rememberme">
+                      <p>{% trans '記住我的帳號' %}</p>
+                    </div>
+                    <button type="button" class="loginbtn login-onclick">{% trans '登入' %}</button>
                   </div>
-                  <button type="button" class="loginbtn login-onclick">{% trans '登入' %}</button>
-                </div>
                 </form>
                 <form id="googleForm" action="" method="post">
                   {% csrf_token %}
@@ -595,105 +575,93 @@
                 <a class="google_login">
                   <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                     <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                      <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                      <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                      <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                      <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                    <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z" />
+                    <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z" />
+                    <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z" />
+                    <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z" />
                     </g>
                     <p>{% trans '使用Google登入' %}</p>
                   </svg>
                 </a>
-              <div class="linkbtn_2">
-                <a class="i-register">{% trans '我要註冊' %}</a>
-                <a class="forget-psw">{% trans '忘記密碼?' %}</a>
+                <div class="linkbtn_2">
+                  <a class="i-register">{% trans '我要註冊' %}</a>
+                  <a class="forget-psw">{% trans '忘記密碼?' %}</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--會員註冊-->
+          <div class="loginbox register_area d-none">
+            <div class="right_cont">
+              <div class="alcont_center">
+                <div class="titlegreen">{% trans '會員註冊' %}</div>
+                <form id="registerForm">
+                  {% csrf_token %}
+                  <div class="input_item">
+                    <input type="text" name="name" placeholder="{% trans '姓名' %}">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '請輸入姓名' %}</p>
+                    </div>
+                  </div>
+                  <div class="input_item">
+                    <input type="text" name="email" placeholder="{% trans '請輸入您的Email作為帳號' %}" autocomplete="username">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '請輸入正確信箱' %}</p>
+                    </div>
+                  </div>
+                  <div class="input_item">
+                    <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '請輸入6~10位英文或數字' %}</p>
+                    </div>
+                  </div>
+                  <div class="input_item">
+                    <input type="password" name="repassword" placeholder="{% trans '請再次輸入密碼' %}" autocomplete="new-password">
+                    <!--送出時錯誤出現-->
+                    <div class="noticbox d-none">
+                      <p>{% trans '兩次密碼輸入不同' %}</p>
+                    </div>
+                  </div>
+                </form>
+                <button class="loginbtn register-onclick">{% trans '註冊' %}</button>
+                {% if LANGUAGE_CODE == 'en-us' %}
+                  <div class="linkbtn_en">
+                    *Registering implies you agree to our <a class="checka" target="_blank" href="{% url 'terms' %}">terms of use</a>.
+                  </div>
+                {% else %}
+                  <div class="linkbtn_1">
+                    *註冊即代表您同意我們的<a class="checka" target="_blank" href="{% url 'terms' %}">使⽤條款</a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <!--忘記密碼-->
+          <div class="loginbox password_area d-none">
+            <div class="right_cont">
+              <div class="alcont_center">
+                <div class="titlegreen">{% trans '重設密碼' %}</div>
+                <p class="center">{% trans '請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。' %}</p>
+                <div class="input_item">
+                  <input type="text" name="reset_email" placeholder="{% trans '請輸入您的Email' %}">
+                </div>
+                <button class="loginbtn resetbtn">{% trans '確認送出' %}</button>
+                <div class="linkbtn_2">
+                  <a class="i-register">{% trans '我要註冊' %}</a>
+                  <a class="back-login">{% trans '返回登入' %}</a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!--會員註冊-->
-        <div class="loginbox register_area d-none">				
-          <div class="right_cont">
-            <div class="alcont_center">
-              <div class="titlegreen">
-                {% trans '會員註冊' %}
-                <!-- <span>Register</span> -->
-              </div>
-              <form id="registerForm">
-              {% csrf_token %}
-                <div class="input_item">
-                  <input type="text" name="name" placeholder="{% trans '姓名' %}">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '請輸入姓名' %}</p>
-                  </div>
-                </div>
-                <div class="input_item">
-                  <input type="text" name="email" placeholder="{% trans '請輸入您的Email作為帳號' %}" autocomplete="username">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '請輸入正確信箱' %}</p>
-                  </div>
-                </div>
-                <div class="input_item">
-                  <input type="password" name="password" placeholder="{% trans '請輸入您的密碼' %}" autocomplete="password">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
-                  </div>
-                </div>
-                <div class="input_item">
-                  <input type="password" name="repassword" placeholder="{% trans '請再次輸入密碼' %}" autocomplete="new-password">
-                  <!--送出時錯誤出現-->
-                  <div class="noticbox d-none">
-                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                    <p>{% trans '兩次密碼輸入不同' %}</p>
-                  </div>
-                </div>
-              </form>
-              <button class="loginbtn register-onclick">{% trans '註冊' %}</button>
-                {% if LANGUAGE_CODE == 'en-us' %}
-                <div class="linkbtn_en">
-                  *Registering implies you agree to our <a class="checka" target="_blank" href="{% url 'terms' %}">terms of use</a>.
-                </div>
-                {% else %}
-                <div class="linkbtn_1">
-                  *註冊即代表您同意我們的<a class="checka" target="_blank" href="{% url 'terms' %}">使⽤條款</a>
-                </div>
-                {% endif %}
-            </div>
-          </div>
-        </div> 
-        <!--忘記密碼-->
-        <div class="loginbox password_area d-none">				
-          <div class="right_cont">
-            <div class="alcont_center">
-              <div class="titlegreen">
-                {% trans '重設密碼' %}
-                <!-- <span>Password</span> -->
-              </div>
-              <p class="center">{% trans '請輸入當初加入會員使用的Email，我們將協助您重新設定密碼。' %}</p>
-              <div class="input_item">
-                <input type="text" name="reset_email" placeholder="{% trans '請輸入您的Email' %}">
-              </div>
-              <button class="loginbtn resetbtn">{% trans '確認送出' %}</button>
-              <div class="linkbtn_2">
-                <a class="i-register">{% trans '我要註冊' %}</a>
-                <a class="back-login">{% trans '返回登入' %}</a>
-              </div>
-            </div>
-          </div>
-        </div>			
       </div>
     </div>
-  </div>
-  {% if user.is_authenticated  %}
-  <input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">
-  {% endif %}
+    {% if user.is_authenticated %}<input type="hidden" value="{{ user.is_authenticated }}" name="is_authenticated">{% endif %}
   </body>
-  <script src="{% static 'js/base.js' %}?v7"></script>
-  {% block script %}{% endblock script %}
+  <script src="{% static 'js/base.js' %}"></script>
+  {% block script %}
+  {% endblock script %}
 </html>

@@ -1,18 +1,16 @@
-from django import template
-from django.utils.safestring import mark_safe 
-import re
-from datetime import timedelta
-from pages.models import Notification
-from manager.models import User
-from conf.utils import notif_map
-from django.utils.translation import get_language, gettext
-import pandas as pd
 import json
+import re
 from typing import List, Dict
 from bs4 import BeautifulSoup
+from django import template
+from django.utils.safestring import mark_safe 
+from django.utils.translation import gettext
+from datetime import timedelta
+from conf.utils import notif_map
+from pages.models import Notification
+from manager.models import User
 
 register = template.Library()
-
 
 with open('/code/data/variants.json', 'r', encoding='utf-8') as f:
     var_dict = json.load(f)
@@ -79,7 +77,6 @@ def strip_html_tags(html):
     return ''.join(BeautifulSoup(html, "html.parser").stripped_strings)
 
 
-
 def strip_html_tags_except_italic(html):
     """移除 HTML 標籤但保留斜體標籤 <i> 和 <em>"""
     if not html:
@@ -108,6 +105,7 @@ def strip_html_tags_except_italic(html):
         text = text.replace(placeholder, original)
         
     return text
+
 
 @register.simple_tag
 def highlight(text, keyword, taxon_related=0):

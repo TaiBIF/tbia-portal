@@ -1,12 +1,10 @@
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
-from manager.models import Workday, SensitiveDataResponse #Partner, 
-from django.db.models import Max
 from bs4 import BeautifulSoup
-from datetime import timedelta #, datetime, tzinfo,
-# import pandas as pd
-# from os.path import exists
-# import os
+from datetime import timedelta
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db.models import Max
+from manager.models import Workday, SensitiveDataResponse 
+
 
 class TokenGenerator(PasswordResetTokenGenerator):
 

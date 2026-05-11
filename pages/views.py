@@ -1,17 +1,17 @@
-from django.http import HttpResponse, JsonResponse #request, 
-from django.shortcuts import render#, redirect
-from pages.models import *
-from conf.settings import SOLR_PREFIX, env
-from manager.models import Partner, About, SearchQuery, Ark
 import json
 import math
-from data.utils import get_page_list, get_resource_cate
-from django.utils import timezone, translation
-from conf.utils import notif_map, scheme
-from datetime import datetime, timedelta
-from django.utils.translation import get_language, gettext
 import requests
+from datetime import datetime, timedelta
+from django.http import HttpResponse, JsonResponse 
+from django.shortcuts import render
+from django.utils import timezone, translation
+from django.utils.translation import get_language, gettext
+from data.utils import get_page_list, get_resource_cate
+from conf.settings import SOLR_PREFIX, env
+from conf.utils import notif_map, scheme
 from pages.templatetags.tags import process_text_variants
+from pages.models import *
+from manager.models import Partner, About, Ark
 
 
 news_type_map = {
@@ -73,7 +73,6 @@ def get_current_notif(request):
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
-            # print(gettext(n.get_type_display()))
             results += f"""
                         <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}
@@ -169,10 +168,8 @@ def get_news_list(request):
             limit = 10
         offset = limit*(current_page-1)
         if type != 'all':
-            # news = News.objects.filter(type=type).order_by('-publish_date')[:limit]
             news = News.objects.filter(type=type,status='pass',lang=request.LANGUAGE_CODE)
         else:
-            # news = News.objects.all().order_by('-publish_date')[offset:offset+limit]
             news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE)
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
@@ -188,7 +185,6 @@ def get_news_list(request):
             n.color = news_type_map[n.type]
             n.type_c = news_type_c_map[n.type]
             if n.image:
-                # n.image = '/media/news/' + n.image
                 n.image = '/media/' + n.image
             else:
                 n.image = '/static/image/news_ub_img.jpg'
@@ -292,7 +288,6 @@ def index(request):
         n.color = news_type_map[n.type]
         n.type_c = news_type_c_map[n.type]
         if n.image:
-            # n.image = '/media/news/' + n.image
             n.image = '/media/' + n.image
         else:
             n.image = '/static/image/news_ub_img.jpg'
@@ -379,7 +374,6 @@ def partner(request, abbr):
     pt = Partner.objects.filter(abbreviation=abbr).order_by('id')
     for p in pt:
         for pi in p.info:
-            # pi['title'] = p.title
             pi.update({'id': p.id})
             pi.update({'logo': p.logo})
             rows += [pi]

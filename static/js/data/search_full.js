@@ -1,17 +1,15 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
-
 function getWKTMap(map) {
-  var neLat = map.getBounds().getNorthEast()['lat'] 
+  var neLat = map.getBounds().getNorthEast()['lat']
   var neLng = map.getBounds().getNorthEast()['lng']
   var swLat = map.getBounds().getSouthWest()['lat']
-  var swLng = map.getBounds().getSouthWest()['lng'] 
+  var swLng = map.getBounds().getSouthWest()['lng']
 
-  return Number(swLat).toFixed(2) + ',' + Number(swLng).toFixed(2) + ' TO ' + Number(neLat).toFixed(2)+ ',' + Number(neLng).toFixed(2)
+  return Number(swLat).toFixed(2) + ',' + Number(swLng).toFixed(2) + ' TO ' + Number(neLat).toFixed(2) + ',' + Number(neLng).toFixed(2)
 }
 
-
-function drawMapGrid(currentZoomLevel, map, taxonID){
+function drawMapGrid(currentZoomLevel, map, taxonID) {
   if (currentZoomLevel < 6) {
 
     $('[class^=resultG_]').addClass('d-none')
@@ -21,7 +19,6 @@ function drawMapGrid(currentZoomLevel, map, taxonID){
 
     $('[class^=resultG_]').addClass('d-none')
     $('.resultG_10').removeClass('d-none')
-
 
   } else if (currentZoomLevel < 11) {
 
@@ -77,66 +74,56 @@ function drawMapGrid(currentZoomLevel, map, taxonID){
   }
 
 }
-/*
-  $('.popbg.taxon-dist').on('hide', function(){
-    $("#map-box").html(""); 
-    $("#map-box").html('<div id="map" style="height: 500px; margin: 40px 0 10px 10px"></div>');
-  })*/
 
 function getColor(d) {
   return d > 100000 ? '#bd0026' :
-          d > 50000 ? '#e31a1c' :
-          d > 10000 ? '#fc4e2a' :
-          d > 5000 ? '#fd8d3c' :
+    d > 50000 ? '#e31a1c' :
+      d > 10000 ? '#fc4e2a' :
+        d > 5000 ? '#fd8d3c' :
           d > 1000 ? '#feb24c' :
-          d > 100 ? '#fed976' :
-          d > 10 ? '#ffeda0' :
-              '#ffffcc';
+            d > 100 ? '#fed976' :
+              d > 10 ? '#ffeda0' :
+                '#ffffcc';
 }
 
 function style(feature) {
-    return {
-        fillColor: getColor(feature.properties.counts),
-        weight: 1,
-        fillOpacity: 0.7,
-        color: '#b2d2dd'
-    };
+  return {
+    fillColor: getColor(feature.properties.counts),
+    weight: 1,
+    fillOpacity: 0.7,
+    color: '#b2d2dd'
+  };
 }
-
 
 function getDist(taxonID) {
   // 把之前的清掉
   $("#map-box").html("");
   $("#map-box").html('<div id="map">');
-
   $('.popbg.taxon-dist').removeClass('d-none')
 
+  let map = L.map('map').setView([23.5, 121.2], 7);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
 
-let map = L.map('map').setView([23.5, 121.2], 7);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+  map.setView([23.5, 121.2], 7)
 
-map.setView([23.5, 121.2], 7)
+  var legend = L.control({ position: 'bottomright' });
 
-var legend = L.control({position: 'bottomright'});
-
-legend.onAdd = function (map) {
+  legend.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info legend map-legend'),
-        grades = [1, 10, 100, 1000, 5000, 10000, 50000, 100000]
+      grades = [1, 10, 100, 1000, 5000, 10000, 50000, 100000]
     div.innerHTML += `<div class="ml-5px mb-5">${gettext('資料筆數')}</div>`
     for (var i = 0; i < grades.length; i++) {
-        div.innerHTML +=
-            `<div class="d-flex-ai-c"><div class="count-${grades[i]}"></div>` +
-            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+') 
-            + '</div>'
+      div.innerHTML +=
+        `<div class="d-flex-ai-c"><div class="count-${grades[i]}"></div>` +
+        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+')
+        + '</div>'
     }
     return div;
-};
+  };
 
-legend.addTo(map);
-
-
+  legend.addTo(map);
 
   $.ajax({
     url: "/get_taxon_dist_init",
@@ -175,9 +162,6 @@ legend.addTo(map);
 
 }
 
-
-
-
 let params = ['item_class', 'record_type', 'key', 'value', 'scientific_name', 'limit', 'page', 'from',
   'doc_type', 'offset_value', 'more_class', 'card_class', 'is_sub', 'focus_card', 'get_record']
 
@@ -187,9 +171,9 @@ function changeAction() {
 
   if (queryString.length > 2000) {
 
-      alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
-  
-    } else {
+    alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
+
+  } else {
     // 如果只有keyword, show全部elements
     if ((queryString.split('&').length == 1) && (queryString.startsWith('?keyword='))) {
       $('.rightbox_content .item').removeClass('d-none')
@@ -277,17 +261,13 @@ function showSlides(n, taxonID, cardclass) {
   }
 }
 
-
-
-
 $(document).ready(function () {
 
-  $('#fullSubmit').on('click', function(){
+  $('#fullSubmit').on('click', function () {
     $('#fullForm').submit()
   })
 
-
-  $('#fullForm').on('submit', function(event){
+  $('#fullForm').on('submit', function (event) {
     event.preventDefault()
 
     if ($('#fullForm input[name=keyword]').val().length > 2000) {
@@ -298,13 +278,10 @@ $(document).ready(function () {
 
   })
 
-
   $('.imgarea').on('click', function () {
     $('.taxon-pop .taxon-pic').html($(this).parent().parent().parent().html())
     $('.taxon-pop').removeClass('d-none')
-
     $('.taxon-pop .img-license').removeClass('d-none')
-
 
     $('.arr-left').off('click')
     $('.arr-left').on('click', function () {
@@ -316,7 +293,6 @@ $(document).ready(function () {
     })
   })
 
-
   $('.arr-left').on('click', function () {
     plusSlides(-1, $(this).data('taxonid'), $(this).data('cardclass'))
   })
@@ -324,7 +300,6 @@ $(document).ready(function () {
   $('.arr-right').on('click', function () {
     plusSlides(+1, $(this).data('taxonid'), $(this).data('cardclass'))
   })
-
 
   $(".popbg .xx,.popbg .ovhy").not('.taxon-dist').click(function (e) {
     if ($(e.target).hasClass("xx") || $(e.target).hasClass("ovhy")) {
@@ -386,7 +361,6 @@ $(document).ready(function () {
 
   // 如果按上下一頁
   window.onpopstate = function (event) {
-    // console.log(history)
     changeAction();
   };
 
@@ -397,7 +371,6 @@ $(document).ready(function () {
 
   $(".rd_click").on("click", function (event) {
     $(".rd_click").closest("li").removeClass("now");
-    //$(".rd_click").closest("li").find(".second_menu").slideUp();
     $(this).closest("li").toggleClass("now");
     $(this).closest("li").find(".second_menu").slideToggle();
   });
@@ -414,8 +387,6 @@ $(document).ready(function () {
   })
 
 })
-
-
 
 function focusComponent(item_class, go_back) {
 
@@ -480,26 +451,18 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
     searchParams.set("page", page);
     searchParams.set("from", from);
     searchParams.set("get_record", true);
-    // searchParams.set("orderby", orderby);
-    // searchParams.set("sort", sort);
-    //queryString = searchParams.toString()
-    //var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
-    //history.pushState(null, '', newRelativePathQuery);
+
     if (orderby != null) {
-      // var urlParams = new URLSearchParams(window.location.search)
       searchParams.set('orderby', orderby)
       searchParams.set('sort', sort)
       if (from == 'orderby') {
         searchParams.set('page', 1)
         page = 1
       }
-
-      //history.pushState(null, '', window.location.pathname + '?'  + queryString);
     }
     queryString = searchParams.toString()
     history.pushState(null, '', window.location.pathname + '?' + queryString);
   }
-
 
   // hide all items
   $('.rightbox_content .item').addClass('d-none')
@@ -509,8 +472,6 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
   $('.result_inf_top').remove()
   $('.result_table').remove()
   $('.page_number').remove()
-
-  // let $key = key;
 
   // append rows
   $.ajax({
@@ -576,11 +537,11 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        if (Object.keys(map_dict)[i]!='associatedMedia'){
+        if (Object.keys(map_dict)[i] != 'associatedMedia') {
           a.className = 'orderby';
           a.dataset.orderby = Object.keys(map_dict)[i];
           a.dataset.sort = 'asc';
-      }
+        }
         this_td.appendChild(text);
         this_td.appendChild(a);
         table_title.appendChild(this_td);
@@ -591,7 +552,6 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       // disable checkebox for common_name_c & scientificName
       $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('disabled', true);
       $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('checked', true);
-
 
       // append rows
       for (let i = 0; i < response.rows.length; i++) {
@@ -614,8 +574,8 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
           } else {
             // 'basisOfRecord','rightsHolder' 因為有在關鍵字查詢中 所以不翻譯
-              if (['dataGeneralizations','taxonRank','bioGroup'].includes(Object.keys(map_dict)[j])){
-                tmp_value = gettext(tmp_value)
+            if (['dataGeneralizations', 'taxonRank', 'bioGroup'].includes(Object.keys(map_dict)[j])) {
+              tmp_value = gettext(tmp_value)
             }
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
           }
@@ -641,13 +601,13 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
           $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active');
           $(this).data('sort', 'desc');
         } else if ($(this).children('svg').hasClass('fa-sort-down')) { // 如果原本是down (desc)
-            $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
-            $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-up sort-icon-active')
-            $(this).data('sort', 'asc');
+          $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
+          $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-up sort-icon-active')
+          $(this).data('sort', 'asc');
         } else {  // 如果原本是up (asc)
-            $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
-            $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
-            $(this).data('sort', 'desc');
+          $('.orderby:not(this)').children('svg').removeClass('fa-sort-down fa-sort-up sort-icon-active sort-icon').addClass('fa-sort sort-icon');
+          $(this).children('svg').removeClass('fa-sort sort-icon-active sort-icon').addClass('fa-sort-down sort-icon-active')
+          $(this).data('sort', 'desc');
         }
 
         getRecords(record_type, key, value, scientific_name, limit, page, 'orderby', go_back, $(this).data('orderby'), $(this).data('sort'))
@@ -673,7 +633,6 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       } else {
         sendSelected(record_type)
       }
-
 
       // disable checkebox for key field 預設一定要勾選
       if (key != 'taxonID') {
@@ -813,24 +772,18 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
       $('.downloadData').off('click')
       $('.downloadData').on('click', function () {
         let queryString = $(this).data('query')
-        
+
         if ($('input[name=is_authenticated]').val() == 'True') {
-            // 清除選項並顯示 pop box
-            clearUserStatForm();
-            $('#userStatModal').removeClass('d-none');
-            
-            // 暫存原本的 query string
-            $('#userStatModal').data('original-query', queryString);
+          // 清除選項並顯示 pop box
+          clearUserStatForm();
+          $('#userStatModal').removeClass('d-none');
+
+          // 暫存原本的 query string
+          $('#userStatModal').data('original-query', queryString);
         } else {
-            alert(gettext('請先登入'))
+          alert(gettext('請先登入'))
         }
       })
-
-
-      // $('.downloadData').on('click', function () {
-      //   downloadData($(this).data('query'))
-      // })
-      
 
     })
     .fail(function (xhr, status, errorThrown) {
@@ -972,13 +925,7 @@ function focusCards(record_type, key, go_back) {
               <i class="fa-solid fa-arrow-up-right-from-square icon-size-11 ml-1px"></i>
               </p>
               </a>`
-            } 
-            
-            
-            // else {
-            //   display = ' jc-fe'
-            // }
-
+            }
 
             html = `	<li>							
               <div class="flex_top">
@@ -1225,7 +1172,7 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
       if (card_class == '.resource-card') {
         for (let i = 0; i < response.rows.length; i++) {
           let x = response.rows[i]
-           if (x.cate == 'link'){
+          if (x.cate == 'link') {
             $('.edu_list').append(`
           <li>
             <div class="item">
@@ -1317,7 +1264,6 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
     })
       .done(function (response) {
 
-
         if (response.has_more == true & response.reach_end == false) {
 
           $(offset_value).val(Number(offset) + 4)
@@ -1388,7 +1334,6 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
             right_img_class = 'right_img2'
             left_text_class = 'lefttxt2'
           }
-
 
           let taieol = '';
           let display = '';
@@ -1565,7 +1510,6 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
   }
 }
 
-
 function resetAll(record_type) {
   $(`${record_type} input:checkbox:not(:disabled)`).prop('checked', false);
 }
@@ -1596,84 +1540,51 @@ function sendSelected(record_type) {
 
 // 清除表單選項
 function clearUserStatForm() {
-    $('input[name="user_affiliation"]').prop('checked', false);
-    $('input[name="user_role"]').prop('checked', false);
-    $('input[name="user_purpose"]').prop('checked', false);
+  $('input[name="user_affiliation"]').prop('checked', false);
+  $('input[name="user_role"]').prop('checked', false);
+  $('input[name="user_purpose"]').prop('checked', false);
 }
 
 // 確認送出按鈕
 $('#userStatConfirm').on('click', function () {
-    // 檢查是否都有選取
-    let affiliation = $('input[name="user_affiliation"]:checked').val();
-    let role = $('input[name="user_role"]:checked').val();
-    let purpose = $('input[name="user_purpose"]:checked').val();
-    
-    if (!affiliation || !role || !purpose) {
-        alert('請完成所有必填項目');
-        return;
-    }
-    
-    // 組合 query string
-    let originalQuery = $('#userStatModal').data('original-query');
-    let userStatQuery = `&user_affiliation=${affiliation}&user_role=${role}&user_purpose=${purpose}`;
-    let finalQuery = originalQuery + userStatQuery;
-    
-    // 關閉 modal
-    // $('#userStatModal').hide();
-    $('#userStatModal').addClass('d-none');
-    // 執行原本的下載流程
-    executeDownload(finalQuery);
+  // 檢查是否都有選取
+  let affiliation = $('input[name="user_affiliation"]:checked').val();
+  let role = $('input[name="user_role"]:checked').val();
+  let purpose = $('input[name="user_purpose"]:checked').val();
+
+  if (!affiliation || !role || !purpose) {
+    alert('請完成所有必填項目');
+    return;
+  }
+
+  // 組合 query string
+  let originalQuery = $('#userStatModal').data('original-query');
+  let userStatQuery = `&user_affiliation=${affiliation}&user_role=${role}&user_purpose=${purpose}`;
+  let finalQuery = originalQuery + userStatQuery;
+
+  // 關閉 modal
+  $('#userStatModal').addClass('d-none');
+  // 執行原本的下載流程
+  executeDownload(finalQuery);
 });
 
 // 執行下載
 function executeDownload(queryString) {
-    // console.log(queryString);
-    $.ajax({
-        url: "/send_download_request",
-        data: queryString + '&from_full=yes&csrfmiddlewaretoken=' + $csrf_token,
-        type: 'POST',
-        dataType: 'json',
-    })
+  $.ajax({
+    url: "/send_download_request",
+    data: queryString + '&from_full=yes&csrfmiddlewaretoken=' + $csrf_token,
+    type: 'POST',
+    dataType: 'json',
+  })
     .done(function (response) {
-        alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
+      alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
     })
     .fail(function (xhr, status, errorThrown) {
-        if (xhr.status == 504) {
-            alert(gettext('要求連線逾時'))
-        } else {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-        }
-        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+      if (xhr.status == 504) {
+        alert(gettext('要求連線逾時'))
+      } else {
+        alert(gettext('發生未知錯誤！請聯絡管理員'))
+      }
+      console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
 }
-
-// function downloadData(search_str) {
-//   if ($('input[name=is_authenticated]').val() == 'True') {
-//     $.ajax({
-//       url: "/send_download_request",
-//       data: {
-//         search_str: search_str,
-//         // total_count: total_count,
-//         csrfmiddlewaretoken: $csrf_token,
-//         from_full: 'yes',
-//       },
-//       type: 'POST',
-//       dataType: 'json',
-//     })
-//       .done(function (response) {
-//         alert(gettext('請求已送出，下載檔案處理完成後將以Email通知'))
-//       })
-//       .fail(function (xhr, status, errorThrown) {
-//         if (xhr.status == 504) {
-//           alert(gettext('要求連線逾時'))
-//         } else {
-//           alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-//         }
-//         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-//       })
-//   } else {
-//     alert(gettext('請先登入'))
-//   }
-// }
-

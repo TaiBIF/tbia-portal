@@ -10,7 +10,6 @@
     text-align: right;
 }
 
-
 .editor a {
     cursor: pointer;
     text-decoration: underline;
@@ -26,7 +25,7 @@
     -webkit-transition: all .3s
 }
 
-.tag-news{
+.tag-news {
     font-size: 16px;
     padding: 10px;
     color: grey;

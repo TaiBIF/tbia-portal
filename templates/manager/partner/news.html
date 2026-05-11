@@ -1,235 +1,190 @@
 {% extends 'base.html' %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
-{% block title %}{% trans '單位後台' %}｜{% endblock %}
-
+{% block title %}
+    {% trans '單位後台' %}｜
+{% endblock %}
 {% block style %}
-<link href="/static/quill/quill.snow.css" rel="stylesheet">
-<script src="/static/quill-image-resize-module/image-resize.min.js"></script>
-<link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
-<script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_news.css' %}?v4" />
+    <link href="/static/quill/quill.snow.css" rel="stylesheet">
+    <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
+    <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
+    <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/manager/partner_news.css' %}" />
 {% endblock style %}
-
 {% block head %}
-<script src="/static/highcharts/highcharts.js"></script>
-<script src="/static/highcharts/modules/exporting.js"></script>
-<script src="/static/highcharts/modules/export-data.js"></script>
-<script src="/static/highcharts/modules/accessibility.js"></script>
-<script src="/static/quill/quill.js"></script>
+    <script src="/static/highcharts/highcharts.js"></script>
+    <script src="/static/highcharts/modules/exporting.js"></script>
+    <script src="/static/highcharts/modules/export-data.js"></script>
+    <script src="/static/highcharts/modules/accessibility.js"></script>
+    <script src="/static/quill/quill.js"></script>
 {% endblock head %}
-
 {% block body %}
-<input type="hidden" name="menu" value="{{ menu }}">
-<input type="hidden" name="n_type" value="{{ n.type }}">
-{% csrf_token %}
-<div class="path"> 
-    <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '單位後台' %}</p>
+    <input type="hidden" name="menu" value="{{ menu }}">
+    <input type="hidden" name="n_type" value="{{ n.type }}">
+    {% csrf_token %}
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '單位後台' %}</p>
+        </div>
     </div>
-</div>
- 
-<div class="nbn_title">
-</div>
-<div class="main_1240"> 
-    <div class="two_cont_area">
-        {% if user.is_partner_account or user.is_partner_admin %}
-        <div class="left_menu mbmove">
-            <!--手機用的按鈕-->
-            <div class="mb_fixed_btn">
-                <p>展<br>開</p>
-                <span>關閉</span>
-            </div>					
-            <div class="mb_scroll">
-                <ul>
-                    <li class="nohover">
-                        <a class="big_link rd_click" href="/manager/partner">
-                            {% if user.partner.select_title|length > 13 %}
-                                <p class="fs-16px">{{ user.partner.select_title }}</p> 
-                            {% else %}
-                                <p>{{ user.partner.select_title }}</p> 
-                            {% endif %}
-                        </a>
-                    </li>
-                    <li>
-                        <div class="big_link">
-                          <div class="maskfor_click rd_click"></div>
-                          <p>
-                            單位資訊
-                          </p>
-                          <div class="arrd"></div>
-                        </div>
-                        <div class="col_menu second_menu">
-                            <a href="{% url 'partner_info' %}?menu=info">修改單位資訊</a>
-                            {% if user.is_partner_admin %}
-                            <a href="{% url 'partner_info' %}?menu=account">單位帳號管理</a>
-                            {% if not user.partner.is_collaboration %}
-                            <a href="{% url 'partner_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
-                            {% endif %}
-                            {% endif %}
-                            <!--<a href="{% url 'partner_info' %}?menu=feedback">意見回饋紀錄</a>-->
-                        </div>
-                    </li>
-                    <li class="now">
-                        <div class="big_link">
-                          <div class="maskfor_click rd_click"></div>
-                          <p>
-                            最新消息管理
-                          </p>
-                          <div class="arrd"></div>
-                        </div>
-                        <div class="col_menu second_menu">
-                            <a class="edit"  href="{% url 'partner_news' %}?menu=edit">消息發布</a>
-                            <a class="news changeMenu" data-menu="news">審核狀態</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-
-        <div class="rightbox_content edit d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>消息發布</div>
-                <ul class="edit-list">
-                    <form enctype="multipart/form-data" id="newsForm" action="{% url 'submit_news' %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="news_id" value="{{ n.id }}">
-                        <input type="hidden" name="status" value="pending">
-                        <li class="upload-warning"><p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
-                        <li>發布日期</li>
-                        <li>
-                            <input type="date" name="publish_date" value="{% if n.publish_date %}{{ n.publish_date|date:'Y-m-d'  }}{% else %}{% now 'Y-m-d' %}{% endif %}" >
-                            <div class="noticbox d-none">
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                        <li>標題</li>
-                        <li>
-                            <input type="text" name="title" value="{{ n.title }}">
-                            <div class="noticbox d-none">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                        <li>類型</li>
-                        <li>
-                            <select name="type">
-                                <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
-                                <option value="event">活動訊息</option>
-                                <option value="project">徵求公告</option>
-                            </select>
-                        </li>
-                        <li>標籤<span class="tag-warning">*有多個標籤時，請以「半型」逗號分隔，中間不需有空格</span></li>
-                        <li>
-                            <input type="text" name="tag" value="{{ n.tag|default_if_none:'' }}">
-                        </li>
-                        <li>語言</li>
-                        <li>
-                            <select name="news_lang">
-                                <option value="zh-hant" {% if n.lang == 'zh-hant' %}selected{% endif %}>中文</option>
-                                <option value="en-us" {% if n.lang == 'en-us' %}selected{% endif %}>英文</option>
-                            </select>
-                        </li>    
-                        <li>代表圖片</li>
-                        <li><input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg"></li> 
-                        {% if n.image != None %}           
-                        <li>
-                          <img class="img-style" src="/media/{{ n.image }}">  
-                        </li>
-                        {% endif %}                  
-                        <li>內文</li>
-                        <li>            
-                            <div id="editor">{{ form.content }}</div>
-                            <div class="noticbox editor-content d-none">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                    </form>
-                    <li ><button class="read_btn submitNews">送審</button></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="rightbox_content news d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>審核狀態</div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 news_table">
-                        <tr class="news_table_header">
-                            <td class="w-5p"></td>
-                            <td class="w-20p">標題</td>
-                            <td class="w-12p">類型</td>
-                            <td class="w-12p">語言</td>
-                            <td class="w-15p">申請者</td>
-                            <td class="w-15p">發布日期</td>
-                            <td class="w-15p">最近修改</td>
-                            <td class="w-12p">狀態</td>
-                            <td class="w-12p"></td> 
-                        </tr>
-                        {% comment %} {% for n in news_list %}
-                        <tr>
-                            <td>#{{ n.id }}</td>
-                            <td><a target="_blank" href="{% url 'news_detail' n.id %}">{{ n.title }}</a></td>
-                            <td>{{ n.get_type_display }}</td>
-                            <td>{{ n.user.name }}</td>
-                            <td>{{ n.modified|date:'Y-m-d H:i:s'|default_if_none:'' }}</td>
-                            <td>
-                                {{ n.get_status_display }}
-                            </td>
-                            <!-- 編輯按鈕 / 收回按鈕 -->
-                            <td>
-                                {% if n.status == 'pending' %}
-                                <a class="btn-style1" href="{% url 'withdraw_news' %}?news_id={{ n.id }}">撤回</a>
-                                {% else %}
-                                <a class="btn-style1" href="{% url 'partner_news' %}?menu=edit&news_id={{ n.id }}">編輯</a>
-                                {% endif %}
-                            </td> 
-                        </tr>
-                        {% endfor %} {% endcomment %}
-                    </table>						
+    <div class="nbn_title"></div>
+    <div class="main_1240">
+        <div class="two_cont_area">
+            {% if user.is_partner_account or user.is_partner_admin %}
+                <div class="left_menu mbmove">
+                    <!--手機用的按鈕-->
+                    <div class="mb_fixed_btn">
+                        <p>
+                            展
+                            <br>
+                            開
+                        </p>
+                        <span>關閉</span>
+                    </div>
+                    <div class="mb_scroll">
+                        <ul>
+                            <li class="nohover">
+                                <a class="big_link rd_click" href="/manager/partner">
+                                    {% if user.partner.select_title|length > 13 %}
+                                        <p class="fs-16px">{{ user.partner.select_title }}</p>
+                                    {% else %}
+                                        <p>{{ user.partner.select_title }}</p>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li>
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>單位資訊</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a href="{% url 'partner_info' %}?menu=info">修改單位資訊</a>
+                                    {% if user.is_partner_admin %}
+                                        <a href="{% url 'partner_info' %}?menu=account">單位帳號管理</a>
+                                        {% if not user.partner.is_collaboration %}
+                                            <a href="{% url 'partner_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </li>
+                            <li class="now">
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>最新消息管理</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a class="edit"  href="{% url 'partner_news' %}?menu=edit">消息發布</a>
+                                    <a class="news changeMenu" data-menu="news">審核狀態</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                {% comment %} <div class="page_number">
-					{% if n_page_list|length > 1 %}
-                    <a class="num changePage" data-page="1" data-type="news">1</a>
-                    <a class="pre pt-none">
-                        <span></span>上一頁
-                    </a>
-                    <!--目前頁面給 now-->
-                    {% for p in n_page_list %}
-                        {% if p == 1 %}
-                            <a class="num now changePage" data-page="{{ p }}" data-type="news">{{ p }}</a>
-                        {% else %}
-                            <a class="num changePage" data-page="{{ p }}" data-type="news">{{ p }}</a>
-                        {% endif %}
-                    {% endfor %}
-                    {% if 2 in n_page_list %}
-                    <a class="next changePage" data-page="2" data-type="news">
-                        下一頁<span></span>
-                    </a>
-                    {% else %}
-                    <a class="next pt-none">
-                        下一頁<span></span>
-                    </a>
-                    {% endif %}
-                    <a class="num changePage" data-page="{{ n_total_page }}" data-type="news">{{ n_total_page }}</a>
-                    {% endif %}
-				</div> {% endcomment %}
-
-            </div>
+                <div class="rightbox_content edit d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            消息發布
+                        </div>
+                        <ul class="edit-list">
+                            <form enctype="multipart/form-data" id="newsForm" action="{% url 'submit_news' %}" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="news_id" value="{{ n.id }}">
+                                <input type="hidden" name="status" value="pending">
+                                <li class="upload-warning">
+                                    <p>*若代表圖片及插入圖片超過20MB，將無法上傳檔案，請通知管理員協助</p>
+                                </li>
+                                <li>發布日期</li>
+                                <li>
+                                    <input type="date" name="publish_date" value="{% if n.publish_date %}{{ n.publish_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+                                    <div class="noticbox d-none">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                                <li>標題</li>
+                                <li>
+                                    <input type="text" name="title" value="{{ n.title }}">
+                                    <div class="noticbox d-none">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                                <li>類型</li>
+                                <li>
+                                    <select name="type">
+                                        <option value="news" {% if not n.id %}checked{% endif %}>新聞公告</option>
+                                        <option value="event">活動訊息</option>
+                                        <option value="project">徵求公告</option>
+                                    </select>
+                                </li>
+                                <li>
+                                    標籤<span class="tag-warning">*有多個標籤時，請以「半型」逗號分隔，中間不需有空格</span>
+                                </li>
+                                <li>
+                                    <input type="text" name="tag" value="{{ n.tag|default_if_none:'' }}">
+                                </li>
+                                <li>語言</li>
+                                <li>
+                                    <select name="news_lang">
+                                        <option value="zh-hant" {% if n.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                        <option value="en-us" {% if n.lang == 'en-us' %}selected{% endif %}>英文</option>
+                                    </select>
+                                </li>
+                                <li>代表圖片</li>
+                                <li>
+                                    <input class="form-control" name="image" type="file" accept="image/x-png,image/gif,image/jpeg">
+                                </li>
+                                {% if n.image != None %}
+                                    <li>
+                                        <img class="img-style" src="/media/{{ n.image }}">
+                                    </li>
+                                {% endif %}
+                                <li>內文</li>
+                                <li>
+                                    <div id="editor">{{ form.content }}</div>
+                                    <div class="noticbox editor-content d-none">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                            </form>
+                            <li>
+                                <button class="read_btn submitNews">送審</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="rightbox_content news d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            審核狀態
+                        </div>
+                        <div class="result_table table-flow">
+                            <table cellspacing="0" cellspacing="0" class="table_style3 news_table">
+                                <tr class="news_table_header">
+                                    <td class="w-5p"></td>
+                                    <td class="w-20p">標題</td>
+                                    <td class="w-12p">類型</td>
+                                    <td class="w-12p">語言</td>
+                                    <td class="w-15p">申請者</td>
+                                    <td class="w-15p">發布日期</td>
+                                    <td class="w-15p">最近修改</td>
+                                    <td class="w-12p">狀態</td>
+                                    <td class="w-12p"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {% trans '您的權限不足' %}
+            {% endif %}
         </div>
-
-        {% else %}
-        {% trans '您的權限不足' %}
-        {% endif %}
     </div>
-
-    </div>
-
 </div>
 {% endblock %}
-
 {% block script %}
-<script src="{% static 'js/manager/partner_news.js' %}?v5"></script>
+    <script src="{% static 'js/manager/partner_news.js' %}"></script>
 {% endblock script %}

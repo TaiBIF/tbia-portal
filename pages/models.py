@@ -13,7 +13,6 @@ class Keyword(models.Model):
     keyword = models.TextField( blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
     lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True)
-    # created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'keyword'
@@ -106,9 +105,7 @@ class Feedback(models.Model):
     email = models.CharField(max_length=100, blank=True, null=True)
     content = TextField(null=True, blank=True)
     is_replied = models.BooleanField(default=False)
-    # user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    # replied = models.DateField()
     class Meta:
         db_table = 'feedback'
 

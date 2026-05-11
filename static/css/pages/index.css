@@ -1,4 +1,3 @@
-
 .infbox, .center_box {
     width: 100%
 }
@@ -12,11 +11,10 @@
 }
 
 .transform315 {
-    transform: rotate(315deg); 
+    transform: rotate(315deg);
     color: grey;
     height: 16px
 }
-
 
 .edu_list li .cate_dbox .catepin {
     height: 25px;
@@ -24,11 +22,9 @@
     color: #FFF;
 }
 
-
- p.text_tec {
+p.text_tec {
     text-align: justify;
- }
-
+}
 
 .popbg .wbox_center .noshow {
     display: flex;
@@ -48,7 +44,6 @@
     background-color: #C65454;
     color: #FFF;
     cursor: pointer;
-    /*margin-top: -9%;*/
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -61,7 +56,6 @@
     opacity: 0.7;
 }
 
-
 @media only screen and (max-width: 767px) {
     .popbg .wbox_center .noshow {
         position: absolute;
@@ -70,14 +64,12 @@
     }
 }
 
-
 .title-dark {
-    color: #3F5146 !important; 
+    color: #3F5146 !important;
 }
 
-
 .span-dark {
-    background-color: #3F5146 !important; 
+    background-color: #3F5146 !important;
 }
 
 .index-search-box {

@@ -1,48 +1,39 @@
-from django.contrib.auth.backends import ModelBackend
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login, logout #, tokens
-from manager.models import *
-from pages.models import Feedback, News, Notification, Resource, Link
-from django.shortcuts import render, redirect
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_bytes, force_str 
-from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status
-import threading
-from django.http import (
-    JsonResponse,
-    HttpResponse,
-)
-import json
-from allauth.socialaccount.models import SocialAccount
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
-import requests
-import os
-from pages.models import Keyword, Qa
-from ckeditor.fields import RichTextField
-from django import forms
-from django.core.files.storage import FileSystemStorage
-from django.utils import timezone, translation
-from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q, Max, Count, Sum #, Sum, F, DateTimeField, ExpressionWrapper
-from datetime import datetime, timedelta
-from urllib import parse
-from data.utils import map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query#, get_key
-from os.path import exists
 import math
-import pandas as pd
-from pathlib import Path
-from conf.utils import scheme
 import pytz
-from django.utils.translation import gettext, get_language
-from django.db import connection
-from data.utils import ark_generator
 import subprocess
 import os
 import threading
-from data.utils import sensitive_cols, rights_holder_color_map, rights_holder_list
+import json
+import requests
+import pandas as pd
+from pathlib import Path
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from urllib import parse
+from allauth.socialaccount.models import SocialAccount
+from django import forms
+from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.core.files.storage import FileSystemStorage
+from django.core.mail import EmailMessage
+from django.contrib.auth.backends import ModelBackend
+from django.template.loader import render_to_string
+from django.utils import timezone, translation
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str 
+from django.utils.translation import gettext, get_language
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import connection
+from django.db.models import Q, Max, Sum 
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
+from conf.utils import scheme
+from ckeditor.fields import RichTextField
+from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status
+from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query
+from manager.models import *
+from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, Link
 
 quality_map = {
     3: '金',
@@ -92,6 +83,7 @@ taxon_group_color_map = {
     '細菌':      { 'dark': '#7A5B2A', 'light': '#AA855A' },
 }
 
+
 class NewsForm(forms.ModelForm):
     content = RichTextField()
     class Meta:
@@ -99,6 +91,7 @@ class NewsForm(forms.ModelForm):
         fields = (
             'content',
         )
+
 
 class LinkForm(forms.ModelForm):
     content = RichTextField()
@@ -135,7 +128,6 @@ def get_is_authenticated(request):
 
 def send_feedback(request):
     if request.method == 'POST':
-        # print(request.POST)
         partner_id = request.POST.get('partner_id')
         if partner_id == '0':
             partner_id = None
@@ -151,7 +143,6 @@ def send_feedback(request):
 
         # 先暫時調整成只寄通知給系統管理員
         for u in User.objects.filter(is_system_admin=True):
-        # for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)|Q(is_partner_account=True, partner_id=partner_id)):
             nn = Notification.objects.create(
                 type = 2,
                 content = fb.id,
@@ -159,8 +150,6 @@ def send_feedback(request):
             )
             content = nn.get_type_display().replace('0000', str(nn.content))
             content = content.replace("，請至後台查看", "")
-            # 加上內容
-            # Email	類型	內容
             content += f"<br><br><b>回饋者email：</b>{fb.email}"
             content += f"<br><b>回饋類型：</b>{Feedback.objects.get(id=fb.id).get_type_display()}"
             content += f"<br><b>回饋內容：</b>{fb.content}"
@@ -196,7 +185,6 @@ def send_issue(request):
 
 def update_feedback(request):
     if request.method == 'POST':
-        # print(request.POST)
         current_id = request.POST.get('current_id')
         if Feedback.objects.filter(id=current_id).exists():
             fb = Feedback.objects.get(id=current_id)
@@ -217,14 +205,12 @@ def change_manager_page(request):
     menu = request.GET.get('menu')
     offset = (int(page)-1) * 10
     response = {}
-    # print(page)
     now = datetime.now()
     now = now.replace(tzinfo=pytz.timezone('UTC'))
     data = []
     if menu == 'notification': # 個人帳號後台通知
         
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
-        # results = ""
         for n in notifications:
             created = n.created + timedelta(hours=8)
             content = '<p>' + gettext(n.get_type_display()).replace('0000', n.content)+ '</p>'
@@ -322,7 +308,6 @@ def change_manager_page(request):
             report = ''
             # 全部都不通過的話 就不要顯示回報按鈕
 
-
             if s.status in ['pass','expired'] and result != '不通過':
                 report_file, report_content = '', ''
                 if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
@@ -334,13 +319,9 @@ def change_manager_page(request):
                 report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
                 # 就算已回報過也可以顯示 可重複回報
             
-
             data.append({
                 'id': f'#{s.personal_id}',
                 'query_id': s.query_id,
-                # 'query':   query,
-                # 'comment': '<hr>'.join(comment) if comment else '',
-                # 'status': gettext(s.get_status_display()),
                 'info': f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ s.query_id }">{gettext("查看")}</a></td>',
                 'result': result,
                 'report': report,
@@ -369,8 +350,6 @@ def change_manager_page(request):
             if 'from_full=yes' in r.query:
                 search_str = dict(parse.parse_qsl(r.query)).get('search_str')
                 search_dict = dict(parse.parse_qsl(search_str))
-                # print(search_dict)
-
                 query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{search_dict['keyword']}"
                 
                 if search_dict.get('record_type') == 'occ':
@@ -464,74 +443,16 @@ def change_manager_page(request):
     elif menu == 'sensitive_track': # 系統帳號 敏感資料申請審核追蹤
 
         # 需要被顯示出來的 1. 全部轉交給單位審核 2. 個人研究計畫 3. 部分轉交給單位審核 -> 直接用partner_id不是null的去篩選就好
-        # SensitiveDataResponse.objects.filter(partner_id__isnull=False).distinct('query_id').order_by('-query_id')[offset:offset+10]
-
-        # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
         for s in SensitiveDataResponse.objects.filter(partner_id__isnull=False).distinct('query_id').order_by('-query_id')[offset:offset+10]:
-        # for s in SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True).order_by('-id')[offset:offset+10]:
             date = ''
             if s.created:
                 date = s.created + timedelta(hours=8)
                 date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 due = s.due.strftime('%Y-%m-%d')
-                # due = check_due(date.date(),14) # 已經是轉交單位審核的，期限為14天
-                # date = date.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
-            # else:
-            #     date = ''
 
-            # # 進階搜尋
-            # # search_dict = dict(parse.parse_qsl(s.query))
+            # 進階搜尋
             sq = SearchQuery.objects.get(query_id=s.query_id)
-            # search_dict = dict(parse.parse_qsl(sq.query))
-            # query = create_query_display(search_dict)
-
-            # if search_dict.get("record_type") == 'col':
-            #     search_prefix = 'collection'
-            # else:
-            #     search_prefix = 'occurrence'
-            # tmp_a = create_query_a(search_dict)
-            # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-            #     if i in search_dict.keys():
-            #         search_dict.pop(i)
-
-            # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
-            # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ s.query_id }" data-query="{ query }" data-sdr_id="">查看</a></td>' 
             a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ s.query_id }">查看</a></td>' 
-            
-            # query = query_a_href(query,query_a)
-
-            # # 審核意見
-            # comment = []
-
-            # # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id).exclude(is_transferred=True).exclude(partner_id__isnull=True):
-            # for sdr in SensitiveDataResponse.objects.filter(query_id=s.query_id,partner_id__isnull=False):
-            #     # if sdr.partner:
-            #     #     partner_name = sdr.partner.select_title 
-            #     # else:
-            #     #     partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-
-            #     if sdr.partner:
-            #         if lang == 'en-us':
-            #             partner_name = sdr.partner.select_title_en
-            #         else:
-            #             partner_name = sdr.partner.select_title 
-            #     else:
-            #         if lang == 'en-us':
-            #             partner_name = 'Taiwan Biodiversity Information Alliance'
-            #         else:
-            #             partner_name = 'TBIA 臺灣生物多樣性資訊聯盟'
-                    
-            #     comment.append(f"<b>審核單位：</b>{partner_name}<br><b>審核者姓名：</b>{sdr.reviewer_name}<br><b>審核意見：</b>{sdr.comment if sdr.comment else ''}<br><b>審核結果：</b>{sdr.get_status_display()}")
-           
-            # link = ''
-            # # if sq.status == 'pass':
-            # #     link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
-
-            # if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ sq.query_id }.zip') and sq.status != 'expired':
-            #     link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ sq.query_id }.zip">{gettext("下載")}</a>'
-
-
 
             result = get_sensitive_status(sq.query_id)
 
@@ -541,14 +462,11 @@ def change_manager_page(request):
             elif result != '等待審核':
                 link = gettext(sq.get_status_display())
 
-
             data.append({
                 'id': f"#{s.id}",
                 'name': sq.user.name,
                 'query_id': s.query_id,
                 'date':  date + '<br>審核期限：<br>' + due,
-                # 'query':   query,
-                # 'comment': '<hr>'.join(comment) if comment else '',
                 'status': result,
                 'a': a,
                 'link': link
@@ -560,7 +478,6 @@ def change_manager_page(request):
         if request.GET.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
-                # due = check_due(created.date(), 14)
                 due = sdr.due.strftime('%Y-%m-%d')
                 created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                 # 整理搜尋條件
@@ -577,49 +494,24 @@ def change_manager_page(request):
                         if i in search_dict.keys():
                             search_dict.pop(i)
                     query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-                    # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }">查看</a></td>'
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
                     # # TODO 這邊是不是有問題
-                    # if sdr.status == 'pass' and sdr.status != 'expired':
                     if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ r.query_id }.zip') and r.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
                     elif r.status == 'expired':
                         link = gettext(r.get_status_display())
 
-                    # data_count = ''
-
-                    # if r.sensitive_stat:
-                    #     partner_info = Partner.objects.get(id=request.user.partner.id).info
-                    #     if len(partner_info) > 1:
-                    #         data_count = []
-                    #         for pp in partner_info:
-                    #             for stat in r.sensitive_stat:
-                    #                 if stat.get('val') == pp.get('dbname'):
-                    #                     data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
-                    #                     # data_count += stat.get('count')
-                    #         data_count = '<br>'.join(data_count)
-                    #     elif len(partner_info) == 1:
-                    #         for stat in r.sensitive_stat:
-                    #             if stat.get('val') == partner_info[0].get('dbname'):
-                    #                 data_count = stat.get('count')
-
-                    # query = query_a_href(query,query_a)
-
                     status_str = sdr.get_status_display()
 
                     if sdr.status == 'pending':
-                        # status_str += f'<a class="pointer btn-style1" target="_blank" href="/manager/extend/{ sdr.query_id }?sdr_id={sdr.id}">延長審核期限</a>'
                         status_str += f'<button class="pointer btn-style1 extendDue" target="" data-sdr_id="{ sdr.id }">延長審核期限</button>'
 
                     data.append({
                         'id': f'#{sdr.id}',
                         'name': r.user.name,
-                        # 'query_id': sdr.query_id,
                         'created':  created + '<br>審核期限：<br>'+due,
-                        # 'query':   query,
-                        # 'data_count': data_count,
                         'status': status_str,
                         'a': a,
                         'link': link
@@ -628,7 +520,6 @@ def change_manager_page(request):
             total_page = math.ceil(SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).count() / 10)
 
         else:
-            # for sdr in SensitiveDataResponse.objects.filter(partner_id=None).order_by('-id')[offset:offset+10]:
             for sdr in SensitiveDataResponse.objects.filter(partner_id__isnull=True).distinct('query_id').order_by('-query_id')[offset:offset+10]:
 
                 created = sdr.created + timedelta(hours=8)
@@ -636,56 +527,29 @@ def change_manager_page(request):
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
-                    # search_dict = dict(parse.parse_qsl(r.query))
-                    # query = create_query_display(search_dict)
-                
-                    # if search_dict.get("record_type") == 'col':
-                    #     search_prefix = 'collection'
-                    # else:
-                    #     search_prefix = 'occurrence'
-                    # tmp_a = create_query_a(search_dict)
-                    # for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                    #     if i in search_dict.keys():
-                    #         search_dict.pop(i)
-
-                    # query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
-
 
                     if sdr.is_transferred:
                         status = '已轉交單位審核'
-                        # due = check_due(created.date(), 14)
                         created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     else:
                         status = sdr.get_status_display()
-                        # due = check_due(created.date(), 7)
                         due = sdr.due.strftime('%Y-%m-%d')
                         created = created.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>')
                     
                     date = created + '<br>審核期限：<br>' + due if due else created
                     
-                    # function_par = f"'{ sdr.query_id }','{ query }', '{ sdr.id }', '{ sdr.is_transferred }'"
-
-                    # a = f'<a class="pointer showRequest btn-style1" data-query_id="{ sdr.query_id }" data-query="{ query }" data-sdr_id="{ sdr.id }" data-is_transferred="{ sdr.is_transferred }">查看</a></td>'
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}&from_system=true">查看</a></td>' 
 
                     link = ''
                     # TODO 這邊是不是有問題
-                    # if sdr.status == 'pass' and sdr.status != 'expired':
                     if os.path.exists(f'/tbia-volumes/media/download/sensitive/tbia_{ r.query_id }.zip') and r.status != 'expired':
                         link = f'<a class="btn-style1" target="_blank" href="/media/download/sensitive/tbia_{ r.query_id }.zip">{gettext("下載")}</a>'
                     elif r.status == 'expired':
                         link = gettext(r.get_status_display())
 
-                    # data_count = ''
-
-                    # if r.sensitive_stat:
-                    #     data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
-                    #     data_count = '<br>'.join(data_count)
-                    # query = query_a_href(query,query_a)
                     status_str = sdr.get_status_display()
 
                     if sdr.status == 'pending':
-                        # status_str += '<a class="pointer btn-style1" target="_blank" href="/manager/extend/{ sdr.query_id }?sdr_id={sdr.id}">延長審核期限</a>'
                         status_str += f'<button class="pointer btn-style1 extendDue" target="" data-sdr_id="{ sdr.id }">延長審核期限</button>'
 
                     data.append({
@@ -693,8 +557,6 @@ def change_manager_page(request):
                         'name': r.user.name,
                         'query_id': sdr.query_id,
                         'created':  date,
-                        # 'query':   query,
-                        # 'data_count': data_count,
                         'status': status_str,
                         'a': a,
                         'link': link,
@@ -792,12 +654,12 @@ def change_manager_page(request):
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
                 'partner_title': partner_title,
-                # 'user': n.user.name if n.user else '',
                 'publish_date': publish_date,
                 'status': n.get_status_display(),
                 'modified': modified,
             })
         total_page = math.ceil(News.objects.all().count() / 10)
+
     elif menu == 'news': # 
         if request.user.is_partner_admin:
             # 如果是單位管理者 -> 回傳所有
@@ -836,6 +698,7 @@ def change_manager_page(request):
                 'status': n.get_status_display(),
                 'a': a
             })
+
     elif menu == 'resource':
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
             data.append({
@@ -849,6 +712,7 @@ def change_manager_page(request):
                 'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
         total_page = math.ceil(Resource.objects.all().count() / 10)
+
     elif menu == 'qa':
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
@@ -918,7 +782,6 @@ def get_auth_callback(request):
                     u.name = data.get('name')
                 u.first_login = False
                 u.username = email
-                # u.name = u.first_name +  ' ' + u.last_name
                 u.save()
                 login(request, u, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('register_success')
@@ -939,7 +802,6 @@ def get_auth_callback(request):
 
 
 def send_verification_email(user, request):
-    # current_site = get_current_site(request)  # the domain user is on
     email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 驗證您的帳號 Verify your account'
     email_body = render_to_string('email/verification.html',{
         'scheme': scheme,
@@ -954,12 +816,10 @@ def send_verification_email(user, request):
     EmailThread(email).start()
 
 
-
 def resend_verification_email(request):
     if request.method == 'POST':
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
-            # current_site = get_current_site(request)  # the domain user is on
             email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 驗證您的帳號 Verify your account'
             email_body = render_to_string('email/verification.html',{
                 'scheme': scheme,
@@ -990,21 +850,16 @@ def verify_user(request, uidb64, token):
         user.is_active = True
         user.first_login = False
         user.save()
-
-        # messages.add_message(request, messages.SUCCESS,
-        #                     '驗證成功！請立即設定您的密碼')
         login(request, user, backend='manager.views.registerBackend') 
         return redirect(register_success)
 
     return render(request, 'email/verification-fail.html', {"user": user})
 
 
-
 def send_reset_password(request):
     if request.method == 'POST':
         if User.objects.filter(email=request.POST.get('email','')).exists():
             user = User.objects.get(email=request.POST.get('email',''))
-            # current_site = get_current_site(request)  # the domain user is on
             email_subject = '[TBIA 生物多樣性資料庫共通查詢系統] 重設您的密碼 Reset your password'
             email_body = render_to_string('email/verification_reset_password.html',{
                 'scheme': scheme,
@@ -1020,7 +875,6 @@ def send_reset_password(request):
             return JsonResponse({"message": '已送出重設密碼信件'}, safe=False)
         else:
             return JsonResponse({"message": '輸入的Email錯誤'}, safe=False)
-
 
 
 def verify_reset_password(request, uidb64, token):
@@ -1058,7 +912,6 @@ def reset_password_submit(request):
         return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-# @auth_user_should_not_access
 def register(request):
     if request.method == 'POST':
         context = {'has_error': False, 'data': request.POST}
@@ -1068,7 +921,6 @@ def register(request):
         password = request.POST.get('password')
         # make sure email is unique
         if User.objects.filter(email=email,is_email_verified=True).exists():
-            # messages.add_message(request, messages.ERROR, '此信箱已註冊過')
             response = {'status':'fail', 'message': '此信箱已註冊過，請直接登入'}
         else:
             if not User.objects.filter(email=email).exists():
@@ -1078,12 +930,9 @@ def register(request):
             else:
                 user = User.objects.get(email=email)
             send_verification_email(user, request)
-            # messages.add_message(request, messages.SUCCESS,
             # '註冊成功，請至註冊信箱收信進行驗證')
             response = {'status':'success', 'message': '註冊成功，請至註冊信箱收信進行驗證'}
-            # return redirect(register_verification)
         return HttpResponse(json.dumps(response), content_type='application/json')
-
 
 
 def register_verification(request):
@@ -1095,7 +944,6 @@ def register_success(request):
     return render(request, 'manager/register_success.html')
 
 
-# @auth_user_should_not_access
 def login_user(request):
     if request.method == 'POST':
         # username是django用來登入的default
@@ -1109,19 +957,14 @@ def login_user(request):
                 if not rememberme:
                     request.session.set_expiry(0)
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                # return redirect('index')
                 response = {'status':'success', 'message': ''}
 
             if user and not user.is_email_verified:
-                # messages.add_message(request, messages.ERROR,
-                #                      'Email尚未驗證，請至信箱進行驗證')
                 response = {'status':'unverified', 'message': 'Email尚未驗證，請至信箱進行驗證'}
-                # return render(request, 'account/login.html', context, status=401)
+
             if not user:
-                # messages.add_message(request, messages.ERROR,
-                #                      'Email或密碼錯誤，或此帳號停用')
                 response = {'status':'fail', 'message': '密碼錯誤，或此帳號停用'}
-                # return render(request, 'account/login.html', context, status=401)
+
         else:
             response = {'status':'fail', 'message': '此Email不存在，請先註冊'}
 
@@ -1133,7 +976,6 @@ def logout_user(request):
     logout(request)
 
     return redirect('index') # return to previous page
-
 
 
 def update_partner_info(request):
@@ -1148,20 +990,13 @@ def update_partner_info(request):
             i['description'] = request.POST.get(f'description_{l}')
             i['description_en'] = request.POST.get(f'description_en_{l}')
             new_info.append(i)
-            # new_info.append({
-            #     'id': i['id'],
-            #     'link': request.POST.get(f'link_{l}'),
-            #     # 'logo': request.POST.get(f'logo'),
-            #     # 'image': i['image'],
-            #     # 'subtitle': request.POST.get(f'subtitle_{l}'),
-            #     'description': request.POST.get(f'description_{l}'),
-            # })
         p = Partner.objects.get(id=partner_id)
         p.info = new_info
         p.save()
         response = {'message': '修改完成'}
         
         return JsonResponse(response, safe=False)
+
 
 def update_keywords(request):
     if request.method == 'POST':
@@ -1209,7 +1044,6 @@ def withdraw_partner_request(request):
         user.partner_id=None
         user.save()
 
-        # user = User.objects.filter(id=user_id).update(status='withdraw',is_partner_account=False,is_partner_admin=False,partner_id=None)
         # 寄信通知夥伴單位 & 系統管理員申請已撤回
         for u in User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id=partner_id)):
             nn = Notification.objects.create(
@@ -1248,7 +1082,6 @@ def partner_info(request):
                 partner_admin = User.objects.filter(Q(partner_id=current_user.partner.id,is_partner_admin=True)).values_list('name')
                 partner_admin = [p[0] for p in partner_admin]
                 partner_admin = ','.join(partner_admin)
-            # info
             info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
 
     return render(request, 'manager/partner/info.html', {'partner_admin': partner_admin, 'info': info, 'menu': menu,})
@@ -1274,7 +1107,6 @@ def download_sensitive_report(request):
                 sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=True)
         elif request.POST.get('from') == 'track':
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
-                # sensitive_response = SensitiveDataResponse.objects.exclude(is_transferred=True).exclude(partner_id__isnull=True)
                 sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=False)
 
     if len(sensitive_response):
@@ -1282,7 +1114,6 @@ def download_sensitive_report(request):
         sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
         for s in sensitive_query:
             # 進階搜尋
-            # search_dict = dict(parse.parse_qsl(s.query))
             search_dict = dict(parse.parse_qsl(s.query))
             query = create_query_display(search_dict)
             query = query.replace('<b>','').replace('</b>','')
@@ -1345,12 +1176,10 @@ def download_sensitive_report(request):
 def download_partner_sensitive_report(request):
     translation.activate('zh-hant') # 強制使用中文
 
-    now_group = ''
 
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            now_group = current_user.partner.group
             now_dbs = current_user.partner.info
             now_dbs = ["sq.sensitive_stat @> '" + json.dumps([{"val": "{}".format(ii.get('dbname'))}]) + "'" for ii in now_dbs]
             now_dbs_str = ' OR '.join(now_dbs)
@@ -1358,8 +1187,6 @@ def download_partner_sensitive_report(request):
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
             df = pd.DataFrame()
-
-            # par = json.dumps([{"val": "{}".format(now_group)}])
 
             query = f'''
                     SELECT sq.created, sq.query_id, sq.query, p.select_title
@@ -1370,7 +1197,6 @@ def download_partner_sensitive_report(request):
                     AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
                     ORDER BY created ASC;
                     '''
-                    # WHERE  sq.sensitive_stat @> %s 
 
             with connection.cursor() as cursor:
                 cursor.execute(query)
@@ -1424,7 +1250,6 @@ def download_partner_sensitive_report(request):
                 df.to_excel(writer, sheet_name='Sheet1', index=None)
 
             return response
-
 
 
 def get_request_detail(request):
@@ -1493,35 +1318,19 @@ def get_request_detail(request):
 
 
 def manager_partner(request):
-    # partner_admin = ''
     download_url = []
     holder_list = []
-    # info = []
     stat_year = [*range(2023, timezone.now().year+1)]
     stat_month = [*range(1, 13, 1)]
 
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            # for p in current_user.partner:
             for pp in current_user.partner.info:
-                # print(pp)
-                # if exists(os.path.join('/tbia-volumes/media/match_log',f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip')):
-                #     download_url.append({'url': f'/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip', 'name': pp['subtitle']})
-            # download_url = generate_no_taxon_csv(current_user.partner.group,request.scheme,request.META['HTTP_HOST'],False)
-            # partner_admin = User.objects.filter(partner_id=current_user.partner.id, is_partner_admin=True).values_list('name')
-            # partner_admin = [p[0] for p in partner_admin]
                 holder_list.append(pp.get('dbname'))
-
-
-
-            # # info
-            # info = Partner.objects.filter(group=current_user.partner.group).values_list('info')
             data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
 
-    return render(request, 'manager/partner/manager.html',{ #'partner_admin': partner_admin, 
-                                                           'download_url': download_url, 'holder_list': holder_list,
-                                                            #'info': info, 
+    return render(request, 'manager/partner/manager.html',{ 'download_url': download_url, 'holder_list': holder_list,
                                                             'data_year': data_year, 'stat_year': stat_year, 'stat_month': stat_month})
 
 
@@ -1542,9 +1351,6 @@ def get_partner_stat(request):
     # 以下改用來源資料庫取得資料
 
     if rights_holder := request.GET.get('rights_holder'):
-
-        # if Partner.objects.filter(id=partner_id).exists():
-        #     group = Partner.objects.get(id=partner_id).group
 
         f = ['-taxonID:*',f'rightsHolder:{rights_holder}']
         # TaiCOL對應狀況
@@ -1589,8 +1395,6 @@ def get_partner_stat(request):
         if data['responseHeader']['status'] == 0:
             facets = data['facet_counts']['facet_fields']['dataQuality']
             for r in range(0,len(facets),2):
-                # total_count += facets[r+1]
-                # if facets[r+1] > 0 :
                 quality_data_list_system.append({
                     'name': '系統整體 - ' + quality_map[int(float(facets[r]))],
                     'color': quality_color_map_system[int(float(facets[r]))],
@@ -1628,19 +1432,6 @@ def get_partner_stat(request):
                         quality_str_list.append('{}級 0 筆'.format(quality_map[q]))
                 db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
 
-
-        # # 物種類群資料筆數 (圓餅圖) (入口網)
-        # taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
-        # taxon_group_stat_system = [{ 'name': taxon_group_map_c[d['name']], 
-        #                        'y': d['count'],
-        #                        'color': taxon_group_color_map['dark'][taxon_group_map_c[d['name']]] } for d in  taxon_query]
-
-        # # 物種類群資料筆數 (圓餅圖) (來源資料庫)
-        # taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder=rights_holder,type='taxon_group').order_by('-count').values('name','count'))
-        # taxon_group_stat_holder = [ {'name': taxon_group_map_c[d['name']], 'y': d['count'],
-        #                             'color': taxon_group_color_map['light'][taxon_group_map_c[d['name']]] } for d in  taxon_query]
-
-
         # 系統整體資料
         taxon_query_system = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
         system_dict = {taxon_group_map_c[d['name']]: d['count'] for d in taxon_query_system}
@@ -1661,20 +1452,16 @@ def get_partner_stat(request):
 
         # 佔入口網臺灣鳥類資料筆數 0.24%，佔TaiCOL臺灣鳥類物種數 48.89%
 
-
         taxon_group_stat = []
         # 第一階段：先加入所有系統的 series
         for i, group in enumerate(taxon_groups):
-            total_system_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=taxon_group_map_e[group], group='total').count
             system_count = system_dict.get(group, 0)
-            # system_percentage = round((system_count / total_system_count) * 100, 2) if total_system_count else 0
             system_data = [0] * len(taxon_groups)
             system_data[i] = system_count
             taxon_group_stat.append({
                 'name': f'{group}-系統',
                 'data': system_data,
                 'color': taxon_group_color_map[group]['dark'],
-                # 'systemPercentage': system_percentage
             })
 
         # 第二階段：再加入所有單位的 series
@@ -1692,117 +1479,11 @@ def get_partner_stat(request):
                 'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count if TaxonStat.objects.filter(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).exists() else 0
             })
 
-        # print(rights_holder)
         if Partner.objects.filter(info__contains=[{'dbname': rights_holder}]).exists():
             partner = Partner.objects.get(info__contains=[{'dbname': rights_holder}])
             for pp in partner.info:
                 if pp.get('dbname') == rights_holder:
                     download_url = f'/media/match_log/{partner.group}_{pp["id"]}_match_log.zip'
-
-        # print('download_url', download_url)
-        # if exists(os.path.join('/tbia-volumes/media/match_log',f'/tbia-volumes/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip')):
-        #     download_url.append({'url': f'/media/match_log/{current_user.partner.group}_{pp["id"]}_match_log.zip', 'name': pp['subtitle']})
-
-    # 以下為原版
-    # if partner_id := request.GET.get('partner_id'):
-
-    #     if Partner.objects.filter(id=partner_id).exists():
-    #         group = Partner.objects.get(id=partner_id).group
-
-    #         f = ['-taxonID:*',f'group:{group}']
-    #         # TaiCOL對應狀況
-    #         query = {
-    #             "query": '*:*',
-    #             "filter": f,
-    #             "limit": 0,
-    #             "facet": {},
-    #             }
-    #         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-    #         no_taxon = response.json()['response']['numFound']
-
-    #         # 資料筆數
-    #         url = f"{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet=true&q.op=OR&q=group%3A{group}&rows=0&start=0"
-    #         data = requests.get(url).json()
-    #         if data['responseHeader']['status'] == 0:
-    #             facets = data['facet_counts']['facet_fields']['rightsHolder']
-    #             for r in range(0,len(facets),2):
-    #                 p_count += facets[r+1]
-    #                 if facets[r+1] > 0 :
-    #                     if Partner.objects.filter(group=group).exists():
-    #                         for pp in Partner.objects.get(group=group).info:
-    #                             if pp['dbname'] == facets[r]:
-    #                                 p_color = pp['color']
-    #                                 break
-    #                         data_total.append({'name': facets[r],'y': facets[r+1], 'color': p_color})
-                            
-    #         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
-    #         if response.status_code == 200:
-    #             total_count = response.json()['response']['numFound']
-    #             total_count = total_count - p_count
-    #             data_total += [{'name': '其他單位','y': total_count, 'color': '#ddd'}]
-    #             has_taxon = p_count - no_taxon
-
-    #         # 影像資料筆數
-    #         url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
-    #         image_data = requests.get(url).json()
-    #         other_image_count = 0
-    #         if image_data['responseHeader']['status'] == 0:
-    #             facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
-    #             for f in facets:
-    #                 p_group = f.get('value')
-    #                 for fp in f.get('pivot'):
-    #                     p_dbname = fp.get('value')
-    #                     p_count = fp.get('count')
-    #                     if p_group == group:
-    #                         if Partner.objects.filter(group=p_group).exists():
-    #                             for pp in Partner.objects.get(group=p_group).info:
-    #                                 if pp['dbname'] == p_dbname:
-    #                                     p_color = pp['color']
-    #                                     break
-    #                             image_data_total.append({'name': p_dbname,'y': p_count, 'color': p_color})
-    #                     else:
-    #                         other_image_count += p_count
-
-    #         image_data_total.append({'name': '其他單位','y': other_image_count, 'color': '#ddd'})
-
-    #         # 資料品質 (入口網)
-    #         url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-    #         data = requests.get(url).json()
-    #         if data['responseHeader']['status'] == 0:
-    #             facets = data['facet_counts']['facet_fields']['dataQuality']
-    #             for r in range(0,len(facets),2):
-    #                 # total_count += facets[r+1]
-    #                 # if facets[r+1] > 0 :
-    #                 quality_data_list.append({
-    #                     'name': quality_map[int(float(facets[r]))],
-    #                     'color': quality_color_map[int(float(facets[r]))],
-    #                     'y': facets[r+1]
-    #                 })
-
-    #         # 資料品質 (來源資料庫)
-
-    #         url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=group:{group}&rows=0&start=0"
-    #         quality_data = requests.get(url).json()
-    #         if quality_data['responseHeader']['status'] == 0:
-    #             facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
-    #             for f in facets:
-    #                 p_dbname = f.get('value')
-    #                 quality_str_list = []
-    #                 for q in [3,2,1]:
-    #                     has_data = False
-    #                     for fp in f.get('pivot'):
-    #                         if q == int(float(fp.get('value'))):
-    #                             quality_str_list.append('{}級 {} 筆'.format(quality_map[q], fp.get('count')))
-    #                             has_data = True
-    #                     if not has_data:
-    #                         quality_str_list.append('{}級 0 筆'.format(quality_map[q]))
-    #                 db_quality_stat.append('<li><b>{}</b>：<br>{}</li>'.format(p_dbname, '、'.join(quality_str_list)))
-
-
-    #         # 物種類群資料筆數 (圓餅圖)
-    #         taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
-    #         taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
-
 
     response = {
         'data_total': data_total,
@@ -1810,8 +1491,6 @@ def get_partner_stat(request):
         'no_taxon': no_taxon,
         'image_data_total': image_data_total,
         'taxon_group_stat': taxon_group_stat,
-        # 'taxon_group_stat_system': taxon_group_stat_system,
-        # 'taxon_group_stat_holder': taxon_group_stat_holder,
         'quality_data_list': quality_data_list,
         'quality_data_list_system': quality_data_list_system,
         'quality_data_list_holder': quality_data_list_holder,
@@ -1925,6 +1604,7 @@ def get_user_download_stat(request):
 
     return JsonResponse(resp, safe=False)
 
+
 def manager_system(request):
     no_taxon = 0
     has_taxon = 0
@@ -1933,8 +1613,6 @@ def manager_system(request):
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
         # 改成用solr取得 如果沒有在列表就是代表沒有
-        # for ii in Partner.objects.all().values_list('info', flat=True):
-        #     holder_list += [iii['dbname'] for iii in ii]
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
         f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
         holder_list = [f_list[x] for x in range(0, len(f_list),2)]
@@ -1963,7 +1641,6 @@ def manager_system(request):
                                                           'holder_list': holder_list, 'data_year': data_year})
 
 
-
 def get_keyword_stat(request):
 
     month = int(request.GET.get('month'))
@@ -1982,13 +1659,11 @@ def get_checklist_stat(request):
 
     df = pd.DataFrame(checklist_list, columns=['count','year_month'])
 
-
     for mm in month_list:
         now_year_month = f'{year}-{"{:02d}".format(mm)}'
         if not len(df[df.year_month==now_year_month]):
             df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
     df = df.reset_index(drop=True)
-
 
     resp = {}
     resp['data'] = df.sort_values('year_month')['count'].to_list()
@@ -2031,7 +1706,6 @@ def get_data_stat(request):
                 if not len(df[(df.rights_holder==x)&(df.year_month==now_year_month)]):
                     df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'count': 0, 'year_month': now_year_month}])])
             df = df.reset_index(drop=True)
-            # new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
             new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list()})
             c += 1
 
@@ -2039,9 +1713,7 @@ def get_data_stat(request):
             for mm in month_list:
                 now_year_month = f'{year}-{"{:02d}".format(mm)}'
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': '', 'count': 0, 'year_month': now_year_month}])])
-                # new_data_list.append({'name': '', 'data': df.sort_values('year_month')['count'].to_list(), 'color': colors[c] })
                 new_data_list.append({'name': '', 'data': df.sort_values('year_month')['count'].to_list()})
-
 
         resp['data'] = new_data_list
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
@@ -2078,11 +1750,7 @@ def get_data_stat(request):
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
-
 def get_taxon_group_list(request):
-
-    # resp = {}
-    # taiwan_percentage = 0
 
     final_list =[]
 
@@ -2092,7 +1760,6 @@ def get_taxon_group_list(request):
 
     if selected_name:
         selected_name = selected_name[0]
-    # selected_name = name
 
     # 圓餅圖
     total_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=selected_name, group='total').count
@@ -2102,7 +1769,6 @@ def get_taxon_group_list(request):
     else:
         taxon_list = list(TaxonStat.objects.filter(year='x', month='x', type='taxon_group', name=selected_name).exclude(rights_holder='total').order_by('-count').values('rights_holder','count'))
 
-    
     final_list = [{'rights_holder': t['rights_holder'], 'count': t['count'], 'data_percent': round((t['count'] / total_count)*100, 2) if total_count else 0,
                    'taiwan_percent': TaxonStat.objects.get(type='taiwan_percentage',  name=selected_name, rights_holder=t['rights_holder']).count } 
                   for t in taxon_list ]
@@ -2128,7 +1794,6 @@ def get_taxon_stat(request):
 def get_system_stat(request):
     no_taxon = 0
     has_taxon = 0
-    # partner_admin = ''
     data_total = []
     image_data_total = []
     taxon_group_stat = []
@@ -2150,6 +1815,7 @@ def get_system_stat(request):
                     data_total.append({'name': p_dbname,'y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
                 elif p_group == 'gbif':
                     data_total.append({'name': 'GBIF','y': p_count,  'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
+
     # 影像資料筆數
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
     image_data = requests.get(url).json()
@@ -2165,9 +1831,7 @@ def get_system_stat(request):
                 elif p_group == 'gbif':
                     image_data_total.append({'name': 'GBIF','y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
-
     # TaiCOL對應狀況
-
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
@@ -2175,12 +1839,6 @@ def get_system_stat(request):
     response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
-
-
-    # # 物種類群資料筆數 圓餅圖
-    # taxon_query = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
-    # taxon_group_stat = [ {'name': taxon_group_map_c[d['name']], 'y': d['count']} for d in  taxon_query]
-
 
     # 建立類群順序
     taxon_groups = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
@@ -2198,10 +1856,7 @@ def get_system_stat(request):
     # 第一階段：先加入所有系統的 series
     for i, group in enumerate(taxon_groups):
 
-        # total_system_count = TaxonStat.objects.get(year='x', month='x', type='taxon_group', name=taxon_group_map_e[group], group='total').count
-        system_count = system_dict.get(group, 0)
-        # system_percentage = round((system_count / total_system_count) * 100, 2) if total_system_count else 0
-        
+        system_count = system_dict.get(group, 0)        
         system_data = [0] * len(taxon_groups)
         system_data[i] = system_count
         
@@ -2209,10 +1864,7 @@ def get_system_stat(request):
             'name': f'{group}-系統',
             'data': system_data,
             'color': taxon_group_color_map[group]['dark'],
-            # 'systemPercentage': system_percentage
         })
-
-
 
     # 各單位前三類群
     top3_taxon_list = []
@@ -2221,12 +1873,6 @@ def get_system_stat(request):
         data = []
         for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
             data.append(f'{taxon_group_map_c[tt[0]]} ({tt[1]})')
-        # for tt in top3_taxon_group[top3_taxon_group.rights_holder==h].sort_values('count',ascending=False)[['name','count']].values[:3]:
-        #     # 維管束植物要加上蕨類
-        #     now_count = tt[1]
-        #     if tt[0] == 'Vascular Plants':
-        #         now_count += top3_taxon_group[(top3_taxon_group.rights_holder==h)&(top3_taxon_group.name=='Ferns')]['count'].sum()
-        #     data.append(f'{taxon_group_map_c[tt[0]]} ({now_count})')
         top3_taxon_list.append({'rights_holder': h, 'data': data})
 
     top5_family_list = []
@@ -2250,7 +1896,6 @@ def get_system_stat(request):
             })
 
     # 資料品質 (來源資料庫)
-
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
     quality_data = requests.get(url).json()
     if quality_data['responseHeader']['status'] == 0:
@@ -2268,7 +1913,6 @@ def get_system_stat(request):
                     quality_str_list.append('0')
             db_quality_stat.append(quality_str_list)
 
-
     has_taxon = total_count - no_taxon
     response = {
         'data_total': data_total,
@@ -2281,8 +1925,8 @@ def get_system_stat(request):
         'taxon_group_stat': taxon_group_stat,
         'quality_data_list': quality_data_list,
         'db_quality_stat': db_quality_stat
-
     }
+
     return JsonResponse(response, safe=False)
 
 
@@ -2363,10 +2007,7 @@ def submit_news(request):
 
         publish_date = request.POST.get('publish_date')
         lang = request.POST.get('news_lang')
-
-        # author_use_tbia = None
         author_use_tbia = request.POST.get('author_use_tbia')
-
 
         if request.POST.get('from_system'):
             partner_id = None
@@ -2381,7 +2022,6 @@ def submit_news(request):
         if News.objects.filter(id=news_id).exists():
 
             # 更新 news
-
             n = News.objects.get(id=news_id)
             ori_status = n.status
             
@@ -2507,7 +2147,6 @@ def submit_news(request):
 
 def withdraw_news(request):
     if news_id := request.GET.get('news_id'):
-        # user_id = request.user.id
         if user_id := request.user.id:
             # 確認撤回的人是不是申請的人 或者單位管理者
             if News.objects.filter(id=news_id).exists():
@@ -2562,7 +2201,6 @@ def send_notification(user_list, content, title, content_en=None):
         msg.content_subtype = "html"  # Main content is now text/html
         # 改成背景執行
         task = threading.Thread(target=send_msg, args=(msg,))
-        # task.daemon = True
         task.start()
         return {"status": 'success'}
     except:
@@ -2579,7 +2217,6 @@ def update_user_status(request):
             
             # 要確認是不是單位帳號是不是超過十個人 而且現在是要修改成pass (原本不是pass)
             if u.status != 'pass' and status == 'pass' and User.objects.filter(partner_id=partner_id,status='pass').count() >= 10:
-                # status 改為pending
                 status = 'pending'
                 exceed_ten = True
             
@@ -2636,12 +2273,10 @@ def save_resource_file(request):
     return JsonResponse(response, safe=False)
 
 
-
 def _build_file_url(request, resource_url):
     """檔案的 full URL：{scheme}://{host}/media + resource.url"""
     scheme = 'https' if request.is_secure() else 'http'
     return f"{scheme}://{request.get_host()}/media{resource_url}"
-
 
 
 def _insert_ark(ark_id, target_url):
@@ -2713,7 +2348,6 @@ def _sync_resource_ark(resource, resource_type, file_url, doc_url, extension):
             _update_ark(ext_ark_id, file_url)
 
 
-
 def submit_resource(request):
     if request.method == 'POST':
         now = timezone.now() + timedelta(hours=8)
@@ -2773,7 +2407,6 @@ def submit_resource(request):
         return redirect('system_resource')
 
 
-
 def delete_resource(request):
     if request.method == 'POST':
         if resource_id := request.POST.get('resource_id'):
@@ -2814,7 +2447,6 @@ def get_news_content(request):
 
 # 文章裡面的圖片 
 def save_news_image(request):
-    # print(request.POST, request.FILES)
     image_name = ''
     if image := request.FILES.get('image'):
         fs = FileSystemStorage()
@@ -2825,18 +2457,13 @@ def save_news_image(request):
 def get_link_content(request):
     response = {}
     response['content'] = ''
-    # news_id = request.GET.get('news_id')
     if l := Link.objects.all().first():
-        # l = News.objects.get(id=news_id)
         response['content'] = l.content
     return JsonResponse(response, safe=False)
 
 
 def system_qa(request):
     menu = request.GET.get('menu', 'qa')
-    # qa_list = Qa.objects.all().order_by('order')[:10]
-    # q_total_page = math.ceil(Qa.objects.all().count()/10)
-    # q_page_list = get_page_list(1, q_total_page)
     type_choice = Qa._meta.get_field('type').choices
     current_q = []
     if request.GET.get('qa_id'):
@@ -2844,7 +2471,6 @@ def system_qa(request):
             current_q = Qa.objects.get(id=request.GET.get('qa_id'))
 
     return render(request, 'manager/system/qa.html', {'menu': menu, 'type_choice': type_choice, 'current_q': current_q})
-    # 'q_total_page': q_total_page, 'q_page_list': q_page_list, 'qa_list': qa_list, })
 
 
 def submit_qa(request):
@@ -2915,7 +2541,6 @@ def submit_apply_ark(request):
     if request.method == 'POST':
         query_id = request.POST.get('query_id')
         sq = SearchQuery.objects.get(query_id=query_id)
-        # sq.save()
 
         # TODO 這邊先確認是不是會產生兩個
         ark = ark_generator(data_type='data')
@@ -2995,63 +2620,6 @@ def generate_storage_csv(query_id, ark):
         process.communicate()
 
 
-# def get_temporal_stat(request):
-
-#     year = int(request.GET.get('year'))
-#     rights_holder = request.GET.get('rights_holder')
-#     type = request.GET.get('type')
-
-#     if rights_holder := request.GET.get('rights_holder'):
-#         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month'))
-#     elif group :=  request.GET.get('group'):
-#         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
-
-#     if type == 'data':
-#         month_list = [1,3,5,7,9,11]
-#     else:
-#         month_list = [*range(1,13)]
-
-#     resp = {}
-#     if request.GET.get('group'):
-        
-#         df = pd.DataFrame(data_list, columns=['count','year_month','rights_holder'])
-#         df['count'] = df['count'].astype('int')
-#         r_list = df.rights_holder.unique()
-#         r_list.sort() # 確保同一個來源資料庫是同一個顏色
-#         new_data_list = []
-
-#         c = 0
-#         for x in r_list:
-#             for mm in month_list:
-#                 now_year_month = f'{year}-{"{:02d}".format(mm)}'
-#                 if not len(df[(df.rights_holder==x)&(df.year_month==now_year_month)]):
-#                     df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'count': 0, 'year_month': now_year_month}])])
-#             df = df.reset_index(drop=True)
-#             new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year_month')['count'].to_list(), 'color': colors[c] })
-#             c += 1
-
-#         resp['data'] = new_data_list
-#         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
-#     else:
-#         df = pd.DataFrame(data_list, columns=['count','year_month'])
-
-#         df['count'] = df['count'].astype('int')
-
-#         for mm in month_list:
-#             now_year_month = f'{year}-{"{:02d}".format(mm)}'
-#             if not len(df[df.year_month==now_year_month]):
-#                 df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
-#         df = df.reset_index(drop=True)
-
-
-#         resp['data'] = df.sort_values('year_month')['count'].to_list()
-#         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
-#     return HttpResponse(json.dumps(resp), content_type='application/json')
-
-
-
 def get_temporal_stat(request):
 
     # 篩選條件 1 日期
@@ -3065,10 +2633,7 @@ def get_temporal_stat(request):
     end_year = int(request.GET.get('end_year'), 0)
     where = request.GET.get('where')
 
-
     resp = {}
-
-    # colors = ['#76A578','#DEE9DE','#3F5146','#E2A460','#f4e2c7','#888','#ead065','#555','#3B86C0','#304237','#C65454','#ccc']
     color = '#76A578'
 
     year_taxon_query = TaxonStat.objects.exclude(year='x')
@@ -3076,31 +2641,17 @@ def get_temporal_stat(request):
     if current_group := request.GET.get('group'):
         if current_group == 'total':
             color = '#3F5146'
-        # else:
-        #     color = '#76A578'
         year_taxon_query = year_taxon_query.filter(group=current_group)
 
     elif current_rights_holder := request.GET.get('rights_holder'):
         year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
         if current_rights_holder == 'total':
             color = '#3F5146'
-        # else:
-        #     color = '#76A578'
 
     if taxon_group := request.GET.get('taxon_group'):
         selected_name = taxon_group_map_e.get(taxon_group, '')
         if selected_name:
             year_taxon_query = year_taxon_query.filter(type='taxon_group', name=selected_name)
-        # 維管束植物要加上蕨類
-        # selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
-        # if selected_name:
-        #     selected_name = selected_name[0]
-        # else:
-        #     selected_name = ''
-        # if selected_name == 'Vascular Plants':
-        #     year_taxon_query = year_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
-        # else:
-        #     year_taxon_query = year_taxon_query.filter(type='taxon_group',name=selected_name)
     else:
         year_taxon_query = year_taxon_query.filter(type='temporal',name__isnull=True)
 
@@ -3111,8 +2662,7 @@ def get_temporal_stat(request):
         # 如果沒有選擇的話是1900-now
         # 如果有選擇就用選擇的範圍
         now = datetime.now()
-        year_list = [str(y) for y in range(1900, now.year +1)]    
-
+        year_list = [str(y) for y in range(1900, now.year +1)]
 
     # 要用year把資料group在一起
     new_data_list = []
@@ -3143,13 +2693,11 @@ def get_temporal_stat(request):
                 c += 1
 
     # 如果都沒有 全部回傳0
-    # for yy in year_list:
     if not new_data_list:
         new_data_list.append({'name': '', 'data': [0 for y in  year_list], 'color': '' })
 
     resp['year_data'] = new_data_list
     resp['year_categories'] = year_list
-
 
     # 月
     # 要把資料group在一起
@@ -3166,25 +2714,12 @@ def get_temporal_stat(request):
         selected_name = taxon_group_map_e.get(taxon_group, '')
         if selected_name:
             month_taxon_query = month_taxon_query.filter(type='taxon_group', name=selected_name)
-
-        # # 維管束植物要加上蕨類
-        # selected_name = [i for i in taxon_group_map_c if taxon_group_map_c[i]==taxon_group]
-        # if selected_name:
-        #     selected_name = selected_name[0]
-        # else:
-        #     selected_name = ''
-
-        # if selected_name == 'Vascular Plants':
-        #     month_taxon_query = month_taxon_query.filter(type='taxon_group',name__in=['Vascular Plants','Ferns'])
-        # else:
-        #     month_taxon_query = month_taxon_query.filter(type='taxon_group',name=selected_name)
         
     else:
         month_taxon_query = month_taxon_query.filter(type='temporal',name__isnull=True)
 
     if start_year and end_year:
         month_taxon_query = month_taxon_query.filter(year__gte=start_year, year__lte=end_year)
-
 
     new_data_list = []
 
@@ -3215,7 +2750,6 @@ def get_temporal_stat(request):
                 c += 1
 
     # 如果都沒有 全部回傳0
-    # for yy in year_list:
     if not new_data_list:
         new_data_list.append({'name': '', 'data': [0 for m in month_list], 'color': '' })
 
@@ -3226,77 +2760,18 @@ def get_temporal_stat(request):
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
-
-
-# Highcharts.chart('container', {
-#     chart: {
-#         type: 'column'
-#     },
-#     title: {
-#         text: '每年數據堆疊'
-#     },
-#     xAxis: {
-#         type: 'category',  // 使用類別型 x 軸
-#         title: {
-#             text: '年份'
-#         }
-#     },
-#     yAxis: {
-#         min: 0,
-#         title: {
-#             text: '數值'
-#         },
-#         stackLabels: {
-#             enabled: true, // 顯示堆疊標籤
-#             style: {
-#                 fontWeight: 'bold',
-#                 color: 'gray'
-#             }
-#         }
-#     },
-#     plotOptions: {
-#         column: {
-#             stacking: 'normal', // 堆疊模式
-#             dataLabels: {
-#                 enabled: true, // 顯示每個區塊的數據
-#                 style: {
-#                     color: 'white'
-#                 }
-#             }
-#         }
-#     },
-#     series: [{
-#         name: '類別 1',
-#         data: [29.9, 71.5, null, 129.2, 144.0], // 其中 2020 年缺失數據
-#         pointStart: 2018, // 起始年份
-#         pointIntervalUnit: 'year', // 以年為單位
-#     }, {
-#         name: '類別 2',
-#         data: [48.9, null, 73.5, 85.3, 92.1], // 其中 2019 年缺失數據
-#         pointStart: 2018, // 起始年份
-#         pointIntervalUnit: 'year', // 以年為單位
-#     }]
-# });
-
-
-
 def submit_sensitive_report(request):
     if request.method == 'POST':
 
-        # print(request.POST)
         query_id = request.POST.get('report_query_id')
         content = request.POST.get('report_content')
 
-        # print(query_id)
-
         # 儲存檔案 / 文字
-
         # 寄送email
         file_name = None
         if file := request.FILES.get('report_file'):
             fs = FileSystemStorage()
             file_name = fs.save(f'sensitive_report/' + file.name, file)
-
 
         if  SensitiveDataReport.objects.filter(query_id=query_id).exists():
             if file_name:
@@ -3307,15 +2782,11 @@ def submit_sensitive_report(request):
             SensitiveDataReport.objects.create(query_id=query_id,user_id=request.user.id,
                                 content=content, file=file_name, created=timezone.now(), modified=timezone.now())
 
-            # response['url'] = file_name
-            # response['filename'] = file_name.replace('resources/','')
-
         # 系統管理員
         # 夥伴單位 - 不用考慮機關委託計畫 因為一定會寄信給系統管理員
 
         partners = list(SensitiveDataResponse.objects.filter(query_id=query_id).exclude(partner_id=None).values_list('partner_id', flat=True))
         email_list = User.objects.filter(Q(is_system_admin=True)|Q(is_partner_admin=True, partner_id__in=partners)).values_list('email', flat=True)
-
 
         # send email
         html_content = f"""
@@ -3349,13 +2820,9 @@ def submit_sensitive_report(request):
         # task.daemon = True
         task.start()
 
-
-
         response = {'message': '回報成功'}
 
         return JsonResponse(response, safe=False)
-
-
 
 
 # 包含申請人成果提供狀況的檔案下載
@@ -3366,12 +2833,10 @@ def download_applicant_sensitive_report(request):
     now = now.strftime('%Y-%m-%d')
     df = pd.DataFrame()
 
-
     if request.method == 'POST':
 
         user_id = request.POST.get('applicant_user_id')
         
-        # if len(sensitive_response):
         # 申請請求
         sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
         for s in sensitive_query:
@@ -3427,10 +2892,7 @@ def download_applicant_sensitive_report(request):
                                                 '是否已回報成果': reported,
                                                 '實際回報完成時間': report_modified,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
-                                                # '審核意見': comment_str,
-                                                # # '通過與否': ,
                                                 }])],ignore_index=True)
-
 
         response = HttpResponse(content_type='application/xlsx')
         response['Content-Disposition'] = f'attachment; filename="tbia_applicant_report_{now}.xlsx"'
@@ -3453,8 +2915,6 @@ def sensitive_extend_review(request, sdr_id):
     elif User.objects.filter(is_partner_admin=True,status='pass',id=user_id).exclude(partner__is_collaboration=True).exists():
         partner_id = User.objects.get(id=user_id).partner_id
         sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id=partner_id)
-    # elif User.objects.filter(is_system_admin=True,status='pass',id=user_id).exists():
-    #     sdr = SensitiveDataResponse.objects.filter(id=sdr_id, partner_id__isnull=True)
 
     if sdr.exists():
 
@@ -3468,7 +2928,6 @@ def sensitive_extend_review(request, sdr_id):
     return JsonResponse({'status': 'success'}, safe=False)
 
     
-
 def sensitive_apply_info(request, query_id):
     # 先確定有沒有權限
     user_id = request.user.id if request.user.id else 0
@@ -3501,7 +2960,6 @@ def sensitive_apply_info(request, query_id):
     if SensitiveDataResponse.objects.filter(query_id=query_id, partner_id=partner_id).exists():
         is_authenticated = True
         is_partner = True
-
 
     comment = []
     detail = {}
@@ -3636,7 +3094,6 @@ def sensitive_apply_info(request, query_id):
                 <td>{}</td>
                 <td>{}</td>
             </tr>""".format(partner_name, sdr.reviewer_name,sdr.comment if sdr.comment else "", gettext(sdr.get_status_display())))
-
 
     return render(request, 'manager/sensitive_apply_info.html', { 'is_self': is_self, 'is_partner': is_partner, 'is_system_admin': is_system_admin,
                                                                   'query': query_str, 'is_authenticated': is_authenticated, 'data_count': data_count,

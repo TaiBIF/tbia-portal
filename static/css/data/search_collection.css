@@ -1,4 +1,3 @@
-
 .selected_grid_area {
     font-size: 16px;
     margin-left: 10px;
@@ -7,12 +6,12 @@
 
 
 input.name_input::placeholder {
-    font-size: 11px 
+    font-size: 11px
 }
 
 @media only screen and (max-width: 767px) {
     input.name_input::placeholder {
-        font-size: 15px 
+        font-size: 15px
     }
 }
 
@@ -73,7 +72,6 @@ input.name_input::placeholder {
     margin-bottom: 10px
 }
 
-
 .mt-5p {
     margin-top: 5%
 }
@@ -86,7 +84,7 @@ input.name_input::placeholder {
 
 @media only screen and (max-width: 999px) {
     .imgbox {
-        height: 500px !important;    
+        height: 500px !important;
     }
 }
 
@@ -131,10 +129,6 @@ input.name_input::placeholder {
 .ml-20px {
     margin-left: 20px
 }
-
-/* .w-200px {
-    width: 200px
-} */
 
 .flow-x-auto {
     overflow-x: auto;
@@ -184,6 +178,7 @@ input.name_input::placeholder {
         align-items: flex-start;
     }
 }
+
 .input-100 {
     width: 100% !important;
 }
@@ -205,10 +200,10 @@ input.name_input::placeholder {
     .vsb-menu .multi li:not(.grouped-option)::before {
         margin-top: 0.4em !important;
     }
- }
+}
 
 
- .page-inf {
+.page-inf {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -220,7 +215,7 @@ input.name_input::placeholder {
 }
 
 @media only screen and (max-width: 1599px) {
-     .page-inf {
+    .page-inf {
         flex-direction: column;
         justify-content: center
     }
@@ -230,17 +225,13 @@ input.name_input::placeholder {
     }
 }
 
-
 /* 欄位選項 */
 .popbg.col-choice .wbox_center {
     max-height: 90%;
     overflow: auto
 }
 
-
-
 /* 下方表格 */
-
 .sc_result .rightmore .dwd {
     padding: 0px 10px;
     font-size: 15px;
@@ -268,14 +259,11 @@ input.name_input::placeholder {
     }
 }
 
-
 @media only screen and (max-width: 1150px) {
     .result_inf_top {
         flex-wrap: wrap
     }
 }
-
-
 
 @media only screen and (max-width: 1150px) {
     .result_inf_top .cate_btn {
@@ -283,31 +271,11 @@ input.name_input::placeholder {
     }
 }
 
-
-/*
-@media only screen and (max-width: 999px) {
-    .result_inf_top .cate_btn {
-        position: absolute;
-        top: -20px
-    }
-}*/
-
 @media only screen and (max-width: 1150px) {
     .result_inf_top .cate_btn {
         font-size: 15px
     }
 }
-
-/* 
-@media only screen and (max-width: 1150px) {
-    .result_inf_top p.datenum {
-        position: absolute;
-        right: 15px;
-        top: 30px
-    }
-}
-
- */
 
 @media only screen and (max-width: 1150px) {
     .sc_result .result_inf_top {
@@ -336,7 +304,6 @@ input.name_input::placeholder {
     }
 }
 
-
 @media only screen and (max-width: 1150px) {
     .sc_result .rightmore .qmark {
         margin-left: -5px;
@@ -344,17 +311,11 @@ input.name_input::placeholder {
     }
 }
 
-
-
-
 .result_inf_top .cate_btn {
     padding: 0 10px;
     min-width: 160px;
     width: auto;
 }
-
-
-
 
 .result_inf_top_1 p.datenum {
     color: #888;
@@ -362,12 +323,10 @@ input.name_input::placeholder {
     text-align: right
 }
 
-
 .result_inf_top_1 {
     margin-bottom: 10px;
     align-items: end;
 }
-
 
 .per_page {
     font-size: 16px;
@@ -379,7 +338,6 @@ input.name_input::placeholder {
     }
 }
 
-
 .ml-5px {
     margin-left: 5px;
 }
@@ -387,7 +345,6 @@ input.name_input::placeholder {
 .mr-5px {
     margin-right: 5px;
 }
-
 
 .polygon-txt {
     font-size: 14px;
@@ -410,12 +367,12 @@ input.name_input::placeholder {
 
 /* taxonGroup optgroup 樣式 */
 /* 隱藏 span（開合 toggle）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option > span {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>span {
     display: none !important;
 }
 
 /* <i> 改成和 ::before checkbox 一樣的樣式 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option > i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>i {
     display: inline-block !important;
     float: none !important;
     margin-left: 0 !important;
@@ -431,7 +388,7 @@ input.name_input::placeholder {
 }
 
 /* checked 時和 active::before 一樣用 checkmark.svg + 綠底 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i {
     background: url("/static/image/checkmark.svg") no-repeat center !important;
     background-color: #76A578 !important;
     background-size: 70% !important;
@@ -439,12 +396,12 @@ input.name_input::placeholder {
 }
 
 /* 拿掉原本的 ::after border-trick（會跑到框外）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked > i::after {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i::after {
     display: none !important;
 }
 
 /* <b> 位置對齊 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option > b {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>b {
     transform: none !important;
     margin-left: 6px !important;
     font-size: 14px !important;

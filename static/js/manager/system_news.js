@@ -38,7 +38,6 @@ function changePage(page, menu) {
       $(`.${menu}_table`).parent().next('.page_number').remove()
 
       // 修改頁碼
-      // if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
       if (response.total_page > 0){
         $(`.${menu}_table`).parent().after(
           `<div class="page_number">
@@ -88,13 +87,10 @@ function changePage(page, menu) {
 
 }
 
-
 (function () {
 
   // 起始頁面
   changePage(1, 'news_apply')
-
-
   Quill.register("modules/imageUploader", ImageUploader);
 
   const BlockEmbed = Quill.import('blots/block/embed');
@@ -207,8 +203,6 @@ function changePage(page, menu) {
 
 })();
 
-
-
 $(document).ready(function () {
 
   $('.changePage').on('click', function () {
@@ -261,7 +255,6 @@ $(document).ready(function () {
 
     var regex = /(<([^>]+)>)/ig
     check_body = $('.ql-editor').html()
-    //hasText = check_body.replace(regex, "");
 
     if (check_body.replace(regex, "") == '') {
       $('.editor-content').removeClass('d-none')
@@ -295,5 +288,3 @@ $(document).ready(function () {
   });
 
 })
-
-

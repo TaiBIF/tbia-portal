@@ -9,7 +9,6 @@
     color: #3F5146;
     height: 32px;
     width: auto;
-    /* min-width: 190px; */
     transition: all .3s;
     -moz-transition: all .3s;
     -o-transition: all .3s;
@@ -22,7 +21,6 @@
     display: flex;
     align-items: center
 }
-
 
 .downloadData.dow_btn p {
     width: 100%;
@@ -39,7 +37,6 @@
         font-size: 14px;
         padding: 0 10px;
         height: 30px;
-        /* margin-bottom: 5px; */
         min-width: initial
     }
 
@@ -114,26 +111,22 @@
     word-wrap: break-word;
 }
 
-/* .jc-fe {
-    justify-content: flex-end
-}
- */
 .jc-fs {
     justify-content: flex-start
 }
 
 .num_bottom {
-    height: 20px; 
+    height: 20px;
     margin-bottom: 6px
 }
 
 .choice-flow {
-    max-height: 100%; 
+    max-height: 100%;
     overflow-y: auto
 }
 
 #map {
-    height: 450px; 
+    height: 450px;
     margin: 40px 0 10px 10px
 }
 
@@ -171,8 +164,6 @@
     margin-left: 5px;
 }
 
-
-
 .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 {
     width: 0
 }
@@ -180,7 +171,6 @@
 @media only screen and (max-width: 767px) {
     .two_cont_area .rightbox_content .card_list_2.species_list .flex_top .right_img2 {
         width: 100%;
-        /*margin-bottom: 10px*/
     }
 }
 
@@ -206,9 +196,6 @@
         width: 100%
     }
 }
-
-
-/* img */
 
 .right_img .arr-left {
     left: -30px;
@@ -271,7 +258,6 @@
     }
 }
 
-
 .imgbox {
     height: 100%;
     width: auto !important;
@@ -283,7 +269,6 @@
     object-fit: cover;
     height: 100%;
 }
-
 
 .img-container {
     position: relative;
@@ -301,13 +286,11 @@
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
-
 .taxon-pop .bottom-right {
     bottom: 8px;
     top: auto;
     font-size: 16px;
 }
-
 
 .taxon-pop .arr-left {
     left: -30px;
@@ -366,7 +349,6 @@
     }
 }
 
-
 .popbg.taxon-pop .wbox_center.index_tech {
     min-height: 535px;
     height: 100%;
@@ -379,8 +361,8 @@
 
 .popbg.taxon-pop .techbox .imgarea {
     border-radius: 10px;
-    max-width:100%;
-    max-height:100%;
+    max-width: 100%;
+    max-height: 100%;
     width: auto;
     height: auto;
 }
@@ -397,13 +379,9 @@
 }
 
 .techbox.taxon-pic {
-    height: 100% ;
+    height: 100%;
 
 }
-/* 
-.two_cont_area .rightbox_content .card_list_2.species_list .flex_top .lefttxt {
-    word-break: break-all;
-} */
 
 .orderby {
     cursor: pointer
@@ -422,16 +400,13 @@
     overflow: auto
 }
 
-
 .result_inf_top .cate_btn {
     padding: 0 10px;
     min-width: 120px;
     width: auto;
 }
 
-
 .sc_result .rightmore .dw {
-    /* padding: 0px 10px; */
     font-size: 15px;
     color: #3F5146;
     min-height: 40px;
@@ -448,12 +423,9 @@
     height: 100%;
 }
 
-
-
 .records-legend {
     margin-left: 10px;
 }
-
 
 .ml-1px {
     margin-left: 1px;

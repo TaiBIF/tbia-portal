@@ -1,6 +1,5 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
-
 $(function () {
 
     $('.sendRequest').on('click', function () {
@@ -12,7 +11,7 @@ $(function () {
             $('.p_affli').removeClass('d-none')
             $('.p_principal').removeClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('委辦工作或補助計畫名稱')}`)
-        } else {
+        } else {Ｆ
             $('.p_affli').addClass('d-none')
             $('.p_principal').addClass('d-none')
             $('.project_type').html(`<span class="color_red">*</span>${gettext('個人研究計畫名稱')}`)
@@ -175,81 +174,3 @@ function sendRequest() {
         alert(gettext('請先登入'))
     }
 }
-
-// function sendRequest() {
-
-//     if ($('input[name=is_authenticated]').val() == 'True') {
-
-//         let checked = true;
-
-//         let users = [];
-//         $('.apply_peo .item_set1').each(function () {
-//             if ( // 如果不是全空才加上去
-//                 !((!$(this).children('input[name=user]').val()) & (!$(this).children('input[name=user_affiliation]').val()) & (!$(this).children('input[name=user_job_title]').val()))
-//             ) {
-//                 users.push(
-//                     {
-//                         'user_name': $(this).children('input[name=user]').val(),
-//                         'user_affiliation': $(this).children('input[name=user_affiliation]').val(),
-//                         'user_job_title': $(this).children('input[name=user_job_title]').val(),
-//                     }
-//                 )
-//             }
-//         })
-
-//         // 這邊要依據 是個人計畫還是委辦工作或補助計畫 來判斷必填欄位有哪些
-//         let cols = ['applicant', 'phone', 'address', 'affiliation', 'job_title', 'project_name', 'research_proposal']
-//         cols.forEach(function (c) {
-//             if (!$(`#appilcationForm input[name=${c}]`).val()) {
-//                 checked = false;
-//             }
-//         })
-
-//         if ($('#appilcationForm .inpu_3 .input_item select[name=type]').val() == '1') {
-
-//             c = 'principal_investigator';
-
-//             if (!$(`#appilcationForm input[name=${c}]`).val()) {
-//                 checked = false;
-//             }
-
-//         }
-        
-
-//         if (!$('#appilcationForm textarea[name=abstract]').val()) {
-//             checked = false;
-//         }
-
-//         let is_agreed_report = 'f';
-
-//         if ($('input[name=is_agreed_report]').is(':checked')) {
-//             is_agreed_report = 't'
-//         } 
-
-//         if (checked) {
-//             $.ajax({
-//                 url: "/submit_sensitive_request",
-//                 data: $('#appilcationForm').serialize() + '&is_agreed_report=' + is_agreed_report + '&users=' + JSON.stringify(users) + '&csrfmiddlewaretoken=' + $csrf_token +
-//                     '&' + window.location.search.substring(1),
-//                 type: 'POST',
-//                 dataType: 'json',
-//             })
-//             .done(function (result) {
-//                 alert(gettext('請求已送出，審核完畢後將以Email通知'))
-//                 window.location.href = `/${$lang}/manager?menu=sensitive`
-//             })
-//             .fail(function (xhr, status, errorThrown) {
-//                 if (xhr.status == 504) {
-//                     alert(gettext('要求連線逾時'))
-//                 } else {
-//                     alert(gettext('發生未知錯誤！請聯絡管理員'))
-//                 }
-//                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-//             })
-//         } else {
-//             alert(gettext('請完整填寫表格'))
-//         }
-//     } else {
-//         alert(gettext('請先登入'))
-//     }
-// }

@@ -7,12 +7,28 @@
     padding: 2px 9px;
     font-size: 13px;
 }
-.api-editer .type-string  { background: #E6F1FB; color: #0C447C; }
+
+.api-editer .type-string {
+    background: #E6F1FB;
+    color: #0C447C;
+}
+
 .api-editer .type-integer,
 .api-editer .type-number,
-.api-editer .type-float   { background: #E1F5EE; color: #085041; }
-.api-editer .type-boolean { background: #EEEDFE; color: #3C3489; }
-.api-editer .type-date    { background: #FAEEDA; color: #633806; }
+.api-editer .type-float {
+    background: #E1F5EE;
+    color: #085041;
+}
+
+.api-editer .type-boolean {
+    background: #EEEDFE;
+    color: #3C3489;
+}
+
+.api-editer .type-date {
+    background: #FAEEDA;
+    color: #633806;
+}
 
 /* ===== 必填 tag ===== */
 .api-editer .req-tag {
@@ -49,9 +65,21 @@
     font-size: 13px;
     border-radius: 4px;
 }
-.api-editer .status-2xx { background: #EAF3DE; color: #27500A; }
-.api-editer .status-4xx { background: #FAEEDA; color: #633806; }
-.api-editer .status-5xx { background: #FCEBEB; color: #791F1F; }
+
+.api-editer .status-2xx {
+    background: #EAF3DE;
+    color: #27500A;
+}
+
+.api-editer .status-4xx {
+    background: #FAEEDA;
+    color: #633806;
+}
+
+.api-editer .status-5xx {
+    background: #FCEBEB;
+    color: #791F1F;
+}
 
 /* ===== 色碼表色塊 ===== */
 .api-editer .color-swatch {
@@ -63,6 +91,7 @@
     vertical-align: middle;
     margin-right: 8px;
 }
+
 .api-editer .color-hex {
     font-family: monospace;
     font-size: 13px;
@@ -70,8 +99,14 @@
 }
 
 /* ===== JSON 高亮 ===== */
-.api-editer .gray-box pre code .j-key     { color: #2F5496; }
-.api-editer .gray-box pre code .j-comment { color: #8E8E8E; font-style: italic; }
+.api-editer .gray-box pre code .j-key {
+    color: #2F5496;
+}
+
+.api-editer .gray-box pre code .j-comment {
+    color: #8E8E8E;
+    font-style: italic;
+}
 
 /* === 4 範例網址過長：自動斷行不撐破表格 === */
 .api-editer table.table_style2 td:last-child {
@@ -80,14 +115,37 @@
 }
 
 /* === 6 8 個色塊 class（不用 inline style） === */
-.api-editer .swatch-1 { background-color: #ffffcc; }
-.api-editer .swatch-2 { background-color: #ffeda0; }
-.api-editer .swatch-3 { background-color: #fed976; }
-.api-editer .swatch-4 { background-color: #feb24c; }
-.api-editer .swatch-5 { background-color: #fd8d3c; }
-.api-editer .swatch-6 { background-color: #fc4e2a; }
-.api-editer .swatch-7 { background-color: #e31a1c; }
-.api-editer .swatch-8 { background-color: #bd0026; }
+.api-editer .swatch-1 {
+    background-color: #ffffcc;
+}
+
+.api-editer .swatch-2 {
+    background-color: #ffeda0;
+}
+
+.api-editer .swatch-3 {
+    background-color: #fed976;
+}
+
+.api-editer .swatch-4 {
+    background-color: #feb24c;
+}
+
+.api-editer .swatch-5 {
+    background-color: #fd8d3c;
+}
+
+.api-editer .swatch-6 {
+    background-color: #fc4e2a;
+}
+
+.api-editer .swatch-7 {
+    background-color: #e31a1c;
+}
+
+.api-editer .swatch-8 {
+    background-color: #bd0026;
+}
 
 /* === 5 控制詞彙附錄列表 === */
 .api-editer .vocab-list {
@@ -98,6 +156,7 @@
     flex-wrap: wrap;
     gap: 6px;
 }
+
 .api-editer .vocab-list li {
     display: inline-block;
     padding: 3px 10px;
@@ -119,11 +178,14 @@
     color: #5C4A1A;
     position: relative;
 }
+
 .api-editer .api-note::before {
     content: '!';
     position: absolute;
-    left: 16px; top: 14px;
-    width: 18px; height: 18px;
+    left: 16px;
+    top: 14px;
+    width: 18px;
+    height: 18px;
     background: #D9A93C;
     color: #FFF;
     border-radius: 50%;
@@ -133,14 +195,28 @@
     font-size: 12px;
     font-family: monospace;
 }
-.api-editer .api-note p { margin: 0; }
-.api-editer .api-note p + p { margin-top: 6px; }
+
+.api-editer .api-note p {
+    margin: 0;
+}
+
+.api-editer .api-note p+p {
+    margin-top: 6px;
+}
+
 .api-editer .api-note ul {
     margin: 6px 0 0;
     padding-left: 18px;
 }
-.api-editer .api-note ul li { margin-bottom: 2px; }
-.api-editer .api-note strong { color: #3F5146; }
+
+.api-editer .api-note ul li {
+    margin-bottom: 2px;
+}
+
+.api-editer .api-note strong {
+    color: #3F5146;
+}
+
 .api-editer .api-note code {
     padding: 0 5px;
     background: rgba(0, 0, 0, 0.05);
@@ -159,6 +235,7 @@
     width: 100%;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
+
 .api-editer .api-note .grid-table th,
 .api-editer .api-note .grid-table td {
     padding: 9px 12px;
@@ -166,16 +243,22 @@
     font-size: 14px;
     border-bottom: 0.5px solid #EFE6CB;
 }
+
 .api-editer .api-note .grid-table thead th {
     background: #F8F1DC;
     font-weight: 500;
     color: #5C4A1A;
 }
-.api-editer .api-note .grid-table tbody tr:last-child td { border-bottom: none; }
+
+.api-editer .api-note .grid-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
 .api-editer .api-note .grid-table .grid-cell {
     font-family: monospace;
     font-weight: 500;
 }
+
 .api-editer .api-note .grid-table .url-cell a {
     font-family: monospace;
     font-size: 13px;
@@ -190,7 +273,11 @@
     list-style: disc;
     line-height: 1.8;
 }
-.api-editer .attr-list li { margin-bottom: 4px; }
+
+.api-editer .attr-list li {
+    margin-bottom: 4px;
+}
+
 .api-editer .attr-list code {
     padding: 1px 6px;
     background: #F4F4F2;

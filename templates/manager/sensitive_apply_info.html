@@ -1,223 +1,219 @@
 {% extends 'base.html' %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
-{% block title %}{% trans '敏感資料申請資訊' %}｜{% endblock %}
-
+{% block title %}
+    {% trans '敏感資料申請資訊' %}｜
+{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/sensitive_apply_info.css' %}?v7" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/manager/sensitive_apply_info.css' %}" />
 {% endblock style %}
-
 {% block head %}
-<script src="/static/highcharts/highcharts.js"></script>
-<script src="/static/highcharts/modules/exporting.js"></script>
-<script src="/static/highcharts/modules/export-data.js"></script>
-<script src="/static/highcharts/modules/accessibility.js"></script>
+    <script src="/static/highcharts/highcharts.js"></script>
+    <script src="/static/highcharts/modules/exporting.js"></script>
+    <script src="/static/highcharts/modules/export-data.js"></script>
+    <script src="/static/highcharts/modules/accessibility.js"></script>
 {% endblock head %}
 {% block body %}
-{% csrf_token %}
-<input type="hidden" name="menu" value="{{ menu }}">
-<div class="path"> 
-    <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '敏感資料申請資訊' %}</p>
+    {% csrf_token %}
+    <input type="hidden" name="menu" value="{{ menu }}">
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '敏感資料申請資訊' %}</p>
+        </div>
     </div>
-</div>
- 
-<div class="nbn_title">
-</div>
-<div class="main_1240"> 
-    {% if is_authenticated %}
-        <div class="rightbox_content">
-            <div class="item">
-            <div class="from_area">
-                <div class="w_border10_box application_form panel">
-                    <div class="box-title"><div class="dottt"></div>查詢條件</div>
-                    <div class="form_box panel fs-14px">
-                        {{ query|safe }}
-                    </div>
-
-                    {% if data_count != '' %}
-                    <hr>
-                    <div class="box-title"><div class="dottt"></div>查詢筆數</div>
-                    <div class="form_box panel fs-14px">
-                        {{ data_count|safe }}
-                    </div>
-                    {% endif %}
-
-                    <hr>
-                    <div class="box-title"><div class="dottt"></div>申請詳細資訊</div>
-                    <div class="form_box panel fs-14px">
-                        <form id="detailForm">
-                        {% csrf_token %}
-                        <div class="inpu_3">
-                            <div class="input_item">
-                                <p>申請人姓名</p>
-                                <input name="applicant" value="{{ detail.applicant }}" type="text" disabled>
+    <div class="nbn_title"></div>
+    <div class="main_1240">
+        {% if is_authenticated %}
+            <div class="rightbox_content">
+                <div class="item">
+                    <div class="from_area">
+                        <div class="w_border10_box application_form panel">
+                            <div class="box-title">
+                                <div class="dottt"></div>
+                                查詢條件
                             </div>
-                            <div class="input_item">
-                                <p>聯絡電話</p>
-                                <input name="phone" value="{{ detail.phone }}" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>聯絡地址</p>
-                                <input name="address" value="{{ detail.address }}" type="text" disabled>
-                            </div> 
-                        </div>
-                        <div class="inpu_3">
-                            <div class="input_item">
-                                <p>申請人Email</p>
-                                <input name="applicant_email" value="{{ detail.applicant_email }}" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>申請人所屬單位</p>
-                                <input name="affiliation" value="{{ detail.affiliation }}" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p>申請人職稱</p>
-                                <input name="job_title" value="{{ detail.job_title }}" type="text" disabled>
-                            </div>
-                        </div>
-                        <div class="{% if  detail.type == '1' %}inpu_3{% else %}inpu_2{% endif %}">
-                            <div class="input_item">
-                                <p>計畫類型</p>
-                                <input name="type" value="{% if detail.type == '0' %}個人研究計畫{% else %}委辦工作或補助計畫{% endif %}" type="text" disabled>
-                            </div>
-                            <div class="input_item">
-                                <p class="project_type">{% if detail.type == '0' %}個人研究計畫名稱{% else %}委辦工作或補助計畫{% endif %}</p>
-                                <input name="project_name" value="{{ detail.project_name }}" type="text" disabled>
-                            </div>
-                            {% if  detail.type == '1' %}
-                            <div class="input_item p_affli">
-                                <p>委託計畫單位</p>
-                                <input name="project_affiliation" value="{{ detail.project_affiliation }}" type="text" disabled>
-                            </div>
+                            <div class="form_box panel fs-14px">{{ query|safe }}</div>
+                            {% if data_count != '' %}
+                                <hr>
+                                <div class="box-title">
+                                    <div class="dottt"></div>
+                                    查詢筆數
+                                </div>
+                                <div class="form_box panel fs-14px">{{ data_count|safe }}</div>
                             {% endif %}
-                        </div>
-                        <div class="inpu_3">
-                            {% if  detail.type == '1' %}
-                            <div class="input_item p_principal">
-                                <p>計畫主持人姓名</p>
-                                <input name="principal_investigator" value="{{ detail.principal_investigator }}" type="text" disabled>
-                            </div> 
-                            {% endif %}
-                        </div>
-                        <div class="text_area">
-                            <p>計畫摘要
-                                {% if detail.research_proposal %}
-                                    <a class="ml-5px search-again-a" target="_blank" href="/media/{{ detail.research_proposal }}">研究計畫書 🔗</a>
-                                {% endif %}
-                            </p>
-                            <textarea name="abstract" disabled>{{ detail.abstract }}</textarea>
-                        </div>
-                        <div class="text_area">
-                            <input type="checkbox" name="is_agreed_report" {% if detail.is_agreed_report == True %} checked {% endif %} disabled>  是否同意提供研究成果</input>
-                            {% if not is_self %}
-                            <a class="applicant_refs ml-5px search-again-a">申請者曾提供成果參考 🔗</a>
-                            {% endif %}
-                        </div>
-                        </form>
-                        <form id="downloadApplicantReport" action="{% url 'download_applicant_sensitive_report' %}" method="POST">
-                            <input type="hidden" name="applicant_user_id" value="{{ detail.applicant_user_id }}">
-                            {% csrf_token %}
-                        </form>
-                        <div class="apply_peo">
-                            <p class="title">此批申請資料其他使用者</p>
-                            {% if detail.users.length > 0 %}
-
-                            {% for u in detail.users %}
-                            <div class="item_set1">
-                                <span class="ml-10px">姓名</span>
-                                <input type="text" value="{{ u.user_name }}" disabled>
-                                <span class="ml-10px">單位</span>
-                                <input type="text" value="{{ u.user_affiliation }}" disabled>
-                                <span class="ml-10px">職稱</span>
-                                <input type="text" name="user_job_title" value="{{ u.user_job_title }}" disabled>
+                            <hr>
+                            <div class="box-title">
+                                <div class="dottt"></div>
+                                申請詳細資訊
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="item_set1 bg-transparent">無</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="box-title"><div class="dottt"></div>審核結果</div>
-                    {% if view_only %}
-                    <div class="result_table mt-10px fs-14px">
-                        <table class="table_style4">
-                            <tr>
-                                <td>{% trans '審核單位' %}</td>
-                                <td>{% trans '審核者姓名' %}</td>
-                                <td>{% trans '審核意見' %}</td>
-                                <td>{% trans '審核結果' %}</td>
-                            </tr>
-                            {% for c in comment %}
-                                {{ c|safe }}
-                            {% endfor %}
-                        </table>
-                    </div>
-                    {% else %}
-
-                        {% if is_transferred %}
-
-                            <button class="send-transferred mt-15px" disabled>已轉交給單位審核</button>
-
-                        {% else %}
-
-
                             <div class="form_box panel fs-14px">
-                                <form id="reviewForm">
-                                <input type="hidden" name="query_id" value="{{ detail.query_id }}">
-                                <input type="hidden" name="sdr_id" value="{{ sdr_id|default_if_none:'' }}">
+                                <form id="detailForm">
+                                    {% csrf_token %}
+                                    <div class="inpu_3">
+                                        <div class="input_item">
+                                            <p>申請人姓名</p>
+                                            <input name="applicant" value="{{ detail.applicant }}" type="text" disabled>
+                                        </div>
+                                        <div class="input_item">
+                                            <p>聯絡電話</p>
+                                            <input name="phone" value="{{ detail.phone }}" type="text" disabled>
+                                        </div>
+                                        <div class="input_item">
+                                            <p>聯絡地址</p>
+                                            <input name="address" value="{{ detail.address }}" type="text" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="inpu_3">
+                                        <div class="input_item">
+                                            <p>申請人Email</p>
+                                            <input name="applicant_email" value="{{ detail.applicant_email }}" type="text" disabled>
+                                        </div>
+                                        <div class="input_item">
+                                            <p>申請人所屬單位</p>
+                                            <input name="affiliation" value="{{ detail.affiliation }}" type="text" disabled>
+                                        </div>
+                                        <div class="input_item">
+                                            <p>申請人職稱</p>
+                                            <input name="job_title" value="{{ detail.job_title }}" type="text" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="{% if  detail.type == '1' %}inpu_3{% else %}inpu_2{% endif %}">
+                                        <div class="input_item">
+                                            <p>計畫類型</p>
+                                            <input name="type" value="{% if detail.type == '0' %}個人研究計畫{% else %}委辦工作或補助計畫{% endif %}" type="text" disabled>
+                                        </div>
+                                        <div class="input_item">
+                                            <p class="project_type">
+                                                {% if detail.type == '0' %}
+                                                    個人研究計畫名稱
+                                                {% else %}
+                                                    委辦工作或補助計畫
+                                                {% endif %}
+                                            </p>
+                                            <input name="project_name" value="{{ detail.project_name }}" type="text" disabled>
+                                        </div>
+                                        {% if  detail.type == '1' %}
+                                            <div class="input_item p_affli">
+                                                <p>委託計畫單位</p>
+                                                <input name="project_affiliation" value="{{ detail.project_affiliation }}" type="text" disabled>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="inpu_3">
+                                        {% if  detail.type == '1' %}
+                                            <div class="input_item p_principal">
+                                                <p>計畫主持人姓名</p>
+                                                <input name="principal_investigator" value="{{ detail.principal_investigator }}" type="text" disabled>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text_area">
+                                        <p>
+                                            計畫摘要
+                                            {% if detail.research_proposal %}<a class="ml-5px search-again-a" target="_blank" href="/media/{{ detail.research_proposal }}">研究計畫書 🔗</a>{% endif %}
+                                        </p>
+                                        <textarea name="abstract" disabled>{{ detail.abstract }}</textarea>
+                                    </div>
+                                    <div class="text_area">
+                                        <input type="checkbox" name="is_agreed_report" {% if detail.is_agreed_report == True %}checked{% endif %} disabled>
+                                        是否同意提供研究成果
+                                    </input>
+                                    {% if not is_self %}<a class="applicant_refs ml-5px search-again-a">申請者曾提供成果參考 🔗</a>{% endif %}
+                                </div>
+                            </form>
+                            <form id="downloadApplicantReport" action="{% url 'download_applicant_sensitive_report' %}" method="POST">
+                                <input type="hidden" name="applicant_user_id" value="{{ detail.applicant_user_id }}">
                                 {% csrf_token %}
-                                <div class="inpu_2">
-                                    <div class="input_item">
-                                        <p>審核者姓名</p>
-                                        <input name="reviewer_name" type="text" {% if review.status != 'pending' %} disabled {% endif %} value="{% if review.reviewer_name == '' %}{{ request.user.name }}{% else %}{{ review.reviewer_name }}{% endif %}">
-                                    </div>
-                                </div>
-                                <div class="text_area">
-                                    {% comment %} 需要判斷是不是需要審核的 or 只是查看用的 {% endcomment %}
-                                    <p>審核結果</p>
-                                    <textarea name="comment"{% if review.status != 'pending' %} disabled {% endif %}>{{ review.comment|default_if_none:"" }}</textarea>
-                                </div>
-                                <div class="inpu_2">
-                                    <div class="input_item">
-                                        <p>通過與否</p>
-                                        <select name="status" {% if review.status != 'pending' %} disabled {% endif %}>
-                                            <option value="pass" {% if review.status == 'pass' %} selected {% endif %}>通過</option>
-                                            <option value="fail" {% if review.status == 'fail' %} selected {% endif %}>不通過</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                </form>
-                            </div>                
-                            {% if review.status == 'pending' %}
-                                <button class="send_bt send send-check mt-15px">確認送出</button>
-                                {% if from_system == 'true' %}
-                                    <button class="send_bt send-partial-transfer send mt-15px">部分轉交給單位審核</button>
-                                    <button class="send_bt send-transfer send mt-15px">全部轉交給單位審核</button>
+                            </form>
+                            <div class="apply_peo">
+                                <p class="title">此批申請資料其他使用者</p>
+                                {% if detail.users.length > 0 %}
+                                    {% for u in detail.users %}
+                                        <div class="item_set1">
+                                            <span class="ml-10px">姓名</span>
+                                            <input type="text" value="{{ u.user_name }}" disabled>
+                                            <span class="ml-10px">單位</span>
+                                            <input type="text" value="{{ u.user_affiliation }}" disabled>
+                                            <span class="ml-10px">職稱</span>
+                                            <input type="text" name="user_job_title" value="{{ u.user_job_title }}" disabled>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="item_set1 bg-transparent">無</div>
                                 {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            審核結果
+                        </div>
+                        {% if view_only %}
+                            <div class="result_table mt-10px fs-14px">
+                                <table class="table_style4">
+                                    <tr>
+                                        <td>{% trans '審核單位' %}</td>
+                                        <td>{% trans '審核者姓名' %}</td>
+                                        <td>{% trans '審核意見' %}</td>
+                                        <td>{% trans '審核結果' %}</td>
+                                    </tr>
+                                    {% for c in comment %}{{ c|safe }}{% endfor %}
+                                </table>
+                            </div>
+                        {% else %}
+                            {% if is_transferred %}
+                                <button class="send-transferred mt-15px" disabled>已轉交給單位審核</button>
                             {% else %}
-                            <button class="send-submitted mt-15px" disabled>審核已完成不得修改</button>
+                                <div class="form_box panel fs-14px">
+                                    <form id="reviewForm">
+                                        <input type="hidden" name="query_id" value="{{ detail.query_id }}">
+                                        <input type="hidden" name="sdr_id" value="{{ sdr_id|default_if_none:'' }}">
+                                        {% csrf_token %}
+                                        <div class="inpu_2">
+                                            <div class="input_item">
+                                                <p>審核者姓名</p>
+                                                <input name="reviewer_name" type="text" {% if review.status != 'pending' %}disabled{% endif %} value="{% if review.reviewer_name == '' %}{{ request.user.name }}{% else %}{{ review.reviewer_name }}{% endif %}">
+                                            </div>
+                                        </div>
+                                        <div class="text_area">
+                                            <!-- 需要判斷是不是需要審核的 or 只是查看用的 -->
+                                            <p>審核結果</p>
+                                            <textarea name="comment"{% if review.status != 'pending' %} disabled {% endif %}>{{ review.comment|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="inpu_2">
+                                            <div class="input_item">
+                                                <p>通過與否</p>
+                                                <select name="status" {% if review.status != 'pending' %}disabled{% endif %}>
+                                                    <option value="pass" {% if review.status == 'pass' %}selected{% endif %}>通過</option>
+                                                    <option value="fail" {% if review.status == 'fail' %}selected{% endif %}>不通過</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% if review.status == 'pending' %}
+                                    <button class="send_bt send send-check mt-15px">確認送出</button>
+                                    {% if from_system == 'true' %}
+                                        <button class="send_bt send-partial-transfer send mt-15px">部分轉交給單位審核</button>
+                                        <button class="send_bt send-transfer send mt-15px">全部轉交給單位審核</button>
+                                    {% endif %}
+                                {% else %}
+                                    <button class="send-submitted mt-15px" disabled>審核已完成不得修改</button>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
-                    {% endif %}
+                    </div>
                 </div>
-			</div>
-		</div>
+            </div>
         </div>
-        </div>
-
-        {% else %}
-        {% trans '您的權限不足' %}
-        {% endif %}
     </div>
-
-    </div>
-
+{% else %}
+    {% trans '您的權限不足' %}
+{% endif %}
 </div>
-
-
-
+</div>
+</div>
 <!--確認送出pop-->
 <div class="messageboxfix submit-check d-none">
     <div class="message_box">
@@ -229,71 +225,34 @@
         </div>
     </div>
 </div>
-
-
-
-
- <!--全部轉交pop-->
+<!--全部轉交pop-->
 <div class="messageboxfix submit-transfer d-none">
-	<div class="message_box">
-		<div class="informationicon">!</div>
-		<p>送出後無法修改，確認送出？</p>
-		<div class="btn_area">
-			<button class="hide_submit-transfer">取消</button>
-			<button class="transferRequest">確認</button>
-		</div>
-	</div>
-</div> 
-
-
+    <div class="message_box">
+        <div class="informationicon">!</div>
+        <p>送出後無法修改，確認送出？</p>
+        <div class="btn_area">
+            <button class="hide_submit-transfer">取消</button>
+            <button class="transferRequest">確認</button>
+        </div>
+    </div>
+</div>
 <!--部分轉交pop-->
 <div class="messageboxfix partial-pop d-none">
-	<div class="message_box">
-		<div class="informationicon">!</div>
+    <div class="message_box">
+        <div class="informationicon">!</div>
         請選擇欲轉交的單位：
         <select class="fs-14px" id="partial-partner-select" name="partial_partner_id">
-            {% for p in partners %}
-            <option value="{{ p.id }}">{{ p.select_title }}</option>
-            {% endfor %}
+            {% for p in partners %}<option value="{{ p.id }}">{{ p.select_title }}</option>{% endfor %}
         </select>
-        {% if already_transfer_partners|length > 0 %}
-        <p class="fs-14px f-italic" id="already_transfer_partners">
-            *已轉交單位：{{ already_transfer_partners|join:"、" }}
-        </p>
-        {% endif %}
-		<p class="fs-16px">送出後無法修改，確認送出？</p>
-		<div class="btn_area">
-			<button class="hide_submit-partial-transfer">取消</button>
-			<button class="partialTransferRequest">確認</button>
-		</div>
-	</div>
+        {% if already_transfer_partners|length > 0 %}<p class="fs-14px f-italic" id="already_transfer_partners">*已轉交單位：{{ already_transfer_partners|join:"、" }}</p>{% endif %}
+        <p class="fs-16px">送出後無法修改，確認送出？</p>
+        <div class="btn_area">
+            <button class="hide_submit-partial-transfer">取消</button>
+            <button class="partialTransferRequest">確認</button>
+        </div>
+    </div>
 </div>
-
 {% endblock %}
 {% block script %}
-<script src="{% static 'js/manager/sensitive_apply_info.js' %}?v13"></script>
+    <script src="{% static 'js/manager/sensitive_apply_info.js' %}"></script>
 {% endblock script %}
-
-            {% comment %} $('#partial-partner-select').html('')
-
-            if (response.partners.length > 0){
-                
-                for (p of response.partners){
-                    $('#partial-partner-select').append(`<option value="${p.id}">${p.select_title}</option>`)
-                }
-
-                if (response.already_transfer_partners.length > 0){
-                    $('#already_transfer_partners').html(`*已轉交單位：${response.already_transfer_partners.join('、')}`)
-                } else {
-                    $('#already_transfer_partners').html('')
-                }
-
-            } else {
-
-                if (response.has_partial_transferred == true){
-                    $('.send-transferred').removeClass('d-none')
-                    $('.send-partial-transfer').addClass('d-none')
-                }
-
-                
-            } {% endcomment %}

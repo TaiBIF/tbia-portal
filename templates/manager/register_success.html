@@ -1,34 +1,34 @@
 {% extends 'base.html' %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
-{% block title %}{% trans '會員註冊' %}｜{% endblock %}
-
+{% block title %}
+    {% trans '會員註冊' %}｜
+{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/register_success.css' %}?v1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/manager/register_success.css' %}" />
 {% endblock style %}
-
 {% block body %}
-{% csrf_token %}
-<div class="path"> 
-    <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p>{% trans '會員註冊' %}</p>
+    {% csrf_token %}
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '會員註冊' %}</p>
+        </div>
     </div>
-</div>
- 
-<div class="minh_content">
-    <div class="nbn_title">
-        <h2>{% trans '會員註冊' %}</h2>
-    </div>
-    <div class="main_1240"> 
-        <div class="w_border10_box">
-            <div class="maxw_760"> 
-                <h3 class="suss">{% trans '驗證成功' %}</h3>
-                <p class="center marb_30">※ {% trans '您的電子信箱驗證成功，歡迎加入TBIA網站會員！' %}</p>
-                <div class="bt_center">
-                    <button class="back-to-index">{% trans '回首頁' %}</button>
+    <div class="minh_content">
+        <div class="nbn_title">
+            <h2>{% trans '會員註冊' %}</h2>
+        </div>
+        <div class="main_1240">
+            <div class="w_border10_box">
+                <div class="maxw_760">
+                    <h3 class="suss">{% trans '驗證成功' %}</h3>
+                    <p class="center marb_30">※ {% trans '您的電子信箱驗證成功，歡迎加入TBIA網站會員！' %}</p>
+                    <div class="bt_center">
+                        <button class="back-to-index">{% trans '回首頁' %}</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

@@ -1,73 +1,99 @@
-{% extends 'base.html' %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% load static %}
 {% load i18n %}
 {% block head %}
-<link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
-<link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
-<link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
-<script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
-<script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
-<script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+    <link href="/static/fontawesome-free-6.2.1/css/brands.min.css" rel="stylesheet" />
+    <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+    <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+    <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+    <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
+    <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
 {% endblock head %}
-
-{% block title %}{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}｜{% endblock %}
-
+{% block title %}
+    {% if partner.is_collaboration %}
+        {% trans '合作夥伴' %}
+    {% else %}
+        {% trans '正式會員' %}
+    {% endif %}
+    ｜
+{% endblock %}
 {% block body %}
-<div class="path">
-	<div class="main_1240"> 
-		<a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#{% if partner.is_collaboration %}collaboration{% else %}partner{% endif %}">{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}</a><span>></span> <p>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</p>
-	</div>
-</div>
-<div class="in_bn about_bn">
-	<div class="title">
-		<h2>{% if partner.is_collaboration %}{% trans '合作夥伴' %}{% else %}{% trans '正式會員' %}{% endif %}</h2>
-	</div>
-</div>
-<div class="partner_area">
-	{% for i in rows %}
-		<div class="itembox">
-			<div class="bg_w">
-				<div class="colorarea"></div>
-			</div>
-			<div class="main_1240">
-				<div class="leftbox">
-					<div class="logo_area">
-						<img src="/static/image/partner/{{ i.logo }}" >
-					</div>
-					<h2>{% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}{{ partner.title_en }}{% else %}{{ partner.title }}{% endif %}</h2>
-					<h3>
-						{% comment %} {% if i.subtitle == '生物多樣性研究博物館' %}class="mb-5"{% endif %} {% endcomment %}
-						<a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>
-							{% if LANGUAGE_CODE == 'en-us' and i.subtitle_en != None %}
-								{{ i.subtitle_en }}
-							{% else %}
-								{{ i.subtitle }}
-							{% endif %}
-							{% if i.link %} <i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i> {% endif %}
-						</a> 
-					</h3>
-					{% comment %} {% if i.subtitle == '生物多樣性研究博物館' %}
-					<h3>
-						<a target="_blank" href="https://hast.biodiv.tw/">{% if LANGUAGE_CODE == 'en-us' %}Herbarium (HAST){% else %}植物標本資料庫{% endif %}
-							<i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i>
-						</a> 
-					</h3>
-					{% endif %} {% endcomment %}
-					<p>{% if LANGUAGE_CODE == 'en-us' and i.description_en != None %}{{ i.description_en|safe }}{% else %}{{ i.description|safe }}{% endif %}</p>
-				</div>
-				<div class="rightbox">
-					<div class="pic">
-						<img src="/static/image/partner/{{ i.image }}" >
-					</div>
-					<a data-partner_id="{{ i.id }}" class="linkto contact_partner">
-						{% trans '聯絡我們' %}
-					</a>
-				</div>
-			</div>
-		</div>
-	{% endfor %}
-</div>
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span> <a href="{% url 'about' %}">{% trans '關於TBIA' %}</a><span>></span> <a href="{% url 'about' %}#{% if partner.is_collaboration %}collaboration{% else %}partner{% endif %}">
+            {% if partner.is_collaboration %}
+                {% trans '合作夥伴' %}
+            {% else %}
+                {% trans '正式會員' %}
+            {% endif %}
+            </a><span>></span>
+            <p>
+                {% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}
+                    {{ partner.title_en }}
+                {% else %}
+                    {{ partner.title }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="in_bn about_bn">
+        <div class="title">
+            <h2>
+                {% if partner.is_collaboration %}
+                    {% trans '合作夥伴' %}
+                {% else %}
+                    {% trans '正式會員' %}
+                {% endif %}
+            </h2>
+        </div>
+    </div>
+    <div class="partner_area">
+        {% for i in rows %}
+            <div class="itembox">
+                <div class="bg_w">
+                    <div class="colorarea"></div>
+                </div>
+                <div class="main_1240">
+                    <div class="leftbox">
+                        <div class="logo_area">
+                            <img src="/static/image/partner/{{ i.logo }}">
+                        </div>
+                        <h2>
+                            {% if LANGUAGE_CODE == 'en-us' and partner.title_en != None %}
+                                {{ partner.title_en }}
+                            {% else %}
+                                {{ partner.title }}
+                            {% endif %}
+                        </h2>
+                        <h3>
+                            <a {% if i.link %} target="_blank" href="{{ i.link }}" {% else %} {% endif %}>
+                                {% if LANGUAGE_CODE == 'en-us' and i.subtitle_en != None %}
+                                    {{ i.subtitle_en }}
+                                {% else %}
+                                    {{ i.subtitle }}
+                                {% endif %}
+                                {% if i.link %}<i class="fa-solid fa-arrow-up-right-from-square icon-size-20 ml-5px"></i>{% endif %}
+                            </a>
+                        </h3>
+                        <p>
+                            {% if LANGUAGE_CODE == 'en-us' and i.description_en != None %}
+                                {{ i.description_en|safe }}
+                            {% else %}
+                                {{ i.description|safe }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="rightbox">
+                        <div class="pic">
+                            <img src="/static/image/partner/{{ i.image }}">
+                        </div>
+                        <a data-partner_id="{{ i.id }}" class="linkto contact_partner">{% trans '聯絡我們' %}</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock body %}
 {% block script %}
-<script src="{% static 'js/pages/partner.js' %}?v1"></script>
+    <script src="{% static 'js/pages/partner.js' %}"></script>
 {% endblock script %}

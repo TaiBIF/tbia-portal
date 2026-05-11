@@ -39,20 +39,19 @@ $(document).ready(function () {
             data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
             dataType: 'json'
         })
-        .done(function (response) {
-            alert('送出成功')
-            window.location.reload()
-        })
-        .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
+            .done(function (response) {
+                alert('送出成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     })
 
-    $('.applicant_refs').on('click', function(){
+    $('.applicant_refs').on('click', function () {
         $("#downloadApplicantReport").submit()
     })
-
 
     $('.send-transfer').on('click', function () {
         $('.submit-transfer').removeClass('d-none')
@@ -62,8 +61,6 @@ $(document).ready(function () {
         $('.partial-pop').removeClass('d-none')
     })
 
-
-
     $('.transferRequest').on('click', function () {
         $.ajax({
             url: "/transfer_sensitive_response",
@@ -71,37 +68,36 @@ $(document).ready(function () {
             data: { 'query_id': $('#reviewForm input[name=query_id]').val(), csrfmiddlewaretoken: $csrf_token },
             dataType: 'json'
         })
-        .done(function (response) {
-            alert('轉交成功')
-            window.location.reload()
-        })
-        .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
+            .done(function (response) {
+                alert('轉交成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     })
-
 
     $('.partialTransferRequest').on('click', function () {
         $.ajax({
             url: "/partial_transfer_sensitive_response",
             type: 'POST',
-            data: { 'query_id': $('#reviewForm input[name=query_id]').val(), 
-                    'partner_id': $('select[name=partial_partner_id]').find(":selected").val(),
-                    'is_last_one': $('select[name=partial_partner_id] option').length == 1 ? true : false,
-                    csrfmiddlewaretoken: $csrf_token },
+            data: {
+                'query_id': $('#reviewForm input[name=query_id]').val(),
+                'partner_id': $('select[name=partial_partner_id]').find(":selected").val(),
+                'is_last_one': $('select[name=partial_partner_id] option').length == 1 ? true : false,
+                csrfmiddlewaretoken: $csrf_token
+            },
             dataType: 'json'
         })
-        .done(function (response) {
-            alert('轉交成功')
-            window.location.reload()
-        })
-        .fail(function (xhr, status, errorThrown) {
-            alert(gettext('發生未知錯誤！請聯絡管理員'))
-            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-        })
+            .done(function (response) {
+                alert('轉交成功')
+                window.location.reload()
+            })
+            .fail(function (xhr, status, errorThrown) {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
     })
 
 })
-
-

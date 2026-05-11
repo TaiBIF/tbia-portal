@@ -1,256 +1,251 @@
 {% extends 'base.html' %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
-{% block title %}{% trans '系統管理後台' %}｜{% endblock %}
-
+{% block title %}
+    {% trans '系統管理後台' %}｜
+{% endblock %}
 {% block head %}
-<script src="/static/highcharts/highcharts.js"></script>
-<script src="/static/highcharts/modules/exporting.js"></script>
-<script src="/static/highcharts/modules/export-data.js"></script>
-<script src="/static/highcharts/modules/accessibility.js"></script>
-<script src="/static/quill/quill.js"></script>
+    <script src="/static/highcharts/highcharts.js"></script>
+    <script src="/static/highcharts/modules/exporting.js"></script>
+    <script src="/static/highcharts/modules/export-data.js"></script>
+    <script src="/static/highcharts/modules/accessibility.js"></script>
+    <script src="/static/quill/quill.js"></script>
 {% endblock head %}
-
 {% block style %}
-<link href="/static/quill/quill.snow.css" rel="stylesheet">
-<script src="/static/quill-image-resize-module/image-resize.min.js"></script>
-<link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
-<script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}?v5" />
+    <link href="/static/quill/quill.snow.css" rel="stylesheet">
+    <script src="/static/quill-image-resize-module/image-resize.min.js"></script>
+    <link href="/static/quill-image-uploader/dist/quill.imageUploader.min.css" rel="stylesheet">
+    <script src="/static/quill-image-uploader/dist/quill.imageUploader.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_resource.css' %}" />
 {% endblock style %}
-
 {% block body %}
-{% csrf_token %}
-<input type="hidden" name="menu" value="{{ menu }}">
-<div class="path"> 
-    <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '系統管理後台' %}</p>
+    {% csrf_token %}
+    <input type="hidden" name="menu" value="{{ menu }}">
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '系統管理後台' %}</p>
+        </div>
     </div>
-</div>
- 
-<div class="nbn_title">
-</div>
-<div class="main_1240"> 
-    <div class="two_cont_area">
-        {% if user.is_system_admin %}
-        <div class="left_menu mbmove">
-            <!--手機用的按鈕-->
-            <div class="mb_fixed_btn">
-                <p>展<br>開</p>
-                <span>關閉</span>
-            </div>					
-            <div class="mb_scroll">
-                <ul>
-                    <li class="nohover">
-                        <a class="big_link rd_click" href="/manager/system">
-                            <p>系統管理</p> 
-                        </a>
-                    </li>
-                    <li>
-                        <div class="big_link">
-                          <div class="maskfor_click rd_click"></div>
-                          <p>
-                            TBIA資訊
-                          </p>
-                          <div class="arrd"></div>
-                        </div>
-                        <div class="col_menu second_menu">
-                            <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
-                            <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
-                            <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
-                            <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="big_link">
-                          <div class="maskfor_click rd_click"></div>
-                          <p>
-                            最新消息管理
-                          </p>
-                          <div class="arrd"></div>
-                        </div>
-                        <div class="col_menu second_menu">
-                            <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
-                            <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
-                        </div>
-                    </li>
-                    <li class="now">
-                        <div class="big_link">
-                            <div class="maskfor_click rd_click"></div>
-                            <p>
-                              教育資源管理
-                            </p>
-                            <div class="arrd"></div>
-                          </div>
-                          <div class="col_menu second_menu">
-                            <a class="edit" href="{% url 'system_resource' %}?menu=edit" data-menu="edit">資源發布</a>
-                            <a class="resource changeMenu" data-menu="resource">資源列表</a>
-                          </div>                    
-                    </li>
-                    <li>
-                        <div class="big_link">
-                            <div class="maskfor_click rd_click"></div>
-                            <p>
-                              常見Q&A設定
-                            </p>
-                            <div class="arrd"></div>
-                          </div>
-                          <div class="col_menu second_menu">
-                            <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
-                            <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
-                          </div>                    
-                    </li> 
-                    <li>
-                        <a href="{% url 'system_keyword' %}" class="big_link rd_click">
-                            <p>全站搜尋推薦關鍵字設定</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="rightbox_content edit d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>教育資源管理</div>
-                <ul class="edit-list">
-                    {% comment %} <input type="hidden" name="r_lang" value="{{ current_r.lang }}"> {% endcomment %}
-                    <form id="saveForm" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="resource_id" value="{{ current_r.id }}">
-                        <li>類型</li>
-                        <li>
-                            <select name="content_type">
-                                {% for t in content_type_choice %}
-                                    {% if t.0 == current_r.type %}
-                                        <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
-                                    {% else %}
-                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        </li>
-                        <li>語言</li>
-                        <li>
-                            <select name="resource_lang">
-                                <option value="zh-hant" {% if current_r.lang == 'zh-hant' %}selected{% endif %}>中文</option>
-                                <option value="en-us" {% if current_r.lang == 'en-us' %}selected{% endif %}>英文</option>
-                            </select>
-                        </li>
-                        <li>發布日期</li>
-                        <li>
-                            <input type="date" name="publish_date" value="{% if current_r.publish_date %}{{ current_r.publish_date|date:'Y-m-d'  }}{% else %}{% now 'Y-m-d' %}{% endif %}" >
-                            <div class="noticbox d-none">
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                        <li>標題</li>
-                        <li>
-                            <input type="text" name="title" value="{{ current_r.title }}">
-                            <div class="noticbox d-none">
-                                {% comment %} <div class="in1">錯誤</div> {% endcomment %}
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                        <li>資源本身為</li>
-                        <li>
-                            <select name="resource_type" {% if current_r.id %} disabled {% endif %}>
-                                <option value="file" {% if not current_r.id or current_r.resource_type == "file" %} selected {% endif %}>檔案</option>
-                                <option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %} selected {% endif %}>外部連結</option>
-                                <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %} selected {% endif %}>文件網站連結</option>
-                            </select>
-                        </li>
-                        <li class="doc-link_field">文件網站連結</li>
-                        <li class="doc-link_field">
-                            <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
-                        </li>
-                        <li class="file_field">檔案</li>        
-                        <li class="upload-warning file_field"><p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p></li>
-            
-                        <li class="d-flex file_field">
-                            <input id="file" type="file" name="file" class="form-control">
-                            <input type="hidden" name="url" value="{{ current_r.url }}">
-                        </li>
-                        <li class="file_field">
-                            <span id="preview" {% if not current_r.url %} class="d-none" {% endif %}>
-                                {% if current_r.url %}
-                                    目前檔案：{{ current_r.filename }}
-                                    <a target="_blank" href="/media/{{ current_r.url }}">(預覽)</a>
-                                {% endif %}
-                            </span>
-                        </li>
-                        <li class="link_field">連結</li>                    
-                        <li class="link_field">
-                            <input type="text" name="url" value="{{ current_r.url }}">
-                            <div class="noticbox d-none" id="link_error">
-                                <p>必填欄位</p>
-                            </div>
-                        </li>
-                        </form>
-
-                        <li><div class="noticbox d-none" id="file_error">
-                                <p>發布前請先上傳檔案</p>
-                            </div>                            
-                        </li>
-                    <li class="mt-20px"><button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>        
-                        <button class="read_btn" id="publish">發布 / 儲存</button>           
-                     </li>
-                </ul>
-            </div>
-        </div>
-
-
-        <div class="rightbox_content resource d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>資源列表</div>
-                <div class="d-flex-jc-e">
-                <button class="read_btn" id="link_button">編輯推薦連結</button>
-                </div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 resource_table edu_table">
-                        <tr class="resource_table_header">
-                            <td>標題</td>
-                            <td>資源類型</td>
-                            <td>內容類型</td>
-                            <td>語言</td>
-                            <td>發布日期</td>
-                            <td>最近修改</td>
-                            <td></td> 
-                            <td></td> 
-                        </tr>
-                    </table>						
-                </div>
-            </div>
-        </div>
-
-
-        <div class="rightbox_content edit-link d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>編輯推薦連結</div>
-                    <ul class="edit-list">
-                        <form enctype="multipart/form-data" id="linkForm" action="{% url 'edit_link' %}" method="POST">            
-                            {% csrf_token %}
-                            <li>   
-                                <div id="editor">{{ form.content }}</div>         
+    <div class="nbn_title"></div>
+    <div class="main_1240">
+        <div class="two_cont_area">
+            {% if user.is_system_admin %}
+                <div class="left_menu mbmove">
+                    <!--手機用的按鈕-->
+                    <div class="mb_fixed_btn">
+                        <p>
+                            展
+                            <br>
+                            開
+                        </p>
+                        <span>關閉</span>
+                    </div>
+                    <div class="mb_scroll">
+                        <ul>
+                            <li class="nohover">
+                                <a class="big_link rd_click" href="/manager/system">
+                                    <p>系統管理</p>
+                                </a>
                             </li>
-                        </form>
-                        <li ><button class="read_btn submitLink">儲存</button></li>
-                    </ul>
-            </div>
+                            <li>
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>TBIA資訊</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a href="{% url 'system_info' %}?menu=info">修改TBIA資訊</a>
+                                    <a href="{% url 'system_info' %}?menu=account">帳號管理</a>
+                                    <a href="{% url 'system_info' %}?menu=feedback">意見回饋紀錄</a>
+                                    <a href="{% url 'system_info' %}?menu=sensitive_apply">單次使用去模糊化敏感資料申請</a>
+                                    <a href="{% url 'system_info' %}?menu=sensitive_track">敏感資料申請審核追蹤</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>最新消息管理</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a href="{% url 'system_news' %}?menu=edit">消息發布</a>
+                                    <a href="{% url 'system_news' %}?menu=news_apply">審核狀態</a>
+                                </div>
+                            </li>
+                            <li class="now">
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>教育資源管理</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a class="edit" href="{% url 'system_resource' %}?menu=edit" data-menu="edit">資源發布</a>
+                                    <a class="resource changeMenu" data-menu="resource">資源列表</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="big_link">
+                                    <div class="maskfor_click rd_click"></div>
+                                    <p>常見Q&A設定</p>
+                                    <div class="arrd"></div>
+                                </div>
+                                <div class="col_menu second_menu">
+                                    <a href="{% url 'system_qa' %}?menu=edit">QA編輯</a>
+                                    <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="{% url 'system_keyword' %}" class="big_link rd_click">
+                                    <p>全站搜尋推薦關鍵字設定</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="rightbox_content edit d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            教育資源管理
+                        </div>
+                        <ul class="edit-list">
+                            <form id="saveForm" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="resource_id" value="{{ current_r.id }}">
+                                <li>類型</li>
+                                <li>
+                                    <select name="content_type">
+                                        {% for t in content_type_choice %}
+                                            {% if t.0 == current_r.type %}
+                                                <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
+                                            {% else %}
+                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </li>
+                                <li>語言</li>
+                                <li>
+                                    <select name="resource_lang">
+                                        <option value="zh-hant" {% if current_r.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                        <option value="en-us" {% if current_r.lang == 'en-us' %}selected{% endif %}>英文</option>
+                                    </select>
+                                </li>
+                                <li>發布日期</li>
+                                <li>
+                                    <input type="date" name="publish_date" value="{% if current_r.publish_date %}{{ current_r.publish_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+                                    <div class="noticbox d-none">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                                <li>標題</li>
+                                <li>
+                                    <input type="text" name="title" value="{{ current_r.title }}">
+                                    <div class="noticbox d-none">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                                <li>資源本身為</li>
+                                <li>
+                                    <select name="resource_type" {% if current_r.id %}disabled{% endif %}>
+                                        <option value="file" {% if not current_r.id or current_r.resource_type == "file" %}selected{% endif %}>檔案</option>
+                                        <option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>
+                                        <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %}selected{% endif %}>文件網站連結</option>
+                                    </select>
+                                </li>
+                                <li class="doc-link_field">文件網站連結</li>
+                                <li class="doc-link_field">
+                                    <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
+                                </li>
+                                <li class="file_field">檔案</li>
+                                <li class="upload-warning file_field">
+                                    <p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p>
+                                </li>
+                                <li class="d-flex file_field">
+                                    <input id="file" type="file" name="file" class="form-control">
+                                    <input type="hidden" name="url" value="{{ current_r.url }}">
+                                </li>
+                                <li class="file_field">
+                                    <span id="preview" {% if not current_r.url %}class="d-none"{% endif %}>
+                                        {% if current_r.url %}
+                                            目前檔案：{{ current_r.filename }}
+                                            <a target="_blank" href="/media/{{ current_r.url }}">(預覽)</a>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="link_field">連結</li>
+                                <li class="link_field">
+                                    <input type="text" name="url" value="{{ current_r.url }}">
+                                    <div class="noticbox d-none" id="link_error">
+                                        <p>必填欄位</p>
+                                    </div>
+                                </li>
+                            </form>
+                            <li>
+                                <div class="noticbox d-none" id="file_error">
+                                    <p>發布前請先上傳檔案</p>
+                                </div>
+                            </li>
+                            <li class="mt-20px">
+                                <button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>
+                                <button class="read_btn" id="publish">發布 / 儲存</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="rightbox_content resource d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            資源列表
+                        </div>
+                        <div class="d-flex-jc-e">
+                            <button class="read_btn" id="link_button">編輯推薦連結</button>
+                        </div>
+                        <div class="result_table table-flow">
+                            <table cellspacing="0" cellspacing="0" class="table_style3 resource_table edu_table">
+                                <tr class="resource_table_header">
+                                    <td>標題</td>
+                                    <td>資源類型</td>
+                                    <td>內容類型</td>
+                                    <td>語言</td>
+                                    <td>發布日期</td>
+                                    <td>最近修改</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="rightbox_content edit-link d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            編輯推薦連結
+                        </div>
+                        <ul class="edit-list">
+                            <form enctype="multipart/form-data" id="linkForm" action="{% url 'edit_link' %}" method="POST">
+                                {% csrf_token %}
+                                <li>
+                                    <div id="editor">{{ form.content }}</div>
+                                </li>
+                            </form>
+                            <li>
+                                <button class="read_btn submitLink">儲存</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                {% trans '您的權限不足' %}
+            {% endif %}
         </div>
-
-
-        {% else %}
-        {% trans '您的權限不足' %}
-        {% endif %}
     </div>
-
-    </div>
-
 </div>
-  {% endblock %}
-
-  {% block script %}
-  <script src="{% static 'js/manager/system_resource.js' %}?v4"></script>
-  {% endblock script %}
+{% endblock %}
+{% block script %}
+    <script src="{% static 'js/manager/system_resource.js' %}"></script>
+{% endblock script %}

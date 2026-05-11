@@ -26,7 +26,6 @@ window.onpopstate = function (e) {
     }
 };
 
-
 (function () {
 
     var toolbarOptions = [
@@ -35,8 +34,7 @@ window.onpopstate = function (e) {
         [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
         [{ 'align': [] }],
         ['link', 'image', 'video'],
-      ]
-    
+    ]
 
     var quill = new Quill('#editor', {
         theme: 'snow', modules: {
@@ -55,7 +53,6 @@ window.onpopstate = function (e) {
 
 })();
 
-
 function deleteResource(resource_id) {
     $.ajax({
         type: 'POST',
@@ -71,8 +68,7 @@ function deleteResource(resource_id) {
 
 $(document).ready(function () {
 
-
-    $('select[name=resource_type]').on('change', function(){
+    $('select[name=resource_type]').on('change', function () {
 
         $('.noticbox').addClass('d-none')
 
@@ -100,7 +96,6 @@ $(document).ready(function () {
         $('#linkForm').append(`<textarea class="d-none" name="content">${$('.ql-editor').html()}</textarea>`)
         $('#linkForm').submit()
     })
-
 
     $('.changeMenu').on('click', function () {
         let menu = $(this).data('menu');
@@ -177,46 +172,47 @@ $(document).ready(function () {
             checked = false
         }
 
-    // 判斷必填
-    if ($('select[name=resource_type]').find(':selected').val() == 'file') {
-        if ($('#saveForm .file_field input[name=url]').val() == '') {
-            $('#file_error').removeClass('d-none')
-            checked = false
-        } else {
-            url = $('#saveForm .file_field input[name=url]').val()
-        }
-    } else if ($('select[name=resource_type]').find(':selected').val() == 'doc-link') {
+        // 判斷必填
+        if ($('select[name=resource_type]').find(':selected').val() == 'file') {
+            if ($('#saveForm .file_field input[name=url]').val() == '') {
+                $('#file_error').removeClass('d-none')
+                checked = false
+            } else {
+                url = $('#saveForm .file_field input[name=url]').val()
+            }
+        } else if ($('select[name=resource_type]').find(':selected').val() == 'doc-link') {
 
-        if ($('#saveForm .doc-link_field input[name=doc_url]').val() == '') {
-            checked = false
-        } else {
-            url = $('#saveForm .doc-link_field input[name=doc_url]').val()
-        }
+            if ($('#saveForm .doc-link_field input[name=doc_url]').val() == '') {
+                checked = false
+            } else {
+                url = $('#saveForm .doc-link_field input[name=doc_url]').val()
+            }
 
-    } else {
-
-        if ($('#saveForm .link_field input[name=url]').val() == '') {
-            $('#link_error').removeClass('d-none')
-            checked = false
         } else {
-            url = $('#saveForm .link_field input[name=url]').val()
+
+            if ($('#saveForm .link_field input[name=url]').val() == '') {
+                $('#link_error').removeClass('d-none')
+                checked = false
+            } else {
+                url = $('#saveForm .link_field input[name=url]').val()
+            }
         }
-    }
 
         if (checked) {
 
             $.ajax({
                 type: 'POST',
                 url: "/submit_resource",
-                data: { 'url': url, 
-                        'content_type': $('#saveForm select[name=content_type]').find(":selected").val(), 
-                        'resource_type': $('#saveForm select[name=resource_type]').find(":selected").val(), 
-                        'lang': $('#saveForm select[name=resource_lang]').find(":selected").val(), 
-                        'resource_id': $('#saveForm input[name=resource_id]').val(), 
-                        'publish_date': $('#saveForm input[name=publish_date]').val(), 
-                        'title': $('#saveForm input[name=title]').val(),
-                        'doc_url': $('#saveForm input[name=doc_url]').val(),
-                    },
+                data: {
+                    'url': url,
+                    'content_type': $('#saveForm select[name=content_type]').find(":selected").val(),
+                    'resource_type': $('#saveForm select[name=resource_type]').find(":selected").val(),
+                    'lang': $('#saveForm select[name=resource_lang]').find(":selected").val(),
+                    'resource_id': $('#saveForm input[name=resource_id]').val(),
+                    'publish_date': $('#saveForm input[name=publish_date]').val(),
+                    'title': $('#saveForm input[name=title]').val(),
+                    'doc_url': $('#saveForm input[name=doc_url]').val(),
+                },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
                     window.location = '/manager/system/resource?menu=resource';
@@ -253,8 +249,6 @@ $(document).ready(function () {
 
 })
 
-
-
 function changePage(page, menu) {
     $.ajax({
         url: `/change_manager_page?page=${page}&menu=${menu}`,
@@ -267,7 +261,7 @@ function changePage(page, menu) {
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
-            if (response.total_page > 0){
+            if (response.total_page > 0) {
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
                     <a class="num changePage" data-page="1" data-type="${menu}">1</a>
@@ -276,7 +270,7 @@ function changePage(page, menu) {
                     <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                     </div>`)
 
-                    let html = ''
+                let html = ''
                 for (let i = 0; i < response.page_list.length; i++) {
                     if (response.page_list[i] == response.current_page) {
                         html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
@@ -319,4 +313,3 @@ function changePage(page, menu) {
     });
 
 }
-

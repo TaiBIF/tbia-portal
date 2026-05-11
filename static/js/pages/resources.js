@@ -13,7 +13,6 @@ $(function () {
     updateResource('all', 1)
   }
 
-
   let start_date_picker = new AirDatepicker('#start_date',
     { locale: date_locale, dateFormat: 'yyyy-MM-dd' });
 
@@ -47,7 +46,6 @@ $(function () {
     updateResource('all', 1)
   }
 
-
   $('.updateResource').on('click', function () {
     updateResource($(this).data('type'), 1)
   })
@@ -67,7 +65,6 @@ $(function () {
   })
 
 });
-
 
 function updateResource(content_type, page) {
 
@@ -135,7 +132,6 @@ function updateResource(content_type, page) {
 
         }
 
-
         // 修改頁碼
         $('.edu_list').after(`<div class="page_number"></div>`)
         $(`.page_number`).append(
@@ -145,7 +141,6 @@ function updateResource(content_type, page) {
             <a class="next">${gettext('下一頁')}<span></span></a>
             <a class="num changePage" data-page="${response.total_page}" data-type="${content_type}">${response.total_page}</a>
         `)
-
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
@@ -202,7 +197,6 @@ function updateResource(content_type, page) {
     })
     .fail(function (xhr, status, errorThrown) {
       alert(gettext('發生未知錯誤！請聯絡管理員'))
-
       console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
     })
 }

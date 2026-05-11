@@ -171,8 +171,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -187,10 +185,6 @@ LOCALE_PATHS = (
 )
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-# STATIC_ROOT = ''
-# STATIC_URL = '/static/'
-# STATICFILES_DIRS = [os.path.join('static'),]
 
 default_static_dir = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
@@ -231,36 +225,10 @@ AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
 
 
-
 CKEDITOR_UPLOAD_PATH = "uploads/"
-
-# CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
-
-# CKEDITOR_FILENAME_GENERATOR = 'utils.get_filename'
-
-# CKEDITOR_CONFIGS = {
-#    'default': {
-#        'height': 'full', 
-#        'width': 'full', 
-#        'toolbar_Full': [
-#             ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
-#             ['Link', 'Unlink', 'Anchor'],
-#             ['Image', 'Flash', 'Table', 'HorizontalRule'],
-#             ['TextColor', 'BGColor'],
-#             ['Smiley', 'SpecialChar'], ['Source'],
-#             ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-#             ['NumberedList','BulletedList'],
-#             ['Indent','Outdent'],
-#             ['Maximize'],
-#             # ['Save', 'NewPage', 'Preview', 'Print', '-', 'Templates'],
-#         ],
-#         'extraPlugins': 'justify,liststyle,indent',
-#    },
-# }
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20*1024*1024
-
 
 
 CSRF_TRUSTED_ORIGINS = ['https://dev.tbiadata.tw','https://tbiadata.tw']
@@ -281,7 +249,6 @@ CSP_STYLE_SRC = ["'self'",
     "https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"
 ]
 
-# CSP_IMG_SRC = ("'self'","*","data: *") 
 CSP_IMG_SRC = ("'self'",
                "data: http://www.w3.org/2000/svg",
                # 地圖
@@ -298,7 +265,6 @@ CSP_IMG_SRC = ("'self'",
 CSP_MEDIA_SRC = ("'self'") 
 CSP_STATIC_SRC = ("'self'") 
 CSP_FORM_ACTION = ("'self'","https://accounts.google.com/") 
-# CSP_FORM_ACTION = ("'self'","*") 
 CSP_FRAME_ANCESTORS = ("'self'") 
 CSP_FONT_SRC = ("'self'",
 "https://fonts.googleapis.com/",
@@ -324,7 +290,6 @@ CSP_SCRIPT_SRC = ["'self'",
     "https://www.gstatic.com/",
     'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js',
     "https://unpkg.com/@turf/turf@6/turf.min.js",
-    # "'unsafe-inline'",
     "https://cdn.quilljs.com/1.3.6/quill.js",
     "https://unpkg.com/terraformer@1.0.7/terraformer.js",
     "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
@@ -332,6 +297,12 @@ CSP_SCRIPT_SRC = ["'self'",
     "https://code.jquery.com/ui/1.14.1/jquery-ui.js"
 ]
 
-# <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# 自動更新靜態檔案
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}

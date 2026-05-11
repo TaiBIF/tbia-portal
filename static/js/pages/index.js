@@ -38,7 +38,6 @@ $(document).ready(function () {
   ScrollTrigger.create({
     trigger: ".section_3",
     start: "top-=80% top",
-    // markers: true,
     onEnter: function () {
       $(".section_3").addClass("vivi");
     },
@@ -46,12 +45,10 @@ $(document).ready(function () {
   ScrollTrigger.create({
     trigger: ".section_4",
     start: "top-=80% top",
-    // markers: true,
     onEnter: function () {
       $(".section_4").addClass("vivi");
     },
   });
-
 
   $('.edu_tag li').click(function () {
     let li_element = $(this)
@@ -140,10 +137,7 @@ $(document).ready(function () {
       })
   })
 
-
 });
-
-
 
 function updateNews(type, page) {
   $('.news_tab li').removeClass('now')

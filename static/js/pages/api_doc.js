@@ -113,7 +113,6 @@ $(document).ready(function () {
         }
     });
 
-
     // JSON：先 dedent 再高亮
     $('.api-editer .gray-box pre code').each(function () {
         const $code = $(this);
@@ -143,8 +142,6 @@ $(document).ready(function () {
         $code.html(html);
     });
 
-
-
     // 「支援區間查詢」「控制詞彙」變錨點
     $('.api-editer table.table_style2 td').each(function () {
         const $td = $(this);
@@ -156,7 +153,7 @@ $(document).ready(function () {
         html = html.replace(/支援區間查詢/g,
             '支援<a class="col_blue" href="#range-query-area">區間查詢</a>');
         html = html.replace(/請見控制詞彙列表/g,
-            '請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>');        
+            '請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>');
         if (html !== before) $td.html(html);
     });
 

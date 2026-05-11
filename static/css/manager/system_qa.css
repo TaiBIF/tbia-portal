@@ -37,7 +37,6 @@
 }
 
 .nohover {
-    /*pointer-events: none;*/
     text-align: center
 }
 
@@ -117,15 +116,9 @@
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }
-/* 
-.table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
-} */
-
 
 .dow_btn {
     padding: 0px 10px;
@@ -188,9 +181,3 @@
     -webkit-transition: all .3s;
     stroke: #FFFFFF
 }
-
-
-/* 
-.qa_table tr td:nth-child(3)  {
-    text-align: left !important;
-} */
