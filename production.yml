@@ -30,7 +30,7 @@ services:
       - gateway
       - datahub
   postgres-web:
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     container_name: tbia-db-prod-container
     restart: always
     volumes:

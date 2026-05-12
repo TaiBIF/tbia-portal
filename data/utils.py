@@ -147,7 +147,7 @@ def escape_solr_query(string):
     final_string = ''
     for s in string:
         if s in spe_chars:
-            final_string += f'\{s}'
+            final_string += f'\\{s}'  # 用 \\ 表示一個反斜線
         else:
             final_string += s
     return final_string

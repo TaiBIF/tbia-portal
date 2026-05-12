@@ -4676,6 +4676,7 @@ body {
         width: 280px
     }
 }
+
 @media only screen and (max-width: 767px) {
     .about_bn .w_bg .rightbox .imgbox .man {
         left: -15%;
@@ -6303,7 +6304,7 @@ body {
     font-size: 16px
 }
 
-.popbg .loginbox .right_cont .linkbtn_1 a,  .popbg .loginbox .right_cont .linkbtn_en a {
+.popbg .loginbox .right_cont .linkbtn_1 a, .popbg .loginbox .right_cont .linkbtn_en a {
     color: #C65454
 }
 
@@ -7534,7 +7535,7 @@ body {
     cursor: initial;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;  
+    justify-content: space-between;
 }
 
 .two_cont_area .rightbox_content .card_list_2.species_list .flex_top {
@@ -8334,12 +8335,12 @@ body {
 
 .qmark {
     /* display: inline-block; */
-    /* background: url("/static/image/circle-info-solid.svg") no-repeat center; */
     width: 24px;
     height: 24px;
     /* flex: 0 0 22px;  */
     fill: #76A578;
 }
+
 /* 
 .qmark {
     display: inline-block;
@@ -8490,7 +8491,7 @@ body {
 .sc_de_top .left_area .cont_padbox {
     padding: 0px 0px 0px 0px;
     display: inline-block;
-    align-self: flex-end;  
+    align-self: flex-end;
     width: 100%;
 }
 
@@ -8540,7 +8541,8 @@ body {
 
 .sc_de_top .left_area .cont_padbox .logo_area .tooltip-wrapper {
     height: 100%;
-    display: flex;       /* 讓裡面的 <a> 或 <img> 也能垂直居中 */
+    display: flex;
+    /* 讓裡面的 <a> 或 <img> 也能垂直居中 */
     align-items: center;
 }
 
@@ -8639,7 +8641,7 @@ body {
     background: #FFF;
     text-align: center;
     display: flex;
-    justify-content: center;  
+    justify-content: center;
 }
 
 @media only screen and (max-width: 999px) {

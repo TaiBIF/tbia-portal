@@ -19,7 +19,6 @@ services:
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/solr:/tbia-volumes/solr
       - ../tbia-volumes/logs:/logs
-    restart: always
     env_file:
       - .env
     environment:
@@ -37,8 +36,7 @@ services:
   postgres-web:
     platform: linux/amd64
     container_name: tbia-db-container
-    image: postgres:13-alpine
-    restart: always
+    image: postgres:16-alpine
     networks:
       - datahub
     volumes:

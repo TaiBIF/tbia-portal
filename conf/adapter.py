@@ -12,6 +12,6 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         try:
             UserObj = usermodel.objects.get(email=user.email)  # if user exists, connect the account to the existing account and login
             sociallogin.state['process'] = 'connect'                
-            perform_login(request, UserObj, 'none')
+            perform_login(request, UserObj, email_verification='none')  # 原本第 3 個參數是 positional
         except usermodel.DoesNotExist:
             pass

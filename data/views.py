@@ -817,7 +817,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             q = f'{key}:/.*{keyword_reg}.*/'
 
     if key == 'sourceScientificName': # 若前後有<i>也算進去
-        q = f'sourceScientificName: (/.*[<i>]{value}[<\/i>].*/ OR "{value}")'
+        q = rf'sourceScientificName: (/.*[<i>]{value}[<\/i>].*/ OR "{value}")'
     else:
         fq_list.append(f'{key}:{value}')
     if scientific_name and scientific_name != 'undefined':
@@ -1297,18 +1297,24 @@ def download_dataset_results(request):
     return response
 
 
+from django.core.cache import cache
+
 def get_media_rule():
+    cached = cache.get('csp_media_rule')
+    if cached is not None:
+        return cached
+
     try:
         conn = psycopg2.connect(**datahub_db_settings)
-        query = 'SELECT "media_rule" FROM media_rule'
         with conn.cursor() as cursor:
-            cursor.execute(query)
-            results = cursor.fetchall()
-            conn.close()
-            results = [r[0] for r in results]
-            return results
-    except:
-        results = []
+            cursor.execute('SELECT "media_rule" FROM media_rule')
+            results = [r[0] for r in cursor.fetchall()]
+        conn.close()
+    except Exception:
+        results = []   # 原本沒 return，會回傳 None 害 _csp_update 炸掉
+
+    cache.set('csp_media_rule', results, timeout=300)
+    return results
 
 
 def search_collection(request):
@@ -1331,7 +1337,7 @@ def search_collection(request):
         })
     
     media_rule = get_media_rule()
-    response._csp_update = {
+    response._csp_dynamic_update = {
         'img-src': media_rule,
         'media-src': media_rule,
     }
@@ -1358,7 +1364,7 @@ def search_occurrence(request):
         })
 
     media_rule = get_media_rule()
-    response._csp_update = {
+    response._csp_dynamic_update = {
         'img-src': media_rule,
         'media-src': media_rule,
     }
@@ -1373,7 +1379,7 @@ def occurrence_detail(request, id):
     response = render(request, 'data/occurrence_detail.html', {'row': row, 'path_str': path_str, 'logo': logo})
 
     media_rule = get_media_rule()
-    response._csp_update = {
+    response._csp_dynamic_update = {
         'img-src': media_rule,
         'media-src': media_rule,
     }
@@ -1390,7 +1396,7 @@ def collection_detail(request, id):
     })
 
     media_rule = get_media_rule()
-    response._csp_update = {
+    response._csp_dynamic_update = {
         'img-src': media_rule,
         'media-src': media_rule,
     }
@@ -1454,7 +1460,7 @@ def dataset_detail(request, id):
                 'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })
 
     media_rule = get_media_rule()
-    response._csp_update = {
+    response._csp_dynamic_update = {
         'img-src': media_rule,
         'media-src': media_rule,
     }

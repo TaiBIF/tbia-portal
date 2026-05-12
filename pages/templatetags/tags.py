@@ -114,7 +114,7 @@ def highlight(text, keyword, taxon_related=0):
     if taxon_related == '1':
         keyword = re.sub(' +', ' ', keyword)
     keyword = process_text_variants(re.escape(keyword))
-    new_value = re.sub(keyword, '<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)
+    new_value = re.sub(keyword, r'<span class="col_red">\g<0></span>', text, flags=re.IGNORECASE)
     return mark_safe(new_value)
 
 
