@@ -17,6 +17,9 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
+RUN curl -o /usr/local/bin/aws_signing_helper https://rolesanywhere.amazonaws.com/releases/1.1.1/X86_64/Linux/aws_signing_helper \
+    && chmod +x /usr/local/bin/aws_signing_helper
+
 # timezone to Asia/Taipei
 RUN ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime
 RUN echo "Asia/Taipei" > /etc/timezone

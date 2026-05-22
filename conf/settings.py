@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     # google provider
     'allauth.socialaccount.providers.google',
-    # 'django_quill',
+    'django_ses'
 ]
 
 SITE_ID = 1 # oauth
@@ -221,8 +221,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 # email
 EMAIL_BACKEND = 'django_ses.SESBackend'
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
 AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
 
