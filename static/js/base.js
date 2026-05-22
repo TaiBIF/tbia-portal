@@ -70,24 +70,24 @@ function isOverflown(element) {
   return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 }
 
-var handleCaptchaExpired = function () {
-  window.has_grecaptcha = false;
-}
+// var handleCaptchaExpired = function () {
+//   window.has_grecaptcha = false;
+// }
 
-var validateCaptcha = function () {
-  window.has_grecaptcha = true;
-}
+// var validateCaptcha = function () {
+//   window.has_grecaptcha = true;
+// }
 
-var CaptchaCallback = function () {
-  jQuery('.g-recaptcha').each(function (index, el) {
-    grecaptcha.render(el, {
-      'sitekey': jQuery(el).attr('data-sitekey'),
-      'theme': jQuery(el).attr('data-theme'),
-      'size': jQuery(el).attr('data-size'),
-    });
-  });
+// var CaptchaCallback = function () {
+//   jQuery('.g-recaptcha').each(function (index, el) {
+//     grecaptcha.render(el, {
+//       'sitekey': jQuery(el).attr('data-sitekey'),
+//       'theme': jQuery(el).attr('data-theme'),
+//       'size': jQuery(el).attr('data-size'),
+//     });
+//   });
 
-};
+// };
 
 $(function () {
 
@@ -206,8 +206,8 @@ $(function () {
   $('.feedback-pop .send').on('click', function () {
 
     // 如果登入的話就不用再驗證recaptcha
-
-    if ((!$('input[name=is_authenticated]').val() && !window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
+    if ((!$('input[name=is_authenticated]').val() && !$('#feedback_form [name="cf-turnstile-response"]').val()) | (!$('#feedback_form select[name=partner_id]').val()) |
+    // if ((!$('input[name=is_authenticated]').val() && !window.has_grecaptcha) | (!$('#feedback_form select[name=partner_id]').val()) |
       (!$('#feedback_form select[name=type]').val()) | (!validateEmail($('#feedback_form input[name=email]').val())) |
       (!$('#feedback_form textarea[name=content]').val())) {
       alert(gettext('請完整填寫表格並檢查Email格式是否正確'))
@@ -221,14 +221,18 @@ $(function () {
       })
         .done(function (response) {
           alert(gettext('謝謝您的回饋，我們將會儘速回覆'))
-
           $('.feedback-pop').addClass('d-none')
+          if (typeof turnstile !== 'undefined' && $('#feedback_form .cf-turnstile').length) {
+            turnstile.reset('#feedback_form .cf-turnstile')
+          }
         })
         .fail(function (xhr, status, errorThrown) {
           alert(gettext('發生未知錯誤！請聯絡管理員'))
           console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
           $('.feedback-pop').addClass('d-none')
-
+          if (typeof turnstile !== 'undefined' && $('#feedback_form .cf-turnstile').length) {
+            turnstile.reset('#feedback_form .cf-turnstile')
+          }
         })
     }
 
@@ -371,8 +375,12 @@ function login() {
     checked = false
   }
 
-  if (!window.has_grecaptcha) { // check robot
-    $('#loginForm .g-recaptcha').next('.noticbox').removeClass('d-none')
+  // if (!window.has_grecaptcha) { // check robot
+  //   $('#loginForm .g-recaptcha').next('.noticbox').removeClass('d-none')
+  //   checked = false
+  // }
+  if (!$('#loginForm [name="cf-turnstile-response"]').val()){ // check robot
+    $('#loginForm .cf-turnstile').next('.noticbox').removeClass('d-none')
     checked = false
   }
 
@@ -394,6 +402,10 @@ function login() {
           location.reload()
         } else {
           alert(gettext(response.message))
+          if (typeof turnstile !== 'undefined') {
+            turnstile.reset('#loginForm .cf-turnstile')
+          }
+
         }
       })
       .fail(function (xhr, status, errorThrown) {

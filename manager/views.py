@@ -30,7 +30,7 @@ from django.db.models import Q, Max, Sum
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
 from ckeditor.fields import RichTextField
-from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status
+from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, Link
@@ -128,6 +128,16 @@ def get_is_authenticated(request):
 
 def send_feedback(request):
     if request.method == 'POST':
+
+        # Honeypot：bot 通常會填這個隱藏欄位
+        if request.POST.get('web_url'):
+            # 假裝成功，bot 收到 fail 會 retry
+            return HttpResponse(json.dumps({'status': 'done'}), content_type='application/json')
+
+        # Turnstile 驗證
+        if not verify_turnstile(request.POST.get('cf-turnstile-response')):
+            return HttpResponse(json.dumps({'status': 'fail'}), content_type='application/json')
+
         partner_id = request.POST.get('partner_id')
         if partner_id == '0':
             partner_id = None
@@ -947,6 +957,11 @@ def register_success(request):
 def login_user(request):
     if request.method == 'POST':
         # username是django用來登入的default
+        
+        # Turnstile 驗證
+        if not verify_turnstile(request.POST.get('cf-turnstile-response')):
+            return HttpResponse(json.dumps({'status': 'fail'}), content_type='application/json')
+
         email = request.POST.get('email')
         if User.objects.filter(email=email).exists():
             username = User.objects.get(email=email).username

@@ -125,7 +125,8 @@ TEMPLATES = [
                 'pages.custom_context_processor.get_partners',
                 'pages.custom_context_processor.get_index_partners',
                 'pages.custom_context_processor.get_index_collaborates',
-                'pages.custom_context_processor.today'
+                'pages.custom_context_processor.today',
+                'conf.context_processors.turnstile',
             ],
         },
     },
@@ -240,7 +241,7 @@ from csp.constants import SELF
 CONTENT_SECURITY_POLICY = {
     "DIRECTIVES": {
         "default-src": [SELF],
-        "frame-src": [SELF, "https://www.google.com/", "https://www.youtube.com/"],
+        "frame-src": [SELF, "https://www.google.com/", "https://www.youtube.com/", "https://challenges.cloudflare.com/"],
         "connect-src": [
             SELF,
             "https://www.google-analytics.com/",
@@ -297,6 +298,7 @@ CONTENT_SECURITY_POLICY = {
             "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
             "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js",
             "https://code.jquery.com/ui/1.14.1/jquery-ui.js",
+            "https://challenges.cloudflare.com/"
         ],
     }
 }
@@ -309,3 +311,14 @@ STORAGES = {
         "BACKEND": "conf.storages.LenientManifestStaticFilesStorage",
     },
 }
+
+# Cookie 安全屬性
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True 
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+TURNSTILE_SITE_KEY = env('TURNSTILE_SITE_KEY')
+TURNSTILE_SECRET_KEY = env('TURNSTILE_SECRET_KEY')

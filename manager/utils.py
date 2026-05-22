@@ -4,7 +4,8 @@ from datetime import timedelta
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.db.models import Max
 from manager.models import Workday, SensitiveDataResponse 
-
+import requests
+from conf.settings import env
 
 class TokenGenerator(PasswordResetTokenGenerator):
 
@@ -61,3 +62,20 @@ def get_sensitive_status(query_id):
         result = "等待審核"
 
     return result
+
+
+def verify_turnstile(token):
+    if not token:
+        return False
+    try:
+        r = requests.post(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            data={
+                'secret': env('TURNSTILE_SECRET_KEY'),
+                'response': token,
+            },
+            timeout=5,
+        )
+        return r.json().get('success', False)
+    except Exception:
+        return False
