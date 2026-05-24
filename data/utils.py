@@ -74,7 +74,7 @@ rights_holder_map = {
     '中油生態地圖': 'cpc',
     '作物種原資訊系統': 'npgrc',
     '國立海洋生物博物館生物典藏管理系統': 'nmmba',
-    '愛自然-臺灣(iNaturalist Taiwan)': 'inat'
+    '愛自然-臺灣(iNaturalist Taiwan)': 'ntuforestry'
 }
 
 rights_holder_list = list(rights_holder_map.values())
