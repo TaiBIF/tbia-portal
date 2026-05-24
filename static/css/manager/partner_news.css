@@ -14,7 +14,6 @@
     color: #E2A460;
 }
 
-
 .two_cont_area {
     margin-bottom: 50px
 }
@@ -54,7 +53,6 @@
 }
 
 .nohover {
-    /*pointer-events: none;*/
     text-align: center
 }
 
@@ -75,7 +73,6 @@
     height: 35px;
     line-height: 35px;
 }
-
 
 .main_1240 select {
     padding: 0px 5px 0px;
@@ -133,8 +130,6 @@
         margin-top: 60px
     }
 }
-
-
 
 .form-control {
     display: block;
@@ -252,17 +247,13 @@
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }
 
-/* .table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
-} */
-
 .img-style {
-    max-height: 200px; margin: auto
+    max-height: 200px;
+    margin: auto
 }
 
 #editor {
@@ -274,13 +265,11 @@
     color: #C65454
 }
 
-
 .tag-warning {
     font-size: 14px;
     color: #C65454;
     margin-left: 5px;
 }
-
 
 .news_table td:nth-child(5) {
     width: 5%;
@@ -291,35 +280,34 @@
     font-size: 14px;
 }
 
-
 .ql-editor h1,
 .ql-editor h2,
 .ql-editor h3,
 .ql-editor h4,
 .ql-editor h5,
 .ql-editor h6 {
-  all: unset;
-  display: block;
-  font-size: inherit;
-  font-weight: inherit;
-  margin: 0;
-  padding: 0;
+    all: unset;
+    display: block;
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
+    padding: 0;
 }
 
 .ql-divider::after {
-  content: "―"; 
-  font-size: 18px;
-  color: black;
-  position: relative;
-  top: -4px;
+    content: "―";
+    font-size: 18px;
+    color: black;
+    position: relative;
+    top: -4px;
 }
 
 .ql-divider:hover::after {
-  color: blue;
+    color: blue;
 }
 
-
 .ql-toolbar button.ql-imageLink::after {
-    content: "🔗"; /* 按鈕圖示 */
+    content: "🔗";
+    /* 按鈕圖示 */
     font-size: 14px;
 }

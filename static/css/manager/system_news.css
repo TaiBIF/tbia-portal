@@ -14,7 +14,6 @@
     color: #E2A460;
 }
 
-
 .two_cont_area {
     margin-bottom: 50px
 }
@@ -54,7 +53,6 @@
 }
 
 .nohover {
-    /*pointer-events: none;*/
     text-align: center
 }
 
@@ -106,7 +104,6 @@
     min-height: calc(100% - 340px);
 }
 
-
 .noticbox {
     display: flex;
     align-items: center;
@@ -133,7 +130,6 @@
         margin-top: 60px
     }
 }
-
 
 .form-control {
     display: block;
@@ -247,17 +243,13 @@
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }
 
-/* .table-flow {
-    overflow-x: auto; 
-    margin-top: 10px
-} */
-
 .img-style {
-    max-height: 200px; margin: auto
+    max-height: 200px;
+    margin: auto
 }
 
 #editor {
@@ -269,8 +261,7 @@
     color: #C65454
 }
 
-
-li.check-list  {
+li.check-list {
     list-style: none;
     display: flex;
     width: 100%;
@@ -279,18 +270,11 @@ li.check-list  {
     margin-top: 10px;
 }
 
-/* @media only screen and (max-width: 767px) {
-    li.check-list  {
-        width: 50%;
-        margin-bottom: 20px
-    }
-} */
-
-li.check-list  p {
+li.check-list p {
     line-height: 20px
 }
 
-li.check-list  .chebox {
+li.check-list .chebox {
     width: 20px;
     height: 20px;
     border-radius: 5px;
@@ -302,20 +286,13 @@ li.check-list  .chebox {
     flex: 0 0 20px
 }
 
-li.check-list  .chebox:checked {
+li.check-list .chebox:checked {
     background: url("/static/image/checkmark.svg") no-repeat center;
     background-color: #76A578;
     color: #FFF
 }
 
-
-
-/* .news_apply .result_table .table_style1 tr td:nth-child(3)  {
-    text-align: left !important;
-}
- */
-
- .news_apply_table td:nth-child(2) {
+.news_apply_table td:nth-child(2) {
     white-space: nowrap
 }
 
@@ -330,7 +307,6 @@ li.check-list  .chebox:checked {
 }
 
 .news_apply_table td:nth-child(7) {
-    /* font-size: 14px; */
     width: 66px
 }
 
@@ -348,15 +324,13 @@ li.check-list  .chebox:checked {
 .ql-editor h4,
 .ql-editor h5,
 .ql-editor h6 {
-  all: unset;
-  display: block;
-  font-size: inherit;
-  font-weight: inherit;
-  margin: 0;
-  padding: 0;
+    all: unset;
+    display: block;
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
+    padding: 0;
 }
-
-
 
 .tag-warning {
     font-size: 14px;
@@ -364,17 +338,16 @@ li.check-list  .chebox:checked {
     margin-left: 5px;
 }
 
-
 .ql-divider::after {
-  content: "―"; 
-  font-size: 18px;
-  color: black;
-  position: relative;
-  top: -4px;
+    content: "―";
+    font-size: 18px;
+    color: black;
+    position: relative;
+    top: -4px;
 }
 
 .ql-divider:hover::after {
-  color: blue;
+    color: blue;
 }
 
 .ql-toolbar button.ql-imageLink::after {

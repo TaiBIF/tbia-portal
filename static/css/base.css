@@ -19,44 +19,66 @@ a {
     background: #EEF4EF
 }
 
-/* .popbg .wbox_center .map_img .img {
-    background: none;
-}
-
-.search_condition_are .secboxtop2 .rightbox .map_img .img {
-    background: none;
-}
-
-.sc_de_main .right_area .map_img .img {
-    background: none;
-} */
-
 .map_img .img {
-    background: none ;
+    background: none;
 }
 
 .leaflet-pane {
     z-index: 58 !important;
 }
 
-.leaflet-zoom-box { z-index:  58 !important; }
-.leaflet-pane         { z-index:  58 !important; }
+.leaflet-zoom-box {
+    z-index: 58 !important;
+}
 
-.leaflet-tile-pane    { z-index:  58 !important; }
-.leaflet-overlay-pane { z-index:  58 !important; }
-.leaflet-shadow-pane  { z-index:  58 !important; }
-.leaflet-marker-pane  { z-index:  58 !important; }
-.leaflet-tooltip-pane   { z-index:  58 !important; }
-.leaflet-popup-pane   { z-index:  58 !important; }
+.leaflet-pane {
+    z-index: 58 !important;
+}
 
-.leaflet-map-pane canvas { z-index:  58 !important; }
-.leaflet-map-pane svg    { z-index:  58 !important; }
+.leaflet-tile-pane {
+    z-index: 58 !important;
+}
 
-.leaflet-control { z-index:  58 !important; }
+.leaflet-overlay-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-shadow-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-marker-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-tooltip-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-popup-pane {
+    z-index: 58 !important;
+}
+
+.leaflet-map-pane canvas {
+    z-index: 58 !important;
+}
+
+.leaflet-map-pane svg {
+    z-index: 58 !important;
+}
+
+.leaflet-control {
+    z-index: 58 !important;
+}
+
 .leaflet-top,
-.leaflet-bottom {  z-index:  58 !important; }
+.leaflet-bottom {
+    z-index: 58 !important;
+}
 
-.leaflet-container:after { z-index:  58 !important; }
+.leaflet-container:after {
+    z-index: 58 !important;
+}
 
 .header .right_btn2 .member_login .member_slimenu ul li:not(:last-child) {
     border-bottom-left-radius: 0;
@@ -71,7 +93,6 @@ a {
 .checka {
     cursor: pointer;
     text-decoration: underline;
-
 }
 
 .checka:hover {
@@ -87,31 +108,18 @@ a {
     margin: 0 5px
 }
 
-
 .message_list li, .ringbox .titlebox p {
     cursor: default
 }
-
 
 .header .right_btn2 .ringbox .messagebox .wbox .message_list li .txtcont p {
     height: auto;
     max-height: 36px;
 }
 
-
 .header .right_btn2 .ringbox .messagebox .wbox .titlebox button:hover {
     color: #E2A460;
 }
-
-/*
-  .popbg .loginbox .right_cont .checkbox_area {
-    margin-bottom: 20px;
-}
-
-.popbg .wbox_center {
-
-    max-height: 650px;
-}*/
 
 ::placeholder {
     color: #707070;
@@ -126,7 +134,6 @@ a {
     color: #707070 !important;
 }
 
-
 input {
     color: black !important;
 }
@@ -138,7 +145,6 @@ input {
 .section_1 .content_area .input_set button {
     margin-top: -20px
 }
-
 
 .header .right_btn2 .member_login:hover p {
     color: #76A578;
@@ -195,7 +201,6 @@ input {
     align-items: center;
 }
 
-
 .pointer {
     cursor: pointer
 }
@@ -231,7 +236,6 @@ input {
 .w-20p {
     width: 20% !important;
 }
-
 
 .w-25p {
     width: 25% !important;
@@ -281,7 +285,6 @@ input {
     height: 100% !important;
 }
 
-
 .popbg .wbox_center .from_area .select_twobox .vsb-main {
     width: calc(50% - 10px);
 
@@ -304,17 +307,14 @@ input {
 
 @media only screen and (max-width: 767px) {
     .popbg .wbox_center .from_area .select_twobox .vsb-main button {
-        /*font-size: 14px;*/
         height: 40px;
         width: 100%;
         margin-bottom: 10px
     }
 }
 
-
 .popbg .wbox_center .from_area .select_onebox .vsb-main {
-     width: 100%;
-
+    width: 100%;
 }
 
 .popbg .wbox_center .from_area .select_onebox .vsb-main button {
@@ -328,13 +328,11 @@ input {
 
 @media only screen and (max-width: 767px) {
     .popbg .wbox_center .from_area .select_onebox .vsb-main button {
-        /*font-size: 14px;*/
         height: 40px;
         width: 100%;
         margin-bottom: 10px
     }
 }
-
 
 .black {
     color: black !important;
@@ -344,16 +342,6 @@ input {
     color: #707070 !important;
 }
 
-/*
-.vsb-main {
-  border-radius: 5px;
-  border: 1px solid #ddd;
-  height: 50px;
-  width: 100%;
-  font-size: 16px;
-  padding: 0px 10px;
-  color: #555
-}*/
 .vsb-main {
     width: 100%;
 
@@ -365,7 +353,6 @@ input {
     z-index: 55 !important;
 
 }
-
 
 .vsb-main button {
     width: 100% !important;
@@ -379,7 +366,6 @@ input {
     -moz-appearance: none;
     background: url("/static/image/ardownselect.svg") right 15px top 20px no-repeat !important;
 }
-
 
 .vsb-menu .multi li:not(.grouped-option)::before {
     border: 1px solid #ddd !important;
@@ -403,12 +389,6 @@ input {
     color: black;
     background-size: 70%;
 }
-
-/*
-  background: url("/static/image/checkmark.svg") no-repeat center;
-  background-color: #76A578;
-  color: #FFF
-}*/
 
 .black {
     color: black !important;
@@ -434,16 +414,13 @@ input {
     overflow: hidden
 }
 
-
 .mt-10px {
     margin-top: 10px;
 }
 
-
 .mt-30px {
     margin-top: 30px;
 }
-
 
 /* 後台表格內按鈕 */
 .manager_btn {
@@ -496,12 +473,10 @@ input {
     -webkit-transition: all .3s;
 }
 
-
 .icon-size {
     height: 14px;
     width: 14px;
 }
-
 
 .icon-size-20 {
     height: 20px;
@@ -522,7 +497,6 @@ input {
     text-align: justify;
 }
 
-
 .mb-0 {
     margin-bottom: 0 !important;
 }
@@ -539,7 +513,6 @@ input {
     margin-bottom: 30px !important;
 }
 
-
 form#search_full_form_top {
     width: 100%;
 }
@@ -551,7 +524,7 @@ form#search_full_form_top {
     bottom: 2rem;
     z-index: 1030;
     text-align: center;
-    background-color: #F5F5F5	;
+    background-color: #F5F5F5;
     border: #dad3cd solid 1px;
     width: 100px;
     border-radius: 10px;
@@ -601,13 +574,11 @@ form#search_full_form_top {
 
 @media (max-width: 767.98px) {
     .shortcut-menu-wrapper {
-        /* right: 0rem; */
         bottom: 1rem;
     }
 
     .shortcut-menu-wrapper .btn {
         width: 90px;
-        /* padding: 0.35rem; */
     }
 
     .shortcut-menu-wrapper .stamp {
@@ -655,7 +626,6 @@ form#search_full_form_top {
 .dropdown-toggle-split::after, .dropright .dropdown-toggle-split::after, .dropup .dropdown-toggle-split::after {
     margin-left: 0;
 }
-
 
 .dropdown-menu {
     position: absolute;
@@ -740,12 +710,9 @@ form#search_full_form_top {
     bottom: auto;
 }
 
-
 .dropdown-menu.show {
     display: block;
 }
-
-
 
 div.count-100000 {
     border: none;
@@ -756,7 +723,6 @@ div.count-100000 {
     transform: scale(0.5, 0.5);
 }
 
-
 div.count-50000 {
     border: none;
     background: #e31a1c;
@@ -765,7 +731,6 @@ div.count-50000 {
     border-radius: 100px;
     transform: scale(0.5, 0.5);
 }
-
 
 div.count-10000 {
     border: none;
@@ -776,7 +741,6 @@ div.count-10000 {
     transform: scale(0.5, 0.5);
 }
 
-
 div.count-5000 {
     border: none;
     background: #fd8d3c;
@@ -785,7 +749,6 @@ div.count-5000 {
     border-radius: 100px;
     transform: scale(0.5, 0.5);
 }
-
 
 div.count-1000 {
     border: none;
@@ -796,7 +759,6 @@ div.count-1000 {
     transform: scale(0.5, 0.5);
 }
 
-
 div.count-100 {
     border: none;
     background: #fed976;
@@ -806,7 +768,6 @@ div.count-100 {
     transform: scale(0.5, 0.5);
 }
 
-
 div.count-10 {
     border: none;
     background: #ffeda0;
@@ -815,7 +776,6 @@ div.count-10 {
     border-radius: 100px;
     transform: scale(0.5, 0.5);
 }
-
 
 div.count-1 {
     border: none;
@@ -830,87 +790,6 @@ div.count-1 {
     font-size: 13px;
     line-height: 25px;
 }
-/* map legend
-
-div.count-1000 {
-    border: none;
-    background: #C50101;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-500 {
-    border: none;
-    background: #D71414;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-200 {
-    border: none;
-    background: #E72424;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-100 {
-    border: none;
-    background: #F73535;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-50 {
-    border: none;
-    background: #FB4C4C;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-20 {
-    border: none;
-    background: #FB6262;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-10 {
-    border: none;
-    background: #FC7E7E;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-1 {
-    border: none;
-    background: #FD9696;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-} */
-
 
 .legend-fs-15px {
     line-height: 25px;
@@ -928,7 +807,7 @@ div.count-1 {
 /* 後台刪除按鈕 */
 .del_btn {
 
-    color: #3F5146  !important;
+    color: #3F5146 !important;
     background: #FFF;
     transition: all .3s;
     -moz-transition: all .3s;
@@ -953,9 +832,6 @@ div.count-1 {
     background: #3F5146;
     color: #FFF !important
 }
-
-
-
 
 .clear_btn {
     color: #3F5146;
@@ -986,22 +862,15 @@ div.count-1 {
     }
 }
 
-
-
-
 .ml-5px {
     margin-left: 5px;
 }
-
 
 .ml-10px {
     margin-left: 10px;
 }
 
-
 .qmark-dark {
-    /* display: inline-block; */
-    /* background: url("/static/image/quesmarkw.svg") no-repeat center; */
     width: 16px;
     height: 16px;
     background-size: contain;
@@ -1011,16 +880,10 @@ div.count-1 {
 }
 
 .qmark-dark:hover {
-    /* background: url("/static/image/quesmark.svg") no-repeat center; */
-    /* background-size: contain; */
     fill: #76A578
 }
 
-
 .qmark-small {
-    /* display: inline-block; */
-    /* background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain; */
     width: 20px;
     height: 20px;
     margin-left: 2px;
@@ -1028,34 +891,24 @@ div.count-1 {
 }
 
 .qmark-small:hover {
-    /* background: url("/static/image/quesmarkg.svg") no-repeat center;
-    background-size: contain; */
     fill: #3F5146
 }
-
 
 .qmark-small-flex {
     line-height: 22px;
     display: flex;
 }
 
-
 .qmark-small-dark {
-    /* display: inline-block;
-    background: url("/static/image/quesmarkw.svg") no-repeat center; */
     width: 20px;
     height: 20px;
     margin-left: 2px;
     fill: white
-    /* background-size: contain; */
 }
 
 .qmark-small-dark:hover {
-    /* background: url("/static/image/quesmark.svg") no-repeat center;
-    background-size: contain; */
     fill: #76A578
 }
-
 
 .map-legend {
     background-color: white;
@@ -1093,29 +946,28 @@ div.count-1 {
 }
 
 .radio-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
 }
 
 .radio-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
 }
 
 .radio-item input[type="radio"] {
-  margin-top: 2px;
-  flex-shrink: 0;
+    margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .radio-item label {
-  line-height: 1.4;
-  cursor: pointer;
-  font-size: 16px;
+    line-height: 1.4;
+    cursor: pointer;
+    font-size: 16px;
 }
-
 
 .popbg.user-stat-pop .wbox_center {
     max-height: 90%;
@@ -1134,26 +986,27 @@ div.count-1 {
 .tooltip-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    
     /* 定位設定 */
-    top: -10px;           /* 向上偏移，不擋住圖片 */
-    left: 50%;            /* 從圖片的中心點開始 */
+    top: -10px;
+    /* 向上偏移，不擋住圖片 */
+    left: 50%;
+    /* 從圖片的中心點開始 */
     /* 注意：這裡不寫 transform: translateX(-50%) */
-    
     /* 視覺樣式 */
     background-color: rgba(0, 0, 0, 0.85);
     color: #ffffff;
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 13px;
-    white-space: nowrap;  /* 強制文字向右單向延伸，不換行 */
+    white-space: nowrap;
+    /* 強制文字向右單向延伸，不換行 */
     z-index: 9999;
-    
     /* --- 動畫核心設定 --- */
-    opacity: 0;                /* 初始透明 */
-    visibility: hidden;        /* 初始隱藏（防止滑鼠誤觸） */
+    opacity: 0;
+    /* 初始透明 */
+    visibility: hidden;
+    /* 初始隱藏（防止滑鼠誤觸） */
     pointer-events: none;
-    
     /* 轉場設定：只針對 opacity，不加任何位移屬性 */
     transition: opacity 0.2s ease-in-out;
 }

@@ -1,9 +1,5 @@
-# from pyexpat import model
-# from xml.dom.minidom import Comment
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-# import django
-
 
 # NOTE 資料庫存的時間統一都是 UTC + 0
 
@@ -30,8 +26,6 @@ class UserManager(BaseUserManager):
         """
         user = self.model(
             email=self.normalize_email(email),
-            # first_name=kwargs['first_name'],
-            # last_name=kwargs['last_name'],
         )
         user.set_password(password)
         user.is_superuser = True
@@ -44,8 +38,6 @@ class UserManager(BaseUserManager):
 
 
 class Partner(models.Model):
-    # breadtitle = models.CharField(max_length=100, null=True, blank=True)
-    # breadtitle_en = models.CharField(max_length=100, null=True, blank=True)
     abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁
     group = models.CharField(max_length=100, null=True, blank=True) # 後台group
     select_title = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁(同個MOU簽署單位) 但後台是分開的 在前台顯示需區分
@@ -62,7 +54,6 @@ class Partner(models.Model):
     index_order = models.IntegerField(null=True, blank=True) # 在首頁的順序
     # 正式會員顯示順序: brcas 1, forest 2, tbri 3, tfri 4, oca 5, nps 6, ntm 7, wra 8
     # 合作夥伴顯示順序: 
-
     is_collaboration = models.BooleanField(default=False) # 是否為合作夥伴
 
     created = models.DateTimeField(auto_now_add=True)
@@ -75,13 +66,11 @@ class User(AbstractUser):
     name = models.CharField(max_length=1000, blank=True)
     email = models.EmailField(max_length=254, blank=False, unique=True)
     is_active = models.BooleanField(default=True)
-    # is_superuser = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=True)
     first_login = models.BooleanField(default=True)
     register_method = models.CharField(max_length=20, blank=True) # portal, google
 
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, null=True, blank=True)
-    
     
     status_choice = [
         ('pending', '等待審核'),
@@ -93,9 +82,6 @@ class User(AbstractUser):
     is_partner_account = models.BooleanField(default=False)
     is_partner_admin = models.BooleanField(default=False)
     is_system_admin = models.BooleanField(default=False)
-    # is_collaboration_account = models.BooleanField(default=False)
-    # is_collaboration_admin = models.BooleanField(default=False)
-
     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
 
     REQUIRED_FIELDS = []
@@ -141,7 +127,6 @@ class SearchQuery(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     query = models.TextField(null=True, blank=True)
-    # download_times = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=status_choice,max_length=20, blank=True) # pending, pass, fail 
@@ -152,7 +137,6 @@ class SearchQuery(models.Model):
     stat = models.JSONField(null=True, blank=True) # 記錄各單位筆數
     user_stat = models.JSONField(null=True, blank=True) # 記錄使用者資訊
     sensitive_stat = models.JSONField(null=True, blank=True)  # 如果是正式會員下載的資料 記錄各單位敏感資料筆數, 若是申請通過的敏感資料統計也會計算在這
-    # ark = models.CharField(max_length=50, null=True, blank=True)
 
 
 class SensitiveDataRequest(models.Model):
@@ -175,11 +159,9 @@ class SensitiveDataRequest(models.Model):
     users = models.JSONField(null=True, blank=True) # 資料使用者
     abstract = models.TextField(null=True, blank=True)
     is_agreed_report = models.BooleanField(default=False) # 是否同意提供研究成果
-    # status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail 這邊是集合各單位的回覆
     created = models.DateTimeField(auto_now_add=True) # 申請時間
     query_id = models.CharField(max_length=50, blank=True)
     research_proposal = models.CharField(max_length=1000, blank=True)
-
 
 
 # 單位意見回覆
@@ -245,7 +227,6 @@ class TaxonStat(models.Model):
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group
     rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 來源資料庫
-    # year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     year = models.CharField(max_length=4, null=True, blank=True, db_index=True)
     month = models.CharField(max_length=2, null=True, blank=True, db_index=True)
     name = models.CharField(max_length=10000, null=True, blank=True)  # 類群名 / 科名
@@ -276,6 +257,7 @@ class ChecklistStat(models.Model):
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     count = models.IntegerField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+
 
 # 使用者類型統計 (下載資料時)
 class UserDownloadStat(models.Model):
@@ -327,4 +309,3 @@ class Ark(models.Model):
     type = models.CharField(max_length=20, blank=True) # news / data / docs
     ark = models.CharField(max_length=50, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    # modified = models.DateTimeField(auto_now_add=True)

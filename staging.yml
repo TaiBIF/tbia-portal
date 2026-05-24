@@ -20,17 +20,20 @@ services:
       - ../tbia-volumes/bucket:/tbia-volumes/bucket
       - ../tbia-volumes/media:/tbia-volumes/media
       - ../tbia-volumes/solr:/tbia-volumes/solr
+      - ../tbia-volumes/aws-certs:/etc/aws-certs:ro
     command: "./scripts/wait-for-it.sh solr:8983 -t 5 -- ./scripts/docker-web-entry.sh"
     restart: always
     env_file:
       - .env
+    environment:
+      - AWS_CONFIG_FILE=/etc/aws-certs/aws_config
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - gateway
       - datahub
   postgres-web:
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     container_name: tbia-db-stag-container
     restart: always
     volumes:

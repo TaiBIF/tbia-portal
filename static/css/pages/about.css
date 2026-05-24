@@ -8,19 +8,13 @@
     margin-left: 10px;
 }
 
-/* .ml-5px {
-    margin-left: 5px;
-} */
-
 @media only screen and (max-width: 767px) {
-    .about_bn .w_bg .leftbox .linktogithub .ml-10px  {
+    .about_bn .w_bg .leftbox .linktogithub .ml-10px {
         margin-left: 5px;
     }
 
-    .about_bn .w_bg .leftbox .linktogithub img  {
+    .about_bn .w_bg .leftbox .linktogithub img {
         width: 25px;
         height: 25px;
     }
-
-
 }

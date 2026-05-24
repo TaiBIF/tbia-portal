@@ -1,279 +1,297 @@
 {% extends 'base.html' %}
-{% load static %} 
-{% load tags %} 
+{% load static %}
+{% load tags %}
 {% load i18n %}
-{% block title %}{% trans '帳號後台' %}｜{% endblock %}
-
+{% block title %}
+    {% trans '帳號後台' %}｜
+{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}?v7" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}" />
 {% endblock style %}
-
 {% block body %}
-{% csrf_token %}
-
-
-  <!--意見回饋popbox-->
-  <div class="popbg report-pop d-none">
-    <div class="ovhy">
-      <div class="wbox_center">
-        <div class="xx">
-        </div>
-        <div class="titlegreen">
-          {% trans '回報成果' %}
-        </div>
-        <p class="shortxt">
-        </p>
-        <div class="from_area">
-          <form id="reportForm" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="txt_area">
-            <p>{% trans '成果描述' %}</p>
-            <textarea name="report_content" class="h-250px"></textarea>
-          </div>
-          <div class="email_area">
-            <p>{% trans '檔案上傳' %}</p>
-            <input type="file" id="file" name="report_file" class="h-100p form-control">
-            <input type="hidden" name="report_query_id" value="">
-            <p class="fs-16px mt-10px">{% trans '目前已上傳檔案：' %}<a class="report_file_url"></a></p>
-            <span class="expired-notice">*{% trans '重複上傳將會取代前一次上傳的檔案，若有多個檔案請打包成壓縮檔上傳' %}</span>
-          </div>
-          </form>
-          <button class="send">{% trans '確認送出' %}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-<div class="messageboxfix apply-ark-pop d-none">
-    <div class="message_box">
-      <div class="informationicon">!</div>
-      <p>確認送出？</p>
-      <div class="btn_area">
-        <button class="hide_apply_ark_pop">取消</button>
-        <button class="submit_apply_ark" data-query_id="">確認</button>
-      </div>
-    </div>
-</div>
-
-<input type="hidden" name="menu" value="{{ menu }}">
-<input type="hidden" name="user_id" value="{{ user.id }}">
-<input type="hidden" name="user_email" value="{{ user.email }}">
-<div class="path"> 
-    <div class="main_1240"> 
-        <a href="{% url 'index' %}" class="home"></a> <span>></span> <p> {% trans '帳號後台' %}</p>
-    </div>
-</div>
- 
-<div class="nbn_title">
-</div>
-<div class="main_1240"> 
-    <div class="two_cont_area">
-        {% if user.is_authenticated %}
-        <div class="left_menu mbmove">
-            <!--手機用的按鈕-->
-            <div class="mb_fixed_btn">
-                <p>{% trans '展<br>開' %}</p>
-                <span>{% trans '關閉' %}</span>
-            </div>					
-            <div class="mb_scroll">
-                <ul>
-                    <li class="nohover">
-                        <a class="big_link rd_click ">
-                            <p>{{ user.name }}</p> 
-                        </a>
-                    </li>
-                    <li>
-                        <a class="big_link rd_click" data-type="info">
-                            <p>{% trans '個人資訊' %}</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="big_link rd_click" data-type="notification">
-                            <p>{% trans '通知' %}</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="big_link rd_click" data-type="download">
-                            <p>{% trans '資料下載' %}</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="big_link rd_click" data-type="download_taxon">
-                            <p>{% trans '名錄下載' %}</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="big_link rd_click" data-type="sensitive">
-                            <p class="mr-15px">{% trans '單次使用去模糊化敏感資料' %}</p>
-                            <div class="arr"></div>
-                        </a>
-                    </li>
-                </ul>
+    {% csrf_token %}
+    <!--意見回饋popbox-->
+    <div class="popbg report-pop d-none">
+        <div class="ovhy">
+            <div class="wbox_center">
+                <div class="xx"></div>
+                <div class="titlegreen">{% trans '回報成果' %}</div>
+                <p class="shortxt"></p>
+                <div class="from_area">
+                    <form id="reportForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="txt_area">
+                            <p>{% trans '成果描述' %}</p>
+                            <textarea name="report_content" class="h-250px"></textarea>
+                        </div>
+                        <div class="email_area">
+                            <p>{% trans '檔案上傳' %}</p>
+                            <input type="file" id="file" name="report_file" class="h-100p form-control">
+                            <input type="hidden" name="report_query_id" value="">
+                            <p class="fs-16px mt-10px">
+                                {% trans '目前已上傳檔案：' %}<a class="report_file_url"></a>
+                            </p>
+                            <span class="expired-notice">*{% trans '重複上傳將會取代前一次上傳的檔案，若有多個檔案請打包成壓縮檔上傳' %}</span>
+                        </div>
+                    </form>
+                    <button class="send">{% trans '確認送出' %}</button>
+                </div>
             </div>
         </div>
-
-        <div class="rightbox_content info d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '基本資料編輯' %}</div>
-                    <ul class="edit-list">
-                        <form id="updateForm">
-                            {% csrf_token %}
-                            <li>{% trans '帳號' %}</li>
-                            <li><input type="text" name="email" value="{{ user.email }}" disabled></li>
-                            <li>{% trans '姓名' %}</li>
-                            <li><input type="text" name="name" value="{{ user.name }}" >
-                                <div class="noticbox d-none">
-                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                                    <p>{% trans '必填欄位' %}</p>
-                                </div>
-                            </li>
-                            {% if not from_google %}
-                            <li>{% trans '密碼變更' %}</li>
-                            <li><input type="password" name="now_password" placeholder="{% trans '現在的密碼' %}">
-                                <div class="noticbox d-none">
-                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
-                                </div>
-                            </li>
-                            <li><input type="password" name="new_password" placeholder="{% trans '新的密碼' %}">
-                                <div class="noticbox d-none">
-                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                                    <p>{% trans '請輸入6~10位英文或數字' %}</p>
-                                </div>              
-                            </li>
-                            <li><input type="password" name="re_password" placeholder="{% trans '再次確認新的密碼' %}">
-                                <div class="noticbox d-none">
-                                    {% comment %} <div class="in1">{% trans '錯誤' %}</div> {% endcomment %}
-                                    <p>{% trans '兩次密碼輸入不同' %}</p>
-                                </div>              
-                            </li>
-                            {% endif %}
-                        </form>
-                        <li ><button class="read_btn updateInfo">{% trans '確認修改' %}</button></li>
-                    </ul>
+    </div>
+    <div class="messageboxfix apply-ark-pop d-none">
+        <div class="message_box">
+            <div class="informationicon">!</div>
+            <p>確認送出？</p>
+            <div class="btn_area">
+                <button class="hide_apply_ark_pop">取消</button>
+                <button class="submit_apply_ark" data-query_id="">確認</button>
             </div>
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '申請成為夥伴帳號' %}</div>
-                    <ul class="edit-list">
-                        <li>{% trans '選擇所屬夥伴單位' %}</li>
-                        <li>
-                            <form id="partnerForm">
+        </div>
+    </div>
+    <input type="hidden" name="menu" value="{{ menu }}">
+    <input type="hidden" name="user_id" value="{{ user.id }}">
+    <input type="hidden" name="user_email" value="{{ user.email }}">
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '帳號後台' %}</p>
+        </div>
+    </div>
+    <div class="nbn_title"></div>
+    <div class="main_1240">
+        <div class="two_cont_area">
+            {% if user.is_authenticated %}
+                <div class="left_menu mbmove">
+                    <!--手機用的按鈕-->
+                    <div class="mb_fixed_btn">
+                        <p>
+                            {% trans '展<br>開' %}
+                        </p>
+                        <span>{% trans '關閉' %}</span>
+                    </div>
+                    <div class="mb_scroll">
+                        <ul>
+                            <li class="nohover">
+                                <a class="big_link rd_click ">
+                                    <p>{{ user.name }}</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="big_link rd_click" data-type="info">
+                                    <p>{% trans '個人資訊' %}</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="big_link rd_click" data-type="notification">
+                                    <p>{% trans '通知' %}</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="big_link rd_click" data-type="download">
+                                    <p>{% trans '資料下載' %}</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="big_link rd_click" data-type="download_taxon">
+                                    <p>{% trans '名錄下載' %}</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="big_link rd_click" data-type="sensitive">
+                                    <p class="mr-15px">{% trans '單次使用去模糊化敏感資料' %}</p>
+                                    <div class="arr"></div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="rightbox_content info d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            {% trans '基本資料編輯' %}
+                        </div>
+                        <ul class="edit-list">
+                            <form id="updateForm">
                                 {% csrf_token %}
-                                <select id="partner-select" name="partner_id" {% if user.status == 'pending' or user.status == 'pass' %}disabled{% endif %}>
-                                {% for p in partners %} 
-                                    <option value='{{ p.id }}' {% if p.id == user.partner_id %}selected{% endif %}>
-                                        {% if LANGUAGE_CODE == 'en-us' %}
-                                            {{ p.select_title_en }}
-                                        {% else %}
-                                            {{ p.select_title }}
-                                        {% endif %}
-                                    </option>
-                                {% endfor %}
-                                </select>
+                                <li>{% trans '帳號' %}</li>
+                                <li>
+                                    <input type="text" name="email" value="{{ user.email }}" disabled>
+                                </li>
+                                <li>{% trans '姓名' %}</li>
+                                <li>
+                                    <input type="text" name="name" value="{{ user.name }}">
+                                    <div class="noticbox d-none">
+                                        <p>{% trans '必填欄位' %}</p>
+                                    </div>
+                                </li>
+                                {% if not from_google %}
+                                    <li>{% trans '密碼變更' %}</li>
+                                    <li>
+                                        <input type="password" name="now_password" placeholder="{% trans '現在的密碼' %}">
+                                        <div class="noticbox d-none">
+                                            <p>{% trans '請輸入6~10位英文或數字' %}</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <input type="password" name="new_password" placeholder="{% trans '新的密碼' %}">
+                                        <div class="noticbox d-none">
+                                            <p>{% trans '請輸入6~10位英文或數字' %}</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <input type="password" name="re_password" placeholder="{% trans '再次確認新的密碼' %}">
+                                        <div class="noticbox d-none">
+                                            <p>{% trans '兩次密碼輸入不同' %}</p>
+                                        </div>
+                                    </li>
+                                {% endif %}
                             </form>
-                        </li>
-                        <li class="ag-style">
-                            <div class="agreebox jc-start">
-                                <input type="checkbox" class="chebox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %} checked disabled {% endif %}>
-                                {% trans '我已閱讀並同意' %}<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager"> {% trans '保密協議' %}</a>
-                            </div>
-                        </li>
-                        <li>                                
-                            {% if user.status == 'pending' %}
-                            {% trans '單位帳號申請已送出審核中' %} <button class="read_btn withdrawRequest" data-uid="{{ user.id }}">{% trans '撤回' %}</button>
-                            {% elif user.status == 'pass' %}
-                            {% trans '單位帳號申請已通過' %}
-                            {% else %}
-                            <button class="read_btn sendRequest">{% trans '送出' %}</button>
-                            {% endif %}
-                        </li>
-                    </ul>
-            </div>
-        </div>
-
-        <div class="rightbox_content download d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '資料下載' %}</div>
-                <div class="d-flex-jc-sb">
-                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
-                    <a href="/media/資料欄位說明文件.pdf?v1" target="_blank" class="dow_btn">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <p>{% trans '下載資料欄位說明文件' %}</p>
-                    </a>
+                            <li>
+                                <button class="read_btn updateInfo">{% trans '確認修改' %}</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            {% trans '申請成為夥伴帳號' %}
+                        </div>
+                        <ul class="edit-list">
+                            <li>{% trans '選擇所屬夥伴單位' %}</li>
+                            <li>
+                                <form id="partnerForm">
+                                    {% csrf_token %}
+                                    <select id="partner-select" name="partner_id" {% if user.status == 'pending' or user.status == 'pass' %}disabled{% endif %}>
+                                        {% for p in partners %}
+                                            <option value='{{ p.id }}' {% if p.id == user.partner_id %}selected{% endif %}>
+                                                {% if LANGUAGE_CODE == 'en-us' %}
+                                                    {{ p.select_title_en }}
+                                                {% else %}
+                                                    {{ p.select_title }}
+                                                {% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </li>
+                            <li class="ag-style">
+                                <div class="agreebox jc-start">
+                                    <input type="checkbox" class="chebox" name="checked-policy" {% if user.status == 'pending' or user.status == 'pass' %}checked disabled{% endif %}>
+                                    {% trans '我已閱讀並同意' %}<a class="checka" target="_blank" href="{% url 'agreement' %}?from=manager">{% trans '保密協議' %}</a>
+                                </div>
+                            </li>
+                            <li>
+                                {% if user.status == 'pending' %}
+                                    {% trans '單位帳號申請已送出審核中' %}
+                                    <button class="read_btn withdrawRequest" data-uid="{{ user.id }}">{% trans '撤回' %}</button>
+                                {% elif user.status == 'pass' %}
+                                    {% trans '單位帳號申請已通過' %}
+                                {% else %}
+                                    <button class="read_btn sendRequest">{% trans '送出' %}</button>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 download_table once_table">
-                        <tr class="download_table_header">
-                            <td>{% trans '下載編號' %}</td>
-                            <td>{% trans '檔案編號' %}</td>
-                            <td>{% trans '檔案產生日期' %}</td>
-                            <td>{% trans '搜尋條件' %}</td>
-                            <td>{% trans '狀態' %}</td>
-                            <td>{% trans '檔案連結' %}</td>
-                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span>
-                                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="d-flex">
-                                    <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                                    </svg>
-                                </a>
-                                </span></td>
+                <div class="rightbox_content download d-none">
+                    <div class="item">
+                        <div class="box-title">
+                            <div class="dottt"></div>
+                            {% trans '資料下載' %}
+                        </div>
+                        <div class="d-flex-jc-sb">
+                            <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
+                            <a href="/media/資料欄位說明文件.pdf" target="_blank" class="dow_btn">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <p>{% trans '下載資料欄位說明文件' %}</p>
+                            </a>
+                        </div>
+                        <div class="result_table table-flow">
+                            <table cellspacing="0" cellspacing="0" class="table_style3 download_table once_table">
+                                <tr class="download_table_header">
+                                    <td>{% trans '下載編號' %}</td>
+                                    <td>{% trans '檔案編號' %}</td>
+                                    <td>{% trans '檔案產生日期' %}</td>
+                                    <td>{% trans '搜尋條件' %}</td>
+                                    <td>{% trans '狀態' %}</td>
+                                    <td>{% trans '檔案連結' %}</td>
+                                    <td>
+                                        <span class="d-flex-ai-c-jc-c"><span>ARK</span>
+                                        <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="d-flex">
+                                            <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                            </svg>
+                                        </a>
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="rightbox_content download_taxon d-none">
+                <div class="item">
+                    <div class="box-title">
+                        <div class="dottt"></div>
+                        {% trans '名錄下載' %}
+                    </div>
+                    <div class="d-flex-jc-sb">
+                        <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
+                        <a href="/media/名錄欄位說明文件.pdf" target="_blank" class="dow_btn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <p>{% trans '下載名錄欄位說明文件' %}</p>
+                        </a>
+                    </div>
+                    <div class="result_table table-flow">
+                        <table cellspacing="0" cellspacing="0" class="table_style3 download_taxon_table once_table">
+                            <tr class="download_taxon_table_header">
+                                <td>{% trans '下載編號' %}</td>
+                                <td>{% trans '檔案編號' %}</td>
+                                <td>{% trans '檔案產生日期' %}</td>
+                                <td>{% trans '搜尋條件' %}</td>
+                                <td>{% trans '狀態' %}</td>
+                                <td>{% trans '檔案連結' %}</td>
+                                <td>
+                                    <span class="d-flex-ai-c-jc-c"><span>ARK</span>
+                                    <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="d-flex">
+                                        <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                        </svg>
+                                    </a>
+                                </span>
+                            </td>
                         </tr>
-                    </table>						
+                    </table>
                 </div>
             </div>
         </div>
-
-        <div class="rightbox_content download_taxon d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '名錄下載' %}</div>
-                <div class="d-flex-jc-sb">
-                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
-                    <a href="/media/名錄欄位說明文件.pdf" target="_blank" class="dow_btn">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <p>{% trans '下載名錄欄位說明文件' %}</p>
-                    </a>
-                </div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 download_taxon_table once_table">
-                        <tr class="download_taxon_table_header">
-                            <td>{% trans '下載編號' %}</td>
-                            <td>{% trans '檔案編號' %}</td>
-                            <td>{% trans '檔案產生日期' %}</td>
-                            <td>{% trans '搜尋條件' %}</td>
-                            <td>{% trans '狀態' %}</td>
-                            <td>{% trans '檔案連結' %}</td>
-                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span>
-                                <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="d-flex">
-                                    <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                                    </svg>
-                                </a>
-                            </span></td>
-                        </tr>
-                    </table>						
-                </div>
-            </div>
-        </div>
-
         <div class="rightbox_content sensitive d-none">
             <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '單次使用去模糊化敏感資料' %}</div>
+                <div class="box-title">
+                    <div class="dottt"></div>
+                    {% trans '單次使用去模糊化敏感資料' %}
+                </div>
                 <div class="d-flex-jc-sb">
-                    <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}<br>*{% trans '針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本' %}</p>
-                    <a href="/media/資料欄位說明文件.pdf?v1" target="_blank" class="dow_btn">
+                    <p class="expired-p">
+                        *{% trans '下載檔案連結將保留三個月' %}
+                        <br>
+                        *{% trans '針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本' %}
+                    </p>
+                    <a href="/media/資料欄位說明文件.pdf" target="_blank" class="dow_btn">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         <p>{% trans '下載資料欄位說明文件' %}</p>
                     </a>
@@ -283,63 +301,62 @@
                         <tr class="sensitive_table_header">
                             <td>{% trans '下載編號' %}</td>
                             <td>{% trans '檔案編號' %}</td>
-                            {% comment %} <td>{% trans '搜尋條件' %}</td>
-                            <td>{% trans '審核意見' %}</td> {% endcomment %}
-                            {% comment %} <td>{% trans '狀態' %}</td> {% endcomment %}
                             <td>{% trans '申請資訊' %}</td>
                             <td>{% trans '審核結果' %}</td>
-                            <td><span class="d-flex-ai-c-jc-c">
-                                <span>{% trans '回報成果' %} </span>
+                            <td>
+                                <span class="d-flex-ai-c-jc-c">
+                                    <span>{% trans '回報成果' %}</span>
                                     <a class="d-flex tooltip">
                                         <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                                        </svg>                                        
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                        </svg>
                                         <span class="tooltiptext">{% trans '同意上傳的話需要於兩年內回報' %}</span>
                                     </a>
                                 </span>
                             </td>
                             <td>{% trans '檔案產生日期' %}</td>
                             <td>{% trans '檔案連結' %}</td>
-                            <td><span class="d-flex-ai-c-jc-c"><span>ARK</span>
+                            <td>
+                                <span class="d-flex-ai-c-jc-c"><span>ARK</span>
                                 <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=20" target="_blank" class="d-flex">
                                     <svg class="qmark-dark d-flex-ai-c-jc-c" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
                                     </svg>
                                 </a>
-                            </span></td>
-                        </tr>
-                    </table>						
-                </div>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
-
-        <div class="rightbox_content notification d-none">
-            <div class="item">
-                <div class="box-title"><div class="dottt"></div>{% trans '通知' %}</div>
-                <div class="d-flex-jc-fe">
-                <button class="read_btn updateIsRead">{% trans '全部已讀' %}</button>
-                </div>
-                <div class="result_table table-flow">
-                    <table cellspacing="0" cellspacing="0" class="table_style3 notification_table">
-                        <tr class="notification_table_header">
-                            <td class="w-30p">{% trans '日期' %}</td>
-                            <td class="w-70p">{% trans '內容' %}</td>
-                        </tr>
-                    </table>					
-                </div>
-            </div>
-        </div>
-        {% else %}
-        {% trans '請先登入' %}
-        {% endif %}
     </div>
-
+    <div class="rightbox_content notification d-none">
+        <div class="item">
+            <div class="box-title">
+                <div class="dottt"></div>
+                {% trans '通知' %}
+            </div>
+            <div class="d-flex-jc-fe">
+                <button class="read_btn updateIsRead">{% trans '全部已讀' %}</button>
+            </div>
+            <div class="result_table table-flow">
+                <table cellspacing="0" cellspacing="0" class="table_style3 notification_table">
+                    <tr class="notification_table_header">
+                        <td class="w-30p">{% trans '日期' %}</td>
+                        <td class="w-70p">{% trans '內容' %}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    {% trans '請先登入' %}
+{% endif %}
 </div>
-
+</div>
 {% endblock %}
-
 {% block script %}
-<script src="{% static 'js/manager/manager.js' %}?v7"></script>
+    <script src="{% static 'js/manager/manager.js' %}"></script>
 {% endblock script %}

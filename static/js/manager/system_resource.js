@@ -26,9 +26,7 @@ window.onpopstate = function (e) {
     }
 };
 
-
 (function () {
-    //  Quill.register("modules/imageUploader", ImageUploader);
 
     var toolbarOptions = [
         [{ 'size': [] }],
@@ -36,8 +34,7 @@ window.onpopstate = function (e) {
         [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
         [{ 'align': [] }],
         ['link', 'image', 'video'],
-      ]
-    
+    ]
 
     var quill = new Quill('#editor', {
         theme: 'snow', modules: {
@@ -50,15 +47,11 @@ window.onpopstate = function (e) {
         url: `/get_link_content`,
         type: 'GET',
         success: function (response) {
-            // console.log(response)
             quill.pasteHTML(response.content);
         }
     });
 
-
-
 })();
-
 
 function deleteResource(resource_id) {
     $.ajax({
@@ -75,43 +68,41 @@ function deleteResource(resource_id) {
 
 $(document).ready(function () {
 
-
-    $('#file_type').on('change', function(){
+    $('select[name=resource_type]').on('change', function () {
 
         $('.noticbox').addClass('d-none')
 
         if ($(this).find(':selected').val() == 'file') {
             $('.file_field').removeClass('d-none')
+            $('.doc-link_field').removeClass('d-none')
+            $('.link_field').addClass('d-none')
+        } else if ($(this).find(':selected').val() == 'doc-link') {
+            $('.file_field').addClass('d-none')
+            $('.doc-link_field').removeClass('d-none')
             $('.link_field').addClass('d-none')
         } else {
+            $('.doc-link_field').addClass('d-none')
             $('.file_field').addClass('d-none')
             $('.link_field').removeClass('d-none')
-
         }
     })
 
-    $('#file_type').trigger('change')
+    $('select[name=resource_type]').trigger('change')
 
     // 起始頁面
     changePage(1, 'resource')
-
-    // // 語言
-    // if ($('input[name=r_lang]').val() != ''){
-    //     $('select[name=resource_lang]').val($('input[name=r_lang]').val()); 
-    //     $('select[name=resource_lang]').change();
-    // } 
 
     $('.submitLink').on('click', function () {
         $('#linkForm').append(`<textarea class="d-none" name="content">${$('.ql-editor').html()}</textarea>`)
         $('#linkForm').submit()
     })
 
-
     $('.changeMenu').on('click', function () {
         let menu = $(this).data('menu');
         if (menu == 'edit') {
             $('#saveForm input[name=resource_id]').val('')
-            $('#saveForm select[name=resource_type]').val('strategy')
+            $('#saveForm select[name=content_type]').val('strategy')
+            $('#saveForm select[name=resource_type]').val('file')
             $('#saveForm input[name=file]').val('')
             $('#saveForm input[name=url]').val('')
             $('#saveForm input[name=doc_url]').val('')
@@ -162,7 +153,6 @@ $(document).ready(function () {
             },
             fail: function (xhr, status, errorThrown) {
                 alert(gettext('發生未知錯誤！請聯絡管理員'))
-
                 console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
             }
         })
@@ -182,42 +172,47 @@ $(document).ready(function () {
             checked = false
         }
 
+        // 判斷必填
+        if ($('select[name=resource_type]').find(':selected').val() == 'file') {
+            if ($('#saveForm .file_field input[name=url]').val() == '') {
+                $('#file_error').removeClass('d-none')
+                checked = false
+            } else {
+                url = $('#saveForm .file_field input[name=url]').val()
+            }
+        } else if ($('select[name=resource_type]').find(':selected').val() == 'doc-link') {
 
-    if ($('select[id="file_type"]').find(':selected').val() == 'file') {
+            if ($('#saveForm .doc-link_field input[name=doc_url]').val() == '') {
+                checked = false
+            } else {
+                url = $('#saveForm .doc-link_field input[name=doc_url]').val()
+            }
 
-        if ($('#saveForm .file_field input[name=url]').val() == '') {
-            $('#file_error').removeClass('d-none')
-            checked = false
         } else {
-            url = $('#saveForm .file_field input[name=url]').val()
+
+            if ($('#saveForm .link_field input[name=url]').val() == '') {
+                $('#link_error').removeClass('d-none')
+                checked = false
+            } else {
+                url = $('#saveForm .link_field input[name=url]').val()
+            }
         }
-
-    } else {
-
-        if ($('#saveForm .link_field input[name=url]').val() == '') {
-            $('#link_error').removeClass('d-none')
-            checked = false
-        } else {
-            url = $('#saveForm .link_field input[name=url]').val()
-        }
-
-    }
-
 
         if (checked) {
 
             $.ajax({
                 type: 'POST',
                 url: "/submit_resource",
-                data: { 'url': url, 
-                        'type': $('#saveForm select[name=resource_type]').find(":selected").val(), 
-                        'lang': $('#saveForm select[name=resource_lang]').find(":selected").val(), 
-                        'resource_id': $('#saveForm input[name=resource_id]').val(), 
-                        'publish_date': $('#saveForm input[name=publish_date]').val(), 
-                        'title': $('#saveForm input[name=title]').val(),
-                        'doc_url': $('#saveForm input[name=doc_url]').val(),
-                        'file_type':  $('#saveForm select[id=file_type]').find(":selected").val() 
-                    },
+                data: {
+                    'url': url,
+                    'content_type': $('#saveForm select[name=content_type]').find(":selected").val(),
+                    'resource_type': $('#saveForm select[name=resource_type]').find(":selected").val(),
+                    'lang': $('#saveForm select[name=resource_lang]').find(":selected").val(),
+                    'resource_id': $('#saveForm input[name=resource_id]').val(),
+                    'publish_date': $('#saveForm input[name=publish_date]').val(),
+                    'title': $('#saveForm input[name=title]').val(),
+                    'doc_url': $('#saveForm input[name=doc_url]').val(),
+                },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
                     window.location = '/manager/system/resource?menu=resource';
@@ -254,8 +249,6 @@ $(document).ready(function () {
 
 })
 
-
-
 function changePage(page, menu) {
     $.ajax({
         url: `/change_manager_page?page=${page}&menu=${menu}`,
@@ -265,13 +258,10 @@ function changePage(page, menu) {
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
-
-
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
-            if (response.total_page > 0){
-                //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
+            if (response.total_page > 0) {
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
                     <a class="num changePage" data-page="1" data-type="${menu}">1</a>
@@ -279,12 +269,6 @@ function changePage(page, menu) {
                     <a class="next">下一頁<span></span></a>
                     <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                     </div>`)
-                //}		
-
-                // let menu = ''
-                // if (menu == 'resource') {
-                //     menu = 'list'
-                // }
 
                 let html = ''
                 for (let i = 0; i < response.page_list.length; i++) {
@@ -329,4 +313,3 @@ function changePage(page, menu) {
     });
 
 }
-

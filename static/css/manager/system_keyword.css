@@ -37,7 +37,6 @@
 }
 
 .nohover {
-    /*pointer-events: none;*/
     text-align: center
 }
 
@@ -88,7 +87,6 @@
     min-height: calc(100% - 340px);
 }
 
-
 .noticbox {
     display: flex;
     align-items: center;
@@ -117,6 +115,6 @@
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }

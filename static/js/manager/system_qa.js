@@ -26,8 +26,6 @@ window.onpopstate = function (e) {
     }
 };
 
-
-
 function delete_qa(qa_id) {
     $.ajax({
         type: 'POST',
@@ -40,7 +38,6 @@ function delete_qa(qa_id) {
         }
     })
 }
-
 
 $(document).ready(function () {
 
@@ -61,15 +58,9 @@ $(document).ready(function () {
         changeURL(menu)
     })
 
-    // $('.changePage').on('click', function () {
-    //     changePage($(this).data('page'), $(this).data('type'))
-    // })
-
-
     $('.delete_qa').on('click', function () {
         delete_qa($(this).data('qa_id'))
     })
-
 
     $('#publish').on('click', function () {
         let checked = true;
@@ -122,7 +113,6 @@ $(document).ready(function () {
         $(this).closest("li").find(".second_menu").slideToggle();
     });
 
-
     $(".second_menu a").on("click", function (event) {
         $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
         $(".second_menu a").removeClass("now");
@@ -131,8 +121,6 @@ $(document).ready(function () {
     });
 
 })
-
-
 
 function changePage(page, menu) {
     $.ajax({
@@ -143,13 +131,11 @@ function changePage(page, menu) {
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
-            
+
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
             // 修改頁碼
-            //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
-
-            if (response.total_page > 0){
+            if (response.total_page > 0) {
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
                 <a  class="num changePage" data-page="1" data-type="${menu}">1</a>
@@ -201,4 +187,3 @@ function changePage(page, menu) {
     });
 
 }
-

@@ -23,8 +23,7 @@ window.onpopstate = function (e) {
     }
 };
 
-
-function extendDue(sdr_id){
+function extendDue(sdr_id) {
 
     $(".loading_area").removeClass('d-none');
 
@@ -32,25 +31,24 @@ function extendDue(sdr_id){
         url: "/manager/extend/" + sdr_id,
         type: 'GET',
     })
-    .done(function (response) {
+        .done(function (response) {
 
-        alert('修改完成')
-        window.location.reload()
+            alert('修改完成')
+            window.location.reload()
 
-    })
-    .fail(function (xhr, status, errorThrown) {
-        $(".loading_area").addClass('d-none');
+        })
+        .fail(function (xhr, status, errorThrown) {
+            $(".loading_area").addClass('d-none');
 
-        alert(gettext('發生未知錯誤！請聯絡管理員'))
-        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 
 }
 
 function showRequest(query_id, query, sdr_id) {
 
     $(".loading_area").removeClass('d-none');
-
 
     $.ajax({
         url: "/get_request_detail?query_id=" + query_id + '&sdr_id=' + sdr_id,
@@ -59,7 +57,6 @@ function showRequest(query_id, query, sdr_id) {
         .done(function (response) {
 
             $(".loading_area").addClass('d-none')
-
 
             $('.detail-pop .send-check').removeClass('d-none')
             $('.detail-pop .send-submitted').addClass('d-none')
@@ -82,8 +79,6 @@ function showRequest(query_id, query, sdr_id) {
             $('.detail-pop input[name=project_name] ').val(response.detail.project_name)
             $('.detail-pop textarea[name=abstract] ').val(response.detail.abstract)
             $('.detail-pop input[name=applicant_user_id] ').val(response.detail.applicant_user_id)
-            // $('.detail-pop .applicant_list').html('')
-            // $('.detail-pop .applicant_list').addClass('d-none')
 
             if (response.detail.is_agreed_report == true) {
                 $('.detail-pop input[name=is_agreed_report]').prop('checked', true);
@@ -102,29 +97,6 @@ function showRequest(query_id, query, sdr_id) {
                 $('.detail-pop input[name=project_affiliation] ').val(response.detail.project_affiliation)
                 $('.detail-pop input[name=principal_investigator] ').val(response.detail.principal_investigator)
             }
-
-            // if (response.detail.refs.length > 0) {
-            //     for (rr of response.detail.refs){
-            //         if (rr['file']){
-            //             file = `<a class="search-again-a" href="/media/${rr['file']}">${ rr['file'].replace('sensitive_report/','')}</a>`
-            //         } else {
-            //             file = ''
-            //         }
-            //         $('.applicant_list').append(`
-                        
-            //             計畫名稱：${rr['project_name']}
-            //             <br>
-            //             成果描述：${rr['content']}
-            //             <br>
-            //             成果檔案：${file}
-            //             <hr>
-                        
-            //             `)
-            //     }
-            // } else {
-            //     $('.applicant_list').append('無')
-            // }
-
 
             $('.apply_peo .item_set1').remove()
             if (response.detail.users.length > 0) {
@@ -177,14 +149,12 @@ function changePage(page, menu) {
         type: 'GET',
         success: function (response) {
 
-
             // 保留表格 header 修改表格內容
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
 
             // 修改頁碼
             $(`.${menu}_table`).parent().next('.page_number').remove()
-            //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
 
             if (response.total_page > 0) {
 
@@ -195,15 +165,6 @@ function changePage(page, menu) {
                         <a class="next">下一頁<span></span></a>
                         <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                     </div>`)
-                //}		
-
-                // if (menu == 'sensitive_apply') {
-                //     menu = 'sensitive'
-                // } else {
-                //     menu = menu
-                // }
-
-                // let menu = 'sensitive_apply'
 
                 let html = ''
                 for (let i = 0; i < response.page_list.length; i++) {
@@ -288,30 +249,6 @@ $(document).ready(function () {
         $('.submit-check').addClass('d-none')
     })
 
-    // $('.updateFeedback').on('click', function () {
-    //     let current_id = $(this).data('fid');
-    //     $.ajax({
-    //         url: "/update_feedback",
-    //         data: {
-    //             'current_id': current_id,
-    //             'csrfmiddlewaretoken': $csrf_token,
-    //         },
-    //         type: 'POST',
-    //         dataType: 'json',
-    //     })
-    //         .done(function (response) {
-    //             alert('修改完成')
-    //             window.location.reload()
-    //         })
-    //         .fail(function (xhr, status, errorThrown) {
-    //             alert(gettext('發生未知錯誤！請聯絡管理員'))
-
-    //             console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-    //         })
-    // })
-
-
-
     $('.showRequest').on('click', function () {
         let query_id = $(this).data('query_id');
         let query = $(this).data('query');
@@ -323,15 +260,7 @@ $(document).ready(function () {
         // remove all notice first
         $('.noticbox').addClass('d-none')
         let checked = true;
-        // 這邊的判斷不能直接用input -> 加上forloop counter?
-        /*if (!$('input[name=link]').val()){ 
-            $('input[name=link]').next('.noticbox').css('display','')
-            checked = false
-        }  
-        if (!$('input[name=description]').val()){ 
-            $('input[name=description]').next('.noticbox').css('display','')
-            checked = false
-        }  */
+
         if (checked) {
             $.ajax({
                 url: "/update_partner_info",
@@ -375,49 +304,6 @@ $(document).ready(function () {
         $(this).parent().parent('li').addClass('now')
     });
 
-    // $('.send-check').on('click', function () {
-    //     let checked = true;
-
-    //     if ((!$(`#reviewForm input[name=reviewer_name]`).val()) | (!$(`#reviewForm textarea[name=comment]`).val())) {
-    //         checked = false;
-    //     }
-
-    //     if (checked) {
-    //         $('.submit-check').removeClass('d-none')
-    //     } else {
-    //         alert('請完整填寫審核意見表格')
-    //     }
-    // })
-
-    // $('.send_review').on('click', function () {
-    //     $.ajax({
-    //         url: "/submit_sensitive_response",
-    //         type: 'POST',
-    //         data: $('#reviewForm').serialize() + '&csrfmiddlewaretoken=' + $csrf_token,
-    //         dataType: 'json'
-    //     })
-    //     .done(function (response) {
-    //         alert('送出成功')
-    //         window.location.reload()
-    //     })
-    //     .fail(function (xhr, status, errorThrown) {
-    //         alert(gettext('發生未知錯誤！請聯絡管理員'))
-    //         console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-    //     })
-    // })
-
-    // $('.accordion').on('click', function () {
-    //     if ($(this).hasClass('active')) {
-    //         $(this).removeClass('active')
-    //         $(this).next('.panel').removeClass('d-block').addClass('d-none')
-    //     } else {
-    //         $('.accordion').not(this).removeClass('active')
-    //         $('.accordion').not(this).next('.panel').removeClass('d-block').addClass('d-none')
-    //         $(this).addClass('active')
-    //         $(this).next('.panel').addClass('d-block').removeClass('d-none')
-    //     }
-    // })
-
     $('.save_btn').on('click', function () {
         update_user_status($(this).data('id'))
     })
@@ -426,7 +312,7 @@ $(document).ready(function () {
     $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();
     $(`.rightbox_content.${$('input[name=menu]').val()}`).removeClass('d-none')
 
-    $('.applicant_refs').on('click', function(){
+    $('.applicant_refs').on('click', function () {
         $("#downloadApplicantReport").submit()
     })
 
@@ -444,16 +330,16 @@ function update_user_status(current_id) {
         type: 'POST',
         dataType: 'json',
     })
-    .done(function (response) {
-        if (response['exceed_ten']) {
-            alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
-            location.reload()
-        } else {
-            alert('修改完成')
-        }
-    })
-    .fail(function (xhr, status, errorThrown) {
-        alert(gettext('發生未知錯誤！請聯絡管理員'))
-        console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-    })
+        .done(function (response) {
+            if (response['exceed_ten']) {
+                alert('修改失敗！每單位最多只能有10個狀態為通過的帳號')
+                location.reload()
+            } else {
+                alert('修改完成')
+            }
+        })
+        .fail(function (xhr, status, errorThrown) {
+            alert(gettext('發生未知錯誤！請聯絡管理員'))
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 }

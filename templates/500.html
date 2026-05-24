@@ -1,18 +1,20 @@
 {% extends './base.html' %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="/static/css/404.css?v1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/404.css' %}" />
 {% endblock style %}
-{% block title %}{% trans '錯誤' %}｜{% endblock %}
+{% block title %}
+    {% trans '錯誤' %}｜
+{% endblock %}
 {% block body %}
-<div class="error">
-    <p class="content">
-        {% if LANGUAGE_CODE == 'en-us' %}
-        We can't find the page you are looking for. If you have any questions, please <a class="showFeedback">contact us</a>.
-        {% else %}
-        您要求的網址不存在或有錯誤，若有疑問請<a class="showFeedback">聯絡我們</a>，謝謝。
-        {% endif %}
-    </p>
-</div>
+    <div class="error">
+        <p class="content">
+            {% if LANGUAGE_CODE == 'en-us' %}
+                We can't find the page you are looking for. If you have any questions, please <a class="showFeedback">contact us</a>.
+            {% else %}
+                您要求的網址不存在或有錯誤，若有疑問請<a class="showFeedback">聯絡我們</a>，謝謝。
+            {% endif %}
+        </p>
+    </div>
 {% endblock body %}

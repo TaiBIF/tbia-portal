@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     # google provider
     'allauth.socialaccount.providers.google',
-    # 'django_quill',
+    'django_ses'
 ]
 
 SITE_ID = 1 # oauth
@@ -102,9 +102,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
+    'conf.csp_middleware.DynamicCSPMiddleware',
 ]
 
 ROOT_URLCONF = 'conf.urls'
@@ -124,7 +125,8 @@ TEMPLATES = [
                 'pages.custom_context_processor.get_partners',
                 'pages.custom_context_processor.get_index_partners',
                 'pages.custom_context_processor.get_index_collaborates',
-                'pages.custom_context_processor.today'
+                'pages.custom_context_processor.today',
+                'conf.context_processors.turnstile',
             ],
         },
     },
@@ -171,8 +173,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -187,10 +187,6 @@ LOCALE_PATHS = (
 )
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-# STATIC_ROOT = ''
-# STATIC_URL = '/static/'
-# STATICFILES_DIRS = [os.path.join('static'),]
 
 default_static_dir = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
@@ -225,113 +221,102 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 # email
 EMAIL_BACKEND = 'django_ses.SESBackend'
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
 AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
 
 
-
 CKEDITOR_UPLOAD_PATH = "uploads/"
-
-# CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
-
-# CKEDITOR_FILENAME_GENERATOR = 'utils.get_filename'
-
-# CKEDITOR_CONFIGS = {
-#    'default': {
-#        'height': 'full', 
-#        'width': 'full', 
-#        'toolbar_Full': [
-#             ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
-#             ['Link', 'Unlink', 'Anchor'],
-#             ['Image', 'Flash', 'Table', 'HorizontalRule'],
-#             ['TextColor', 'BGColor'],
-#             ['Smiley', 'SpecialChar'], ['Source'],
-#             ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-#             ['NumberedList','BulletedList'],
-#             ['Indent','Outdent'],
-#             ['Maximize'],
-#             # ['Save', 'NewPage', 'Preview', 'Print', '-', 'Templates'],
-#         ],
-#         'extraPlugins': 'justify,liststyle,indent',
-#    },
-# }
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20*1024*1024
 
 
-
 CSRF_TRUSTED_ORIGINS = ['https://dev.tbiadata.tw','https://tbiadata.tw']
 
 
+from csp.constants import SELF
 
-# Content Security Policy 
-CSP_DEFAULT_SRC = ("'self'",) 
-CSP_FRAME_SRC = ("'self'","https://www.google.com/","https://www.youtube.com/") 
-CSP_CONNECT_SRC = ("'self'","https://www.google-analytics.com/","https://analytics.google.com/","https://stats.g.doubleclick.net/","https://accounts.google.com/o/oauth2/auth") 
-CSP_STYLE_SRC = ["'self'",
-    "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
-    "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
-    "https://fonts.googleapis.com/",
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
-    "https://cdn.quilljs.com/1.3.6/quill.snow.css",
-    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css",
-    "https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"
-]
-
-# CSP_IMG_SRC = ("'self'","*","data: *") 
-CSP_IMG_SRC = ("'self'",
-               "data: http://www.w3.org/2000/svg",
-               # 地圖
-               "https://tile.openstreetmap.org/",
-               "https://www.googletagmanager.com/",
-               "https://cdnjs.cloudflare.com/ajax/libs/leaflet/",
-               "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/",
-               "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
-               # 生命大百科
-               "https://data.taieol.tw/",
-               # 各單位資料 - 改由media rule加上去
-               ) 
-
-CSP_MEDIA_SRC = ("'self'") 
-CSP_STATIC_SRC = ("'self'") 
-CSP_FORM_ACTION = ("'self'","https://accounts.google.com/") 
-# CSP_FORM_ACTION = ("'self'","*") 
-CSP_FRAME_ANCESTORS = ("'self'") 
-CSP_FONT_SRC = ("'self'",
-"https://fonts.googleapis.com/",
-"https://fonts.gstatic.com/"
-) 
-
-CSP_SCRIPT_SRC = ["'self'", 
-    'https://www.google.com/recaptcha/api.js',
-    "https://www.googletagmanager.com/",
-    "https://www.google-analytics.com/",
-    'https://platform.twitter.com/',
-    'https://www.line-website.com/',
-    "https://code.jquery.com/jquery-3.7.1.min.js",
-    "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.js",
-    "https://code.highcharts.com/highcharts.js",
-    "https://code.highcharts.com/modules/exporting.js",
-    "https://code.highcharts.com/modules/export-data.js",
-    "https://code.highcharts.com/modules/accessibility.js",
-    "https://code.highcharts.com/modules/treemap.js",
-    "https://code.highcharts.com/modules/broken-axis.js",
-    "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js", 
-    "data: http://www.w3.org/2000/svg", 
-    "https://www.gstatic.com/",
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js',
-    "https://unpkg.com/@turf/turf@6/turf.min.js",
-    # "'unsafe-inline'",
-    "https://cdn.quilljs.com/1.3.6/quill.js",
-    "https://unpkg.com/terraformer@1.0.7/terraformer.js",
-    "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
-    "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js",
-    "https://code.jquery.com/ui/1.14.1/jquery-ui.js"
-]
-
-# <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": [SELF],
+        "frame-src": [SELF, "https://www.google.com/", "https://www.youtube.com/", "https://challenges.cloudflare.com/"],
+        "connect-src": [
+            SELF,
+            "https://www.google-analytics.com/",
+            "https://analytics.google.com/",
+            "https://stats.g.doubleclick.net/",
+            "https://accounts.google.com/o/oauth2/auth",
+        ],
+        "style-src": [
+            SELF,
+            "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.css",
+            "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
+            "https://fonts.googleapis.com/",
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
+            "https://cdn.quilljs.com/1.3.6/quill.snow.css",
+            "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css",
+            "https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css",
+        ],
+        "img-src": [
+            SELF,
+            "data: http://www.w3.org/2000/svg",
+            "https://tile.openstreetmap.org/",
+            "https://www.googletagmanager.com/",
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/",
+            "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/",
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/",
+            "https://data.taieol.tw/",
+        ],
+        "media-src": [SELF],
+        "font-src": [SELF, "https://fonts.googleapis.com/", "https://fonts.gstatic.com/"],
+        "form-action": [SELF, "https://accounts.google.com/"],
+        "frame-ancestors": [SELF],
+        "script-src": [
+            SELF,
+            "https://www.google.com/recaptcha/api.js",
+            "https://www.googletagmanager.com/",
+            "https://www.google-analytics.com/",
+            "https://platform.twitter.com/",
+            "https://www.line-website.com/",
+            "https://code.jquery.com/jquery-3.7.1.min.js",
+            "https://cdn.datatables.net/v/dt/dt-1.12.1/datatables.min.js",
+            "https://code.highcharts.com/highcharts.js",
+            "https://code.highcharts.com/modules/exporting.js",
+            "https://code.highcharts.com/modules/export-data.js",
+            "https://code.highcharts.com/modules/accessibility.js",
+            "https://code.highcharts.com/modules/treemap.js",
+            "https://code.highcharts.com/modules/broken-axis.js",
+            "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js",
+            "data: http://www.w3.org/2000/svg",
+            "https://www.gstatic.com/",
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js",
+            "https://unpkg.com/@turf/turf@6/turf.min.js",
+            "https://cdn.quilljs.com/1.3.6/quill.js",
+            "https://unpkg.com/terraformer@1.0.7/terraformer.js",
+            "https://unpkg.com/terraformer-wkt-parser@1.1.2/terraformer-wkt-parser.js",
+            "https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js",
+            "https://code.jquery.com/ui/1.14.1/jquery-ui.js",
+            "https://challenges.cloudflare.com/"
+        ],
+    }
+}
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# 自動更新靜態檔案
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "conf.storages.LenientManifestStaticFilesStorage",
+    },
+}
+
+# Cookie 安全屬性
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True 
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+TURNSTILE_SITE_KEY = env('TURNSTILE_SITE_KEY')
+TURNSTILE_SECRET_KEY = env('TURNSTILE_SECRET_KEY')

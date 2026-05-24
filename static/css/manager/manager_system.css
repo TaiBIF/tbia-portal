@@ -37,7 +37,6 @@
 }
 
 .nohover {
-    /*pointer-events: none;*/
     text-align: center
 }
 
@@ -72,7 +71,7 @@
     width: 25% !important;
 }
 
-.panel-select-rightsholder  {
+.panel-select-rightsholder {
     width: 40% !important;
 }
 
@@ -86,7 +85,6 @@
         width: 100% !important;
     }
 }
-
 
 @media only screen and (max-width: 767px) {
     .main_1240 input, .main_1240 select {
@@ -107,7 +105,6 @@
 .main_1240 {
     min-height: calc(100% - 340px);
 }
-
 
 .noticbox {
     display: flex;
@@ -137,7 +134,7 @@
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }
 
@@ -156,7 +153,6 @@
 .w-33p {
     width: 33%;
 }
-
 
 .mt-15px {
     margin-top: 15px
@@ -182,7 +178,6 @@
     font-size: 18px;
 }
 
-
 #keyword-stat-list {
     margin-top: 10px;
     margin-left: 20px;
@@ -203,30 +198,20 @@ hr {
     border: 0.5px solid lightgrey;
 }
 
-
 .small-gray-text {
     font-size: 14px;
     color: grey;
     line-height: 32px;
 }
 
-
 .hide {
     display: none;
-  }
+}
 
-  .box-title > .qmark-hover:hover + .hide {
+.box-title>.qmark-hover:hover+.hide {
     display: block;
-    /* color: grey; */
     margin-left: 5px;
 }
-  
-
-
-/* .panel-range-select {
-    width: 25% !important;
-} */
-
 
 .panel-select-text {
     line-height: 35px;
@@ -237,14 +222,13 @@ hr {
     height: 35px;
 }
 
-#partner-temporal-year-slider, #portal-temporal-year-slider  {
+#partner-temporal-year-slider, #portal-temporal-year-slider {
     height: 10px;
 }
 
 #partner-temporal-year-slider .noUi-connect, #portal-temporal-year-slider .noUi-connect {
     background: #72A0C1;
 }
-
 
 #partner-temporal-year-slider .noUi-handle, #portal-temporal-year-slider .noUi-handle {
     height: 18px;
@@ -253,8 +237,6 @@ hr {
     right: -9px;
     border-radius: 9px;
 }
-
-
 
 .panel-range-select {
     width: 50%;
@@ -267,7 +249,7 @@ hr {
     position: relative;
     display: inline-block;
 }
-  
+
 .tooltip .tooltiptext {
     font-size: 14px;
     visibility: hidden !important;
@@ -285,7 +267,6 @@ hr {
 .tooltip:hover .tooltiptext {
     visibility: visible !important;
 }
-  
 
 .gold {
     color: #FFD700;
@@ -306,7 +287,7 @@ hr {
 }
 
 #partner-map, #portal-map {
-    height: 450px; 
+    height: 450px;
     margin: 15px
 }
 
@@ -318,86 +299,6 @@ hr {
 .margin-bottom-0 {
     margin-bottom: 0 !important;
 }
-
-/* 
-div.count-100000 {
-    border: none;
-    background: #bd0026;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-50000 {
-    border: none;
-    background: #e31a1c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-10000 {
-    border: none;
-    background: #fc4e2a;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-5000 {
-    border: none;
-    background: #fd8d3c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-1000 {
-    border: none;
-    background: #feb24c;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-100 {
-    border: none;
-    background: #fed976;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-10 {
-    border: none;
-    background: #ffeda0;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-}
-
-
-div.count-1 {
-    border: none;
-    background: #ffffcc;
-    width: 25px;
-    height: 25px;
-    border-radius: 100px;
-    transform: scale(0.5, 0.5);
-} */
 
 .feedback_btn {
     color: #FFF;
@@ -421,7 +322,6 @@ div.count-1 {
     -webkit-transition: all .3s;
 }
 
-
 .expired-p {
     font-size: 14px;
     color: #C65454;
@@ -435,7 +335,6 @@ div.count-1 {
 .mr-5px {
     margin-right: 5px;
 }
-
 
 .first_td_table tr td:first-child {
     text-align: left;

@@ -1,56 +1,39 @@
-
 .sensitive_table td {
     text-align: center !important;
-} 
+}
 
-.sensitive_table td:nth-child(1),  .sensitive_table td:nth-child(2),   .sensitive_table td:nth-child(3) {
+.sensitive_table td:nth-child(1), .sensitive_table td:nth-child(2), .sensitive_table td:nth-child(3) {
     width: 12.5% !important;
-} 
+}
 
-.sensitive_table td:nth-child(4), .sensitive_table td:nth-child(5), .sensitive_table td:nth-child(7), .sensitive_table td:nth-child(8){
+.sensitive_table td:nth-child(4), .sensitive_table td:nth-child(5), .sensitive_table td:nth-child(7), .sensitive_table td:nth-child(8) {
     width: 10% !important;
-} 
+}
 
 .sensitive_table td:nth-child(6) {
     width: 12.5% !important;
-} 
+}
 
-.download_table td:nth-child(2), .download_taxon_table td:nth-child(2)
-/* , .sensitive_table td:nth-child(2)  */
-{
+.download_table td:nth-child(2), .download_taxon_table td:nth-child(2) {
     min-width: 125px;
     max-width: 125px;
 
 }
 
-
-.download_table td:nth-child(3), .download_taxon_table td:nth-child(3)
-/* , .sensitive_table td:nth-child(3)  */
-{
+.download_table td:nth-child(3), .download_taxon_table td:nth-child(3) {
     text-align: center;
     min-width: 150px;
     max-width: 150px;
 }
 
-.download_table td:nth-child(5), .download_taxon_table td:nth-child(5), 
-/* .sensitive_table td:nth-child(6), */
-.download_table td:nth-child(6), .download_taxon_table td:nth-child(6) 
-/* , .sensitive_table td:nth-child(7) */
- {
+.download_table td:nth-child(5), .download_taxon_table td:nth-child(5),
+.download_table td:nth-child(6), .download_taxon_table td:nth-child(6) {
     min-width: 95px
 }
-
-/* 
-.sensitive_table td:nth-child(7)
-{
-    min-width: 140px
-
-} */
 
 .notification_table tr:not(:first-child) td:nth-child(2n) {
     text-align: left
 }
-
 
 td hr {
     border-top: 1px dashed grey;
@@ -150,6 +133,7 @@ td hr {
         width: 100%;
     }
 }
+
 .main_1240 {
     min-height: calc(100% - 340px);
 }
@@ -198,36 +182,34 @@ td hr {
 }
 
 .ag-style {
-    color: #bd7b7b; 
+    color: #bd7b7b;
     font-size: 15px
 }
 
 .box-title {
-    display: flex; 
+    display: flex;
     color: black
 }
 
 .table-flow {
-    overflow-x: auto; 
+    overflow-x: auto;
     margin-top: 10px
 }
 
 .chebox:checked {
     background: url("/static/image/checkmark.svg") no-repeat center;
-    background-color:  #76A578;
-    color: #FFF ;
-    /*display: block;*/
+    background-color: #76A578;
+    color: #FFF;
 }
 
 .chebox:disabled {
     background: url("/static/image/checkmark.svg") no-repeat center;
     background-color: #ddd;
-    color: #FFF ;
-    /*display: block;*/
+    color: #FFF;
 }
 
 .chebox {
-    background-color:  #FFF;
+    background-color: #FFF;
     width: 25px !important;
     height: 25px !important;
     border-radius: 5px;
@@ -324,10 +306,6 @@ td hr {
     margin-right: 15px
 }
 
-
-
-
-
 .form-control {
     display: block;
     width: 50%;
@@ -387,7 +365,6 @@ td hr {
     transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out
 }
 
-
 .h-250px {
     height: 250px !important;
 }
@@ -396,12 +373,11 @@ td hr {
     font-size: 16px;
 }
 
-
 .tooltip {
     position: relative;
     display: inline-block;
 }
-  
+
 .tooltip .tooltiptext {
     font-size: 14px;
     visibility: hidden !important;
@@ -419,4 +395,3 @@ td hr {
 .tooltip:hover .tooltiptext {
     visibility: visible !important;
 }
-  

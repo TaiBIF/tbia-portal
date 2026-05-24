@@ -1,117 +1,123 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
 {% load tags %}
-{% block title %}{% trans '關於TBIA' %}｜{% endblock %}
+{% block title %}
+    {% trans '關於TBIA' %}｜
+{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/about.css' %}?v1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pages/about.css' %}" />
 {% endblock style %}
 {% block body %}
-	<div class="path">
-		<div class="main_1240">
-			<a href="{% url 'index' %}" class="home"></a> <span>></span>
-			<p>{% trans '關於TBIA' %}</p>
-		</div>
-	</div>
-	<div class="about_bn">
-		<div class="bg_area">
-			<div class="rel">
-				<div class="bgcolor"></div>
-				<div class="bg_pattern"></div>
-				<div class="bird">
-					<img src="{% static 'image/bird_right.svg' %}" alt="{% trans '關於TBIA' %}">
-				</div>
-			</div>
-		</div>
-		<div class="main_1240">
-			<div class="abtitlebox" id="about">
-				<h2>{% trans '關於TBIA' %}</h2>
-				{% comment %} <p>ABOUT</p> {% endcomment %}
-			</div>
-			<div class="w_bg">
-				<div class="leftbox">
-					<h3>臺灣生物多樣性資訊聯盟</h3>
-					<h3>Taiwan Biodiversity Information Alliance, TBIA</h3>
-					<p class="marb_40 content-area">
-						{{ content }}
-					</p>
-					<div class="d-flex-jc-sb">
-					<a target="_blank" href="https://github.com/TBIA/MOU-public-documents" class="linktogithub w-48p ">
-						<img src="{% static 'image/github.svg' %}" alt="TBIA GitHub">
-						<span class="ml-10px">TBIA GitHub</span>
-					</a>
-					<a target="_blank" href="/media/{{ url }}" class="linktogithub w-48p ">
-						<span>{% trans '聯盟章程' %}</span>
-					</a>
-					</div>
-				</div>
-				<div class="rightbox">
-					<div class="imgbox">
-						<img class="tbia_pic" src="{% static 'image/abimg1.svg' %}" alt="TBIA 臺灣生物多樣性資訊聯盟">
-						<div class="man">
-							<img src="{% static 'image/actpeople.png' %}">
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="about_video">
-		<div class="bg"></div>
-		<div class="main_1240">
-			<div class="ani">
-				<img src="{% static 'image/aban2.svg' %}">
-			</div>
-			<iframe width="1182" height="665" src="https://www.youtube.com/embed/hsqvsMiqbsg?si=yhXQu1I1OF9dg5vp" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-		</div>
-	</div>
-	<div class="about_part" id="partner">
-		<div class="title">
-			<h3>{% trans '正式會員' %}</h3>
-		</div>
-		<div class="main_1240">
-			<ul class="part_list">
-				{% for p in index_partners %}
-				<li>
-					<a href="{% url 'partner' p.abbreviation %}" class="cirimg">
-						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
-					</a>
-					<a href="{% url 'partner' p.abbreviation %}" class="titleline">
-						{% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
-							{{ p.title_en }}
-						{% else %}
-							{{ p.title }}
-						{% endif %}
-					</a>
-				</li>
-				{% endfor %}
-			</ul>
-		</div>
-	</div>
-	{% if index_collaborates|length > 0 %}
-	<div class="about_part" id="collaboration">
-		<div class="title">
-			<h3>{% trans '合作夥伴' %}</h3>
-		</div>
-		<div class="main_1240">
-			<ul class="part_list">
-				{% for p in index_collaborates %}
-				<li>
-					<a href="{% url 'collaboration' p.abbreviation %}" class="cirimg">
-						<img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
-					</a>
-					<a href="{% url 'collaboration' p.abbreviation %}" class="titleline">
-						{% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
-							{{ p.title_en }}
-						{% else %}
-							{{ p.title }}
-						{% endif %}
-					</a>
-				</li>
-				{% endfor %}
-			</ul>
-		</div>
-	</div>
-	{% endif %}
-
+    <div class="path">
+        <div class="main_1240">
+            <a href="{% url 'index' %}" class="home"></a> <span>></span>
+            <p>{% trans '關於TBIA' %}</p>
+        </div>
+    </div>
+    <div class="about_bn">
+        <div class="bg_area">
+            <div class="rel">
+                <div class="bgcolor"></div>
+                <div class="bg_pattern"></div>
+                <div class="bird">
+                    <img src="{% static 'image/bird_right.svg' %}" alt="{% trans '關於TBIA' %}">
+                </div>
+            </div>
+        </div>
+        <div class="main_1240">
+            <div class="abtitlebox" id="about">
+                <h2>{% trans '關於TBIA' %}</h2>
+                {% comment %} <p>ABOUT</p> {% endcomment %}
+            </div>
+            <div class="w_bg">
+                <div class="leftbox">
+                    <h3>臺灣生物多樣性資訊聯盟</h3>
+                    <h3>Taiwan Biodiversity Information Alliance, TBIA</h3>
+                    <p class="marb_40 content-area">{{ content }}</p>
+                    <div class="d-flex-jc-sb">
+                        <a target="_blank" href="https://github.com/TBIA/MOU-public-documents" class="linktogithub w-48p ">
+                            <img src="{% static 'image/github.svg' %}" alt="TBIA GitHub">
+                            <span class="ml-10px">TBIA GitHub</span>
+                        </a>
+                        <a target="_blank" href="/media/{{ url }}" class="linktogithub w-48p ">
+                            <span>{% trans '聯盟章程' %}</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="rightbox">
+                    <div class="imgbox">
+                        <img class="tbia_pic" src="{% static 'image/abimg1.svg' %}" alt="TBIA 臺灣生物多樣性資訊聯盟">
+                        <div class="man">
+                            <img src="{% static 'image/actpeople.png' %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="about_video">
+        <div class="bg"></div>
+        <div class="main_1240">
+            <div class="ani">
+                <img src="{% static 'image/aban2.svg' %}">
+            </div>
+            <iframe width="1182"
+                    height="665"
+                    src="https://www.youtube.com/embed/hsqvsMiqbsg?si=yhXQu1I1OF9dg5vp"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen></iframe>
+        </div>
+    </div>
+    <div class="about_part" id="partner">
+        <div class="title">
+            <h3>{% trans '正式會員' %}</h3>
+        </div>
+        <div class="main_1240">
+            <ul class="part_list">
+                {% for p in index_partners %}
+                    <li>
+                        <a href="{% url 'partner' p.abbreviation %}" class="cirimg">
+                            <img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
+                        </a>
+                        <a href="{% url 'partner' p.abbreviation %}" class="titleline">
+                            {% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
+                                {{ p.title_en }}
+                            {% else %}
+                                {{ p.title }}
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% if index_collaborates|length > 0 %}
+        <div class="about_part" id="collaboration">
+            <div class="title">
+                <h3>{% trans '合作夥伴' %}</h3>
+            </div>
+            <div class="main_1240">
+                <ul class="part_list">
+                    {% for p in index_collaborates %}
+                        <li>
+                            <a href="{% url 'collaboration' p.abbreviation %}" class="cirimg">
+                                <img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
+                            </a>
+                            <a href="{% url 'collaboration' p.abbreviation %}" class="titleline">
+                                {% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
+                                    {{ p.title_en }}
+                                {% else %}
+                                    {{ p.title }}
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
 {% endblock body %}

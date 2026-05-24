@@ -25,28 +25,22 @@ window.onpopstate = function (e) {
   }
 };
 
-
-
 function changePage(page, menu) {
   $.ajax({
     url: `/change_manager_page?page=${page}&menu=${menu}`,
     type: 'GET',
     success: function (response) {
 
-      
       // 保留表格 header 修改表格內容
       $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
       $(`.${menu}_table`).append(`${response.data}`)
-
       $(`.${menu}_table`).parent().next('.page_number').remove()
 
+      // 如果有response才顯示
 
-      // 如果有response才顯示?
-
-      if (response.total_page > 0){
+      if (response.total_page > 0) {
 
         // 修改頁碼
-        //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
         $(`.${menu}_table`).parent().after(
           `<div class="page_number">
                         <a class="num changePage" data-page="1" data-type="${menu}">1</a>
@@ -54,19 +48,9 @@ function changePage(page, menu) {
                         <a class="next">下一頁<span></span></a>
                         <a class="num changePage" data-page="${response.total_page}" data-type="${menu}">${response.total_page}</a>
                         </div>`)
-        //}		  
-
-        // if (menu == 'list') {
-        //   menu = 'news'
-        // }
-
-        // let menu = 'news'
-        // console.log(menu)
-        // let menu = 'list'
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {
-          // console.log(response.page_list[i])
           if (response.page_list[i] == response.current_page) {
             html += ` <a class="num now changePage" data-page="${response.page_list[i]}" data-type="${menu}">${response.page_list[i]}</a>  `;
           } else {
@@ -216,8 +200,6 @@ function changePage(page, menu) {
     });
   }
 
-
-
 })();
 
 
@@ -245,11 +227,11 @@ $(document).ready(function () {
     changeURL(menu)
   })
 
-    // 類型
-    if ($('input[name=n_type]').val() != ''){
-      $('select[name=type]').val($('input[name=n_type]').val()); 
-      $('select[name=type]').change();
-    } 
+  // 類型
+  if ($('input[name=n_type]').val() != '') {
+    $('select[name=type]').val($('input[name=n_type]').val());
+    $('select[name=type]').change();
+  }
 
   $(`a.${$('input[name=menu]').val()}`).addClass('now')
   $(`a.${$('input[name=menu]').val()}`).parent(".second_menu").slideToggle();
@@ -274,7 +256,6 @@ $(document).ready(function () {
 
     var regex = /(<([^>]+)>)/ig
     check_body = $('.ql-editor').html()
-    //hasText = check_body.replace(regex, "");
 
     if (check_body.replace(regex, "") == '') {
       $('.editor-content').removeClass('d-none')
@@ -286,9 +267,8 @@ $(document).ready(function () {
       $('#newsForm').submit()
     } else {
       alert('請檢查內容是否完整！')
-    } 
+    }
   })
-
 
   $(".mb_fixed_btn").on("click", function (event) {
     $(".mbmove").toggleClass("open");
@@ -301,14 +281,10 @@ $(document).ready(function () {
     $(this).closest("li").find(".second_menu").slideToggle();
   });
 
-
   $(".second_menu a").on("click", function (event) {
     $(this).parent().parent().parent('ul').children('li.now').removeClass("now");
     $(".second_menu a").removeClass("now");
     $(this).addClass("now")
     $(this).parent().parent('li').addClass('now')
   });
-
 })
-
-

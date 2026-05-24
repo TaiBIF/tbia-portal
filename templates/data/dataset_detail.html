@@ -17,11 +17,10 @@
 {% block title %}{{ resp.name }}｜{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/data/dataset_detail.css' %}?v2" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/data/dataset_detail.css' %}" />
 {% endblock style %}
 
 {% block body %}
-
 
 <!--使用者統計popbox-->
 <div class="popbg user-stat-pop d-none" id="userStatModal">
@@ -97,7 +96,6 @@
 						{% endif %}
 						<a href="{{ link }}" class="code" target="_blank">{% trans '來源資料庫' %}：{% trans resp.rights_holder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
 					</div>						
-
 					<div class="short">
 						<p>{% trans '入口網資料集ID' %}：<span id="tbiaDatasetID">{{ resp.tbiaDatasetID|default_if_none:"" }}</span></p>
 						<p>{% trans '來源資料庫資料集ID' %}：
@@ -216,12 +214,8 @@
 		
 			<div class="no_data d-none">{% trans '無資料' %}</div>
 		</div>
-
-
 	</div>
 </div>
-
-
 
 <!-- 物種出現紀錄欄位選擇 -->
 <div class="popbg occ-choice d-none">
@@ -255,7 +249,7 @@
 					<input type="checkbox" class="chebox" id="occ-misapplied">
 					<p>{% trans '誤用名' %}</p>
 				</li>				
-        <li>
+				<li>
 					<input type="checkbox" class="chebox" id="occ-sourceScientificName">
 					<p>{% trans '來源資料庫使用學名' %}</p>
 				</li>
@@ -287,7 +281,6 @@
 					<input type="checkbox" class="chebox" id="occ-taxonID">
 					<p>{% trans 'TaiCOL物種編號' %}</p>
 				</li>
-
 				<li>
 					<input type="checkbox" class="chebox" id="occ-eventDate">
 					<p>{% trans '紀錄日期' %}</p>
@@ -369,11 +362,10 @@
 		</div>
 	</div>
 </div>
-
 {% endblock body %}
 
 {% block script %}
 <script src="{% static 'js/wicket.js' %}"></script>
 <script src="{% static 'js/wicket-leaflet.js' %}"></script>
-<script src="{% static 'js/data/dataset_detail.js' %}?v6"></script>
+<script src="{% static 'js/data/dataset_detail.js' %}"></script>
 {% endblock script %}

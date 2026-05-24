@@ -1,33 +1,31 @@
-import pandas as pd
-import numpy as np
-import math
-from dateutil import parser
-from datetime import datetime #, timedelta
-import numpy as np
-import bisect
 import os
-from os.path import exists
-from conf.settings import datahub_db_settings
 import psycopg2
-from django.db.models import Q
 import requests
-from conf.settings import SOLR_PREFIX, env
-import html
-import geopandas as gpd
-import shapely.wkt as wkt
-from shapely.geometry import MultiPolygon
 import json
 import re
-from data.solr_query import *
-from pages.templatetags.tags import highlight, process_text_variants
-from django.utils import timezone, translation
-from django.utils.translation import gettext
-from manager.models import User, Partner, SearchStat, SearchQuery, Ark
-from pages.models import News
-from data.models import Municipality
 import threading
 import random
 import string
+import html
+import math
+import pandas as pd
+import numpy as np
+import bisect
+import mimetypes
+from os.path import exists
+from dateutil import parser
+from datetime import datetime
+import geopandas as gpd
+import shapely.wkt as wkt
+from shapely.geometry import MultiPolygon
+from data.solr_query import *
+from pages.templatetags.tags import highlight, process_text_variants
+from conf.settings import SOLR_PREFIX, env, datahub_db_settings
+from django.db.models import Q
+from django.utils import timezone, translation
+from django.utils.translation import gettext
+from manager.models import User, Partner, SearchStat, Ark
+
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -76,11 +74,10 @@ rights_holder_map = {
     '中油生態地圖': 'cpc',
     '作物種原資訊系統': 'npgrc',
     '國立海洋生物博物館生物典藏管理系統': 'nmmba',
+    '愛自然-臺灣(iNaturalist Taiwan)': 'inat'
 }
 
 rights_holder_list = list(rights_holder_map.values())
-
-
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
 
 
@@ -89,7 +86,6 @@ def get_dataset_name(key):
     name = ''
 
     response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
-    # print(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -98,7 +94,6 @@ def get_dataset_name(key):
         if l.get('is_duplicated_name'):
             name += ' ({})'.format(l['rights_holder'])
     return name
-
 
 
 def get_tbia_dataset_id(key):
@@ -153,76 +148,103 @@ def escape_solr_query(string):
     final_string = ''
     for s in string:
         if s in spe_chars:
-            final_string += f'\{s}'
+            final_string += f'\\{s}'  # 用 \\ 表示一個反斜線
         else:
             final_string += s
     return final_string
 
 
-# x: longtitude, y: latitude
-
-
 # 舊的
 old_taxon_group_map_c = {
-    'Plants' : '維管束植物',
-    # 'Others': '其他', 沒有可以對應的 不讓他選
+    'Plants': '維管束植物',
+    'Insects': '昆蟲',
+    'Vascular Plants': '維管束植物',
+    'Ferns': '蕨類植物',
 }
 
 
 taxon_group_map_c = {
-    'Insects' : '昆蟲',
-    'Spiders' : '蜘蛛',
-    'Fishes' : '魚類',
-    'Reptiles' : '爬蟲類',
-    'Amphibians': '兩棲類',
-    'Birds' : '鳥類',
-    'Mammals' : '哺乳類',
-    'Vascular Plants' : '維管束植物',
-    'Ferns' : '蕨類植物',
-    'Mosses' : '苔蘚植物',
-    'Algae' : '藻類',
-    'Viruses': '病毒',
-    'Bacteria': '細菌',
-    'Fungi': '真菌',
-    'Others': '其他'
+    'Birds':	'鳥類',
+    'Reptiles':	'爬蟲類',
+    'Mammals':	'哺乳類',
+    'Beetles':	'甲蟲類',
+    'Fishes':	'魚類',
+    'Amphibians':	'兩棲類',
+    'Moths':	'蛾類',
+    'Butterflies':	'蝶類',
+    'Spiders':	'蜘蛛',
+    'Dragonflies':	'蜻蛉類', 
+    'Snails & Shells':	'蝸牛與貝類', 
+    'Other Insects':	'其他昆蟲',
+    'Crustaceans':	'蝦蟹類',
+    'Gymnosperms':	'裸子植物', 
+    'Angiosperms':	'被子植物',
+    'Ferns':	'蕨類植物',
+    'Mosses':	'苔蘚植物',
+    'Fungi':	'真菌',
+    'Vascular Plants':	'維管束植物',
+    'Insects':	'昆蟲',
+    'Algae':	'藻類',
+    'Viruses':	'病毒',
+    'Bacteria':	'細菌'
 }
 
 taxon_group_map_e = {
-    "昆蟲": "Insects",
-    "蜘蛛": "Spiders",
-    "魚類": "Fishes",
-    "爬蟲類": "Reptiles",
-    "兩棲類": "Amphibians",
-    "鳥類": "Birds",
-    "哺乳類": "Mammals",
-    "維管束植物": "Vascular Plants",
-    "蕨類植物": "Ferns",
-    "苔蘚植物": "Mosses",
-    "藻類": "Algae",
-    "病毒": "Viruses",
-    "細菌": "Bacteria",
-    "真菌": "Fungi",
-    "其他": "Others"
+    '鳥類':	'Birds',
+    '爬蟲類':	'Reptiles',
+    '哺乳類':	'Mammals',
+    '甲蟲類': 	'Beetles',
+    '魚類':	'Fishes',
+    '兩棲類':	'Amphibians',
+    '蛾類': 	'Moths',
+    '蝶類': 	'Butterflies',
+    '蜘蛛':	'Spiders',
+    '蜻蛉類': 	'Dragonflies',
+    '蝸牛與貝類': 	'Snails & Shells',
+    '其他昆蟲':	'Other Insects',
+    '蝦蟹類': 	'Crustaceans',
+    '裸子植物': 	'Gymnosperms',
+    '被子植物': 	'Angiosperms',
+    '蕨類植物':	'Ferns',
+    '苔蘚植物':	'Mosses',
+    '真菌':	'Fungi',
+    '維管束植物':	'Vascular Plants',
+    '昆蟲':	'Insects',
+    '藻類':	'Algae',
+    '病毒':	'Viruses',
+    '細菌':	'Bacteria',
 }
 
 
 taxon_group_map_tbn = {
     "昆蟲": "beetles,butterflies,moths,dragonflies,otherinsects",
-    "蜘蛛": "spiders",
-    "魚類": "fishes",
-    "爬蟲類": "reptiles",
-    "兩棲類": "amphibians",
-    "鳥類": "birds",
-    "哺乳類": "mammals",
+    '甲蟲類':    'beetles',
+    '蛾類':      'moths',
+    '蝶類':      'butterflies',
+    '蜻蛉類':    'dragonflies',
+    '其他昆蟲':  'otherinsects',
+    '蜘蛛':      'spiders',
+    '蝸牛與貝類':'snailsshells',
+    '魚類':      'fishes',
+    '兩棲類':    'amphibians',
+    '爬蟲類':    'reptiles',
+    '鳥類':      'birds',
+    '哺乳類':    'mammals',
+    '蝦蟹類':    'crustaceans',
+    '被子植物':  'angiosperms',
+    '裸子植物':  'gymnosperms',
+    '蕨類植物':  'ferns,lycophytes',
     "維管束植物": "lycophytes,gymnosperms,angiosperms,ferns",
-    "蕨類植物": "ferns",
-    "苔蘚植物": "ferns",
-    # "藻類": "Algae",
-    # "病毒": "Viruses",
-    # "細菌": "Bacteria",
-    "真菌": "fungi",
+    '苔蘚植物':  'mosses',
+    '藻類':      'chromista',
+    '真菌':      'fungi',
 }
 
+
+split_group_map = {
+    '昆蟲': ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲'],
+    '維管束植物': ['被子植物', '裸子植物', '蕨類植物'],
+}
 
 
 def convert_coor_to_grid(x, y, grid):
@@ -231,6 +253,7 @@ def convert_coor_to_grid(x, y, grid):
     grid_x = bisect.bisect(list_x, x)-1
     grid_y = bisect.bisect(list_y, y)-1
     return grid_x, grid_y
+
 
 def convert_grid_to_square(grid_x, grid_y, grid):
     list_x = np.arange(-180, 180+grid, grid)
@@ -241,6 +264,7 @@ def convert_grid_to_square(grid_x, grid_y, grid):
     y2 = round(list_y[grid_y+1],4)
     return [[x1,y1],[x2,y1],[x2,y2],[x1,y2],[x1,y1]]
 
+
 def format_grid(grid_x, grid_y, grid, count):
     dic = {
             "type": "Feature",
@@ -250,6 +274,7 @@ def format_grid(grid_x, grid_y, grid, count):
             }
         }
     return dic
+
 
 rank_list = ['domain', 'superkingdom', 'kingdom', 'subkingdom', 'infrakingdom', 'superdivision', 'division', 'subdivision', 
             'infradivision', 'parvdivision', 'superphylum', 'phylum', 'subphylum', 'infraphylum', 'microphylum', 'parvphylum', 
@@ -520,7 +545,6 @@ download_cols = [
 'scientificNameID',
 'taxonID',
 'match_higher_taxon',
-# 'parentTaxonID',
 'scientificName',
 'name_author',
 'bioGroup',
@@ -542,7 +566,6 @@ download_cols = [
 'genus',
 'genus_c'
 ]
-
 
 
 download_cols_with_sensitive = [
@@ -592,7 +615,6 @@ download_cols_with_sensitive = [
 'scientificNameID',
 'taxonID',
 'match_higher_taxon',
-# 'parentTaxonID',
 'scientificName',
 'name_author',
 'bioGroup',
@@ -629,22 +651,19 @@ sensitive_cols = ['standardRawLatitude',
 'rawMunicipality',
 ]
 
-import mimetypes
 
-def get_media_html(url):
-    mime_type, _ = mimetypes.guess_type(url.split('?')[0])
-    if mime_type:
-        main_type = mime_type.split('/')[0]
-    else:
-        main_type = 'image'
+def get_media_html(url, media_type=None):
+    if not media_type:
+        mime_type, _ = mimetypes.guess_type(url.split('?')[0])
+        media_type = mime_type.split('/')[0] if mime_type else 'image'
 
     err_msg = gettext('多媒體無法正常顯示')
 
-    if main_type == 'image':
+    if media_type == 'image':
         return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
-    elif main_type == 'video':
+    elif media_type == 'video':
         return '<video class="icon-size-50" controls><source src="{}">{}</video>'.format(url, err_msg)
-    elif main_type == 'audio':
+    elif media_type == 'audio':
         return '<audio controls><source src="{}">{}</audio>'.format(url, err_msg)
     else:
         return '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(err_msg, err_msg, url)
@@ -720,16 +739,23 @@ def create_query_display(search_dict,lang=None):
                     if data := resp['response']['docs']:
                         data = data[0]
                         query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
-                # if Taxon.objects.filter(taxonID=search_dict[k]).exists():
-                #     taxon_obj = Taxon.objects.get(taxonID=search_dict[k])
             # 這邊要讓新舊互通 因為舊的會需要再次查詢
             elif k == 'taxonGroup':
-                if search_dict[k] in taxon_group_map_e.keys():
-                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{ taxon_group_map_e[search_dict[k]] if lang == 'en-us' else search_dict[k]}"
-                elif search_dict[k] in taxon_group_map_c.keys():
-                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k] if lang == 'en-us' else taxon_group_map_c[search_dict[k]] }"
-                elif search_dict[k] in old_taxon_group_map_c.keys():
-                    query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k] if lang == 'en-us' else old_taxon_group_map_c[search_dict[k]] }"
+                val = search_dict[k]
+                if isinstance(val, list):
+                    vals = val
+                elif isinstance(val, str) and val.startswith('['):
+                    vals = eval(val)
+                elif val in split_group_map:
+                    vals = split_group_map[val]
+                elif val in taxon_group_map_c:
+                    vals = [taxon_group_map_c[val]]
+                elif val in old_taxon_group_map_c:
+                    vals = [old_taxon_group_map_c[val]]
+                else:
+                    vals = [val]
+                display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(display_vals)}"            # elif k == 'taxonGroup':
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
                 query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
@@ -754,7 +780,16 @@ def create_query_display(search_dict,lang=None):
         elif k == 'name':
             query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
         elif k == 'has_image':
-            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{gettext('有多媒體') if search_dict.get('has_image') in ['y','true'] else gettext('無多媒體')}" 
+            media_type_map = {
+                'n': gettext('無多媒體'),
+                'image': gettext('影像'),
+                'video': gettext('影片'),
+                'audio': gettext('音檔'),
+                'y': gettext('有多媒體'),  # 兼容舊參數
+                'true': gettext('有多媒體'),
+            }
+            val = search_dict.get('has_image')
+            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{media_type_map.get(val, val)}"
         elif k == 'is_protected':
             query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') in ['y','true'] else gettext('否')}" 
         elif k == 'is_native':
@@ -807,15 +842,23 @@ def create_query_a(search_dict):
                     l_list.append(search_dict[k])
             else:
                 l_list = list(search_dict[k])
-        
+                
         elif k == 'taxonGroup':
-            # 這邊是給網址使用的 所以參數是taxonGroup
-            if search_dict[k] in taxon_group_map_e.keys():
-                query_a += f'&taxonGroup={search_dict[k]}'
-            elif search_dict[k] in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-                query_a += f'&taxonGroup={taxon_group_map_c[search_dict[k]]}' # 改成中文
-            elif search_dict[k] in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-                query_a += f'&taxonGroup={old_taxon_group_map_c[search_dict[k]]}' # 改成中文
+            val = search_dict[k]
+            if isinstance(val, list):
+                vals = val
+            elif isinstance(val, str) and val.startswith('['):
+                vals = eval(val)
+            elif val in split_group_map:
+                vals = split_group_map[val]
+            elif val in taxon_group_map_c:
+                vals = [taxon_group_map_c[val]]
+            elif val in old_taxon_group_map_c:
+                vals = [old_taxon_group_map_c[val]]
+            else:
+                vals = [val]
+            for v in vals:
+                query_a += f'&taxonGroup={v}'
 
     for l in l_list:
         query_a += f'&locality={l}'
@@ -855,10 +898,13 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     # 有無多媒體
     if has_image := req_dict.get('has_image'):
-        if has_image in ['y','true']:
-            query_list += ['associatedMedia:*']
-        elif has_image in ['n','false']:
+        if has_image == 'n':
             query_list += ['-associatedMedia:*']
+        elif has_image in ['image', 'video', 'audio']:
+            query_list += [f'associatedMediaType:*{has_image}*']
+        # 兼容舊參數 y / true（一律視為有任何多媒體）
+        elif has_image in ['y', 'true']:
+            query_list += ['associatedMedia:*']
 
     # 是否為原生種
     if is_native := req_dict.get('is_native'):
@@ -880,21 +926,35 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    if val := req_dict.get('taxonGroup'):
-        # 這邊改用bioGroup 且是中文
-        now_bio_group = None
-        if val in taxon_group_map_e.keys():
-            now_bio_group = val
-        elif val in taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-            now_bio_group = taxon_group_map_c[val] # 改成中文
-        elif val in old_taxon_group_map_c.keys(): #這邊要讓新舊互通 因為舊的會需要再次查詢 舊的會是英文
-            now_bio_group = old_taxon_group_map_c[val] # 改成中文
-        
-        if now_bio_group == '維管束植物':
-            now_bio_group = '(維管束植物 OR 蕨類植物)'
+    if from_request:
+        raw_vals = req_dict.getlist('taxonGroup')
+    else:
+        val = req_dict.get('taxonGroup')
+        if val:
+            if isinstance(val, list):
+                raw_vals = val
+            elif val.startswith('['):
+                raw_vals = eval(val)
+            else:
+                raw_vals = [val]
+        else:
+            raw_vals = []
 
-        query_list += [f'bioGroup:{now_bio_group}']
+    bio_groups = []
+    for v in raw_vals:
+        if v in split_group_map:
+            bio_groups.extend(split_group_map[v])
+        elif v in taxon_group_map_e:
+            bio_groups.append(v)
+        elif v in taxon_group_map_c:
+            bio_groups.append(taxon_group_map_c[v])
+        elif v in old_taxon_group_map_c:
+            bio_groups.append(old_taxon_group_map_c[v])
+        elif v:
+            bio_groups.append(v)
 
+    if bio_groups:
+        query_list += [f'bioGroup:({" OR ".join(bio_groups)})']
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
@@ -1104,7 +1164,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), int(circle_radius))]
+            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
 
     # 學名相關
     if val := req_dict.get('name'):
@@ -1122,7 +1182,6 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
-
     # group (後台儀表板的query)
     if group := req_dict.get('group'):
         if group != 'total':
@@ -1136,20 +1195,12 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     return query_list
 
 
-
 # 全站搜尋 物種出現紀錄 / 自然史典藏
 def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False):
     if lang:
         translation.activate(lang)
 
     keyword = keyword.strip()
-
-    # # 去除重複空格
-    # keyword = re.sub(' +', ' ', keyword)
-    # 去除頭尾空格
-    # keyword = keyword.strip()
-    # 去除特殊字元
-    # keyword = re.sub('[,，!！?？&＆~～@＠#＃$＄%％^＾*＊()（）、]', '', keyword)
 
     if re.match(r'^([\s\d]+)$', keyword):
         # 純數字
@@ -1234,14 +1285,10 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     query_list.append(q[:-4])
     query['filter'] = query_list
 
-    # s = time.time()
-
     response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
     total_count = response.json()['response']['numFound']
     facets.pop('count', None)
-
-    # print('get_resp', time.time()-s)
 
     menu_rows = [] # 側邊欄
     result = [] # 卡片
@@ -1354,7 +1401,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         if len(result_df):
             taxon_ids = [f"id:{d}" for d in result_df[result_df.val!=''].val.unique()]
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms')
-            # response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}')
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -1365,8 +1411,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                             taicol[u] = ''
                     taicol = taicol[used_cols]
                     taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
-                    # print(taicol.keys())
-            # print(taicol)
             if len(taicol):
                 result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
                 result_df = result_df.replace({np.nan:'', None:''})
@@ -1385,7 +1429,6 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.replace({np.nan:'', None:''})
             result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
-        # print('get_taxon', time.time()-s)
 
     # get_focus_card 使用
     if key:
@@ -1421,14 +1464,12 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         'data': data, # 卡片
         'has_more': has_more,
         'reach_end': True if offset >= 27 else False,
-        # get_focus_card 使用
         'item_class': item_class,
         'card_class': card_class,
         'title': title,
     }
 
     return response
-
 
 
 # 全站搜尋 物種
@@ -1476,7 +1517,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     query['limit'] = 4 if offset < 28 else 2
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
-    # query['fields'] = 'common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms'
 
     response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
     facets = response.json()['facets']
@@ -1505,7 +1545,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
     taxon_result = []
     regexp = re.compile(keyword_name_reg)
     for d in data['docs']:
-        # if is_sub == 'false':
         for k in taxon_facet_list['facet'].keys():
             if d.get(k):
                 if regexp.search(d.get(k)):
@@ -1539,7 +1578,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
                 taxon_result_dict_all.append({
                     'val': tt,
                     'matched': matched,
-                    # 'match_type': 'taxon-related'
                 })
 
     taxon_result_df = pd.DataFrame(taxon_result_dict_all[:4])
@@ -1558,7 +1596,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         # 取得出現紀錄及自然史典藏筆數
         response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
         data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
-        # print(response.json())
 
         for d in data:
             taxon_result_df.loc[taxon_result_df.taxonID==d['value'],'occ_count'] = d['count']
@@ -1643,8 +1680,6 @@ def get_map_geojson(data_c, grid):
 
     map_geojson = {}
     map_geojson[f'grid_{grid}'] = {"type":"FeatureCollection","features":[]}
-    # data_c = resp['facets'][facet_grid]['buckets']
-    # s = time.time()
     for cc in data_c:
         if len(cc['val'].split('_')) > 1:
             current_grid_x = int(cc['val'].split('_')[0])
@@ -1662,8 +1697,8 @@ def get_map_geojson(data_c, grid):
                     }
                 }]
                 map_geojson[f'grid_{grid}']['features'] += tmp
-    # print(time.time()-s)
     return map_geojson
+
 
 def get_map_response(map_query, grid_list, get_raw_map):
 
@@ -1678,7 +1713,6 @@ def get_map_response(map_query, grid_list, get_raw_map):
             facet_str += f'&facet.field=grid_{g}_blurred'
             
     map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
-
 
     data_c = {}
     for grid in grid_list:
@@ -1762,7 +1796,6 @@ def create_data_detail(id, user_id, record_type):
 
         # date
         if date := row.get('standardDate'):
-            # date = date[0].replace('T', ' ').replace('Z','')
             date = date[0].split('T')[0]
         else:
             date = None
@@ -1810,7 +1843,6 @@ def create_data_detail(id, user_id, record_type):
 
         # 數量
         if quantity := row.get('standardOrganismQuantity'):
-            # quantity = int(quantity[0])
             quantity = str(quantity[0])
             if quantity.endswith('.0'):
                 quantity = quantity[:-2]
@@ -1823,8 +1855,6 @@ def create_data_detail(id, user_id, record_type):
         path_taxon_id = None
         if row.get('taxonID'):
             path_taxon_id = row.get('taxonID')
-        # elif row.get('parentTaxonID'):
-        #     path_taxon_id = row.get('parentTaxonID')
         if path_taxon_id:
             response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}')
             data = response.json()
@@ -1977,24 +2007,21 @@ def create_data_table(docs, user_id, obv_str):
             if row.get('basisOfRecord') in basis_map.keys():
                 docs.loc[i , 'basisOfRecord'] = basis_map[row.get('basisOfRecord')]
 
-        # if media_list := row.get('associatedMedia'):
-
-        #     if ';' in media_list:
-        #         img_sep = ';'
-        #     else:
-        #         img_sep = '|'
-
-        #     media_list = media_list.split(img_sep)
-
-            # if len(media_list):
-            #     # 取第一張
-            #     docs.loc[i, 'associatedMedia'] = '<img class="icon-size-50" alt="{}" title="{}" src="{}">'.format(gettext('圖片無法正常顯示'),gettext('圖片無法正常顯示'),media_list[0])
-
         if media_list := row.get('associatedMedia'):
             img_sep = ';' if ';' in media_list else '|'
             media_list = media_list.split(img_sep)
+
+            # 從 associatedMediaType 取得對應的第一個類型
+            media_type = None
+            print(row.get('associatedMediaType'))
+            if mt_str := row.get('associatedMediaType'):
+                mt_sep = ';' if ';' in mt_str else '|'
+                mt_list = mt_str.split(mt_sep)
+                if mt_list:
+                    media_type = mt_list[0].strip()
+
             if len(media_list):
-                docs.loc[i, 'associatedMedia'] = get_media_html(media_list[0].strip())
+                docs.loc[i, 'associatedMedia'] = get_media_html(media_list[0].strip(), media_type)
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
@@ -2002,7 +2029,6 @@ def create_data_table(docs, user_id, obv_str):
     rows = docs.to_dict('records')
 
     return rows
-
 
 
 def get_resource_cate(extension):
@@ -2157,15 +2183,6 @@ def create_dataset_stat(query_list, q="*:*"):
             cursor.execute(query, (row.get('val'),))
             conn.commit()
 
-
-        # if DatasetStat.objects.filter(tbiaDatasetID=row.get('val')).exists():
-        #     dataset_obj = DatasetStat.objects.get(tbiaDatasetID=row.get('val'))
-        #     dataset_obj.count += 1
-        #     dataset_obj.modified = timezone.now()
-        #     dataset_obj.save()
-        # else:
-        #     DatasetStat.objects.create(tbiaDatasetID=row.get('val'), count=1)
-
     return 'done'
 
 
@@ -2175,12 +2192,21 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
         prefix_number = '1' # 正式站
     else:
         prefix_number = '2' # 測試站
+
+
     if data_type == 'news':
         prefix_char = 'n' # 文章
+
     elif data_type == 'docs':
         prefix_char = 'c' # 文件網站
+
+    elif data_type == 'resource':
+        prefix_char = 'r' # 相關資源
+
     else:
         prefix_char = 'd' # 資料
+
+
     new_ark = prefix_char + prefix_number + ''.join(random.choice(chars) for _ in range(size))
     # 要確認有沒有存在在資料庫中
     is_new_ark = False
@@ -2189,14 +2215,12 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
             new_ark = ''.join(random.choice(chars) for _ in range(size))
         else:
             is_new_ark = True
+
     return new_ark
-
-
 
 
 def create_tbn_query(req_dict):
 
-    # query_list = []
     query_str_list = [] # 可以轉換的
     error_str_list = [] # 無法轉換的
 
@@ -2207,50 +2231,60 @@ def create_tbn_query(req_dict):
         val = re.sub(' +', ' ', val)
         # 去除頭尾空格
         val = val.strip()
-        # query_list.append('taxonbioname:{}'.format(val))
         query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
-
 
     # 有無多媒體
     if has_image := req_dict.get('has_image'):
-        if has_image in ['y','true']:
-            error_str_list.append('{} = {}'.format(gettext('有無多媒體'),gettext('是')))
-        else:
-            error_str_list.append('{} = {}'.format(gettext('有無多媒體'),gettext('否')))
+        media_type_map = {
+            'n': gettext('無多媒體'),
+            'image': gettext('影像'),
+            'video': gettext('影片'),
+            'audio': gettext('音檔'),
+            'y': gettext('有多媒體'),
+            'true': gettext('有多媒體'),
+        }
+        error_str_list.append('{} = {}'.format(
+            gettext('有無多媒體'),
+            media_type_map.get(has_image, has_image)
+        ))
 
     # 是否為原生種
     if is_native := req_dict.get('is_native'):
         if is_native == ['y','true']:
-            # query_list.append('nativeness:i')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
         elif is_native in ['n','false']:
-            # query_list.append('nativeness:v,n,a,o')
             query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
-
 
     # 是否為保育類
     if is_protected := req_dict.get('is_protected'):
         if is_protected in ['y','true']:
-            # query_list.append('protectedstatus:y01,y02,y03,w01')
             query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
         elif is_protected in ['n','false']:
             error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
 
-
-    if val := req_dict.get('taxonGroup'):
-        if val in taxon_group_map_tbn.keys():
-            # query_list.append('taxongroup:{}'.format(taxon_group_map_tbn[val]))
-            query_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+    if val := req_dict.getlist('taxonGroup'):
+        if isinstance(val, list):
+            tbn_vals = val
+        elif val.startswith('['):
+            tbn_vals = eval(val)
         else:
-            error_str_list.append('{} = {}'.format(gettext('物種類群'),gettext(val)))
+            tbn_vals = [val]
+    else:
+        tbn_vals = []
 
+    valid_vals = [v for v in tbn_vals if v in taxon_group_map_tbn]
+    invalid_vals = [v for v in tbn_vals if v not in taxon_group_map_tbn]
+
+    if valid_vals:
+        query_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in valid_vals])))
+    if invalid_vals:
+        error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in invalid_vals])))
 
     if val := req_dict.get('taxonRank'):
         if val == 'sub':
             error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext("種下")))
         else:
             error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
-
 
     if val := req_dict.getlist('datasetName'):
         d_list = []
@@ -2267,7 +2301,6 @@ def create_tbn_query(req_dict):
 
         error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
 
-
     if val := req_dict.getlist('locality'):
         l_list = []
         if isinstance(val, str):
@@ -2279,7 +2312,6 @@ def create_tbn_query(req_dict):
             l_list = list(val)
 
         error_str_list.append('{} = {}'.format(gettext('出現地'),','.join(l_list)))
-
 
     if val := req_dict.getlist('rightsHolder'):
         r_list = []
@@ -2298,7 +2330,6 @@ def create_tbn_query(req_dict):
 
         error_str_list.append('{} = {}'.format(gettext('紀錄類型'),gettext(basis_map[val])))
 
-
     # county, municipality 
     # NOTE 這邊先改為不支援
     if req_dict.get('county'):
@@ -2306,25 +2337,6 @@ def create_tbn_query(req_dict):
 
     if req_dict.get('municipality'):
         error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
-
-    # if req_dict.get('county') and req_dict.get('municipality'):
-    #     if Municipality.objects.filter(county=req_dict.get('county'),municipality=req_dict.get('municipality')).exists():
-    #         tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality=req_dict.get('municipality')).tbn_id
-    #         query_list.append('adminareaidplus:{}'.format(tbn_id))
-    #         query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-    #         query_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
-    #     else:
-    #         error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-    #         error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
-
-    # elif req_dict.get('county') and not req_dict.get('municipality'):
-    #     if Municipality.objects.filter(county=req_dict.get('county'),municipality__isnull=True).exists():
-    #         tbn_id = Municipality.objects.get(county=req_dict.get('county'),municipality__isnull=True).tbn_id
-    #         query_list.append('adminareaidplus:{}'.format(tbn_id))
-    #         query_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-    #     else:
-    #         error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-
 
     for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus','taxonID']:
         if val := req_dict.get(i):
@@ -2339,42 +2351,30 @@ def create_tbn_query(req_dict):
             if data := resp['response']['docs']:
                 data = data[0]
                 query_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
-                # error_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
-        # query_list.append('date:{},{}'.format(req_dict.get('start_date'),req_dict.get('end_date')))
         query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
         query_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
     elif req_dict.get('start_date'):
-        # query_list.append('date:{}'.format(req_dict.get('start_date')))
         query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
     elif req_dict.get('end_date'):
         error_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
 
-
-
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
         if g_list := req_dict.get('polygon'): 
-            # query_list.append('wkt:{}'.format(g_list))
             query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
-
 
     # 上傳polygon
     if req_dict.get('geo_type') == 'polygon':
-        # error_str_list.append('geo_type:polygon')
         error_str_list.append('{}'.format(gettext('上傳Polygon')))
 
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            # query_list.append('circle:{},{},{}'.format(req_dict.get('center_lon').strip(),req_dict.get('center_lat').strip(),int(circle_radius)*1000))
             query_str_list.append('{} = {}'.format(gettext('圓中心框選'),f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"))
 
-
     return query_str_list, error_str_list
-
-
 
 
 def get_family_taxon_ids(taxon_ids):

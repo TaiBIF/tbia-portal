@@ -1,30 +1,22 @@
-from django.shortcuts import render
-from django.http import (
-    # request,
-    # JsonResponse,
-    # HttpResponseRedirect,
-    # Http404,
-    HttpResponse,
-)
 import json
-from api.models import APIkey
-from data.utils import download_cols, sensitive_cols, download_cols_with_sensitive
 import requests
+import shapely.wkt as wkt
+import pandas as pd
+import numpy as np
+import psycopg2
+import threading
+from psycopg2 import sql
+from urllib import parse
+from datetime import datetime, timedelta
+from django.shortcuts import render
+from django.http import HttpResponse
 from conf.settings import SOLR_PREFIX, datahub_db_settings
 from conf.utils import scheme
-import shapely.wkt as wkt
-from shapely.geometry import MultiPolygon
-import pandas as pd
-from datetime import datetime, timedelta
-import numpy as np
-from urllib import parse
-from manager.models import SearchCount #, SearchStat
-# from django.utils import timezone
-# from conf.settings import 
-import psycopg2
-from psycopg2 import sql
-from data.utils import backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c, get_map_geojson, create_search_query
-import threading
+from api.models import APIkey
+from manager.models import SearchCount
+from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
+                        backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c,
+                        split_group_map, get_map_geojson, create_search_query)
 
 
 def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
@@ -38,8 +30,6 @@ def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
     elif grid == 100 and ((maxLon - minLon > 40) or (maxLat - minLat > 40)):
         checked = False
     return checked
-
-
 
 
 def check_coor(lon,lat):
@@ -57,20 +47,15 @@ def check_coor(lon,lat):
     if standardLat:
         if not (-90 <= standardLat and standardLat <= 90):
             standardLat = None
-    # if standardLon and standardLat:
-    #     # if -180 <= standardLon  and standardLon <= 180 and -90 <= standardLat and standardLat <= 90:
-    #     location_rpt = f'POINT({standardLon} {standardLat})' 
-    # else:
-    #     location_rpt = None
     if not standardLon or not standardLat:
         return False
     else:
         return True
 
-    
 
 def api_doc(request):
-    return render(request, 'pages/api_doc.html')
+    from data.utils import rights_holder_map
+    return render(request, 'pages/api_doc.html', {'rights_holder_list': rights_holder_map.keys()})
 
 
 def occurrence(request):
@@ -98,10 +83,6 @@ def occurrence(request):
                     values = values.split(',')
                     values = [f'"{v}"' for v in values]
                     fq_list.append(f'{u}: ({(" OR ").join(values)})')
-
-            # for k in ['occurrenceID', 'catalogNumber']:
-            #     if req.get(k):
-            #         fq_list.append(f'{k}:"{req.get(k)}"')
 
             # eventDate, created, modified
             if eventDate := req.get('eventDate'):
@@ -145,8 +126,6 @@ def occurrence(request):
                         except:
                             final_response['status'] = {'code': 400, 'message': f'Invalid date format'}
                             return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
-
-
 
             # polygon
             if polygon := req.get('polygon'):
@@ -228,30 +207,18 @@ def occurrence(request):
         if limit > 1000: # 最高為1000
             limit = 1000
 
-        # if req.get('cursor'):
         cursor = req.get('cursor', '*')
-        
-
-        # offset = req.get('offset', 0)
-        # try:
-        #     offset = int(offset)
-        # except:
-        #     offset = 0
-
         fl_cols = download_cols
-
-
         now_dict = dict(req)
 
         for k in now_dict.keys():
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
 
-
-        # req_dict = dict(req)
-        # # 修改成對應的參數名 & 參數值
+        # 修改成對應的參數名 & 參數值
         if now_dict.get('bioGroup'):
             now_dict['taxonGroup'] = now_dict.get('bioGroup')
+            print(now_dict.get('bioGroup'))
             now_dict.pop('bioGroup')
 
         if now_dict.get('higherTaxon'):
@@ -266,14 +233,17 @@ def occurrence(request):
             now_dict['is_protected'] = now_dict.get('isProtected')
             now_dict.pop('isProtected')
 
-        if now_dict.get('imagePresence'):
+        if now_dict.get('hasMedia'):
+            now_dict['has_image'] = now_dict.get('hasMedia')
+            now_dict.pop('hasMedia')
+        # 向後相容舊參數名
+        elif now_dict.get('imagePresence'):
             now_dict['has_image'] = now_dict.get('imagePresence')
             now_dict.pop('imagePresence')
-
+            
         for k in ['rightsHolder','locality','datasetName']:
             if k in now_dict.keys():
                 now_dict.pop(k)
-
 
         # 限制型API
         has_api_key = False
@@ -283,9 +253,7 @@ def occurrence(request):
                 has_api_key = True
                 fl_cols = download_cols_with_sensitive
                 # 部分統一使用create_search_query
-                
                 fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
-
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
@@ -320,19 +288,7 @@ def occurrence(request):
             df = df.drop(columns=sensitive_cols, errors='ignore')
 
         if len(df):
-            # modified
-            # created
-            # sourceCreated
-            # sourceModified
-            # standardDate
-            # standardLatitude
-            # standardLongitude
-            # standardRawLatitude
-            # standardRawLongitude
-            # standardOrganismQuantity
-
             df = df.replace({np.nan: None})
-
             df['created'] = df['created'].apply(lambda x: x[0].split('T')[0])
             df['modified'] = df['modified'].apply(lambda x: x[0].split('T')[0])
 
@@ -347,8 +303,7 @@ def occurrence(request):
             df = df.replace({np.nan: None})
 
         aaa = now_dict.pop('cursor', None)
-    
-        
+
         query_string = parse.urlencode(now_dict)
 
         next_url = ''
@@ -366,7 +321,6 @@ def occurrence(request):
             now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + cursor
 
         # 記錄在SearchStat
-        # if offset == 0:
         if cursor == '*':
             task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'api_occ', query_string))
             task.start()
@@ -386,17 +340,13 @@ def occurrence(request):
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
-
-
 def dataset(request):
     final_response = {}
 
     if request.method == 'GET':
 
         results = []
-
         req = request.GET
-
         limit = req.get('limit', 20)
 
         try:
@@ -417,25 +367,23 @@ def dataset(request):
         query_pair = []
         query_identifier = []
 
-
         # 這邊會改成用中文搜尋 但要讓中英文都可以通
-        if group_value := req.get('datasetTaxonGroup'):
+        group_values = req.getlist('datasetTaxonGroup')
+        if group_values:
+            expanded = []
+            for gv in group_values:
+                if gv in taxon_group_map_c:
+                    gv = taxon_group_map_c[gv]
+                elif gv in old_taxon_group_map_c:
+                    gv = old_taxon_group_map_c[gv]
+                expanded.extend(split_group_map.get(gv, [gv]))
 
-            if group_value in taxon_group_map_c.keys():
-                group_value = taxon_group_map_c[group_value]
-            if group_value in old_taxon_group_map_c.keys():
-                group_value = old_taxon_group_map_c[group_value]
-
-            if group_value == '維管束植物':
-                query_value.append('%維管束植物%')
-                query_value.append('%蕨類植物%')
-                query_pair.append('({} like %s OR {} like %s)')
+            clauses = []
+            for tv in expanded:
+                clauses.append('{} like %s')
+                query_value.append(f'%{tv}%')
                 query_identifier.append('datasetTaxonGroup')
-                query_identifier.append('datasetTaxonGroup')
-            else:
-                query_value.append('%{}%'.format(group_value))
-                query_pair.append('{} like %s')
-                query_identifier.append('datasetTaxonGroup')
+            query_pair.append('(' + ' OR '.join(clauses) + ')')
 
         for k in ['datasetName', 'rightsHolder']:
             tmp_list = []
@@ -580,7 +528,6 @@ def dataset(request):
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
-
 def map(request):
 
     final_response = {}
@@ -600,20 +547,13 @@ def map(request):
         if group_values := req.getlist('bioGroup'):
             values = []
             for group_value in group_values:
-
-                if group_value in taxon_group_map_c.keys():
+                if group_value in taxon_group_map_c:
                     group_value = taxon_group_map_c[group_value]
-                if group_value in old_taxon_group_map_c.keys():
+                elif group_value in old_taxon_group_map_c:
                     group_value = old_taxon_group_map_c[group_value]
-
-
-                if group_value == '維管束植物':
-                    values.append('維管束植物')
-                    values.append('蕨類植物')
-                else:
-                    values.append(group_value)
-            fq_list.append(f'bioGroup: ({(" OR ").join(values)})')
-
+                values.extend(split_group_map.get(group_value, [group_value]))
+            fq_list.append(f'bioGroup: ({" OR ".join(values)})')
+    
         #  年份區間
         if year := req.get('year'):
             year_list = year.split(',')
@@ -643,7 +583,6 @@ def map(request):
             except:
                 final_response['status'] = {'code': 400, 'message': f'Invalid grid value'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
-
 
             facet_grid = f'grid_{grid}_blurred'
 

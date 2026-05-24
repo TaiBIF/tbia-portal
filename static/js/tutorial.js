@@ -1,5 +1,3 @@
-
-
 let $tutorial = {
   1: gettext("歡迎使用「生物多樣性資料庫共通查詢系統」！<br>如您是第一次使用本系統，建議您可以利用首頁的關鍵字查詢功能或網頁最上方的放大鏡功能，搜尋任何您想得到的內容。"),
   2: gettext("關鍵字查詢結果頁面的左側選單除了呈現結果的分類外，也可以針對您所查詢的關鍵字所在欄位，再篩選出對應的結果。"),
@@ -13,8 +11,6 @@ let $tutorial = {
   10: gettext("每一筆資料的詳細內容頁面除了呈現物種分類階層與共通欄位的內容外，如來源資料庫有提供多媒體及座標點位亦會呈現。<br>除此之外，也可從資料詳細內容頁面外連至來源資料庫查看更完整的資訊。")
 }
 
-
-
 $('.show_tech').on('click', function () {
   // 每次打開都放第一張
   $('.index_tech .text_tec').html($tutorial[1])
@@ -23,7 +19,6 @@ $('.show_tech').on('click', function () {
   $('.tech_pic img').attr('src', "/static/image/tutorial/pic1.png?v1")
   $('.tech-pop').removeClass('d-none')
 })
-
 
 $('#not_show_tech').on('click', function () {
 
@@ -57,7 +52,6 @@ $('.index_tech .arl').on('click', function () {
   $('.index_tech .text_tec').html($tutorial[index])
   $('.index_tech .tech_pic img').attr('src', `/static/image/tutorial/pic${index}.png?v1`)
 })
-
 
 // right 下一張
 $('.index_tech .arr').on('click', function () {

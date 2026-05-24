@@ -12,7 +12,7 @@ const COLOR_NEW_GROWTH = '#00FFFF';
 
 // 年份固定範圍
 const YEAR_MIN = 1980;
-const YEAR_MAX = 2025;
+const YEAR_MAX = 2025;Ｆ
 
 // Highcharts 共用設定
 let commonOptions = {
@@ -40,7 +40,6 @@ var GRID_DATA = null;
 window.CURRENT_MAP_MODE = 'after';
 window.CURRENT_MAP_MODE = 'after';
 window.CURRENT_TAXON_MODE = 'ratio'; // 'ratio' or 'records'
-
 
 // ============================================================
 // 年份區間 helper

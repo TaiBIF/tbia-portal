@@ -1,17 +1,17 @@
-from django.http import HttpResponse, JsonResponse #request, 
-from django.shortcuts import render#, redirect
-from pages.models import *
-from conf.settings import SOLR_PREFIX, env
-from manager.models import Partner, About, SearchQuery, Ark
 import json
 import math
-from data.utils import get_page_list, get_resource_cate
-from django.utils import timezone, translation
-from conf.utils import notif_map, scheme
-from datetime import datetime, timedelta
-from django.utils.translation import get_language, gettext
 import requests
+from datetime import datetime, timedelta
+from django.http import HttpResponse, JsonResponse 
+from django.shortcuts import render
+from django.utils import timezone, translation
+from django.utils.translation import get_language, gettext
+from data.utils import get_page_list, get_resource_cate
+from conf.settings import SOLR_PREFIX, env
+from conf.utils import notif_map, scheme
 from pages.templatetags.tags import process_text_variants
+from pages.models import *
+from manager.models import Partner, About, Ark
 
 
 news_type_map = {
@@ -73,7 +73,6 @@ def get_current_notif(request):
                 is_read = '<div class="dottt"></div>'
             else:
                 is_read = ''
-            # print(gettext(n.get_type_display()))
             results += f"""
                         <li class="redirectToAdmin" data-nid="{n.id}" data-href="{href}">
                         {is_read}
@@ -169,10 +168,8 @@ def get_news_list(request):
             limit = 10
         offset = limit*(current_page-1)
         if type != 'all':
-            # news = News.objects.filter(type=type).order_by('-publish_date')[:limit]
             news = News.objects.filter(type=type,status='pass',lang=request.LANGUAGE_CODE)
         else:
-            # news = News.objects.all().order_by('-publish_date')[offset:offset+limit]
             news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE)
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
@@ -188,7 +185,6 @@ def get_news_list(request):
             n.color = news_type_map[n.type]
             n.type_c = news_type_c_map[n.type]
             if n.image:
-                # n.image = '/media/news/' + n.image
                 n.image = '/media/' + n.image
             else:
                 n.image = '/static/image/news_ub_img.jpg'
@@ -272,11 +268,11 @@ def index(request):
     resource = Resource.objects.filter(lang=request.LANGUAGE_CODE).order_by('-publish_date')
     resource_rows = []
     for x in resource[:5]:
-        # modified =  x.modified + timedelta(hours=8)
+        extension = 'link' if x.extension in ['doc-link','ext-link'] else x.extension
         resource_rows.append({
-            'cate': get_resource_cate(x.extension),
+            'cate': get_resource_cate(extension),
             'title': x.title,
-            'extension': x.extension,
+            'extension': extension,
             'url': x.url,
             'doc_url': x.doc_url,
             'date': x.publish_date.strftime("%Y-%m-%d")})
@@ -292,7 +288,6 @@ def index(request):
         n.color = news_type_map[n.type]
         n.type_c = news_type_c_map[n.type]
         if n.image:
-            # n.image = '/media/news/' + n.image
             n.image = '/media/' + n.image
         else:
             n.image = '/static/image/news_ub_img.jpg'
@@ -305,12 +300,12 @@ def index(request):
 
 
 def get_resource_list(request):
-    type = request.POST.get('type')
+    content_type = request.POST.get('content_type')
     lang = request.POST.get('lang', 'zh-hant')
-    if type == 'all':
+    if content_type == 'all':
         resource = Resource.objects.filter(lang=lang).order_by('-publish_date')
     else:
-        resource = Resource.objects.filter(type=type,lang=lang).order_by('-publish_date')
+        resource = Resource.objects.filter(content_type=content_type,lang=lang).order_by('-publish_date')
     
     if request.POST.get('start_date') and request.POST.get('end_date'):
         try:
@@ -334,11 +329,11 @@ def get_resource_list(request):
     offset = (current_page-1)*12 if req_from == 'resource' else 0
 
     for x in resource[offset:limit]:
-        # modified = x.modified + timedelta(hours=8)
+        extension = 'link' if x.extension in ['doc-link','ext-link'] else x.extension
         resource_rows.append({
-            'cate': get_resource_cate(x.extension),
+            'cate': get_resource_cate(extension),
             'title': x.title,
-            'extension': x.extension,
+            'extension': extension,
             'url': x.url,
             'doc_url': x.doc_url,
             'date': x.publish_date.strftime("%Y-%m-%d")})
@@ -379,7 +374,6 @@ def partner(request, abbr):
     pt = Partner.objects.filter(abbreviation=abbr).order_by('id')
     for p in pt:
         for pi in p.info:
-            # pi['title'] = p.title
             pi.update({'id': p.id})
             pi.update({'logo': p.logo})
             rows += [pi]
@@ -409,13 +403,10 @@ def ark_ids(request):
 
 def get_ark_list(request):
     type = request.POST.get('type')
-    lang = request.POST.get('lang', 'zh-hant')
 
     limit = 10
     
     query_obj = []
-    
-
     query_obj = Ark.objects.filter(type=type).order_by('-created')
 
     current_page = int(request.POST.get('get_page', 1))
@@ -426,13 +417,27 @@ def get_ark_list(request):
     offset = (current_page-1)*limit
 
     for x in query_obj[offset:offset+limit]:
-        # modified = x.modified + timedelta(hours=8) if x.modified else x.modified
         created = x.created + timedelta(hours=8)
 
         if type == 'news':
             url = f"{scheme}://{request.get_host()}/news/detail/{x.model_id}"
         elif type == 'docs':
             url = f'https://tbia.github.io/docs/{x.model_id}/'
+        elif type == 'resource':
+            from manager.views import _build_file_url
+            resource = Resource.objects.filter(id=x.model_id).first()
+            if not resource:
+                url = ''
+            elif resource.resource_type == 'file':
+                file_url = _build_file_url(request, resource.url)
+                if '.' in x.ark:
+                    url = file_url
+                else:
+                    url = resource.doc_url or file_url
+            elif resource.resource_type == 'doc-link':
+                url = resource.doc_url
+            else:
+                url = ''
         else:
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
             
@@ -441,7 +446,6 @@ def get_ark_list(request):
             'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
             'url': url,
             'created': created.strftime("%Y-%m-%d"),
-            # 'modified': modified.strftime("%Y-%m-%d"),    
         })
 
     response = {

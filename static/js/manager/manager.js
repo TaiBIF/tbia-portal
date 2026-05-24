@@ -10,11 +10,10 @@ function changePage(page, menu) {
             $(`.${menu}_table tr:not(.${menu}_table_header)`).remove()
             $(`.${menu}_table`).append(`${response.data}`)
 
-
             // 修改頁碼
             $(`.${menu}_table`).parent().next('.page_number').remove()
 
-            if (response.total_page > 0){
+            if (response.total_page > 0) {
 
                 $(`.${menu}_table`).parent().after(
                     `<div class="page_number">
@@ -58,23 +57,22 @@ function changePage(page, menu) {
                     changePage($(this).data('page'), $(this).data('type'))
                 })
 
-                $(".applyARK").on("click", function(){            
+                $(".applyARK").on("click", function () {
                     $(".apply-ark-pop").removeClass('d-none');
                     $(".submit_apply_ark").data('query_id', $(this).data('query_id'));
                 });
 
-
-                $(".addReport").on("click", function(){            
+                $(".addReport").on("click", function () {
 
                     $('a.report_file_url').html('')
-                    $('a.report_file_url').attr('href','')
+                    $('a.report_file_url').attr('href', '')
 
                     $(".report-pop").removeClass('d-none');
                     $('input[name=report_query_id]').val($(this).data('query_id'))
                     $('textarea[name=report_content]').val($(this).data('report_content'))
-                    if ($(this).data('report_file')){
+                    if ($(this).data('report_file')) {
                         $('a.report_file_url').attr('href', '/media/' + $(this).data('report_file'))
-                        $('a.report_file_url').html($(this).data('report_file').replace('sensitive_report/',''))
+                        $('a.report_file_url').html($(this).data('report_file').replace('sensitive_report/', ''))
                     }
                 });
 
@@ -109,55 +107,53 @@ $(document).ready(function () {
 
     $('.report-pop .send').on('click', function () {
 
-        if (($('textarea[name=report_content]').val()) || ($('input[name=report_file]').val()) ) {
+        if (($('textarea[name=report_content]').val()) || ($('input[name=report_file]').val())) {
 
             $.ajax({
                 url: "/submit_sensitive_report",
                 data: new FormData($('#reportForm').get(0)),
                 type: 'POST',
-                contentType: false, 
-                processData: false,  
-              })
+                contentType: false,
+                processData: false,
+            })
                 .done(function (response) {
-          
+
                     alert(gettext(response.message))
                     location.reload()
                 })
                 .fail(function (xhr, status, errorThrown) {
-                  alert(gettext('發生未知錯誤！請聯絡管理員'))
-                  console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                  $('.report-pop').addClass('d-none')
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                    $('.report-pop').addClass('d-none')
                 })
-          
-    
+
         } else {
             alert(gettext('未填入任何成果'))
         }
     })
 
-
-    $(".hide_apply_ark_pop").on("click", function(){
+    $(".hide_apply_ark_pop").on("click", function () {
         $(".apply-ark-pop").addClass("d-none");
     })
 
-    $(".submit_apply_ark").on("click", function(){
+    $(".submit_apply_ark").on("click", function () {
 
-            $(".loading_area").removeClass('d-none');
+        $(".loading_area").removeClass('d-none');
 
-            $(".apply-ark-pop").addClass("d-none");
+        $(".apply-ark-pop").addClass("d-none");
 
-            $.ajax({
-                url: "/submit_apply_ark",
-                data: {'query_id': $(this).data('query_id'), csrfmiddlewaretoken: $csrf_token},
-                type: 'POST',
-                dataType: 'json',
-            })
+        $.ajax({
+            url: "/submit_apply_ark",
+            data: { 'query_id': $(this).data('query_id'), csrfmiddlewaretoken: $csrf_token },
+            type: 'POST',
+            dataType: 'json',
+        })
             .done(function (response) {
                 alert(gettext(response.message))
                 if (response.message.includes('申請完成')) {
                     window.location = '/manager'
                 }
-                
+
                 $(".loading_area").addClass('d-none');
             })
             .fail(function (xhr, status, errorThrown) {
@@ -169,7 +165,6 @@ $(document).ready(function () {
             })
 
     })
-
 
     //起始 
     changePage(1, 'notification')
@@ -213,16 +208,16 @@ $(document).ready(function () {
                 type: 'POST',
                 dataType: 'json',
             })
-            .done(function (response) {
-                alert(gettext(response.message))
-                if (response.message == '申請已送出') {
-                    window.location = '/manager'
-                }
-            })
-            .fail(function (xhr, status, errorThrown) {
-                alert(gettext('發生未知錯誤！請聯絡管理員'))
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
+                .done(function (response) {
+                    alert(gettext(response.message))
+                    if (response.message == '申請已送出') {
+                        window.location = '/manager'
+                    }
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+                })
 
         } else {
             alert(gettext('送出前請閱讀並勾選同意保密協議'))

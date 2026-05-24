@@ -1,80 +1,74 @@
-{% extends 'base.html' %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% load static %}
 {% load i18n %}
-{% block title %}{% trans '常見Q&A' %}｜{% endblock %}
-
+{% block title %}
+  {% trans '常見Q&A' %}｜
+{% endblock %}
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/pages/qa.css' %}?v1" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/pages/qa.css' %}" />
 {% endblock style %}
-
 {% block body %}
-<div class="popbg tech-pop d-none">
-	<div class="ovhy">
-		<div class="wbox_center index_tech">
-			<div class="xx">
-			</div>
-			<div class="arl" data-index="10"></div>
-			<div class="arr" data-index="2"></div>
-				<!--目前的加上now 
+  <div class="popbg tech-pop d-none">
+    <div class="ovhy">
+      <div class="wbox_center index_tech">
+        <div class="xx"></div>
+        <div class="arl" data-index="10"></div>
+        <div class="arr" data-index="2"></div>
+        <!--目前的加上now
 			<div class="dot_area">
 				<div class="dot"></div>
 				<div class="dot now"></div>
 				<div class="dot"></div>
 			</div>-->
-			<div class="techbox">
-				<div class="tech_pic">
-					<!--565*340或者兩倍大小1130*680-->
-					<img src="/static/image/tutorial/pic1.png?v1">
-				</div>
-				<!--盡量不要超過三行-->
-				<p class="text_tec"></p>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="path">
-  <div class="main_1240">
-    <a href="{% url 'index' %}"  class="home"></a> <span>></span>
-    <p>{% trans '常見Q&A' %}</p>
-  </div>
-</div>
-<div class="in_bn qa_bn">
-  <div class="title">
-    <h2>{% trans '常見Q&A' %}</h2>
-    {% comment %} <h3>Question & Answer</h3> {% endcomment %}
-  </div>
-</div>
-<div class="container_area">
-  <div class="main_1240">
-    <div class="qa_top_item">
-      <ul class="tabb">
-        {% for q in qa_options %}
-        <li class="{% if type == q.type %} now {% endif %}  qa_{{ q.type }}" data-type="{{ q.type }}">{% trans q.value %}</li>
-        {% endfor %}
-      </ul>
-      <button class="rep showFeedback">{% trans '意見回饋' %}</button>
-      <div class="mobile_tab">
-        <select name="qa_type" id="qa_type">
-          {% for q in qa_options %}
-          <option value="{{ q.type }}" {% if type == q.type %} selected {% endif %}>{% trans q.value %}</option>
-          {% endfor %}
-        </select>
+        <div class="techbox">
+          <div class="tech_pic">
+            <!--565*340或者兩倍大小1130*680-->
+            <img src="/static/image/tutorial/pic1.png">
+          </div>
+          <!--盡量不要超過三行-->
+          <p class="text_tec"></p>
+        </div>
       </div>
     </div>
-
-    <!--選到的那一個加上now-->
-    <div class="qa_list">
-       <ul>
-      </ul>
+  </div>
+  <div class="path">
+    <div class="main_1240">
+      <a href="{% url 'index' %}"  class="home"></a> <span>></span>
+      <p>{% trans '常見Q&A' %}</p>
     </div>
   </div>
-</div>
-<input type="hidden" value="{{ qa_page }}" name="qa_page">
-
+  <div class="in_bn qa_bn">
+    <div class="title">
+      <h2>{% trans '常見Q&A' %}</h2>
+    </div>
+  </div>
+  <div class="container_area">
+    <div class="main_1240">
+      <div class="qa_top_item">
+        <ul class="tabb">
+          {% for q in qa_options %}
+            <li class="{% if type == q.type %} now {% endif %}  qa_{{ q.type }}" data-type="{{ q.type }}">{% trans q.value %}</li>
+          {% endfor %}
+        </ul>
+        <button class="rep showFeedback">{% trans '意見回饋' %}</button>
+        <div class="mobile_tab">
+          <select name="qa_type" id="qa_type">
+            {% for q in qa_options %}
+              <option value="{{ q.type }}" {% if type == q.type %}selected{% endif %}>{% trans q.value %}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <!--選到的那一個加上now-->
+      <div class="qa_list">
+        <ul>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" value="{{ qa_page }}" name="qa_page">
 {% endblock body %}
-
 {% block script %}
-<script src="{% static 'js/tutorial.js' %}?v1"></script>
-<script src="{% static 'js/pages/qa.js' %}?v4"></script>
+  <script src="{% static 'js/tutorial.js' %}"></script>
+  <script src="{% static 'js/pages/qa.js' %}"></script>
 {% endblock script %}

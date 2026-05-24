@@ -65,7 +65,6 @@
 
 .imgbox {
     height: 390px !important;
-    /* width: auto !important; */
 }
 
 .yellow-btn {
@@ -207,7 +206,6 @@ max-width: 100%;
     -webkit-transition: all .3s
 }
 
-
 /* 網站捷徑 */
 .issue-menu-wrapper {
     position: fixed;
@@ -215,7 +213,6 @@ max-width: 100%;
     bottom: 2rem;
     z-index: 1030;
 }
-
 
 .issue-pop a {
     cursor: pointer;
@@ -235,7 +232,6 @@ max-width: 100%;
 .pt-30px {
     padding-top: 30px
 }
-
 
 .issue-pop .wbox_center {
     min-height: 300px;

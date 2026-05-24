@@ -13,7 +13,6 @@ class Keyword(models.Model):
     keyword = models.TextField( blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
     lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True)
-    # created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'keyword'
@@ -44,16 +43,13 @@ class News(models.Model):
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
     title = models.CharField(max_length=1000, blank=True, null=True)
-    # content = RichTextUploadingField( blank=True, null=True)
     content = RichTextField(blank=True, null=True)
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
-    # attachments = models.TextField( blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
     publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     order = models.IntegerField(blank=True, null=True)
-    # ark = models.CharField(max_length=50, null=True, blank=True)
     class Meta:
         db_table = 'news'
 
@@ -67,17 +63,23 @@ class Link(models.Model): # 推薦連結
 
 
 class Resource(models.Model):
-    type_choice = [
+    content_type_choice = [
         ('strategy', 'TBIA策略文件'),
         ('guide', '開放資料指引'),
         ('tool', '參考文件&工具'),
         ('tutorial', '教學文件'),
     ]
+    resource_type_choice = [
+        ('file', '檔案'),
+        ('ext-link', '外部連結'),
+        ('doc-link', '文件網站連結'),
+    ]
     lang_choice = [
         ('en-us', '英文'),
         ('zh-hant', '中文'),
     ]
-    type = models.CharField(max_length=10, choices=type_choice, blank=True, null=True)
+    content_type = models.CharField(max_length=10, choices=content_type_choice, blank=True, null=True)
+    resource_type = models.CharField(max_length=10, choices=resource_type_choice, blank=True, null=True)
     title = models.CharField(max_length=100, blank=True, null=True)
     lang = models.CharField(max_length=10, choices=lang_choice, blank=True, null=True) # en-us, zh-hant
     extension = models.CharField(max_length=10, blank=True, null=True)
@@ -85,8 +87,8 @@ class Resource(models.Model):
     doc_url = models.CharField(max_length=1000, blank=True, null=True) # TBIA 文件網站網址
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now_add=True) # 已經是UTF+8
+    created = models.DateTimeField()
+    modified = models.DateTimeField() # 已經是UTF+8
     publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     class Meta:
         db_table = 'resource'
@@ -103,9 +105,7 @@ class Feedback(models.Model):
     email = models.CharField(max_length=100, blank=True, null=True)
     content = TextField(null=True, blank=True)
     is_replied = models.BooleanField(default=False)
-    # user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    # replied = models.DateField()
     class Meta:
         db_table = 'feedback'
 

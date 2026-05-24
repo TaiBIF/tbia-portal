@@ -1,22 +1,17 @@
 $(function () {
 
   // 起始頁面
-  
-  // 起始
-  // if (from_hash == true){
-    let current_type = '2';
-    let urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('qa_id')) {
-      current_type = $('.qa_top_item .tabb li.now').data('type')
-      // window.location = window.location.href + '#qa_hash_' + urlParams.get('qa_id')
-      // 目前有qa_id的都是網頁操作
-      updateQa($('input[name=qa_page]').val(), current_type, urlParams.get('qa_id'))
-    } else {
-      current_type = '2'
-      updateQa(1, current_type)
-    }
-      // }
-  
+  let current_type = '2';
+  let urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('qa_id')) {
+    current_type = $('.qa_top_item .tabb li.now').data('type')
+    // 目前有qa_id的都是網頁操作
+    updateQa($('input[name=qa_page]').val(), current_type, urlParams.get('qa_id'))
+  } else {
+    current_type = '2'
+    updateQa(1, current_type)
+  }
+
   $('.qa_list ul li').on('click', function () {
     if ($(this).hasClass('now')) {
       $(this).removeClass('now')
@@ -42,7 +37,6 @@ $(function () {
   });
 
   $('.mobile_tab .vsb-main button').css('border', '').css('background', '')
-  // $('.mobile_tab span.caret').addClass('d-none')
 
   $('.mobile_tab .vsb-main button').on('click', function () {
     if ($(this).next('.mobile_tab .vsb-menu').css('visibility') == 'visible') {
@@ -60,15 +54,11 @@ $(function () {
     $('#btn-group-qa_type button span.title').addClass('color-white')
   })
 
-  //let menu = urlParams.get('qa_id')
 })
-
 
 function updateQa(page, type, qa_id) {
 
-
   $('select[name=qa_type]').val(type)
-
   $('.qa_top_item .tabb li').removeClass('now')
   $(`.qa_top_item .tabb li.qa_${type}`).addClass('now')
 
@@ -85,7 +75,7 @@ function updateQa(page, type, qa_id) {
         for (let q of response.data) {
           $('.qa_list ul').append(
             `
-              <li data-qa_id="${ q.id }" id="qa_hash_${ q.id }">
+              <li data-qa_id="${q.id}" id="qa_hash_${q.id}">
               <div class="questieon">
                 <div class="mark_title">Q</div>
                 <p>${q.question}</p>
@@ -100,11 +90,11 @@ function updateQa(page, type, qa_id) {
         }
 
         // 起始
-        if (qa_id != undefined){
-            $(`#qa_hash_${qa_id}`).addClass('now')
-            window.location = window.location.href + '#qa_hash_' + qa_id
-            $([document.documentElement, document.body]).animate({
-              scrollTop: $('#qa_hash_' + qa_id).offset().top - 80
+        if (qa_id != undefined) {
+          $(`#qa_hash_${qa_id}`).addClass('now')
+          window.location = window.location.href + '#qa_hash_' + qa_id
+          $([document.documentElement, document.body]).animate({
+            scrollTop: $('#qa_hash_' + qa_id).offset().top - 80
           }, 200);
         }
 
@@ -131,7 +121,6 @@ function updateQa(page, type, qa_id) {
         $('.qa_list').after(`<div class="page_number"></div>`)
 
         // 修改頁碼
-        //if (response.page_list.length > 1){  // 判斷是否有下一頁，有才加分頁按鈕
         $(`.page_number`).append(
           `
             <a class="num changePage" data-page="1" data-type="${type}">1</a>
@@ -139,8 +128,6 @@ function updateQa(page, type, qa_id) {
             <a class="next">${gettext('下一頁')}<span></span></a>
             <a class="num changePage" data-page="${response.total_page}" data-type="${type}">${response.total_page}</a>
           `)
-        //}		
-
 
         let html = ''
         for (let i = 0; i < response.page_list.length; i++) {

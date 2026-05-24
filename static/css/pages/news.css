@@ -1,17 +1,14 @@
 .infbox, .center_box {
     width: 100%
-  }
-
+}
 
 .date_select {
     margin-bottom: 10px;
 }
 
-
 .already_selected {
     margin-top: 10px;
     margin-bottom: 50px;
-
 }
 
 .already_selected ul {
@@ -84,8 +81,6 @@
     color: #FFF
 }
 
-
-
 .search_btn {
     color: #FFF;
     background: #76A578;
@@ -102,18 +97,16 @@
     font-size: 16px;
 }
 
-
 @media only screen and (max-width: 767px) {
     .search_btn {
-        font-size: 14px;    
+        font-size: 14px;
         min-width: 70px;
 
     }
 }
 
-
 @media only screen and (min-width: 1000px) {
-   .search_btn:hover {
+    .search_btn:hover {
         transition: all .3s;
         -moz-transition: all .3s;
         -o-transition: all .3s;
@@ -123,9 +116,8 @@
     }
 }
 
-
 .ui-datepicker {
-    z-index:21 !important  
+    z-index: 21 !important
 }
 
 #start_date, #end_date {
