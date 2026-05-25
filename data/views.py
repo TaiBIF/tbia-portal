@@ -993,7 +993,8 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str)
+        rows = create_data_table(docs, user_id, obv_str, request.POST.get('has_image'))
+
 
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
@@ -1737,7 +1738,7 @@ def get_conditional_records(request):
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: '', 'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str)
+        rows = create_data_table(docs, user_id, obv_str, req_dict.get('has_image'))
 
         current_page = offset / limit + 1
         total_page = math.ceil(count / limit)

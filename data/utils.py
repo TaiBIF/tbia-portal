@@ -1896,7 +1896,7 @@ def create_data_detail(id, user_id, record_type):
 
 
 # 進階搜尋 / 全站搜尋 表格整理
-def create_data_table(docs, user_id, obv_str):
+def create_data_table(docs, user_id, obv_str, has_image=None):
     rows = []
 
     for i in docs.index:
@@ -2011,17 +2011,24 @@ def create_data_table(docs, user_id, obv_str):
             img_sep = ';' if ';' in media_list else '|'
             media_list = media_list.split(img_sep)
 
-            # 從 associatedMediaType 取得對應的第一個類型
-            media_type = None
-            print(row.get('associatedMediaType'))
+            # 取得對應的 associatedMediaType list
+            mt_list = []
             if mt_str := row.get('associatedMediaType'):
                 mt_sep = ';' if ';' in mt_str else '|'
-                mt_list = mt_str.split(mt_sep)
-                if mt_list:
-                    media_type = mt_list[0].strip()
+                mt_list = [m.strip() for m in mt_str.split(mt_sep)]
 
-            if len(media_list):
-                docs.loc[i, 'associatedMedia'] = get_media_html(media_list[0].strip(), media_type)
+            # 若使用者有指定媒體類型，挑出第一筆符合的 index
+            target_idx = 0
+            if has_image in ['image', 'video', 'audio'] and mt_list:
+                for idx, mt in enumerate(mt_list):
+                    if has_image in mt.lower():
+                        target_idx = idx
+                        break
+
+            media_type = mt_list[target_idx] if target_idx < len(mt_list) else None
+
+            if target_idx < len(media_list):
+                docs.loc[i, 'associatedMedia'] = get_media_html(media_list[target_idx].strip(), media_type)
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
