@@ -726,7 +726,7 @@ def change_manager_page(request):
     elif menu == 'qa':
         for q in Qa.objects.all().order_by('order')[offset:offset+10]:
             data.append({
-                'content_type': q.get_content_type_display(),
+                'content_type': q.get_type_display(),
                 'order': q.order,
                 'question': q.question,
                 'edit': f'<a class="btn-style1" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
