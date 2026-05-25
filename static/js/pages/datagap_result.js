@@ -12,7 +12,7 @@ const COLOR_NEW_GROWTH = '#00FFFF';
 
 // 年份固定範圍
 const YEAR_MIN = 1980;
-const YEAR_MAX = 2025;Ｆ
+const YEAR_MAX = 2025;
 
 // Highcharts 共用設定
 let commonOptions = {
