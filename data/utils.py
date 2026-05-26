@@ -2013,10 +2013,15 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
 
             # 取得對應的 associatedMediaType list
             mt_list = []
-            if mt_str := row.get('associatedMediaType'):
-                mt_sep = ';' if ';' in mt_str else '|'
-                mt_list = [m.strip() for m in mt_str.split(mt_sep)]
-
+            mt_raw = row.get('associatedMediaType')
+            if mt_raw:
+                # 兼容 Solr 多值欄位（list）與單值欄位（string）
+                items = mt_raw if isinstance(mt_raw, list) else [mt_raw]
+                for item in items:
+                    item_str = str(item)
+                    sep = ';' if ';' in item_str else '|'
+                    mt_list.extend(m.strip() for m in item_str.split(sep))
+    
             # 若使用者有指定媒體類型，挑出第一筆符合的 index
             target_idx = 0
             if has_image in ['image', 'video', 'audio'] and mt_list:
