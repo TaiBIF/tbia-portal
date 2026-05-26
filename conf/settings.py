@@ -320,3 +320,18 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 TURNSTILE_SITE_KEY = env('TURNSTILE_SITE_KEY')
 TURNSTILE_SECRET_KEY = env('TURNSTILE_SECRET_KEY')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}

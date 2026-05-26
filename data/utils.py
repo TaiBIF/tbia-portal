@@ -901,7 +901,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         if has_image == 'n':
             query_list += ['-associatedMedia:*']
         elif has_image in ['image', 'video', 'audio']:
-            query_list += [f'associatedMediaType:*{has_image}*']
+            query_list += [f'associatedMediaType:{has_image}']
         # 兼容舊參數 y / true（一律視為有任何多媒體）
         elif has_image in ['y', 'true']:
             query_list += ['associatedMedia:*']
