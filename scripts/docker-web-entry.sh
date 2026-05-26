@@ -12,5 +12,8 @@ exec gunicorn \
     --bind 0.0.0.0:8001 \
     --workers=2 \
     --timeout 60 \
+    --access-logfile - \
     --error-logfile - \
+    --capture-output \
+    --log-level info \
     conf.wsgi:application
