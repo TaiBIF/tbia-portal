@@ -6,6 +6,7 @@ import numpy as np
 import psycopg2
 import threading
 from psycopg2 import sql
+from psycopg2.extras import RealDictCursor
 from urllib import parse
 from datetime import datetime, timedelta
 from django.shortcuts import render
@@ -469,7 +470,7 @@ def dataset(request):
 
         query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
 
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, query_value)
             results = cursor.fetchall()
             conn.close()
