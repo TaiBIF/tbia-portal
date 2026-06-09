@@ -15,7 +15,7 @@ $(function () {
     $(`.news_tab_in .li-resource-${$('input[name=ark_type]').val()}`).addClass('now')
     updateArk($('input[name=ark_type]').val(), 1)
 
-  }Ｆ
+  }
 
   $('.updateArk').on('click', function () {
     updateArk($(this).data('type'), 1)

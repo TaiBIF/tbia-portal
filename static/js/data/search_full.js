@@ -187,6 +187,14 @@ function changeAction() {
 
     }
 
+    // 全部無資料且未指定 item／未點卡片或紀錄時（預設 all 檢視），只顯示單一 no_data
+    if ($('.rightbox_content > .all_empty_no_data').length &&
+        !urlParams.get('item_class') && !urlParams.get('focus_card') && !urlParams.get('get_record')) {
+      $('.rightbox_content > .all_empty_no_data').removeClass('d-none')
+      $('.rightbox_content .item > .titlebox_line').addClass('d-none')
+      $('.rightbox_content .item > .no_data').addClass('d-none')
+    }
+
     if (urlParams.get('item_class')) {
       focusComponent(urlParams.get('item_class'), true)
     }
@@ -427,7 +435,17 @@ function focusComponent(item_class, go_back) {
     $('.rightbox_content .item').removeClass('d-none')
     // 如果是再底下一個階層則不顯示
     $('.rightbox_content .subitem').addClass('d-none')
+    if ($('.rightbox_content > .all_empty_no_data').length) {
+      // 全部無資料：只顯示單一 no_data，隱藏各 item 的標題與 no_data
+      $('.rightbox_content > .all_empty_no_data').removeClass('d-none')
+      $('.rightbox_content .item > .titlebox_line').addClass('d-none')
+      $('.rightbox_content .item > .no_data').addClass('d-none')
+    }
   } else {
+    $('.rightbox_content > .all_empty_no_data').addClass('d-none')
+    // 還原各 item 的標題與 no_data（切回單一 item 時仍要顯示其頁面）
+    $('.rightbox_content .item > .titlebox_line').removeClass('d-none')
+    $('.rightbox_content .item > .no_data').removeClass('d-none')
     $(`.rightbox_content .${item_class}`).removeClass('d-none')
     $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).addClass('d-none')
     clickToAnchor(`#${item_class}`)
@@ -1172,28 +1190,23 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
       if (card_class == '.resource-card') {
         for (let i = 0; i < response.rows.length; i++) {
           let x = response.rows[i]
-          if (x.cate == 'link') {
+          
+          const isLink = ['ext-link', 'doc-link'].includes(row.resource_type);
+          const fileUrl = isLink ? row.url : `/media/${row.url}`;
+
+
             $('.edu_list').append(`
           <li>
             <div class="item">
             <div class="cate_dbox">
-              <div class="cate ${x.cate}">${x.extension}</div>
+              ${x.resource_type != 'doc-link' ? `<div class="cate ${x.cate}">${x.extension}</div>` : ''}
+              ${x.doc_url ? `<div class="cate web"><a href="${x.doc_url}" target="_blank">WEB <i class="fa-solid fa-link"></i></a></div>` : ''}
               <div class="date">${x.date}</div>
             </div>
-            <a href="${x.url}" class="title" target="_blank">${gettext(x.title)}</a>
+              <a href="${fileUrl}" class="title" target="_blank">${gettext(x.title)}</a>
+              ${!isLink ? `<a href="${fileUrl}" download class="dow_btn"> </a>` : ''}
             </div>
           </li>`)
-          } else {
-            $(card_class).append(`<li>
-            <div class="item items h-100p">
-              <div class="cate_dbox">
-                <div class="cate pdf">${x.extension}</div>
-                <div class="date">${x.date}</div>
-              </div>
-              <a href="/media/${x.url}" class="title" target="_blank"> ${x.title} </a>
-              <a href="/media/${x.url}" download class="dow_btn"> </a>
-            </div></li>`)
-          }
 
           $('.show_tech').off('click')
           $('.show_tech').on('click', function () {

@@ -103,14 +103,14 @@ $(document).ready(function () {
         if (response.rows.length > 0) {
           for (let i = 0; i < response.rows.length; i++) {
             const row = response.rows[i];
-            const isLink = row.cate == 'link';
+            const isLink = ['ext-link', 'doc-link'].includes(row.resource_type);
             const fileUrl = isLink ? row.url : `/media/${row.url}`;
 
             $('.edu_list').append(`
             <li>
               <div class="item">
               <div class="cate_dbox">
-                <div class="cate ${row.cate}">${row.extension}</div>
+                ${row.resource_type != 'doc-link' ? `<div class="cate ${row.cate}">${row.extension}</div>` : ''}
                 ${row.doc_url ? `<div class="cate web"><a href="${row.doc_url}" target="_blank">WEB <i class="fa-solid fa-link"></i></a></div>` : ''}
                 <div class="date">${row.date}</div>
               </div>

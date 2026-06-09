@@ -244,3 +244,55 @@ span#preview {
     margin: 0;
     padding: 0;
 }
+
+/* 資源發布:表單 + ARK表格 左右並排 */
+.edit-split {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.edit-split > .item {
+    flex: 1 1 0;
+    min-width: 0;      /* 關鍵:允許縮小,避免被擠到下一行 */
+    margin-bottom: 0;
+}
+
+@media only screen and (max-width: 999px) {
+    .edit-split {
+        flex-wrap: wrap;
+    }
+    .edit-split > .item {
+        flex-basis: 100%;
+    }
+}
+
+.edit-list select, .edit-list input {
+    width: 100%;
+}
+
+/* 資源發布:表單 + ARK表格 左右並排(從 title 底下開始) */
+.edit-split {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+.edit-split > * {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+@media only screen and (max-width: 999px) {
+    .edit-split {
+        flex-wrap: wrap;
+    }
+    .edit-split > * {
+        flex-basis: 100%;
+    }
+}
+
+#publish_ark_version {
+    margin-left: auto;
+}

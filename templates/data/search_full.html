@@ -271,11 +271,13 @@
           </ul>
         </div>
       </div>
+
       <div class="rightbox_content">
         {% if all_empty %}
-          <div class="no_data">{% trans '無資料' %}</div>
-        {% endif %}
-        {% if taxon.count > 0 %}
+          <div class="no_data all_empty_no_data">{% trans '無資料' %}</div>
+        {% endif %} 
+
+
           <!----- 所有結果 內容欄 ----->
           <div class="item item_spe"  id="item_spe">
             <div class="titlebox_line">
@@ -284,79 +286,85 @@
                 <div class="line"></div>
               </div>
             </div>
-            <ul class="card_list_2 species_list taxon-card">
-              {% for i in taxon.card %}
-                <li>
-                  <div class="flex_top">
-                    <div class="{% if i.images|length > 0 %} lefttxt {% else %} {% endif %}">
-                      <p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
-                      <p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name|safe }}</p>
-                      <p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c|safe }}</p>
-                      <p>{% trans '同物異名' %}{% trans '：' %}{{ i.synonyms|safe }}</p>
-                      <p>{% trans '分類階層' %}{% trans '：' %}{% trans i.taxonRank %}</p>
-                      <!-- 這邊matched_col可能有多個 -->
-                      {% for ii in i.matched %}
-                        {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
-                          <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
-                        {% endif %}
-                      {% endfor %}
-                      <p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma:False }}</p>
-                      <p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma:False }}</p>
-                    </div>
-                    {% if i.images|length > 0 %}
-                      <div class="right_img">
-                        <div class="imgbox">
-                          {% if i.images|length > 1 %}
-                            <div class="arr-left plusSlides" data-index="-1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card"></div>
-                            <div class="arr-right plusSlides" data-index="+1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card"></div>
+            {% if taxon.count > 0 %}
+              <ul class="card_list_2 species_list taxon-card">
+                {% for i in taxon.card %}
+                  <li>
+                    <div class="flex_top">
+                      <div class="{% if i.images|length > 0 %} lefttxt {% else %} {% endif %}">
+                        <p>{% trans '中⽂名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+                        <p>{% trans '學名' %}{% trans '：' %}{{ i.formatted_name|safe }}</p>
+                        <p>{% trans '中文別名' %}{% trans '：' %}{{ i.alternative_name_c|safe }}</p>
+                        <p>{% trans '同物異名' %}{% trans '：' %}{{ i.synonyms|safe }}</p>
+                        <p>{% trans '分類階層' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+                        <!-- 這邊matched_col可能有多個 -->
+                        {% for ii in i.matched %}
+                          {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '中文別名' and  ii.matched_col != '同物異名' %}
+                            <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
                           {% endif %}
-                          {% for ii in i.images %}
-                            <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
-                              <div class="img-container">
-                                <img class="imgarea" src="{{ ii.src }}">
-                                <p class="bottom-right">
-                                  {{ ii.author }} <span class="d-none img-license">{{ ii.license }}<span></span>
+                        {% endfor %}
+                        <p>{% trans '出現記錄筆數' %}{% trans '：' %}{{ i.occ_count|intcomma:False }}</p>
+                        <p>{% trans '自然史典藏筆數' %}{% trans '：' %}{{ i.col_count|intcomma:False }}</p>
+                      </div>
+                      {% if i.images|length > 0 %}
+                        <div class="right_img">
+                          <div class="imgbox">
+                            {% if i.images|length > 1 %}
+                              <div class="arr-left plusSlides" data-index="-1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card"></div>
+                              <div class="arr-right plusSlides" data-index="+1" data-taxonID="{{ i.taxonID }}" data-cardclass="taxon-card"></div>
+                            {% endif %}
+                            {% for ii in i.images %}
+                              <div class="picbox mySlides fade {{ i.taxonID }} {% if forloop.first %} d-block {% else %} d-none {% endif %}" data-index="{{ forloop.counter }}" data-cardclass="taxon-card">
+                                <div class="img-container">
+                                  <img class="imgarea" src="{{ ii.src }}">
+                                  <p class="bottom-right">
+                                    {{ ii.author }} <span class="d-none img-license">{{ ii.license }}<span></span>
+                                  </div>
                                 </div>
-                              </div>
-                            {% endfor %}
+                              {% endfor %}
+                            </div>
                           </div>
-                        </div>
-                      {% else %}
-                        <div class="right_img2">
-                          <div class="imgbox"></div>
-                        </div>
-                      {% endif %}
-                    </div>
-                    <div class="btn_area">
-                      {% if i.taieol_id %}
-                        <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">
+                        {% else %}
+                          <div class="right_img2">
+                            <div class="imgbox"></div>
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div class="btn_area">
+                        {% if i.taieol_id %}
+                          <a target="_blank" href="https://taieol.tw/pages/{{ i.taieol_id }}">
+                            <p>
+                              {% trans '物種介紹' %}
+                              <i class="fa-solid fa-arrow-up-right-from-square icon-size-11"></i>
+                            </p>
+                          </a>
+                        {% endif %}
+                        <a target="_blank" href="https://taicol.tw/taxon/{{ i.taxonID }}">
                           <p>
-                            {% trans '物種介紹' %}
+                            {% trans '臺灣物種名錄' %}
                             <i class="fa-solid fa-arrow-up-right-from-square icon-size-11"></i>
                           </p>
                         </a>
-                      {% endif %}
-                      <a target="_blank" href="https://taicol.tw/taxon/{{ i.taxonID }}">
-                        <p>
-                          {% trans '臺灣物種名錄' %}
-                          <i class="fa-solid fa-arrow-up-right-from-square icon-size-11"></i>
-                        </p>
-                      </a>
-                      <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
-                    </div>
-                  </li>
-                {% endfor %}
-              </ul>
-              <!--超過4個才有更多按鈕-->
-              {% if taxon.more %}
-                <a class="more taxon_more getMoreCards" data-card_class=".taxon-card" data-offset_value="#taxon_offset" data-more_type=".taxon_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                <input type="hidden" id="taxon_offset" value="4">
-                <div class="no_data taxon_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                        <button class="getDist" data-taxonid="{{ i.taxonID }}">{% trans '資料分布圖' %}</button>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+                <!--超過4個才有更多按鈕-->
+                {% if taxon.more %}
+                  <a class="more taxon_more getMoreCards" data-card_class=".taxon-card" data-offset_value="#taxon_offset" data-more_type=".taxon_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="taxon_offset" value="4">
+                  <div class="no_data taxon_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
+
               {% endif %}
             </div>
-          {% endif %}
+
+
+
           <!----- 物種出現紀錄 ----->
-          {% if occurrence.count > 0 %}
             <div class="item item_occ" id="item_occ">
               <div class="titlebox_line">
                 <div class="title">
@@ -364,41 +372,45 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_1 occ-card">
-                {% for i in occurrence.card %}
-                  <li class="getRecords"
-                      data-record_type="occ"
-                      {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
-                      data-scientific_name="{{ i.name }}"
-                      data-limit="{{ i.count }}"
-                      data-page="1"
-                      data-from="card"
-                      data-go_back="false"
-                      data-orderby="scientificName"
-                      data-sort="asc">
-                    <div class="num">{{ i.count }}</div>
-                    <div class="num_bottom"></div>
-                    <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
-                    <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-                    <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
-                    {% for ii in i.matched %}
-                      {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                        <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
-                      {% endif %}
+                {% if occurrence.count > 0 %}
+                  <ul class="card_list_1 occ-card">
+                    {% for i in occurrence.card %}
+                      <li class="getRecords"
+                          data-record_type="occ"
+                          {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
+                          data-scientific_name="{{ i.name }}"
+                          data-limit="{{ i.count }}"
+                          data-page="1"
+                          data-from="card"
+                          data-go_back="false"
+                          data-orderby="scientificName"
+                          data-sort="asc">
+                        <div class="num">{{ i.count }}</div>
+                        <div class="num_bottom"></div>
+                        <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+                        <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+                        <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+                        {% for ii in i.matched %}
+                          {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
+                            <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
+                          {% endif %}
+                        {% endfor %}
+                      </li>
                     {% endfor %}
-                  </li>
-                {% endfor %}
-              </ul>
-              <!--超過9個才有更多按鈕-->
-              {% if occurrence.more %}
-                <a class="more occ_more getMoreCards" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                <input type="hidden" id="occ_offset" value="9">
-                <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                  </ul>
+                  <!--超過9個才有更多按鈕-->
+                  {% if occurrence.more %}
+                    <a class="more occ_more getMoreCards" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                    <input type="hidden" id="occ_offset" value="9">
+                    <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                  {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- 自然史典藏 ----->
-          {% if collection.count > 0 %}
             <div class="item item_col" id="item_col">
               <div class="titlebox_line">
                 <div class="title">
@@ -406,41 +418,45 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_1 col-card">
-                {% for i in collection.card %}
-                  <li class="getRecords"
-                      data-record_type="col"
-                      {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
-                      data-scientific_name="{{ i.name }}"
-                      data-limit="{{ i.count }}"
-                      data-page="1"
-                      data-from="card"
-                      data-go_back="false"
-                      data-orderby="scientificName"
-                      data-sort="asc">
-                    <div class="num">{{ i.count }}</div>
-                    <div class="num_bottom"></div>
-                    <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
-                    <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-                    <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
-                    {% for ii in i.matched %}
-                      {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                        <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
-                      {% endif %}
-                    {% endfor %}
-                  </li>
-                {% endfor %}
-              </ul>
-              <!--超過9個才有更多按鈕-->
-              {% if collection.more %}
-                <a class="more col_more getMoreCards" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                <input type="hidden" id="col_offset" value="9">
-                <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+              {% if collection.count > 0 %}
+                <ul class="card_list_1 col-card">
+                  {% for i in collection.card %}
+                    <li class="getRecords"
+                        data-record_type="col"
+                        {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
+                        data-scientific_name="{{ i.name }}"
+                        data-limit="{{ i.count }}"
+                        data-page="1"
+                        data-from="card"
+                        data-go_back="false"
+                        data-orderby="scientificName"
+                        data-sort="asc">
+                      <div class="num">{{ i.count }}</div>
+                      <div class="num_bottom"></div>
+                      <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
+                      <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
+                      <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
+                      {% for ii in i.matched %}
+                        {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
+                          <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
+                        {% endif %}
+                      {% endfor %}
+                    </li>
+                  {% endfor %}
+                </ul>
+                <!--超過9個才有更多按鈕-->
+                {% if collection.more %}
+                  <a class="more col_more getMoreCards" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="col_offset" value="9">
+                  <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                {% endif %}
+              {% else %}
+                <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!-- 新聞公告 -->
-          {% if news.count > 0 %}
             <div class="item item_news" id="item_news">
               <div class="titlebox_line">
                 <div class="title">
@@ -448,23 +464,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 news-card">
-                {% for i in news.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{{ i.content | safe }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              <!--超過6個才有更多按鈕-->
-              {% if news.count > 6 %}
-                <a class="more more_news getMoreDocs" data-doc_type="news" data-offset_value="#news_offset" data-more_class=".more_news" data-card_class=".news-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="news_offset" value="6">
+              {% if news.count > 0 %}
+                <ul class="card_list_2 news-card">
+                  {% for i in news.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{{ i.content | safe }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                <!--超過6個才有更多按鈕-->
+                {% if news.count > 6 %}
+                  <a class="more more_news getMoreDocs" data-doc_type="news" data-offset_value="#news_offset" data-more_class=".more_news" data-card_class=".news-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="news_offset" value="6">
+                {% endif %}
+              {% else %}
+                <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!-- 活動訊息 -->
-          {% if event.count > 0 %}
             <div class="item item_event" id="item_event">
               <div class="titlebox_line">
                 <div class="title">
@@ -472,23 +492,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 event-card">
-                {% for i in event.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{{ i.content | safe }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              <!--超過6個才有更多按鈕-->
-              {% if event.count > 6 %}
-                <a class="more more_event getMoreDocs" data-doc_type="event" data-offset_value="#event_offset" data-more_class=".more_event" data-card_class=".event-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="event_offset" value="6">
+              {% if event.count > 0 %}
+                <ul class="card_list_2 event-card">
+                  {% for i in event.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{{ i.content | safe }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                <!--超過6個才有更多按鈕-->
+                {% if event.count > 6 %}
+                  <a class="more more_event getMoreDocs" data-doc_type="event" data-offset_value="#event_offset" data-more_class=".more_event" data-card_class=".event-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="event_offset" value="6">
+                {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- 徵求公告 ----->
-          {% if project.count > 0 %}
             <div class="item item_project" id="item_project">
               <div class="titlebox_line">
                 <div class="title">
@@ -496,23 +520,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 project-card">
-                {% for i in project.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{{ i.content | safe }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if project.count > 6 %}
-                <!--超過6個才有更多按鈕-->
-                <a class="more more_project getMoreDocs" data-doc_type="project" data-offset_value="#project_offset" data-more_class=".more_project" data-card_class=".project-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="project_offset" value="6">
+              {% if project.count > 0 %}
+                <ul class="card_list_2 project-card">
+                  {% for i in project.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{{ i.content | safe }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if project.count > 6 %}
+                  <!--超過6個才有更多按鈕-->
+                  <a class="more more_project getMoreDocs" data-doc_type="project" data-offset_value="#project_offset" data-more_class=".more_project" data-card_class=".project-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="project_offset" value="6">
+                {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- 數據松成果 ----->
-          {% if datathon.count > 0 %}
             <div class="item item_datathon" id="item_datathon">
               <div class="titlebox_line">
                 <div class="title">
@@ -520,23 +548,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 datathon-card">
-                {% for i in datathon.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{{ i.content | safe }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if datathon.count > 6 %}
-                <!--超過6個才有更多按鈕-->
-                <a class="more more_datathon getMoreDocs" data-doc_type="datathon" data-offset_value="#datathon_offset" data-more_class=".more_datathon" data-card_class=".datathon-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="datathon_offset" value="6">
+              {% if datathon.count > 0 %}
+                <ul class="card_list_2 datathon-card">
+                  {% for i in datathon.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{{ i.content | safe }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if datathon.count > 6 %}
+                  <!--超過6個才有更多按鈕-->
+                  <a class="more more_datathon getMoreDocs" data-doc_type="datathon" data-offset_value="#datathon_offset" data-more_class=".more_datathon" data-card_class=".datathon-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="datathon_offset" value="6">
+                {% endif %}
+              {% else %}
+                <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- 主題年活動 ----->
-          {% if themeyear.count > 0 %}
             <div class="item item_themeyear" id="item_themeyear">
               <div class="titlebox_line">
                 <div class="title">
@@ -544,23 +576,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 themeyear-card">
-                {% for i in themeyear.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{{ i.content | safe }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if themeyear.count > 6 %}
-                <!--超過6個才有更多按鈕-->
-                <a class="more more_themeyear getMoreDocs" data-doc_type="themeyear" data-offset_value="#themeyear_offset" data-more_class=".more_themeyear" data-card_class=".themeyear-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="themeyear_offset" value="6">
+              {% if themeyear.count > 0 %}
+                <ul class="card_list_2 themeyear-card">
+                  {% for i in themeyear.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/news/detail/{{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{{ i.content | safe }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if themeyear.count > 6 %}
+                  <!--超過6個才有更多按鈕-->
+                  <a class="more more_themeyear getMoreDocs" data-doc_type="themeyear" data-offset_value="#themeyear_offset" data-more_class=".more_themeyear" data-card_class=".themeyear-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="themeyear_offset" value="6">
+                {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- QA ----->
-          {% if qa.count > 0 %}
             <div class="item item_qa" id="item_qa">
               <div class="titlebox_line">
                 <div class="title">
@@ -568,23 +604,27 @@
                   <div class="line"></div>
                 </div>
               </div>
-              <ul class="card_list_2 qa-card">
-                {% for i in qa.rows %}
-                  <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/qa?qa_id={{ i.id }}">
-                    <div class="nstitle">{% highlight i.title keyword %}</div>
-                    <p>{% highlight i.content keyword %}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if qa.count > 6 %}
-                <!--超過6個才有更多按鈕-->
-                <a class="more more_qa getMoreDocs" data-doc_type="qa" data-offset_value="#qa_offset" data-more_class=".more_qa" data-card_class=".qa-card">{% trans '更多結果' %}</a>
-                <input type="hidden" id="qa_offset" value="6">
+              {% if qa.count > 0 %}
+                <ul class="card_list_2 qa-card">
+                  {% for i in qa.rows %}
+                    <li class="open-news" data-href="/{{ LANGUAGE_CODE }}/qa?qa_id={{ i.id }}">
+                      <div class="nstitle">{% highlight i.title keyword %}</div>
+                      <p>{% highlight i.content keyword %}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if qa.count > 6 %}
+                  <!--超過6個才有更多按鈕-->
+                  <a class="more more_qa getMoreDocs" data-doc_type="qa" data-offset_value="#qa_offset" data-more_class=".more_qa" data-card_class=".qa-card">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="qa_offset" value="6">
+                {% endif %}
+              {% else %}
+                <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
             </div>
-          {% endif %}
+
+
           <!----- 開放資料相關資源 ----->
-          {% if resource.count > 0 %}
             <div class="item item_resource" id="item_resource">
               <div class="titlebox_line">
                 <div class="title">
@@ -592,15 +632,23 @@
                   <div class="line"></div>
                 </div>
               </div>
+              {% if resource.count > 0 %}
               <ul class="edu_list three_set resource-card">
                 {% for i in resource.rows %}
                   <li>
                     <div class="item items h-100p">
                       <div class="cate_dbox">
+                        {% if i.resource_type != 'doc-link' %}
                         <div class="cate {{ i.cate }}">{{ i.extension }}</div>
+                        {% endif %}
+                        {% if i.doc_url %}
+                          <div class="cate web">
+                            <a href="{{ i.doc_url }}" target="_blank">WEB <i class="fa-solid fa-link"></i></a>
+                          </div>
+                        {% endif %}
                         <div class="date">{{ i.date }}</div>
                       </div>
-                      {% if i.cate == 'link' %}
+                      {% if i.resource_type in 'ext-link,doc-link' %}
                         <a href="{{ i.url }}" class="title" target="_blank">{% highlight i.title keyword %}</a>
                       {% else %}
                         <a href="/media/{{ i.url }}" class="title" target="_blank">{% highlight i.title keyword %}</a>
@@ -614,8 +662,13 @@
                 <a class="more more_resource getMoreDocs" data-doc_type="resource" data-offset_value="#resource_offset" data-more_class=".more_resource" data-card_class=".resource-card">{% trans '更多結果' %}</a>
                 <input type="hidden" id="resource_offset" value="6">
               {% endif %}
+              {% else %}
+               <div class="no_data">{% trans '無資料' %}</div>
+              {% endif %}
             </div>
-          {% endif %}
+
+
+
         </div>
       </div>
     </div>

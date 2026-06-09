@@ -63,6 +63,7 @@ class Link(models.Model): # 推薦連結
 
 
 class Resource(models.Model):
+    # 統一放最新版本
     content_type_choice = [
         ('strategy', 'TBIA策略文件'),
         ('guide', '開放資料指引'),
@@ -92,6 +93,22 @@ class Resource(models.Model):
     publish_date = models.DateField(null=True, blank=True) # 使用者自定義 不管時區
     class Meta:
         db_table = 'resource'
+
+
+class ResourceVersion(models.Model):
+    # 歷史版本
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='versions')
+    version = models.PositiveIntegerField()
+    extension = models.CharField(max_length=10, blank=True, null=True)
+    url = models.CharField(max_length=1000, blank=True, null=True)
+    doc_url = models.CharField(max_length=1000, blank=True, null=True)
+    publish_date = models.DateField(null=True, blank=True)
+    created = models.DateTimeField()
+    modified = models.DateTimeField()
+    class Meta:
+        db_table = 'resource_version'
+        unique_together = [('resource', 'version')]
+        ordering = ['-version']
 
 
 class Feedback(models.Model):
