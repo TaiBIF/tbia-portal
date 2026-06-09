@@ -70,9 +70,12 @@ $(document).ready(function () {
                         load: function () {
 
                             var chart = this;
-                            var categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類',
-                                '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
-
+                            var categories = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                                              '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                                              '蝸牛與貝類', '蝦蟹類',
+                                              '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                                              '藻類', '真菌', '病毒', '細菌']
+                                              
                             // 為 x 軸標籤添加點擊事件
                             chart.xAxis[0].labelGroup.element.childNodes.forEach(function (label, index) {
                                 $(label).css('cursor', 'pointer')
@@ -101,8 +104,11 @@ $(document).ready(function () {
                 tooltip: {
                     shared: true,
                     formatter: function () {
-                        const categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類',
-                            '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                        const categories = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                                              '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                                              '蝸牛與貝類', '蝦蟹類',
+                                              '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                                              '藻類', '真菌', '病毒', '細菌'];
 
                         let category = categories[this.x];
 
@@ -148,8 +154,11 @@ $(document).ready(function () {
                     }
                 },
                 xAxis: {
-                    categories: [gettext('昆蟲'), gettext('蜘蛛'), gettext('魚類'), gettext('爬蟲類'), gettext('兩棲類'), gettext('鳥類'), gettext('哺乳類'),
-                    gettext('維管束植物'), gettext('蕨類植物'), gettext('苔蘚植物'), gettext('藻類'), gettext('病毒'), gettext('細菌'), gettext('真菌'), gettext('其他')],
+                    categories: [gettext('甲蟲類'), gettext('蛾類'), gettext('蝶類'), gettext('蜻蛉類'), gettext('其他昆蟲'),
+                                    gettext('蜘蛛'), gettext('魚類'), gettext('兩棲類'), gettext('爬蟲類'), gettext('鳥類'), gettext('哺乳類'),
+                                    gettext('蝸牛與貝類'), gettext('蝦蟹類'),
+                                    gettext('被子植物'), gettext('裸子植物'), gettext('蕨類植物'), gettext('苔蘚植物'),
+                                    gettext('藻類'), gettext('真菌'), gettext('病毒'), gettext('細菌')],
                     title: {
                         text: null
                     },
