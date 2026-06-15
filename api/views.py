@@ -170,10 +170,10 @@ def occurrence(request):
                 boundedBy = boundedBy.split(',')
                 if len(boundedBy) == 4:
                     try:
-                        maxLon = int(boundedBy[0])
-                        maxLat = int(boundedBy[1])
-                        minLon = int(boundedBy[2])
-                        minLat = int(boundedBy[3])
+                        maxLon = float(boundedBy[0])
+                        maxLat = float(boundedBy[1])
+                        minLon = float(boundedBy[2])
+                        minLat = float(boundedBy[3])
                         if not check_coor(maxLon,maxLat) or not check_coor(minLon, minLat) or not (maxLat >= minLat) or not(maxLon >= minLon):
                             final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
                             return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
@@ -573,6 +573,11 @@ def map(request):
                     final_response['status'] = {'code': 400, 'message': f'Invalid year format'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
+        if county := req.get('county'):
+            fq_list += ['county: "%s"' % county]
+
+        if municipality := req.get('municipality'):
+            fq_list += ['municipality: "%s"' % municipality]
 
         # 網格大小 // 需搭配地理範圍
         # 先統一使用模糊化座標
@@ -591,10 +596,10 @@ def map(request):
                 boundedBy = boundedBy.split(',')
                 if len(boundedBy) == 4:
                     try:
-                        maxLon = int(boundedBy[0])
-                        maxLat = int(boundedBy[1])
-                        minLon = int(boundedBy[2])
-                        minLat = int(boundedBy[3])
+                        maxLon = float(boundedBy[0])
+                        maxLat = float(boundedBy[1])
+                        minLon = float(boundedBy[2])
+                        minLat = float(boundedBy[3])
                         if not check_coor(maxLon,maxLat) or not check_coor(minLon, minLat) or not (maxLat >= minLat) or not(maxLon >= minLon):
                             final_response['status'] = {'code': 400, 'message': f'Invalid boundedBy format'}
                             return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
@@ -633,7 +638,6 @@ def map(request):
 
         if not fq_list:
             aaa = query.pop('filter', None)
-
 
         query_req = json.dumps(query)
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })

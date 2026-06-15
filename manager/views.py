@@ -25,7 +25,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.translation import gettext, get_language
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
@@ -1997,6 +1997,12 @@ def system_resource(request):
             else:
                 current_r.filename =  current_r.url
 
+    if current_r:
+        current_r.can_change_type = (
+            current_r.resource_type == 'doc-link'
+            and current_r.versions.count() <= 1
+        )
+
     return render(request, 'manager/system/resource.html', {'menu': menu, 'content_type_choice': content_type_choice, 'current_r': current_r })
 
 
@@ -2291,12 +2297,12 @@ def save_resource_file(request):
 def _build_file_url(request, resource_url):
     """檔案的 full URL：{scheme}://{host}/media + resource_url"""
     scheme = 'https' if request.is_secure() else 'http'
-    return f"{scheme}://{request.get_host()}/media{resource_url}"
+    return f"{scheme}://{request.get_host()}/media/{resource_url}"
 
 
 def _insert_ark(ark_id, target_url):
     api_url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
-    requests.post(
+    r = requests.post(
         api_url,
         headers={'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}'},
         data={
@@ -2306,11 +2312,13 @@ def _insert_ark(ark_id, target_url):
             'shoulder': '/' + ark_id[:2],
         },
     )
+    if r.status_code != 200:
+        raise RuntimeError(f"ARK 註冊失敗（{r.status_code}）：{r.text[:200]}")
 
 
 def _update_ark(ark_id, target_url):
     api_url = f"{env('TBIA_ARKLET_INTERNAL')}update"
-    requests.put(
+    r = requests.put(
         api_url,
         headers={
             'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}',
@@ -2321,6 +2329,8 @@ def _update_ark(ark_id, target_url):
             'url': target_url,
         },
     )
+    if r.status_code != 200:
+        raise RuntimeError(f"ARK 更新失敗（{r.status_code}）：{r.text[:200]}")
 
 
 def _ark_targets(resource_type, version_obj, base_ark, request, is_base):
@@ -2358,11 +2368,35 @@ def _create_resource_arks(resource, version_obj, request):
             _insert_ark(ark_id, target)
 
 
-def _update_latest_arks(resource, latest, base_ark, request):
-    """編輯目前最新版：更新 base 與 v_latest 的 ARK 指向"""
-    for is_base in (True, False):
-        for ark_id, target in _ark_targets(resource.resource_type, latest, base_ark, request, is_base):
-            _update_ark(ark_id, target)
+def _sync_latest_arks(resource, latest, request):
+    """
+    將 base 與 v_latest 對應的 ARK 同步到目前 resource_type + 內容。
+    處理：一般編輯、v1-only 時的 type 變更（doc-link → file）。
+    多出的舊 ARK 留作孤兒，保持最後狀態。
+    """
+    if resource.resource_type == 'ext-link':
+        return
+    
+    base_ark_id = _get_base_ark_id(resource)
+    if base_ark_id is None:
+        # 罕見：ext-link 轉成其他 type（雖然規則上不允許，但 backfill 或人工修改可能造成）
+        base_ark_id = ark_generator(data_type='resource')
+    
+    existing = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
+    
+    target_pairs = (
+        _ark_targets(resource.resource_type, latest, base_ark_id, request, is_base=True) +
+        _ark_targets(resource.resource_type, latest, base_ark_id, request, is_base=False)
+    )
+    
+    for ark_id, target_url in target_pairs:
+        if ark_id in existing:
+            _update_ark(ark_id, target_url)
+        else:
+            Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+            _insert_ark(ark_id, target_url)
 
 
 def _publish_version_arks(resource, new_version, base_ark, request):
@@ -2376,119 +2410,131 @@ def _publish_version_arks(resource, new_version, base_ark, request):
 
 def submit_resource(request):
     if request.method != 'POST':
-        return redirect('system_resource')
+        return JsonResponse({'success': False, 'error': 'POST only'}, status=405)
     
-    now = timezone.now() + timedelta(hours=8)
-    url = request.POST.get('url') or ''
-    doc_url = request.POST.get('doc_url') or ''
-    publish_date = request.POST.get('publish_date')
-    title = request.POST.get('title')
-    content_type = request.POST.get('content_type')
-    lang = request.POST.get('lang')
-    
-    resource_id = int(request.POST.get('resource_id') or 0)
-    existing = Resource.objects.filter(id=resource_id).first()
-    
-    if existing:
-        # ── 編輯目前最新版 ──
-        resource_type = existing.resource_type  # 鎖住
-        latest = existing.versions.order_by('-version').first()
+    try:
+        with transaction.atomic():
+            now = timezone.now() + timedelta(hours=8)
+            url = request.POST.get('url') or ''
+            doc_url = request.POST.get('doc_url') or ''
+            publish_date = request.POST.get('publish_date')
+            title = request.POST.get('title')
+            content_type = request.POST.get('content_type')
+            lang = request.POST.get('lang')
+            
+            resource_id = int(request.POST.get('resource_id') or 0)
+            existing = Resource.objects.filter(id=resource_id).first()
+            
+            if existing:
+                is_v1_only = existing.versions.count() <= 1
+                latest = existing.versions.order_by('-version').first()
+                
+                # type 鎖規則：只有 doc-link + v1-only 才能改
+                if existing.resource_type == 'doc-link' and is_v1_only:
+                    requested_type = request.POST.get('resource_type') or existing.resource_type
+                    # 只允許保持 doc-link 或改成 file
+                    if requested_type in ('doc-link', 'file'):
+                        resource_type = requested_type
+                    else:
+                        resource_type = existing.resource_type  # 不允許 → ext-link，保持原值
+                else:
+                    resource_type = existing.resource_type
+
+                extension = url.split('.')[-1] if resource_type == 'file' and url else ''
+                
+                # 所有版本相關欄位都可改
+                Resource.objects.filter(id=resource_id).update(
+                    resource_type=resource_type,
+                    content_type=content_type, title=title, lang=lang,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date, modified=now,
+                )
+                ResourceVersion.objects.filter(id=latest.id).update(
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date, modified=now,
+                )
+                latest.refresh_from_db()
+                existing.refresh_from_db()
+                
+                _sync_latest_arks(existing, latest, request)
+
+            else:
+                # ── 新建（自動為 v1）──
+                resource_type = request.POST.get('resource_type')
+                extension = url.split('.')[-1] if resource_type == 'file' and url else ''
+                
+                resource = Resource.objects.create(
+                    resource_type=resource_type,
+                    content_type=content_type, title=title, lang=lang,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date,
+                    created=now, modified=now,
+                )
+                v1 = ResourceVersion.objects.create(
+                    resource=resource, version=1,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date,
+                    created=now, modified=now,
+                )
+                
+                if resource_type != 'ext-link':
+                    _create_resource_arks(resource, v1, request)
         
-        r_update = {
-            'content_type': content_type, 'title': title, 'lang': lang,
-            'publish_date': publish_date,
-            'modified': now,
-        }
-        v_update = {'publish_date': publish_date, 'modified': now}
+        return JsonResponse({'success': True})
         
-        if resource_type == 'file':
-            if not latest.doc_url and doc_url:
-                r_update['doc_url'] = doc_url
-                v_update['doc_url'] = doc_url
-        elif resource_type == 'doc-link':
-            if not latest.doc_url and doc_url:
-                r_update['doc_url'] = doc_url
-                v_update['doc_url'] = doc_url
-        elif resource_type == 'ext-link':
-            r_update['url'] = url
-            v_update['url'] = url
-        
-        Resource.objects.filter(id=resource_id).update(**r_update)
-        ResourceVersion.objects.filter(id=latest.id).update(**v_update)
-        latest.refresh_from_db()
-        
-        if resource_type != 'ext-link':
-            base_ark = _get_base_ark_id(existing)
-            _update_latest_arks(existing, latest, base_ark, request)
-    
-    else:
-        # ── 新建（自動為 v1）──
-        resource_type = request.POST.get('resource_type')
-        extension = url.split('.')[-1] if resource_type == 'file' and url else ''
-        
-        resource = Resource.objects.create(
-            resource_type=resource_type,
-            content_type=content_type, title=title, lang=lang,
-            extension=extension, url=url, doc_url=doc_url,
-            publish_date=publish_date,
-            created=now, modified=now,
-        )
-        v1 = ResourceVersion.objects.create(
-            resource=resource, version=1,
-            extension=extension, url=url, doc_url=doc_url,
-            publish_date=publish_date,
-            created=now, modified=now,
-        )
-        
-        if resource_type != 'ext-link':
-            _create_resource_arks(resource, v1, request)
-    
-    return redirect('system_resource')
+    except RuntimeError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 def publish_new_resource_version(request):
     if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
+        return JsonResponse({'success': False, 'error': 'POST only'}, status=405)
     
-    now = timezone.now() + timedelta(hours=8)
-    resource_id = int(request.POST.get('resource_id') or 0)
-    resource = Resource.objects.filter(id=resource_id).first()
-    
-    if not resource:
-        return JsonResponse({'error': 'resource not found'}, status=404)
-    if resource.resource_type == 'ext-link':
-        return JsonResponse({'error': 'ext-link 不支援版本控制'}, status=400)
-    
-    url = request.POST.get('url') or ''
-    doc_url = request.POST.get('doc_url') or ''
-    publish_date = request.POST.get('publish_date')
-    
-    latest = resource.versions.order_by('-version').first()
-    new_version_num = (latest.version + 1) if latest else 1
-    
-    extension = url.split('.')[-1] if resource.resource_type == 'file' and url else ''
-    
-    Resource.objects.filter(id=resource_id).update(
-        content_type=request.POST.get('content_type'),
-        title=request.POST.get('title'),
-        lang=request.POST.get('lang'),
-        extension=extension, url=url, doc_url=doc_url,
-        publish_date=publish_date,
-        modified=now,
-    )
-    resource.refresh_from_db()
-    
-    new_version = ResourceVersion.objects.create(
-        resource=resource, version=new_version_num,
-        extension=extension, url=url, doc_url=doc_url,
-        publish_date=publish_date,
-        created=now, modified=now,
-    )
-    
-    base_ark = _get_base_ark_id(resource)
-    _publish_version_arks(resource, new_version, base_ark, request)
-    
-    return JsonResponse({'version': new_version_num})
+    try:
+        with transaction.atomic():
+            now = timezone.now() + timedelta(hours=8)
+            resource_id = int(request.POST.get('resource_id') or 0)
+            resource = Resource.objects.filter(id=resource_id).first()
+            
+            if not resource:
+                return JsonResponse({'error': 'resource not found'}, status=404)
+            if resource.resource_type == 'ext-link':
+                return JsonResponse({'error': 'ext-link 不支援版本控制'}, status=400)
+            
+            url = request.POST.get('url') or ''
+            doc_url = request.POST.get('doc_url') or ''
+            publish_date = request.POST.get('publish_date')
+            
+            latest = resource.versions.order_by('-version').first()
+            new_version_num = (latest.version + 1) if latest else 1
+            
+            extension = url.split('.')[-1] if resource.resource_type == 'file' and url else ''
+            
+            Resource.objects.filter(id=resource_id).update(
+                content_type=request.POST.get('content_type'),
+                title=request.POST.get('title'),
+                lang=request.POST.get('lang'),
+                extension=extension, url=url, doc_url=doc_url,
+                publish_date=publish_date,
+                modified=now,
+            )
+            resource.refresh_from_db()
+            
+            new_version = ResourceVersion.objects.create(
+                resource=resource, version=new_version_num,
+                extension=extension, url=url, doc_url=doc_url,
+                publish_date=publish_date,
+                created=now, modified=now,
+            )
+            
+            base_ark = _get_base_ark_id(resource)
+            _publish_version_arks(resource, new_version, base_ark, request)
+            
+        return JsonResponse({'success': True, 'version': new_version_num})
+        
+    except RuntimeError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        
 
 
 def get_resource_ark_table(request):

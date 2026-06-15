@@ -118,7 +118,7 @@
                                         <input type="hidden" id="publish_mode" name="publish_mode" value="edit">
                                         <li id="new_version_banner">
                                             <div class="noticbox d-none">
-                                                <p>目前為「發布新版本」模式，送出後將建立新版本，目前版本將被凍結</p>
+                                                <p>目前為「發布新版本」模式，送出後將建立新版本，目前最新版本將被凍結</p>
                                             </div>
                                         </li>
                                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
@@ -157,22 +157,22 @@
                                         </li>
                                         <li>資源本身為</li>
                                         <li>
-                                            <select name="resource_type" {% if current_r.id %}disabled{% endif %}>
+                                            <select name="resource_type" {% if current_r.id and not current_r.can_change_type %}disabled{% endif %}>
                                                 <option value="file" {% if not current_r.id or current_r.resource_type == "file" %}selected{% endif %}>檔案</option>
-                                                <option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>
+                                                {% if not current_r and current_r.resource_type == 'ext-link' %}<option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>{% endif %}
                                                 <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %}selected{% endif %}>文件網站連結</option>
                                             </select>
                                         </li>
                                         <li class="doc-link_field">文件網站連結</li>
                                         <li class="doc-link_field">
-                                            <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}" {% if current_r.id and current_r.doc_url %}disabled{% endif %}>
+                                            <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
                                         </li>
                                         <li class="file_field">檔案</li>
                                         <li class="upload-warning file_field">
-                                            <p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p>
+                                            <p>*發布前請先上傳檔案，若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助。</p>
                                         </li>
                                         <li class="d-flex file_field">
-                                            <input id="file" type="file" name="file" class="form-control" {% if current_r.id and current_r.resource_type == 'file' %}disabled{% endif %}>
+                                            <input id="file" type="file" name="file" class="form-control">
                                             <input type="hidden" name="url" value="{{ current_r.url }}">
                                         </li>
                                         <li class="file_field">
@@ -197,7 +197,7 @@
                                         </div>
                                     </li>
                                     <li class="mt-20px">
-                                        <button class="read_btn file_field mr-10px" id="save_resource_file" {% if current_r.id and current_r.resource_type == 'file' %}disabled{% endif %}>上傳檔案</button>
+                                        <button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>
                                         <button class="read_btn" id="publish">
                                             發布 / 儲存
                                         </button>

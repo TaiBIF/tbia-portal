@@ -249,7 +249,18 @@ $(document).ready(function () {
                 },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
-                    window.location = '/manager/system/resource?menu=resource';
+                    if (response.success) {
+                        window.location = '/manager/system/resource?menu=resource';
+                    } else {
+                        alert('儲存失敗：' + (response.error || '未知錯誤'));
+                    }
+                },
+                error: function (xhr) {
+                    let msg = '儲存失敗，請聯絡管理員';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        msg = '儲存失敗：' + xhr.responseJSON.error;
+                    }
+                    alert(msg);
                 }
             })
 
@@ -285,11 +296,7 @@ $(document).ready(function () {
         if (!confirm('確定要發布新版本嗎？發布後目前版本將無法再修改')) return;
         
         $('#publish_mode').val('new_version');
-        $('[name=doc_url]').prop('disabled', false);
-        $('#file').prop('disabled', false);
-        $('#save_resource_file').prop('disabled', false);
-        
-        // 清空檔案 url，強制重新上傳
+        // 清掉檔案 url，強制重新上傳（其他欄位本來就 enabled）
         $('#saveForm input[name=url]').val('');
         $('#preview').addClass('d-none');
         

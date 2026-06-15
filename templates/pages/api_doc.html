@@ -1087,6 +1087,25 @@
                                             <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024</a>
                                         </td>
                                     </tr>
+
+                                    <tr>
+                                        <td>county</td>
+                                        <td>string</td>
+                                        <td>{% trans '取得指定縣市的網格資料' %}</td>
+                                        <td>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>municipality</td>
+                                        <td>string</td>
+                                        <td>{% trans '取得指定鄉鎮市區的網格資料' %}</td>
+                                        <td>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉</a>
+                                        </td>
+                                    </tr>
+
+
                                 </table>
                                 <div class="api-note">
                                     <p>{% trans '因應效能考量，四邊形座標範圍需搭配網格大小（grid）使用。若您需要較大的地理範圍，請先切割成較小範圍分次取得。' %}</p>
