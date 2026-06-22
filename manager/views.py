@@ -1547,10 +1547,9 @@ def get_taxon_group_stat(request):
             holder_count = holder_dict.get(group, 0)
             system_count = system_dict.get(group, 0)
             unit_percentage = round((holder_count / system_count) * 100, 2) if system_count else 0 # 佔入口網鳥類
-            
+
             holder_data = [0] * len(taxon_groups)
             holder_data[i] = holder_count
-            
             taxon_group_stat.append({
                 'name': f'{group}-單位',
                 'data': holder_data,
@@ -2845,10 +2844,10 @@ def get_temporal_stat(request):
             for yy in year_list:
                 if not len(df[df.year==yy]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'year': str(yy)}])])
+            df = df[df.year!='x']
             df = df.reset_index(drop=True)
             df['year'] = df.year.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('year')['total_count'].to_list(), 'color': color })
-
         else:
             r_list = df.rights_holder.unique()
             r_list.sort() # 確保同一個來源資料庫是同一個顏色
@@ -2857,6 +2856,7 @@ def get_temporal_stat(request):
                 for yy in year_list:
                     if not len(df[(df.rights_holder==x)&(df.year==yy)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'year': str(yy)}])])
+                df = df[df.year!='x']
                 df = df.reset_index(drop=True)
                 df['year'] = df.year.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year')['total_count'].to_list(), 'color': color })
@@ -2904,6 +2904,7 @@ def get_temporal_stat(request):
                 if not len(df[df.month==mm]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'month': mm}])])
             df = df.reset_index(drop=True)
+            df = df[df.month!='x']
             df['month'] = df.month.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('month')['total_count'].to_list(), 'color': color })
         else:
@@ -2914,6 +2915,7 @@ def get_temporal_stat(request):
                 for mm in month_list:
                     if not len(df[(df.rights_holder==x)&(df.month==mm)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'month': mm}])])
+                df = df[df.month!='x']
                 df = df.reset_index(drop=True)
                 df['month'] = df.month.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('month')['total_count'].to_list(), 'color': color })
