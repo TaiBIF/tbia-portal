@@ -2399,12 +2399,22 @@ def _sync_latest_arks(resource, latest, request):
 
 
 def _publish_version_arks(resource, new_version, base_ark, request):
-    """發布新版本：insert 新版號 ARK，update base ARK 指向新最新版"""
+    # 新版號 ARK：永遠是新 ARK，一律 insert
     for ark_id, target in _ark_targets(resource.resource_type, new_version, base_ark, request, is_base=False):
         Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
         _insert_ark(ark_id, target)
+    
+    # Base ARK：既有的 update，新增的 insert（處理 doc-link → file 升級的 base.file 情境）
+    existing = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
+    
     for ark_id, target in _ark_targets(resource.resource_type, new_version, base_ark, request, is_base=True):
-        _update_ark(ark_id, target)
+        if ark_id in existing:
+            _update_ark(ark_id, target)
+        else:
+            Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+            _insert_ark(ark_id, target)
 
 
 def submit_resource(request):
@@ -2496,9 +2506,17 @@ def publish_new_resource_version(request):
             resource = Resource.objects.filter(id=resource_id).first()
             
             if not resource:
-                return JsonResponse({'error': 'resource not found'}, status=404)
-            if resource.resource_type == 'ext-link':
-                return JsonResponse({'error': 'ext-link 不支援版本控制'}, status=400)
+                return JsonResponse({'success': False, 'error': 'resource not found'}, status=404)
+            
+            # ── type 變更規則：與 submit_resource 一致 ──
+            is_v1_only = resource.versions.count() <= 1
+            if resource.resource_type == 'doc-link' and is_v1_only:
+                new_resource_type = request.POST.get('resource_type') or resource.resource_type
+            else:
+                new_resource_type = resource.resource_type
+            
+            if new_resource_type == 'ext-link':
+                return JsonResponse({'success': False, 'error': 'ext-link 不支援版本控制'}, status=400)
             
             url = request.POST.get('url') or ''
             doc_url = request.POST.get('doc_url') or ''
@@ -2507,9 +2525,11 @@ def publish_new_resource_version(request):
             latest = resource.versions.order_by('-version').first()
             new_version_num = (latest.version + 1) if latest else 1
             
-            extension = url.split('.')[-1] if resource.resource_type == 'file' and url else ''
+            # extension 用「新的」type 計算
+            extension = url.split('.')[-1] if new_resource_type == 'file' and url else ''
             
             Resource.objects.filter(id=resource_id).update(
+                resource_type=new_resource_type,          # ← 新增
                 content_type=request.POST.get('content_type'),
                 title=request.POST.get('title'),
                 lang=request.POST.get('lang'),
@@ -2528,16 +2548,15 @@ def publish_new_resource_version(request):
             
             base_ark = _get_base_ark_id(resource)
             _publish_version_arks(resource, new_version, base_ark, request)
-            
-        return JsonResponse({'success': True, 'version': new_version_num})
         
+        return JsonResponse({'success': True, 'version': new_version_num})
+    
     except RuntimeError as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
         
 
 
 def get_resource_ark_table(request):
-    """編輯頁右側 ARK 版本紀錄表"""
     resource_id = request.GET.get('resource_id')
     resource = Resource.objects.filter(id=resource_id).first()
     if not resource or resource.resource_type == 'ext-link':
@@ -2546,6 +2565,11 @@ def get_resource_ark_table(request):
     base_ark = _get_base_ark_id(resource)
     if not base_ark:
         return JsonResponse({'rows': []})
+    
+    # 撈出該 resource 實際存在的 ARK 集合
+    existing_arks = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
     
     def make_link(ark_id):
         return {
@@ -2560,13 +2584,13 @@ def get_resource_ark_table(request):
             'file': None,
             'doc': None,
         }
-        if resource.resource_type == 'file':
+        # 只顯示實際存在的 ARK
+        if prefix in existing_arks:
+            row['doc'] = make_link(prefix)
+        if f'{prefix}.file' in existing_arks:
             row['file'] = make_link(f'{prefix}.file')
-            row['doc'] = make_link(prefix)
-        elif resource.resource_type == 'doc-link':
-            row['doc'] = make_link(prefix)
         return row
-
+    
     latest = resource.versions.order_by('-version').first()
     rows = [build_row('latest', base_ark, latest)]
     for v in resource.versions.order_by('-version'):

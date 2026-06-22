@@ -159,7 +159,7 @@
                                         <li>
                                             <select name="resource_type" {% if current_r.id and not current_r.can_change_type %}disabled{% endif %}>
                                                 <option value="file" {% if not current_r.id or current_r.resource_type == "file" %}selected{% endif %}>檔案</option>
-                                                {% if not current_r and current_r.resource_type == 'ext-link' %}<option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>{% endif %}
+                                                {% if not current_r or current_r.resource_type == 'ext-link' %}<option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>{% endif %}
                                                 <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %}selected{% endif %}>文件網站連結</option>
                                             </select>
                                         </li>
