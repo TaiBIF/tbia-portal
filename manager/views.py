@@ -1680,9 +1680,12 @@ def get_checklist_stat(request):
     df = df.reset_index(drop=True)
 
     resp = {}
-    resp['data'] = df.sort_values('year_month')['count'].to_list()
+    resp['data'] = [{
+        'name': '名錄下載次數',
+        'data': df.sort_values('year_month')['count'].to_list()
+    }]
     resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
+    
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
