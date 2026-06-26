@@ -1743,7 +1743,10 @@ def get_data_stat(request):
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': rights_holder, 'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
 
-        resp['data'] = df.sort_values('year_month')['count'].to_list()
+        resp['data'] = [{
+            'name': rights_holder,
+            'data': df.sort_values('year_month')['count'].to_list()
+        }]
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
         
     else:
@@ -1757,8 +1760,10 @@ def get_data_stat(request):
                 df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
 
-
-        resp['data'] = df.sort_values('year_month')['count'].to_list()
+        resp['data'] = [{
+            'name': rights_holder or 'total',
+            'data': df.sort_values('year_month')['count'].to_list()
+        }]
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
 
     return HttpResponse(json.dumps(resp), content_type='application/json')
