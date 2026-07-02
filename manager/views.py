@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from urllib import parse
+from urllib.parse import quote
 from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.shortcuts import render
@@ -2302,9 +2303,14 @@ def save_resource_file(request):
 
 
 def _build_file_url(request, resource_url):
-    """檔案的 full URL：{scheme}://{host}/media + resource_url"""
+    """
+    組出檔案的公開 URL。
+    - resource_url 可能有或沒有 leading slash (fs.save 回傳的沒有)
+    - 檔名可能有空格、中文、括號 → 必須 percent-encode 才能通過 URLValidator
+    """
     scheme = 'https' if request.is_secure() else 'http'
-    return f"{scheme}://{request.get_host()}/media/{resource_url}"
+    path = resource_url.lstrip('/')
+    return f"{scheme}://{request.get_host()}/media/{quote(path, safe='/')}"
 
 
 def _insert_ark(ark_id, target_url):
