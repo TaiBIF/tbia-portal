@@ -110,89 +110,123 @@
                             <div class="dottt"></div>
                             教育資源管理
                         </div>
-                        <ul class="edit-list">
-                            <form id="saveForm" method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="resource_id" value="{{ current_r.id }}">
-                                <li>類型</li>
-                                <li>
-                                    <select name="content_type">
-                                        {% for t in content_type_choice %}
-                                            {% if t.0 == current_r.type %}
-                                                <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
-                                            {% else %}
-                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                </li>
-                                <li>語言</li>
-                                <li>
-                                    <select name="resource_lang">
-                                        <option value="zh-hant" {% if current_r.lang == 'zh-hant' %}selected{% endif %}>中文</option>
-                                        <option value="en-us" {% if current_r.lang == 'en-us' %}selected{% endif %}>英文</option>
-                                    </select>
-                                </li>
-                                <li>發布日期</li>
-                                <li>
-                                    <input type="date" name="publish_date" value="{% if current_r.publish_date %}{{ current_r.publish_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
-                                    <div class="noticbox d-none">
-                                        <p>必填欄位</p>
+                        <div class="edit-split">
+                            <div>
+                                <ul class="edit-list">
+                                    <form id="saveForm" method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" id="publish_mode" name="publish_mode" value="edit">
+                                        <li id="new_version_banner">
+                                            <div class="noticbox d-none">
+                                                <p>目前為「發布新版本」模式，送出後將建立新版本，目前最新版本將被凍結</p>
+                                            </div>
+                                        </li>
+                                        <input type="hidden" name="resource_id" value="{{ current_r.id }}">
+                                        <li>類型</li>
+                                        <li>
+                                            <select name="content_type">
+                                                {% for t in content_type_choice %}
+                                                    {% if t.0 == current_r.type %}
+                                                        <option value="{{ t.0 }}" selected>{{ t.1 }}</option>
+                                                    {% else %}
+                                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>語言</li>
+                                        <li>
+                                            <select name="resource_lang">
+                                                <option value="zh-hant" {% if current_r.lang == 'zh-hant' %}selected{% endif %}>中文</option>
+                                                <option value="en-us" {% if current_r.lang == 'en-us' %}selected{% endif %}>英文</option>
+                                            </select>
+                                        </li>
+                                        <li>發布日期</li>
+                                        <li>
+                                            <input type="date" name="publish_date" value="{% if current_r.publish_date %}{{ current_r.publish_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+                                            <div class="noticbox d-none">
+                                                <p>必填欄位</p>
+                                            </div>
+                                        </li>
+                                        <li>標題</li>
+                                        <li>
+                                            <input type="text" name="title" value="{{ current_r.title }}">
+                                            <div class="noticbox d-none">
+                                                <p>必填欄位</p>
+                                            </div>
+                                        </li>
+                                        <li>資源本身為</li>
+                                        <li>
+                                            <select name="resource_type" {% if current_r.id and not current_r.can_change_type %}disabled{% endif %}>
+                                                <option value="file" {% if not current_r.id or current_r.resource_type == "file" %}selected{% endif %}>檔案</option>
+                                                {% if not current_r or current_r.resource_type == 'ext-link' %}<option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>{% endif %}
+                                                <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %}selected{% endif %}>文件網站連結</option>
+                                            </select>
+                                        </li>
+                                        <li class="doc-link_field">文件網站連結</li>
+                                        <li class="doc-link_field">
+                                            <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
+                                        </li>
+                                        <li class="file_field">檔案</li>
+                                        <li class="upload-warning file_field">
+                                            <p>*發布前請先上傳檔案，若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助。</p>
+                                        </li>
+                                        <li class="d-flex file_field">
+                                            <input id="file" type="file" name="file" class="form-control">
+                                            <input type="hidden" name="url" value="{{ current_r.url }}">
+                                        </li>
+                                        <li class="file_field">
+                                            <span id="preview" {% if not current_r.url %}class="d-none"{% endif %}>
+                                                {% if current_r.url %}
+                                                    目前檔案：{{ current_r.filename }}
+                                                    <a target="_blank" href="/media/{{ current_r.url }}">(預覽)</a>
+                                                {% endif %}
+                                            </span>
+                                        </li>
+                                        <li class="link_field">連結</li>
+                                        <li class="link_field">
+                                            <input type="text" name="url" value="{{ current_r.url }}">
+                                            <div class="noticbox d-none" id="link_error">
+                                                <p>必填欄位</p>
+                                            </div>
+                                        </li>
+                                    </form>
+                                    <li>
+                                        <div class="noticbox d-none" id="file_error">
+                                            <p>發布前請先上傳檔案</p>
+                                        </div>
+                                    </li>
+                                    <li class="mt-20px">
+                                        <button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>
+                                        <button class="read_btn" id="publish">
+                                            發布 / 儲存
+                                        </button>
+                                        <button class="read_btn d-none" id="cancel_new_version" type="button">取消發布新版本</button>
+                                    </li>
+                                </ul>
+                            </div>
+                            {% if current_r.id and current_r.resource_type != 'ext-link' %}
+                                <!-- ARK 版本紀錄 -->
+                                <div>
+                                    <div class="item">
+                                        <div class="box-title">
+                                            <div class="d-flex">ARK版本紀錄</div>
+                                            <button class="read_btn" id="publish_ark_version">發布新版本</button>
+                                        </div>
+                                        <div class="result_table table-flow">
+                                            <table cellspacing="0" class="table_style3 ark_table">
+                                                <tr class="ark_table_header">
+                                                    <td>版本</td>
+                                                    <td>發布日期</td>
+                                                    <td>檔案</td>
+                                                    <td>文件網站</td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
-                                </li>
-                                <li>標題</li>
-                                <li>
-                                    <input type="text" name="title" value="{{ current_r.title }}">
-                                    <div class="noticbox d-none">
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                                <li>資源本身為</li>
-                                <li>
-                                    <select name="resource_type" {% if current_r.id %}disabled{% endif %}>
-                                        <option value="file" {% if not current_r.id or current_r.resource_type == "file" %}selected{% endif %}>檔案</option>
-                                        <option value="ext-link" {% if current_r.id and current_r.resource_type == "ext-link" %}selected{% endif %}>外部連結</option>
-                                        <option value="doc-link" {% if current_r.id and current_r.resource_type == "doc-link" %}selected{% endif %}>文件網站連結</option>
-                                    </select>
-                                </li>
-                                <li class="doc-link_field">文件網站連結</li>
-                                <li class="doc-link_field">
-                                    <input type="text" name="doc_url" value="{{ current_r.doc_url|default_if_none:'' }}">
-                                </li>
-                                <li class="file_field">檔案</li>
-                                <li class="upload-warning file_field">
-                                    <p>*若上傳檔案超過20MB，將無法上傳檔案，請通知管理員協助</p>
-                                </li>
-                                <li class="d-flex file_field">
-                                    <input id="file" type="file" name="file" class="form-control">
-                                    <input type="hidden" name="url" value="{{ current_r.url }}">
-                                </li>
-                                <li class="file_field">
-                                    <span id="preview" {% if not current_r.url %}class="d-none"{% endif %}>
-                                        {% if current_r.url %}
-                                            目前檔案：{{ current_r.filename }}
-                                            <a target="_blank" href="/media/{{ current_r.url }}">(預覽)</a>
-                                        {% endif %}
-                                    </span>
-                                </li>
-                                <li class="link_field">連結</li>
-                                <li class="link_field">
-                                    <input type="text" name="url" value="{{ current_r.url }}">
-                                    <div class="noticbox d-none" id="link_error">
-                                        <p>必填欄位</p>
-                                    </div>
-                                </li>
-                            </form>
-                            <li>
-                                <div class="noticbox d-none" id="file_error">
-                                    <p>發布前請先上傳檔案</p>
                                 </div>
-                            </li>
-                            <li class="mt-20px">
-                                <button class="read_btn file_field mr-10px" id="save_resource_file">上傳檔案</button>
-                                <button class="read_btn" id="publish">發布 / 儲存</button>
-                            </li>
-                        </ul>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 <div class="rightbox_content resource d-none">

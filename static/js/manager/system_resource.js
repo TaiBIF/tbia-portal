@@ -66,7 +66,37 @@ function deleteResource(resource_id) {
     })
 }
 
+
+function loadArkTable() {
+    const resourceId = $('#saveForm input[name=resource_id]').val();
+    if (!resourceId) return;
+    
+    $.ajax({
+        url: `/get_resource_ark_table?resource_id=${resourceId}`,
+        type: 'GET',
+        success: function(response) {
+            const $table = $('.ark_table');
+            $table.find('tr:not(.ark_table_header)').remove();
+            
+            response.rows.forEach(row => {
+                const fileCell = row.file 
+                    ? `<a href="${row.file.ark_href}" target="_blank">${row.file.ark}</a>` 
+                    : '';
+                const docCell = row.doc 
+                    ? `<a href="${row.doc.ark_href}" target="_blank">${row.doc.ark}</a>` 
+                    : '';
+                $table.append(
+                    `<tr><td>${row.version}</td><td>${row.publish_date}</td><td>${fileCell}</td><td>${docCell}</td></tr>`
+                );
+            });
+        }
+    });
+}
+
+
 $(document).ready(function () {
+
+    loadArkTable();
 
     $('select[name=resource_type]').on('change', function () {
 
@@ -200,9 +230,13 @@ $(document).ready(function () {
 
         if (checked) {
 
+            const mode = $('#publish_mode').val();
+            const endpoint = mode === 'new_version' ? '/publish_new_resource_version' : '/submit_resource';
+
+
             $.ajax({
                 type: 'POST',
-                url: "/submit_resource",
+                url: endpoint,
                 data: {
                     'url': url,
                     'content_type': $('#saveForm select[name=content_type]').find(":selected").val(),
@@ -215,7 +249,18 @@ $(document).ready(function () {
                 },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {
-                    window.location = '/manager/system/resource?menu=resource';
+                    if (response.success) {
+                        window.location = '/manager/system/resource?menu=resource';
+                    } else {
+                        alert('儲存失敗：' + (response.error || '未知錯誤'));
+                    }
+                },
+                error: function (xhr) {
+                    let msg = '儲存失敗，請聯絡管理員';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        msg = '儲存失敗：' + xhr.responseJSON.error;
+                    }
+                    alert(msg);
                 }
             })
 
@@ -246,6 +291,24 @@ $(document).ready(function () {
         $(this).addClass("now")
         $(this).parent().parent('li').addClass('now')
     });
+
+    $('#publish_ark_version').on('click', function () {
+        if (!confirm('確定要發布新版本嗎？發布後目前版本將無法再修改')) return;
+        
+        $('#publish_mode').val('new_version');
+        // 清掉檔案 url，強制重新上傳（其他欄位本來就 enabled）
+        $('#saveForm input[name=url]').val('');
+        $('#preview').addClass('d-none');
+        
+        $('#new_version_banner .noticbox').removeClass('d-none');
+        $(this).addClass('d-none');
+        $('#cancel_new_version').removeClass('d-none');
+    });
+
+    $('#cancel_new_version').on('click', function () {
+        location.reload();
+    });
+
 
 })
 

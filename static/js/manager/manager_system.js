@@ -82,8 +82,11 @@ $(document).ready(function () {
                                 load: function () {
 
                                     var chart = this;
-                                    var categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類',
-                                        '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                                    var categories = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                                              '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                                              '蝸牛與貝類', '蝦蟹類',
+                                              '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                                              '藻類', '真菌', '病毒', '細菌']
 
                                     // 為 x 軸標籤添加點擊事件
                                     chart.xAxis[0].labelGroup.element.childNodes.forEach(function (label, index) {
@@ -113,8 +116,11 @@ $(document).ready(function () {
                         tooltip: {
                             shared: true,
                             formatter: function () {
-                                const categories = ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類',
-                                    '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'];
+                                const categories = ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                                              '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                                              '蝸牛與貝類', '蝦蟹類',
+                                              '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                                              '藻類', '真菌', '病毒', '細菌'];
 
                                 let category = categories[this.x];
 
@@ -160,8 +166,11 @@ $(document).ready(function () {
                             }
                         },
                         xAxis: {
-                            categories: ['昆蟲', '蜘蛛', '魚類', '爬蟲類', '兩棲類', '鳥類', '哺乳類',
-                                '維管束植物', '蕨類植物', '苔蘚植物', '藻類', '病毒', '細菌', '真菌', '其他'],
+                            categories: ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲',
+                                        '蜘蛛', '魚類', '兩棲類', '爬蟲類', '鳥類', '哺乳類',
+                                        '蝸牛與貝類', '蝦蟹類',
+                                        '被子植物', '裸子植物', '蕨類植物', '苔蘚植物',
+                                        '藻類', '真菌', '病毒', '細菌'],
                             title: {
                                 text: null
                             },
@@ -738,15 +747,10 @@ $(document).ready(function () {
                 categories: [],
             },
             plotOptions: {
-                line: {
-                    dataLabels: {
-                        enabled: true
-                    },
+                column: {
+                    color: '#E6B8C4',
                 }
             },
-            series: [{
-                color: '#E6B8C4',
-            }],
             tooltip: {
                 pointFormat: '<b>{point.y}次</b>'
             },
@@ -758,17 +762,25 @@ $(document).ready(function () {
                 url: `/get_checklist_stat?year=${$('select[name=checklist-stat-year]').find(':selected').val()}`,
                 type: 'GET',
             })
-                .done(function (response) {
-                    checklist_chart = $('#container-checklist-stat').highcharts()
-                    checklist_chart.update({ series: [{ data: response.data }] });
-                    checklist_chart.xAxis[0].update({ categories: response.categories });
-                    $('#loader_checklist').addClass('d-none');
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    $('#loader_checklist').addClass('d-none');
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (response) {
+                let checklist_chart = $('#container-checklist-stat').highcharts()
+
+                while (checklist_chart.series.length) {
+                    checklist_chart.series[0].remove();
+                }
+                checklist_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (let i of response.data) {
+                    checklist_chart.addSeries(i)
+                }
+
+                $('#loader_checklist').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $('#loader_checklist').addClass('d-none');
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
         })
 
         // 起始狀態
@@ -791,15 +803,10 @@ $(document).ready(function () {
                 }
             },
             plotOptions: {
-                line: {
-                    dataLabels: {
-                        enabled: true
-                    },
+                column: {
+                    color: "#C2D8D8",
                 }
             },
-            series: [{
-                color: "#C2D8D8",
-            }],
             tooltip: {
                 pointFormat: '<b>{point.y}筆</b>'
             },
@@ -813,17 +820,25 @@ $(document).ready(function () {
                 url: `/get_data_stat?type=data&year=${$('select[name=data-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=data-stat-rightsholder]').find(':selected').val()}`,
                 type: 'GET',
             })
-                .done(function (response) {
-                    let data_chart = $('#container-data-stat').highcharts()
-                    data_chart.update({ series: [{ data: response.data }] });
-                    data_chart.xAxis[0].update({ categories: response.categories });
-                    $('#loader_data_stat').addClass('d-none');
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    $('#loader_data_stat').addClass('d-none');
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (response) {
+                let data_chart = $('#container-data-stat').highcharts()
+
+                while (data_chart.series.length) {
+                    data_chart.series[0].remove();
+                }
+                data_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (let i of response.data) {
+                    data_chart.addSeries(i)
+                }
+
+                $('#loader_data_stat').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $('#loader_data_stat').addClass('d-none');
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
 
         })
 
@@ -844,15 +859,10 @@ $(document).ready(function () {
                 categories: [],
             },
             plotOptions: {
-                line: {
-                    dataLabels: {
-                        enabled: true
-                    },
+                column: {
+                    color: '#B2D4B2',
                 }
             },
-            series: [{
-                color: '#B2D4B2',
-            }],
             tooltip: {
                 pointFormat: '<b>{point.y}筆</b>'
             },
@@ -864,17 +874,25 @@ $(document).ready(function () {
                 url: `/get_data_stat?type=search&year=${$('select[name=search-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=search-stat-rightsholder]').find(':selected').val()}`,
                 type: 'GET',
             })
-                .done(function (response) {
-                    let search_chart = $('#container-search-stat').highcharts()
-                    search_chart.update({ series: [{ data: response.data }] });
-                    search_chart.xAxis[0].update({ categories: response.categories });
-                    $('#loader_search_stat').addClass('d-none');
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    $('#loader_search_stat').addClass('d-none');
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (response) {
+                let search_chart = $('#container-search-stat').highcharts()
+
+                while (search_chart.series.length) {
+                    search_chart.series[0].remove();
+                }
+                search_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (let i of response.data) {
+                    search_chart.addSeries(i)
+                }
+
+                $('#loader_search_stat').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $('#loader_search_stat').addClass('d-none');
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
 
         })
 
@@ -895,15 +913,10 @@ $(document).ready(function () {
                 categories: [],
             },
             plotOptions: {
-                line: {
-                    dataLabels: {
-                        enabled: true
-                    },
+                column: {
+                    color: '#E8C4AC',
                 }
             },
-            series: [{
-                color: '#E8C4AC',
-            }],
             tooltip: {
                 pointFormat: '<b>{point.y}筆</b>'
             },
@@ -915,17 +928,25 @@ $(document).ready(function () {
                 url: `/get_data_stat?type=download&year=${$('select[name=download-stat-year]').find(':selected').val()}&rights_holder=${$('select[name=download-stat-rightsholder]').find(':selected').val()}`,
                 type: 'GET',
             })
-                .done(function (response) {
-                    let download_chart = $('#container-download-stat').highcharts()
-                    download_chart.update({ series: [{ data: response.data }] });
-                    download_chart.xAxis[0].update({ categories: response.categories });
-                    $('#loader_download_stat').addClass('d-none');
-                })
-                .fail(function (xhr, status, errorThrown) {
-                    $('#loader_download_stat').addClass('d-none');
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
-                    console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-                })
+            .done(function (response) {
+                let download_chart = $('#container-download-stat').highcharts()
+
+                while (download_chart.series.length) {
+                    download_chart.series[0].remove();
+                }
+                download_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (let i of response.data) {
+                    download_chart.addSeries(i)
+                }
+
+                $('#loader_download_stat').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $('#loader_download_stat').addClass('d-none');
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
 
         })
 

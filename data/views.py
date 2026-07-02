@@ -1045,11 +1045,14 @@ def get_more_docs(request):
         if doc_type == 'resource':
             resource = Resource.objects.filter(title__regex=keyword_reg,lang=lang).order_by('-publish_date')
             for x in resource[offset:offset+6]:
+                extension = 'link' if x.extension in ['doc-link','ext-link'] else x.extension
                 rows.append({
+                    'cate': get_resource_cate(x.extension),
                     'title': highlight(x.title,keyword),
                     'extension': x.extension,
-                    'cate': get_resource_cate(x.extension),
+                    'resource_type': x.resource_type,
                     'url': x.url,
+                    'doc_url': x.doc_url,
                     'date': x.publish_date.strftime("%Y-%m-%d")
                 })
             has_more = True if resource[offset+6:].count() > 0 else False
@@ -1802,7 +1805,7 @@ def change_dataset(request):
         # 起始
         response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false')
         d_list = response.json()['response']['docs']
-
+    
     # solr內的id和datahub的postgres互通
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
@@ -1975,7 +1978,6 @@ def get_higher_taxa(request):
 
 
 def search_full(request):
-    # s = time.time()
     keyword = request.GET.get('keyword', '')
     lang = get_language()
 
@@ -2074,11 +2076,14 @@ def search_full(request):
         c_resource = resource.count()
         resource_rows = []
         for x in resource[:6]:
+            extension = 'link' if x.extension in ['doc-link','ext-link'] else x.extension
             resource_rows.append({
-                'title': x.title,
-                'extension': x.extension,
                 'cate': get_resource_cate(x.extension),
+                'title': x.title,
+                'extension': extension,
+                'resource_type': x.resource_type,
                 'url': x.url,
+                'doc_url': x.doc_url,
                 'date': x.publish_date.strftime("%Y-%m-%d")
             })
         

@@ -25,7 +25,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.translation import gettext, get_language
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
@@ -33,7 +33,7 @@ from ckeditor.fields import RichTextField
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query
 from manager.models import *
-from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, Link
+from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link
 
 quality_map = {
     3: '金',
@@ -1547,10 +1547,9 @@ def get_taxon_group_stat(request):
             holder_count = holder_dict.get(group, 0)
             system_count = system_dict.get(group, 0)
             unit_percentage = round((holder_count / system_count) * 100, 2) if system_count else 0 # 佔入口網鳥類
-            
+
             holder_data = [0] * len(taxon_groups)
             holder_data[i] = holder_count
-            
             taxon_group_stat.append({
                 'name': f'{group}-單位',
                 'data': holder_data,
@@ -1681,9 +1680,12 @@ def get_checklist_stat(request):
     df = df.reset_index(drop=True)
 
     resp = {}
-    resp['data'] = df.sort_values('year_month')['count'].to_list()
+    resp['data'] = [{
+        'name': '名錄下載次數',
+        'data': df.sort_values('year_month')['count'].to_list()
+    }]
     resp['categories'] = list(df.sort_values('year_month').year_month.unique())
-
+    
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
@@ -1744,7 +1746,10 @@ def get_data_stat(request):
                 df = pd.concat([df, pd.DataFrame([{'rights_holder': rights_holder, 'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
 
-        resp['data'] = df.sort_values('year_month')['count'].to_list()
+        resp['data'] = [{
+            'name': rights_holder,
+            'data': df.sort_values('year_month')['count'].to_list()
+        }]
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
         
     else:
@@ -1758,8 +1763,10 @@ def get_data_stat(request):
                 df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
         df = df.reset_index(drop=True)
 
-
-        resp['data'] = df.sort_values('year_month')['count'].to_list()
+        resp['data'] = [{
+            'name': rights_holder or 'total',
+            'data': df.sort_values('year_month')['count'].to_list()
+        }]
         resp['categories'] = list(df.sort_values('year_month').year_month.unique())
 
     return HttpResponse(json.dumps(resp), content_type='application/json')
@@ -1996,6 +2003,12 @@ def system_resource(request):
                 current_r.filename =  current_r.url.split('resources/')[1]
             else:
                 current_r.filename =  current_r.url
+
+    if current_r:
+        current_r.can_change_type = (
+            current_r.resource_type == 'doc-link'
+            and current_r.versions.count() <= 1
+        )
 
     return render(request, 'manager/system/resource.html', {'menu': menu, 'content_type_choice': content_type_choice, 'current_r': current_r })
 
@@ -2289,15 +2302,14 @@ def save_resource_file(request):
 
 
 def _build_file_url(request, resource_url):
-    """檔案的 full URL：{scheme}://{host}/media + resource.url"""
+    """檔案的 full URL：{scheme}://{host}/media + resource_url"""
     scheme = 'https' if request.is_secure() else 'http'
-    return f"{scheme}://{request.get_host()}/media{resource_url}"
+    return f"{scheme}://{request.get_host()}/media/{resource_url}"
 
 
 def _insert_ark(ark_id, target_url):
-    """向 arklet 註冊新 ARK"""
     api_url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
-    requests.post(
+    r = requests.post(
         api_url,
         headers={'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}'},
         data={
@@ -2307,12 +2319,13 @@ def _insert_ark(ark_id, target_url):
             'shoulder': '/' + ark_id[:2],
         },
     )
+    if r.status_code != 200:
+        raise RuntimeError(f"ARK 註冊失敗（{r.status_code}）：{r.text[:200]}")
 
 
 def _update_ark(ark_id, target_url):
-    """更新 arklet 中已存在 ARK 的 url（注意是 PUT + JSON body）"""
     api_url = f"{env('TBIA_ARKLET_INTERNAL')}update"
-    requests.put(
+    r = requests.put(
         api_url,
         headers={
             'Authorization': f'Bearer {env("TBIA_ARKLET_KEY")}',
@@ -2323,114 +2336,287 @@ def _update_ark(ark_id, target_url):
             'url': target_url,
         },
     )
+    if r.status_code != 200:
+        raise RuntimeError(f"ARK 更新失敗（{r.status_code}）：{r.text[:200]}")
 
 
-def _sync_resource_ark(resource, resource_type, file_url, doc_url, extension):
+def _ark_targets(resource_type, version_obj, base_ark, request, is_base):
     """
-    file:     兩筆 Ark（base + .ext）
-    doc-link: 一筆 Ark（base）
-    base ARK 指向：有 doc_url 用 doc_url，否則用 file_url
-    .ext ARK 指向：永遠是 file_url
+    產生 (ark_id, target_url) 清單。
+    is_base=True : base ARK（base, base.file）— 指向 latest（呼叫端確保 version_obj 是 latest）
+    is_base=False: 版本 ARK（base/vN, base/vN.file）
     """
-    base_target = doc_url if doc_url else file_url
-
-    arks = list(Ark.objects.filter(type='resource', model_id=resource.id))
-    base_ark = next((a for a in arks if '.' not in a.ark), None)
-
-    # base ARK
-    if base_ark is None:
-        base_ark = Ark.objects.create(
-            type='resource',
-            ark=ark_generator(data_type='resource'),
-            model_id=resource.id,
-        )
-        _insert_ark(base_ark.ark, base_target)
-    else:
-        _update_ark(base_ark.ark, base_target)
-
-    # .ext ARK（僅 file 類型）
+    prefix = base_ark if is_base else f'{base_ark}/v{version_obj.version}'
+    pairs = []
     if resource_type == 'file':
-        ext_ark_id = f'{base_ark.ark}.{extension}'
-        ext_ark = next((a for a in arks if a.ark == ext_ark_id), None)
-        if ext_ark is None:
-            Ark.objects.create(
-                type='resource',
-                ark=ext_ark_id,
-                model_id=resource.id,
-            )
-            _insert_ark(ext_ark_id, file_url)
+        file_url = _build_file_url(request, version_obj.url)
+        target = version_obj.doc_url or file_url
+        pairs.append((prefix, target))
+        pairs.append((f'{prefix}.file', file_url))
+    elif resource_type == 'doc-link':
+        pairs.append((prefix, version_obj.doc_url))
+    return pairs
+
+
+def _get_base_ark_id(resource):
+    """撈出 resource 的 base ARK identifier（無版號、無 .file）"""
+    for a in Ark.objects.filter(type='resource', model_id=resource.id):
+        if '/' not in a.ark and not a.ark.endswith('.file'):
+            return a.ark
+    return None
+
+
+def _create_resource_arks(resource, version_obj, request):
+    """首次發布（v1）：mint base ARK，建立所有 ARK（base + v1）"""
+    base_ark = ark_generator(data_type='resource')
+    for is_base in (True, False):
+        for ark_id, target in _ark_targets(resource.resource_type, version_obj, base_ark, request, is_base):
+            Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+            _insert_ark(ark_id, target)
+
+
+def _sync_latest_arks(resource, latest, request):
+    """
+    將 base 與 v_latest 對應的 ARK 同步到目前 resource_type + 內容。
+    處理：一般編輯、v1-only 時的 type 變更（doc-link → file）。
+    多出的舊 ARK 留作孤兒，保持最後狀態。
+    """
+    if resource.resource_type == 'ext-link':
+        return
+    
+    base_ark_id = _get_base_ark_id(resource)
+    if base_ark_id is None:
+        # 罕見：ext-link 轉成其他 type（雖然規則上不允許，但 backfill 或人工修改可能造成）
+        base_ark_id = ark_generator(data_type='resource')
+    
+    existing = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
+    
+    target_pairs = (
+        _ark_targets(resource.resource_type, latest, base_ark_id, request, is_base=True) +
+        _ark_targets(resource.resource_type, latest, base_ark_id, request, is_base=False)
+    )
+    
+    for ark_id, target_url in target_pairs:
+        if ark_id in existing:
+            _update_ark(ark_id, target_url)
         else:
-            _update_ark(ext_ark_id, file_url)
+            Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+            _insert_ark(ark_id, target_url)
+
+
+def _publish_version_arks(resource, new_version, base_ark, request):
+    # 新版號 ARK：永遠是新 ARK，一律 insert
+    for ark_id, target in _ark_targets(resource.resource_type, new_version, base_ark, request, is_base=False):
+        Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+        _insert_ark(ark_id, target)
+    
+    # Base ARK：既有的 update，新增的 insert（處理 doc-link → file 升級的 base.file 情境）
+    existing = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
+    
+    for ark_id, target in _ark_targets(resource.resource_type, new_version, base_ark, request, is_base=True):
+        if ark_id in existing:
+            _update_ark(ark_id, target)
+        else:
+            Ark.objects.create(type='resource', ark=ark_id, model_id=resource.id)
+            _insert_ark(ark_id, target)
 
 
 def submit_resource(request):
-    if request.method == 'POST':
-        now = timezone.now() + timedelta(hours=8)
-        url = request.POST.get('url')
-        doc_url = request.POST.get('doc_url')
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST only'}, status=405)
+    
+    try:
+        with transaction.atomic():
+            now = timezone.now() + timedelta(hours=8)
+            url = request.POST.get('url') or ''
+            doc_url = request.POST.get('doc_url') or ''
+            publish_date = request.POST.get('publish_date')
+            title = request.POST.get('title')
+            content_type = request.POST.get('content_type')
+            lang = request.POST.get('lang')
+            
+            resource_id = int(request.POST.get('resource_id') or 0)
+            existing = Resource.objects.filter(id=resource_id).first()
+            
+            if existing:
+                is_v1_only = existing.versions.count() <= 1
+                latest = existing.versions.order_by('-version').first()
+                
+                # type 鎖規則：只有 doc-link + v1-only 才能改
+                if existing.resource_type == 'doc-link' and is_v1_only:
+                    requested_type = request.POST.get('resource_type') or existing.resource_type
+                    # 只允許保持 doc-link 或改成 file
+                    if requested_type in ('doc-link', 'file'):
+                        resource_type = requested_type
+                    else:
+                        resource_type = existing.resource_type  # 不允許 → ext-link，保持原值
+                else:
+                    resource_type = existing.resource_type
 
-        if request.POST.get('resource_id'):
-            resource_id = int(request.POST.get('resource_id'))
-        else:
-            resource_id = 0
+                extension = url.split('.')[-1] if resource_type == 'file' and url else ''
+                
+                # 所有版本相關欄位都可改
+                Resource.objects.filter(id=resource_id).update(
+                    resource_type=resource_type,
+                    content_type=content_type, title=title, lang=lang,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date, modified=now,
+                )
+                ResourceVersion.objects.filter(id=latest.id).update(
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date, modified=now,
+                )
+                latest.refresh_from_db()
+                existing.refresh_from_db()
+                
+                _sync_latest_arks(existing, latest, request)
 
-        existing = Resource.objects.filter(id=resource_id).first()
+            else:
+                # ── 新建（自動為 v1）──
+                resource_type = request.POST.get('resource_type')
+                extension = url.split('.')[-1] if resource_type == 'file' and url else ''
+                
+                resource = Resource.objects.create(
+                    resource_type=resource_type,
+                    content_type=content_type, title=title, lang=lang,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date,
+                    created=now, modified=now,
+                )
+                v1 = ResourceVersion.objects.create(
+                    resource=resource, version=1,
+                    extension=extension, url=url, doc_url=doc_url,
+                    publish_date=publish_date,
+                    created=now, modified=now,
+                )
+                
+                if resource_type != 'ext-link':
+                    _create_resource_arks(resource, v1, request)
+        
+        return JsonResponse({'success': True})
+        
+    except RuntimeError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-        # resource_type 鎖住：編輯時用既有值，不從 POST 取
-        if existing:
-            resource_type = existing.resource_type
-        else:
-            resource_type = request.POST.get('resource_type')
 
-        if resource_type == 'file':
-            extension = url.split('.')[-1]
-        else:
-            extension = resource_type
-
-        if existing:
+def publish_new_resource_version(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST only'}, status=405)
+    
+    try:
+        with transaction.atomic():
+            now = timezone.now() + timedelta(hours=8)
+            resource_id = int(request.POST.get('resource_id') or 0)
+            resource = Resource.objects.filter(id=resource_id).first()
+            
+            if not resource:
+                return JsonResponse({'success': False, 'error': 'resource not found'}, status=404)
+            
+            # ── type 變更規則：與 submit_resource 一致 ──
+            is_v1_only = resource.versions.count() <= 1
+            if resource.resource_type == 'doc-link' and is_v1_only:
+                new_resource_type = request.POST.get('resource_type') or resource.resource_type
+            else:
+                new_resource_type = resource.resource_type
+            
+            if new_resource_type == 'ext-link':
+                return JsonResponse({'success': False, 'error': 'ext-link 不支援版本控制'}, status=400)
+            
+            url = request.POST.get('url') or ''
+            doc_url = request.POST.get('doc_url') or ''
+            publish_date = request.POST.get('publish_date')
+            
+            latest = resource.versions.order_by('-version').first()
+            new_version_num = (latest.version + 1) if latest else 1
+            
+            # extension 用「新的」type 計算
+            extension = url.split('.')[-1] if new_resource_type == 'file' and url else ''
+            
             Resource.objects.filter(id=resource_id).update(
-                # 不更新 resource_type
+                resource_type=new_resource_type,          # ← 新增
                 content_type=request.POST.get('content_type'),
                 title=request.POST.get('title'),
                 lang=request.POST.get('lang'),
-                publish_date=request.POST.get('publish_date'),
-                url=url,
-                doc_url=doc_url,
-                extension=extension,
+                extension=extension, url=url, doc_url=doc_url,
+                publish_date=publish_date,
                 modified=now,
             )
-            resource = Resource.objects.get(id=resource_id)
-        else:
-            resource = Resource.objects.create(
-                resource_type=resource_type,
-                content_type=request.POST.get('content_type'),
-                title=request.POST.get('title'),
-                lang=request.POST.get('lang'),
-                publish_date=request.POST.get('publish_date'),
-                url=url,
-                doc_url=doc_url,
-                extension=extension,
-                created=now,
-                modified=now,
+            resource.refresh_from_db()
+            
+            new_version = ResourceVersion.objects.create(
+                resource=resource, version=new_version_num,
+                extension=extension, url=url, doc_url=doc_url,
+                publish_date=publish_date,
+                created=now, modified=now,
             )
+            
+            base_ark = _get_base_ark_id(resource)
+            _publish_version_arks(resource, new_version, base_ark, request)
+        
+        return JsonResponse({'success': True, 'version': new_version_num})
+    
+    except RuntimeError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        
 
-        # ARK 同步（ext-link 不處理）
-        if resource_type != 'ext-link':
-            file_url = _build_file_url(request, url) if resource_type == 'file' else url
-            _sync_resource_ark(resource, resource_type, file_url, doc_url, extension)
 
-        return redirect('system_resource')
+def get_resource_ark_table(request):
+    resource_id = request.GET.get('resource_id')
+    resource = Resource.objects.filter(id=resource_id).first()
+    if not resource or resource.resource_type == 'ext-link':
+        return JsonResponse({'rows': []})
+    
+    base_ark = _get_base_ark_id(resource)
+    if not base_ark:
+        return JsonResponse({'rows': []})
+    
+    # 撈出該 resource 實際存在的 ARK 集合
+    existing_arks = set(Ark.objects.filter(
+        type='resource', model_id=resource.id
+    ).values_list('ark', flat=True))
+    
+    def make_link(ark_id):
+        return {
+            'ark': f'ark:/{env("ARK_NAAN")}/{ark_id}',
+            'ark_href': f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{ark_id}',
+        }
+    
+    def build_row(label, prefix, version_obj):
+        row = {
+            'version': label,
+            'publish_date': version_obj.publish_date.strftime('%Y-%m-%d') if version_obj and version_obj.publish_date else '',
+            'file': None,
+            'doc': None,
+        }
+        # 只顯示實際存在的 ARK
+        if prefix in existing_arks:
+            row['doc'] = make_link(prefix)
+        if f'{prefix}.file' in existing_arks:
+            row['file'] = make_link(f'{prefix}.file')
+        return row
+    
+    latest = resource.versions.order_by('-version').first()
+    rows = [build_row('latest', base_ark, latest)]
+    for v in resource.versions.order_by('-version'):
+        rows.append(build_row(f'v{v.version}', f'{base_ark}/v{v.version}', v))
+    
+    return JsonResponse({'rows': rows})
 
 
 def delete_resource(request):
     if request.method == 'POST':
         if resource_id := request.POST.get('resource_id'):
-            if Resource.objects.filter(id=resource_id).exists():
-                r = Resource.objects.get(id=resource_id)
+            r = Resource.objects.filter(id=resource_id).first()
+            if r:
                 if r.resource_type == 'file':
-                    my_file = Path(os.path.join('/tbia-volumes/media',r.url))
-                    my_file.unlink(missing_ok=True)
-                r.delete()
+                    for v in r.versions.all():
+                        if v.url:
+                            Path(os.path.join('/tbia-volumes/media', v.url)).unlink(missing_ok=True)
+                r.delete()  # CASCADE 會刪 versions
                 return JsonResponse({}, safe=False)
 
 
@@ -2690,10 +2876,10 @@ def get_temporal_stat(request):
             for yy in year_list:
                 if not len(df[df.year==yy]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'year': str(yy)}])])
+            df = df[df.year!='x']
             df = df.reset_index(drop=True)
             df['year'] = df.year.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('year')['total_count'].to_list(), 'color': color })
-
         else:
             r_list = df.rights_holder.unique()
             r_list.sort() # 確保同一個來源資料庫是同一個顏色
@@ -2702,6 +2888,7 @@ def get_temporal_stat(request):
                 for yy in year_list:
                     if not len(df[(df.rights_holder==x)&(df.year==yy)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'year': str(yy)}])])
+                df = df[df.year!='x']
                 df = df.reset_index(drop=True)
                 df['year'] = df.year.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('year')['total_count'].to_list(), 'color': color })
@@ -2749,6 +2936,7 @@ def get_temporal_stat(request):
                 if not len(df[df.month==mm]):
                     df = pd.concat([df, pd.DataFrame([{'total_count': 0, 'month': mm}])])
             df = df.reset_index(drop=True)
+            df = df[df.month!='x']
             df['month'] = df.month.astype(int)
             new_data_list.append({'name': current_rights_holder, 'data': df.sort_values('month')['total_count'].to_list(), 'color': color })
         else:
@@ -2759,6 +2947,7 @@ def get_temporal_stat(request):
                 for mm in month_list:
                     if not len(df[(df.rights_holder==x)&(df.month==mm)]):
                         df = pd.concat([df, pd.DataFrame([{'rights_holder': x, 'total_count': 0, 'month': mm}])])
+                df = df[df.month!='x']
                 df = df.reset_index(drop=True)
                 df['month'] = df.month.astype(int)
                 new_data_list.append({'name': x, 'data': df[df.rights_holder==x].sort_values('month')['total_count'].to_list(), 'color': color })

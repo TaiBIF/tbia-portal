@@ -31,6 +31,21 @@ news_type_c_map = {
 }
 
 
+def _parse_resource_ark(ark_id):
+    """
+    'c1ek0ttf'         → {'version': None, 'is_file': False}
+    'c1ek0ttf.file'    → {'version': None, 'is_file': True}
+    'c1ek0ttf/v2'      → {'version': 2,    'is_file': False}
+    'c1ek0ttf/v2.file' → {'version': 2,    'is_file': True}
+    """
+    if '/' in ark_id:
+        _, version_part = ark_id.split('/', 1)
+        is_file = version_part.endswith('.file')
+        version_str = version_part[:-5] if is_file else version_part
+        return {'version': int(version_str.lstrip('v')), 'is_file': is_file}
+    return {'version': None, 'is_file': ark_id.endswith('.file')}
+
+
 # 從js呼叫API
 def get_variants(request):
   if request.method == 'GET':
@@ -273,6 +288,7 @@ def index(request):
             'cate': get_resource_cate(extension),
             'title': x.title,
             'extension': extension,
+            'resource_type': x.resource_type,
             'url': x.url,
             'doc_url': x.doc_url,
             'date': x.publish_date.strftime("%Y-%m-%d")})
@@ -334,6 +350,7 @@ def get_resource_list(request):
             'cate': get_resource_cate(extension),
             'title': x.title,
             'extension': extension,
+            'resource_type': x.resource_type,
             'url': x.url,
             'doc_url': x.doc_url,
             'date': x.publish_date.strftime("%Y-%m-%d")})
@@ -428,16 +445,22 @@ def get_ark_list(request):
             resource = Resource.objects.filter(id=x.model_id).first()
             if not resource:
                 url = ''
-            elif resource.resource_type == 'file':
-                file_url = _build_file_url(request, resource.url)
-                if '.' in x.ark:
-                    url = file_url
-                else:
-                    url = resource.doc_url or file_url
-            elif resource.resource_type == 'doc-link':
-                url = resource.doc_url
             else:
-                url = ''
+                parsed = _parse_resource_ark(x.ark)
+                if parsed['version'] is None:
+                    url_val, doc_url_val = resource.url, resource.doc_url
+                else:
+                    v = resource.versions.filter(version=parsed['version']).first()
+                    url_val = v.url if v else ''
+                    doc_url_val = v.doc_url if v else ''
+                
+                if resource.resource_type == 'file':
+                    file_url = _build_file_url(request, url_val)
+                    url = file_url if parsed['is_file'] else (doc_url_val or file_url)
+                elif resource.resource_type == 'doc-link':
+                    url = doc_url_val
+                else:
+                    url = ''
         else:
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
             

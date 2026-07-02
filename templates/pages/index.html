@@ -344,7 +344,9 @@
             <li>
               <div class="item">
                 <div class="cate_dbox">
+                  {% if i.resource_type != 'doc-link' %}
                   <div class="cate {{ i.cate }}">{{ i.extension }}</div>
+                  {% endif %}
                   {% if i.doc_url %}
                     <div class="cate web">
                       <a href="{{ i.doc_url }}" target="_blank">WEB <i class="fa-solid fa-link"></i></a>
@@ -352,7 +354,7 @@
                   {% endif %}
                   <div class="date">{{ i.date }}</div>
                 </div>
-                {% if i.cate == 'link' %}
+                {% if i.resource_type in 'ext-link,doc-link' %}
                   <a href="{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
                 {% else %}
                   <a href="/media/{{ i.url }}" class="title" target="_blank">{% trans i.title %}</a>
