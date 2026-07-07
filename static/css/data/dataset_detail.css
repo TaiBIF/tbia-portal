@@ -182,16 +182,19 @@ input[type='number']::-webkit-outer-spin-button {
 
 
 .sc_de_top_data .left_area {
-    height: 510px !important;
+    min-height: 510px;
 }
 
 @media only screen and (max-width: 999px) {
-
     .sc_de_top_data .left_area {
-        height: auto !important;
+        min-height: auto; 
     }
 }
 
+.sc_de_top_data .left_area .cont_padbox .inf_databox .data-item {
+    max-height: 220px;
+    overflow-y: auto;
+}
 
 .imgbox {
     height: 460px !important;
