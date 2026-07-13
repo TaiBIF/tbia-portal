@@ -303,15 +303,16 @@ def generate_sensitive_csv(query_id, scheme, host):
         download_id = f"tbia_{query_id}"
         process = None
         file_done = False
+        fail_groups = []
 
         # 這邊就會包含partial_transferred的資料
         if SensitiveDataResponse.objects.filter(query_id=query_id,status='pass').exclude(is_transferred=True,partner_id__isnull=True).exists():
             # 篩選出沒有通過的單位
             fs = list(SensitiveDataResponse.objects.filter(query_id=query_id,status='fail').values_list('partner_id'))
             if fs:
-                fs = [p for p in fs[0]]
+                fs = [p[0] for p in fs]
                 fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
-                fail_groups = [g for g in fail_groups[0]]
+                fail_groups = [g[0] for g in fail_groups]
 
             query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
             query_list_b = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
