@@ -246,6 +246,7 @@ $(document).ready(function () {
                     'publish_date': $('#saveForm input[name=publish_date]').val(),
                     'title': $('#saveForm input[name=title]').val(),
                     'doc_url': $('#saveForm input[name=doc_url]').val(),
+                    'prev_doc_url': $('#saveForm input[name=prev_doc_url]').val() || '',
                 },
                 headers: { 'X-CSRFToken': $csrf_token },
                 success: function (response) {

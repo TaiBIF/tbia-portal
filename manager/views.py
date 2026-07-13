@@ -2010,6 +2010,9 @@ def system_resource(request):
             current_r.resource_type == 'doc-link'
             and current_r.versions.count() <= 1
         )
+        latest = current_r.versions.order_by('-version').first()
+        current_r.latest_version = latest.version if latest else 0
+        current_r.latest_doc_url = latest.doc_url if latest else ''
 
     return render(request, 'manager/system/resource.html', {'menu': menu, 'content_type_choice': content_type_choice, 'current_r': current_r })
 
@@ -2522,7 +2525,6 @@ def publish_new_resource_version(request):
             if not resource:
                 return JsonResponse({'success': False, 'error': 'resource not found'}, status=404)
             
-            # ── type 變更規則：與 submit_resource 一致 ──
             is_v1_only = resource.versions.count() <= 1
             if resource.resource_type == 'doc-link' and is_v1_only:
                 new_resource_type = request.POST.get('resource_type') or resource.resource_type
@@ -2536,14 +2538,26 @@ def publish_new_resource_version(request):
             doc_url = request.POST.get('doc_url') or ''
             publish_date = request.POST.get('publish_date')
             
-            latest = resource.versions.order_by('-version').first()
+            latest = resource.versions.order_by('-version').first()  # 即將變成前一版
             new_version_num = (latest.version + 1) if latest else 1
-            
-            # extension 用「新的」type 計算
             extension = url.split('.')[-1] if new_resource_type == 'file' and url else ''
             
+            base_ark = _get_base_ark_id(resource)
+            
+            # ── 新增：處理前一版 doc_url 遷移 ──
+            prev_doc_url = (request.POST.get('prev_doc_url') or '').strip()
+            if prev_doc_url and latest and latest.doc_url:
+                # 更新前一版 DB
+                ResourceVersion.objects.filter(id=latest.id).update(
+                    doc_url=prev_doc_url, modified=now,
+                )
+                # 更新前一版的 base/v(prev) ARK (不動 .file，檔案不會搬)
+                prev_ark_id = f'{base_ark}/v{latest.version}'
+                _update_ark(prev_ark_id, prev_doc_url)
+            
+            # ── 原本的邏輯 ──
             Resource.objects.filter(id=resource_id).update(
-                resource_type=new_resource_type,          # ← 新增
+                resource_type=new_resource_type,
                 content_type=request.POST.get('content_type'),
                 title=request.POST.get('title'),
                 lang=request.POST.get('lang'),
@@ -2560,7 +2574,6 @@ def publish_new_resource_version(request):
                 created=now, modified=now,
             )
             
-            base_ark = _get_base_ark_id(resource)
             _publish_version_arks(resource, new_version, base_ark, request)
         
         return JsonResponse({'success': True, 'version': new_version_num})
