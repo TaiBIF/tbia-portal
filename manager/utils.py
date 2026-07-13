@@ -40,7 +40,6 @@ def clean_quill_html(html: str) -> str:
 
 def get_sensitive_status(query_id):
     # 通過、不通過、部分通過
-    SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
 
     qs = SensitiveDataResponse.objects.filter(query_id=query_id).exclude(is_transferred=True)
 

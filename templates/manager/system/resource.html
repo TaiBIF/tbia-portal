@@ -116,11 +116,23 @@
                                     <form id="saveForm" method="POST">
                                         {% csrf_token %}
                                         <input type="hidden" id="publish_mode" name="publish_mode" value="edit">
-                                        <li id="new_version_banner">
-                                            <div class="noticbox d-none">
-                                                <p>目前為「發布新版本」模式，送出後將建立新版本，目前最新版本將被凍結</p>
+                                        <li id="new_version_banner" class="d-none">
+                                            <div class="noticbox">
+                                                <p>目前為「發布新版本」模式，送出後將建立新版本，目前版本將被凍結</p>
                                             </div>
+
+                                            {% if current_r.latest_doc_url %}
+                                            <div class="mt-10px">
+                                                <label>V{{ current_r.latest_version }} 的搬遷後網址</label>
+                                                <div class="text-muted small">
+                                                    目前指向：<code>{{ current_r.latest_doc_url }}</code>
+                                                </div>
+                                                <input type="text" name="prev_doc_url" 
+                                                    placeholder="若舊版本因新版發布已搬移到其他網址，請填入新網址；留空則保留原網址">
+                                            </div>
+                                            {% endif %}
                                         </li>
+
                                         <input type="hidden" name="resource_id" value="{{ current_r.id }}">
                                         <li>類型</li>
                                         <li>
