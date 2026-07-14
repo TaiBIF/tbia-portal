@@ -1157,19 +1157,27 @@ def get_conditional_dataset(request):
     if request.method == 'POST':
 
         total_count = 0
-
         req_dict = request.POST
         limit = int(req_dict.get('limit', 10))
-        orderby = req_dict.get('orderby','name')
-        sort = req_dict.get('sort', 'asc')
+        
+        # 安全防護：對 orderby 與 sort 進行白名單過濾
+        orderby = req_dict.get('orderby', 'name')
+        allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'rights_holder', 'downloadCount'}
+        if orderby not in allowed_columns:
+            orderby = 'name' # 若傳入不合法欄位，強制設為預設值
+            
+        sort = req_dict.get('sort', 'asc').lower()
+        if sort not in {'asc', 'desc'}:
+            sort = 'asc'
 
         page = int(req_dict.get('page', 1))
-        offset = (page-1)*limit
+        offset = (page - 1) * limit
+
+        # 初始化查詢條件列表與對應的參數列表
+        query_list = ["deprecated = 'f'"]
+        query_params = [] # 用來存放參數化查詢的參數
 
         # taxonGroup
-        # 這邊要讓新舊互通 因為舊的會需要再次查詢 但資料集好像沒有存search query?
-        query_list = ["deprecated = 'f'"]
-
         taxon_vals_raw = req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
@@ -1179,17 +1187,27 @@ def get_conditional_dataset(request):
                 elif tv in old_taxon_group_map_c:
                     tv = old_taxon_group_map_c[tv]
                 expanded.extend(split_group_map.get(tv, [tv]))
-            like_clauses = ['''\"datasetTaxonGroup\" like '%{}%' '''.format(tv) for tv in expanded]
+            
+            # 安全改寫：為每個 like 條件使用 %s 佔位符
+            like_clauses = []
+            for tv in expanded:
+                like_clauses.append('''"datasetTaxonGroup" like %s''')
+                query_params.append(f'%{tv}%') # 將模糊搜尋的值加入參數列表
+                
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
-        # datasetName
+        # datasetName (改成 case-insensitive 的 ILIKE，並參數化)
         if name := req_dict.get('name'):
-            query_list.append('''( "name" like '%{}%')'''.format(name))
+            query_list.append('''"name" ILIKE %s''')
+            query_params.append(f'%{name}%')
 
-        # rightsHolder
+        # rightsHolder (參數化)
         if holders := req_dict.getlist('rightsHolder'):
-            holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
-            query_list.append(f"({' OR '.join(holders)})")
+            holder_clauses = []
+            for h in holders:
+                holder_clauses.append('''"rights_holder" = %s''')
+                query_params.append(h)
+            query_list.append(f"({' OR '.join(holder_clauses)})")
 
 
         query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount" FROM dataset'
@@ -1199,22 +1217,24 @@ def get_conditional_dataset(request):
             query += ' WHERE ' + (' AND ').join(query_list)
             count_query += ' WHERE ' + (' AND ').join(query_list)
 
-        # 先計算總數
+        # 建立資料庫連線
         conn = psycopg2.connect(**datahub_db_settings)
 
+        # 1. 先計算總數
         with conn.cursor() as cursor:
-            cursor.execute(count_query)
+            # 傳入 query_params 來安全執行 SQL
+            cursor.execute(count_query, query_params)
             count_result = cursor.fetchone()
             total_count = count_result[0]
 
-        # 再取得分頁資訊
-        
+        # 2. 再取得分頁資訊
         query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
 
         df = []
 
         with conn.cursor() as cursor:
-            cursor.execute(query)
+            # 傳入相同的 query_params 來安全執行分頁查詢
+            cursor.execute(query, query_params)
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
                                                  "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])

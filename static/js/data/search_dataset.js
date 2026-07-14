@@ -22,12 +22,9 @@ document.getElementById('btn-group-taxonGroup').addEventListener('click', functi
 
 $(function () {
 
-    $(document).on("keydown", "form", function (event) {
-
-        if (event.key == "Enter") {
-            submitSearch(is_preload = false)
-            return event.key != "Enter";
-        }
+    $('#searchForm').on('submit', function (event) {
+        event.preventDefault();
+        submitSearch(is_preload = false);
     });
 
     $('.resetSearch').on('click', function () {
@@ -90,8 +87,9 @@ $(function () {
 
             $('#searchForm').append(
                 $('<input>', { type: 'hidden', name: 'orderby', value: orderby }),
-                $('<input>', { type: 'hidden', name: 'sort', value: sort }),
-            ).submit();
+                $('<input>', { type: 'hidden', name: 'sort', value: sort })
+            )[0].submit();
+
         } else {
             alert(gettext('請先登入'))
         }
