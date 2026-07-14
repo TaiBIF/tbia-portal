@@ -53,19 +53,6 @@ window.onpopstate = function (e) {
 
 })();
 
-function deleteResource(resource_id) {
-    $.ajax({
-        type: 'POST',
-        url: "/delete_resource",
-        data: { 'resource_id': resource_id },
-        headers: { 'X-CSRFToken': $csrf_token },
-        success: function (response) {
-            alert('刪除成功')
-            window.location = '/manager/system/resource?menu=resource';
-        }
-    })
-}
-
 
 function loadArkTable() {
     const resourceId = $('#saveForm input[name=resource_id]').val();
@@ -153,10 +140,6 @@ $(document).ready(function () {
     $('#link_button').on('click', function () {
         $('.rightbox_content').addClass('d-none')
         $('.rightbox_content.edit-link').removeClass('d-none')
-    })
-
-    $('.delete_resource').on('click', function () {
-        deleteResource($(this).data('resource_id'))
     })
 
     $('#save_resource_file').on('click', function () {
@@ -368,10 +351,6 @@ function changePage(page, menu) {
                     changePage($(this).data('page'), $(this).data('type'))
                 })
 
-                $('.delete_resource').off('click')
-                $('.delete_resource').on('click', function () {
-                    deleteResource($(this).data('resource_id'))
-                })
             }
         }
     });

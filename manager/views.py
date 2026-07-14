@@ -720,7 +720,6 @@ def change_manager_page(request):
                 'publish_date': r.publish_date.strftime('%Y-%m-%d'),
                 'modified': r.modified.strftime('%Y-%m-%d %H:%M:%S').replace(' ', '<br/>'),
                 'edit': f'<a class="btn-style1" href="/manager/system/resource?menu=edit&resource_id={ r.id }">編輯</a>',
-                'delete': f'<a class="delete_resource del_btn" data-resource_id="{ r.id }">刪除</a>'
             })
         total_page = math.ceil(Resource.objects.all().count() / 10)
 
@@ -2624,19 +2623,6 @@ def get_resource_ark_table(request):
         rows.append(build_row(f'v{v.version}', f'{base_ark}/v{v.version}', v))
     
     return JsonResponse({'rows': rows})
-
-
-def delete_resource(request):
-    if request.method == 'POST':
-        if resource_id := request.POST.get('resource_id'):
-            r = Resource.objects.filter(id=resource_id).first()
-            if r:
-                if r.resource_type == 'file':
-                    for v in r.versions.all():
-                        if v.url:
-                            Path(os.path.join('/tbia-volumes/media', v.url)).unlink(missing_ok=True)
-                r.delete()  # CASCADE 會刪 versions
-                return JsonResponse({}, safe=False)
 
 
 def edit_link(request):

@@ -62,7 +62,6 @@ urlpatterns = [
     # resource 管理
     path('save_resource_file', views.save_resource_file, name='save_resource_file'),
     path('submit_resource', views.submit_resource, name='submit_resource'),
-    path('delete_resource', views.delete_resource, name='delete_resource'),
     path('publish_new_resource_version', views.publish_new_resource_version, name='publish_new_resource_version'),
     path('get_resource_ark_table', views.get_resource_ark_table, name='get_resource_ark_table'),
     # news 管理

@@ -438,21 +438,23 @@ def get_ark_list(request):
 
         if type == 'news':
             url = f"{scheme}://{request.get_host()}/news/detail/{x.model_id}"
-        elif type == 'docs':
-            url = f'https://tbia.github.io/docs/{x.model_id}/'
+            title = News.objects.filter(id=x.model_id).first().title if News.objects.filter(id=x.model_id).exists() else url
         elif type == 'resource':
             from manager.views import _build_file_url
             resource = Resource.objects.filter(id=x.model_id).first()
             if not resource:
                 url = ''
+                title = ''
             else:
                 parsed = _parse_resource_ark(x.ark)
                 if parsed['version'] is None:
                     url_val, doc_url_val = resource.url, resource.doc_url
+                    version_label = 'latest'
                 else:
                     v = resource.versions.filter(version=parsed['version']).first()
                     url_val = v.url if v else ''
                     doc_url_val = v.doc_url if v else ''
+                    version_label = f'v{parsed["version"]}'
                 
                 if resource.resource_type == 'file':
                     file_url = _build_file_url(request, url_val)
@@ -461,13 +463,22 @@ def get_ark_list(request):
                     url = doc_url_val
                 else:
                     url = ''
+                
+                # 用版本號 + 檔案標記區分同名 resource 的不同 ARK
+                suffix_parts = [version_label]
+                if parsed['is_file']:
+                    suffix_parts.append('檔案')
+                title = f'{resource.title} ({" / ".join(suffix_parts)})'
         else:
+            # 下載資料
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
+            title = url
             
         rows.append({
             'ark_href': f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{x.ark}',
             'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
-            'url': url,
+            'url':url,
+            'title': title,
             'created': created.strftime("%Y-%m-%d"),
         })
 
