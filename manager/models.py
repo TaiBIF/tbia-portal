@@ -306,6 +306,6 @@ class UserDownloadStat(models.Model):
 
 class Ark(models.Model):
     model_id = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 如果是news則對到news表的id 如果是data 則對到search query 表的id
-    type = models.CharField(max_length=20, blank=True) # news / data / docs
+    type = models.CharField(max_length=20, blank=True) # news / data / resource
     ark = models.CharField(max_length=50, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)

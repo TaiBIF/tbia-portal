@@ -64,7 +64,7 @@ function updateArk(type, page) {
           $('.ark_table').append(
             `<tr>
                 <td><a href="${response.rows[i].ark_href}" target="_blank">${response.rows[i].ark}</a></td>
-                <td><a href="${response.rows[i].url}" target="_blank">${response.rows[i].url}</a></td>
+                <td><a href="${response.rows[i].url}" target="_blank">${response.rows[i].title}</a></td>
                 <td>${response.rows[i].created}</td>
               </tr>`
           )

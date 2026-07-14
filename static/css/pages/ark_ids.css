@@ -131,3 +131,7 @@
 #start_date, #end_date {
     background-color: #fff;
 }
+
+.result_table .table_style1 td {
+    text-align: left;
+}
