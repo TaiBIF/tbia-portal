@@ -690,9 +690,6 @@ function submitSearch(page = 1, from, new_click, limit, orderby, sort, push_stat
 
                     $('.sc_result').removeClass('d-none')
                     $(".loading_area").addClass('d-none');
-                    $([document.documentElement, document.body]).animate({
-                        scrollTop: $(".sc_result").offset().top - 80
-                    }, 200);
 
                 }
 

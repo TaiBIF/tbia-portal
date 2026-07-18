@@ -1,3 +1,4 @@
+""" python manage.py stat_data YYYY-MM """
 import json
 import requests
 

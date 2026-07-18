@@ -3732,3 +3732,6 @@ msgstr "No data available for this taxonomic group during this period"
 
 msgid "此網格無該類群資料"
 msgstr "No data available for this taxonomic group in this grid cell"
+
+msgid "標題"
+msgstr "Title"
