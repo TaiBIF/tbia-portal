@@ -216,29 +216,41 @@ taxon_group_map_e = {
 }
 
 
-taxon_group_map_tbn = {
-    "昆蟲": "beetles,butterflies,moths,dragonflies,otherinsects",
-    '甲蟲類':    'beetles',
-    '蛾類':      'moths',
-    '蝶類':      'butterflies',
-    '蜻蛉類':    'dragonflies',
-    '其他昆蟲':  'otherinsects',
-    '蜘蛛':      'spiders',
-    '蝸牛與貝類':'snailsshells',
-    '魚類':      'fishes',
-    '兩棲類':    'amphibians',
-    '爬蟲類':    'reptiles',
-    '鳥類':      'birds',
-    '哺乳類':    'mammals',
-    '蝦蟹類':    'crustaceans',
-    '被子植物':  'angiosperms',
-    '裸子植物':  'gymnosperms',
-    '蕨類植物':  'ferns,lycophytes',
-    "維管束植物": "lycophytes,gymnosperms,angiosperms,ferns",
-    '苔蘚植物':  'mosses',
-    '藻類':      'chromista',
-    '真菌':      'fungi',
-}
+# taxon_group_map_tbn = {
+#     "昆蟲": "beetles,butterflies,moths,dragonflies,otherinsects",
+#     '甲蟲類':    'beetles',
+#     '蛾類':      'moths',
+#     '蝶類':      'butterflies',
+#     '蜻蛉類':    'dragonflies',
+#     '其他昆蟲':  'otherinsects',
+#     '蜘蛛':      'spiders',
+#     '蝸牛與貝類':'snailsshells',
+#     '魚類':      'fishes',
+#     '兩棲類':    'amphibians',
+#     '爬蟲類':    'reptiles',
+#     '鳥類':      'birds',
+#     '哺乳類':    'mammals',
+#     '蝦蟹類':    'crustaceans',
+#     '被子植物':  'angiosperms',
+#     '裸子植物':  'gymnosperms',
+#     '蕨類植物':  'ferns,lycophytes',
+#     "維管束植物": "lycophytes,gymnosperms,angiosperms,ferns",
+#     '苔蘚植物':  'mosses',
+#     '藻類':      'chromista',
+#     '真菌':      'fungi',
+# }
+
+taxon_group_map_tbn = [
+    '鳥類',
+    '爬蟲類',
+    '哺乳類',
+    '魚類',
+    '兩棲類',
+    '蕨類植物',
+    '苔蘚植物',
+    '真菌',
+    '維管束植物'
+]
 
 
 split_group_map = {
@@ -2284,13 +2296,17 @@ def create_tbn_query(req_dict):
     else:
         tbn_vals = []
 
-    valid_vals = [v for v in tbn_vals if v in taxon_group_map_tbn]
-    invalid_vals = [v for v in tbn_vals if v not in taxon_group_map_tbn]
+    if len(tbn_vals) > 1:
+        # TBN 只支援單項物種類群查詢，多項一律視為無法對應
+        error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in tbn_vals])))
+    else:
 
-    if valid_vals:
-        query_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in valid_vals])))
-    if invalid_vals:
-        error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in invalid_vals])))
+        valid_vals = [v for v in tbn_vals if v in taxon_group_map_tbn]
+        invalid_vals = [v for v in tbn_vals if v not in taxon_group_map_tbn]
+        if valid_vals:
+            query_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in valid_vals])))
+        if invalid_vals:
+            error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in invalid_vals])))
 
     if val := req_dict.get('taxonRank'):
         if val == 'sub':

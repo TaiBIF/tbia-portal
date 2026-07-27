@@ -1696,7 +1696,49 @@ def get_conditional_records(request):
             else:
                 solr_orderby = 'standardLongitude' + ' ' + sort
         else:
-            solr_orderby = orderby + ' ' + sort
+            name_kw = req_dict.get('name', '')
+            # 只有 default 排序(scientificName) 且有用 name 搜尋時，才套用完全一致置頂邏輯
+            if orderby == 'scientificName' and name_kw:
+                esc = name_kw.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
+                is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
+                if is_chinese:
+                    # 中文：common_name_c 完全一致最前，其餘依 別名 / 同物異名 / 誤用名 優先序
+                    solr_orderby = (
+                        f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
+                        f'scientificName {sort}'
+                    )
+                else:
+                    # 英文：scientificName 完全一致最前
+                    solr_orderby = (
+                        f'query({{!lucene v=\'scientificName:"{esc}"\'}}) desc,'
+                        f'scientificName {sort}'
+                    )
+            else:
+                name_kw = req_dict.get('name', '')
+                # 只有 default 排序(scientificName) 且有用 name 搜尋時，才套用完全一致置頂邏輯
+                if orderby == 'scientificName' and name_kw:
+                    esc = name_kw.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
+                    is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
+                    if is_chinese:
+                        # 中文：common_name_c 完全一致最前，其餘依 別名 / 同物異名 / 誤用名 優先序
+                        solr_orderby = (
+                            f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
+                            f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
+                            f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
+                            f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
+                            f'scientificName {sort}'
+                        )
+                    else:
+                        # 英文：scientificName 完全一致最前
+                        solr_orderby = (
+                            f'query({{!lucene v=\'scientificName:"{esc}"\'}}) desc,'
+                            f'scientificName {sort}'
+                        )
+                else:
+                    solr_orderby = orderby + ' ' + sort
 
 
         page = int(req_dict.get('page', 1))
