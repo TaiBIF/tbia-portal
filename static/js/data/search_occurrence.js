@@ -363,7 +363,6 @@ map.on('zoomend', function zoomendEvent(ev) {
     drawMapGrid(currentZoomLevel)
 });
 
-
 map.on('dragend', function zoomendEvent(ev) {
     var currentZoomLevel = ev.target.getZoom()
     drawMapGrid(currentZoomLevel)
@@ -646,7 +645,6 @@ $(function () {
             dataType: 'json',
         })
             .done(function (response) {
-                // console.log(response.tbn_url)
                 $('.tbn_popup').removeClass('d-none');
                 $('.tbn-url').attr('href', response.tbn_url);
 
@@ -1333,15 +1331,19 @@ function setTable(response, queryString, from, orderby, sort) {
         $('.record_table').append(`<tr>${tmp_td}</tr>`)
     }
 
-    // 如果queryString裡面沒有指定orderby，使用scientificName
-    $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
-    if (response.sort == 'desc') {
-        $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
+    // 如果沒有指定 orderby（第一次搜尋，使用自訂名稱排序），所有欄位維持未排序箭頭
+    if (!response.orderby) {
+        $('.orderby').append('<i class="fa-solid fa-sort sort-icon"></i>');
     } else {
-        $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-up sort-icon-active"></i>')
-        $(`.orderby[data-orderby=${response.orderby}]`).data('sort', 'desc');
+        $('.orderby').not(`[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort sort-icon"></i>')
+        if (response.sort == 'desc') {
+            $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-down sort-icon-active"></i>')
+        } else {
+            $(`.orderby[data-orderby=${response.orderby}]`).append('<i class="fa-solid fa-sort-up sort-icon-active"></i>')
+            $(`.orderby[data-orderby=${response.orderby}]`).data('sort', 'desc');
+        }
     }
-
+    
     $('.orderby').on('click', function () {
 
         if ($(this).children('svg').hasClass('fa-sort')) {
@@ -1382,19 +1384,19 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
             type: 'POST',
             dataType: 'json',
         })
-            .done(function (response) {
-                window.g_list = response.polygon
-                submitSearch(page, from)
-            })
-            .fail(function (xhr, status, errorThrown) {
-                if (xhr.status == 504) {
-                    alert(gettext('要求連線逾時'))
-                } else {
-                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+        .done(function (response) {
+            window.g_list = response.polygon
+            submitSearch(page, from)
+        })
+        .fail(function (xhr, status, errorThrown) {
+            if (xhr.status == 504) {
+                alert(gettext('要求連線逾時'))
+            } else {
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
 
-                }
-                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
-            })
+            }
+            console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+        })
 
     } else {
 
@@ -1420,7 +1422,6 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         }
                     }
                 } else {
-                    //let queryString = window.location.search;
                     let urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.getAll('polygon')) {
                         if (urlParams.getAll('polygon').length > 0) {
@@ -1543,7 +1544,6 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                         alert(gettext('超過系統可取得的頁數，請嘗試使用結果排序功能或縮小搜尋範圍'))
 
                     } else {
-
 
                         // clear previous results
                         $('.record_table tr').remove()

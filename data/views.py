@@ -996,7 +996,6 @@ def get_records(request): # 全站搜尋
 
         rows = create_data_table(docs, user_id, obv_str, request.POST.get('has_image'))
 
-
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
         page_list = get_page_list(current_page, total_page)
@@ -1008,7 +1007,7 @@ def get_records(request): # 全站搜尋
 
         if orderby not in selected_col:
             selected_col.append(orderby)
-        
+
         response = {
             'title': title,
             'orderby': orderby,
@@ -1652,7 +1651,7 @@ def get_conditional_records(request):
         req_dict = request.POST
 
         limit = int(req_dict.get('limit', 10))
-        orderby = req_dict.get('orderby','scientificName')
+        orderby = req_dict.get('orderby', '')
         sort = req_dict.get('sort', 'asc')
         user_id = request.user.id if request.user.id else 0
         get_raw_map = if_raw_map(user_id)
@@ -1663,7 +1662,7 @@ def get_conditional_records(request):
         else:
             selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
 
-        if orderby not in selected_col:
+        if orderby and orderby not in selected_col:
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
@@ -1697,12 +1696,12 @@ def get_conditional_records(request):
                 solr_orderby = 'standardLongitude' + ' ' + sort
         else:
             name_kw = req_dict.get('name', '')
-            # 只有 default 排序(scientificName) 且有用 name 搜尋時，才套用完全一致置頂邏輯
-            if orderby == 'scientificName' and name_kw:
+            if not orderby and name_kw:
+                # 與 create_search_query 的 name 正規化保持一致
+                name_kw = html.unescape(re.sub(' +', ' ', name_kw.strip()))
                 esc = name_kw.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
                 is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
                 if is_chinese:
-                    # 中文：common_name_c 完全一致最前，其餘依 別名 / 同物異名 / 誤用名 優先序
                     solr_orderby = (
                         f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
@@ -1711,35 +1710,13 @@ def get_conditional_records(request):
                         f'scientificName {sort}'
                     )
                 else:
-                    # 英文：scientificName 完全一致最前
                     solr_orderby = (
                         f'query({{!lucene v=\'scientificName:"{esc}"\'}}) desc,'
                         f'scientificName {sort}'
                     )
             else:
-                name_kw = req_dict.get('name', '')
-                # 只有 default 排序(scientificName) 且有用 name 搜尋時，才套用完全一致置頂邏輯
-                if orderby == 'scientificName' and name_kw:
-                    esc = name_kw.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
-                    is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
-                    if is_chinese:
-                        # 中文：common_name_c 完全一致最前，其餘依 別名 / 同物異名 / 誤用名 優先序
-                        solr_orderby = (
-                            f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
-                            f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
-                            f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
-                            f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
-                            f'scientificName {sort}'
-                        )
-                    else:
-                        # 英文：scientificName 完全一致最前
-                        solr_orderby = (
-                            f'query({{!lucene v=\'scientificName:"{esc}"\'}}) desc,'
-                            f'scientificName {sort}'
-                        )
-                else:
-                    solr_orderby = orderby + ' ' + sort
-
+                # 未排序但沒用 name 搜尋 → 仍給一個穩定排序避免分頁亂序
+                solr_orderby = 'scientificName ' + (sort or 'asc')
 
         page = int(req_dict.get('page', 1))
 
@@ -1813,7 +1790,6 @@ def get_conditional_records(request):
         if req_dict.get('from') == 'search':
 
             # 搜尋紀錄
-
             now_dict = dict(req_dict)
             not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
             for nq in not_query:

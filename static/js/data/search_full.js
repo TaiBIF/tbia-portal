@@ -445,7 +445,7 @@ function focusComponent(item_class, go_back) {
     $('.rightbox_content > .all_empty_no_data').addClass('d-none')
     // 還原各 item 的標題與 no_data（切回單一 item 時仍要顯示其頁面）
     $('.rightbox_content .item > .titlebox_line').removeClass('d-none')
-    $('.rightbox_content .item > .no_data').removeClass('d-none')
+    $('.rightbox_content .item > .no_data').not('.taxon_more_end, .occ_more_end, .col_more_end').removeClass('d-none')
     $(`.rightbox_content .${item_class}`).removeClass('d-none')
     $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).addClass('d-none')
     clickToAnchor(`#${item_class}`)
