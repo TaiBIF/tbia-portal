@@ -35,9 +35,19 @@
                                 <div class="tag_date">
                                     <div class="tag {{ color }}">{% trans n.get_type_display %}</div>
                                     <div class="date">{{ n.publish_date|date:'Y-m-d'|default_if_none:'' }}</div>
+                                    {% if ark %}
+                                        <a href="{{ ark_href }}" target="_blank" class="ark">{{ ark }}</a>
+                                    {% endif %}
                                 </div>
                                 <h3>{{ n.title }}</h3>
-                                <p class="mt-10px">
+                            </div>
+                            <div class="author-tag-row">
+                                {% if tags|length > 0 %}
+                                    <div class="tag-div">
+                                        {% for tag in tags %}<span class="tag-news">#{{ tag }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="author">
                                     <i class="icon-size fa-solid fa-pen"></i>
                                     {% if n.partner and n.author_use_tbia != True %}
                                         {% if LANGUAGE_CODE == 'en-us' %}
@@ -54,11 +64,6 @@
                                     {% endif %}
                                 </p>
                             </div>
-                            {% if tags|length > 0 %}
-                                <div class="tag-div">
-                                    {% for tag in tags %}<span class="tag-news">#{{ tag }}</span>{% endfor %}
-                                </div>
-                            {% endif %}
                             <div class="editor">
                                 <!-- 這邊放代表圖片 -->
                                 {% if n.image %}

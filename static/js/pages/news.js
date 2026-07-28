@@ -2,6 +2,13 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 $(function () {
 
+  $('#keyword').on('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('.date_select .search_btn').click();
+    }
+  });
+
   let start_date_picker = new AirDatepicker('#start_date',
     { locale: date_locale, dateFormat: 'yyyy-MM-dd' });
 
@@ -38,18 +45,35 @@ $(function () {
     updateNews('all', 1)
   }
 
-  $('.date_select .search_btn').on('click', function () {
-    $('.already_selected ul').removeClass('d-none');
+$('.date_select .search_btn').on('click', function () {
+  let keyword = $('#keyword').val().trim();
+  let start = $("#start_date").val();
+  let end = $("#end_date").val();
+  let parts = [];
+  if (start && end) {
+    parts.push(`${start}~${end}`);
+  }
+  if (keyword) {
+    parts.push(`${gettext('關鍵字')}：${keyword}`);
+  }
+
+  if (parts.length > 0) {
     $('.already_selected').data('filter', 'yes');
-    $('.already_selected p').html(`${$("#start_date").val()}~${$("#end_date").val()}`);
-    $('.news_tab_in li.now').trigger('click')
-  })
+    $('.already_selected ul').removeClass('d-none');
+    $('.already_selected p').html(parts.join('　'));
+  } else {
+    $('.already_selected').data('filter', 'no');
+    $('.already_selected ul').addClass('d-none');
+  }
+  $('.news_tab_in li.now').trigger('click');
+});
 
   $('.already_selected ul li button.xx').on('click', function () {
     $('.already_selected ul').addClass('d-none');
     $('.already_selected').data('filter', 'no');
-    $('.news_tab_in li.now').trigger('click')
-  })
+    $('#keyword').val('');
+    $('.news_tab_in li.now').trigger('click');
+  });
 
 });
 
@@ -76,6 +100,11 @@ function updateNews(type, page) {
     }
   }
 
+  let keyword = $('#keyword').val().trim();
+  if (keyword) {
+    query['keyword'] = keyword;
+  }
+
   $.ajax({
     url: '/get_news_list',
     type: 'POST',
@@ -95,13 +124,14 @@ function updateNews(type, page) {
                       </a>
                       <div class="infbox">
                         <div class="center_box">
-                          <div class="tag_date">
-                            <div class="tag ${d.color}">${gettext(d.type_c)}</div>
-                            <p class="date">${d.publish_date}</p>
-                          </div>
-                          <a href="/${$lang}/news/detail/${d.id}" class="nstitle">
+                        <div class="tag_date">
+                          <div class="tag ${d.color}">${gettext(d.type_c)}</div>
+                          <p class="date">${d.publish_date}</p>
+                        </div>
+                        <a href="/${$lang}/news/detail/${d.id}" class="nstitle">
                             ${d.title}
                           </a>
+                        ${d.ark ? `<a href="${d.ark_href}" target="_blank" class="ark">${d.ark}</a>` : ''}
                         </div>
                       </div>
                     </li>`)

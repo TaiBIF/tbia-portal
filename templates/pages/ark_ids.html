@@ -55,6 +55,23 @@
                     </li>
                 </ul>
             </div>
+            <div class="date_select">
+                <p>{% trans '篩選' %}</p>
+                <div class="input_item keyword_item">
+                    <input name="keyword" id="keyword" type="text" placeholder="{% trans '搜尋標題關鍵字' %}" />
+                </div>
+                <button class="search_btn">{% trans '送出' %}</button>
+            </div>
+            <div class="already_selected" data-filter="no">
+                <ul class="d-none">
+                    <li>
+                        <p class="date-range"></p>
+                        <button class="xx">
+                            <img src="/static/image/xx_w.svg">
+                        </button>
+                    </li>
+                </ul>
+            </div>
             <div class="result_table flow-x-auto">
                 <table cellspacing="0" cellspacing="0" class="table_style1 ark_table">
                     <tr class="first-row">

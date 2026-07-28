@@ -40,3 +40,42 @@
 .mobile_tab .vsb-main button span.title {
     padding: 0px 5px !important;
 }
+
+.date_select {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.keyword_item input {
+    background-color: #fff !important;
+    width: 180px;
+}
+
+.search_btn {
+    color: #FFF;
+    background: #76A578;
+    transition: all .3s;
+    width: 80px;
+    padding: 0 15px;
+    margin-left: 10px;
+    height: 35px;
+    border-radius: 3px;
+    font-size: 16px;
+}
+
+@media only screen and (min-width: 1000px) {
+    .search_btn:hover {
+        background: #E2A460;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .search_btn {
+        font-size: 14px;
+        min-width: 70px;
+    }
+    .keyword_item input {
+        width: 100%;
+    }
+}

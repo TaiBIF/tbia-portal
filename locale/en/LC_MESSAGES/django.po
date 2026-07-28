@@ -3738,3 +3738,18 @@ msgstr "Title"
 
 msgid "篩選結果可能包含座標有誤差或經模糊化後之資料"
 msgstr "Please note that the filtered results may include data with coordinate uncertainties or generalized coordinates."
+
+msgid "資料概況"
+msgstr "Data Overview"
+
+msgid "資料空間狀況"
+msgstr "Spatial Data"
+
+msgid "資料時間狀況"
+msgstr "Temporal Data"
+
+msgid "搜尋標題關鍵字"
+msgstr "Search by title"
+
+msgid "搜尋關鍵字"
+msgstr "Search keywords"

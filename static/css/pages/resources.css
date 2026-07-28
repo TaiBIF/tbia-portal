@@ -188,3 +188,45 @@ p.text_tec {
 #stat-intro.news_list li .infbox {
     padding-top: 5px;
 }
+
+.cate_dbox {
+    display: flex;
+    align-items: center;
+}
+
+.cate_dbox .ark {
+    margin-left: auto;
+    color: #3B8D70;
+    word-break: break-all;
+    font-size: 14px;
+}
+
+.cate_dbox .ark:hover {
+    text-decoration: underline;
+}
+
+@media only screen and (max-width: 767px) {
+    .cate_dbox {
+        flex-wrap: wrap;
+    }
+    .cate_dbox .ark {
+        margin-left: 0;
+        flex-basis: 100%;
+        margin-top: 5px;
+    }
+}
+
+.keyword_item {
+    margin-left: 10px;
+}
+
+.keyword_item input {
+    background-color: #fff !important;
+    width: 180px;
+}
+
+@media only screen and (max-width: 767px) {
+    .keyword_item input {
+        width: 100%;
+    }
+}

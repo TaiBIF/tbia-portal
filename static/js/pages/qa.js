@@ -1,5 +1,16 @@
 $(function () {
 
+  $('.qa_search_btn').on('click', function () {
+    updateQa(1, $('select[name=qa_type]').val())
+  })
+
+  $('#qa_keyword').on('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('.qa_search_btn').click();
+    }
+  })
+
   // 起始頁面
   let current_type = '2';
   let urlParams = new URLSearchParams(window.location.search);
@@ -66,7 +77,7 @@ function updateQa(page, type, qa_id) {
     url: '/get_qa_list',
     type: 'POST',
     headers: { 'X-CSRFToken': $csrf_token },
-    data: { 'type': type, 'page': page, 'lang': $lang },
+    data: { 'type': type, 'page': page, 'lang': $lang, 'keyword': $('#qa_keyword').val().trim() },
 
     success: function (response, status) {
 

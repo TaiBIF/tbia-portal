@@ -123,3 +123,36 @@
 #start_date, #end_date {
     background-color: #fff;
 }
+
+.keyword_item {
+    margin-left: 10px;
+}
+
+.keyword_item input {
+    background-color: #fff !important;
+    width: 180px;
+}
+
+@media only screen and (max-width: 767px) {
+    .keyword_item input {
+        width: 100%;
+    }
+}
+
+.ark {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+    color: #3B8D70;
+    word-break: break-all;
+}
+
+.ark:hover {
+    text-decoration: underline;
+}
+
+@media only screen and (max-width: 767px) {
+    .ark {
+        font-size: 12px;
+    }
+}
