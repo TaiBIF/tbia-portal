@@ -16,7 +16,7 @@ from conf.utils import scheme
 from api.models import APIkey
 from manager.models import SearchCount
 from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
-                        backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c,
+                        background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
                         split_group_map, get_map_geojson, create_search_query)
 
 
@@ -66,7 +66,7 @@ def occurrence(request):
     if request.method == 'GET':
         fq_list = []
         req = request.GET
-        url_query_string = parse.urlencode(req)
+        url_query_string = req.urlencode()
 
         # TODO 未來考慮把訊息寫在一起
 
@@ -254,12 +254,12 @@ def occurrence(request):
                 has_api_key = True
                 fl_cols = download_cols_with_sensitive
                 # 部分統一使用create_search_query
-                fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+                fq_list += create_search_query(req_dict=now_dict, get_raw_map=True)
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
         else:
-            fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+            fq_list += create_search_query(req_dict=now_dict, get_raw_map=True)
 
 
         query = { "query": "*:*",
@@ -305,7 +305,7 @@ def occurrence(request):
 
         aaa = now_dict.pop('cursor', None)
 
-        query_string = parse.urlencode(now_dict)
+        query_string = parse.urlencode(now_dict, doseq=True)
 
         next_url = ''
 
@@ -323,7 +323,7 @@ def occurrence(request):
 
         # 記錄在SearchStat
         if cursor == '*':
-            task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'api_occ', query_string))
+            task = threading.Thread(target=background_search_stat, args=(fq_list,'api_occ', query_string))
             task.start()
 
         obj, created = SearchCount.objects.update_or_create(
@@ -498,7 +498,7 @@ def dataset(request):
                 now_dict[k] = now_dict[k][0]
 
         aaa = now_dict.pop('cursor', None)
-        query_string = parse.urlencode(now_dict)
+        query_string = parse.urlencode(now_dict, doseq=True)
 
         next_url = ''
 
@@ -516,7 +516,7 @@ def dataset(request):
 
 
         obj, created = SearchCount.objects.update_or_create(
-                search_location='dataset'
+                search_location='api_dataset'
             )
         obj.count += 1
         obj.save()
@@ -655,14 +655,14 @@ def map(request):
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
 
-        query_string = parse.urlencode(now_dict)
+        query_string = parse.urlencode(now_dict, doseq=True)
 
 
-        task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'map', query_string))
+        task = threading.Thread(target=background_search_stat, args=(fq_list,'api_map', query_string))
         task.start()
 
         obj, created = SearchCount.objects.update_or_create(
-                search_location='map'
+                search_location='api_map'
             )
         obj.count += 1
         obj.save()

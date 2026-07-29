@@ -53,6 +53,7 @@ urlpatterns = [
     path('get_request_detail', views.get_request_detail, name='get_request_detail'), 
     path('get_keyword_stat', views.get_keyword_stat, name='get_keyword_stat'), 
     path('get_checklist_stat', views.get_checklist_stat, name='get_checklist_stat'), 
+    path('get_ark_stat', views.get_ark_stat, name='get_ark_stat'), 
     path('get_data_stat', views.get_data_stat, name='get_data_stat'), 
     path('get_taxon_group_list', views.get_taxon_group_list, name='get_taxon_group_list'), 
     path('get_temporal_stat', views.get_temporal_stat, name='get_temporal_stat'), 

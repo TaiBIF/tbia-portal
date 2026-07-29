@@ -35,7 +35,7 @@ from manager.views import send_notification
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
         sq = SearchQuery.objects.get(id=id)
-        search_dict = dict(parse.parse_qsl(sq.query))
+        search_dict = parse_query_string(sq.query)
         map_json = search_dict.get('geojson')
         response = HttpResponse(map_json, content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename="geojson.json"'
@@ -166,7 +166,7 @@ def submit_sensitive_request(request):
         )
 
         # 以下改成背景處理
-        task = threading.Thread(target=backgroud_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
+        task = threading.Thread(target=background_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
         task.start()
         
         return JsonResponse({"status": 'success'}, safe=False)
@@ -200,9 +200,9 @@ def transfer_sensitive_response(request):
             
             # 機關計畫送交給夥伴單位審核
             sq = SearchQuery.objects.get(query_id=query_id)
-            req_dict = dict(parse.parse_qsl(sq.query))
+            req_dict = parse_query_string(sq.query)
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
             query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
@@ -298,7 +298,7 @@ def generate_sensitive_csv(query_id, scheme, host):
     
     if SearchQuery.objects.filter(query_id=query_id).exists():
         sq = SearchQuery.objects.get(query_id=query_id)
-        req_dict = dict(parse.parse_qsl(sq.query))
+        req_dict = parse_query_string(sq.query)
 
         download_id = f"tbia_{query_id}"
         process = None
@@ -314,8 +314,8 @@ def generate_sensitive_csv(query_id, scheme, host):
                 fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
                 fail_groups = [g[0] for g in fail_groups]
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
-            query_list_b = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
+            query_list_b = create_search_query(req_dict=req_dict, get_raw_map=False)
 
             # 排除掉不同意的單位
             if fail_groups:
@@ -387,7 +387,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             
         else:
             # 沒有帳號通過 - 全部給模糊化後的資料
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
             
             query = {
                 "query": "*:*",
@@ -536,7 +536,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
     get_raw_map = if_raw_map(user_id)
 
-    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+    query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
     user_stat = []
 
@@ -629,7 +629,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
     get_raw_map = if_raw_map(user_id)
-    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+    query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
     user_stat = []
 
@@ -1264,12 +1264,22 @@ def download_dataset_results(request):
 
     if request.method == 'POST':
         req_dict = request.POST
-        orderby = req_dict.get('orderby','name')
-        sort = req_dict.get('sort', 'asc')
+
+        # 安全防護：orderby / sort 白名單(欄位名無法參數化，只能白名單)
+        allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart',
+                        'datasetDateEnd', 'rights_holder', 'downloadCount'}
+        orderby = req_dict.get('orderby', 'name')
+
+        if orderby not in allowed_columns:
+            orderby = 'name'
+        sort = req_dict.get('sort', 'asc').lower()
+        if sort not in {'asc', 'desc'}:
+            sort = 'asc'
+
+        query_list = ["deprecated = 'f'"]
+        query_params = []   # 參數化用
 
         # taxonGroup
-        query_list = ["deprecated = 'f'"]
-        
         taxon_vals_raw = req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
@@ -1279,39 +1289,45 @@ def download_dataset_results(request):
                 elif tv in old_taxon_group_map_c:
                     tv = old_taxon_group_map_c[tv]
                 expanded.extend(split_group_map.get(tv, [tv]))
-            like_clauses = ['''\"datasetTaxonGroup\" like '%{}%' '''.format(tv) for tv in expanded]
+            like_clauses = []
+            for tv in expanded:
+                like_clauses.append('"datasetTaxonGroup" like %s')
+                query_params.append(f'%{tv}%')
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName
         if name := req_dict.get('name'):
-            query_list.append('''( "name" like '%{}%')'''.format(name))
+            query_list.append('"name" like %s')
+            query_params.append(f'%{name}%')
 
         # rightsHolder
         if holders := req_dict.getlist('rightsHolder'):
-            holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
-            query_list.append(f"({' OR '.join(holders)})")
+            holder_clauses = []
+            for h in holders:
+                holder_clauses.append('"rights_holder" = %s')
+                query_params.append(h)
+            query_list.append('({})'.format(' OR '.join(holder_clauses)))
 
         dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                         "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
-
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
         query = '''SELECT "name","rights_holder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                          "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
 
         if len(query_list):
             query += ' WHERE ' + (' AND ').join(query_list)
 
         conn = psycopg2.connect(**datahub_db_settings)
 
+        # orderby/sort 已白名單，直接內插安全
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
         df = pd.DataFrame(columns=dataset_download_cols)
 
         with conn.cursor() as cursor:
-            cursor.execute(query)
+            cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=dataset_download_cols)
-            
         conn.close()
 
     response = HttpResponse(content_type='text/csv')
@@ -1500,7 +1516,7 @@ def get_map_grid(request):
         user_id = request.user.id if request.user.id else 0
         get_raw_map =  if_raw_map(user_id)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
@@ -1550,7 +1566,7 @@ def get_tw_grid(request):
         user_id = request.user.id if request.user.id else 0
         get_raw_map =  if_raw_map(user_id)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         # 先把map bound轉成grid
 
@@ -1666,7 +1682,7 @@ def get_conditional_records(request):
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         record_type = req_dict.get('record_type')
 
@@ -1798,9 +1814,9 @@ def get_conditional_records(request):
             for k in now_dict.keys():
                 if len(now_dict[k])==1:
                     now_dict[k] = now_dict[k][0]
-            query_string = parse.urlencode(now_dict)
+            query_string = parse.urlencode(now_dict, doseq=True)
 
-            task = threading.Thread(target=backgroud_search_stat, args=(query_list,record_type,query_string))
+            task = threading.Thread(target=background_search_stat, args=(query_list,record_type,query_string))
             task.start()
 
         response = {
@@ -1978,9 +1994,9 @@ def get_higher_taxa(request):
         keyword_str = process_text_variants(keyword_str)
         # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '{keyword_str}%' LIMIT 10 """
-            cursor.execute(query)
+            query = """SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE accepted_common_name_c ~ %s OR accepted_alternative_name_c ~ %s OR "name" ILIKE %s LIMIT 10 """
+            cursor.execute(query, (keyword_str, keyword_str, f'{keyword_str}%'))
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
 
@@ -1995,23 +2011,32 @@ def get_higher_taxa(request):
     elif taxon_id and taxon_id != 'null':
         # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE "taxonID" = '{taxon_id}' AND name_status = 'accepted'; """
-            cursor.execute(query)
+            query = """SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE "taxonID" = %s AND name_status = 'accepted'; """
+            cursor.execute(query, (taxon_id,))
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             ds['has_taxonID'] = True
             ds = ds[['text','value','has_taxonID']].to_json(orient='records')
     else:
         default_taxon = ('t0005214','t0004179','t0004102','t0003149','t0005573','t0005890','t0004034','t0005763','t0002476','t0004051')
-
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE "taxonID" IN {str(default_taxon)} AND name_status = 'accepted'; """
-            cursor.execute(query)
+            # 1. 動態生成正確數量的佔位符：'%s, %s, %s, ...'
+            placeholders = ', '.join(['%s'] * len(default_taxon))
+            
+            # 2. 將佔位符放進 IN (...) 的括號中
+            query = f"""
+                SELECT "taxonID", CONCAT_WS(' ', "accepted_name", CONCAT_WS(',', "accepted_common_name_c", "accepted_alternative_name_c")), "name", "name_status" 
+                FROM data_name
+                WHERE "taxonID" IN ({placeholders}) AND name_status = 'accepted';
+            """
+            
+            # 3. 傳入 default_taxon（不需要再加外層括號）
+            cursor.execute(query, default_taxon)
+            
             results = cursor.fetchall()
-            ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
-            ds = ds[['text','value']].to_json(orient='records')
+            ds = pd.DataFrame(results, columns=['value', 'text', 'name', 'name_status'])
+            ds = ds[['text', 'value']].to_json(orient='records')
 
     return HttpResponse(ds, content_type='application/json')
 
@@ -2173,11 +2198,11 @@ def search_full(request):
     return resp
 
 
-def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
+def background_submit_sensitive_request(project_type, req_dict, query_id):
     if project_type == '0':
 
         # 個人研究計畫
-        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
         # 抓出所有單位
         query = { "query": "raw_location_rpt:*",

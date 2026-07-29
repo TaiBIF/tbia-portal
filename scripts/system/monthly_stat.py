@@ -264,3 +264,15 @@ if len(stat_list):
             group=group,
             rights_holder=rights_holder,
         )
+
+
+# ark
+# ARK每月申請次數
+
+ss = Ark.objects.filter(created__contains=current_year_month,type='data')
+    
+DataStat.objects.create(
+    year_month = current_year_month,
+    count = len(sq),
+    type = 'ark'
+)

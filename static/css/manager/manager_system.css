@@ -339,3 +339,30 @@ hr {
 .first_td_table tr td:first-child {
     text-align: left;
 }
+
+/* dashboard 右側目錄：與內容並排 */
+.two_cont_area .rightbox_content.dashboard {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    margin-left: 20px;
+}
+
+@media only screen and (max-width: 999px) {
+    .two_cont_area .rightbox_content.dashboard {
+        margin-left: 0;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .two_cont_area:has(.right-directory) {
+        flex-wrap: wrap;
+    }
+    .two_cont_area .rightbox_content.dashboard {
+        width: 100%;
+        order: 2;
+    }
+    .two_cont_area .right-directory {
+        order: 1;
+    }
+}

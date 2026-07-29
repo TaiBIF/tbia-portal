@@ -24,8 +24,10 @@ from conf.settings import SOLR_PREFIX, env, datahub_db_settings
 from django.db.models import Q
 from django.utils import timezone, translation
 from django.utils.translation import gettext
+from django.http import QueryDict
 from manager.models import User, Partner, SearchStat, Ark
-
+from urllib.parse import urlencode, parse_qsl
+import ast
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -79,6 +81,52 @@ rights_holder_map = {
 
 rights_holder_list = list(rights_holder_map.values())
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
+
+
+def build_query_string(mapping):
+    """統一產生 SearchStat.query，正確處理多值。"""
+    if isinstance(mapping, QueryDict):
+        return mapping.urlencode()
+    return urlencode(mapping, doseq=True)
+
+
+def parse_query_string(query):
+    """統一讀取 SearchStat.query，回傳 QueryDict。
+       相容 DB 既有舊格式 key=['A','B']，自動展開成真正的多值。"""
+    qd = QueryDict('', mutable=True)
+    for key, value in parse_qsl(query or '', keep_blank_values=True):
+        if value.startswith('[') and value.endswith(']'):
+            try:
+                lit = ast.literal_eval(value)
+                if isinstance(lit, list):
+                    for item in lit:
+                        qd.appendlist(key, str(item))
+                    continue
+            except (ValueError, SyntaxError):
+                pass
+        qd.appendlist(key, value)
+    return qd
+
+
+def get_multi(req_dict, key):
+    """取多值，相容 QueryDict / 普通 dict / 舊的 '[...]' 字面格式。"""
+    if hasattr(req_dict, 'getlist'):
+        vals = req_dict.getlist(key)
+    else:
+        v = req_dict.get(key)
+        vals = v if isinstance(v, list) else ([v] if v not in (None, '') else [])
+    out = []
+    for v in vals:
+        if isinstance(v, str) and v.startswith('[') and v.endswith(']'):
+            try:
+                lit = ast.literal_eval(v)
+                if isinstance(lit, list):
+                    out.extend(str(x) for x in lit)
+                    continue
+            except (ValueError, SyntaxError):
+                pass
+        out.append(v)
+    return out
 
 
 def get_dataset_name(key):
@@ -715,35 +763,13 @@ def create_query_display(search_dict,lang=None):
                 else:
                     query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
             elif k == 'datasetName':
-                if isinstance(search_dict[k], str):
-                    if search_dict[k].startswith('['):
-                        for d in eval(search_dict[k]):
-                            if d_name := get_dataset_name(d):
-                                d_list.append(d_name)
-                    else:
-                        if d_name := get_dataset_name(search_dict[k]):
-                            d_list.append(d_name)
-                else:
-                    for d in list(search_dict[k]):
-                        if d_name := get_dataset_name(d):
-                            d_list.append(d_name)
+                for d in get_multi(search_dict, 'datasetName'):
+                    if d_name := get_dataset_name(d):
+                        d_list.append(d_name)
             elif k == 'rightsHolder':
-                if isinstance(search_dict[k], str):
-                    if search_dict[k].startswith('['):
-                        r_list = eval(search_dict[k])
-                    else:
-                        r_list.append(search_dict[k])
-                else:
-                    r_list = list(search_dict[k])
-                r_list = [gettext(r) for r in r_list]
+                r_list = get_multi(search_dict, 'rightsHolder')
             elif k == 'locality':
-                if isinstance(search_dict[k], str):
-                    if search_dict[k].startswith('['):
-                        l_list = eval(search_dict[k])
-                    else:
-                        l_list.append(search_dict[k])
-                else:
-                    l_list = list(search_dict[k])
+                l_list = get_multi(search_dict, 'locality')
             elif k == 'higherTaxa':
                 response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{search_dict[k]}')
                 if response.status_code == 200:
@@ -753,21 +779,18 @@ def create_query_display(search_dict,lang=None):
                         query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
             # 這邊要讓新舊互通 因為舊的會需要再次查詢
             elif k == 'taxonGroup':
-                val = search_dict[k]
-                if isinstance(val, list):
-                    vals = val
-                elif isinstance(val, str) and val.startswith('['):
-                    vals = eval(val)
-                elif val in split_group_map:
-                    vals = split_group_map[val]
-                elif val in taxon_group_map_c:
-                    vals = [taxon_group_map_c[val]]
-                elif val in old_taxon_group_map_c:
-                    vals = [old_taxon_group_map_c[val]]
-                else:
-                    vals = [val]
+                vals = []
+                for v in get_multi(search_dict, 'taxonGroup'):
+                    if v in split_group_map:
+                        vals.extend(split_group_map[v])
+                    elif v in taxon_group_map_c:
+                        vals.append(taxon_group_map_c[v])
+                    elif v in old_taxon_group_map_c:
+                        vals.append(old_taxon_group_map_c[v])
+                    else:
+                        vals.append(v)
                 display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(display_vals)}"            # elif k == 'taxonGroup':
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(display_vals)}"
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
                 query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
@@ -819,66 +842,19 @@ def create_query_display(search_dict,lang=None):
 
 # 整理搜尋條件 再次查詢按鈕的連結
 def create_query_a(search_dict):
-    # 只處理多選 & 需要調整的參數
+    """只負責 taxonGroup 舊→新群名正規化(前端不處理這塊)。
+       其餘多值參數由 build_query_string 產生。"""
     query_a = ''
-
-    d_list = []
-    r_list = []
-    l_list = []
-
-    # 這邊要處理taxonGroup 因為會有新舊的問題
-    for k in search_dict.keys():
-        if k == 'datasetName':
-            if isinstance(search_dict[k], str):
-                if search_dict[k].startswith('['):
-                    for d in eval(search_dict[k]):
-                        d_list.append(d)
-                else:
-                    d_list.append(search_dict[k])
-            else:
-                for d in list(search_dict[k]):
-                    d_list.append(d)
-        elif k == 'rightsHolder':
-            if isinstance(search_dict[k], str):
-                if search_dict[k].startswith('['):
-                    r_list = eval(search_dict[k])
-                else:
-                    r_list.append(search_dict[k])
-            else:
-                r_list = list(search_dict[k])
-        elif k == 'locality':
-            if isinstance(search_dict[k], str):
-                if search_dict[k].startswith('['):
-                    l_list = eval(search_dict[k])
-                else:
-                    l_list.append(search_dict[k])
-            else:
-                l_list = list(search_dict[k])
-                
-        elif k == 'taxonGroup':
-            val = search_dict[k]
-            if isinstance(val, list):
-                vals = val
-            elif isinstance(val, str) and val.startswith('['):
-                vals = eval(val)
-            elif val in split_group_map:
-                vals = split_group_map[val]
-            elif val in taxon_group_map_c:
-                vals = [taxon_group_map_c[val]]
-            elif val in old_taxon_group_map_c:
-                vals = [old_taxon_group_map_c[val]]
-            else:
-                vals = [val]
-            for v in vals:
-                query_a += f'&taxonGroup={v}'
-
-    for l in l_list:
-        query_a += f'&locality={l}'
-    for r in r_list:
-        query_a += f'&rightsHolder={r}'
-    for d in d_list:
-        query_a += f'&datasetName={d}'
-
+    for v in get_multi(search_dict, 'taxonGroup'):
+        if v in split_group_map:
+            for mapped in split_group_map[v]:
+                query_a += f'&taxonGroup={mapped}'
+        elif v in taxon_group_map_c:
+            query_a += f'&taxonGroup={taxon_group_map_c[v]}'
+        elif v in old_taxon_group_map_c:
+            query_a += f'&taxonGroup={old_taxon_group_map_c[v]}'
+        else:
+            query_a += f'&taxonGroup={v}'
     return query_a
 
 
@@ -904,7 +880,7 @@ def return_selected_grid_text(req_dict,map_dict):
 # datasetName, rightsHolder, locality, polygon
 # , generate_download_csv, generate_species_csv(v), get_map_grid(v), get_conditional_records(v)
 
-def create_search_query(req_dict, from_request=False, get_raw_map=False):
+def create_search_query(req_dict, get_raw_map=False):
 
     query_list = []
 
@@ -938,20 +914,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
     if record_type == 'col': # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    if from_request:
-        raw_vals = req_dict.getlist('taxonGroup')
-    else:
-        val = req_dict.get('taxonGroup')
-        if val:
-            if isinstance(val, list):
-                raw_vals = val
-            elif val.startswith('['):
-                raw_vals = eval(val)
-            else:
-                raw_vals = [val]
-        else:
-            raw_vals = []
-
+    raw_vals = get_multi(req_dict, 'taxonGroup')
     bio_groups = []
     for v in raw_vals:
         if v in split_group_map:
@@ -1025,25 +988,9 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     # 下拉選單多選
     d_list = []
-    if from_request:
-        if val := req_dict.getlist('datasetName'):
-            for v in val:
-                if d_id := get_tbia_dataset_id(v):
-                        d_list.append(d_id)
-    else:
-        if val := req_dict.get('datasetName'):
-            if isinstance(val, str):
-                if val.startswith('['):
-                    for d in eval(val):
-                        if d_id := get_tbia_dataset_id(d):
-                            d_list.append(d_id)
-                else:
-                    if d_id := get_tbia_dataset_id(val):
-                        d_list.append(d_id)
-            else:
-                for d in list(val):
-                    if d_id := get_tbia_dataset_id(d):
-                        d_list.append(d_id)
+    for v in get_multi(req_dict, 'datasetName'):
+        if d_id := get_tbia_dataset_id(v):
+            d_list.append(d_id)
 
     # 這邊要改成tbiaDatasetID才對
     if d_list:
@@ -1051,21 +998,7 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
         query_list += [f'tbiaDatasetID:("{d_list_str}")']
 
     r_list = []
-
-    if from_request:
-        if val := req_dict.getlist('rightsHolder'):
-            for v in val:
-                r_list.append(v)
-    else:
-        if val := req_dict.get('rightsHolder'):
-            if isinstance(val, str):
-                if val.startswith('['):
-                    r_list = eval(val)
-                else:
-                    r_list.append(val)
-            else:
-                r_list = list(val)
-    
+    r_list = get_multi(req_dict, 'rightsHolder')
     
     if r_list:
         r_list_str = '" OR "'.join(r_list)
@@ -1073,23 +1006,10 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     l_list = []
 
-    if from_request:
-        if val := req_dict.getlist('locality'):
-            l_list_str = '" OR "'.join(val)
-            query_list += [f'locality:("{l_list_str}")']
-    else:
-        if val := req_dict.get('locality'):
-            if isinstance(val, str):
-                if val.startswith('['):
-                    l_list = eval(val)
-                else:
-                    l_list.append(val)
-            else:
-                l_list = list(val)
-        if l_list:
-            l_list_str = '" OR "'.join(l_list)
-            query_list += [f'locality:("{l_list_str}")']
-
+    l_list = get_multi(req_dict, 'locality')
+    if l_list:
+        l_list_str = '" OR "'.join(l_list)
+        query_list += [f'locality:("{l_list_str}")']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -1133,27 +1053,15 @@ def create_search_query(req_dict, from_request=False, get_raw_map=False):
 
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
-        if from_request:
-            if g_list := req_dict.getlist('polygon'): 
-                try:
-                    mp = MultiPolygon(map(wkt.loads, g_list))
-                    if get_raw_map:
-                        query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
-                    else:
-                        query_list += ['location_rpt: "Within(%s)"' % mp]
-                    
-                except:
-                    pass
-        else:
-            if g_list := req_dict.get('polygon'):
-                try:
-                    mp = MultiPolygon(map(wkt.loads, [g_list]))
-                    if get_raw_map:
-                        query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
-                    else:
-                        query_list += ['location_rpt: "Within(%s)"' % mp]
-                except:
-                    pass
+        if g_list := get_multi(req_dict, 'polygon'):
+            try:
+                mp = MultiPolygon(map(wkt.loads, g_list))
+                if get_raw_map:
+                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                else:
+                    query_list += ['location_rpt: "Within(%s)"' % mp]
+            except:
+                pass
 
     # 上傳polygon
     if req_dict.get('geo_type') == 'polygon':
@@ -1289,8 +1197,8 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
 
     if is_first_time:
         # 背景處理stat
-        query_string = 'keyword=' + keyword
-        task = threading.Thread(target=backgroud_search_stat, args=(q[:-4],'full',query_string))
+        query_string = urlencode({'keyword': keyword})
+        task = threading.Thread(target=background_search_stat, args=(q[:-4],'full',query_string))
         task.start()
     
     query.update(facet_list)
@@ -2127,10 +2035,18 @@ def create_search_stat(query_list, q="*:*"):
     return stat_rightsHolder
 
 
-def backgroud_search_stat(query_list,record_type,query_string):
+def background_search_stat(query_list, record_type, query_string, compute_stat=True):
+    allowed = {value for value, _ in SearchStat.location_choice}
+    if record_type not in allowed:
+        return
 
-    stat_rightsHolder = create_search_stat(query_list=query_list)
-    SearchStat.objects.create(query=query_string,search_location=record_type,stat=stat_rightsHolder,created=timezone.now())
+    stat_rightsHolder = create_search_stat(query_list=query_list) if compute_stat else None
+    SearchStat.objects.create(
+        query=query_string,
+        search_location=record_type,
+        stat=stat_rightsHolder,
+        created=timezone.now(),
+    )
 
 
 def create_sensitive_partner_stat(query_list, q="*:*"):
@@ -2286,15 +2202,7 @@ def create_tbn_query(req_dict):
         elif is_protected in ['n','false']:
             error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
 
-    if val := req_dict.getlist('taxonGroup'):
-        if isinstance(val, list):
-            tbn_vals = val
-        elif val.startswith('['):
-            tbn_vals = eval(val)
-        else:
-            tbn_vals = [val]
-    else:
-        tbn_vals = []
+    tbn_vals = get_multi(req_dict, 'taxonGroup')
 
     if len(tbn_vals) > 1:
         # TBN 只支援單項物種類群查詢，多項一律視為無法對應
@@ -2314,45 +2222,15 @@ def create_tbn_query(req_dict):
         else:
             error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
 
-    if val := req_dict.getlist('datasetName'):
-        d_list = []
+    if d_ids := get_multi(req_dict, 'datasetName'):
+        d_list = [get_dataset_name(d) for d in d_ids]
+        error_str_list.append('{} = {}'.format(gettext('資料集名稱'), ','.join(d_list)))
 
-        if isinstance(val, str):
-            if val.startswith('['):
-                for d in eval(val):
-                    d_list.append(get_dataset_name(d))
-            else:
-                d_list.append(get_dataset_name(val))
-        else:
-            for d in list(val):
-                d_list.append(get_dataset_name(d))
+    if l_list := get_multi(req_dict, 'locality'):
+        error_str_list.append('{} = {}'.format(gettext('出現地'), ','.join(l_list)))
 
-        error_str_list.append('{} = {}'.format(gettext('資料集名稱'),','.join(d_list)))
-
-    if val := req_dict.getlist('locality'):
-        l_list = []
-        if isinstance(val, str):
-            if val.startswith('['):
-                l_list = eval(val)
-            else:
-                l_list.append(val)
-        else:
-            l_list = list(val)
-
-        error_str_list.append('{} = {}'.format(gettext('出現地'),','.join(l_list)))
-
-    if val := req_dict.getlist('rightsHolder'):
-        r_list = []
-        if isinstance(val, str):
-            if val.startswith('['):
-                r_list = eval(val)
-            else:
-                r_list.append(val)
-        else:
-            r_list = list(val)
-
-        error_str_list.append('{} = {}'.format(gettext('來源資料庫'),','.join(r_list)))
-
+    if r_list := get_multi(req_dict, 'rightsHolder'):
+        error_str_list.append('{} = {}'.format(gettext('來源資料庫'), ','.join(r_list)))
 
     if val := req_dict.get('basisOfRecord'):
 
@@ -2390,8 +2268,8 @@ def create_tbn_query(req_dict):
 
     # 地圖框選
     if req_dict.get('geo_type') == 'map':
-        if g_list := req_dict.get('polygon'): 
-            query_str_list.append('{} = {}'.format(gettext('地圖框選'),g_list))
+        if g_list := get_multi(req_dict, 'polygon'):
+            query_str_list.append('{} = {}'.format(gettext('地圖框選'), ','.join(g_list)))
 
     # 上傳polygon
     if req_dict.get('geo_type') == 'polygon':
