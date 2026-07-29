@@ -356,23 +356,24 @@ def change_manager_page(request):
             # 整理搜尋條件
             # 全站搜尋
             query = ''
-            if 'from_full=yes' in r.query:
-                search_str = parse_query_string(r.query).get('search_str')
-                search_dict = parse_query_string(search_str)
-                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{search_dict['keyword']}"
-                
-                if search_dict.get('record_type') == 'occ':
+            fd = parse_query_string(r.query)
+
+            if fd.get('from_full') == 'yes':
+                # 相容:舊紀錄把條件包在 search_str,新紀錄攤平在頂層
+                inner = parse_query_string(fd.get('search_str')) if fd.get('search_str') else fd
+
+                if inner.get('record_type') == 'occ':
                     map_dict = map_occurrence
                 else:
                     map_dict = map_collection
-                key = map_dict.get(search_dict['key'])
-                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{search_dict['value']}"
-                if search_dict.get('scientific_name'):
-                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{search_dict['scientific_name']}"
-                if 'total_count' in search_dict.keys():
-                    search_dict.pop('total_count')
-                query_a = '/search/full?' + build_query_string(search_dict)
-
+                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{inner.get('keyword', '')}"
+                key = map_dict.get(inner.get('key'))
+                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{inner.get('value', '')}"
+                if inner.get('scientific_name'):
+                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{inner.get('scientific_name')}"
+                inner.pop('total_count', None)
+                query_a = '/search/full?' + build_query_string(inner)
+                
             else:
             # 進階搜尋
                 search_dict = parse_query_string(r.query)
@@ -1216,25 +1217,22 @@ def download_partner_sensitive_report(request):
                     search_dict = parse_query_string(s[2])
                     if search_dict.get('from_full') == 'yes':
                         query = '全站搜尋<br>'
-                        search_str = search_dict.get('search_str')
-                        search_dict = parse_query_string(search_str)
+                        inner = parse_query_string(search_dict.get('search_str')) if search_dict.get('search_str') else search_dict
 
-                        query += f"關鍵字：{search_dict['keyword']}"
-                        
-                        if search_dict.get('record_type') == 'occ':
+                        query += f"關鍵字：{inner.get('keyword', '')}"
+                        if inner.get('record_type') == 'occ':
                             map_dict = map_occurrence
                         else:
                             map_dict = map_collection
-                        key = map_dict.get(search_dict['key'])
-                        query += f"<br>{gettext(key)}：{search_dict['value']}"
-                        if search_dict.get('scientific_name'):
-                            query += f"<br>學名：{search_dict['scientific_name']}"
-
+                        key = map_dict.get(inner.get('key'))
+                        query += f"<br>{gettext(key)}：{inner.get('value', '')}"
+                        if inner.get('scientific_name'):
+                            query += f"<br>學名：{inner.get('scientific_name')}"
                     else:
                         query = '進階搜尋<br>'
                         query += create_query_display(search_dict)
                         query = query.replace('<b>','').replace('</b>','')
-                    
+
                     query = query.replace('<br>','\n')
 
                     date = s[0] + timedelta(hours=8)

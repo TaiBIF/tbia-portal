@@ -131,7 +131,7 @@ def submit_sensitive_request(request):
             if len(req_dict[k])==1:
                 req_dict[k] = req_dict[k][0]
 
-        query_string = parse.urlencode(req_dict)
+        query_string = build_query_string(req_dict)
         user_id = request.user.id
         query_id = str(ObjectId())
 
@@ -554,7 +554,7 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -647,7 +647,7 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='taxon').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -827,7 +827,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
@@ -941,10 +941,12 @@ def get_records(request): # 全站搜尋
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = process_text_variants(keyword_reg)
 
-        search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}&orderby={orderby}&sort={sort}&limit={limit}&page={page}&from={from_str}&get_record=true'
-
-        if 'scientific_name' not in search_str and scientific_name and scientific_name != 'undefined':
-            search_str += f'&scientific_name={scientific_name}'
+        params = {'keyword': keyword, 'key': key, 'value': value,
+                  'record_type': record_type, 'orderby': orderby, 'sort': sort,
+                  'limit': limit, 'page': page, 'from': from_str, 'get_record': 'true'}
+        if scientific_name and scientific_name != 'undefined':
+            params['scientific_name'] = scientific_name
+        search_str = build_query_string(params)
 
         offset = (page-1)*10
 

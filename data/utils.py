@@ -108,6 +108,24 @@ def parse_query_string(query):
     return qd
 
 
+STAT_EXCLUDE_KEYS = {
+    'apikey', 'csrfmiddlewaretoken',
+    'page', 'offset', 'limit', 'cursor', 'orderby', 'sort',
+    'from', 'selected_col', 'grid', 'map_bound', 'taxon', 'record_type',
+}
+
+
+def build_stat_query_string(mapping):
+    """產生要存進 SearchStat.query 的字串，濾掉分頁/敏感/內部參數。"""
+    if isinstance(mapping, QueryDict):
+        mapping = mapping.copy()
+        for k in STAT_EXCLUDE_KEYS:
+            mapping.pop(k, None)
+        return mapping.urlencode()
+    clean = {k: v for k, v in mapping.items() if k not in STAT_EXCLUDE_KEYS}
+    return urlencode(clean, doseq=True)
+
+
 def get_multi(req_dict, key):
     """取多值，相容 QueryDict / 普通 dict / 舊的 '[...]' 字面格式。"""
     if hasattr(req_dict, 'getlist'):
@@ -1198,6 +1216,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     if is_first_time:
         # 背景處理stat
         query_string = urlencode({'keyword': keyword})
+
         task = threading.Thread(target=background_search_stat, args=(q[:-4],'full',query_string))
         task.start()
     

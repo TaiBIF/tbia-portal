@@ -17,7 +17,7 @@ from api.models import APIkey
 from manager.models import SearchCount
 from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
                         background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
-                        split_group_map, get_map_geojson, create_search_query)
+                        split_group_map, get_map_geojson, create_search_query, build_stat_query_string)
 
 
 def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
@@ -305,7 +305,7 @@ def occurrence(request):
 
         aaa = now_dict.pop('cursor', None)
 
-        query_string = parse.urlencode(now_dict, doseq=True)
+        query_string = build_stat_query_string(now_dict)
 
         next_url = ''
 
@@ -498,7 +498,7 @@ def dataset(request):
                 now_dict[k] = now_dict[k][0]
 
         aaa = now_dict.pop('cursor', None)
-        query_string = parse.urlencode(now_dict, doseq=True)
+        query_string = build_stat_query_string(now_dict)
 
         next_url = ''
 
@@ -655,7 +655,7 @@ def map(request):
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
 
-        query_string = parse.urlencode(now_dict, doseq=True)
+        query_string = build_stat_query_string(now_dict)
 
 
         task = threading.Thread(target=background_search_stat, args=(fq_list,'api_map', query_string))
