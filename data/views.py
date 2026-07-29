@@ -64,7 +64,7 @@ def get_taxon_dist_init(request):
 def get_taxon_dist(request):
 
     taxon_id = request.POST.get('taxonID')
-    grid = int(request.POST.get('grid'))
+    grid = to_int(request.POST.get('grid'), 0)
 
     user_id = request.user.id if request.user.id else 0
     
@@ -904,8 +904,8 @@ def get_records(request): # 全站搜尋
         value = request.POST.get('value', '')
         record_type = request.POST.get('record_type', '')
         scientific_name = request.POST.get('scientific_name', '')
-        limit = int(request.POST.get('limit', -1))
-        page = int(request.POST.get('page', 1))
+        limit = to_int(request.POST.get('limit'), -1)
+        page = to_int(request.POST.get('page'), 1)
         user_id = request.user.id if request.user.id else 0
 
         if request.POST.get('orderby'):

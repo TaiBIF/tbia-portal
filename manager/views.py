@@ -32,7 +32,7 @@ from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
 from ckeditor.fields import RichTextField
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string
+from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link
 
@@ -2851,8 +2851,8 @@ def get_temporal_stat(request):
     # 需要回傳 1 - 年份空缺 -> 需排除year = x的資料
     # 需要回傳 2 - 月份空缺 -> 需排除year = x & month = x的資料
 
-    start_year = int(request.GET.get('start_year'), 0)
-    end_year = int(request.GET.get('end_year'), 0)
+    start_year = to_int(request.GET.get('start_year'), 0)
+    end_year = to_int(request.GET.get('end_year'), 0)
     where = request.GET.get('where')
 
     resp = {}

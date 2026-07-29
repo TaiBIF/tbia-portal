@@ -83,6 +83,14 @@ rights_holder_list = list(rights_holder_map.values())
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
 
 
+def to_int(value, default=0):
+    """安全轉 int:None / 空字串 / 非數字都回 default。"""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def build_query_string(mapping):
     """統一產生 SearchStat.query，正確處理多值。"""
     if isinstance(mapping, QueryDict):

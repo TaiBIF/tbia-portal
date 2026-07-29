@@ -454,6 +454,8 @@ function focusComponent(item_class, go_back) {
 }
 
 function getRecords(record_type, key, value, scientific_name, limit, page, from, go_back, orderby, sort) {
+  page = parseInt(page, 10) || 1; 
+  limit = parseInt(limit, 10) || -1;
   $('input[name=keyword]').val($('.keyword-p').html())
   if ((!go_back) && ('URLSearchParams' in window)) {
     var searchParams = new URLSearchParams(window.location.search)
