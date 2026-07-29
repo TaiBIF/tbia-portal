@@ -1151,7 +1151,13 @@ function changeAction() {
 
         selectBox.setValue(r_list);
         selectBox2.setValue(d_list);
-        selectBox10.setValue(l_list);
+        if (l_list.length > 0) {
+            // 直接把已選值當選項補進去(使用者本來就搜過這些值)
+            let current = selectBox10.getResult ? selectBox10.getResult() : [];
+            let options = l_list.map(loc => ({ value: loc, text: loc }));
+            selectBox10.changeTree(options);
+            selectBox10.setValue(l_list);
+        }
 
         // 舊父類群值展開（向後兼容）
         const tg_split_map = {
