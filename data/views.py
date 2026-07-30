@@ -1218,29 +1218,25 @@ def get_conditional_dataset(request):
             query += ' WHERE ' + (' AND ').join(query_list)
             count_query += ' WHERE ' + (' AND ').join(query_list)
 
-        # 建立資料庫連線
-        conn = psycopg2.connect(**datahub_db_settings)
+        with datahub_conn() as conn, conn.cursor() as cursor:
 
-        # 1. 先計算總數
-        with conn.cursor() as cursor:
             # 傳入 query_params 來安全執行 SQL
+            # 1. 先計算總數
             cursor.execute(count_query, query_params)
             count_result = cursor.fetchone()
             total_count = count_result[0]
 
-        # 2. 再取得分頁資訊
-        query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
+            # 2. 再取得分頁資訊
+            query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
 
-        df = []
+            df = []
 
-        with conn.cursor() as cursor:
             # 傳入相同的 query_params 來安全執行分頁查詢
             cursor.execute(query, query_params)
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
                                                  "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
             
-        conn.close()
 
         current_page = offset / limit + 1
         total_page = math.ceil(total_count / limit)
@@ -1319,24 +1315,22 @@ def download_dataset_results(request):
         if len(query_list):
             query += ' WHERE ' + (' AND ').join(query_list)
 
-        conn = psycopg2.connect(**datahub_db_settings)
 
         # orderby/sort 已白名單，直接內插安全
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
         df = pd.DataFrame(columns=dataset_download_cols)
 
-        with conn.cursor() as cursor:
+        with datahub_conn() as conn, conn.cursor() as cursor:
             cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=dataset_download_cols)
-        conn.close()
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
-    df.to_csv(response, index=False, escapechar='\\')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
+        df.to_csv(response, index=False, escapechar='\\')
 
-    return response
+        return response
 
 
 from django.core.cache import cache
@@ -1347,11 +1341,9 @@ def get_media_rule():
         return cached
 
     try:
-        conn = psycopg2.connect(**datahub_db_settings)
-        with conn.cursor() as cursor:
+        with datahub_conn() as conn, conn.cursor() as cursor:
             cursor.execute('SELECT "media_rule" FROM media_rule')
             results = [r[0] for r in cursor.fetchall()]
-        conn.close()
     except Exception:
         results = []   # 原本沒 return，會回傳 None 害 _csp_update 炸掉
 
@@ -1457,46 +1449,46 @@ def dataset_detail(request, id):
 
     query = '''SELECT * FROM dataset WHERE "tbiaDatasetID" = %s AND deprecated = 'f';'''
 
-    conn = psycopg2.connect(**datahub_db_settings)
     resp = {}
 
-    with conn.cursor() as cursor:
+    with datahub_conn() as conn, conn.cursor() as cursor:
+
         cursor.execute(query, (id,))
         column_names = [desc[0] for desc in cursor.description]
         results = cursor.fetchone()
-        if len(results):
 
-            i = 0
-            for c in column_names:
-                resp[c] = results[i]
-                i += 1
+    if results:
 
-            new_taxon_stat = {}
+        i = 0
+        for c in column_names:
+            resp[c] = results[i]
+            i += 1
 
-            for t in resp['datasetTaxonStat']:
-                if t in taxon_group_map_c:
-                    new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
-                elif t in old_taxon_group_map_c:
-                    key = old_taxon_group_map_c[t]
-                    new_taxon_stat[key] = new_taxon_stat.get(key, 0) + resp['datasetTaxonStat'][t]
-                else:
-                    new_taxon_stat[t] = resp['datasetTaxonStat'][t]
+        new_taxon_stat = {}
 
-            resp['datasetTaxonStat'] = new_taxon_stat
-                
-            # 取得logo
-            if resp['group'] == 'gbif':
-                logo = 'GBIF-2015.png'
-                link = 'https://www.gbif.org/'
-                dataset_prefix = 'https://www.gbif.org/dataset/'
-            elif partner := Partner.objects.get(group=resp['group']):
-                logo = 'partner/' + partner.logo
-                for ii in partner.info:
-                    if ii.get('dbname') == resp['rights_holder']:
-                        link = ii.get('link')
-                        dataset_prefix = ii.get('dataset_prefix')
+        for t in resp['datasetTaxonStat']:
+            if t in taxon_group_map_c:
+                new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+            elif t in old_taxon_group_map_c:
+                key = old_taxon_group_map_c[t]
+                new_taxon_stat[key] = new_taxon_stat.get(key, 0) + resp['datasetTaxonStat'][t]
+            else:
+                new_taxon_stat[t] = resp['datasetTaxonStat'][t]
 
-    conn.close()
+        resp['datasetTaxonStat'] = new_taxon_stat
+            
+        # 取得logo
+        if resp['group'] == 'gbif':
+            logo = 'GBIF-2015.png'
+            link = 'https://www.gbif.org/'
+            dataset_prefix = 'https://www.gbif.org/dataset/'
+        elif partner := Partner.objects.get(group=resp['group']):
+            logo = 'partner/' + partner.logo
+            for ii in partner.info:
+                if ii.get('dbname') == resp['rights_holder']:
+                    link = ii.get('link')
+                    dataset_prefix = ii.get('dataset_prefix')
+
 
     response = render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
                 'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })

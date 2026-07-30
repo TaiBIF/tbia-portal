@@ -17,7 +17,7 @@ from api.models import APIkey
 from manager.models import SearchCount
 from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
                         background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
-                        split_group_map, get_map_geojson, create_search_query, build_stat_query_string)
+                        split_group_map, get_map_geojson, create_search_query, build_stat_query_string, datahub_conn)
 
 
 def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
@@ -361,8 +361,6 @@ def dataset(request):
         now_cursor = int(req.get('cursor', 0))
 
         # 篩選條件
-
-        conn = psycopg2.connect(**datahub_db_settings)
     
         query_value = []
         query_pair = []
@@ -470,10 +468,9 @@ def dataset(request):
 
         query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
 
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        with datahub_conn() as conn, conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, query_value)
             results = cursor.fetchall()
-            conn.close()
 
         data = []
         total = 0

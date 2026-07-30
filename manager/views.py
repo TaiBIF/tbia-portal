@@ -1190,27 +1190,34 @@ def download_partner_sensitive_report(request):
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            now_dbs = current_user.partner.info
-            now_dbs = ["sq.sensitive_stat @> '" + json.dumps([{"val": "{}".format(ii.get('dbname'))}]) + "'" for ii in now_dbs]
-            now_dbs_str = ' OR '.join(now_dbs)
-            
+            # 參數化：dbname 來自 partner.info，不可直接串進 SQL 字串
+            db_clauses, db_params = [], []
+            for ii in (current_user.partner.info or []):
+                db_clauses.append("sq.sensitive_stat @> %s::jsonb")
+                db_params.append(json.dumps([{"val": "{}".format(ii.get('dbname'))}]))
+
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
             df = pd.DataFrame()
 
-            query = f'''
-                    SELECT sq.created, sq.query_id, sq.query, p.select_title
-                    FROM   manager_searchquery sq
-                    JOIN   tbia_user tu ON tu.id = sq.user_id
-                    LEFT JOIN   partner p ON p.id = tu.partner_id
-                    WHERE  ({now_dbs_str})
-                    AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
-                    ORDER BY created ASC;
-                    '''
+            # 無任何 db 時不查詢，避免產生無效的 WHERE ()
+            if not db_clauses:
+                results = []
+            else:
+                now_dbs_str = ' OR '.join(db_clauses)
+                query = '''
+                        SELECT sq.created, sq.query_id, sq.query, p.select_title
+                        FROM   manager_searchquery sq
+                        JOIN   tbia_user tu ON tu.id = sq.user_id
+                        LEFT JOIN   partner p ON p.id = tu.partner_id
+                        WHERE  ({})
+                        AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't')
+                        ORDER BY created ASC;
+                        '''.format(now_dbs_str)
 
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-                results = cursor.fetchall()
+                with connection.cursor() as cursor:
+                    cursor.execute(query, db_params)
+                    results = cursor.fetchall()
 
                 for s in results:
                     query = ''

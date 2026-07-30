@@ -28,6 +28,7 @@ from django.http import QueryDict
 from manager.models import User, Partner, SearchStat, Ark
 from urllib.parse import urlencode, parse_qsl
 import ast
+from contextlib import contextmanager
 
 # taxon-related fields
 taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
@@ -81,6 +82,19 @@ rights_holder_map = {
 
 rights_holder_list = list(rights_holder_map.values())
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
+
+
+@contextmanager
+def datahub_conn():
+    conn = psycopg2.connect(**datahub_db_settings)
+    try:
+        yield conn
+        conn.commit()          # 正常結束才提交（純查詢也無妨）
+    except Exception:
+        conn.rollback()        # 出錯回滾，避免半套交易
+        raise
+    finally:
+        conn.close()           # 無論如何都關閉
 
 
 def to_int(value, default=0):
@@ -172,46 +186,39 @@ def get_dataset_name(key):
 
 def get_tbia_dataset_id(key):
     # 2024-12 修改為tbiaDatasetID
-    results = None
-    conn = psycopg2.connect(**datahub_db_settings)
     try:
-        key = int(key)        
-        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "id" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    except:
-        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "tbiaDatasetID" = %s' # 不考慮deprecated
-        with conn.cursor() as cursor:
-            cursor.execute(query, (key,))
-            results = cursor.fetchone()
-    conn.close()
-    if results:
-        results = results[0]
-    return results
+        key = int(key)
+        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "id" = %s'  # 不考慮deprecated
+    except (ValueError, TypeError):
+        query = 'SELECT "tbiaDatasetID" FROM dataset WHERE "tbiaDatasetID" = %s'  # 不考慮deprecated
+
+    with datahub_conn() as conn, conn.cursor() as cursor:
+        cursor.execute(query, (key,))
+        results = cursor.fetchone()
+
+    return results[0] if results else None
 
 
 def get_species_images(taxon_id):
-    conn = psycopg2.connect(**datahub_db_settings)
     query = "SELECT taieol_id, images FROM species_images WHERE taxon_id = %s"
-    with conn.cursor() as cursor:
+    with datahub_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, (taxon_id,))
         results = cursor.fetchone()
-        conn.close()
     return results
 
 
 def get_dataset_by_key(key_list):
-    
-    results = []
-    conn = psycopg2.connect(**datahub_db_settings)
-    
-    query = f''' select "tbiaDatasetID", name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
 
-    with conn.cursor() as cursor:
+    if not key_list:
+        return []
+
+    results = []
+    
+    query = ''' select "tbiaDatasetID", name FROM dataset WHERE "tbiaDatasetID" IN %s AND deprecated = 'f' '''
+
+    with datahub_conn() as conn, conn.cursor() as cursor:
         cursor.execute(query, (tuple(key_list), ))
         results = cursor.fetchall()
-        conn.close()
         
     return results
 
@@ -2141,14 +2148,15 @@ def create_dataset_stat(query_list, q="*:*"):
     stat_tbiaDatasetID = []
     if facets.get('stat_tbiaDatasetID'):
         stat_tbiaDatasetID = facets['stat_tbiaDatasetID']['buckets']
-
-    for row in stat_tbiaDatasetID:
-
-        conn = psycopg2.connect(**datahub_db_settings)
-        query = 'UPDATE dataset set "downloadCount" = "downloadCount" + 1 WHERE "tbiaDatasetID" = %s'
-        with conn.cursor() as cursor:
-            cursor.execute(query, (row.get('val'),))
-            conn.commit()
+        
+    if stat_tbiaDatasetID:
+        with datahub_conn() as conn, conn.cursor() as cursor:
+            for row in stat_tbiaDatasetID:
+                cursor.execute(
+                    'UPDATE dataset set "downloadCount" = "downloadCount" + 1 WHERE "tbiaDatasetID" = %s',
+                    (row.get('val'),),
+                )
+            # 迴圈結束後由 datahub_conn() 統一 commit
 
     return 'done'
 
