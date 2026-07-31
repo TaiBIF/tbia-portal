@@ -123,13 +123,8 @@ def submit_sensitive_request(request):
             fs = FileSystemStorage()
             file_name = fs.save(f'research_proposal/' + file.name, file)
 
-        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator','research_proposal']
-        for nq in not_query:
-            if nq in req_dict.keys():
-                req_dict.pop(nq)
-        for k in req_dict.keys():
-            if len(req_dict[k])==1:
-                req_dict[k] = req_dict[k][0]
+        for nq in (QUERY_REPLAY_EXCLUDE_KEYS | SENSITIVE_FORM_FIELDS):
+            req_dict.pop(nq, None)
 
         query_string = build_query_string(req_dict)
         user_id = request.user.id
@@ -541,14 +536,13 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     user_stat = []
 
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','user_affiliation','user_role','user_purpose']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
@@ -634,14 +628,13 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     user_stat = []
 
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound','user_affiliation','user_role','user_purpose']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
@@ -760,20 +753,18 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     req_dict = dict(req_dict)
 
     user_stat = []
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    # 移除 not_query 欄位
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
-
+    
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols_with_sensitive
     else:
@@ -1625,16 +1616,15 @@ def get_tbn_query(request):
 
     tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
 
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','offset']
-
     filtered_params = {}
     for k, v in request.POST.items():
-        if k in not_query:
+        if k in STAT_EXCLUDE_KEYS:
             continue
         if k == 'taxonGroup':
             filtered_params[k] = taxon_group_map_e.get(v, v)
         else:
             filtered_params[k] = v
+  
     # 多值 taxonGroup 補處理
     tg_vals = request.POST.getlist('taxonGroup')
     if len(tg_vals) > 1:
@@ -1799,16 +1789,8 @@ def get_conditional_records(request):
 
         if req_dict.get('from') == 'search':
 
-            # 搜尋紀錄
-            now_dict = dict(req_dict)
-            not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
-            for nq in not_query:
-                if nq in now_dict.keys():
-                    now_dict.pop(nq)
-            for k in now_dict.keys():
-                if len(now_dict[k])==1:
-                    now_dict[k] = now_dict[k][0]
-            query_string = parse.urlencode(now_dict, doseq=True)
+            # 搜尋紀錄：排除規則統一由 build_stat_query_string / STAT_EXCLUDE_KEYS 處理
+            query_string = build_stat_query_string(req_dict)
 
             task = threading.Thread(target=background_search_stat, args=(query_list,record_type,query_string))
             task.start()

@@ -732,6 +732,27 @@ $(document).ready(function () {
         // 起始狀態
         $('select[name=keyword-stat-year]').trigger('change')
 
+
+        // 每月查詢參數統計下載
+        $('#download-search-param-stat').on('click', function () {
+            let year = $('select[name=search-param-stat-year]').find(':selected').val()
+            let month = $('select[name=search-param-stat-month]').find(':selected').val()
+            let mm = ('0' + month).slice(-2)
+            let url = `/media/search_stat/tbia_search_stat_${year}_${mm}.zip`
+
+            fetch(url, { method: 'HEAD' })
+                .then(function (res) {
+                    if (res.ok) {
+                        window.location.href = url
+                    } else {
+                        alert(`查無 ${year} 年 ${mm} 月的查詢參數統計檔案`)
+                    }
+                })
+                .catch(function () {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+                })
+        })
+
         // 名錄下載次數
         $('#container-checklist-stat').highcharts(Highcharts.merge(commonOptions, {
 

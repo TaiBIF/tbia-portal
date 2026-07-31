@@ -22,6 +22,7 @@ from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
 from conf.settings import SOLR_PREFIX, env, datahub_db_settings
 from django.db.models import Q
+from django.db import connection
 from django.utils import timezone, translation
 from django.utils.translation import gettext
 from django.http import QueryDict
@@ -134,8 +135,19 @@ STAT_EXCLUDE_KEYS = {
     'apikey', 'csrfmiddlewaretoken',
     'page', 'offset', 'limit', 'cursor', 'orderby', 'sort',
     'from', 'selected_col', 'grid', 'map_bound', 'taxon', 'record_type',
+    'is_agreed_report', 'user_affiliation', 'user_role', 'user_purpose',
+    'from_example',
 }
 
+# 可重播查詢的排除集：保留 record_type（重播要用它分 col/occ），並排掉全站下載的路由旗標
+QUERY_REPLAY_EXCLUDE_KEYS = (STAT_EXCLUDE_KEYS - {'record_type'}) | {'from_full'}
+
+# 敏感申請表單專屬欄位（只在建立 request 時寫進 SensitiveDataRequest，不進任何 query）
+SENSITIVE_FORM_FIELDS = {
+    'applicant', 'phone', 'address', 'affiliation', 'job_title', 'type',
+    'project_name', 'project_affiliation', 'abstract', 'users',
+    'principal_investigator', 'research_proposal',
+}
 
 def build_stat_query_string(mapping):
     """產生要存進 SearchStat.query 的字串，濾掉分頁/敏感/內部參數。"""
@@ -2074,13 +2086,21 @@ def background_search_stat(query_list, record_type, query_string, compute_stat=T
     if record_type not in allowed:
         return
 
-    stat_rightsHolder = create_search_stat(query_list=query_list) if compute_stat else None
-    SearchStat.objects.create(
-        query=query_string,
-        search_location=record_type,
-        stat=stat_rightsHolder,
-        created=timezone.now(),
-    )
+    # 型別統一：filter 一律正規化成 list（相容舊呼叫傳字串的情況）
+    if isinstance(query_list, str):
+        query_list = [query_list] if query_list else []
+
+    try:
+        stat_rightsHolder = create_search_stat(query_list=query_list) if compute_stat else None
+        SearchStat.objects.create(
+            query=query_string,
+            search_location=record_type,
+            stat=stat_rightsHolder,
+            created=timezone.now(),
+        )
+    finally:
+        # 手動建立的 thread 不走 request 生命週期，需自行關閉借出的 DB 連線
+        connection.close()
 
 
 def create_sensitive_partner_stat(query_list, q="*:*"):

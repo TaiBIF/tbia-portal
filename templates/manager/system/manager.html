@@ -813,6 +813,30 @@
                                 </ol>
                             </div>
                         </div>
+                        <div class="w-50p">
+                            <div class="box-title">
+                                <div class="dottt"></div>
+                                每月查詢參數統計
+                            </div>
+                            <div class="ml-20px mt-15px">
+                                <div class="d-flex">
+                                    <select class="panel-select" name="search-param-stat-year">
+                                        {% for y in stat_year %}
+                                            <option value="{{ y }}" {% if y == keyword_year %}selected{% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="ml-5px">年</span>
+                                    <select class="panel-select ml-20px" name="search-param-stat-month">
+                                        {% for m in stat_month %}
+                                            <option value="{{ m }}" {% if m == keyword_month %}selected{% endif %}>{{ m }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="ml-5px">月</span>
+                                    <button class="feedback_btn ml-20px" id="download-search-param-stat">下載</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 {% comment %} <div class="right-directory">
