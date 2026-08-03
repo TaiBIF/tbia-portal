@@ -50,31 +50,33 @@ ChecklistStat.objects.create(
 ss = SearchStat.objects.filter(created__contains=current_year_month)
 stat_list = []
 for s in ss:
-    for sst in s.stat:
-        stat_list.append({'count': sst['count'], 'rights_holder': sst['val']})
+    if s.stat:
+        for sst in s.stat:
+            stat_list.append({'count': sst['count'], 'rights_holder': sst['val']})
 
-stat_df = pd.DataFrame(stat_list)
-stat_df = stat_df.groupby(['rights_holder'], as_index=False).sum().sort_values(['count'], ascending=[False])
+if len(stat_list):
+    stat_df = pd.DataFrame(stat_list)
+    stat_df = stat_df.groupby(['rights_holder'], as_index=False).sum().sort_values(['count'], ascending=[False])
 
-for s in stat_df.to_dict('records'):
-    if s['rights_holder'] in rights_holder_map.keys():
-        group = rights_holder_map[s['rights_holder']]
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = group,
-            rights_holder= s['rights_holder'],
-            type = 'search'
-        )
-    elif s['rights_holder'] == 'total':
-        # 全部
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = 'total',
-            rights_holder= 'total',
-            type = 'search'
-        )
+    for s in stat_df.to_dict('records'):
+        if s['rights_holder'] in rights_holder_map.keys():
+            group = rights_holder_map[s['rights_holder']]
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= s['rights_holder'],
+                type = 'search'
+            )
+        elif s['rights_holder'] == 'total':
+            # 全部
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = 'total',
+                rights_holder= 'total',
+                type = 'search'
+            )
 
 
 # 每月資料被下載
@@ -121,32 +123,33 @@ ss = SearchStat.objects.filter(created__contains=current_year_month)
 
 stat_list = []
 for s in ss:
-    for sst in s.stat:
-        stat_list.append({'year_month': current_year_month, 'rights_holder': sst['val']})
+    if s.stat:
+        for sst in s.stat:
+            stat_list.append({'year_month': current_year_month, 'rights_holder': sst['val']})
 
-stat_df = pd.DataFrame(stat_list)
-stat_df = stat_df.groupby(['year_month','rights_holder']).size().reset_index(name='count').sort_values('year_month')
+if len(stat_list):
+    stat_df = pd.DataFrame(stat_list)
+    stat_df = stat_df.groupby(['year_month','rights_holder']).size().reset_index(name='count').sort_values('year_month')
 
-
-for s in stat_df.to_dict('records'):
-    if s['rights_holder'] in rights_holder_map.keys():
-        group = rights_holder_map[s['rights_holder']]
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = group,
-            rights_holder= s['rights_holder'],
-            type = 'search_times'
-        )
-    elif s['rights_holder'] == 'total':
-        # 全部
-        DataStat.objects.create(
-            year_month = current_year_month,
-            count = s['count'],
-            group = 'total',
-            rights_holder= 'total',
-            type = 'search_times'
-        )
+    for s in stat_df.to_dict('records'):
+        if s['rights_holder'] in rights_holder_map.keys():
+            group = rights_holder_map[s['rights_holder']]
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = group,
+                rights_holder= s['rights_holder'],
+                type = 'search_times'
+            )
+        elif s['rights_holder'] == 'total':
+            # 全部
+            DataStat.objects.create(
+                year_month = current_year_month,
+                count = s['count'],
+                group = 'total',
+                rights_holder= 'total',
+                type = 'search_times'
+            )
 
 
 
