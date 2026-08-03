@@ -32,7 +32,7 @@ from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
 from ckeditor.fields import RichTextField
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query
+from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link
 
@@ -247,7 +247,7 @@ def change_manager_page(request):
                 date = ''
 
             # 進階搜尋
-            search_dict = dict(parse.parse_qsl(t.query))
+            search_dict = parse_query_string(t.query)
             query = create_query_display(search_dict, lang)
             link = ''
             if t.status == 'pass' and t.status != 'expired':
@@ -257,12 +257,10 @@ def change_manager_page(request):
                 search_prefix = 'collection'
             else:
                 search_prefix = 'occurrence'
-            tmp_a = create_query_a(search_dict)
-            for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                if i in search_dict.keys():
-                    search_dict.pop(i)
 
-            query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+            tmp_a = create_query_a(search_dict)
+            search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
+            query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
 
             query = query_a_href(query,query_a)
 
@@ -358,38 +356,37 @@ def change_manager_page(request):
             # 整理搜尋條件
             # 全站搜尋
             query = ''
-            if 'from_full=yes' in r.query:
-                search_str = dict(parse.parse_qsl(r.query)).get('search_str')
-                search_dict = dict(parse.parse_qsl(search_str))
-                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{search_dict['keyword']}"
-                
-                if search_dict.get('record_type') == 'occ':
+            fd = parse_query_string(r.query)
+
+            if fd.get('from_full') == 'yes':
+                # 相容:舊紀錄把條件包在 search_str,新紀錄攤平在頂層
+                inner = parse_query_string(fd.get('search_str')) if fd.get('search_str') else fd
+
+                if inner.get('record_type') == 'occ':
                     map_dict = map_occurrence
                 else:
                     map_dict = map_collection
-                key = map_dict.get(search_dict['key'])
-                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{search_dict['value']}"
-                if search_dict.get('scientific_name'):
-                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{search_dict['scientific_name']}"
-                if 'total_count' in search_dict.keys():
-                    search_dict.pop('total_count')
-                query_a = '/search/full?' + parse.urlencode(search_dict)
-
+                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{inner.get('keyword', '')}"
+                key = map_dict.get(inner.get('key'))
+                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{inner.get('value', '')}"
+                if inner.get('scientific_name'):
+                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{inner.get('scientific_name')}"
+                inner.pop('total_count', None)
+                query_a = '/search/full?' + build_query_string(inner)
+                
             else:
             # 進階搜尋
-                search_dict = dict(parse.parse_qsl(r.query))
+                search_dict = parse_query_string(r.query)
                 query = create_query_display(search_dict, lang)
 
                 if search_dict.get("record_type") == 'col':
                     search_prefix = 'collection'
                 else:
                     search_prefix = 'occurrence'
-                tmp_a = create_query_a(search_dict)
-                for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                    if i in search_dict.keys():
-                        search_dict.pop(i)
 
-                query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+                tmp_a = create_query_a(search_dict)
+                search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
+                query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
@@ -494,17 +491,15 @@ def change_manager_page(request):
                 # 整理搜尋條件
                 if SearchQuery.objects.filter(query_id=sdr.query_id).exists():
                     r = SearchQuery.objects.get(query_id=sdr.query_id)
-                    search_dict = dict(parse.parse_qsl(r.query))
+                    search_dict = parse_query_string(r.query)
                     query = create_query_display(search_dict)
                     if search_dict.get("record_type") == 'col':
                         search_prefix = 'collection'
                     else:
                         search_prefix = 'occurrence'
                     tmp_a = create_query_a(search_dict)
-                    for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-                        if i in search_dict.keys():
-                            search_dict.pop(i)
-                    query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
+                    search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
+                    query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
@@ -1129,7 +1124,7 @@ def download_sensitive_report(request):
         sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
         for s in sensitive_query:
             # 進階搜尋
-            search_dict = dict(parse.parse_qsl(s.query))
+            search_dict = parse_query_string(s.query)
             query = create_query_display(search_dict)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
@@ -1195,52 +1190,56 @@ def download_partner_sensitive_report(request):
     if not request.user.is_anonymous:
         current_user = request.user
         if current_user.partner:
-            now_dbs = current_user.partner.info
-            now_dbs = ["sq.sensitive_stat @> '" + json.dumps([{"val": "{}".format(ii.get('dbname'))}]) + "'" for ii in now_dbs]
-            now_dbs_str = ' OR '.join(now_dbs)
-            
+            # 參數化：dbname 來自 partner.info，不可直接串進 SQL 字串
+            db_clauses, db_params = [], []
+            for ii in (current_user.partner.info or []):
+                db_clauses.append("sq.sensitive_stat @> %s::jsonb")
+                db_params.append(json.dumps([{"val": "{}".format(ii.get('dbname'))}]))
+
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
             df = pd.DataFrame()
 
-            query = f'''
-                    SELECT sq.created, sq.query_id, sq.query, p.select_title
-                    FROM   manager_searchquery sq
-                    JOIN   tbia_user tu ON tu.id = sq.user_id
-                    LEFT JOIN   partner p ON p.id = tu.partner_id
-                    WHERE  ({now_dbs_str})
-                    AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't') 
-                    ORDER BY created ASC;
-                    '''
+            # 無任何 db 時不查詢，避免產生無效的 WHERE ()
+            if not db_clauses:
+                results = []
+            else:
+                now_dbs_str = ' OR '.join(db_clauses)
+                query = '''
+                        SELECT sq.created, sq.query_id, sq.query, p.select_title
+                        FROM   manager_searchquery sq
+                        JOIN   tbia_user tu ON tu.id = sq.user_id
+                        LEFT JOIN   partner p ON p.id = tu.partner_id
+                        WHERE  ({})
+                        AND (tu.is_partner_account = 't' OR tu.is_partner_admin = 't' OR tu.is_system_admin = 't')
+                        ORDER BY created ASC;
+                        '''.format(now_dbs_str)
 
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-                results = cursor.fetchall()
+                with connection.cursor() as cursor:
+                    cursor.execute(query, db_params)
+                    results = cursor.fetchall()
 
                 for s in results:
                     query = ''
-                    search_dict = dict(parse.parse_qsl(s[2]))
+                    search_dict = parse_query_string(s[2])
                     if search_dict.get('from_full') == 'yes':
                         query = '全站搜尋<br>'
-                        search_str = search_dict.get('search_str')
-                        search_dict = dict(parse.parse_qsl(search_str))
+                        inner = parse_query_string(search_dict.get('search_str')) if search_dict.get('search_str') else search_dict
 
-                        query += f"關鍵字：{search_dict['keyword']}"
-                        
-                        if search_dict.get('record_type') == 'occ':
+                        query += f"關鍵字：{inner.get('keyword', '')}"
+                        if inner.get('record_type') == 'occ':
                             map_dict = map_occurrence
                         else:
                             map_dict = map_collection
-                        key = map_dict.get(search_dict['key'])
-                        query += f"<br>{gettext(key)}：{search_dict['value']}"
-                        if search_dict.get('scientific_name'):
-                            query += f"<br>學名：{search_dict['scientific_name']}"
-
+                        key = map_dict.get(inner.get('key'))
+                        query += f"<br>{gettext(key)}：{inner.get('value', '')}"
+                        if inner.get('scientific_name'):
+                            query += f"<br>學名：{inner.get('scientific_name')}"
                     else:
                         query = '進階搜尋<br>'
                         query += create_query_display(search_dict)
                         query = query.replace('<b>','').replace('</b>','')
-                    
+
                     query = query.replace('<br>','\n')
 
                     date = s[0] + timedelta(hours=8)
@@ -1289,9 +1288,9 @@ def get_request_detail(request):
         # 有可能之前只有存秘書處 這邊要重新query所有的夥伴單位
 
         sq = SearchQuery.objects.get(query_id=query_id)
-        req_dict = dict(parse.parse_qsl(sq.query))
+        req_dict = parse_query_string(sq.query)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
         query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                 "offset": 0,
@@ -1682,6 +1681,30 @@ def get_checklist_stat(request):
     resp = {}
     resp['data'] = [{
         'name': '名錄下載次數',
+        'data': df.sort_values('year_month')['count'].to_list()
+    }]
+    resp['categories'] = list(df.sort_values('year_month').year_month.unique())
+    
+    return HttpResponse(json.dumps(resp), content_type='application/json')
+
+
+def get_ark_stat(request):
+
+    year = int(request.GET.get('year'))
+    ark_list = list(DataStat.objects.filter(year_month__contains=f'{year}-',type='ark').order_by('year_month').values('count','year_month'))
+    month_list = [*range(1,13)]
+
+    df = pd.DataFrame(ark_list, columns=['count','year_month'])
+    df['count'] = pd.to_numeric(df['count'], errors='coerce').fillna(0).astype(int)
+    for mm in month_list:
+        now_year_month = f'{year}-{"{:02d}".format(mm)}'
+        if not len(df[df.year_month==now_year_month]):
+            df = pd.concat([df, pd.DataFrame([{'count': 0, 'year_month': now_year_month}])])
+    df = df.reset_index(drop=True)
+
+    resp = {}
+    resp['data'] = [{
+        'name': 'ARK申請次數',
         'data': df.sort_values('year_month')['count'].to_list()
     }]
     resp['categories'] = list(df.sort_values('year_month').year_month.unique())
@@ -2835,8 +2858,8 @@ def get_temporal_stat(request):
     # 需要回傳 1 - 年份空缺 -> 需排除year = x的資料
     # 需要回傳 2 - 月份空缺 -> 需排除year = x & month = x的資料
 
-    start_year = int(request.GET.get('start_year'), 0)
-    end_year = int(request.GET.get('end_year'), 0)
+    start_year = to_int(request.GET.get('start_year'), 0)
+    end_year = to_int(request.GET.get('end_year'), 0)
     where = request.GET.get('where')
 
     resp = {}
@@ -3065,7 +3088,7 @@ def download_applicant_sensitive_report(request):
                 report_date = report_date.strftime("%Y-%m-%d")
 
             # 進階搜尋
-            search_dict = dict(parse.parse_qsl(s.query))
+            search_dict = parse_query_string(s.query)
             query = create_query_display(search_dict)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
@@ -3189,7 +3212,7 @@ def sensitive_apply_info(request, query_id):
         is_transferred = True if SensitiveDataResponse.objects.filter(query_id=query_id, is_transferred=True) else False
 
         # 進階搜尋
-        search_dict = dict(parse.parse_qsl(r.query))
+        search_dict = parse_query_string(r.query)
         query = create_query_display(search_dict, 'zh-hant')
 
         if search_dict.get("record_type") == 'col':
@@ -3198,11 +3221,9 @@ def sensitive_apply_info(request, query_id):
             search_prefix = 'occurrence'
 
         tmp_a = create_query_a(search_dict)
-        for i in ['locality','datasetName','rightsHolder','total_count','taxonGroup']:
-            if i in search_dict.keys():
-                search_dict.pop(i)
+        search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
+        query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
 
-        query_a = f'/search/{search_prefix}?' + parse.urlencode(search_dict) + tmp_a
         query_str = query_a_href(query,query_a)
 
         data_count = ''
@@ -3241,9 +3262,9 @@ def sensitive_apply_info(request, query_id):
         # 有可能之前只有存秘書處 這邊要重新query所有的夥伴單位
 
         sq = SearchQuery.objects.get(query_id=query_id)
-        req_dict = dict(parse.parse_qsl(sq.query))
+        req_dict = parse_query_string(sq.query)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
         query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                 "offset": 0,

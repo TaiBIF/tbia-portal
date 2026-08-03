@@ -3,6 +3,30 @@ var $lang = $('[name="lang"]').attr('value');
 
 $(function () {
 
+  $('.date_select .search_btn').on('click', function () {
+    let keyword = $('#keyword').val().trim();
+    if (keyword) {
+      $('.already_selected ul').removeClass('d-none');
+      $('.already_selected .date-range').text(`${gettext('關鍵字')}：${keyword}`);
+    } else {
+      $('.already_selected ul').addClass('d-none');
+    }
+    $('.news_tab_in li.now').trigger('click');
+  });
+
+  $('.already_selected ul li button.xx').on('click', function () {
+    $('#keyword').val('');
+    $('.already_selected ul').addClass('d-none');
+    $('.news_tab_in li.now').trigger('click');
+  });
+
+  $('#keyword').on('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('.date_select .search_btn').click();
+    }
+  });
+
   // default active page
   if (($('input[name=ark_type]').val() != 'all') & ($('input[name=ark_type]').val() != '')) {
     $('.news_tab_in li').removeClass('now');
@@ -43,6 +67,8 @@ function updateArk(type, page) {
       'lang': $lang,
     }
   }
+
+  query['keyword'] = $('#keyword').val().trim();
 
   $.ajax({
     url: "/get_ark_list",

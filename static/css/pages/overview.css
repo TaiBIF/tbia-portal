@@ -1,3 +1,12 @@
+h3 {
+    font-weight: normal;
+    font-size: 24px;
+    color: #3F5146;
+    margin-bottom: 10px;
+    line-height: 24px;
+    margin-left: 15px;
+}
+
 .two_cont_area {
     margin-bottom: 50px
 }
@@ -75,11 +84,6 @@
     width: 40% !important;
 }
 
-.highcharts-figure-large {
-    height: 450px;
-    margin-top: 20px;
-}
-
 @media only screen and (max-width: 767px) {
     .panel-select {
         width: 100% !important;
@@ -143,19 +147,15 @@
 }
 
 .w-50p {
-    width: 50%;
-}
-
-.w-66p {
-    width: 66%;
-}
-
-.w-33p {
-    width: 33%;
+    width: 50% !important;
 }
 
 .mt-15px {
     margin-top: 15px
+}
+
+.mb-15px {
+    margin-bottom: 15px
 }
 
 .mt-5px {
@@ -166,16 +166,16 @@
     margin-left: 20px
 }
 
+.ml-15px {
+    margin-left: 15px
+}
+
 .ml-5px {
     margin-left: 5px
 }
 
 .fs-16px {
     font-size: 16px;
-}
-
-.fs-18px {
-    font-size: 18px;
 }
 
 #keyword-stat-list {
@@ -190,7 +190,7 @@
 
 #taxon_group-stat-title {
     font-weight: bold;
-    text-align: center;
+    text-align: left;
 }
 
 hr {
@@ -291,7 +291,6 @@ hr {
     margin: 15px
 }
 
-
 .records-legend {
     margin-left: 10px;
 }
@@ -336,33 +335,23 @@ hr {
     margin-right: 5px;
 }
 
-.first_td_table tr td:first-child {
-    text-align: left;
+.text-right {
+    text-align: right;
 }
 
-/* dashboard 右側目錄：與內容並排 */
-.two_cont_area .rightbox_content.dashboard {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-    margin-left: 20px;
+.link {
+    color: #76A578;
 }
 
-@media only screen and (max-width: 999px) {
-    .two_cont_area .rightbox_content.dashboard {
-        margin-left: 0;
-    }
+.w-66p {
+    width: 66%;
 }
 
-@media only screen and (max-width: 767px) {
-    .two_cont_area:has(.right-directory) {
-        flex-wrap: wrap;
-    }
-    .two_cont_area .rightbox_content.dashboard {
-        width: 100%;
-        order: 2;
-    }
-    .two_cont_area .right-directory {
-        order: 1;
-    }
+.w-33p {
+    width: 33%;
+}
+
+.highcharts-figure-large {
+    height: 450px;
+    margin-top: 20px;
 }

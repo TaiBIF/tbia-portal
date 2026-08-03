@@ -16,8 +16,16 @@ from conf.utils import scheme
 from api.models import APIkey
 from manager.models import SearchCount
 from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
-                        backgroud_search_stat, old_taxon_group_map_c, taxon_group_map_c,
-                        split_group_map, get_map_geojson, create_search_query)
+                        background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
+                        split_group_map, get_map_geojson, create_search_query, build_stat_query_string, datahub_conn)
+
+
+def pop_internal_flags(request):
+    """取出內部旗標並從查詢參數剝除，回傳 (乾淨的 QueryDict, is_from_example)。"""
+    req = request.GET.copy()
+    is_from_example = req.get('from_example') == '1'
+    req.pop('from_example', None)
+    return req, is_from_example
 
 
 def check_grid_bound(grid, maxLon, maxLat, minLon, minLat):
@@ -65,8 +73,8 @@ def occurrence(request):
 
     if request.method == 'GET':
         fq_list = []
-        req = request.GET
-        url_query_string = parse.urlencode(req)
+        req, is_from_example = pop_internal_flags(request)
+        url_query_string = req.urlencode() 
 
         # TODO 未來考慮把訊息寫在一起
 
@@ -219,7 +227,6 @@ def occurrence(request):
         # 修改成對應的參數名 & 參數值
         if now_dict.get('bioGroup'):
             now_dict['taxonGroup'] = now_dict.get('bioGroup')
-            print(now_dict.get('bioGroup'))
             now_dict.pop('bioGroup')
 
         if now_dict.get('higherTaxon'):
@@ -254,12 +261,12 @@ def occurrence(request):
                 has_api_key = True
                 fl_cols = download_cols_with_sensitive
                 # 部分統一使用create_search_query
-                fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+                fq_list += create_search_query(req_dict=now_dict, get_raw_map=True)
             else:
                 final_response['status'] = {'code': 400, 'message': 'Invalid API key'}
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
         else:
-            fq_list += create_search_query(req_dict=now_dict, from_request=False, get_raw_map=True)
+            fq_list += create_search_query(req_dict=now_dict, get_raw_map=True)
 
 
         query = { "query": "*:*",
@@ -305,7 +312,7 @@ def occurrence(request):
 
         aaa = now_dict.pop('cursor', None)
 
-        query_string = parse.urlencode(now_dict)
+        query_string = build_stat_query_string(now_dict)
 
         next_url = ''
 
@@ -321,16 +328,17 @@ def occurrence(request):
         else:
             now_url = f'{scheme}://{request.get_host()}/api/v1/occurrence?' + 'cursor=' + cursor
 
-        # 記錄在SearchStat
-        if cursor == '*':
-            task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'api_occ', query_string))
-            task.start()
+        # 記錄在SearchStat（從文件範例網址點進來的不列入統計）
+        if not is_from_example:
+            if cursor == '*':
+                task = threading.Thread(target=background_search_stat, args=(fq_list,'api_occ', query_string))
+                task.start()
 
-        obj, created = SearchCount.objects.update_or_create(
-                search_location='api_occ'
-            )
-        obj.count += 1
-        obj.save()
+            obj, created = SearchCount.objects.update_or_create(
+                    search_location='api_occ'
+                )
+            obj.count += 1
+            obj.save()
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}
@@ -347,7 +355,9 @@ def dataset(request):
     if request.method == 'GET':
 
         results = []
-        req = request.GET
+        req, is_from_example = pop_internal_flags(request)
+        url_query_string = req.urlencode()
+
         limit = req.get('limit', 20)
 
         try:
@@ -361,8 +371,6 @@ def dataset(request):
         now_cursor = int(req.get('cursor', 0))
 
         # 篩選條件
-
-        conn = psycopg2.connect(**datahub_db_settings)
     
         query_value = []
         query_pair = []
@@ -470,10 +478,9 @@ def dataset(request):
 
         query = sql.SQL(query_str).format(*[sql.Identifier(field) for field in query_identifier])
 
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        with datahub_conn() as conn, conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, query_value)
             results = cursor.fetchall()
-            conn.close()
 
         data = []
         total = 0
@@ -498,28 +505,33 @@ def dataset(request):
                 now_dict[k] = now_dict[k][0]
 
         aaa = now_dict.pop('cursor', None)
-        query_string = parse.urlencode(now_dict)
+
+        query_string = build_stat_query_string(now_dict)
+
+        if not is_from_example:
+            if now_cursor == 0:
+                task = threading.Thread(target=background_search_stat, args=([], 'api_dataset', query_string, False))
+                task.start()
+
+            obj, created = SearchCount.objects.update_or_create(
+                    search_location='api_dataset'
+                )
+            obj.count += 1
+            obj.save()
 
         next_url = ''
 
         # 確認還有沒有下一頁
         if next_cursor != now_cursor and len(data) == limit:
-            if query_string:
-                next_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + query_string + '&cursor=' + str(next_cursor)
+            if url_query_string:
+                next_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + url_query_string + '&cursor=' + str(next_cursor)
             else:
                 next_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + 'cursor=' + str(next_cursor)
 
-        if query_string:
-            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + query_string + '&cursor=' + str(now_cursor)
+        if url_query_string:
+            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + url_query_string + '&cursor=' + str(now_cursor)
         else:
-            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + '&cursor=' + str(now_cursor)
-
-
-        obj, created = SearchCount.objects.update_or_create(
-                search_location='dataset'
-            )
-        obj.count += 1
-        obj.save()
+            now_url = f'{scheme}://{request.get_host()}/api/v1/dataset?' + 'cursor=' + str(now_cursor)
 
         final_response['status'] = {'code': 200, 'message': 'Success'}
         final_response['meta'] = {'total': total, 'limit': limit}
@@ -536,7 +548,7 @@ def map(request):
 
     if request.method == 'GET':
         fq_list = []
-        req = request.GET
+        req, is_from_example = pop_internal_flags(request)
 
         # 可聯集參數
         union_list = ['taxonID']
@@ -648,24 +660,24 @@ def map(request):
             map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=grid)
             map_geojson = map_geojson['grid_'+str(grid)]
 
-        # # 記錄在SearchStat
+        # 記錄在SearchStat
         now_dict = dict(req)
 
         for k in now_dict.keys():
             if len(now_dict[k])==1:
                 now_dict[k] = now_dict[k][0]
 
-        query_string = parse.urlencode(now_dict)
+        query_string = build_stat_query_string(now_dict)
 
+        if not is_from_example:
+            task = threading.Thread(target=background_search_stat, args=([],'api_map', query_string, False))
+            task.start()
 
-        task = threading.Thread(target=backgroud_search_stat, args=(fq_list,'map', query_string))
-        task.start()
-
-        obj, created = SearchCount.objects.update_or_create(
-                search_location='map'
-            )
-        obj.count += 1
-        obj.save()
+            obj, created = SearchCount.objects.update_or_create(
+                    search_location='api_map'
+                )
+            obj.count += 1
+            obj.save()
 
         # metadata
         final_response['status'] = {'code': 200, 'message': 'Success'}

@@ -660,6 +660,32 @@
                                 <div id="container-sensitive-stat" class="h-100p"></div>
                             </div>
                         </div>
+                        <div class="w-50p">
+                            <div class="box-title">
+                                <div class="dottt"></div>
+                                每月ARK申請次數
+                            </div>
+                            <div class="ml-20px mt-15px">
+                                <div class="d-flex">
+                                    <select class="panel-select" name="ark-stat-year">
+                                        {% for y in stat_year %}
+                                            <option value="{{ y }}" {% if y == data_year %}selected{% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="ml-5px">年</span>
+                                </div>
+                            </div>
+                            <div class="highcharts-figure">
+                                <div id="loader_ark" class="loading_area_partial d-none">
+                                    <div class="sc">
+                                        <div class="load">
+                                            <span>L</span>ading
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="container-ark-stat" class="h-100p"></div>
+                            </div>
+                        </div>
                     </div>
                     <hr>
                     <div class="item">
@@ -787,8 +813,39 @@
                                 </ol>
                             </div>
                         </div>
+                        <div class="w-50p">
+                            <div class="box-title">
+                                <div class="dottt"></div>
+                                每月查詢參數統計
+                            </div>
+                            <div class="ml-20px mt-15px">
+                                <div class="d-flex">
+                                    <select class="panel-select" name="search-param-stat-year">
+                                        {% for y in stat_year %}
+                                            <option value="{{ y }}" {% if y == keyword_year %}selected{% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="ml-5px">年</span>
+                                    <select class="panel-select ml-20px" name="search-param-stat-month">
+                                        {% for m in stat_month %}
+                                            <option value="{{ m }}" {% if m == keyword_month %}selected{% endif %}>{{ m }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="ml-5px">月</span>
+                                    <button class="feedback_btn ml-20px" id="download-search-param-stat">下載</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+                {% comment %} <div class="right-directory">
+                    <div class="mb-cbtn">
+                        <p>目錄</p>
+                        <img class="ardown" src="/static/image/ardown.svg">
+                    </div>
+                    <ul id="toc"></ul>
+                </div> {% endcomment %}
             {% else %}
                 {% trans '您的權限不足' %}
             {% endif %}

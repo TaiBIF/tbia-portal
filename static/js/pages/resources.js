@@ -3,6 +3,13 @@ var $lang = $('[name="lang"]').attr('value');
 
 $(function () {
 
+  $('#keyword').on('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('.date_select .search_btn').click();
+    }
+  });
+
   // default active page
   if (($('input[name=content_type]').val() != 'all') & ($('input[name=content_type]').val() != '')) {
     $('.news_tab_in li').removeClass('now');
@@ -51,9 +58,25 @@ $(function () {
   })
 
   $('.date_select .search_btn').click(function () {
-    $('.already_selected ul').removeClass('d-none');
-    $('.already_selected').data('filter', 'yes');
-    $('.already_selected p').html(`${$("#start_date").val()}~${$("#end_date").val()}`);
+    let keyword = $('#keyword').val().trim();
+    let start = $("#start_date").val();
+    let end = $("#end_date").val();
+    let parts = [];
+    if (start && end) {
+      parts.push(`${start}~${end}`);
+    }
+    if (keyword) {
+      parts.push(`${gettext('關鍵字')}：${keyword}`);
+    }
+
+    if (parts.length > 0) {
+      $('.already_selected').data('filter', 'yes');
+      $('.already_selected ul').removeClass('d-none');
+      $('.already_selected p').html(parts.join('　'));
+    } else {
+      $('.already_selected').data('filter', 'no');
+      $('.already_selected ul').addClass('d-none');
+    }
     $('#db-intro').addClass('d-none')
     $('.news_tab_in li.now').trigger('click')
   })
@@ -61,6 +84,7 @@ $(function () {
   $('.already_selected ul li button.xx').on('click', function () {
     $('.already_selected ul').addClass('d-none');
     $('.already_selected').data('filter', 'no');
+    $('#keyword').val('');
     $('.news_tab_in li.now').trigger('click')
   })
 
@@ -90,6 +114,11 @@ function updateResource(content_type, page) {
     }
   }
 
+  let keyword = $('#keyword').val().trim();
+  if (keyword) {
+    query['keyword'] = keyword;
+  }
+
   $.ajax({
     url: "/get_resource_list",
     data: query,
@@ -103,7 +132,8 @@ function updateResource(content_type, page) {
       $('.edu_list li').remove()
       $('.page_number').remove()
 
-      if (content_type == 'all' & page == 1) {
+      let hasFilter = $('.already_selected').data('filter') == 'yes';
+      if (content_type == 'all' & page == 1 & !hasFilter) {
         $('#db-intro').removeClass('d-none')
       } else {
         $('#db-intro').addClass('d-none')
@@ -124,6 +154,7 @@ function updateResource(content_type, page) {
                 ${row.resource_type != 'doc-link' ? `<div class="cate ${row.cate}">${row.extension}</div>` : ''}
                 ${row.doc_url ? `<div class="cate web"><a href="${row.doc_url}" target="_blank">WEB <i class="fa-solid fa-link"></i></a></div>` : ''}
                 <div class="date">${row.date}</div>
+                ${row.ark ? `<a href="${row.ark_href}" target="_blank" class="ark">${row.ark}</a>` : ''}
               </div>
               <a href="${fileUrl}" class="title" target="_blank">${gettext(row.title)}</a>
               ${!isLink ? `<a href="${fileUrl}" download class="dow_btn"> </a>` : ''}

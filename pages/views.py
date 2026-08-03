@@ -6,6 +6,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone, translation
 from django.utils.translation import get_language, gettext
+from django.db.models import Q
 from data.utils import get_page_list, get_resource_cate
 from conf.settings import SOLR_PREFIX, env
 from conf.utils import notif_map, scheme
@@ -154,7 +155,17 @@ def news_detail(request, news_id):
         tags = n.tag if n.tag else ''
         tags = tags.split(',')
         tags = [t for t in tags if t]
+
         color = news_type_map[n.type]
+
+        ark_obj = Ark.objects.filter(type='news', model_id=n.id).first()
+        if ark_obj:
+            ark = f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+            ark_href = f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+        else:
+            ark = ''
+            ark_href = ''
+
         # 系統管理員, 單位帳號, 單位管理者
         is_authorized = False
         if not request.user.is_anonymous:  
@@ -166,8 +177,7 @@ def news_detail(request, news_id):
             elif u.partner_id == n.partner_id:
                 is_authorized = True
                 
-        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized, 'tags': tags})
-
+        return render(request, 'pages/news_detail.html', {'n': n, 'color': color, 'is_authorized': is_authorized, 'tags': tags, 'ark': ark, 'ark_href': ark_href})
 
 def get_news_list(request):
     if request.method == 'POST':
@@ -188,6 +198,11 @@ def get_news_list(request):
             news = News.objects.filter(status='pass',lang=request.LANGUAGE_CODE)
         if request.POST.get('start_date') and request.POST.get('end_date'):
             news = news.filter(publish_date__gte=request.POST.get('start_date'),publish_date__lte=datetime.strptime(request.POST.get('end_date'),'%Y-%m-%d')+timedelta(days=1))
+
+        keyword = request.POST.get('keyword', '').strip()
+        if keyword:
+            news = news.filter(title__icontains=keyword)
+
         total_page = math.ceil(news.count() / limit)
         page_list = get_page_list(current_page,total_page,5)
         news = news.order_by('-publish_date')[offset:offset+limit]
@@ -203,8 +218,19 @@ def get_news_list(request):
                 n.image = '/media/' + n.image
             else:
                 n.image = '/static/image/news_ub_img.jpg'
-            news_list.append({'id': n.id,'image':n.image,'color':n.color, 
-                                'type_c':n.type_c,'publish_date':n.publish_date,'title':n.title})
+
+            ark_obj = Ark.objects.filter(type='news', model_id=n.id).first()
+            if ark_obj:
+                ark = f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+                ark_href = f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+            else:
+                ark = ''
+                ark_href = ''
+
+            news_list.append({'id': n.id, 'image': n.image, 'color': n.color,
+                            'type_c': n.type_c, 'publish_date': n.publish_date,
+                            'title': n.title, 'ark': ark, 'ark_href': ark_href})
+    
         response['data'] = news_list
         response['page_list'] = page_list
         response['current_page'] = current_page
@@ -241,6 +267,15 @@ def get_qa_list(request):
         limit = 10
         offset = limit * (current_page-1)
         qa = Qa.objects.filter(type=type).order_by('order')
+
+        keyword = request.POST.get('keyword', '').strip()
+        if keyword:
+            qa = qa.filter(
+                Q(question__icontains=keyword) |
+                Q(question_en__icontains=keyword) |
+                Q(answer__icontains=keyword) |
+                Q(answer_en__icontains=keyword)
+            )
 
         total_page = math.ceil(qa.count() / limit)
         page_list = get_page_list(current_page,total_page,5)
@@ -332,6 +367,10 @@ def get_resource_list(request):
             }
             return HttpResponse(json.dumps(response), content_type='application/json')
 
+    keyword = request.POST.get('keyword', '').strip()
+    if keyword:
+        resource = resource.filter(title__icontains=keyword)
+
     total_page = math.ceil(resource.count() / 12)
 
     current_page = int(request.POST.get('get_page', 1))
@@ -346,6 +385,15 @@ def get_resource_list(request):
 
     for x in resource[offset:limit]:
         extension = 'link' if x.extension in ['doc-link','ext-link'] else x.extension
+
+        ark_obj = Ark.objects.filter(type='resource', model_id=x.id).first()
+        if ark_obj:
+            ark = f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+            ark_href = f'{env("TBIA_ARKLET_PUBLIC")}ark:/{env("ARK_NAAN")}/{ark_obj.ark}'
+        else:
+            ark = ''
+            ark_href = ''
+
         resource_rows.append({
             'cate': get_resource_cate(extension),
             'title': x.title,
@@ -353,7 +401,9 @@ def get_resource_list(request):
             'resource_type': x.resource_type,
             'url': x.url,
             'doc_url': x.doc_url,
-            'date': x.publish_date.strftime("%Y-%m-%d")})
+            'date': x.publish_date.strftime("%Y-%m-%d"),
+            'ark': ark,
+            'ark_href': ark_href})
 
     response = {
         'rows': resource_rows,
@@ -420,11 +470,23 @@ def ark_ids(request):
 
 def get_ark_list(request):
     type = request.POST.get('type')
+    keyword = request.POST.get('keyword', '').strip()
 
     limit = 10
     
     query_obj = []
     query_obj = Ark.objects.filter(type=type).order_by('-created')
+
+    if keyword:
+        if type == 'news':
+            ids = News.objects.filter(title__icontains=keyword).values_list('id', flat=True)
+            query_obj = query_obj.filter(model_id__in=list(ids))
+        elif type == 'resource':
+            ids = Resource.objects.filter(title__icontains=keyword).values_list('id', flat=True)
+            query_obj = query_obj.filter(model_id__in=list(ids))
+        else:
+            # 下載資料的 title 是 URL，沒有標題可查
+            query_obj = query_obj.none()
 
     current_page = int(request.POST.get('get_page', 1))
     total_page = math.ceil(query_obj.count() / limit)
@@ -494,6 +556,10 @@ def get_ark_list(request):
 
 def datagap(request):
     return render(request, 'pages/datagap.html')
+
+
+def overview(request):
+    return render(request, 'pages/overview.html')
 
 
 def datagap_result(request):

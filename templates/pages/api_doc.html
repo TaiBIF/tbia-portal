@@ -63,7 +63,7 @@
                                 <h3>{% trans '物種出現紀錄 - Occurrence API' %}</h3>
                             </div>
                             <div class="marb_20">
-                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence" target="_blank">/api/v1/occurrence</a>
+                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/occurrence?from_example=1" target="_blank">/api/v1/occurrence</a>
                             </div>
                             <div class="marb_20">{% trans '本服務會進行部分資訊模糊化，可取得模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。' %}</div>
                             <div class="green_title">
@@ -83,7 +83,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用本網站之入口網ID取得指定的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?id=6540d35818aad00028ecda95" target="_blank">/api/v1/occurrence?id=6540d35818aad00028ecda95</a>
+                                            <a href="/api/v1/occurrence?id=6540d35818aad00028ecda95&from_example=1" target="_blank">/api/v1/occurrence?id=6540d35818aad00028ecda95</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -91,7 +91,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用來源資料庫 / 典藏單位之物種出現紀錄ID取得指定的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874" target="_blank">/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874</a>
+                                            <a href="/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874&from_example=1" target="_blank">/api/v1/occurrence?occurrenceID=TAIF:PLANT:8540:1:1:186874</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -99,7 +99,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用來源典藏單位之館藏號取得指定的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?catalogNumber=186874" target="_blank">/api/v1/occurrence?catalogNumber=186874</a>
+                                            <a href="/api/v1/occurrence?catalogNumber=186874&from_example=1" target="_blank">/api/v1/occurrence?catalogNumber=186874</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -107,7 +107,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用來源典藏單位之採集號取得指定的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?recordNumber=218114" target="_blank">/api/v1/occurrence?recordNumber=218114</a>
+                                            <a href="/api/v1/occurrence?recordNumber=218114&from_example=1" target="_blank">/api/v1/occurrence?recordNumber=218114</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -115,7 +115,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定學名/中文名/中文別名/同物異名/誤用名的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?name=小白鷺" target="_blank">/api/v1/occurrence?name=小白鷺</a>
+                                            <a href="/api/v1/occurrence?name=小白鷺&from_example=1" target="_blank">/api/v1/occurrence?name=小白鷺</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -123,7 +123,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定TaiCOL物種編號的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?taxonID=t0052516" target="_blank">/api/v1/occurrence?taxonID=t0052516</a>
+                                            <a href="/api/v1/occurrence?taxonID=t0052516&from_example=1" target="_blank">/api/v1/occurrence?taxonID=t0052516</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -131,7 +131,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定較高分類群的出現紀錄資料，請以TaiCOL物種編號指定' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?higherTaxon=t0002476" target="_blank">/api/v1/occurrence?higherTaxon=t0002476</a>
+                                            <a href="/api/v1/occurrence?higherTaxon=t0002476&from_example=1" target="_blank">/api/v1/occurrence?higherTaxon=t0002476</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -141,7 +141,7 @@
                                             {% blocktrans %}取得指定物種類群的出現紀錄資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?bioGroup=鳥類" target="_blank">/api/v1/occurrence?bioGroup=鳥類</a>
+                                            <a href="/api/v1/occurrence?bioGroup=鳥類&from_example=1" target="_blank">/api/v1/occurrence?bioGroup=鳥類</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -151,7 +151,7 @@
                                             {% blocktrans %}取得指定鑑定層級的出現紀錄資料，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?taxonRank=infraspecies" target="_blank">/api/v1/occurrence?taxonRank=infraspecies</a>
+                                            <a href="/api/v1/occurrence?taxonRank=infraspecies&from_example=1" target="_blank">/api/v1/occurrence?taxonRank=infraspecies</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -159,7 +159,7 @@
                                         <td>boolean</td>
                                         <td>{% trans '是否為自然史典藏資料，是=true，否=false' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?isCollection=true" target="_blank">/api/v1/occurrence?isCollection=true</a>
+                                            <a href="/api/v1/occurrence?isCollection=true&from_example=1" target="_blank">/api/v1/occurrence?isCollection=true</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -167,7 +167,7 @@
                                         <td>boolean</td>
                                         <td>{% trans '是否為原生種，是=true，否=false' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?isNative=true" target="_blank">/api/v1/occurrence?isNative=true</a>
+                                            <a href="/api/v1/occurrence?isNative=true&from_example=1" target="_blank">/api/v1/occurrence?isNative=true</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -175,7 +175,7 @@
                                         <td>boolean</td>
                                         <td>{% trans '是否為保育類，是=true，否=false' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?isProtected=true" target="_blank">/api/v1/occurrence?isProtected=true</a>
+                                            <a href="/api/v1/occurrence?isProtected=true&from_example=1" target="_blank">/api/v1/occurrence?isProtected=true</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -183,7 +183,7 @@
                                         <td>boolean</td>
                                         <td>{% trans '有無多媒體，否=false，影像=image，影片=video，音檔=audio' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?hasMedia=image" target="_blank">/api/v1/occurrence?hasMedia=image</a>
+                                            <a href="/api/v1/occurrence?hasMedia=image&from_example=1" target="_blank">/api/v1/occurrence?hasMedia=image</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -193,7 +193,7 @@
                                             {% blocktrans %}取得指定來源資料庫 / 典藏單位的出現紀錄資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a>
+                                            <a href="/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫&from_example=1" target="_blank">/api/v1/occurrence?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -201,7 +201,7 @@
                                         <td>string</td>
                                         <td>{% trans  '取得指定記錄者的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?recordedBy=志工小組" target="_blank">/api/v1/occurrence?recordedBy=志工小組</a>
+                                            <a href="/api/v1/occurrence?recordedBy=志工小組&from_example=1" target="_blank">/api/v1/occurrence?recordedBy=志工小組</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -209,7 +209,7 @@
                                         <td>string</td>
                                         <td>{% trans  '取得指定資料集聯絡人的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊" target="_blank">/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊</a>
+                                            <a href="/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊&from_example=1" target="_blank">/api/v1/occurrence?resourceContacts=台灣兩棲類保育志工團隊</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -219,7 +219,7 @@
                                             {% blocktrans %}使用本網站之資料集ID取得指定的出現紀錄資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438" target="_blank">/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438</a>
+                                            <a href="/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438&from_example=1" target="_blank">/api/v1/occurrence?tbiaDatasetID=d674d7e0ec3bd2c006cefb438</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -229,7 +229,7 @@
                                             {% blocktrans %}取得指定資料集的出現紀錄資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）" target="_blank">/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）</a>
+                                            <a href="/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）&from_example=1" target="_blank">/api/v1/occurrence?datasetName=100年高雄都會公園環境長期監測研究計畫－生物（動植物）</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -237,7 +237,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定紀錄類型的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?basisOfRecord=HumanObservation" target="_blank">/api/v1/occurrence?basisOfRecord=HumanObservation</a>
+                                            <a href="/api/v1/occurrence?basisOfRecord=HumanObservation&from_example=1" target="_blank">/api/v1/occurrence?basisOfRecord=HumanObservation</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -247,7 +247,7 @@
                                             {% blocktrans %}紀錄日期，日期格式：yyyy-mm-dd。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?eventDate=2021-10-21" target="_blank">/api/v1/occurrence?eventDate=2021-10-21</a>
+                                            <a href="/api/v1/occurrence?eventDate=2021-10-21&from_example=1" target="_blank">/api/v1/occurrence?eventDate=2021-10-21</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -255,7 +255,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定保存方式的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?preservation=針插標本" target="_blank">/api/v1/occurrence?preservation=針插標本</a>
+                                            <a href="/api/v1/occurrence?preservation=針插標本&from_example=1" target="_blank">/api/v1/occurrence?preservation=針插標本</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -263,7 +263,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定標本類型的出現紀錄資料（一般 / 模式）' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?typeStatus=模式" target="_blank">/api/v1/occurrence?typeStatus=模式</a>
+                                            <a href="/api/v1/occurrence?typeStatus=模式&from_example=1" target="_blank">/api/v1/occurrence?typeStatus=模式</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -271,7 +271,7 @@
                                         <td>number</td>
                                         <td>{% trans '取得指定數量的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?organismQuantity=100" target="_blank">/api/v1/occurrence?organismQuantity=100</a>
+                                            <a href="/api/v1/occurrence?organismQuantity=100&from_example=1" target="_blank">/api/v1/occurrence?organismQuantity=100</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -281,7 +281,7 @@
                                             {% blocktrans %}取得指定出現地的出現紀錄資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?locality=高雄市" target="_blank">/api/v1/occurrence?locality=高雄市</a>
+                                            <a href="/api/v1/occurrence?locality=高雄市&from_example=1" target="_blank">/api/v1/occurrence?locality=高雄市</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -289,7 +289,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定縣市的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?county=高雄市" target="_blank">/api/v1/occurrence?county=高雄市</a>
+                                            <a href="/api/v1/occurrence?county=高雄市&from_example=1" target="_blank">/api/v1/occurrence?county=高雄市</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -297,7 +297,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定鄉鎮市區的出現紀錄資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?municipality=楠梓區" target="_blank">/api/v1/occurrence?municipality=楠梓區</a>
+                                            <a href="/api/v1/occurrence?municipality=楠梓區&from_example=1" target="_blank">/api/v1/occurrence?municipality=楠梓區</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -305,7 +305,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定四邊形座標範圍內物種出現紀錄網格資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?boundedBy=122,24,121,23" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23</a>
+                                            <a href="/api/v1/occurrence?boundedBy=122,24,121,23&from_example=1" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -313,7 +313,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定多邊形座標範圍內出現紀錄資料，僅支援WKT格式' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a>
+                                            <a href="/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))&from_example=1" target="_blank">/api/v1/occurrence?polygon=POLYGON ((120.761719 23.755182, 120.772705 23.543845, 121.135254 23.5237, 121.135254 23.755182, 120.761719 23.755182))</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -321,7 +321,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定圓形座標範圍內出現紀錄資料輸入值={經度},{緯度},{半徑}，半徑單位為公里' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?circle=122.51,24.9,10" target="_blank">/api/v1/occurrence?circle=122.51,24.9,10</a>
+                                            <a href="/api/v1/occurrence?circle=122.51,24.9,10&from_example=1" target="_blank">/api/v1/occurrence?circle=122.51,24.9,10</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -329,7 +329,7 @@
                                         <td>string</td>
                                         <td>{% trans '限制型API金鑰' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?apikey={yourAPIkey}" target="_blank">/api/v1/occurrence?apikey={yourAPIkey}</a>
+                                            <a href="/api/v1/occurrence?apikey={yourAPIkey}&from_example=1" target="_blank">/api/v1/occurrence?apikey={yourAPIkey}</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -339,7 +339,7 @@
                                             {% blocktrans %}資料建立時間，日期格式：yyyy-mm-dd。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?created=2023-05-09" target="_blank">/api/v1/occurrence?created=2023-05-09</a>
+                                            <a href="/api/v1/occurrence?created=2023-05-09&from_example=1" target="_blank">/api/v1/occurrence?created=2023-05-09</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -349,7 +349,7 @@
                                             {% blocktrans %}資料更新時間，日期格式：yyyy-mm-dd。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/occurrence?modified=2023-05-09" target="_blank">/api/v1/occurrence?modified=2023-05-09</a>
+                                            <a href="/api/v1/occurrence?modified=2023-05-09&from_example=1" target="_blank">/api/v1/occurrence?modified=2023-05-09</a>
                                         </td>
                                     </tr>
                                 </table>
@@ -819,7 +819,7 @@
                                 <h3>{% trans '資料集 - Dataset API' %}</h3>
                             </div>
                             <div class="marb_20">
-                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/dataset" target="_blank">/api/v1/dataset</a>
+                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/dataset?from_example=1" target="_blank">/api/v1/dataset</a>
                             </div>
                             <div class="green_title">
                                 <div class="line_mark"></div>
@@ -838,7 +838,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用本網站之資料集ID取得指定的資料集' %}</td>
                                         <td>
-                                            <a href="/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10" target="_blank">/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10</a>
+                                            <a href="/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10&from_example=1" target="_blank">/api/v1/dataset?tbiaDatasetID=d674d7dc6c3bd2c006cefad10</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -846,7 +846,7 @@
                                         <td>string</td>
                                         <td>{% trans '使用來源資料庫 / 典藏單位之資料集ID取得指定的資料集' %}</td>
                                         <td>
-                                            <a href="/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a" target="_blank">/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a</a>
+                                            <a href="/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a&from_example=1" target="_blank">/api/v1/dataset?sourceDatasetID=ac869aba-ac34-4416-9eda-075258fef27a</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -854,7 +854,7 @@
                                         <td>string</td>
                                         <td>{% trans '以GBIF的資料集ID取得指定的資料集' %}</td>
                                         <td>
-                                            <a href="/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb" target="_blank">/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb</a>
+                                            <a href="/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb&from_example=1" target="_blank">/api/v1/dataset?gbifDatasetID=275319e1-f91c-406f-b239-62cb9d4185cb</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -864,7 +864,7 @@
                                             {% blocktrans %}取得指定來源資料庫 / 典藏單位的資料集，可<a class="col_blue" href="#composite-query-area">複合查詢</a>，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫" target="_blank">/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a>
+                                            <a href="/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫&from_example=1" target="_blank">/api/v1/dataset?rightsHolder=台灣生物多樣性網絡 TBN&rightsHolder=濕地環境資料庫</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -872,7 +872,7 @@
                                         <td>string</td>
                                         <td>{% trans '以資料集名稱查詢，支援部分查詢' %}</td>
                                         <td>
-                                            <a href="/api/v1/dataset?datasetName=eBird" target="_blank">/api/v1/dataset?datasetName=eBird</a>
+                                            <a href="/api/v1/dataset?datasetName=eBird&from_example=1" target="_blank">/api/v1/dataset?datasetName=eBird</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -882,7 +882,7 @@
                                             {% blocktrans %}取得含括指定物種類群的資料集，可<a class="col_blue" href="#composite-query-area">複合查詢</a>，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/dataset?datasetTaxonGroup=鳥類" target="_blank">/api/v1/dataset?datasetTaxonGroup=鳥類</a>
+                                            <a href="/api/v1/dataset?datasetTaxonGroup=鳥類&from_example=1" target="_blank">/api/v1/dataset?datasetTaxonGroup=鳥類</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -892,7 +892,7 @@
                                             {% blocktrans %}資料集建立時間，日期格式：yyyy-mm-dd。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/dataset?created=2023-05-09" target="_blank">/api/v1/dataset?created=2023-05-09</a>
+                                            <a href="/api/v1/dataset?created=2023-05-09&from_example=1" target="_blank">/api/v1/dataset?created=2023-05-09</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -902,7 +902,7 @@
                                             {% blocktrans %}資料集更新時間，日期格式：yyyy-mm-dd。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/dataset?modified=2023-05-09" target="_blank">/api/v1/dataset?modified=2023-05-09</a>
+                                            <a href="/api/v1/dataset?modified=2023-05-09&from_example=1" target="_blank">/api/v1/dataset?modified=2023-05-09</a>
                                         </td>
                                     </tr>
                                 </table>
@@ -1021,7 +1021,7 @@
                                 <h3>{% trans '地圖 - Map API' %}</h3>
                             </div>
                             <div class="marb_20">
-                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/map" target="_blank">/api/v1/map</a>
+                                {% trans '服務網址' %}{% trans '：' %}<a class="col_blue" href="/api/v1/map?from_example=1" target="_blank">/api/v1/map</a>
                             </div>
                             <div class="green_title">
                                 <div class="line_mark"></div>
@@ -1042,7 +1042,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定四邊形座標範圍內物種出現紀錄網格資料，輸入值={最大經度},{最大緯度},{最小經度},{最小緯度}' %}</td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1056,7 +1056,7 @@
                                             {% trans '預設為1' %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/map?grid=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
+                                            <a href="/api/v1/map?grid=122,23,121,22&grid=1&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1064,7 +1064,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定TaiCOL物種編號的物種網格資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&taxonID=t0052516</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1074,7 +1074,7 @@
                                             {% blocktrans %}取得含括指定物種類群的網格資料，可<a class="col_blue" href="#composite-query-area">複合查詢</a>，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&bioGroup=鳥類</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1084,7 +1084,7 @@
                                             {% blocktrans %}取得指定資料年份的網格資料，年份格式：yyyy。支援<a class="col_blue" href="#range-query-area">區間查詢</a>{% endblocktrans %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2024</a>
                                         </td>
                                     </tr>
 
@@ -1093,7 +1093,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定縣市的網格資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1101,7 +1101,7 @@
                                         <td>string</td>
                                         <td>{% trans '取得指定鄉鎮市區的網格資料' %}</td>
                                         <td>
-                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1&county=臺東縣&municipality=綠島鄉</a>
                                         </td>
                                     </tr>
 
@@ -1122,28 +1122,28 @@
                                                 <td class="grid-cell">1 km</td>
                                                 <td>{% trans '1 度' %}</td>
                                                 <td class="url-cell">
-                                                    <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&amp;grid=1</a>
+                                                    <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&amp;grid=1</a>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="grid-cell">5 km</td>
                                                 <td>{% trans '10 度' %}</td>
                                                 <td class="url-cell">
-                                                    <a href="/api/v1/map?boundedBy=125,25,115,15&grid=5" target="_blank">/api/v1/map?boundedBy=125,25,115,15&amp;grid=5</a>
+                                                    <a href="/api/v1/map?boundedBy=125,25,115,15&grid=5&from_example=1" target="_blank">/api/v1/map?boundedBy=125,25,115,15&amp;grid=5</a>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="grid-cell">10 km</td>
                                                 <td>{% trans '20 度' %}</td>
                                                 <td class="url-cell">
-                                                    <a href="/api/v1/map?boundedBy=122,23,102,3&grid=10" target="_blank">/api/v1/map?boundedBy=122,23,102,3&amp;grid=10</a>
+                                                    <a href="/api/v1/map?boundedBy=122,23,102,3&grid=10&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,102,3&amp;grid=10</a>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="grid-cell">100 km</td>
                                                 <td>{% trans '40 度' %}</td>
                                                 <td class="url-cell">
-                                                    <a href="/api/v1/map?boundedBy=120,25,80,-15&grid=100" target="_blank">/api/v1/map?boundedBy=120,25,80,-15&amp;grid=100</a>
+                                                    <a href="/api/v1/map?boundedBy=120,25,80,-15&grid=100&from_example=1" target="_blank">/api/v1/map?boundedBy=120,25,80,-15&amp;grid=100</a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1222,12 +1222,12 @@
                                 <br>
                                 <strong>{% trans '範例 1：不同參數（取交集）' %}</strong>
                                 <br>
-                                <a class="col_blue" href="/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23&amp;rightsHolder=GBIF</a>
+                                <a class="col_blue" href="/api/v1/occurrence?boundedBy=122,24,121,23&rightsHolder=GBIF&from_example=1" target="_blank">/api/v1/occurrence?boundedBy=122,24,121,23&amp;rightsHolder=GBIF</a>
                                 <br>
                                 <br>
                                 <strong>{% trans '範例 2：同一參數多值（取聯集）' %}</strong>
                                 <br>
-                                <a class="col_blue" href="/api/v1/occurrence?bioGroup=鳥類&bioGroup=哺乳類" target="_blank">/api/v1/occurrence?bioGroup=鳥類&bioGroup=哺乳類</a>
+                                <a class="col_blue" href="/api/v1/occurrence?bioGroup=鳥類&bioGroup=哺乳類&from_example=1" target="_blank">/api/v1/occurrence?bioGroup=鳥類&bioGroup=哺乳類</a>
                             </div>
                             <div class="green_title" id="range-query-area">
                                 <div class="line_mark"></div>
@@ -1239,12 +1239,12 @@
                                 <br>
                                 <strong>{% trans '範例 1：日期區間' %}</strong>
                                 <br>
-                                <a class="col_blue" href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a>
+                                <a class="col_blue" href="/api/v1/occurrence?eventDate=2021-10-21,2021-10-25&from_example=1" target="_blank">/api/v1/occurrence?eventDate=2021-10-21,2021-10-25</a>
                                 <br>
                                 <br>
                                 <strong>{% trans '範例 2：年份區間' %}</strong>
                                 <br>
-                                <a class="col_blue" href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2020,2025" target="_blank">/api/v1/map?boundedBy=122,23,121,22&amp;grid=1&amp;year=2020,2025</a>
+                                <a class="col_blue" href="/api/v1/map?boundedBy=122,23,121,22&grid=1&year=2020,2025&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&amp;grid=1&amp;year=2020,2025</a>
                             </div>
                             <div class="green_title">
                                 <div class="line_mark"></div>
@@ -1261,7 +1261,7 @@
                                         <td>limit</td>
                                         <td>{% trans '限制回傳筆數。預設20筆，上限1000' %}</td>
                                         <td>
-                                            <a href="/api/v1/occurrence?limit=1000" target="_blank">/api/v1/occurrence?limit=1000</a>
+                                            <a href="/api/v1/occurrence?limit=1000&from_example=1" target="_blank">/api/v1/occurrence?limit=1000</a>
                                         </td>
                                     </tr>
                                 </table>

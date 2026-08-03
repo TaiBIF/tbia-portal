@@ -35,7 +35,7 @@ from manager.views import send_notification
 def get_geojson(request,id):
     if SearchQuery.objects.filter(id=id).exists():
         sq = SearchQuery.objects.get(id=id)
-        search_dict = dict(parse.parse_qsl(sq.query))
+        search_dict = parse_query_string(sq.query)
         map_json = search_dict.get('geojson')
         response = HttpResponse(map_json, content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename="geojson.json"'
@@ -64,7 +64,7 @@ def get_taxon_dist_init(request):
 def get_taxon_dist(request):
 
     taxon_id = request.POST.get('taxonID')
-    grid = int(request.POST.get('grid'))
+    grid = to_int(request.POST.get('grid'), 0)
 
     user_id = request.user.id if request.user.id else 0
     
@@ -123,15 +123,10 @@ def submit_sensitive_request(request):
             fs = FileSystemStorage()
             file_name = fs.save(f'research_proposal/' + file.name, file)
 
-        not_query = ['is_agreed_report','selected_col','applicant','phone','address','affiliation','job_title','type','project_name','project_affiliation','abstract','users','csrfmiddlewaretoken','page','from','grid','map_bound','principal_investigator','research_proposal']
-        for nq in not_query:
-            if nq in req_dict.keys():
-                req_dict.pop(nq)
-        for k in req_dict.keys():
-            if len(req_dict[k])==1:
-                req_dict[k] = req_dict[k][0]
+        for nq in (QUERY_REPLAY_EXCLUDE_KEYS | SENSITIVE_FORM_FIELDS):
+            req_dict.pop(nq, None)
 
-        query_string = parse.urlencode(req_dict)
+        query_string = build_query_string(req_dict)
         user_id = request.user.id
         query_id = str(ObjectId())
 
@@ -166,7 +161,7 @@ def submit_sensitive_request(request):
         )
 
         # 以下改成背景處理
-        task = threading.Thread(target=backgroud_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
+        task = threading.Thread(target=background_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
         task.start()
         
         return JsonResponse({"status": 'success'}, safe=False)
@@ -200,9 +195,9 @@ def transfer_sensitive_response(request):
             
             # 機關計畫送交給夥伴單位審核
             sq = SearchQuery.objects.get(query_id=query_id)
-            req_dict = dict(parse.parse_qsl(sq.query))
+            req_dict = parse_query_string(sq.query)
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
             query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
@@ -298,7 +293,7 @@ def generate_sensitive_csv(query_id, scheme, host):
     
     if SearchQuery.objects.filter(query_id=query_id).exists():
         sq = SearchQuery.objects.get(query_id=query_id)
-        req_dict = dict(parse.parse_qsl(sq.query))
+        req_dict = parse_query_string(sq.query)
 
         download_id = f"tbia_{query_id}"
         process = None
@@ -314,8 +309,8 @@ def generate_sensitive_csv(query_id, scheme, host):
                 fail_groups = list(Partner.objects.filter(id__in=fs).values_list('group'))
                 fail_groups = [g[0] for g in fail_groups]
 
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
-            query_list_b = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
+            query_list_b = create_search_query(req_dict=req_dict, get_raw_map=False)
 
             # 排除掉不同意的單位
             if fail_groups:
@@ -387,7 +382,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             
         else:
             # 沒有帳號通過 - 全部給模糊化後的資料
-            query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=False)
+            query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
             
             query = {
                 "query": "*:*",
@@ -536,25 +531,24 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
     get_raw_map = if_raw_map(user_id)
 
-    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+    query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
     user_stat = []
 
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','user_affiliation','user_role','user_purpose']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -629,25 +623,24 @@ def generate_species_csv(req_dict, user_id, scheme, host):
     download_id = f"tbia_{str(ObjectId())}"
 
     get_raw_map = if_raw_map(user_id)
-    query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+    query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
     user_stat = []
 
     req_dict = dict(req_dict)
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound','user_affiliation','user_role','user_purpose']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='taxon').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -760,20 +753,18 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     req_dict = dict(req_dict)
 
     user_stat = []
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col', 'grid', 'map_bound']
 
-    # 處理 user_stat 並移除 not_query 欄位
-    for key in ['user_affiliation','user_role','user_purpose']:
+    # 先擷取 user_stat，再排除重播用不到的 key
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
         if key in req_dict:
             user_stat.append(req_dict[key][0])
 
-    # 移除 not_query 欄位
-    for key in not_query:
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
         req_dict.pop(key, None)
 
     # 扁平化單元素列表
     req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
-
+    
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols_with_sensitive
     else:
@@ -827,7 +818,7 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
 
-    query_string = parse.urlencode(req_dict)
+    query_string = build_query_string(req_dict)
 
     sq = SearchQuery.objects.create(
         user = User.objects.filter(id=user_id).first(),
@@ -904,8 +895,8 @@ def get_records(request): # 全站搜尋
         value = request.POST.get('value', '')
         record_type = request.POST.get('record_type', '')
         scientific_name = request.POST.get('scientific_name', '')
-        limit = int(request.POST.get('limit', -1))
-        page = int(request.POST.get('page', 1))
+        limit = to_int(request.POST.get('limit'), -1)
+        page = to_int(request.POST.get('page'), 1)
         user_id = request.user.id if request.user.id else 0
 
         if request.POST.get('orderby'):
@@ -941,10 +932,12 @@ def get_records(request): # 全站搜尋
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = process_text_variants(keyword_reg)
 
-        search_str = f'keyword={keyword}&key={key}&value={value}&record_type={record_type}&orderby={orderby}&sort={sort}&limit={limit}&page={page}&from={from_str}&get_record=true'
-
-        if 'scientific_name' not in search_str and scientific_name and scientific_name != 'undefined':
-            search_str += f'&scientific_name={scientific_name}'
+        params = {'keyword': keyword, 'key': key, 'value': value,
+                  'record_type': record_type, 'orderby': orderby, 'sort': sort,
+                  'limit': limit, 'page': page, 'from': from_str, 'get_record': 'true'}
+        if scientific_name and scientific_name != 'undefined':
+            params['scientific_name'] = scientific_name
+        search_str = build_query_string(params)
 
         offset = (page-1)*10
 
@@ -996,7 +989,6 @@ def get_records(request): # 全站搜尋
 
         rows = create_data_table(docs, user_id, obv_str, request.POST.get('has_image'))
 
-
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
         page_list = get_page_list(current_page, total_page)
@@ -1008,7 +1000,7 @@ def get_records(request): # 全站搜尋
 
         if orderby not in selected_col:
             selected_col.append(orderby)
-        
+
         response = {
             'title': title,
             'orderby': orderby,
@@ -1217,29 +1209,25 @@ def get_conditional_dataset(request):
             query += ' WHERE ' + (' AND ').join(query_list)
             count_query += ' WHERE ' + (' AND ').join(query_list)
 
-        # 建立資料庫連線
-        conn = psycopg2.connect(**datahub_db_settings)
+        with datahub_conn() as conn, conn.cursor() as cursor:
 
-        # 1. 先計算總數
-        with conn.cursor() as cursor:
             # 傳入 query_params 來安全執行 SQL
+            # 1. 先計算總數
             cursor.execute(count_query, query_params)
             count_result = cursor.fetchone()
             total_count = count_result[0]
 
-        # 2. 再取得分頁資訊
-        query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
+            # 2. 再取得分頁資訊
+            query += ' ORDER BY "{}" {} LIMIT {} OFFSET {} '.format(orderby, sort, limit, offset)
 
-        df = []
+            df = []
 
-        with conn.cursor() as cursor:
             # 傳入相同的 query_params 來安全執行分頁查詢
             cursor.execute(query, query_params)
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
                                                  "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
             
-        conn.close()
 
         current_page = offset / limit + 1
         total_page = math.ceil(total_count / limit)
@@ -1265,12 +1253,22 @@ def download_dataset_results(request):
 
     if request.method == 'POST':
         req_dict = request.POST
-        orderby = req_dict.get('orderby','name')
-        sort = req_dict.get('sort', 'asc')
+
+        # 安全防護：orderby / sort 白名單(欄位名無法參數化，只能白名單)
+        allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart',
+                        'datasetDateEnd', 'rights_holder', 'downloadCount'}
+        orderby = req_dict.get('orderby', 'name')
+
+        if orderby not in allowed_columns:
+            orderby = 'name'
+        sort = req_dict.get('sort', 'asc').lower()
+        if sort not in {'asc', 'desc'}:
+            sort = 'asc'
+
+        query_list = ["deprecated = 'f'"]
+        query_params = []   # 參數化用
 
         # taxonGroup
-        query_list = ["deprecated = 'f'"]
-        
         taxon_vals_raw = req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
@@ -1280,46 +1278,50 @@ def download_dataset_results(request):
                 elif tv in old_taxon_group_map_c:
                     tv = old_taxon_group_map_c[tv]
                 expanded.extend(split_group_map.get(tv, [tv]))
-            like_clauses = ['''\"datasetTaxonGroup\" like '%{}%' '''.format(tv) for tv in expanded]
+            like_clauses = []
+            for tv in expanded:
+                like_clauses.append('"datasetTaxonGroup" like %s')
+                query_params.append(f'%{tv}%')
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName
         if name := req_dict.get('name'):
-            query_list.append('''( "name" like '%{}%')'''.format(name))
+            query_list.append('"name" like %s')
+            query_params.append(f'%{name}%')
 
         # rightsHolder
         if holders := req_dict.getlist('rightsHolder'):
-            holders = ['''"rights_holder" = '{}' '''.format(h) for h in holders]
-            query_list.append(f"({' OR '.join(holders)})")
+            holder_clauses = []
+            for h in holders:
+                holder_clauses.append('"rights_holder" = %s')
+                query_params.append(h)
+            query_list.append('({})'.format(' OR '.join(holder_clauses)))
 
         dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                         "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
-
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
         query = '''SELECT "name","rights_holder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                          "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
 
         if len(query_list):
             query += ' WHERE ' + (' AND ').join(query_list)
 
-        conn = psycopg2.connect(**datahub_db_settings)
 
+        # orderby/sort 已白名單，直接內插安全
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
         df = pd.DataFrame(columns=dataset_download_cols)
 
-        with conn.cursor() as cursor:
-            cursor.execute(query)
+        with datahub_conn() as conn, conn.cursor() as cursor:
+            cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=dataset_download_cols)
-            
-        conn.close()
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
-    df.to_csv(response, index=False, escapechar='\\')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
+        df.to_csv(response, index=False, escapechar='\\')
 
-    return response
+        return response
 
 
 from django.core.cache import cache
@@ -1330,11 +1332,9 @@ def get_media_rule():
         return cached
 
     try:
-        conn = psycopg2.connect(**datahub_db_settings)
-        with conn.cursor() as cursor:
+        with datahub_conn() as conn, conn.cursor() as cursor:
             cursor.execute('SELECT "media_rule" FROM media_rule')
             results = [r[0] for r in cursor.fetchall()]
-        conn.close()
     except Exception:
         results = []   # 原本沒 return，會回傳 None 害 _csp_update 炸掉
 
@@ -1440,46 +1440,46 @@ def dataset_detail(request, id):
 
     query = '''SELECT * FROM dataset WHERE "tbiaDatasetID" = %s AND deprecated = 'f';'''
 
-    conn = psycopg2.connect(**datahub_db_settings)
     resp = {}
 
-    with conn.cursor() as cursor:
+    with datahub_conn() as conn, conn.cursor() as cursor:
+
         cursor.execute(query, (id,))
         column_names = [desc[0] for desc in cursor.description]
         results = cursor.fetchone()
-        if len(results):
 
-            i = 0
-            for c in column_names:
-                resp[c] = results[i]
-                i += 1
+    if results:
 
-            new_taxon_stat = {}
+        i = 0
+        for c in column_names:
+            resp[c] = results[i]
+            i += 1
 
-            for t in resp['datasetTaxonStat']:
-                if t in taxon_group_map_c:
-                    new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
-                elif t in old_taxon_group_map_c:
-                    key = old_taxon_group_map_c[t]
-                    new_taxon_stat[key] = new_taxon_stat.get(key, 0) + resp['datasetTaxonStat'][t]
-                else:
-                    new_taxon_stat[t] = resp['datasetTaxonStat'][t]
+        new_taxon_stat = {}
 
-            resp['datasetTaxonStat'] = new_taxon_stat
-                
-            # 取得logo
-            if resp['group'] == 'gbif':
-                logo = 'GBIF-2015.png'
-                link = 'https://www.gbif.org/'
-                dataset_prefix = 'https://www.gbif.org/dataset/'
-            elif partner := Partner.objects.get(group=resp['group']):
-                logo = 'partner/' + partner.logo
-                for ii in partner.info:
-                    if ii.get('dbname') == resp['rights_holder']:
-                        link = ii.get('link')
-                        dataset_prefix = ii.get('dataset_prefix')
+        for t in resp['datasetTaxonStat']:
+            if t in taxon_group_map_c:
+                new_taxon_stat[taxon_group_map_c[t]] = resp['datasetTaxonStat'][t]
+            elif t in old_taxon_group_map_c:
+                key = old_taxon_group_map_c[t]
+                new_taxon_stat[key] = new_taxon_stat.get(key, 0) + resp['datasetTaxonStat'][t]
+            else:
+                new_taxon_stat[t] = resp['datasetTaxonStat'][t]
 
-    conn.close()
+        resp['datasetTaxonStat'] = new_taxon_stat
+            
+        # 取得logo
+        if resp['group'] == 'gbif':
+            logo = 'GBIF-2015.png'
+            link = 'https://www.gbif.org/'
+            dataset_prefix = 'https://www.gbif.org/dataset/'
+        elif partner := Partner.objects.get(group=resp['group']):
+            logo = 'partner/' + partner.logo
+            for ii in partner.info:
+                if ii.get('dbname') == resp['rights_holder']:
+                    link = ii.get('link')
+                    dataset_prefix = ii.get('dataset_prefix')
+
 
     response = render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
                 'affiliation_options': affiliation_options, 'role_options': role_options, 'purpose_options': purpose_options })
@@ -1501,7 +1501,7 @@ def get_map_grid(request):
         user_id = request.user.id if request.user.id else 0
         get_raw_map =  if_raw_map(user_id)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         map_query_list = query_list + ['-standardOrganismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
@@ -1551,7 +1551,7 @@ def get_tw_grid(request):
         user_id = request.user.id if request.user.id else 0
         get_raw_map =  if_raw_map(user_id)
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         # 先把map bound轉成grid
 
@@ -1616,16 +1616,15 @@ def get_tbn_query(request):
 
     tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
 
-    not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','offset']
-
     filtered_params = {}
     for k, v in request.POST.items():
-        if k in not_query:
+        if k in STAT_EXCLUDE_KEYS:
             continue
         if k == 'taxonGroup':
             filtered_params[k] = taxon_group_map_e.get(v, v)
         else:
             filtered_params[k] = v
+  
     # 多值 taxonGroup 補處理
     tg_vals = request.POST.getlist('taxonGroup')
     if len(tg_vals) > 1:
@@ -1652,7 +1651,7 @@ def get_conditional_records(request):
         req_dict = request.POST
 
         limit = int(req_dict.get('limit', 10))
-        orderby = req_dict.get('orderby','scientificName')
+        orderby = req_dict.get('orderby', '')
         sort = req_dict.get('sort', 'asc')
         user_id = request.user.id if request.user.id else 0
         get_raw_map = if_raw_map(user_id)
@@ -1663,11 +1662,11 @@ def get_conditional_records(request):
         else:
             selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
 
-        if orderby not in selected_col:
+        if orderby and orderby not in selected_col:
             selected_col.append(orderby)
         # use JSON API to avoid overlong query url
 
-        query_list = create_search_query(req_dict=req_dict, from_request=True, get_raw_map=get_raw_map)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
         record_type = req_dict.get('record_type')
 
@@ -1696,8 +1695,28 @@ def get_conditional_records(request):
             else:
                 solr_orderby = 'standardLongitude' + ' ' + sort
         else:
-            solr_orderby = orderby + ' ' + sort
-
+            name_kw = req_dict.get('name', '')
+            if not orderby and name_kw:
+                # 與 create_search_query 的 name 正規化保持一致
+                name_kw = html.unescape(re.sub(' +', ' ', name_kw.strip()))
+                esc = name_kw.replace('\\', '\\\\').replace("'", "\\'").replace('"', '\\"')
+                is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
+                if is_chinese:
+                    solr_orderby = (
+                        f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
+                        f'scientificName {sort}'
+                    )
+                else:
+                    solr_orderby = (
+                        f'query({{!lucene v=\'scientificName:"{esc}"\'}}) desc,'
+                        f'scientificName {sort}'
+                    )
+            else:
+                # 未排序但沒用 name 搜尋 → 仍給一個穩定排序避免分頁亂序
+                solr_orderby = 'scientificName ' + (sort or 'asc')
 
         page = int(req_dict.get('page', 1))
 
@@ -1770,19 +1789,10 @@ def get_conditional_records(request):
 
         if req_dict.get('from') == 'search':
 
-            # 搜尋紀錄
+            # 搜尋紀錄：排除規則統一由 build_stat_query_string / STAT_EXCLUDE_KEYS 處理
+            query_string = build_stat_query_string(req_dict)
 
-            now_dict = dict(req_dict)
-            not_query = ['is_agreed_report','csrfmiddlewaretoken','page','from','taxon','selected_col','map_bound','grid','limit','record_type']
-            for nq in not_query:
-                if nq in now_dict.keys():
-                    now_dict.pop(nq)
-            for k in now_dict.keys():
-                if len(now_dict[k])==1:
-                    now_dict[k] = now_dict[k][0]
-            query_string = parse.urlencode(now_dict)
-
-            task = threading.Thread(target=backgroud_search_stat, args=(query_list,record_type,query_string))
+            task = threading.Thread(target=background_search_stat, args=(query_list,record_type,query_string))
             task.start()
 
         response = {
@@ -1960,9 +1970,9 @@ def get_higher_taxa(request):
         keyword_str = process_text_variants(keyword_str)
         # 中文搜尋包含 英文搜尋開頭為
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE accepted_common_name_c ~ '{keyword_str}' OR accepted_alternative_name_c ~ '{keyword_str}' OR "name" ILIKE '{keyword_str}%' LIMIT 10 """
-            cursor.execute(query)
+            query = """SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE accepted_common_name_c ~ %s OR accepted_alternative_name_c ~ %s OR "name" ILIKE %s LIMIT 10 """
+            cursor.execute(query, (keyword_str, keyword_str, f'{keyword_str}%'))
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
 
@@ -1977,23 +1987,32 @@ def get_higher_taxa(request):
     elif taxon_id and taxon_id != 'null':
         # 如果是有taxonID的話 就一定是回傳接受名
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE "taxonID" = '{taxon_id}' AND name_status = 'accepted'; """
-            cursor.execute(query)
+            query = """SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
+            WHERE "taxonID" = %s AND name_status = 'accepted'; """
+            cursor.execute(query, (taxon_id,))
             results = cursor.fetchall()
             ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
             ds['has_taxonID'] = True
             ds = ds[['text','value','has_taxonID']].to_json(orient='records')
     else:
         default_taxon = ('t0005214','t0004179','t0004102','t0003149','t0005573','t0005890','t0004034','t0005763','t0002476','t0004051')
-
         with connection.cursor() as cursor:
-            query = f"""SELECT "taxonID", CONCAT_WS (' ',"accepted_name", CONCAT_WS(',', accepted_common_name_c, accepted_alternative_name_c)), "name",  name_status FROM data_name
-            WHERE "taxonID" IN {str(default_taxon)} AND name_status = 'accepted'; """
-            cursor.execute(query)
+            # 1. 動態生成正確數量的佔位符：'%s, %s, %s, ...'
+            placeholders = ', '.join(['%s'] * len(default_taxon))
+            
+            # 2. 將佔位符放進 IN (...) 的括號中
+            query = f"""
+                SELECT "taxonID", CONCAT_WS(' ', "accepted_name", CONCAT_WS(',', "accepted_common_name_c", "accepted_alternative_name_c")), "name", "name_status" 
+                FROM data_name
+                WHERE "taxonID" IN ({placeholders}) AND name_status = 'accepted';
+            """
+            
+            # 3. 傳入 default_taxon（不需要再加外層括號）
+            cursor.execute(query, default_taxon)
+            
             results = cursor.fetchall()
-            ds = pd.DataFrame(results, columns=['value','text','name','name_status'])
-            ds = ds[['text','value']].to_json(orient='records')
+            ds = pd.DataFrame(results, columns=['value', 'text', 'name', 'name_status'])
+            ds = ds[['text', 'value']].to_json(orient='records')
 
     return HttpResponse(ds, content_type='application/json')
 
@@ -2155,11 +2174,11 @@ def search_full(request):
     return resp
 
 
-def backgroud_submit_sensitive_request(project_type, req_dict, query_id):
+def background_submit_sensitive_request(project_type, req_dict, query_id):
     if project_type == '0':
 
         # 個人研究計畫
-        query_list = create_search_query(req_dict=req_dict, from_request=False, get_raw_map=True)
+        query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
         # 抓出所有單位
         query = { "query": "raw_location_rpt:*",

@@ -732,6 +732,27 @@ $(document).ready(function () {
         // 起始狀態
         $('select[name=keyword-stat-year]').trigger('change')
 
+
+        // 每月查詢參數統計下載
+        $('#download-search-param-stat').on('click', function () {
+            let year = $('select[name=search-param-stat-year]').find(':selected').val()
+            let month = $('select[name=search-param-stat-month]').find(':selected').val()
+            let mm = ('0' + month).slice(-2)
+            let url = `/media/search_stat/tbia_search_stat_${year}_${mm}.zip`
+
+            fetch(url, { method: 'HEAD' })
+                .then(function (res) {
+                    if (res.ok) {
+                        window.location.href = url
+                    } else {
+                        alert(`查無 ${year} 年 ${mm} 月的查詢參數統計檔案`)
+                    }
+                })
+                .catch(function () {
+                    alert(gettext('發生未知錯誤！請聯絡管理員'))
+                })
+        })
+
         // 名錄下載次數
         $('#container-checklist-stat').highcharts(Highcharts.merge(commonOptions, {
 
@@ -1090,6 +1111,68 @@ $(document).ready(function () {
         // 起始狀態
         $('select[name=partner-temporal-taxonGroup]').trigger('change')
 
+
+
+
+        // ARK申請次數
+        $('#container-ark-stat').highcharts(Highcharts.merge(commonOptions, {
+
+            chart: {
+                type: "column",
+            },
+            yAxis: {
+                title: {
+                    text: '申請次數'
+                }
+            },
+            xAxis: {
+                categories: [],
+            },
+            plotOptions: {
+                column: {
+                    color: '#A9B0E0',
+                }
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y}次</b>'
+            },
+        }));
+
+        $('select[name=ark-stat-year]').on('change', function () {
+            $('#loader_ark').removeClass('d-none');
+            $.ajax({
+                url: `/get_ark_stat?year=${$('select[name=ark-stat-year]').find(':selected').val()}`,
+                type: 'GET',
+            })
+            .done(function (response) {
+
+                console.log(response)
+                let ark_chart = $('#container-ark-stat').highcharts()
+
+                while (ark_chart.series.length) {
+                    ark_chart.series[0].remove();
+                }
+                ark_chart.xAxis[0].setCategories(response.categories, false);
+
+                for (let i of response.data) {
+                    ark_chart.addSeries(i)
+                }
+
+                $('#loader_ark').addClass('d-none');
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $('#loader_ark').addClass('d-none');
+                alert(gettext('發生未知錯誤！請聯絡管理員'))
+                console.log('Error: ' + errorThrown + 'Status: ' + xhr.status)
+            })
+        })
+
+        // 起始狀態
+        $('select[name=ark-stat-year]').trigger('change')
+
+
+
+
     }
 
     $(".mb_fixed_btn").on("click", function (event) {
@@ -1337,3 +1420,63 @@ function generateCategoryInfo(category, points, chart) {
     return html;
 
 }
+
+// // 產生右側目錄（TOC）── 獨立執行，不受其他 ready 影響
+// (function () {
+//     function initToc() {
+//         const $tocList = $('#toc');
+//         if ($tocList.length === 0) return;
+
+//         let idCounter = 1;
+
+//         $('.rightbox_content.dashboard .item .box-title').each(function () {
+//             const $bt = $(this);
+
+//             const $clone = $bt.clone();
+//             $clone.children().remove();
+//             const text = $clone.text().trim();
+//             if (!text) return; // 跳過空標題（如 no-dottt）
+
+//             const id = 'section-' + idCounter++;
+//             $bt.attr('id', id);
+
+//             const $a = $('<a href="#"></a>')
+//                 .addClass('s-title')
+//                 .append($('<h3></h3>').text(text))
+//                 .on('click', function (e) {
+//                     e.preventDefault();
+//                     let offset = 105;
+//                     const w = $(window).width();
+//                     if (w <= 999) offset = 65;
+//                     else if (w <= 1599) offset = 85;
+//                     $('html, body').animate({
+//                         scrollTop: $('#' + id).offset().top - offset
+//                     }, 400);
+//                 });
+
+//             $tocList.append($('<li></li>').append($a));
+//         });
+
+//         if ($tocList.children().length === 0) {
+//             $('.right-directory').remove();
+//             return;
+//         }
+
+//         $('.mb-cbtn').on('click', function () {
+//             $(this).toggleClass('active');
+//             $('.right-directory ul').slideToggle();
+//         });
+
+//         $(window).on('resize', function () {
+//             if ($(window).width() > 767) {
+//                 $('.right-directory ul').show();
+//             } else if (!$('.mb-cbtn').hasClass('active')) {
+//                 $('.right-directory ul').hide();
+//             }
+//         }).trigger('resize');
+//     }
+
+//     // script 標籤在 body 尾端，DOM 通常已就緒 → 直接執行；否則等 DOMContentLoaded
+//     if (document.readyState !== 'loading') initToc();
+//     else document.addEventListener('DOMContentLoaded', initToc);
+// })();

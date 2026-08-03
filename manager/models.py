@@ -96,11 +96,15 @@ class User(AbstractUser):
 
 class SearchStat(models.Model):
     location_choice = [
-        ('full', '全站搜尋'),
-        ('occ', '物種出現紀錄進階搜尋'),
-        ('col', '自然史典藏進階搜尋'),
-        ('api_occ', '物種出現紀錄API'),
-    ]
+            ('full', '全站搜尋'),
+            ('occ', '物種出現紀錄進階搜尋'),
+            ('col', '自然史典藏進階搜尋'),
+            ('api_occ', '物種出現紀錄API'),
+            ('api_map', '地圖API'),
+            ('api_dataset', '資料集API'),
+            ('dataset', '資料集搜尋'),
+        ]
+
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     query = models.TextField(null=True, blank=True)
     stat = models.JSONField(null=True, blank=True)
@@ -111,7 +115,8 @@ class SearchStat(models.Model):
 class SearchCount(models.Model):
     location_choice = [
         ('api_occ', '物種出現紀錄API'),
-        ('dataset', '資料集API'),
+        ('api_dataset', '資料集API'),
+        ('api_map', '地圖API'),
     ]
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     count = models.IntegerField(default=0)
@@ -243,6 +248,7 @@ class DataStat(models.Model):
         ('search_times', '累積被查詢次數'),
         ('download_times', '累積被下載次數'),
         ('sensitive', '累積敏感資料被下載筆數'),
+        ('ark', 'ARK申請次數'),
     ]
     type = models.CharField(choices=type_choice,max_length=20, blank=True, db_index=True)
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True) # 後台group

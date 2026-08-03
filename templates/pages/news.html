@@ -64,13 +64,16 @@
             <div class="date_select">
                 <p>{% trans '篩選' %}</p>
                 <div class="input_item">
-                    <input name="start_date" id="start_date" type="text" value='{% now "Y-m-d" %}' />
+                    <input name="start_date" id="start_date" type="text" value='' placeholder="YYYY-MM-DD"/>
                     <a class="dateicon show_start"></a>
                 </div>
                 <span>~</span>
                 <div class="input_item">
-                    <input name="end_date" id="end_date" type="text" value='{% now "Y-m-d" %}' />
+                    <input name="end_date" id="end_date" type="text" value='' placeholder="YYYY-MM-DD"/>
                     <a class="dateicon show_end"></a>
+                </div>
+                <div class="input_item keyword_item">
+                    <input name="keyword" id="keyword" type="text" placeholder="{% trans '搜尋標題關鍵字' %}" />
                 </div>
                 <button class="search_btn">{% trans '送出' %}</button>
             </div>
