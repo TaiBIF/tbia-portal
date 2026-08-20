@@ -53,7 +53,7 @@ services:
     container_name: nginx-portal
     restart: always
     volumes:
-      - ./scripts/nginx/stag/stag.conf:/etc/nginx/conf.d/default.conf
+      - ./scripts/nginx/portal.conf:/etc/nginx/conf.d/default.conf
       - ./scripts/nginx/nginx-entrypoint.sh:/nginx-entrypoint.sh
       - ../tbia-volumes/static:/tbia-volumes/static
       - ../tbia-volumes/media:/tbia-volumes/media
