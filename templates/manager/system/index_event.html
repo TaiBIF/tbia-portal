@@ -7,12 +7,6 @@
 {% block style %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/manager/system_keyword.css' %}" />
 {% endblock style %}
-{% block head %}
-    <script src="/static/highcharts/highcharts.js"></script>
-    <script src="/static/highcharts/modules/exporting.js"></script>
-    <script src="/static/highcharts/modules/export-data.js"></script>
-    <script src="/static/highcharts/modules/accessibility.js"></script>
-{% endblock head %}
 {% block body %}
     <div class="path">
         <div class="main_1240">
@@ -25,13 +19,8 @@
         <div class="two_cont_area">
             {% if user.is_system_admin %}
                 <div class="left_menu mbmove">
-                    <!--手機用的按鈕-->
                     <div class="mb_fixed_btn">
-                        <p>
-                            展
-                            <br>
-                            開
-                        </p>
+                        <p>展<br>開</p>
                         <span>關閉</span>
                     </div>
                     <div class="mb_scroll">
@@ -88,14 +77,14 @@
                                     <a href="{% url 'system_qa' %}?menu=qa">QA列表</a>
                                 </div>
                             </li>
-                            <li class="now">
-                                <a class="big_link rd_click">
+                            <li>
+                                <a class="big_link rd_click" href="{% url 'system_keyword' %}">
                                     <p>全站搜尋推薦關鍵字設定</p>
                                     <div class="arr"></div>
                                 </a>
                             </li>
-                            <li>
-                                <a href="{% url 'system_index_event' %}" class="big_link rd_click">
+                            <li class="now">
+                                <a class="big_link rd_click">
                                     <p>首頁連結文字設定</p>
                                     <div class="arr"></div>
                                 </a>
@@ -107,32 +96,32 @@
                     <div class="item">
                         <div class="box-title">
                             <div class="dottt"></div>
-                            全站搜尋推薦關鍵字設定
+                            首頁連結文字設定
                         </div>
                         <ul class="edit-list">
-                            <form id="keywordForm">
+                            <form id="indexEventForm">
                                 {% csrf_token %}
-                                {% for k in keywords %}
-                                    <li>中文關鍵字{{ forloop.counter }}</li>
-                                    <li>
-                                        <input type="text" name="keyword_{{ forloop.counter }}" value="{{ k }}">
-                                        <div class="noticbox d-none">
-                                            <p>必填欄位</p>
-                                        </div>
-                                    </li>
-                                {% endfor %}
-                                {% for k in keywords_en %}
-                                    <li>英文關鍵字{{ forloop.counter }}</li>
-                                    <li>
-                                        <input type="text" name="keyword_en_{{ forloop.counter }}" value="{{ k }}">
-                                        <div class="noticbox d-none">
-                                            <p>必填欄位</p>
-                                        </div>
-                                    </li>
-                                {% endfor %}
+                                <li>中文顯示文字</li>
+                                <li>
+                                    <input type="text" name="text_zh" value="{{ text_zh }}">
+                                    <div class="noticbox d-none"><p>必填欄位</p></div>
+                                </li>
+                                <li>中文連結網址</li>
+                                <li>
+                                    <input type="text" name="url_zh" value="{{ url_zh }}">
+                                    <div class="noticbox d-none"><p>必填欄位</p></div>
+                                </li>
+                                <li>英文顯示文字(留空則前台顯示中文)</li>
+                                <li>
+                                    <input type="text" name="text_en" value="{{ text_en }}">
+                                </li>
+                                <li>英文連結網址(留空則前台顯示中文)</li>
+                                <li>
+                                    <input type="text" name="url_en" value="{{ url_en }}">
+                                </li>
                             </form>
                             <li>
-                                <button class="read_btn updateKeyword">確認修改</button>
+                                <button class="read_btn updateIndexEvent">確認修改</button>
                             </li>
                         </ul>
                     </div>
@@ -145,5 +134,5 @@
 </div>
 {% endblock %}
 {% block script %}
-    <script src="{% static 'js/manager/system_keyword.js' %}"></script>
+    <script src="{% static 'js/manager/system_index_event.js' %}"></script>
 {% endblock script %}

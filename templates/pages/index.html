@@ -140,14 +140,16 @@
             <div class="bird">
               <div class="rel">
                 <div class="img"></div>
-                <a href="/datagap" class="event-message">
-                  <div class="rel">
-                    <p>誰是填補資料空缺的隱形英雄？一起探索生物的未知篇章！ ></p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="29.635" height="30.767" viewBox="0 0 29.635 30.767">
-                      <path id="Path_22130" data-name="Path 22130" d="M10.287,1.034a2.021,2.021,0,0,1,3.527,0L23.841,18.957a2.021,2.021,0,0,1-1.763,3.007H2.024A2.021,2.021,0,0,1,.26,18.957Z" transform="matrix(-0.391, -0.921, 0.921, -0.391, 9.417, 30.767)" fill="#c65454" />
-                    </svg>
-                  </div>
-                </a>
+                {% if index_event.url and index_event.text %}
+                    <a href="{{ index_event.url }}" class="event-message">
+                      <div class="rel">
+                        <p>{{ index_event.text }}</p>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="29.635" height="30.767" viewBox="0 0 29.635 30.767">
+                          <path id="Path_22130" data-name="Path 22130" d="M10.287,1.034a2.021,2.021,0,0,1,3.527,0L23.841,18.957a2.021,2.021,0,0,1-1.763,3.007H2.024A2.021,2.021,0,0,1,.26,18.957Z" transform="matrix(-0.391, -0.921, 0.921, -0.391, 9.417, 30.767)" fill="#c65454" />
+                        </svg>
+                      </div>
+                    </a>
+                {% endif %}
               </div>
             </div>
             <div class="icon_area index-search-box" data-href="{% url 'search_occurrence' %}">

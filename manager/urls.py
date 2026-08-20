@@ -88,4 +88,7 @@ urlpatterns = [
     # 敏感資料成果提交
     path('submit_sensitive_report', views.submit_sensitive_report, name='submit_sensitive_report'),
     path('download_applicant_sensitive_report', views.download_applicant_sensitive_report, name='download_applicant_sensitive_report'),
+    # 首頁連結文字管理
+    path('manager/system/index_event', views.system_index_event, name='system_index_event'),
+    path('update_index_event', views.update_index_event, name='update_index_event'),
 ]

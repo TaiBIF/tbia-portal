@@ -34,7 +34,7 @@ from ckeditor.fields import RichTextField
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from manager.models import *
-from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link
+from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
 
 quality_map = {
     3: '金',
@@ -3330,3 +3330,31 @@ def sensitive_apply_info(request, query_id):
                                                                   'detail': detail, 'review': review, 'partners': partners, 'has_partial_transferred': has_partial_transferred,
                                                                   'already_transfer_partners': already_transfer_partners, 'comment': comment, 'view_only': view_only,
                                                                   'is_transferred': is_transferred, 'from_system': from_system, 'sdr_id': sdr_id})
+
+
+def system_index_event(request):
+    if not request.user.is_system_admin:
+        return render(request, 'manager/system/index_event.html')  # 模板內已處理權限不足
+    context = {
+        'text_zh': SiteSetting.get_value('index_event_text', 'zh-hant'),
+        'url_zh': SiteSetting.get_value('index_event_url', 'zh-hant'),
+        'text_en': SiteSetting.objects.filter(key='index_event_text', lang='en-us').values_list('value', flat=True).first() or '',
+        'url_en': SiteSetting.objects.filter(key='index_event_url', lang='en-us').values_list('value', flat=True).first() or '',
+    }
+    return render(request, 'manager/system/index_event.html', context)
+
+
+def update_index_event(request):
+    if request.method == 'POST':
+        mapping = {
+            'zh-hant': ('index_event_text', 'index_event_url', 'text_zh', 'url_zh'),
+            'en-us':   ('index_event_text', 'index_event_url', 'text_en', 'url_en'),
+        }
+        for lang, (text_key, url_key, text_field, url_field) in mapping.items():
+            SiteSetting.objects.update_or_create(
+                key=text_key, lang=lang,
+                defaults={'value': request.POST.get(text_field, '')})
+            SiteSetting.objects.update_or_create(
+                key=url_key, lang=lang,
+                defaults={'value': request.POST.get(url_field, '')})
+        return JsonResponse({"status": 'success'}, safe=False)

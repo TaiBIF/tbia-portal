@@ -18,6 +18,24 @@ class Keyword(models.Model):
         db_table = 'keyword'
 
 
+class SiteSetting(models.Model):
+    key = models.CharField(max_length=100)
+    lang = models.CharField(max_length=10)
+    value = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('key', 'lang')
+
+    @classmethod
+    def get_value(cls, key, lang=None):
+        """取指定語系的值,沒有(或為空)則 fallback 到 zh-hant"""
+        if lang:
+            val = cls.objects.filter(key=key, lang=lang).values_list('value', flat=True).first()
+            if val:
+                return val
+        return cls.objects.filter(key=key, lang='zh-hant').values_list('value', flat=True).first() or ''
+
+
 class News(models.Model):
     type_choice = [
         ('news', '新聞公告'),
