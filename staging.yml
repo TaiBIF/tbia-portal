@@ -65,13 +65,13 @@ services:
       - gateway
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx-portal.rule=Host(`dev.tbiadata.tw`)"
+      - "traefik.http.routers.nginx-portal.rule=Host(`${PORTAL_HOST}`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
       - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
 
       # == 限流 router: 限制所有 /api 的路徑 ==
-      - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`dev.tbiadata.tw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`${PORTAL_HOST}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.nginx-portal-api-limit.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal-api-limit.tls.certresolver=myresolver"
       - "traefik.http.routers.nginx-portal-api-limit.middlewares=ratelimit-api"
