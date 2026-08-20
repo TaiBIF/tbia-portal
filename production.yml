@@ -66,18 +66,26 @@ services:
       - gateway
     labels:
       - "traefik.enable=true"
+
+      # 整站 per-IP 限流
+      - "traefik.http.middlewares.ratelimit-all.ratelimit.average=80"
+      - "traefik.http.middlewares.ratelimit-all.ratelimit.burst=160"
+      - "traefik.http.middlewares.ratelimit-all.ratelimit.period=1s"
+      # 全站並發總量天花板
+      - "traefik.http.middlewares.inflight-all.inflightreq.amount=250"
+
+      # 主 router(唯一一組)
       - "traefik.http.routers.nginx-portal.rule=Host(`${PORTAL_HOST}`)"
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.nginx-portal.middlewares=ratelimit-all,inflight-all"
 
-      # == 限流 router: 限制所有 /api 的路徑 ==
+      # /api 更嚴格
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.average=30"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=60"
+      - "traefik.http.middlewares.ratelimit-api.ratelimit.period=1s"
       - "traefik.http.routers.nginx-portal-api-limit.rule=Host(`${PORTAL_HOST}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.nginx-portal-api-limit.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal-api-limit.tls.certresolver=myresolver"
-      - "traefik.http.routers.nginx-portal-api-limit.middlewares=ratelimit-api"
-      - "traefik.http.routers.nginx-api-nolimit.service=nginx-portal"
-
-      # == rate limit middleware 設定 ==
-      - "traefik.http.middlewares.ratelimit-api.ratelimit.average=8"
-      - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=10"
+      - "traefik.http.routers.nginx-portal-api-limit.middlewares=ratelimit-api,inflight-all"
+      - "traefik.http.routers.nginx-portal-api-limit.service=nginx-portal"
