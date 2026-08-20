@@ -230,9 +230,7 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20*1024*1024
 
-
-CSRF_TRUSTED_ORIGINS = ['https://dev.tbiadata.tw','https://tbiadata.tw']
-
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
 
 from csp.constants import SELF
 
