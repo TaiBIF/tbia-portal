@@ -78,7 +78,9 @@ services:
       - "traefik.http.routers.nginx-portal.entrypoints=websecure"
       - "traefik.http.routers.nginx-portal.tls.certresolver=myresolver"
       - "traefik.http.routers.nginx-portal.middlewares=ratelimit-all,inflight-all"
-
+      # 明確定義 service(讓 api-limit router 找得到)
+      - "traefik.http.services.nginx-portal.loadbalancer.server.port=80"
+      
       # /api 更嚴格
       - "traefik.http.middlewares.ratelimit-api.ratelimit.average=30"
       - "traefik.http.middlewares.ratelimit-api.ratelimit.burst=60"
