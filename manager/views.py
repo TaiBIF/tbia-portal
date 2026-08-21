@@ -30,7 +30,6 @@ from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
 from conf.utils import scheme
-from ckeditor.fields import RichTextField
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from manager.models import *
@@ -86,7 +85,6 @@ taxon_group_color_map = {
 
 
 class NewsForm(forms.ModelForm):
-    content = RichTextField()
     class Meta:
         model = News
         fields = (
@@ -95,7 +93,6 @@ class NewsForm(forms.ModelForm):
 
 
 class LinkForm(forms.ModelForm):
-    content = RichTextField()
     class Meta:
         model  = Link
         fields = ('content',)

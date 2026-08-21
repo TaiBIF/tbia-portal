@@ -53,8 +53,6 @@ INSTALLED_APPS = [
     'manager',
     'data',
     'api',
-    'ckeditor',
-    'ckeditor_uploader',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -223,9 +221,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 EMAIL_BACKEND = 'django_ses.SESBackend'
 AWS_SES_REGION_NAME = env('AWS_SES_REGION_NAME', default='')
 AWS_SES_REGION_ENDPOINT = env('AWS_SES_REGION_ENDPOINT', default='')
-
-
-CKEDITOR_UPLOAD_PATH = "uploads/"
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20*1024*1024

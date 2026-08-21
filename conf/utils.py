@@ -1,7 +1,4 @@
-# CKEDITOR filename generation
-
-def get_filename(filename, request):
-    return filename.upper()
+from conf.settings import env
 
 notif_map = {
     0: '/manager?menu=download_taxon',
@@ -11,8 +8,6 @@ notif_map = {
     7: '/manager/system/news?menu=news_apply',
     8: '/manager/partner/news?menu=news'
   }
-
-from conf.settings import env
 
 web_mode = env('ENV')
 if web_mode == 'stag':

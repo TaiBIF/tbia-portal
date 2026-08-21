@@ -1,8 +1,6 @@
 from django.db import models
 from django.db.models.fields import TextField
 from manager.models import User, Partner
-from ckeditor.fields import RichTextField
-from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Keyword(models.Model):
@@ -61,7 +59,7 @@ class News(models.Model):
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
     title = models.CharField(max_length=1000, blank=True, null=True)
-    content = RichTextField(blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
     created = models.DateTimeField(auto_now_add=True)
@@ -73,7 +71,7 @@ class News(models.Model):
 
 
 class Link(models.Model): # 推薦連結
-    content = RichTextUploadingField(blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
     class Meta:

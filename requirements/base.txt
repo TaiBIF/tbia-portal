@@ -2,7 +2,6 @@ Django==5.2.14
 django-allauth[socialaccount]==65.16.0
 django-csp==4.0
 django-cors-headers==4.7.0
-django-ckeditor==6.7.3
 django-environ==0.13.0
 django-ses==4.4.0
 psycopg[binary]==3.2.3
