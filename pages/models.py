@@ -1,8 +1,6 @@
 from django.db import models
 from django.db.models.fields import TextField
 from manager.models import User, Partner
-from ckeditor.fields import RichTextField
-from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Keyword(models.Model):
@@ -16,6 +14,24 @@ class Keyword(models.Model):
     modified = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'keyword'
+
+
+class SiteSetting(models.Model):
+    key = models.CharField(max_length=100)
+    lang = models.CharField(max_length=10)
+    value = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('key', 'lang')
+
+    @classmethod
+    def get_value(cls, key, lang=None):
+        """取指定語系的值,沒有(或為空)則 fallback 到 zh-hant"""
+        if lang:
+            val = cls.objects.filter(key=key, lang=lang).values_list('value', flat=True).first()
+            if val:
+                return val
+        return cls.objects.filter(key=key, lang='zh-hant').values_list('value', flat=True).first() or ''
 
 
 class News(models.Model):
@@ -43,7 +59,7 @@ class News(models.Model):
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True)
     author_use_tbia = models.BooleanField(default=False, null=True, blank=True) # 夥伴單位發布 但作者顯示TBIA秘書處
     title = models.CharField(max_length=1000, blank=True, null=True)
-    content = RichTextField(blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
     image = models.TextField( blank=True, null=True)
     status = models.CharField(choices=status_choice, max_length=20, blank=True) # pending, pass, fail, withdraw
     created = models.DateTimeField(auto_now_add=True)
@@ -55,7 +71,7 @@ class News(models.Model):
 
 
 class Link(models.Model): # 推薦連結
-    content = RichTextUploadingField(blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now_add=True)
     class Meta:

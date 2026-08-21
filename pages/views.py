@@ -345,9 +345,14 @@ def index(request):
         news_list.append({'id': n.id,'image':n.image,'color':n.color, 
                             'type_c':n.type_c,'publish_date':n.publish_date,'title':n.title})
 
+        lang = get_language()
+        index_event = {
+            'text': SiteSetting.get_value('index_event_text', lang),
+            'url': SiteSetting.get_value('index_event_url', lang),
+        }
 
     return render(request, 'pages/index.html', {'resource': resource_rows, 'keywords': keywords, 'count_occurrence': count_occurrence, 
-                                                'count_collection': count_collection, 'news_list': news_list})
+                                                'count_collection': count_collection, 'news_list': news_list, 'index_event': index_event})
 
 
 def get_resource_list(request):
