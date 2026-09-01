@@ -1124,12 +1124,13 @@ function changeAction() {
                             }
                         }
                     } else if (urlParams.get('geo_type') == 'polygon') {
-                        if (urlParams.get('geojson_id') != '') {
+                        let geojsonId = urlParams.get('geojson_id')
+                        if (geojsonId != '') {
 
-                            fetch(`/media/geojson/${value}.json`).then((res) => {
+                            fetch(`/media/geojson/${geojsonId}.json`).then((res) => {
                                 if (res.ok) {
-                                    $('#geojson_textarea').val(JSON.stringify(res.json()))
-                                    $.getJSON(`/media/geojson/${value}.json`, function (ret) {
+                                    $.getJSON(`/media/geojson/${geojsonId}.json`, function (ret) {
+                                        $('#geojson_textarea').val(JSON.stringify(ret))
                                         let geoJSON = L.geoJSON(ret, { className: 'addG' }).addTo(map);
                                         map.fitBounds(geoJSON.getBounds());
                                     });
@@ -1395,7 +1396,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     }
                 }
             } else if ($('.btnupload p.active').data('type') == 'polygon') {
-                if ($('.addG').length > 0) {
+                if ($('#searchForm input[name=geojson_id]').val()) {
                     map_condition = '&' + $.param({ 'geo_type': $('.btnupload p.active').data('type') })
                 } else {
                     $('.btnupload p.active').removeClass('active')
