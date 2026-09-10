@@ -502,6 +502,7 @@ def get_ark_list(request):
 
     for x in query_obj[offset:offset+limit]:
         created = x.created + timedelta(hours=8)
+        tags = []
 
         if type == 'news':
             url = f"{scheme}://{request.get_host()}/news/detail/{x.model_id}"
@@ -530,12 +531,12 @@ def get_ark_list(request):
                     url = doc_url_val
                 else:
                     url = ''
-                
-                # 用版本號 + 檔案標記區分同名 resource 的不同 ARK
-                suffix_parts = [version_label]
+                                
+                # 版本號 + 檔案標記改以 tag 呈現，與標題分開
+                title = resource.title
+                tags = [version_label]
                 if parsed['is_file']:
-                    suffix_parts.append('檔案')
-                title = f'{resource.title} ({" / ".join(suffix_parts)})'
+                    tags.append(gettext('檔案'))
         else:
             # 下載資料
             url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{x.ark}.zip"
@@ -546,6 +547,7 @@ def get_ark_list(request):
             'ark': f'ark:/{env("ARK_NAAN")}/{x.ark}',
             'url':url,
             'title': title,
+            'tags': tags,
             'created': created.strftime("%Y-%m-%d"),
         })
 

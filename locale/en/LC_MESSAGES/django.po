@@ -3753,3 +3753,6 @@ msgstr "Search by title"
 
 msgid "搜尋關鍵字"
 msgstr "Search keywords"
+
+msgid "檔案"
+msgstr "file"
