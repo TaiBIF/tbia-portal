@@ -80,10 +80,10 @@
             <ul class="part_list">
                 {% for p in index_partners %}
                     <li>
-                        <a href="{% url 'partner' p.abbreviation %}" class="cirimg">
+                        <a {% if p.has_detail_page %} href="{% url 'partner' p.abbreviation %}" {% endif %} class="cirimg">
                             <img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
                         </a>
-                        <a href="{% url 'partner' p.abbreviation %}" class="titleline">
+                        <a {% if p.has_detail_page %} href="{% url 'partner' p.abbreviation %}" {% endif %} class="titleline">
                             {% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
                                 {{ p.title_en }}
                             {% else %}
@@ -104,10 +104,10 @@
                 <ul class="part_list">
                     {% for p in index_collaborates %}
                         <li>
-                            <a href="{% url 'collaboration' p.abbreviation %}" class="cirimg">
+                            <a {% if p.has_detail_page %} href="{% url 'collaboration' p.abbreviation %}" {% endif %} class="cirimg">
                                 <img src="/static/image/partner/{{ p.logo }}" alt="{{ p.title }}" width="150px">
                             </a>
-                            <a href="{% url 'collaboration' p.abbreviation %}" class="titleline">
+                            <a {% if p.has_detail_page %} href="{% url 'collaboration' p.abbreviation %}" {% endif %} class="titleline">
                                 {% if LANGUAGE_CODE == 'en-us' and p.title_en != None %}
                                     {{ p.title_en }}
                                 {% else %}

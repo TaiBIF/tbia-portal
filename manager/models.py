@@ -55,6 +55,7 @@ class Partner(models.Model):
     # 正式會員顯示順序: brcas 1, forest 2, tbri 3, tfri 4, oca 5, nps 6, ntm 7, wra 8
     # 合作夥伴顯示順序: 
     is_collaboration = models.BooleanField(default=False) # 是否為合作夥伴
+    has_detail_page = models.BooleanField(default=True) # 是否有獨立頁面
 
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)

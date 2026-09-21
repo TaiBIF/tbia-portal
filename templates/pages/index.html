@@ -405,7 +405,7 @@
         <ul class="index_partner">
           {% for p in index_partners %}
             <li>
-              <a href="{% url 'partner' p.abbreviation %}">
+              <a {% if p.has_detail_page %} href="{% url 'partner' p.abbreviation %}" {% endif %}>
                 <div class="imgbox">
                   <img loading="lazy" src="/static/image/partner/{{ p.logo }}" />
                 </div>
@@ -422,7 +422,7 @@
           <ul class="index_partner">
             {% for p in index_collaborates %}
               <li>
-                <a href="{% url 'partner' p.abbreviation %}">
+                <a {% if p.has_detail_page %} href="{% url 'partner' p.abbreviation %}" {% endif %} >
                   <div class="imgbox">
                     <img loading="lazy" src="/static/image/partner/{{ p.logo }}" />
                   </div>
