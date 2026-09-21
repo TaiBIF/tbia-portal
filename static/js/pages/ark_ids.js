@@ -87,10 +87,17 @@ function updateArk(type, page) {
       if (response.rows.length > 0) {
         for (let i = 0; i < response.rows.length; i++) {
 
+          let tagsHtml = '';
+          if (response.rows[i].tags && response.rows[i].tags.length) {
+            tagsHtml = response.rows[i].tags
+              .map(t => `<span class="ark-tag">${t}</span>`)
+              .join('');
+          }
+
           $('.ark_table').append(
             `<tr>
                 <td><a href="${response.rows[i].ark_href}" target="_blank">${response.rows[i].ark}</a></td>
-                <td><a href="${response.rows[i].url}" target="_blank">${response.rows[i].title}</a></td>
+                <td><a href="${response.rows[i].url}" target="_blank">${response.rows[i].title}</a>${tagsHtml}</td>
                 <td>${response.rows[i].created}</td>
               </tr>`
           )

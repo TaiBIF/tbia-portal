@@ -226,3 +226,17 @@
 .already_selected ul li p {
     color: #FFF
 }
+
+.ark-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #3B8D70;
+    background: #EAF3EC;
+    border: 1px solid #C5DEC9;
+    border-radius: 10px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
