@@ -162,7 +162,7 @@
                         <div class="w-50p">
                             <div class="box-title">
                                 <div class="dottt"></div>
-                                TaiCOL 學名對應狀況
+                                TaiCOL 學名比對狀況
                             </div>
                             <figure class="highcharts-figure h-300px">
                                 <div class="loader_partner_stat loading_area_partial d-none">
@@ -179,6 +179,7 @@
                             </p>
                         </div>
                     </div>
+                    {% include 'manager/_match_panel.html' with group=user.partner.group %}
                     <hr>
                     <div class="item d-flex-jc-sb">
                         <div class="w-66p">

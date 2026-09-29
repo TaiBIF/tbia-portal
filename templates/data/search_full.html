@@ -15,6 +15,8 @@
   <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
   <script src="/static/fontawesome-free-6.2.1/js/brands.min.js" data-auto-add-css="false"></script>
   <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+  <link rel="stylesheet" href="/static/tom-select/tom-select.css" />
+  <script src="/static/tom-select/tom-select.complete.min.js"></script>
 {% endblock head %}
 {% block style %}
   <link rel="stylesheet" type="text/css" href="{% static 'css/data/search_full.css' %}" />
@@ -106,6 +108,31 @@
       </div>
     </div>
   </div>
+
+
+  <!-- 階層篩選模板（主區塊與子頁籤共用） -->
+  <template id="taxon-rank-filter-tpl">
+    <div class="filter-item">
+      <p class="title">{% trans '分類階層' %}</p>
+      <div class="right-select">
+        <svg class="arr" xmlns="http://www.w3.org/2000/svg" width="17.053" height="9.187" viewBox="0 0 17.053 9.187">
+          <g transform="translate(17.053) rotate(90)">
+            <path d="M8.995,8.059,1.12.184a.656.656,0,0,0-.928.928L7.6,8.523.192,15.933a.656.656,0,0,0,.928.928L8.995,8.987A.656.656,0,0,0,8.995,8.059Z" fill="#3f5146"/>
+          </g>
+        </svg>
+        <select class="taxon-rank-select">
+          <option value="" selected>{% trans '全部階層' %}</option>
+          {% for g_key, g_label, subs in rank_groups %}
+            <option value="{{ g_key }}" data-title="1">{% trans g_label %}</option>
+            {% for r_key, r_label in subs %}
+              <option value="{{ r_key }}">{% trans r_label %}</option>
+            {% endfor %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </template>
+
   <div class="path">
     <div class="main_1240">
       <a href="{% url 'index' %}" class="home"></a> <span>></span>
@@ -164,7 +191,7 @@
           <span>{% trans '關閉' %}</span>
         </div>
         <div class="mb_scroll">
-          <ul class="item_list">
+                   <ul class="item_list">
             <li class="now li-all">
               <a class="big_link rd_click focusComponent" data-item_class="all" data-go_back="false">
                 <p>{% trans '所有結果' %}</p>
@@ -174,7 +201,7 @@
             <li class="li-item_spe">
               <div class="big_link">
                 <div class="maskfor_click rd_click"></div>
-                <p>{% trans '物種' %}</p>
+                <p>{% trans '物種' %}({{ taxon.count|intcomma:False }})</p>
                 <div class="arrd"></div>
               </div>
               <div class="spe_menu second_menu">
@@ -188,7 +215,7 @@
               <div class="big_link">
                 <div class="maskfor_click rd_click"></div>
                 <p>
-                  {% trans '物種出現紀錄' %}
+                  {% trans '物種出現紀錄' %}({{ occurrence.count|intcomma:False }})
                   <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=7" target="_blank" class="qusemark">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
                       <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
@@ -209,7 +236,7 @@
               <div class="big_link">
                 <div class="maskfor_click rd_click"></div>
                 <p>
-                  {% trans '⾃然史典藏' %}
+                  {% trans '⾃然史典藏' %}({{ collection.count|intcomma:False }})
                   <a href="/{{ LANGUAGE_CODE }}/qa?qa_id=8" target="_blank" class="qusemark">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
                       <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
@@ -228,43 +255,43 @@
             </li>
             <li class="li-item_news">
               <a class="big_link rd_click focusComponent" data-item_class="item_news" data-go_back="false">
-                <p>{% trans '新聞公告' %}</p>
+                <p>{% trans '新聞公告' %}({{ news.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_event">
               <a class="big_link rd_click focusComponent" data-item_class="item_event" data-go_back="false">
-                <p>{% trans '活動訊息' %}</p>
+                <p>{% trans '活動訊息' %}({{ event.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_project">
               <a class="big_link rd_click focusComponent" data-item_class="item_project" data-go_back="false">
-                <p>{% trans '徵求公告' %}</p>
+                <p>{% trans '徵求公告' %}({{ project.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_datathon">
               <a class="big_link rd_click focusComponent" data-item_class="item_datathon" data-go_back="false">
-                <p>{% trans '數據松成果' %}</p>
+                <p>{% trans '數據松成果' %}({{ datathon.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_themeyear">
               <a class="big_link rd_click focusComponent" data-item_class="item_themeyear" data-go_back="false">
-                <p>{% trans '主題年活動' %}</p>
+                <p>{% trans '主題年活動' %}({{ themeyear.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_qa">
               <a class="big_link rd_click focusComponent" data-item_class="item_qa" data-go_back="false">
-                <p>{% trans '常見Q&A' %}</p>
+                <p>{% trans '常見Q&A' %}({{ qa.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
             <li class="li-item_resource">
               <a class="big_link rd_click focusComponent" data-item_class="item_resource" data-go_back="false">
-                <p>{% trans '開放資料相關資源' %}</p>
+                <p>{% trans '開放資料相關資源' %}({{ resource.count|intcomma:False }})</p>
                 <div class="arr"></div>
               </a>
             </li>
@@ -278,15 +305,18 @@
         {% endif %} 
 
 
-          <!----- 所有結果 內容欄 ----->
+                    <!----- 所有結果 內容欄 ----->
           <div class="item item_spe"  id="item_spe">
             <div class="titlebox_line">
               <div class="title">
-                <p>{% trans '物種' %} ({{ taxon.count|intcomma:False }})</p>
+                <p>{% trans '物種' %} (<span class="taxon-count">{{ taxon.count|intcomma:False }}</span>)</p>
                 <div class="line"></div>
               </div>
             </div>
             {% if taxon.count > 0 %}
+              <!-- 階層篩選（由 JS 從 template 產生） -->
+              <div class="taxon-rank-filter" data-card_class=".taxon-card" data-offset_value="#taxon_offset" data-more_type=".taxon_more" data-is_sub="false"></div>
+
               <ul class="card_list_2 species_list taxon-card">
                 {% for i in taxon.card %}
                   <li>
@@ -350,15 +380,16 @@
                     </li>
                   {% endfor %}
                 </ul>
-                <!--超過4個才有更多按鈕-->
-                {% if taxon.more %}
-                  <a class="more taxon_more getMoreCards" data-card_class=".taxon-card" data-offset_value="#taxon_offset" data-more_type=".taxon_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                  <input type="hidden" id="taxon_offset" value="4">
-                  <div class="no_data taxon_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
-                {% endif %}
+
+                <!-- 階層篩選後無資料時顯示 -->
+                <div class="no_data taxon_filter_no_data d-none">{% trans '無資料' %}</div>
+
+                <!-- 更多結果：一律輸出，依 taxon.more 決定是否隱藏（篩選後由 JS 切換） -->
+                <a class="more taxon_more getMoreCards {% if not taxon.more %}d-none{% endif %}" data-card_class=".taxon-card" data-offset_value="#taxon_offset" data-more_type=".taxon_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                <input type="hidden" id="taxon_offset" value="4">
+                <div class="no_data taxon_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
               {% else %}
                <div class="no_data">{% trans '無資料' %}</div>
-
               {% endif %}
             </div>
 
@@ -402,7 +433,7 @@
                   {% if occurrence.more %}
                     <a class="more occ_more getMoreCards" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
                     <input type="hidden" id="occ_offset" value="9">
-                    <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                    <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
                   {% endif %}
               {% else %}
                <div class="no_data">{% trans '無資料' %}</div>
@@ -448,7 +479,7 @@
                 {% if collection.more %}
                   <a class="more col_more getMoreCards" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
                   <input type="hidden" id="col_offset" value="9">
-                  <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字' %}</div>
+                  <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
                 {% endif %}
               {% else %}
                 <div class="no_data">{% trans '無資料' %}</div>

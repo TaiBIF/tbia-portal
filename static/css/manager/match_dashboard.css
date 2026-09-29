@@ -1,0 +1,218 @@
+/* 內容區標題（沿用兩欄 shell：.two_cont_area > .left_menu + .rightbox_content） */
+.ms-content .ms-unit {
+    font-size: 21px;
+    font-weight: 650;
+    color: #191e1b;
+}
+
+.ms-content .ms-sub {
+    color: #5f6a64;
+    font-size: 13px;
+    margin: 2px 0 18px;
+    border-bottom: 1px solid #dfe4de;
+    padding-bottom: 14px;
+}
+
+/* 側邊欄的篩選項 */
+.left_menu .ms-filter {
+    padding: 10px 14px;
+}
+
+.left_menu .ms-filter label {
+    display: block;
+    font-size: 13px;
+    color: #5f6a64;
+    margin-bottom: 4px;
+}
+
+.left_menu .ms-filter select {
+    width: 100%;
+    padding: 6px 9px;
+    border: 1px solid #dfe4de;
+    border-radius: 3px;
+    font-size: 14px;
+    background: #fff;
+}
+
+/* KPI */
+.ms-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.ms-card {
+    background: #fff;
+    border: 1px solid #dfe4de;
+    border-radius: 4px;
+    padding: 18px;
+}
+
+.ms-kpi {
+    flex: 1;
+    min-width: 150px;
+}
+
+.ms-kpi .big {
+    font-size: 32px;
+    font-weight: 680;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: #191e1b;
+}
+
+.ms-kpi .lbl {
+    color: #5f6a64;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.ms-sec {
+    margin-top: 16px;
+}
+
+.ms-h {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: #191e1b;
+}
+
+/* 品質光譜 */
+.ms-stack {
+    display: flex;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #eef2ee;
+}
+
+.ms-stack span {
+    display: block;
+}
+
+.ms-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #191e1b;
+}
+
+.ms-legend .sw {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.ms-legend .n {
+    color: #5f6a64;
+    font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+}
+
+/* 未對到原因 */
+.ms-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 9px 0;
+}
+
+.ms-bar .nm {
+    width: 150px;
+    font-size: 14px;
+    text-align: right;
+    color: #191e1b;
+}
+
+.ms-track {
+    flex: 1;
+    background: #eef2ee;
+    border-radius: 2px;
+    height: 20px;
+}
+
+.ms-fill {
+    height: 100%;
+    border-radius: 2px;
+}
+
+.ms-bar .v {
+    width: 52px;
+    font-size: 13px;
+    color: #5f6a64;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 下載 */
+.ms-dl {
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 6px;
+    background: #2f6b5e;
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 550;
+}
+
+.ms-dl.alt {
+    background: #fff;
+    color: #2f6b5e;
+    border: 1px solid #2f6b5e;
+}
+
+.ms-empty {
+    color: #5f6a64;
+    padding: 30px 0;
+}
+
+/* 嵌入既有 rightbox_content 時的面板容器與工具列 */
+.ms-panel {
+    padding: 4px 0 20px;
+}
+
+.ms-panel .ms-unit {
+    font-size: 21px;
+    font-weight: 650;
+    color: #191e1b;
+}
+
+.ms-panel .ms-sub {
+    color: #5f6a64;
+    font-size: 13px;
+    margin: 2px 0 18px;
+    border-bottom: 1px solid #dfe4de;
+    padding-bottom: 14px;
+}
+
+.ms-toolbar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.ms-toolbar label {
+    font-size: 13px;
+    color: #5f6a64;
+    width: 45%;
+}
+
+.ms-toolbar select {
+    margin-left: 6px;
+    padding: 6px 9px;
+    border: 1px solid #dfe4de;
+    border-radius: 3px;
+    font-size: 14px;
+    background: #fff;
+    width: auto;
+}

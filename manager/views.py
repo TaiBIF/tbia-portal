@@ -28,7 +28,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
@@ -1648,7 +1648,7 @@ def manager_system(request):
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
                                                           'match_logs': match_logs, 'stat_year': stat_year, 'stat_month': stat_month,
                                                           'keyword_year': keyword_year, 'keyword_month': keyword_month, 'checklist_year': checklist_year,
-                                                          'holder_list': holder_list, 'data_year': data_year})
+                                                          'holder_list': holder_list, 'data_year': data_year, 'match_units': match_units(request.user)})
 
 
 def get_keyword_stat(request):
@@ -3355,3 +3355,92 @@ def update_index_event(request):
                 key=url_key, lang=lang,
                 defaults={'value': request.POST.get(url_field, '')})
         return JsonResponse({"status": 'success'}, safe=False)
+
+# 光譜（有對到）固定顯示順序：對到來源階層 → 較來源退階
+_SPECTRUM_ORDER = ["對到（來源階層）", "僅對到上階（較來源退階）"]
+ 
+ 
+def _allowed_groups(user):
+    """system admin 可看全部（回 None）；一般夥伴只能看自己單位的 group。"""
+    if user.is_anonymous:
+        return set()
+    if User.objects.filter(id=user.id, is_system_admin=True).exists():
+        return None
+    if getattr(user, 'partner', None):
+        return {user.partner.group}
+    return set()
+ 
+ 
+def match_units(user):
+    """system 頁下拉用的單位清單；一般夥伴只回自己。"""
+    if user.is_anonymous:
+        return []
+    if User.objects.filter(id=user.id, is_system_admin=True).exists():
+        return [{'group': p.group, 'name': (getattr(p, 'title', None) or p.group)}
+                for p in Partner.objects.all().order_by('group')]
+    if getattr(user, 'partner', None):
+        p = user.partner
+        return [{'group': p.group, 'name': (getattr(p, 'title', None) or p.group)}]
+    return []
+ 
+ 
+def get_match_stat(request):
+    """回傳單一單位某月的比對狀況（JSON），供儀表板前端繪製。"""
+    group = request.GET.get('group')
+    if not group:
+        return JsonResponse({'error': 'group required'}, status=400)
+ 
+    allowed = _allowed_groups(request.user)
+    if allowed is not None and group not in allowed:
+        return JsonResponse({'error': 'forbidden'}, status=403)
+ 
+    # 只列有資料的月份（該單位），最新在前
+    months = list(MatchStat.objects.filter(group=group)
+                  .values_list('year_month', flat=True).distinct().order_by('-year_month'))
+    year_month = request.GET.get('year_month') or (months[0] if months else '')
+ 
+    rows = list(MatchStat.objects.filter(group=group, year_month=year_month)
+                .values('axis', 'category', 'responsibility', 'records', 'unique_names'))
+    if not rows:
+        return JsonResponse({'group': group, 'year_month': year_month,
+                             'available_months': months, 'empty': True})
+ 
+    total = sum((r['records'] or 0) for r in rows) or 1
+    matched = sum((r['records'] or 0) for r in rows if r['axis'] == 'matched')
+    atrank = sum((r['records'] or 0) for r in rows if r['category'] == '對到（來源階層）')
+ 
+    def pct(n):
+        return round(n / total * 100, 1)
+ 
+    matched_rows = [r for r in rows if r['axis'] == 'matched']
+    matched_rows.sort(key=lambda r: _SPECTRUM_ORDER.index(r['category'])
+                      if r['category'] in _SPECTRUM_ORDER else 99)
+    spectrum = [{'label': r['category'], 'records': r['records'], 'pct': pct(r['records'] or 0)}
+                for r in matched_rows]
+ 
+    reasons = sorted(
+        ({'label': r['category'], 'records': r['records'],
+          'unique_names': r['unique_names'], 'responsibility': r['responsibility']}
+         for r in rows if r['axis'] == 'unmatched'),
+        key=lambda x: -(x['records'] or 0))
+ 
+    rights_holder = next((r for r in MatchStat.objects
+                          .filter(group=group, year_month=year_month)
+                          .values_list('rights_holder', flat=True)), group)
+ 
+    media = MEDIA_URL.rstrip('/')
+    base = f"{media}/match_report/{year_month}/{group}"
+ 
+    return JsonResponse({
+        'group': group, 'rights_holder': rights_holder, 'year_month': year_month,
+        'available_months': months,
+        'total': total, 'matched': matched,
+        'overall_rate': pct(matched), 'atrank_rate': pct(atrank),
+        'spectrum': spectrum, 'reasons': reasons,
+        'downloads': {
+            'partner': f"{base}/unmatched_partner.csv",
+            'taicol': f"{base}/for_taicol.csv",
+            'email': f"{base}/email.png",
+        },
+    })
+ 

@@ -232,6 +232,9 @@ msgstr "Search Collection"
 msgid "請輸入關鍵字"
 msgstr "Search"
 
+msgid "關鍵字全站搜尋"
+msgstr "Search"
+
 #: templates/base.html:384
 msgid "最近10筆通知"
 msgstr "Latest 10 notifications"
@@ -647,10 +650,10 @@ msgstr "See More"
 
 #: templates/data/search_full.html:334 templates/data/search_full.html:400
 #: templates/data/search_full.html:465
-msgid ""
-"符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更"
-"多或更符合的關鍵字"
-msgstr "The search results for the keyword are too numerous. This page displays only the first 30 results. It is recommended to use the advanced search feature to specify more relevant keywords."
+#: templates/data/search_full.html:334 templates/data/search_full.html:400
+#: templates/data/search_full.html:465
+msgid "符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href=\"/search/occurrence\">進階搜尋</a>功能指定更多或更符合的關鍵字"
+msgstr "The search results for the keyword are too numerous. This page displays only the first 30 results. It is recommended to use the <a href=\"/search/occurrence\">advanced search</a> feature to specify more relevant keywords."
 
 #: templates/manager/manager.html:29
 msgid "展<br>開"
@@ -1752,6 +1755,14 @@ msgid "其他"
 msgstr "Others"
 
 # 分類階層下拉選單
+#: 
+msgid "全部階層"
+msgstr "All ranks"
+
+#: 
+msgid "病毒域"
+msgstr "Realm"
+
 #: 
 msgid "界"
 msgstr "Kingdom"

@@ -316,3 +316,16 @@ class Ark(models.Model):
     type = models.CharField(max_length=20, blank=True) # news / data / resource
     ark = models.CharField(max_length=50, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+
+
+# 學名比對狀況統計（讀 datahub 產出的 snapshot.json，一列一個 單位×月×類別）
+class MatchStat(models.Model):
+    group = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
+    axis = models.CharField(max_length=20, blank=True, db_index=True)        # matched / unmatched
+    category = models.CharField(max_length=100, blank=True)                  # 對到（來源階層）...
+    responsibility = models.CharField(max_length=20, null=True, blank=True)  # partner/ours/both/review
+    records = models.IntegerField(null=True, blank=True)
+    unique_names = models.IntegerField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)

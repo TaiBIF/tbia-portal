@@ -1097,7 +1097,6 @@ def get_focus_cards_taxon(request):
         record_type = request.POST.get('record_type', '')
         key = request.POST.get('key', '')
         lang = request.POST.get('lang', 'zh-hant')
-
         response = get_search_full_cards_taxon(keyword=keyword, card_class=f"{record_type}-{key}-card", is_sub='true', 
                                                offset=0, lang=lang)
         return HttpResponse(json.dumps(response), content_type='application/json')
@@ -1110,8 +1109,10 @@ def get_more_cards_taxon(request):
         is_sub = request.POST.get('is_sub', '')
         offset = request.POST.get('offset', '')
         lang = request.POST.get('lang', 'zh-hant')
+        taxon_rank = request.POST.get('taxon_rank', '')
 
-        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, lang=lang)
+        response = get_search_full_cards_taxon(keyword=keyword, card_class=card_class, is_sub=is_sub,
+                                                offset=offset, lang=lang, taxon_rank=taxon_rank)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -2038,7 +2039,8 @@ def search_full(request):
         occurrence_more = occ_resp['has_more']
 
         # taxon
-        taxon_resp = get_search_full_cards_taxon(keyword=keyword, card_class=None, is_sub='false', offset=0)
+        taxon_resp = get_search_full_cards_taxon(keyword=keyword, card_class=None,
+                                                 is_sub='false', offset=0)
         taxon_rows = taxon_resp['menu_rows']
         c_taxon = taxon_resp['total_count']
         taxon_cards = taxon_resp['data']
@@ -2134,6 +2136,7 @@ def search_full(request):
 
         response = {
             'keyword': keyword,
+            'rank_groups': TAXON_RANK_GROUPS,
             'taxon': {'rows': taxon_rows, 'count': c_taxon, 'card': taxon_cards, 'more': taxon_more},
             'occurrence': {'rows': occurrence_rows, 'count': c_occurrence, 'card': occ_cards, 'more': occurrence_more},
             'collection': {'rows': collection_rows, 'count': c_collection, 'card': col_cards, 'more': collection_more},
@@ -2151,6 +2154,7 @@ def search_full(request):
     else:
         response = {
             'keyword': keyword,
+            'rank_groups': TAXON_RANK_GROUPS,
             'taxon': {'count': 0},
             'occurrence': {'count': 0},
             'collection': {'count': 0},

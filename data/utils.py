@@ -1157,6 +1157,24 @@ def create_search_query(req_dict, get_raw_map=False):
     return query_list
 
 
+def summarize_names(names, keyword, keyword_reg, limit=2, do_highlight=True):
+    """
+    names: 逗號分隔的名稱字串（可含 <i> 等 HTML 標籤）
+    最多顯示 limit 個，有對到關鍵字的優先，超過則加 '...'
+    """
+    if not names:
+        return names
+    regexp = re.compile(keyword_reg)
+    items = [n.strip() for n in names.split(',') if n.strip()]
+    # 去除 HTML 標籤再比對
+    matched = [n for n in items if regexp.search(re.sub(r'<[^>]+>', '', n))]
+    others = [n for n in items if n not in matched]
+    result = ', '.join((matched + others)[:limit])
+    if len(items) > limit:
+        result += '...'
+    return highlight(result, keyword, '1') if do_highlight else result
+
+
 # 全站搜尋 物種出現紀錄 / 自然史典藏
 def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False):
     if lang:
@@ -1413,9 +1431,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
             if mm.get('key') in ['synonyms', 'misapplied']:
                 if f"formatted_{mm.get('key')}" in taicol.keys():
                     new_value = taicol[taicol.taxonID==rr.get('taxonID')][f"formatted_{mm.get('key')}"].values[0]
-                    if new_value:
-                        new_value = (', ').join(new_value.split(','))
-                        new_value = highlight(new_value, keyword, 1)
+                    new_value = summarize_names(new_value, keyword, keyword_name_reg)
                     tmp_m.update({'matched_value': new_value})
             new_matches.append(tmp_m)
         rr.update({'matched': new_matches})
@@ -1436,7 +1452,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
 
 
 # 全站搜尋 物種
-def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
+def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, taxon_rank=''):
     if lang:
         translation.activate(lang)
 
@@ -1466,6 +1482,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         taxon_facet_list = {'facet': {k: v for k, v in taxon_facet_list['facet'].items() if k == key} }
 
     taxon_q = ''
+    rank_fq = get_taxon_rank_fq(taxon_rank)
 
     for i in taxon_facet_list['facet']:
         facet_taxon_query = f'({i}:/.*{keyword_name_reg}.*/) OR ({i}:/{keyword_name_reg}/{"^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""}) '
@@ -1477,6 +1494,8 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
 
     query = {}
     query['query'] = taxon_q
+    if rank_fq:
+        query['filter'] = [rank_fq]
     query['limit'] = 4 if offset < 28 else 2
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
@@ -1578,9 +1597,9 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
             if (is_sub == 'false') or (is_sub != 'false' and key == 'alternative_name_c') :
                 taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
         if 'synonyms' in taxon_result_df.keys():
-            if (is_sub == 'false') or (is_sub != 'false' and key == 'synonyms') :
-                taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: highlight(x,keyword,'1'))
-            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(lambda x: ', '.join(x.split(',')))
+            do_hl = (is_sub == 'false') or (key == 'synonyms')
+            taxon_result_df['synonyms'] = taxon_result_df['synonyms'].apply(
+                lambda x: summarize_names(x, keyword, keyword_name_reg, do_highlight=do_hl))
         if (is_sub == 'false') or (is_sub != 'false' and key == 'scientificName') :
             taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
         for required_cols in ['common_name_c', 'alternative_name_c', 'synonyms']:
@@ -1599,9 +1618,10 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None):
         tmp = []
         for ii in tr['matched']:
             match_val = ii['matched_value']
-            if ii['matched_col'] == '誤用名':
-                match_val = (', ').join(match_val.split(','))
-            match_val = highlight(match_val,keyword,'1')
+            if ii['matched_col'] == map_collection['misapplied']:
+                match_val = summarize_names(tr.get('formatted_misapplied') or match_val, keyword, keyword_name_reg)
+            else:
+                match_val = highlight(match_val, keyword, '1')
             tmp.append({'matched_col': ii['matched_col'], 'matched_value': match_val})
         tr['matched'] = tmp
         taxon_result_dict.append(tr)
@@ -2357,3 +2377,38 @@ def get_family_taxon_ids(taxon_ids):
             final_taxon_ids += taxon[k].to_list()
 
     return list(set(final_taxon_ids))
+
+# 階層篩選選項：(大標題 key, 大標題名稱, [(子階層 key, 名稱), ...])
+TAXON_RANK_GROUPS = [
+    ('species', '種', []),
+    ('sub', '種下', [('subspecies', '亞種'), ('variety', '變種'), ('form', '型'), ('subform', '亞型'),
+                   ('subvariety', '亞變種'), ('nothosubspecies', '雜交亞種'), ('nothovariety', '雜交變種'),
+                   ('special-form', '特別品型'), ('hybrid-formula', '雜交組合')]),
+    ('genus', '屬', [('subgenus', '亞屬'), ('section', '組|節'), ('subsection', '亞組|亞節')]),
+    ('family', '科', [('subfamily', '亞科'), ('tribe', '族'), ('subtribe', '亞族')]),
+    ('order', '目', [('suborder', '亞目'), ('infraorder', '下目'), ('superfamily', '超科|總科')]),
+    ('class', '綱', [('subclass', '亞綱'), ('infraclass', '下綱'), ('superorder', '超目|總目')]),
+    ('phylum', '門', [('subphylum', '亞門'), ('infraphylum', '下門'), ('microphylum', '微門'),
+                     ('parvphylum', '小門'), ('superclass', '超綱|總綱')]),
+    ('division', '部|類', [('subdivision', '亞部|亞類'), ('infradivision', '下部|下類'),
+                          ('parvdivision', '小部|小類'), ('superphylum', '超門|總門')]),
+    ('kingdom', '界', [('subkingdom', '亞界'), ('infrakingdom', '下界'), ('superdivision', '超部|總部')]),
+    ('domain', '域', [('superkingdom', '總界'), ('realm', '病毒域')]),
+]
+
+INFRASPECIES_RANKS = ['subspecies', 'nothosubspecies', 'variety', 'subvariety', 'nothovariety', 'form',
+                      'subform', '"special form"', 'race', 'stirp', 'morph', 'aberration']
+
+# key 與 Solr 內 taxonRank 值不同者
+RANK_SOLR_VALUE = {'special-form': '"special form"', 'hybrid-formula': '"hybrid formula"'}
+
+VALID_TAXON_RANKS = {g[0] for g in TAXON_RANK_GROUPS} | {r[0] for g in TAXON_RANK_GROUPS for r in g[2]}
+
+
+def get_taxon_rank_fq(taxon_rank):
+    """回傳 Solr 條件；空值或不在白名單內回傳 ''（= 不篩選）"""
+    if taxon_rank == 'sub':
+        return f'taxonRank:({" OR ".join(INFRASPECIES_RANKS)})'
+    if taxon_rank in VALID_TAXON_RANKS:
+        return f'taxonRank:{RANK_SOLR_VALUE.get(taxon_rank, taxon_rank)}'
+    return ''
