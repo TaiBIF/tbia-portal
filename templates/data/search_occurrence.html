@@ -143,6 +143,16 @@
                   </select>
                 </div>
                 <div class="input_item">
+                  <select id="habitat" name="habitat" multiple>
+                    <option value="is_terrestrial">{% trans "陸域" %}</option>
+                    <option value="is_freshwater">{% trans "淡水" %}</option>
+                    <option value="is_brackish">{% trans "半鹹水" %}</option>
+                    <option value="is_marine">{% trans "海洋" %}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="two_input">
+                <div class="input_item">
                   <select name="taxonRank" id="taxonRank">
                     <option value="">{% trans '-- 不限 --' %}</option>
                     {% for i in rank_list %}
@@ -150,9 +160,7 @@
                     {% endfor %}
                   </select>
                 </div>
-              </div>
-              <div class="two_input">
-                <div class="input_item input-100">
+                <div class="input_item">
                   <select id="higherTaxa" name="higherTaxa" class="d-none"></select>
                 </div>
               </div>
@@ -387,7 +395,11 @@
           </li>
           <li>
             <input type="checkbox" class="chebox" id="occ-bioGroup">
-            <p>{% trans '物種類群' %}</p>
+            <p>{% trans '物種類群（以分類區分）' %}</p>
+          </li>
+          <li>
+            <input type="checkbox" class="chebox" id="occ-habitat">
+            <p>{% trans '物種類群（以棲地區分）' %}</p>
           </li>
           <li>
             <input type="checkbox" class="chebox" id="occ-taxonRank">

@@ -87,7 +87,11 @@ let selectBox8 = new vanillaSelectBox("#higherTaxa",
     });
 
 let selectBox9 = new vanillaSelectBox("#taxonGroup", {
-    placeHolder: gettext("物種類群"), search: false, disableSelectAll: true,
+    placeHolder: gettext("物種類群（以分類區分）"), search: false, disableSelectAll: true,
+});
+
+let selectBox15 = new vanillaSelectBox("#habitat", {
+    placeHolder: gettext("物種類群（以棲地區分）"), search: false, disableSelectAll: true,
 });
 
 document.getElementById('btn-group-taxonGroup').addEventListener('click', function (e) {
@@ -740,6 +744,7 @@ $(function () {
         selectBox7.empty()
         selectBox8.empty()
         selectBox9.empty()
+        selectBox15.empty()
         selectBox10.empty()
         selectBox11.empty()
         selectBox12.empty()
@@ -1070,6 +1075,7 @@ function changeAction() {
         let r_list = Array();
         let l_list = Array();
         let tg_list = Array();
+        let hb_list = Array();
         let county;
 
         for (const [key, value] of entries) {
@@ -1096,6 +1102,8 @@ function changeAction() {
                 console.log(value)
             } else if (key == 'taxonGroup') {
                 tg_list.push(value)
+            } else if (key == 'habitat') {
+                hb_list.push(value)
             } else if (key == 'locality') {
                 l_list.push(value)
             } else {
@@ -1174,7 +1182,8 @@ function changeAction() {
             }
         }
         if (tg_expanded.length > 0) selectBox9.setValue(tg_expanded)
-
+        if (hb_list.length > 0) selectBox15.setValue(hb_list)
+    
         selectBox13.setValue(county)
         $("#county").change();
 
@@ -1244,6 +1253,8 @@ function setTable(response, queryString, from, orderby, sort) {
     table_title.classList.add('table_title');
     let map_dict = response.map_dict;
 
+    console.log(response);
+    
     var function_td = document.createElement("td");
     var text = document.createTextNode(gettext('功能'));
     function_td.appendChild(text);
@@ -1255,7 +1266,7 @@ function setTable(response, queryString, from, orderby, sort) {
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        if (Object.keys(map_dict)[i] != 'associatedMedia') {
+        if (!['associatedMedia', 'habitat'].includes(Object.keys(map_dict)[i])) {
             a.className = 'orderby';
             a.dataset.orderby = Object.keys(map_dict)[i];
             a.dataset.sort = 'asc';

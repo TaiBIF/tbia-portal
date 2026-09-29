@@ -154,13 +154,6 @@
                             </div>
                             <div class="two_input">
                                 <div class="input_item">
-                                    <select name="typeStatus" id="typeStatus">
-                                        <option value="">{% trans '-- 不限 --' %}</option>
-                                        <option value="一般">{% trans '一般' %}</option>
-                                        <option value="模式">{% trans '模式' %}</option>
-                                    </select>
-                                </div>
-                                <div class="input_item">
                                     <select id="taxonGroup" name="taxonGroup" multiple>
                                         <optgroup label="{% trans '昆蟲' %}" data-way="open">
                                             <option value="甲蟲類">{% trans "甲蟲類" %}</option>
@@ -189,8 +182,23 @@
                                         <option value="細菌">{% trans "細菌" %}</option>
                                     </select>
                                 </div>
+                                <div class="input_item">
+                                    <select id="habitat" name="habitat" multiple>
+                                        <option value="is_terrestrial">{% trans "陸域" %}</option>
+                                        <option value="is_freshwater">{% trans "淡水" %}</option>
+                                        <option value="is_brackish">{% trans "半鹹水" %}</option>
+                                        <option value="is_marine">{% trans "海洋" %}</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="two_input">
+                                <div class="input_item">
+                                    <select name="typeStatus" id="typeStatus">
+                                        <option value="">{% trans '-- 不限 --' %}</option>
+                                        <option value="一般">{% trans '一般' %}</option>
+                                        <option value="模式">{% trans '模式' %}</option>
+                                    </select>
+                                </div>
                                 <div class="input_item">
                                     <select name="taxonRank" id="taxonRank">
                                         <option value="">{% trans '-- 不限 --' %}</option>
@@ -199,7 +207,9 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="input_item">
+                            </div>
+                            <div class="two_input">
+                                <div class="input_item input-100">
                                     <select id="higherTaxa" name="higherTaxa"></select>
                                 </div>
                             </div>
@@ -487,7 +497,11 @@
                     </li>
                     <li>
                         <input type="checkbox" class="chebox" id="col-bioGroup">
-                        <p>{% trans '物種類群' %}</p>
+                        <p>{% trans '物種類群（以分類區分）' %}</p>
+                    </li>
+                    <li>
+                        <input type="checkbox" class="chebox" id="col-habitat">
+                        <p>{% trans '物種類群（以棲地區分）' %}</p>
                     </li>
                     <li>
                         <input type="checkbox" class="chebox" id="col-taxonRank">

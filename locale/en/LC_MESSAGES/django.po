@@ -1201,7 +1201,7 @@ msgstr " items"
 #: static/js/data/search_collection.js:56
 #: static/js/data/search_occurrence.js:61
 msgid "有無多媒體"
-msgstr "Has associated media"
+msgstr "Has Associated Media"
 
 #: static/js/data/search_collection.js:61
 #: static/js/data/search_occurrence.js:69
@@ -1213,6 +1213,23 @@ msgstr "Higher Taxon"
 msgid "物種類群"
 msgstr "Biological Group"
 
+msgid "物種類群（以分類區分）"
+msgstr "Biological Group"
+
+msgid "物種類群（以棲地區分）"
+msgstr "Biological Group by Habitat"
+
+msgid "陸域"
+msgstr "Terrestrial"
+
+msgid "淡水"
+msgstr "Freshwater"
+
+msgid "半鹹水"
+msgstr "Brackish"
+
+msgid "海洋"
+msgstr "Marine"
 
 #: static/js/data/search_collection.js:287
 #: static/js/data/search_collection.js:311

@@ -348,6 +348,12 @@ split_group_map = {
     '維管束植物': ['被子植物', '裸子植物', '蕨類植物'],
 }
 
+habitat_map = {
+    'is_terrestrial': '陸域',
+    'is_freshwater': '淡水',
+    'is_brackish': '半鹹水',
+    'is_marine': '海洋',
+}
 
 def convert_coor_to_grid(x, y, grid):
     list_x = np.arange(-180, 180+grid, grid)
@@ -507,7 +513,7 @@ map_occurrence = {
     'aberration_c'	:'異常個體中文名',
     'hybrid formula_c'	:'雜交組合中文名',
     'higherTaxa'	:'較高分類群',
-    'taxonGroup'	:'物種類群',
+    'taxonGroup'	:'物種類群（以分類區分）',
     'scientificName': '學名',
     'common_name_c': '中文名', 
     'alternative_name_c': '中文別名', 
@@ -516,7 +522,8 @@ map_occurrence = {
     'sourceScientificName': '來源資料庫使用學名',
     'sourceVernacularName': '來源資料庫使用中文名',
     'originalScientificName': '原始紀錄物種',
-    'bioGroup': '物種類群', 
+    'bioGroup': '物種類群（以分類區分）', 
+    'habitat': '物種類群（以棲地區分）',
     'taxonRank': '鑑定層級', 
     'sensitiveCategory': '敏感層級', 
     'rightsHolder': '來源資料庫', 
@@ -819,6 +826,9 @@ def create_query_display(search_dict,lang=None):
                     if data := resp['response']['docs']:
                         data = data[0]
                         query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
+            elif k == 'habitat':
+                vals = [gettext(habitat_map[v]) for v in get_multi(search_dict, 'habitat') if v in habitat_map]
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(vals)}"
             # 這邊要讓新舊互通 因為舊的會需要再次查詢
             elif k == 'taxonGroup':
                 vals = []
@@ -972,6 +982,10 @@ def create_search_query(req_dict, get_raw_map=False):
 
     if bio_groups:
         query_list += [f'bioGroup:({" OR ".join(bio_groups)})']
+
+    habitat_vals = [v for v in get_multi(req_dict, 'habitat') if v in habitat_map]
+    if habitat_vals:
+        query_list += [f'({" OR ".join([f"{v}:true" for v in habitat_vals])})']
 
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
@@ -2018,11 +2032,22 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
             if target_idx < len(media_list):
                 docs.loc[i, 'associatedMedia'] = get_media_html(media_list[target_idx].strip(), media_type)
 
+    # 棲地:將 is_* 欄位轉成文字,多值以「、」串接
+    def get_habitat_text(r):
+        vals = []
+        for k, v in habitat_map.items():
+            if str(r.get(k)).lower() in ['true', '1']:
+                vals.append(gettext(v))
+        return '、'.join(vals)
+
+    if len(docs):
+        docs['habitat'] = docs.apply(get_habitat_text, axis=1)
+
+
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
 
     rows = docs.to_dict('records')
-
     return rows
 
 
@@ -2287,6 +2312,10 @@ def create_tbn_query(req_dict):
             query_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in valid_vals])))
         if invalid_vals:
             error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in invalid_vals])))
+
+    # 物種類群 以棲地區分
+    if hb_vals := get_multi(req_dict, 'habitat'):
+        error_str_list.append('{} = {}'.format(gettext('物種類群（以棲地區分）'), ','.join([gettext(habitat_map.get(v, v)) for v in hb_vals])))
 
     if val := req_dict.get('taxonRank'):
         if val == 'sub':
