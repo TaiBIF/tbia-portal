@@ -13,6 +13,13 @@ from conf.settings import SOLR_PREFIX
 from data.utils import rights_holder_map
 from manager.models import TaxonStat
 
+def _to_int(v):
+    """轉成 int，NaN / 無法轉換則回傳 None"""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(f) else int(f)
 
 # 只取 year 從1900開始的
 # 也有可能有 year 但沒有 month
@@ -63,20 +70,25 @@ def fetch_year_month_buckets(filter_list):
     url1 = f'{base}?q=*:*&facet.pivot=year,month&facet=true&facet.limit=-1&facet.mincount=1'
     data1 = requests.post(url1, data=body, headers=headers).json()
     for dd in data1['facet_counts']['facet_pivot']['year,month']:
+        year = _to_int(dd['value'])
+        if year is None:
+            continue
         for ddd in (dd.get('pivot') or []):
-            results.append((
-                int(float(dd['value'])),
-                int(float(ddd['value'])),
-                ddd['count'],
-            ))
+            month = _to_int(ddd['value'])
+            if month is None:
+                continue
+            results.append((year, month, ddd['count']))
 
     # 2. 沒有 month 的，依 year facet
     url2 = f'{base}?q=-month:*&facet.field=year&facet=true&facet.limit=-1&facet.mincount=1'
     data2 = requests.post(url2, data=body, headers=headers).json()
     yfacet = data2['facet_counts']['facet_fields']['year']
     for i in range(0, len(yfacet), 2):
-        results.append((int(float(yfacet[i])), 'x', int(float(yfacet[i + 1]))))
-
+        year = _to_int(yfacet[i])
+        if year is None:
+            continue
+        results.append((year, 'x', int(yfacet[i + 1])))
+        
     return results
 
 
