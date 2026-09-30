@@ -36,6 +36,61 @@ taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synony
 taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID','originalScientificName']
 
 
+# --- ngram 子字串查詢工具 ---
+# 單字元異體字由 Solr text_ngram 的 MappingCharFilter 折疊；此處只在查詢端展開會意字，
+# 以保留「只搜其中一個字」的子字串行為。
+with open('/code/data/composites.json', 'r', encoding='utf-8') as _f:
+    _COMPOSITE_MAP = json.load(_f)
+
+
+def _expand_composite_forms(keyword):
+    """回傳關鍵字的所有會意字等價形（雙向替換）。"""
+    forms = {keyword}
+    changed = True
+    while changed:
+        changed = False
+        for a, b in _COMPOSITE_MAP.items():
+            for f in list(forms):
+                for src, dst in ((a, b), (b, a)):
+                    if src in f and f.replace(src, dst) not in forms:
+                        forms.add(f.replace(src, dst))
+                        changed = True
+    return forms
+
+
+def ngram_contains_query(field, keyword):
+    """建立 {field}_ngram 的子字串(contains)查詢：OR 所有會意字等價形的 phrase。"""
+    kw = re.sub(' +', ' ', keyword).strip()
+    if not kw:
+        return f'{field}_ngram:""'
+    clauses = [
+        f'{field}_ngram:"{form.replace(chr(92), chr(92) * 2).replace(chr(34), chr(92) + chr(34))}"'
+        for form in _expand_composite_forms(kw)
+    ]
+    return '(' + ' OR '.join(clauses) + ')'
+
+
+# tbia_records 上有建 _ngram 的欄位（有的走 ngram，沒有的沿用舊 regex）
+NGRAM_FIELDS = frozenset([
+    # 名稱（18）
+    'scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied',
+    'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species',
+    'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',
+    # 紀錄層（14）
+    'sourceScientificName', 'sourceVernacularName', 'originalScientificName',
+    'locality', 'recordedBy', 'datasetName', 'basisOfRecord', 'license',
+    'rightsHolder', 'sensitiveCategory', 'eventDate', 'typeStatus', 'preservation',
+    'resourceContacts',
+])
+
+
+def contains_clause(field, keyword, keyword_reg):
+    """單一欄位的 contains 查詢：有 _ngram 就走 ngram，否則沿用舊 regex（keyword_reg 已含變體展開）。"""
+    if field in NGRAM_FIELDS:
+        return ngram_contains_query(field, keyword)
+    return f'{field}:/.*{keyword_reg}.*/'
+
+
 name_status_map = {
     'not-accepted': '的無效名',
     'misapplied': '的誤用名',
@@ -996,7 +1051,7 @@ def create_search_query(req_dict, get_raw_map=False):
                 for j in val:
                     keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
                 keyword_reg = process_text_variants(keyword_reg)
-                query_list += [f'{i}:/.*{keyword_reg}.*/']
+                query_list += [contains_clause(i, val, keyword_reg)]
 
     for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
         if val := req_dict.get(i):
@@ -1113,9 +1168,9 @@ def create_search_query(req_dict, get_raw_map=False):
             try:
                 mp = MultiPolygon(map(wkt.loads, g_list))
                 if get_raw_map:
-                    query_list += ['location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                    query_list += ['{!cache=false}location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
                 else:
-                    query_list += ['location_rpt: "Within(%s)"' % mp]
+                    query_list += ['{!cache=false}location_rpt: "Within(%s)"' % mp]
             except:
                 pass
 
@@ -1131,16 +1186,16 @@ def create_search_query(req_dict, get_raw_map=False):
                     for i in geo_df.to_wkt()['geometry']:
                         g_list += ['"Within(%s)"' % i]
                     if get_raw_map:
-                        query_list += [ f"location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
+                        query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
                     else:
-                        query_list += [ f"location_rpt: ({' OR '.join(g_list)})" ]
+                        query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)})" ]
             except:
                 pass
 
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
+            query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
 
     # 學名相關
     if val := req_dict.get('name'):
@@ -1154,7 +1209,7 @@ def create_search_query(req_dict, get_raw_map=False):
         for j in val:
             keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
         keyword_reg = process_text_variants(keyword_reg)
-        col_list = [ f'{i}:/.*{keyword_reg}.*/' for i in name_search_col ]
+        col_list = [ contains_clause(i, val, keyword_reg) for i in name_search_col ]
         query_str = ' OR '.join( col_list )
         query_list += [ '(' + query_str + ')' ]
 
@@ -1256,18 +1311,13 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     q = ''
 
     for i in facet_list['facet']:
-        if i in taxon_keyword_list:
-            q += f'{i}:/.*{keyword_name_reg}.*/ OR ' 
-            if card_class.startswith('.col'):
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/', 'filter': ['recordType:col']}})
-            else:
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_name_reg}.*/'}})
-        else:
-            q += f'{i}:/.*{keyword_reg}.*/ OR ' 
-            if card_class.startswith('.col'):
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/', 'filter': ['recordType:col']}})
-            else:
-                facet_list['facet'][i].update({'domain': { 'query': f'{i}:/.*{keyword_reg}.*/'}})
+        kw = keyword_name if i in taxon_keyword_list else keyword
+        ngram_q = ngram_contains_query(i, kw)
+        q += f'{ngram_q} OR '
+        domain = {'query': ngram_q}
+        if card_class.startswith('.col'):
+            domain['filter'] = ['recordType:col']
+        facet_list['facet'][i].update({'domain': domain})
 
     if is_first_time:
         # 背景處理stat
@@ -1499,9 +1549,11 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
     rank_fq = get_taxon_rank_fq(taxon_rank)
 
     for i in taxon_facet_list['facet']:
-        facet_taxon_query = f'({i}:/.*{keyword_name_reg}.*/) OR ({i}:/{keyword_name_reg}/{"^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""}) '
-        taxon_q += f'({i}:/.*{keyword_name_reg}.*/) OR ' 
-        taxon_q += f'({i}:/{keyword_name_reg}/{"^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""} ) OR ' 
+        ngram_q = ngram_contains_query(i, keyword_name)
+        boost = "^3 AND (is_in_taiwan:1^1 or is_in_taiwan:*)" if i in ["scientificName", "common_name_c", "alternative_name_c"] else ""
+        facet_taxon_query = f'{ngram_q} OR ({i}:/{keyword_name_reg}/{boost}) '
+        taxon_q += f'{ngram_q} OR '
+        taxon_q += f'({i}:/{keyword_name_reg}/{boost} ) OR '
         taxon_facet_list['facet'][i].update({'domain': { 'query': facet_taxon_query}})
 
     taxon_q = taxon_q[:-4]
@@ -2042,7 +2094,6 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
 
     if len(docs):
         docs['habitat'] = docs.apply(get_habitat_text, axis=1)
-
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})

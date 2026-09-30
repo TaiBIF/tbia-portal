@@ -77,10 +77,10 @@ def get_taxon_dist(request):
     map_bound = check_map_bound(request.POST.get('map_bound'))
     
     if get_raw_map:
-        query_list = [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
+        query_list = [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
         query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
     else:
-        query_list = [f"location_rpt:{map_bound}"]
+        query_list = [f"{{!cache=false}}location_rpt:{map_bound}"]
         query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
 
     map_query = {"query": "*:*",
@@ -800,13 +800,13 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
 
     if key == 'taxonID':
         for k in taxon_facets:
-            query_list += [f'{k}:/.*{keyword_name_reg}.*/']
+            query_list += [contains_clause(k, keyword_name, keyword_name_reg)]
         q = ' OR '.join(query_list)
     else:
         if key in taxon_keyword_list:
-            q = f'{key}:/.*{keyword_name_reg}.*/'
+            q = contains_clause(key, keyword_name, keyword_name_reg)
         else:
-            q = f'{key}:/.*{keyword_reg}.*/'
+            q = contains_clause(key, keyword, keyword_reg)
 
     if key == 'sourceScientificName': # 若前後有<i>也算進去
         q = rf'sourceScientificName: (/.*[<i>]{value}[<\/i>].*/ OR "{value}")'
@@ -943,10 +943,10 @@ def get_records(request): # 全站搜尋
 
         if key == 'taxonID':
             for k in taxon_facets:
-                query_list += [f'{k}:/.*{keyword_reg}.*/']
+                query_list += [contains_clause(k, keyword, keyword_reg)]
             q = ' OR '.join(query_list)
         else:
-            q = f'{key}:/.*{keyword_reg}.*/'
+            q = contains_clause(key, keyword, keyword_reg)
 
         fq_list.append(f'{key}:"{value}"')
         if scientific_name and scientific_name != 'undefined':
@@ -1512,10 +1512,10 @@ def get_map_grid(request):
         
         if get_raw_map:
             facet_grid = f'grid_{grid}'
-            map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
+            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
         else:
             facet_grid = f'grid_{grid}_blurred'
-            map_query_list += [f"location_rpt:{map_bound}"]
+            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound}"]
 
         query = { "query": "*:*",
                 "filter": query_list,
@@ -1731,9 +1731,9 @@ def get_conditional_records(request):
         map_bound = check_map_bound(req_dict.get('map_bound'))
 
         if get_raw_map:
-            map_query_list += [f"location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
+            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
         else:
-            map_query_list += [f"location_rpt:{map_bound}"]
+            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound}"]
 
         query = { "query": "*:*",
                   "offset": offset,
