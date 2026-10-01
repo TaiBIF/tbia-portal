@@ -58,15 +58,33 @@ def _expand_composite_forms(keyword):
     return forms
 
 
+# 拉丁欄位走分詞+前綴(edge-ngram, A+)；datasetName 走 bigram；其餘走 unigram
+LATIN_TXT_FIELDS = frozenset([
+    'scientificName', 'sourceScientificName', 'originalScientificName',
+    'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species',
+    'synonyms', 'misapplied',
+])
+BIGRAM_FIELDS = frozenset(['datasetName'])
+
+
+def _esc_q(s):
+    return s.replace(chr(92), chr(92) * 2).replace(chr(34), chr(92) + chr(34))
+
+
 def ngram_contains_query(field, keyword):
-    """建立 {field}_ngram 的子字串(contains)查詢：OR 所有會意字等價形的 phrase。"""
+    """依欄位型別建立查詢：
+    - 拉丁欄位(_txt)：分詞 + 前綴，各詞皆須命中（整詞可在任何位置、支援前綴 typeahead）。
+    - datasetName(_bi)：長度>=2 走 bigram，否則 unigram；含會意字 OR 展開。
+    - 其餘(_ngram)：unigram 子字串；含會意字 OR 展開。
+    單字元異體字一律由 Solr charfilter 折疊。"""
     kw = re.sub(' +', ' ', keyword).strip()
     if not kw:
         return f'{field}_ngram:""'
-    clauses = [
-        f'{field}_ngram:"{form.replace(chr(92), chr(92) * 2).replace(chr(34), chr(92) + chr(34))}"'
-        for form in _expand_composite_forms(kw)
-    ]
+    if field in LATIN_TXT_FIELDS:
+        parts = [f'+{field}_txt:"{_esc_q(w)}"' for w in kw.split(' ') if w]
+        return '(' + ' '.join(parts) + ')' if parts else f'{field}_txt:""'
+    suffix = '_bi' if (field in BIGRAM_FIELDS and len(kw) >= 2) else '_ngram'
+    clauses = [f'{field}{suffix}:"{_esc_q(form)}"' for form in _expand_composite_forms(kw)]
     return '(' + ' OR '.join(clauses) + ')'
 
 
@@ -2084,6 +2102,11 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
             if target_idx < len(media_list):
                 docs.loc[i, 'associatedMedia'] = get_media_html(media_list[target_idx].strip(), media_type)
 
+    docs = docs.replace({np.nan: ''})
+    docs = docs.replace({'nan': ''})
+
+    rows = docs.to_dict('records')
+
     # 棲地:將 is_* 欄位轉成文字,多值以「、」串接
     def get_habitat_text(r):
         vals = []
@@ -2095,10 +2118,6 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
     if len(docs):
         docs['habitat'] = docs.apply(get_habitat_text, axis=1)
 
-    docs = docs.replace({np.nan: ''})
-    docs = docs.replace({'nan': ''})
-
-    rows = docs.to_dict('records')
     return rows
 
 

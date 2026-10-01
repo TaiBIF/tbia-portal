@@ -1,5 +1,11 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+// 英文關鍵字至少 2 字元；中文單字放行。回傳 true 表示「太短、應擋」
+function isTooShortLatin(v) {
+  v = (v || '').trim()
+  return v.length === 1 && /[A-Za-z0-9]/.test(v)
+}
+
 function getWKTMap(map) {
   var neLat = map.getBounds().getNorthEast()['lat']
   var neLng = map.getBounds().getNorthEast()['lng']
@@ -279,13 +285,16 @@ $(document).ready(function () {
 
   $('#fullForm').on('submit', function (event) {
     event.preventDefault()
-
-    if ($('#fullForm input[name=keyword]').val().length > 2000) {
+    var kw = $('#fullForm input[name=keyword]').val()
+    if (isTooShortLatin(kw)) {
+      alert(gettext('英文關鍵字請輸入至少 2 個字元'))
+      return
+    }
+    if (kw.length > 2000) {
       alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
     } else {
-      window.location = `/${$lang}/search/full?keyword=${$('#fullForm input[name=keyword]').val().replace(/&/g, "%26")}`
+      window.location = `/${$lang}/search/full?keyword=${kw.replace(/&/g, "%26")}`
     }
-
   })
 
   $('.imgarea').on('click', function () {

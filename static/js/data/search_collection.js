@@ -1,5 +1,11 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
+// 英文關鍵字至少 2 字元；中文單字放行。回傳 true 表示「太短、應擋」
+function isTooShortLatin(v) {
+  v = (v || '').trim()
+  return v.length === 1 && /[A-Za-z0-9]/.test(v)
+}
+
 let selectBox = new vanillaSelectBox("#rightsHolder", {
     placeHolder: gettext("來源資料庫"),
     search: true, disableSelectAll: true,
@@ -1337,6 +1343,14 @@ function setTable(response, queryString, from, orderby, sort) {
 
 // submit search form
 function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
+
+    var containsFields = ['name', 'recordedBy', 'resourceContacts']
+    for (var ci = 0; ci < containsFields.length; ci++) {
+        if (isTooShortLatin($('#searchForm input[name="' + containsFields[ci] + '"]').val())) {
+        alert(gettext('英文關鍵字請輸入至少 2 個字元'))
+        return
+        }
+    }
 
     $('.map-legend').removeClass('d-none');
 
