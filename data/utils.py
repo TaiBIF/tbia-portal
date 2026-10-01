@@ -64,7 +64,10 @@ LATIN_TXT_FIELDS = frozenset([
     'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species',
     'synonyms', 'misapplied',
 ])
-BIGRAM_FIELDS = frozenset(['datasetName'])
+BIGRAM_FIELDS = frozenset([
+    'datasetName', 'locality', 'recordedBy', 'resourceContacts',
+    'sourceVernacularName', 'common_name_c', 'alternative_name_c',
+])
 
 
 def _esc_q(s):
