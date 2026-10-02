@@ -1,4 +1,5 @@
 import os
+import time
 import psycopg2
 import requests
 import json
@@ -1266,7 +1267,7 @@ def summarize_names(names, keyword, keyword_reg, limit=2, do_highlight=True):
 
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
-def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False):
+def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False, counts_only=False):
     if lang:
         translation.activate(lang)
 
@@ -1329,32 +1330,67 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     if is_sub == 'true':
         facet_list = {'facet': {k: v for k, v in facet_list['facet'].items() if k == key} }
 
-    q = ''
-
+    clauses = {}
     for i in facet_list['facet']:
         kw = keyword_name if i in taxon_keyword_list else keyword
-        ngram_q = ngram_contains_query(i, kw)
-        q += f'{ngram_q} OR '
-        domain = {'query': ngram_q}
-        if card_class.startswith('.col'):
-            domain['filter'] = ['recordType:col']
-        facet_list['facet'][i].update({'domain': domain})
+        clauses[i] = ngram_contains_query(i, kw)
 
-    if is_first_time:
-        # 背景處理stat
-        query_string = urlencode({'keyword': keyword})
+    # 每個子句用 filter() 包住：各自進 filterCache，facet domain 用同一字串可直接命中，不必再讀一次
+    q = ' OR '.join(f'filter({c})' for c in clauses.values())
 
-        task = threading.Thread(target=background_search_stat, args=(q[:-4],'full',query_string))
-        task.start()
-    
     query.update(facet_list)
-    query_list.append(q[:-4])
+    query_list.append(q)
     query['filter'] = query_list
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
-    facets = response.json()['facets']
-    total_count = response.json()['response']['numFound']
-    facets.pop('count', None)
+    # 第一階段：只算各欄位命中數（query facet，子句已在 filterCache）
+    count_query = {
+        "query": '*:*',
+        "limit": 0,
+        "filter": query_list,
+        "facet": {i: {'type': 'query', 'q': c} for i, c in clauses.items()},
+    }
+    resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }).json()
+    total_count = resp1['response']['numFound']
+    count_facets = resp1.get('facets', {})
+    hit_fields = [i for i in clauses if count_facets.get(i, {}).get('count', 0) > 0]
+
+    # 只要總數與側欄：頁面先出，卡片由前端另外呼叫 get_more_cards 載入
+    # 欄位皆為單值 string，query facet 的 count 等於原本 terms facet 的 allBuckets count
+    if counts_only:
+        if is_first_time:
+            query_string = urlencode({'keyword': keyword})
+            task = threading.Thread(target=background_search_stat, args=(q,'full',query_string))
+            task.start()
+        return {
+            'total_count': total_count,
+            'menu_rows': [{'title': map_dict[i], 'total_count': count_facets[i]['count'], 'key': i} for i in hit_fields],
+            'data': [],
+            'has_more': False,
+            'reach_end': False,
+            'item_class': None,
+            'card_class': None,
+            'title': None,
+        }
+
+    # 第二階段：只對有命中的欄位做 terms facet（順序維持原本；沒命中的欄位原本也不會產生任何結果）
+    facets = {}
+    if hit_fields:
+        for i in hit_fields:
+            domain = {'query': clauses[i]}
+            if card_class.startswith('.col'):
+                domain['filter'] = ['recordType:col']
+            facet_list['facet'][i].update({'domain': domain})
+        query['facet'] = {i: facet_list['facet'][i] for i in hit_fields}
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        facets = response.json()['facets']
+        facets.pop('count', None)
+    if is_first_time:
+        # 背景處理stat：移到主查詢之後才啟動，避免和卡片查詢搶 Solr / 磁碟 IO
+        query_string = urlencode({'keyword': keyword})
+
+        task = threading.Thread(target=background_search_stat, args=(q,'full',query_string))
+        task.start()
+
 
     menu_rows = [] # 側邊欄
     result = [] # 卡片

@@ -10,6 +10,8 @@ import geopandas as gpd
 import subprocess
 import os
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
@@ -2018,29 +2020,46 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
+def _run_card_task(func, kwargs):
+    # 在執行緒中執行卡片查詢，結束時歸還該執行緒借出的 DB 連線
+    try:
+        return func(**kwargs)
+    finally:
+        connection.close()
+
+
 def search_full(request):
     keyword = request.GET.get('keyword', '')
     lang = get_language()
 
     if keyword and len(keyword) < 2000:
 
+        col_kwargs = dict(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None, lang=lang, counts_only=True)
+        occ_kwargs = dict(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, lang=lang, is_first_time=True, counts_only=True)
+        taxon_kwargs = dict(keyword=keyword, card_class=None, is_sub='false', offset=0, lang=lang)
+
+        # 三種卡片彼此獨立，平行查詢以縮短總等待時間
+        # col / occ 只取總數與側欄（counts_only），卡片由前端載入後呼叫 get_more_cards
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            f_col = ex.submit(_run_card_task, get_search_full_cards, col_kwargs)
+            f_occ = ex.submit(_run_card_task, get_search_full_cards, occ_kwargs)
+            f_taxon = ex.submit(_run_card_task, get_search_full_cards_taxon, taxon_kwargs)
+            col_resp, occ_resp, taxon_resp = f_col.result(), f_occ.result(), f_taxon.result()
+        translation.activate(lang)
+
         # collection
-        col_resp = get_search_full_cards(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None)
         collection_rows = col_resp['menu_rows']
         c_collection = col_resp['total_count']
         col_cards = col_resp['data']
         collection_more = col_resp['has_more']
 
         # occurrence
-        occ_resp = get_search_full_cards(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, is_first_time=True)
         occurrence_rows = occ_resp['menu_rows']
         c_occurrence = occ_resp['total_count']
         occ_cards = occ_resp['data']
         occurrence_more = occ_resp['has_more']
 
         # taxon
-        taxon_resp = get_search_full_cards_taxon(keyword=keyword, card_class=None,
-                                                 is_sub='false', offset=0)
         taxon_rows = taxon_resp['menu_rows']
         c_taxon = taxon_resp['total_count']
         taxon_cards = taxon_resp['data']

@@ -25,13 +25,13 @@ def create_facet_list(record_type):
             'mincount': 1,
             'limit': 30,
             'allBuckets': True,
-            'numBuckets': True,
+            'numBuckets': False,
             'facet':{
                 'taxonID':{
                     'type': 'terms',
                     'field': 'taxonID',
                     'limit': 30,
-                    'numBuckets': True,
+                    'numBuckets': False,
                 },
             } 
         }
@@ -56,4 +56,3 @@ def create_taxon_facet_list():
         }
 
     return facets
-

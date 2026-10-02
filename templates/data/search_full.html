@@ -404,37 +404,11 @@
                 </div>
               </div>
                 {% if occurrence.count > 0 %}
-                  <ul class="card_list_1 occ-card">
-                    {% for i in occurrence.card %}
-                      <li class="getRecords"
-                          data-record_type="occ"
-                          {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
-                          data-scientific_name="{{ i.name }}"
-                          data-limit="{{ i.count }}"
-                          data-page="1"
-                          data-from="card"
-                          data-go_back="false"
-                          data-orderby="scientificName"
-                          data-sort="asc">
-                        <div class="num">{{ i.count }}</div>
-                        <div class="num_bottom"></div>
-                        <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
-                        <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-                        <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
-                        {% for ii in i.matched %}
-                          {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                            <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
-                          {% endif %}
-                        {% endfor %}
-                      </li>
-                    {% endfor %}
-                  </ul>
-                  <!--超過9個才有更多按鈕-->
-                  {% if occurrence.more %}
-                    <a class="more occ_more getMoreCards" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                    <input type="hidden" id="occ_offset" value="9">
-                    <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
-                  {% endif %}
+                  <ul class="card_list_1 occ-card"></ul>
+                  <!-- 卡片由 search_full.js 載入後呼叫 get_more_cards 取得 -->
+                  <a class="more occ_more getMoreCards d-none" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                  <input type="hidden" id="occ_offset" value="0">
+                  <div class="no_data occ_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
               {% else %}
                <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
@@ -450,37 +424,11 @@
                 </div>
               </div>
               {% if collection.count > 0 %}
-                <ul class="card_list_1 col-card">
-                  {% for i in collection.card %}
-                    <li class="getRecords"
-                        data-record_type="col"
-                        {% if i.match_type == 'taxon-related' and i.val != '' %} data-key="taxonID" data-value="{{ i.taxonID }}" {% else %} data-key="{{ i.matched.0.key }}" data-value="{{ i.matched.0.matched_value_ori }}" {% endif %}
-                        data-scientific_name="{{ i.name }}"
-                        data-limit="{{ i.count }}"
-                        data-page="1"
-                        data-from="card"
-                        data-go_back="false"
-                        data-orderby="scientificName"
-                        data-sort="asc">
-                      <div class="num">{{ i.count }}</div>
-                      <div class="num_bottom"></div>
-                      <p>{% trans '中文名' %}{% trans '：' %}{{ i.common_name_c|safe }}</p>
-                      <p>{% trans '學名' %}{% trans '：' %}{{ i.val|safe }}</p>
-                      <p>{% trans '鑑定層級' %}{% trans '：' %}{% trans i.taxonRank %}</p>
-                      {% for ii in i.matched %}
-                        {% if ii.matched_col != '中文名' and ii.matched_col != '學名' and ii.matched_col != '鑑定層級' %}
-                          <p>{% trans ii.matched_col %}{% trans '：' %}{{ ii.matched_value|safe }}</p>
-                        {% endif %}
-                      {% endfor %}
-                    </li>
-                  {% endfor %}
-                </ul>
-                <!--超過9個才有更多按鈕-->
-                {% if collection.more %}
-                  <a class="more col_more getMoreCards" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
-                  <input type="hidden" id="col_offset" value="9">
-                  <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
-                {% endif %}
+                <ul class="card_list_1 col-card"></ul>
+                <!-- 卡片由 search_full.js 載入後呼叫 get_more_cards 取得 -->
+                <a class="more col_more getMoreCards d-none" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
+                <input type="hidden" id="col_offset" value="0">
+                <div class="no_data col_more_end d-none">{% trans '符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字' %}</div>
               {% else %}
                 <div class="no_data">{% trans '無資料' %}</div>
               {% endif %}
