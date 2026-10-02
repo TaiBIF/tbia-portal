@@ -201,7 +201,7 @@ def transfer_sensitive_response(request):
 
             query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
-            query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
+            query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
@@ -1759,7 +1759,7 @@ def get_conditional_records(request):
         # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
         if not get_raw_map:
             query['facet']['has_sensitive'] =  {
-                            "q": "raw_location_rpt:*",
+                            "q": "standardRawLatitude:*",
                             "type": "query",
                         }
 
@@ -2210,7 +2210,7 @@ def background_submit_sensitive_request(project_type, req_dict, query_id):
         query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
         # 抓出所有單位
-        query = { "query": "raw_location_rpt:*",
+        query = { "query": "standardRawLatitude:*",
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,

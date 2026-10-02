@@ -634,7 +634,7 @@ def map(request):
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
-        query = { "query": "location_rpt:*",
+        query = { "query": "standardLatitude:*",  # 等同 location_rpt:*，冷啟動較快
                  "limit": 0,
                 "filter": fq_list,
                 "facet": {

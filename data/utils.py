@@ -2279,7 +2279,7 @@ def background_search_stat(query_list, record_type, query_string, compute_stat=T
 
 def create_sensitive_partner_stat(query_list, q="*:*"):
 
-    query_list.append("raw_location_rpt:*")
+    query_list.append("standardRawLatitude:*")  # 等同 raw_location_rpt:*，冷啟動較快
 
     query = { "query": q,
                 "offset": 0,
