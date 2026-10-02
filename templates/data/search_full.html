@@ -405,6 +405,13 @@
               </div>
                 {% if occurrence.count > 0 %}
                   <ul class="card_list_1 occ-card"></ul>
+                  <div class="loading_area_partial occ-card-loading">
+                    <div class="sc">
+                      <div class="load">
+                        <span>L</span>ading
+                      </div>
+                    </div>
+                  </div>
                   <!-- 卡片由 search_full.js 載入後呼叫 get_more_cards 取得 -->
                   <a class="more occ_more getMoreCards d-none" data-card_class=".occ-card" data-offset_value="#occ_offset" data-more_type=".occ_more" data-is_sub="false">{% trans '更多結果' %}</a>
                   <input type="hidden" id="occ_offset" value="0">
@@ -425,6 +432,13 @@
               </div>
               {% if collection.count > 0 %}
                 <ul class="card_list_1 col-card"></ul>
+                <div class="loading_area_partial col-card-loading">
+                  <div class="sc">
+                    <div class="load">
+                      <span>L</span>ading
+                    </div>
+                  </div>
+                </div>
                 <!-- 卡片由 search_full.js 載入後呼叫 get_more_cards 取得 -->
                 <a class="more col_more getMoreCards d-none" data-card_class=".col-card" data-offset_value="#col_offset" data-more_type=".col_more" data-is_sub="false">{% trans '更多結果' %}</a>
                 <input type="hidden" id="col_offset" value="0">

@@ -280,14 +280,11 @@ $(document).ready(function () {
   initTaxonRankFilter($('#item_spe .taxon-rank-filter'))
 
   // occ / col 卡片延後載入：頁面先顯示總數與側欄
-  window.pendingInitCards = new Set()
   for (const rt of ['occ', 'col']) {
     if ($(`.${rt}-card`).length) {
-      window.pendingInitCards.add(`.${rt}-card`)
       getMoreCards(`.${rt}-card`, `#${rt}_offset`, `.${rt}_more`, 'false')
     }
   }
-  if (window.pendingInitCards.size) $('.loading_area').removeClass('d-none')
 
   $('#fullSubmit').on('click', function () {
     $('#fullForm').submit()
@@ -1328,13 +1325,6 @@ function getTaxonRankFor(card_class) {
   return $(`.taxon-rank-filter[data-card_class="${card_class}"] select`).val() || ''
 }
 
-// 初始卡片全部載入完（或失敗）才關閉 loading
-function initCardsDone(card_class) {
-  if (window.pendingInitCards && window.pendingInitCards.delete(card_class) && !window.pendingInitCards.size) {
-    $('.loading_area').addClass('d-none')
-  }
-}
-
 function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false) {
   $('input[name=keyword]').val($('.keyword-p').html())
 
@@ -1547,7 +1537,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
     })
       .done(function (response) {
 
-        initCardsDone(card_class)
+        $(`${card_class}-loading`).remove()  // 初始載入的卡片區 loading（.occ-card-loading / .col-card-loading）
 
         if (response.has_more == true & response.reach_end == false) {
           $(offset_value).val(Number(offset) + 9)
@@ -1612,7 +1602,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
 
       })
       .fail(function (xhr, status, errorThrown) {
-        initCardsDone(card_class)
+        $(`${card_class}-loading`).remove()  // 初始載入的卡片區 loading（.occ-card-loading / .col-card-loading）
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
