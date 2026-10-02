@@ -25,6 +25,9 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SOLR_PREFIX = env('SOLR_PREFIX')
+# Solr 請求逾時（秒）：網頁/API 要小於 gunicorn --timeout 60；排程統計指令用較長的值
+SOLR_TIMEOUT = env.int('SOLR_TIMEOUT', default=45)
+SOLR_TIMEOUT_LONG = env.int('SOLR_TIMEOUT_LONG', default=600)
 
 datahub_db_settings = {
     "host": env('DATAHUB_POSTGRES_HOST'),
@@ -104,6 +107,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'conf.csp_middleware.DynamicCSPMiddleware',
+    'conf.solr_timeout_middleware.SolrTimeoutMiddleware',
 ]
 
 ROOT_URLCONF = 'conf.urls'

@@ -21,7 +21,7 @@ import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
-from conf.settings import SOLR_PREFIX, env, datahub_db_settings
+from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone, translation
@@ -262,7 +262,7 @@ def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
     name = ''
 
-    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false')
+    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false', timeout=SOLR_TIMEOUT)
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -897,7 +897,7 @@ def create_query_display(search_dict,lang=None):
             elif k == 'locality':
                 l_list = get_multi(search_dict, 'locality')
             elif k == 'higherTaxa':
-                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{search_dict[k]}')
+                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{search_dict[k]}', timeout=SOLR_TIMEOUT)
                 if response.status_code == 200:
                     resp = response.json()
                     if data := resp['response']['docs']:
@@ -1087,7 +1087,7 @@ def create_search_query(req_dict, get_raw_map=False):
     # 找到該分類群的階層 & 名稱
     # 要包含自己的階層
     if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
+        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:
@@ -1358,7 +1358,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     }
     total_count = 0
     if hit_fields is None:
-        resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }).json()
+        resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
         total_count = resp1['response']['numFound']
         count_facets = resp1.get('facets', {})
         hit_fields = [i for i in clauses if count_facets.get(i, {}).get('count', 0) > 0]
@@ -1390,7 +1390,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 domain['filter'] = ['recordType:col']
             facet_list['facet'][i].update({'domain': domain})
         query['facet'] = {i: facet_list['facet'][i] for i in hit_fields}
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         facets = response.json()['facets']
         facets.pop('count', None)
         # 第二階段用同一組主 filter，numFound 即總數（跳過第一階段時由此取得）
@@ -1525,7 +1525,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         taicol = pd.DataFrame()
         if len(result_df):
             taxon_ids = [f"id:{d}" for d in result_df[result_df.val!=''].val.unique()]
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms')
+            response = requests.get(f'{SOLR_PREFIX}taxa/select?q={" OR ".join(taxon_ids)}&fl=common_name_c,formatted_name,id,scientificName,taxonRank,formatted_misapplied,formatted_synonyms', timeout=SOLR_TIMEOUT)
             if response.status_code == 200:
                 resp = response.json()
                 if data := resp['response']['docs']:
@@ -1646,7 +1646,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
     query['offset'] = offset
     query['facet'] = taxon_facet_list['facet']
 
-    response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
     facets.pop('count', None)
     data = response.json()['response']
@@ -1722,7 +1722,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         taxon_result_df['col_count'] = 0 
         taxon_result_df['occ_count'] = 0 
         # 取得出現紀錄及自然史典藏筆數
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0', timeout=SOLR_TIMEOUT)
         data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
 
         for d in data:
@@ -1841,7 +1841,7 @@ def get_map_response(map_query, grid_list, get_raw_map):
         else:
             facet_str += f'&facet.field=grid_{g}_blurred'
             
-    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }) 
+    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT) 
 
     data_c = {}
     for grid in grid_list:
@@ -1880,7 +1880,7 @@ def create_data_detail(id, user_id, record_type):
         'limit': 1,
         'filter': f"id:{id}",
         }
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" })
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     row = pd.DataFrame(response.json()['response']['docs'])
     row = row.replace({np.nan: '', 'nan': ''})
     row = row.to_dict('records')
@@ -1985,7 +1985,7 @@ def create_data_detail(id, user_id, record_type):
         if row.get('taxonID'):
             path_taxon_id = row.get('taxonID')
         if path_taxon_id:
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}')
+            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}', timeout=SOLR_TIMEOUT)
             data = response.json()
             t_rank = data['response']['docs'][0]
             for r in rank_list:
@@ -2240,7 +2240,7 @@ def create_search_stat(query_list, q="*:*"):
     if not query_list:
         stat_query.pop('filter', None)
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" })
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     total_count = response.json()['response']['numFound']
@@ -2300,7 +2300,7 @@ def create_sensitive_partner_stat(query_list, q="*:*"):
     if not query_list:
         query.pop('filter')
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     total_count = response.json()['response']['numFound']
@@ -2335,7 +2335,7 @@ def create_dataset_stat(query_list, q="*:*"):
     if not query_list:
         query.pop('filter', None)
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     # 不一定會有資料
@@ -2484,7 +2484,7 @@ def create_tbn_query(req_dict):
 
     # NOTE 改為支援
     if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}')
+        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:
@@ -2523,7 +2523,7 @@ def get_family_taxon_ids(taxon_ids):
 
     for tt in range(0, len(taxon_ids), 20):
         taxa_query = {'query': " OR ".join(ids[tt:tt+20]), 'limit': 20, 'fields': ['family_taxonID','genus_taxonID','species_taxonID']}
-        response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(taxa_query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}taxa/select', data=json.dumps(taxa_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:

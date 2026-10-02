@@ -11,7 +11,7 @@ from urllib import parse
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.http import HttpResponse
-from conf.settings import SOLR_PREFIX, datahub_db_settings
+from conf.settings import SOLR_PREFIX, datahub_db_settings, SOLR_TIMEOUT
 from conf.utils import scheme
 from api.models import APIkey
 from manager.models import SearchCount
@@ -280,7 +280,7 @@ def occurrence(request):
         if not fq_list:
             aaa = query.pop('filter', None)
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         response = response.json()
 
         next_cursor = response.get('nextCursorMark')
@@ -652,7 +652,7 @@ def map(request):
             aaa = query.pop('filter', None)
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         if resp['facets']['count']:

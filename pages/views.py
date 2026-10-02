@@ -8,7 +8,7 @@ from django.utils import timezone, translation
 from django.utils.translation import get_language, gettext
 from django.db.models import Q
 from data.utils import get_page_list, get_resource_cate
-from conf.settings import SOLR_PREFIX, env
+from conf.settings import SOLR_PREFIX, env, SOLR_TIMEOUT
 from conf.utils import notif_map, scheme
 from pages.templatetags.tags import process_text_variants
 from pages.models import *
@@ -301,14 +301,14 @@ def index(request):
     # count of data
 
     count_occurrence = 0
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         count_occurrence = response.json()['response']['numFound']
 
     count_occurrence = "{:,}".format(count_occurrence)
 
     count_collection = 0
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0&fq=recordType:col')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         count_collection = response.json()['response']['numFound']
 

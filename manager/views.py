@@ -28,7 +28,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
@@ -1305,7 +1305,7 @@ def get_request_detail(request):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -1371,16 +1371,16 @@ def get_partner_stat(request):
             "limit": 0,
             "facet": {},
             }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         no_taxon = response.json()['response']['numFound']
 
         # 資料筆數
         url = f"{SOLR_PREFIX}tbia_records/select?q.op=OR&q=rightsHolder:{rights_holder}&rows=0&start=0"
-        data = requests.get(url).json()
+        data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         data_count = data['response']['numFound']
         data_total.append({'name': rights_holder,'y': data_count, 'color': '#9AC4E8'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
             total_count = total_count - data_count
@@ -1390,11 +1390,11 @@ def get_partner_stat(request):
         # 影像資料筆數
 
         url = f"{SOLR_PREFIX}tbia_records/select?q.op=OR&q=rightsHolder:{rights_holder}&q=associatedMedia:*&rows=0&start=0"
-        data = requests.get(url).json()
+        data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         image_count = data['response']['numFound']
         image_data_total.append({'name': rights_holder,'y': image_count, 'color': '#B2D4B2'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             other_image_count = response.json()['response']['numFound']
             other_image_count = other_image_count - image_count
@@ -1402,7 +1402,7 @@ def get_partner_stat(request):
 
         # 資料品質 (入口網)
         url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-        data = requests.get(url).json()
+        data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         if data['responseHeader']['status'] == 0:
             facets = data['facet_counts']['facet_fields']['dataQuality']
             for r in range(0,len(facets),2):
@@ -1416,7 +1416,7 @@ def get_partner_stat(request):
 
         url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=rightsHolder:{rights_holder}&rows=0&start=0"
 
-        quality_data = requests.get(url).json()
+        quality_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
 
         if quality_data['responseHeader']['status'] == 0:
             facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
@@ -1623,15 +1623,15 @@ def manager_system(request):
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
         # 改成用solr取得 如果沒有在列表就是代表沒有
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
         f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
         holder_list = [f_list[x] for x in range(0, len(f_list),2)]
         holder_list.append('total')
         # TaiCOL對應狀況
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             no_taxon = response.json()['response']['numFound']
         has_taxon = total_count - no_taxon
@@ -1844,7 +1844,7 @@ def get_system_stat(request):
 
     # 資料筆數 - 
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
-    data = requests.get(url).json()
+    data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
         for f in facets:
@@ -1860,7 +1860,7 @@ def get_system_stat(request):
 
     # 影像資料筆數
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
-    image_data = requests.get(url).json()
+    image_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if image_data['responseHeader']['status'] == 0:
         facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
         for f in facets:
@@ -1874,11 +1874,11 @@ def get_system_stat(request):
                     image_data_total.append({'name': 'GBIF','y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # TaiCOL對應狀況
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
@@ -1927,7 +1927,7 @@ def get_system_stat(request):
 
     # 資料品質 (入口網)
     url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-    data = requests.get(url).json()
+    data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_fields']['dataQuality']
         for r in range(0,len(facets),2):
@@ -1939,7 +1939,7 @@ def get_system_stat(request):
 
     # 資料品質 (來源資料庫)
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-    quality_data = requests.get(url).json()
+    quality_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if quality_data['responseHeader']['status'] == 0:
         facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
         for f in facets:
@@ -3279,7 +3279,7 @@ def sensitive_apply_info(request, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:

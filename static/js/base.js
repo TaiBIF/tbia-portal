@@ -89,6 +89,12 @@ function isOverflown(element) {
 
 // };
 
+// 單一英數字元不送出全站搜尋（各頁共用；search_full.js 等頁面另有同名同內容的定義）
+function isTooShortLatin(v) {
+  v = (v || '').trim()
+  return v.length === 1 && /[A-Za-z0-9]/.test(v)
+}
+
 $(function () {
 
   $('.top_search_full_button').on('click', function () {
@@ -98,6 +104,10 @@ $(function () {
   $('#search_full_form_top').on('submit', function (event) {
     event.preventDefault()
 
+    if (isTooShortLatin($('.top_search_full_keyword').val())) {
+      alert(gettext('英文關鍵字請輸入至少 2 個字元'))
+      return
+    }
     if ($('.top_search_full_keyword').val().length > 2000) {
       alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
     } else {
