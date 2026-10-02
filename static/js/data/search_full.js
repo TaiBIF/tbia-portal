@@ -1531,6 +1531,8 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
         offset: offset,
         is_sub: is_sub,
         lang: $lang,
+        // 側欄的命中欄位，後端可跳過第一階段計數（僅 is_sub=false 時使用）
+        hit_fields: (is_sub == 'false') ? $(`.focusCards[data-record_type="${record_type}"]`).map(function () { return $(this).data('key') }).get().join(',') : '',
       },
       type: 'POST',
       dataType: 'json',

@@ -1267,7 +1267,7 @@ def summarize_names(names, keyword, keyword_reg, limit=2, do_highlight=True):
 
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
-def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False, counts_only=False):
+def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False, counts_only=False, hit_fields=None):
     if lang:
         translation.activate(lang)
 
@@ -1342,6 +1342,13 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     query_list.append(q)
     query['filter'] = query_list
 
+    # 前端已知命中欄位（側欄）時跳過第一階段；只接受本次欄位清單內的 key，順序依原本欄位順序
+    if hit_fields is not None and is_sub != 'true' and not counts_only:
+        hit_set = set(hit_fields)
+        hit_fields = [i for i in clauses if i in hit_set]
+    else:
+        hit_fields = None
+
     # 第一階段：只算各欄位命中數（query facet，子句已在 filterCache）
     count_query = {
         "query": '*:*',
@@ -1349,10 +1356,12 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         "filter": query_list,
         "facet": {i: {'type': 'query', 'q': c} for i, c in clauses.items()},
     }
-    resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }).json()
-    total_count = resp1['response']['numFound']
-    count_facets = resp1.get('facets', {})
-    hit_fields = [i for i in clauses if count_facets.get(i, {}).get('count', 0) > 0]
+    total_count = 0
+    if hit_fields is None:
+        resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }).json()
+        total_count = resp1['response']['numFound']
+        count_facets = resp1.get('facets', {})
+        hit_fields = [i for i in clauses if count_facets.get(i, {}).get('count', 0) > 0]
 
     # 只要總數與側欄：頁面先出，卡片由前端另外呼叫 get_more_cards 載入
     # 欄位皆為單值 string，query facet 的 count 等於原本 terms facet 的 allBuckets count
@@ -1384,6 +1393,8 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
         facets = response.json()['facets']
         facets.pop('count', None)
+        # 第二階段用同一組主 filter，numFound 即總數（跳過第一階段時由此取得）
+        total_count = response.json()['response']['numFound']
     if is_first_time:
         # 背景處理stat：移到主查詢之後才啟動，避免和卡片查詢搶 Solr / 磁碟 IO
         query_string = urlencode({'keyword': keyword})
@@ -1398,6 +1409,14 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
 
     # 2023/11/20前 如果是對到高階層的話，存parentTaxonID，會有taxonID是空值，但其實有對到高階層的情況，產生bug
     # 目前全部改存taxonID
+
+    seen = set()  # 去重：(val, count, matched_value, matched_col)，取代逐筆 list 比對
+
+    def add_result(val, count, matched_value, matched_col):
+        k_ = (val, count, matched_value, matched_col)
+        if k_ not in seen:
+            seen.add(k_)
+            result.append({'val': val, 'count': count, 'matched_value': matched_value, 'matched_col': matched_col})
 
     for i in facets:
         x = facets[i]
@@ -1414,15 +1433,12 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
                         for item in bucket:
-                            if dict(item, **{'matched_value':f_date, 'matched_col': i}) not in result:
-                                result.append(dict(item, **{'matched_value': f_date, 'matched_col': i}))
+                            add_result(item['val'], item['count'], f_date, i)
                 else:
                     for item in bucket:
-                        if dict(item, **{'matched_value':k['val'], 'matched_col': i}) not in result:
-                            result.append(dict(item, **{'matched_value':k['val'], 'matched_col': i}))
+                        add_result(item['val'], item['count'], k['val'], i)
             elif not bucket and k['count']:
-                if {'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i} not in result:
-                    result.append({'val': '', 'count': k['count'],'matched_value':k['val'], 'matched_col': i})
+                add_result('', k['count'], k['val'], i)
 
     # 卡片
     result_df = pd.DataFrame(result)
@@ -1430,12 +1446,19 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     result_dict_all = []
 
     if len(result_df):
+        # 每個 taxonID 只切一次（保留原本列順序），取代每輪對整張表重新篩選
+        source_cols = ['sourceScientificName','sourceVernacularName','originalScientificName']
+        is_taxon = result_df.matched_col.isin(taxon_facets)
+        is_source = result_df.matched_col.isin(source_cols)
+        groups = {t: g.index for t, g in result_df.groupby('val', sort=False)}
         for t in result_df.val.unique():
+            g_idx = groups[t]
+            taxon_idx = g_idx[is_taxon[g_idx].values]
             # 若是taxon-related的算在同一張
             rows = []
-            if len(result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]):
+            if len(taxon_idx):
                 if res_c in range(offset,offset+9):
-                    rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]
+                    rows = result_df.loc[taxon_idx]
                     matched = []
                     for ii in rows.index:
                         match_val = result_df.loc[ii].matched_value
@@ -1447,14 +1470,14 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                                         })
                     result_dict_all.append({
                         'val': t,
-                        'count': result_df[(result_df.val==t) & (result_df.matched_col.isin(taxon_facets))]['count'].values[0],
+                        'count': result_df.loc[taxon_idx]['count'].values[0],
                         'matched': matched,
                         'match_type': 'taxon-related'
                     })
                 res_c += 1
             # 如果沒有任何taxon-related的對到，則顯示來源資料庫使用的名稱
             else: # 內容不一樣 要拆成不同卡片
-                rows = result_df[(result_df.val==t) & (result_df.matched_col.isin(['sourceScientificName','sourceVernacularName','originalScientificName']))]
+                rows = result_df.loc[g_idx[is_source[g_idx].values]]
                 for ii in rows.index:
                     if res_c in range(offset,offset+9):
                         matched = [{'key': result_df.loc[ii].matched_col, 
@@ -1469,7 +1492,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                             'match_type': 'non-taxon-related'
                         })
                     res_c += 1
-            for ii in result_df[(result_df.val==t) & ~(result_df.matched_col.isin(taxon_facets+['sourceScientificName','sourceVernacularName','originalScientificName']))].index:
+            for ii in g_idx[~(is_taxon[g_idx].values | is_source[g_idx].values)]:
                 if res_c in range(offset,offset+9):
                     matched= [{'key': result_df.loc[ii].matched_col,
                                 'matched_col': map_dict[result_df.loc[ii].matched_col], 

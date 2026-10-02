@@ -1132,8 +1132,11 @@ def get_more_cards(request):
             key = None
 
         lang = request.POST.get('lang', 'zh-hant')
+        # 側欄已知的命中欄位（逗號分隔）；有給就跳過第一階段計數
+        hit_fields = request.POST.get('hit_fields')
+        hit_fields = [h for h in hit_fields.split(',') if h] if hit_fields else None
 
-        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key, lang=lang)
+        response = get_search_full_cards(keyword=keyword, card_class=card_class, is_sub=is_sub, offset=offset, key=key, lang=lang, hit_fields=hit_fields)
 
         return HttpResponse(json.dumps(response), content_type='application/json')
 
