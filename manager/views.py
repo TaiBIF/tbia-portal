@@ -3356,10 +3356,35 @@ def update_index_event(request):
                 defaults={'value': request.POST.get(url_field, '')})
         return JsonResponse({"status": 'success'}, safe=False)
 
-# 光譜（有對到）固定顯示順序：對到來源階層 → 較來源退階
-_SPECTRUM_ORDER = ["對到（來源階層）", "僅對到上階（較來源退階）"]
- 
- 
+# 光譜（有對到）固定顯示順序：對到來源階層 → 較來源退階（依 category_key）
+_SPECTRUM_ORDER = ["atrank", "higher"]
+
+# 舊版 snapshot 沒有 category_key：依顯示名稱對回 key（含已改名的舊名稱）
+_LABEL_TO_KEY = {
+    "對到（來源階層）": "atrank",
+    "僅對到上階（較來源退階）": "higher",
+    "疑似錯字／格式": "fuzzy",
+    "多個候選無法判斷": "multiple",
+    "缺上階層資訊": "multiple",          # 舊名稱
+    "非正規學名（sp./cf. 等）": "nonstandard",
+    "無學名（資料缺漏）": "noname",
+    "暫定名（GTDB 等資料庫編號）": "placeholder",
+    "疑應可對到（比對保守否決）": "vetoed",
+    "TaiCOL 尚未收錄": "none",
+}
+
+
+def _cat_key(r):
+    return r.get('category_key') or _LABEL_TO_KEY.get(r.get('category'), r.get('category'))
+
+
+def _rates(rows):
+    total = sum((r['records'] or 0) for r in rows) or 1
+    matched = sum((r['records'] or 0) for r in rows if r['axis'] == 'matched')
+    atrank = sum((r['records'] or 0) for r in rows if _cat_key(r) == 'atrank')
+    return total, matched, atrank
+
+
 def _allowed_groups(user):
     """system admin 可看全部（回 None）；一般夥伴只能看自己單位的 group。"""
     if user.is_anonymous:
@@ -3389,58 +3414,99 @@ def get_match_stat(request):
     group = request.GET.get('group')
     if not group:
         return JsonResponse({'error': 'group required'}, status=400)
- 
+
     allowed = _allowed_groups(request.user)
     if allowed is not None and group not in allowed:
         return JsonResponse({'error': 'forbidden'}, status=403)
- 
-    # 只列有資料的月份（該單位），最新在前
-    months = list(MatchStat.objects.filter(group=group)
-                  .values_list('year_month', flat=True).distinct().order_by('-year_month'))
+
+    # 該單位所有月份的資料一次取回（每月只有十列左右），趨勢圖與前次比較共用
+    all_rows = list(MatchStat.objects.filter(group=group)
+                    .values('year_month', 'axis', 'category_key', 'category',
+                            'responsibility', 'records', 'unique_names', 'rights_holder'))
+    by_month = {}
+    for r in all_rows:
+        by_month.setdefault(r['year_month'], []).append(r)
+    months = sorted(by_month, reverse=True)       # 只列有資料的月份，最新在前
     year_month = request.GET.get('year_month') or (months[0] if months else '')
- 
-    rows = list(MatchStat.objects.filter(group=group, year_month=year_month)
-                .values('axis', 'category', 'responsibility', 'records', 'unique_names'))
+
+    rows = by_month.get(year_month, [])
     if not rows:
         return JsonResponse({'group': group, 'year_month': year_month,
                              'available_months': months, 'empty': True})
- 
-    total = sum((r['records'] or 0) for r in rows) or 1
-    matched = sum((r['records'] or 0) for r in rows if r['axis'] == 'matched')
-    atrank = sum((r['records'] or 0) for r in rows if r['category'] == '對到（來源階層）')
- 
-    def pct(n):
-        return round(n / total * 100, 1)
- 
-    matched_rows = [r for r in rows if r['axis'] == 'matched']
-    matched_rows.sort(key=lambda r: _SPECTRUM_ORDER.index(r['category'])
-                      if r['category'] in _SPECTRUM_ORDER else 99)
-    spectrum = [{'label': r['category'], 'records': r['records'], 'pct': pct(r['records'] or 0)}
-                for r in matched_rows]
- 
-    reasons = sorted(
-        ({'label': r['category'], 'records': r['records'],
-          'unique_names': r['unique_names'], 'responsibility': r['responsibility']}
-         for r in rows if r['axis'] == 'unmatched'),
-        key=lambda x: -(x['records'] or 0))
- 
-    rights_holder = next((r for r in MatchStat.objects
-                          .filter(group=group, year_month=year_month)
-                          .values_list('rights_holder', flat=True)), group)
- 
+
+    reports = {m.year_month: m for m in MatchReport.objects.filter(group=group)}
+    report = reports.get(year_month)
+    logic_changed = bool(report and report.logic_changed)
+
+    total, matched, atrank = _rates(rows)
+
+    def pct(n, t=total):
+        return round(n / t * 100, 1)
+
+    # 前次：優先用 meta.json 記錄的前次月份，否則取資料中上一個月份
+    older = [m for m in months if m < year_month]
+    prev_ym = (report.prev_year_month if report and report.prev_year_month in by_month
+               else (older[0] if older else None))
+    prev_rows = by_month.get(prev_ym, [])
+    comparable = bool(prev_rows) and not logic_changed
+    prev_by_key = {_cat_key(r): r for r in prev_rows}
+    delta = None
+    if comparable:
+        pt, _, pa = _rates(prev_rows)
+        delta = round(pct(atrank) - pct(pa, pt), 1)
+
+    matched_rows = sorted((r for r in rows if r['axis'] == 'matched'),
+                          key=lambda r: _SPECTRUM_ORDER.index(_cat_key(r))
+                          if _cat_key(r) in _SPECTRUM_ORDER else 99)
+    spectrum = [{'key': _cat_key(r), 'label': r['category'], 'records': r['records'],
+                 'pct': pct(r['records'] or 0)} for r in matched_rows]
+
+    reasons = []
+    for r in rows:
+        if r['axis'] != 'unmatched':
+            continue
+        k = _cat_key(r)
+        p = prev_by_key.get(k) if comparable else None
+        reasons.append({'key': k, 'label': r['category'], 'records': r['records'],
+                        'unique_names': r['unique_names'],
+                        'responsibility': r['responsibility'],
+                        # 無前次或比對邏輯變更時為 None（前端不顯示差異）
+                        'prev_records': (p['records'] or 0) if p else (0 if comparable else None)})
+    reasons.sort(key=lambda x: -(x['records'] or 0))
+
+    # 趨勢：由舊到新，比對邏輯變更的月份加標註
+    trend = []
+    for m in sorted(by_month):
+        t, _, a = _rates(by_month[m])
+        rep = reports.get(m)
+        trend.append({'year_month': m, 'atrank_rate': pct(a, t),
+                      'logic_changed': bool(rep and rep.logic_changed)})
+
+    rights_holder = next((r['rights_holder'] for r in rows if r['rights_holder']), group)
+
     media = MEDIA_URL.rstrip('/')
     base = f"{media}/match_report/{year_month}/{group}"
- 
+    disk = Path(MEDIA_ROOT) / 'match_report' / year_month / group
+    downloads = {
+        'partner': f"{base}/unmatched_partner.csv",
+        'taicol': f"{base}/for_taicol.csv",
+        'email': f"{base}/email.png",
+    }
+    # 比較檔僅在有前次時產出，存在才給連結
+    for k, fn in (('compare_category', 'compare_category.csv'),
+                  ('compare_names', 'compare_names.csv')):
+        if (disk / fn).exists():
+            downloads[k] = f"{base}/{fn}"
+
     return JsonResponse({
         'group': group, 'rights_holder': rights_holder, 'year_month': year_month,
         'available_months': months,
         'total': total, 'matched': matched,
         'overall_rate': pct(matched), 'atrank_rate': pct(atrank),
+        'prev_year_month': prev_ym, 'logic_changed': logic_changed,
+        'atrank_delta': delta,
+        'compare': report.compare if (report and not logic_changed) else None,
+        'trend': trend,
         'spectrum': spectrum, 'reasons': reasons,
-        'downloads': {
-            'partner': f"{base}/unmatched_partner.csv",
-            'taicol': f"{base}/for_taicol.csv",
-            'email': f"{base}/email.png",
-        },
+        'downloads': downloads,
     })
- 
