@@ -318,9 +318,11 @@ class Ark(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
 
-# 學名比對狀況統計（讀 datahub 產出的 snapshot.json，一列一個 單位×月×類別）
+# 學名比對狀況統計（讀 datahub 產出的 snapshot.json，一列一個 資料庫×月×類別）
+# 同一 group 可能有多個資料庫，以 (group, info_id) 區分；info_id 對應 Partner.info 的 id
 class MatchStat(models.Model):
     group = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    info_id = models.IntegerField(null=True, blank=True, db_index=True)
     rights_holder = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     year_month = models.CharField(max_length=1000, null=True, blank=True, db_index=True)
     axis = models.CharField(max_length=20, blank=True, db_index=True)        # matched / unmatched
@@ -332,9 +334,11 @@ class MatchStat(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
 
-# 每次比對報告的產出資訊（讀 datahub 產出的 meta.json，一列一個 單位×月）
+# 每次比對報告的產出資訊（讀 datahub 產出的 meta.json，一列一個 資料庫×月）
 class MatchReport(models.Model):
     group = models.CharField(max_length=100, db_index=True)
+    info_id = models.IntegerField(null=True, blank=True, db_index=True)
+    rights_holder = models.CharField(max_length=100, null=True, blank=True)
     year_month = models.CharField(max_length=20, db_index=True)
     prev_year_month = models.CharField(max_length=20, null=True, blank=True)
     logic_changed = models.BooleanField(default=False)   # 比對邏輯變更，差值不具比較意義

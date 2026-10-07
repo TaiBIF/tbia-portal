@@ -10,6 +10,7 @@
 
 寄送對象：
   partner  各單位的單位管理員（is_partner_admin），信件內嵌比對狀況圖、附夥伴可修清單
+           同一 group 有多個資料庫（如 nps_0、nps_1）時合併成一封，內含各資料庫的圖與附件
   taicol   TaiCOL 管理員（.env 的 TAICOL_ADMIN_EMAILS，逗號分隔），附各單位合併的回報清單
   system   系統管理員（is_system_admin），各單位彙整表 + 回報 TaiCOL 清單
 
@@ -24,6 +25,7 @@
 """
 import csv
 import json
+import re
 from datetime import datetime
 from email.mime.image import MIMEImage
 from pathlib import Path
@@ -78,7 +80,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('year_month', help='YYYY-MM，例如 2026-09')
-        parser.add_argument('--group', default=None, help='只處理單一單位（僅影響夥伴信件）')
+        parser.add_argument('--group', default=None, help='只處理該 group（僅影響夥伴信件）')
         parser.add_argument('--only', choices=['partner', 'taicol', 'system'], action='append',
                             help='只寄特定對象，可重複指定；省略則三者都寄')
         parser.add_argument('--dry-run', action='store_true', help='不寄出，信件存成 html 檔')
@@ -110,8 +112,11 @@ class Command(BaseCommand):
             return
 
         if 'partner' in targets:
+            by_group = {}
             for u in units:
-                self.send_partner(u)
+                by_group.setdefault(u['group'], []).append(u)
+            for g, us in by_group.items():
+                self.send_partner(g, us)
 
         # TaiCOL / 系統管理員信件是全部單位的彙整，指定 --group 時不寄
         if o['group'] and targets & {'taicol', 'system'}:
@@ -130,10 +135,14 @@ class Command(BaseCommand):
 
     # ── 讀取各單位產出 ──────────────────────────────────────
     def load_units(self, group):
-        dirs = [self.base / group] if group else sorted(
-            p for p in self.base.iterdir() if p.is_dir() and not p.name.startswith('_'))
+        """讀取各資料庫（{group}_{info_id} 目錄）的產出，依 group、info_id 排序。"""
         units = []
-        for d in dirs:
+        for d in sorted(self.base.iterdir()):
+            m = re.fullmatch(r'(.+)_(\d+)', d.name)
+            if not d.is_dir() or d.name.startswith('_') or not m:
+                continue
+            if group and m.group(1) != group:
+                continue
             snap = read_json(d / 'snapshot.json')
             if not snap:
                 continue
@@ -146,18 +155,21 @@ class Command(BaseCommand):
                 if prev:
                     prev_rate = atrank_rate(prev)[0]
             units.append({
-                'group': d.name, 'dir': d, 'snapshot': snap, 'meta': meta,
+                'unit': d.name, 'group': m.group(1), 'info_id': int(m.group(2)),
+                'dir': d, 'snapshot': snap, 'meta': meta,
                 'rights_holder': snap[0].get('rights_holder') or d.name,
                 'rate': rate, 'total': total,
                 'overall': round(sum(r['records'] for r in snap if r['axis'] == 'matched')
                                  / (total or 1) * 100, 1),
                 'delta': None if prev_rate is None else round(rate - prev_rate, 1),
             })
+        units.sort(key=lambda u: (u['group'], u['info_id']))
         return units
 
     # ── 寄送共用 ────────────────────────────────────────────
-    def deliver(self, key, to, subject, html, attachments=(), inline_png=None):
-        """key 用於預覽檔名與紀錄；attachments = [(Path, 檔名)]"""
+    def deliver(self, key, to, subject, html, attachments=(), inline_pngs=()):
+        """key 用於預覽檔名與紀錄；attachments = [(Path, 檔名)]；
+        inline_pngs = [(content_id, Path)]，內文以 <img src="cid:{content_id}"> 引用"""
         original = [e for e in dict.fromkeys(to) if e]
         if self.override_to:
             # 測試寄送：主旨加註、內文最上方列出原收件人，方便確認收件人是否正確
@@ -175,8 +187,8 @@ class Command(BaseCommand):
         if self.dry_run:
             self.preview_dir.mkdir(exist_ok=True)
             page = html
-            if inline_png:
-                page = page.replace('cid:match_png', f'../{inline_png.parent.name}/{inline_png.name}')
+            for cid, png in inline_pngs:
+                page = page.replace(f'cid:{cid}', f'../{png.parent.name}/{png.name}')
             names = '、'.join(n for _, n in attachments) or '無'
             head = (f'<p style="font:13px sans-serif;color:#5f6a64">收件者：{", ".join(to)}<br>'
                     f'主旨：{subject}<br>附件：{names}</p><hr>')
@@ -187,12 +199,14 @@ class Command(BaseCommand):
         msg = EmailMultiAlternatives(subject=subject, body='本信件為 HTML 格式，請使用支援 HTML 的信件軟體閱讀。',
                                      from_email=FROM_EMAIL, to=to)
         msg.attach_alternative(html, 'text/html')
-        if inline_png and inline_png.exists():
+        if inline_pngs:
             msg.mixed_subtype = 'related'
-            img = MIMEImage(inline_png.read_bytes(), 'png')
-            img.add_header('Content-ID', '<match_png>')
-            img.add_header('Content-Disposition', 'inline', filename='match_status.png')
-            msg.attach(img)
+        for cid, png in inline_pngs:
+            if png.exists():
+                img = MIMEImage(png.read_bytes(), 'png')
+                img.add_header('Content-ID', f'<{cid}>')
+                img.add_header('Content-Disposition', 'inline', filename=f'{cid}.png')
+                msg.attach(img)
         for path, name in attachments:
             if path.exists():
                 msg.attach(name, path.read_bytes(), 'text/csv')
@@ -210,24 +224,16 @@ class Command(BaseCommand):
                           .values_list('email', flat=True))
         return emails
 
-    def send_partner(self, u):
-        g = u['group']
-        if not self.resend and g in self.log['partner']:
-            self.stdout.write(f'略過（已寄送 {self.log["partner"][g]}）：partner_{g}')
-            return
-        p = Partner.objects.filter(group=g).first()
-        name = (p.title if p and p.title else None) or u['rights_holder']
+    def unit_section(self, u, cid, multi):
+        """單一資料庫的段落：摘要、比對狀況圖、前次比較。"""
         meta, c = u['meta'], u['meta'].get('compare')
-
-        h = f'<div style="font-size:14.5px;line-height:1.75;color:#191e1b;max-width:680px">'
-        h += f'<p>{name} 您好：</p>'
-        h += (f'<p>TBIA 已完成 {self.ym} 資料更新，以下為貴單位資料的學名比對狀況。本次共 '
-              f'{fmt(u["total"])} 筆紀錄，其中 <b>{u["rate"]:.1f}%</b> 對到來源提供的階層。</p>')
-        h += '<img src="cid:match_png" alt="學名比對狀況圖" style="max-width:100%;border:1px solid #dfe4de;border-radius:4px">'
-        if meta.get('logic_changed'):
-            h += (f'<div style="{BOX.format(c="#2f6b5e")}">本次 TBIA 更新了學名比對邏輯並重新比對全部資料，'
-                  '比對結果的變化主要來自比對方式調整，並非貴單位資料變動，因此本次不與前次比較。</div>')
-        elif c:
+        h = ''
+        if multi:
+            h += f'<h3 style="font-size:16px;margin:24px 0 4px">{u["rights_holder"]}</h3>'
+        h += (f'<p>本次共 {fmt(u["total"])} 筆紀錄，其中 <b>{u["rate"]:.1f}%</b> 對到來源提供的階層。</p>')
+        h += (f'<img src="cid:{cid}" alt="{u["rights_holder"]} 學名比對狀況圖" '
+              'style="max-width:100%;border:1px solid #dfe4de;border-radius:4px">')
+        if c and not meta.get('logic_changed'):
             worse = c.get('worse', 0)
             h += (f'<div style="{BOX.format(c="#c0533f" if worse else "#2f6b5e")}">'
                   f'與前次（{meta.get("prev_year_month")}）相比：新對到來源階層 <b>{fmt(c.get("new_atrank"))}</b> 個學名、'
@@ -236,17 +242,40 @@ class Command(BaseCommand):
                 h += (f'<br>另有 <b>{fmt(worse)}</b> 個學名原本對到、本次未對到，'
                       '請至後台下載「學名變化清單」確認。')
             h += '</div>'
-        h += ('<p>附件為貴單位可協助修正的學名清單，每筆附有原因說明與格式提醒。'
+        return h
+
+    def send_partner(self, g, units):
+        """同一 group 的所有資料庫合併成一封信。"""
+        if not self.resend and g in self.log['partner']:
+            self.stdout.write(f'略過（已寄送 {self.log["partner"][g]}）：partner_{g}')
+            return
+        p = Partner.objects.filter(group=g).first()
+        name = (p.title if p and p.title else None) or units[0]['rights_holder']
+        multi = len(units) > 1
+
+        h = '<div style="font-size:14.5px;line-height:1.75;color:#191e1b;max-width:680px">'
+        h += f'<p>{name} 您好：</p>'
+        h += (f'<p>TBIA 已完成 {self.ym} 資料更新，以下為貴單位'
+              + (f' {len(units)} 個資料庫' if multi else '資料') + '的學名比對狀況。</p>')
+        if any(u['meta'].get('logic_changed') for u in units):
+            h += (f'<div style="{BOX.format(c="#2f6b5e")}">本次 TBIA 更新了學名比對邏輯並重新比對全部資料，'
+                  '比對結果的變化主要來自比對方式調整，並非貴單位資料變動，因此本次不與前次比較。</div>')
+        pngs, atts = [], []
+        for u in units:
+            cid = f'match_{u["unit"]}'
+            h += self.unit_section(u, cid, multi)
+            pngs.append((cid, u['dir'] / 'email.png'))
+            atts.append((u['dir'] / 'unmatched_partner.csv',
+                         f'unmatched_partner_{u["unit"]}_{self.ym}.csv'))
+        h += ('<p>附件為' + ('各資料庫' if multi else '貴單位') + '可協助修正的學名清單，每筆附有原因說明與格式提醒。'
               '「TaiCOL 尚未收錄」的學名已由 TBIA 彙整回報，無需貴單位處理。</p>')
         h += f'<p><a href="{MANAGER_URL}" style="{BTN}">前往後台查看完整比對狀況</a></p>'
         h += f'<p>{SIGNATURE}</p></div>'
 
-        ok = self.deliver(
-            f'partner_{g}', self.partner_recipients(g),
-            f'{name} 學名比對狀況（{self.ym}）', h,
-            attachments=[(u['dir'] / 'unmatched_partner.csv', f'unmatched_partner_{g}_{self.ym}.csv')],
-            inline_png=u['dir'] / 'email.png')
-        if ok and not self.dry_run:
+        ok = self.deliver(f'partner_{g}', self.partner_recipients(g),
+                          f'{name} 學名比對狀況（{self.ym}）', h,
+                          attachments=atts, inline_pngs=pngs)
+        if ok and self.record:
             self.log['partner'][g] = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     # ── 合併回報 TaiCOL 清單 ────────────────────────────────

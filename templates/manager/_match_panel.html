@@ -1,19 +1,19 @@
 {% load static %}
 {% load i18n %}
 {# 學名比對狀況面板：可 include 進 partner/system 的 manager.html #}
-{# partner:  {% include 'manager/_match_panel.html' with group=user.partner.group %} #}
-{# system:   {% include 'manager/_match_panel.html' with units=match_units %} #}
+{# partner / system 皆傳入 match_units（資料庫清單，unit = {group}_{info_id}） #}
+{# {% include 'manager/_match_panel.html' with units=match_units %} #}
 <link rel="stylesheet" type="text/css" href="{% static 'css/manager/match_dashboard.css' %}" />
 <div class="ms-panel" id="ms-root" data-endpoint="{% url 'get_match_stat' %}">
     <div class="ms-toolbar">
-        {% if units %}
-        <label>{% trans '單位' %}
+        {% if units|length > 1 %}
+        <label>{% trans '資料庫' %}
             <select id="ms-group">
-                {% for u in units %}<option value="{{ u.group }}">{{ u.name }}</option>{% endfor %}
+                {% for u in units %}<option value="{{ u.unit }}">{{ u.name }}</option>{% endfor %}
             </select>
         </label>
         {% else %}
-        <input type="hidden" id="ms-group" value="{{ group }}">
+        <input type="hidden" id="ms-group" value="{{ units.0.unit }}">
         {% endif %}
         <label>{% trans '月份' %}
             <select id="ms-month"></select>

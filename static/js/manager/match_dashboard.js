@@ -208,7 +208,7 @@
     if (!g) { body.appendChild(mk("div", "ms-empty", "尚無可顯示的單位。")); return; }
     body.appendChild(mk("div", "ms-empty", "載入中…"));
 
-    var url = endpoint + "?group=" + encodeURIComponent(g);
+    var url = endpoint + "?unit=" + encodeURIComponent(g);
     if (ym) url += "&year_month=" + encodeURIComponent(ym);
 
     fetch(url, { credentials: "same-origin" })
