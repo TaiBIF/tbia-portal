@@ -5,6 +5,7 @@ import requests
 import json
 import re
 import threading
+from conf.background import run_light, run_heavy
 import random
 import string
 import html
@@ -13,6 +14,8 @@ import pandas as pd
 import numpy as np
 import bisect
 import mimetypes
+import zipfile
+import logging
 from os.path import exists
 from dateutil import parser
 from datetime import datetime
@@ -21,7 +24,7 @@ import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
-from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT
+from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone, translation
@@ -73,6 +76,18 @@ BIGRAM_FIELDS = frozenset([
 
 def _esc_q(s):
     return s.replace(chr(92), chr(92) * 2).replace(chr(34), chr(92) + chr(34))
+
+
+
+def build_keyword_reg(val):
+    """關鍵字轉成不分大小寫的 Solr regex 片段（英文字母 → [Aa]，其他字元跳脫）。
+    原本在多處各自用 for 迴圈組字串，結果相同。"""
+    return ''.join(f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j) for j in val)
+
+def solr_quote(val):
+    """把使用者輸入包成 Solr 片語（跳脫反斜線與雙引號），避免輸入改寫查詢語法。
+    對 string / point 欄位而言，"值" 與 值 的查詢結果相同。"""
+    return '"' + _esc_q(str(val)) + '"'
 
 
 def ngram_contains_query(field, keyword):
@@ -262,7 +277,8 @@ def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
     name = ''
 
-    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q=id:{key} OR tbiaDatasetID:{key}&rows=20&fq=deprecated:false', timeout=SOLR_TIMEOUT)
+    qk = solr_quote(key)
+    response = requests.get(f'{SOLR_PREFIX}dataset/select', params={'q.op': 'OR', 'q': f'id:{qk} OR tbiaDatasetID:{qk}', 'rows': 20, 'fq': 'deprecated:false'}, timeout=SOLR_TIMEOUT)
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -322,6 +338,43 @@ def escape_solr_query(string):
         else:
             final_string += s
     return final_string
+
+
+
+logger = logging.getLogger(__name__)
+
+
+def solr_csv_to_zip(queries, csv_file_path, zip_file_path):
+    """依序把 queries 的 Solr CSV 結果寫入 csv_file_path（第 2 組起去掉表頭），再壓成 zip_file_path。
+    取代原本 shell=True 的 curl / cat / tail / zip 指令。成功回傳 True；失敗記錄錯誤、清掉半成品並回傳 False。"""
+    url = f'{SOLR_PREFIX}tbia_records/select?wt=csv'
+    ok = False
+    try:
+        with open(csv_file_path, 'wb') as out:
+            for n, query in enumerate(queries):
+                with requests.post(url, data=json.dumps(query), headers={'content-type': 'application/json'},
+                                   stream=True, timeout=(10, SOLR_TIMEOUT_LONG)) as r:
+                    r.raise_for_status()
+                    skip_header = n > 0
+                    for chunk in r.iter_content(chunk_size=1 << 20):
+                        if skip_header:
+                            pos = chunk.find(b'\n')
+                            if pos < 0:
+                                continue
+                            chunk = chunk[pos + 1:]
+                            skip_header = False
+                        out.write(chunk)
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as z:
+            z.write(csv_file_path, arcname=os.path.basename(csv_file_path))
+        ok = True
+    except Exception:
+        logger.exception('solr_csv_to_zip failed: %s', zip_file_path)
+        if os.path.exists(zip_file_path):
+            os.remove(zip_file_path)
+    finally:
+        if os.path.exists(csv_file_path):
+            os.remove(csv_file_path)
+    return ok
 
 
 # 舊的
@@ -897,7 +950,7 @@ def create_query_display(search_dict,lang=None):
             elif k == 'locality':
                 l_list = get_multi(search_dict, 'locality')
             elif k == 'higherTaxa':
-                response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{search_dict[k]}', timeout=SOLR_TIMEOUT)
+                response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(search_dict[k])}'}, timeout=SOLR_TIMEOUT)
                 if response.status_code == 200:
                     resp = response.json()
                     if data := resp['response']['docs']:
@@ -1058,7 +1111,7 @@ def create_search_query(req_dict, get_raw_map=False):
             bio_groups.append(v)
 
     if bio_groups:
-        query_list += [f'bioGroup:({" OR ".join(bio_groups)})']
+        query_list += [f'bioGroup:({" OR ".join(solr_quote(g) for g in bio_groups)})']
 
     habitat_vals = [v for v in get_multi(req_dict, 'habitat') if v in habitat_map]
     if habitat_vals:
@@ -1069,35 +1122,37 @@ def create_search_query(req_dict, get_raw_map=False):
             if val != 'undefined':
                 val = val.strip()
                 val = html.unescape(val)
-                keyword_reg = ''
-                for j in val:
-                    keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+                keyword_reg = build_keyword_reg(val)
                 keyword_reg = process_text_variants(keyword_reg)
                 query_list += [contains_clause(i, val, keyword_reg)]
 
     for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
         if val := req_dict.get(i):
-            query_list += [f'{i}:"{val}"']
+            query_list += [f'{i}:{solr_quote(val)}']
 
     # 這邊會不會有模糊化的問題
     if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
-        query_list += [f'''{req_dict.get('current_grid_level')}:"{req_dict.get('current_grid')}"''']
+        query_list += [f"{req_dict.get('current_grid_level')}:{solr_quote(req_dict.get('current_grid'))}"]
 
     # higherTaxa
     # 找到該分類群的階層 & 名稱
     # 要包含自己的階層
     if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(val)}'}, timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:
                 data = data[0]
                 higher_rank = data.get('taxonRank')
                 higher_name = data.get('scientificName')
-                query_list += [f'({higher_rank}:"{higher_name}" OR taxonID:"{val}")']
+                query_list += [f'({higher_rank}:{solr_quote(higher_name)} OR taxonID:{solr_quote(val)})']
 
     if quantity := req_dict.get('organismQuantity'):
-        query_list += [f'standardOrganismQuantity: {quantity}']
+        try:
+            float(quantity)  # 前端是 number 欄位；非數字忽略
+            query_list += [f'standardOrganismQuantity:{solr_quote(quantity.strip())}']
+        except ValueError:
+            pass
 
     if val := req_dict.get('typeStatus'):
         if val == '模式':
@@ -1117,7 +1172,7 @@ def create_search_query(req_dict, get_raw_map=False):
             elif i == 'taxonRank' and val in ['sub','infraspecies']:
                 query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
             else:
-                query_list += [f'{i}:{val}']
+                query_list += [f'{i}:{solr_quote(val)}']
 
     # 下拉選單多選
     d_list = []
@@ -1127,22 +1182,19 @@ def create_search_query(req_dict, get_raw_map=False):
 
     # 這邊要改成tbiaDatasetID才對
     if d_list:
-        d_list_str = '" OR "'.join(d_list)
-        query_list += [f'tbiaDatasetID:("{d_list_str}")']
+        query_list += [f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in d_list)})']
 
     r_list = []
     r_list = get_multi(req_dict, 'rightsHolder')
     
     if r_list:
-        r_list_str = '" OR "'.join(r_list)
-        query_list += [f'rightsHolder:("{r_list_str}")']
+        query_list += [f'rightsHolder:({" OR ".join(solr_quote(r) for r in r_list)})']
 
     l_list = []
 
     l_list = get_multi(req_dict, 'locality')
     if l_list:
-        l_list_str = '" OR "'.join(l_list)
-        query_list += [f'locality:("{l_list_str}")']
+        query_list += [f'locality:({" OR ".join(solr_quote(l) for l in l_list)})']
 
     if req_dict.get('start_date') and req_dict.get('end_date'):
         try: 
@@ -1173,15 +1225,15 @@ def create_search_query(req_dict, get_raw_map=False):
 
     if county := req_dict.get('county'):
         if get_raw_map:
-            query_list += ['county: "%s" OR rawCounty: "%s"' % (county, county) ]
+            query_list += [f'county:{solr_quote(county)} OR rawCounty:{solr_quote(county)}']
         else:
-            query_list += ['county: "%s"' % county]
+            query_list += [f'county:{solr_quote(county)}']
 
     if municipality := req_dict.get('municipality'):
         if get_raw_map:
-            query_list += ['municipality: "%s" OR rawMunicipality: "%s"' % (municipality, municipality) ]
+            query_list += [f'municipality:{solr_quote(municipality)} OR rawMunicipality:{solr_quote(municipality)}']
         else:
-            query_list += ['municipality: "%s"' % municipality]
+            query_list += [f'municipality:{solr_quote(municipality)}']
 
 
     # 地圖框選
@@ -1199,7 +1251,8 @@ def create_search_query(req_dict, get_raw_map=False):
     # 上傳polygon
     if req_dict.get('geo_type') == 'polygon':
 
-        if g_id := req_dict.get('geojson_id'):
+        # geojson_id 會組成檔案路徑，只接受英數、底線、連字號，避免路徑穿越
+        if (g_id := req_dict.get('geojson_id')) and re.fullmatch(r'[\w-]+', g_id):
             try:
                 with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
                     geojson = json.loads(j.read())
@@ -1217,7 +1270,11 @@ def create_search_query(req_dict, get_raw_map=False):
     # 圓中心框選
     if req_dict.get('geo_type') == 'circle':
         if circle_radius := req_dict.get('circle_radius'):
-            query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
+            try:
+                c_lat, c_lon = float(req_dict.get('center_lat')), float(req_dict.get('center_lon'))
+                query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
+            except (TypeError, ValueError):
+                pass
 
     # 學名相關
     if val := req_dict.get('name'):
@@ -1226,10 +1283,8 @@ def create_search_query(req_dict, get_raw_map=False):
         val = re.sub(' +', ' ', val)
         # 去除頭尾空格
         val = val.strip()
-        keyword_reg = ''
         val = html.unescape(val)
-        for j in val:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = build_keyword_reg(val)
         keyword_reg = process_text_variants(keyword_reg)
         col_list = [ contains_clause(i, val, keyword_reg) for i in name_search_col ]
         query_str = ' OR '.join( col_list )
@@ -1238,7 +1293,7 @@ def create_search_query(req_dict, get_raw_map=False):
     # group (後台儀表板的query)
     if group := req_dict.get('group'):
         if group != 'total':
-            query_list += ['group:{}'.format(group)]
+            query_list += [f'group:{solr_quote(group)}']
 
     # rights_holder (後台儀表板的query)
     if rights_holder := req_dict.get('rights_holder'):
@@ -1295,18 +1350,14 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         "sort":  "scientificName asc"
     }
 
-    keyword_reg = ''
     q = ''
     keyword = html.unescape(keyword)
-    for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = build_keyword_reg(keyword)
     keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
-    keyword_name_reg = ''
-    for j in keyword_name:
-        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = build_keyword_reg(keyword_name)
     keyword_name_reg = process_text_variants(keyword_name_reg)
 
     if card_class.startswith('.col'):
@@ -1368,8 +1419,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     if counts_only:
         if is_first_time:
             query_string = urlencode({'keyword': keyword})
-            task = threading.Thread(target=background_search_stat, args=(q,'full',query_string))
-            task.start()
+            run_light(background_search_stat, q,'full',query_string)
         return {
             'total_count': total_count,
             'menu_rows': [{'title': map_dict[i], 'total_count': count_facets[i]['count'], 'key': i} for i in hit_fields],
@@ -1399,8 +1449,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         # 背景處理stat：移到主查詢之後才啟動，避免和卡片查詢搶 Solr / 磁碟 IO
         query_string = urlencode({'keyword': keyword})
 
-        task = threading.Thread(target=background_search_stat, args=(q,'full',query_string))
-        task.start()
+        run_light(background_search_stat, q,'full',query_string)
 
 
     menu_rows = [] # 側邊欄
@@ -1609,17 +1658,13 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
 
     taxon_facet_list = create_taxon_facet_list()
 
-    keyword_reg = ''
     keyword = html.unescape(keyword)
-    for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = build_keyword_reg(keyword)
     keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
-    keyword_name_reg = ''
-    for j in keyword_name:
-        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = build_keyword_reg(keyword_name)
     keyword_name_reg = process_text_variants(keyword_name_reg)
     
     if is_sub == 'true':
@@ -1985,7 +2030,7 @@ def create_data_detail(id, user_id, record_type):
         if row.get('taxonID'):
             path_taxon_id = row.get('taxonID')
         if path_taxon_id:
-            response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{path_taxon_id}', timeout=SOLR_TIMEOUT)
+            response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(path_taxon_id)}'}, timeout=SOLR_TIMEOUT)
             data = response.json()
             t_rank = data['response']['docs'][0]
             for r in rank_list:
@@ -2484,7 +2529,7 @@ def create_tbn_query(req_dict):
 
     # NOTE 改為支援
     if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select?q=id:{val}', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(val)}'}, timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
             if data := resp['response']['docs']:

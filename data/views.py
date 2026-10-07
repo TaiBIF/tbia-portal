@@ -1,4 +1,5 @@
 import html
+import io
 import shapely
 import re
 import json
@@ -7,9 +8,9 @@ import requests
 import pandas as pd
 import numpy as np
 import geopandas as gpd
-import subprocess
 import os
 import threading
+from conf.background import run_light, run_heavy
 import time
 from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
@@ -47,7 +48,7 @@ def get_geojson(request,id):
 # 全站搜尋資料分布圖
 def get_taxon_dist_init(request):
     taxon_id = request.POST.get('taxonID')
-    query_list = [f'taxonID:{taxon_id}','-standardOrganismQuantity:0']
+    query_list = [f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0']
 
 
     map_query = {"query": "*:*",
@@ -80,10 +81,10 @@ def get_taxon_dist(request):
     
     if get_raw_map:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
     else:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{taxon_id}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
 
     map_query = {"query": "*:*",
             "offset": 0,
@@ -163,8 +164,7 @@ def submit_sensitive_request(request):
         )
 
         # 以下改成背景處理
-        task = threading.Thread(target=background_submit_sensitive_request, args=(request.POST.get('type'), req_dict, query_id))
-        task.start()
+        run_heavy(background_submit_sensitive_request, request.POST.get('type'), req_dict, query_id)
         
         return JsonResponse({"status": 'success'}, safe=False)
 
@@ -180,8 +180,7 @@ def submit_sensitive_response(request):
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
     # 若是機關委託計畫，排除已轉移給各單位審核的
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
-        task = threading.Thread(target=generate_sensitive_csv, args=(request.POST.get('query_id'),scheme,request.get_host()))
-        task.start()
+        run_heavy(generate_sensitive_csv, request.POST.get('query_id'),scheme,request.get_host())
 
     return JsonResponse({"status": 'success'}, safe=False)
 
@@ -342,20 +341,10 @@ def generate_sensitive_csv(query_id, scheme, host):
                 csv_folder = os.path.join(MEDIA_ROOT, 'download')
                 csv_folder = os.path.join(csv_folder, 'sensitive')
                 csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
-                temp_file1 = os.path.join(csv_folder, f'{download_id}_temp1.csv')
-                temp_file2 = os.path.join(csv_folder, f'{download_id}_temp2.csv')
                 zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
-                # 執行兩個查詢並合併結果
-                commands = f"""
-                curl -X POST {solr_url} -d '{json.dumps(query1)}' -H 'Content-Type: application/json' > {temp_file1}
-                curl -X POST {solr_url} -d '{json.dumps(query2)}' -H 'Content-Type: application/json' > {temp_file2}
-                cat {temp_file1} > {csv_file_path}
-                tail -n +2 {temp_file2} >> {csv_file_path}
-                zip -j {zip_file_path} {csv_file_path}
-                rm {csv_file_path} {temp_file1} {temp_file2}
-                """
+                # 執行兩個查詢並合併結果（第二組去掉表頭）
+                csv_queries = [query1, query2]
             else:
                 # 沒有不同意的單位，直接用原本的單一查詢
                 query = {
@@ -373,14 +362,10 @@ def generate_sensitive_csv(query_id, scheme, host):
                 csv_folder = os.path.join(csv_folder, 'sensitive')
                 csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
                 zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-                solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
+                csv_queries = [query]
 
-                commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-
-            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            process.communicate()
-
-            sq.status = 'pass'
+            file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path)
+            sq.status = 'pass' if file_done else 'fail'
             
         else:
             # 沒有帳號通過 - 全部給模糊化後的資料
@@ -401,15 +386,9 @@ def generate_sensitive_csv(query_id, scheme, host):
             csv_folder = os.path.join(csv_folder, 'sensitive')
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-            solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
-            commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            process.communicate()
-            
-            sq.status = 'pass'
-
-        file_done = True
+            file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path)
+            sq.status = 'pass' if file_done else 'fail'
 
         # 儲存到下載統計
         stat_rightsHolder = create_search_stat(query_list=query_list)
@@ -484,8 +463,9 @@ def generate_sensitive_csv(query_id, scheme, host):
 
 def save_geojson(request):
     if request.method == 'POST':
-        geojson = request.POST.get('geojson_text')
-        geojson = gpd.read_file(geojson, driver='GeoJSON')
+        geojson = request.POST.get('geojson_text') or ''
+        # 用 BytesIO 包起來，避免字串被 geopandas 當成檔案路徑或 URL 讀取
+        geojson = gpd.read_file(io.BytesIO(geojson.encode('utf-8')), driver='GeoJSON')
         geojson = geojson.to_json()
 
         oid = str(ObjectId())
@@ -497,8 +477,9 @@ def save_geojson(request):
 
 def return_geojson_query(request):
     if request.method == 'POST':
-        geojson = request.POST.get('geojson_text')
-        geojson = gpd.read_file(geojson, driver='GeoJSON')
+        geojson = request.POST.get('geojson_text') or ''
+        # 用 BytesIO 包起來，避免字串被 geopandas 當成檔案路徑或 URL 讀取
+        geojson = gpd.read_file(io.BytesIO(geojson.encode('utf-8')), driver='GeoJSON')
         geojson = shapely.force_2d(geojson) # remove z coordinates
 
         g_list = []
@@ -511,14 +492,11 @@ def return_geojson_query(request):
 def send_download_request(request):
     if request.method == 'POST':
         if request.POST.get('from_full'):
-            task = threading.Thread(target=generate_download_csv_full, args=(request.POST, request.user.id, scheme, request.get_host()))
-            task.start()
+            run_heavy(generate_download_csv_full, request.POST, request.user.id, scheme, request.get_host())
         elif request.POST.get('taxon'):
-            task = threading.Thread(target=generate_species_csv, args=(request.POST, request.user.id, scheme, request.get_host()))
-            task.start()
+            run_heavy(generate_species_csv, request.POST, request.user.id, scheme, request.get_host())
         else:
-            task = threading.Thread(target=generate_download_csv, args=(request.POST, request.user.id, scheme, request.get_host()))
-            task.start()
+            run_heavy(generate_download_csv, request.POST, request.user.id, scheme, request.get_host())
         return JsonResponse({"status": 'success'}, safe=False)
 
 
@@ -579,12 +557,13 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-    solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
-    
-    # 等待檔案完成
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    process.communicate()
+
+    # 等待檔案完成；失敗就標記 fail，不寄出下載連結
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+        sq.status = 'fail'
+        sq.modified = timezone.now()
+        sq.save()
+        return
 
     # 儲存到下載統計
 
@@ -787,17 +766,13 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     if record_type == 'col':
         fq_list = ['recordType:col']
 
-    keyword_reg = ''
     keyword = html.unescape(keyword)
-    for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = build_keyword_reg(keyword)
     keyword_reg = process_text_variants(keyword_reg)
 
     # 查詢學名相關欄位時 去除重複空格
     keyword_name = re.sub(' +', ' ', keyword)
-    keyword_name_reg = ''
-    for j in keyword_name:
-        keyword_name_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_name_reg = build_keyword_reg(keyword_name)
     keyword_name_reg = process_text_variants(keyword_name_reg)
 
     if key == 'taxonID':
@@ -810,12 +785,14 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         else:
             q = contains_clause(key, keyword, keyword_reg)
 
+    if not re.fullmatch(r'\w+', key or ''):  # key 是欄位名稱，避免組出任意查詢
+        return
     if key == 'sourceScientificName': # 若前後有<i>也算進去
-        q = rf'sourceScientificName: (/.*[<i>]{value}[<\/i>].*/ OR "{value}")'
+        q = rf'sourceScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
     else:
-        fq_list.append(f'{key}:{value}')
+        fq_list.append(f'{key}:{solr_quote(value)}')
     if scientific_name and scientific_name != 'undefined':
-        fq_list.append(f'scientificName:{scientific_name}')
+        fq_list.append(f'scientificName:{solr_quote(scientific_name)}')
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -846,12 +823,13 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     csv_folder = os.path.join(csv_folder, 'record')
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
-    solr_url = f"{SOLR_PREFIX}tbia_records/select?wt=csv"
 
-    # 等待檔案完成
-    commands = f"curl -X POST {solr_url} -d '{json.dumps(query)}' -H 'Content-Type: application/json' > {csv_file_path}; zip -j {zip_file_path} {csv_file_path}; rm {csv_file_path}"
-    process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    process.communicate()
+    # 等待檔案完成；失敗就標記 fail，不寄出下載連結
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+        sq.status = 'fail'
+        sq.modified = timezone.now()
+        sq.save()
+        return
 
     # 儲存到下載統計
     
@@ -929,9 +907,7 @@ def get_records(request): # 全站搜尋
         if key in taxon_keyword_list:
             keyword = re.sub(' +', ' ', keyword)
 
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = build_keyword_reg(keyword)
         keyword_reg = process_text_variants(keyword_reg)
 
         params = {'keyword': keyword, 'key': key, 'value': value,
@@ -950,9 +926,9 @@ def get_records(request): # 全站搜尋
         else:
             q = contains_clause(key, keyword, keyword_reg)
 
-        fq_list.append(f'{key}:"{value}"')
+        fq_list.append(f'{key}:{solr_quote(value)}')
         if scientific_name and scientific_name != 'undefined':
-            fq_list.append(f'scientificName:"{scientific_name}"')
+            fq_list.append(f'scientificName:{solr_quote(scientific_name)}')
 
         if orderby == 'eventDate':
             solr_orderby = 'standardDate' + ' ' + sort
@@ -1732,14 +1708,6 @@ def get_conditional_records(request):
         if offset > 100000:
             return HttpResponse(json.dumps({'message': 'exceed'}, default=str), content_type='application/json')
 
-        map_query_list = query_list + ['-standardOrganismQuantity:0']
-        map_bound = check_map_bound(req_dict.get('map_bound'))
-
-        if get_raw_map:
-            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound} "]
-        else:
-            map_query_list += [f"{{!cache=false}}location_rpt:{map_bound}"]
-
         query = { "query": "*:*",
                   "offset": offset,
                   "limit": limit,
@@ -1798,8 +1766,7 @@ def get_conditional_records(request):
             # 搜尋紀錄：排除規則統一由 build_stat_query_string / STAT_EXCLUDE_KEYS 處理
             query_string = build_stat_query_string(req_dict)
 
-            task = threading.Thread(target=background_search_stat, args=(query_list,record_type,query_string))
-            task.start()
+            run_light(background_search_stat, query_list,record_type,query_string)
 
         response = {
             'rows' : rows,
@@ -1824,23 +1791,28 @@ def change_dataset(request):
     ds = []
     d_list = []
 
-    record_type = ''
+    # 參數改用 params（自動 URL 編碼），使用者輸入以 solr_quote 包起來
+    record_type = []
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:/.*col.*/'
+        record_type = [('fq', 'record_type:/.*col.*/')]
+    ds_url = f'{SOLR_PREFIX}dataset/select'
+    base = [('q', '*:*'), ('q.op', 'OR'), ('fq', 'deprecated:false')]
 
     if datasetKey := request.GET.getlist('datasetKey'):
-        response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=1000000000&fq=tbiaDatasetID:({" OR ".join(datasetKey)})&fq=deprecated:false', timeout=SOLR_TIMEOUT)
+        params = base + [('rows', 1000000000), ('fq', f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in datasetKey)})')]
+        response = requests.get(ds_url, params=params, timeout=SOLR_TIMEOUT)
         d_list = response.json()['response']['docs']
 
 
     elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
-            response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=rights_holder:"{h}"&fq=deprecated:false', timeout=SOLR_TIMEOUT)
+            params = base + [('rows', 20), ('fq', f'rights_holder:{solr_quote(h)}')] + record_type
+            response = requests.get(ds_url, params=params, timeout=SOLR_TIMEOUT)
             d_list = response.json()['response']['docs']
 
     else:
         # 起始
-        response = requests.get(f'{SOLR_PREFIX}dataset/select?q=*:*&q.op=OR&rows=20{record_type}&fq=deprecated:false', timeout=SOLR_TIMEOUT)
+        response = requests.get(ds_url, params=base + [('rows', 20)] + record_type, timeout=SOLR_TIMEOUT)
         d_list = response.json()['response']['docs']
     
     # solr內的id和datahub的postgres互通
@@ -1864,25 +1836,24 @@ def change_municipality(request):
 
 
 def get_locality(request):
-    keyword = request.GET.get('locality') if request.GET.getlist('locality') != 'null' else ''
+    keyword = request.GET.get('locality') or ''
 
-    keyword_reg = ''
     keyword = html.unescape(keyword)
-    for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = build_keyword_reg(keyword)
     keyword_reg = process_text_variants(keyword_reg)
 
-    record_type = ''
+    record_type = []
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:col'
+        record_type = [('fq', 'record_type:col')]
 
-    locality_str = f'locality:"{keyword}"^5 OR locality:/{escape_solr_query(keyword)}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{escape_solr_query(keyword)}.*/^1 OR locality:/.*{keyword_reg}.*/'
+    locality_str = f'locality:{solr_quote(keyword)}^5 OR locality:/{escape_solr_query(keyword)}.*/^4 OR locality:/{keyword_reg}/^3 OR locality:/{keyword_reg}.*/^2 OR locality:/.*{escape_solr_query(keyword)}.*/^1 OR locality:/.*{keyword_reg}.*/'
 
     ds = []
+    loc_url = f'{SOLR_PREFIX}locality/select'
     if keyword_reg:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q={locality_str}{record_type}&rows=20', timeout=SOLR_TIMEOUT)
+        response = requests.get(loc_url, params=[('q.op', 'OR'), ('q', locality_str), ('rows', 20)] + record_type, timeout=SOLR_TIMEOUT)
     else:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20&sort=locality%20desc&start=10', timeout=SOLR_TIMEOUT)
+        response = requests.get(loc_url, params=[('q.op', 'OR'), ('q', '*:*'), ('rows', 20), ('sort', 'locality desc'), ('start', 10)] + record_type, timeout=SOLR_TIMEOUT)
 
     l_list = response.json()['response']['docs']
     # solr內的id和datahub的postgres互通
@@ -1898,17 +1869,18 @@ def get_locality_init(request):
     keyword = request.GET.getlist('locality')
 
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:col'
+        record_type = [('fq', 'record_type:col')]
     else:
-        record_type = ''
+        record_type = []
 
     ds = []
-    keyword = [f'"{k}"' for k in keyword if k ]
+    keyword = [solr_quote(k) for k in keyword if k ]
+    loc_url = f'{SOLR_PREFIX}locality/select'
     if keyword:
         f_str = ' OR '.join(keyword)
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&fq=locality:({f_str})&rows=20', timeout=SOLR_TIMEOUT)
+        response = requests.get(loc_url, params=[('q.op', 'OR'), ('q', '*:*')] + record_type + [('fq', f'locality:({f_str})'), ('rows', 20)], timeout=SOLR_TIMEOUT)
     else:
-        response = requests.get(f'{SOLR_PREFIX}locality/select?q.op=OR&q=*%3A*{record_type}&rows=20&sort=locality%20desc&start=10', timeout=SOLR_TIMEOUT)
+        response = requests.get(loc_url, params=[('q.op', 'OR'), ('q', '*:*')] + record_type + [('rows', 20), ('sort', 'locality desc'), ('start', 10)], timeout=SOLR_TIMEOUT)
 
     l_list = response.json()['response']['docs']
     for l in l_list:
@@ -1935,25 +1907,22 @@ def get_dataset(request):
         else:
             return redirect('change_dataset')
 
-    if len(rights_holder) > 1:
-        rights_holder = ' OR '.join(rights_holder)
-        h_str = f'&fq=rights_holder:({rights_holder})'
-    elif len(rights_holder) == 1:
-        h_str = f'&fq=rights_holder:"{rights_holder[0]}"'
+    h_str = []
+    if rights_holder:
+        # 多個來源資料庫也逐一加引號（原本未加引號，名稱含空白時會比對錯誤）
+        h_str = [('fq', f'rights_holder:({" OR ".join(solr_quote(h) for h in rights_holder)})')]
 
-    record_type = ''
+    record_type = []
     if request.GET.get('record_type') == 'col':
-        record_type = '&fq=record_type:/.*col.*/'
+        record_type = [('fq', 'record_type:/.*col.*/')]
 
-    keyword_reg = ''
-    for j in keyword:
-        keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+    keyword_reg = build_keyword_reg(keyword)
     keyword_reg = process_text_variants(keyword_reg)
 
     # 完全相同 -> 相同但有大小寫跟異體字的差別 -> 開頭相同, 有大小寫跟異體字的差別  -> 包含, 有大小寫跟異體字的差別 
-    dataset_str = f'name:"{keyword}"^5 OR name:/{escape_solr_query(keyword)}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{escape_solr_query(keyword)}.*/^1 OR name:/.*{keyword_reg}.*/'
+    dataset_str = f'name:{solr_quote(keyword)}^5 OR name:/{escape_solr_query(keyword)}.*/^4 OR name:/{keyword_reg}/^3 OR name:/{keyword_reg}.*/^2 OR name:/.*{escape_solr_query(keyword)}.*/^1 OR name:/.*{keyword_reg}.*/'
     ds = []
-    response = requests.get(f'{SOLR_PREFIX}dataset/select?q.op=OR&q={dataset_str}{h_str}&rows=20{record_type}&fq=deprecated:false', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{SOLR_PREFIX}dataset/select', params=[('q.op', 'OR'), ('q', dataset_str)] + h_str + [('rows', 20)] + record_type + [('fq', 'deprecated:false')], timeout=SOLR_TIMEOUT)
     d_list = response.json()['response']['docs']
 
     # solr內的id和datahub的postgres互通
@@ -2072,9 +2041,7 @@ def search_full(request):
         taxon_more = taxon_resp['has_more']
         keyword = keyword.strip()
         keyword = html.unescape(keyword)
-        keyword_reg = ''
-        for j in keyword:
-            keyword_reg += f"[{j.upper()}{j.lower()}]" if is_alpha(j) else escape_solr_query(j)
+        keyword_reg = build_keyword_reg(keyword)
         keyword_reg = process_text_variants(keyword_reg)
 
         # news
@@ -2282,7 +2249,7 @@ def get_taxon_by_region(request):
     query_list = []
     if bioGroup := request.GET.get('bioGroup'):
         groups = split_group_map.get(bioGroup, [bioGroup])
-        query_list.append(f'bioGroup:({" OR ".join(groups)})')
+        query_list.append(f'bioGroup:({" OR ".join(solr_quote(g) for g in groups)})')
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')
@@ -2291,10 +2258,10 @@ def get_taxon_by_region(request):
         query_list.append('-alien_type:cultured')
 
     if county:
-        query_list.append('county:"{}"'.format(county))
+        query_list.append(f'county:{solr_quote(county)}')
 
     if municipality:
-        query_list.append('municipality:"{}"'.format(municipality))
+        query_list.append(f'municipality:{solr_quote(municipality)}')
 
     # 階層只撈種&種下 再往上補階層到科
 

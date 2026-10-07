@@ -89,7 +89,7 @@ function isOverflown(element) {
 
 // };
 
-// 單一英數字元不送出全站搜尋（各頁共用；search_full.js 等頁面另有同名同內容的定義）
+// 單一英數字元不送出搜尋（全站共用，base.js 先於各頁 JS 載入）
 function isTooShortLatin(v) {
   v = (v || '').trim()
   return v.length === 1 && /[A-Za-z0-9]/.test(v)

@@ -1,11 +1,5 @@
 var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
-// 英文關鍵字至少 2 字元；中文單字放行。回傳 true 表示「太短、應擋」
-function isTooShortLatin(v) {
-  v = (v || '').trim()
-  return v.length === 1 && /[A-Za-z0-9]/.test(v)
-}
-
 function getWKTMap(map) {
   var neLat = map.getBounds().getNorthEast()['lat']
   var neLng = map.getBounds().getNorthEast()['lng']
