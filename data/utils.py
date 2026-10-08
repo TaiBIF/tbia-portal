@@ -1322,6 +1322,78 @@ def summarize_names(names, keyword, keyword_reg, limit=2, do_highlight=True):
 
 
 # 全站搜尋 物種出現紀錄 / 自然史典藏
+def get_search_full_counts(keyword, lang=None, is_first_time=False):
+    """全站搜尋頁面用：一次 Solr 請求同時算出 occ 與 col 的總數與側欄，回傳 (occ_resp, col_resp)。
+    結果與 get_search_full_cards(counts_only=True) 分別對 .occ / .col 相同。
+    兩者的欄位子句完全相同（col 只多 recordType:col），合併後冷啟動只需讀一次 postings，也不會互搶 IO。"""
+    if lang:
+        translation.activate(lang)
+
+    keyword = keyword.strip()
+    # 與 get_search_full_cards 相同的日期判斷
+    if re.match(r'^([\s\d]+)$', keyword):
+        enable_query_date = False
+    elif re.match(r'^[0-9-]*$', keyword):
+        try:
+            datetime.strptime(keyword, '%Y-%m-%d')
+            enable_query_date = True
+        except:
+            enable_query_date = False
+    else:
+        enable_query_date = True
+
+    keyword = html.unescape(keyword)
+    keyword_name = re.sub(' +', ' ', keyword)
+
+    fields = {}
+    for rt in ['occ', 'col']:
+        fields[rt] = [f for f in create_facet_list(record_type=rt)['facet'] if enable_query_date or f != 'eventDate']
+
+    clauses = {}
+    for f in fields['occ'] + fields['col']:
+        if f not in clauses:
+            clauses[f] = ngram_contains_query(f, keyword_name if f in taxon_keyword_list else keyword)
+
+    union = {rt: ' OR '.join(f'filter({clauses[f]})' for f in fields[rt]) for rt in fields}
+    col_fq = 'filter(recordType:col)'
+    facet = {
+        'occ_total': {'type': 'query', 'q': union['occ']},
+        'col_total': {'type': 'query', 'q': f"+{col_fq} +({union['col']})"},
+    }
+    for f in fields['occ']:
+        facet[f'occ__{f}'] = {'type': 'query', 'q': f'filter({clauses[f]})'}
+    for f in fields['col']:
+        facet[f'col__{f}'] = {'type': 'query', 'q': f'+{col_fq} +filter({clauses[f]})'}
+
+    query = {
+        "query": '*:*',
+        "limit": 0,
+        "filter": [' OR '.join(f'filter({c})' for c in clauses.values())],
+        "facet": facet,
+    }
+    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
+    cf = resp.get('facets', {})
+
+    if is_first_time:
+        query_string = urlencode({'keyword': keyword})
+        run_light(background_search_stat, union['occ'], 'full', query_string)
+
+    def build(rt, map_dict):
+        return {
+            'total_count': cf.get(f'{rt}_total', {}).get('count', 0),
+            'menu_rows': [{'title': map_dict[f], 'total_count': cf[f'{rt}__{f}']['count'], 'key': f}
+                          for f in fields[rt] if cf.get(f'{rt}__{f}', {}).get('count', 0) > 0],
+            'data': [],
+            'has_more': False,
+            'reach_end': False,
+            'item_class': None,
+            'card_class': None,
+            'title': None,
+        }
+
+    return build('occ', map_occurrence), build('col', map_collection)
+
+
 def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, is_first_time=False, counts_only=False, hit_fields=None):
     if lang:
         translation.activate(lang)

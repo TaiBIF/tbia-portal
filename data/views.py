@@ -2018,17 +2018,15 @@ def search_full(request):
 
     if keyword and len(keyword) < 2000 and not too_short_latin:
 
-        col_kwargs = dict(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None, lang=lang, counts_only=True)
-        occ_kwargs = dict(keyword=keyword, card_class='.occ', is_sub='false', offset=0, key=None, lang=lang, is_first_time=True, counts_only=True)
+        counts_kwargs = dict(keyword=keyword, lang=lang, is_first_time=True)
         taxon_kwargs = dict(keyword=keyword, card_class=None, is_sub='false', offset=0, lang=lang)
 
-        # 三種卡片彼此獨立，平行查詢以縮短總等待時間
-        # col / occ 只取總數與側欄（counts_only），卡片由前端載入後呼叫 get_more_cards
-        with ThreadPoolExecutor(max_workers=3) as ex:
-            f_col = ex.submit(_run_card_task, get_search_full_cards, col_kwargs, timings, 'col')
-            f_occ = ex.submit(_run_card_task, get_search_full_cards, occ_kwargs, timings, 'occ')
+        # occ / col 的總數與側欄合併成一次查詢（get_search_full_counts），與物種卡片平行
+        # occ / col 卡片由前端載入後呼叫 get_more_cards
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            f_counts = ex.submit(_run_card_task, get_search_full_counts, counts_kwargs, timings, 'occ_col')
             f_taxon = ex.submit(_run_card_task, get_search_full_cards_taxon, taxon_kwargs, timings, 'taxon')
-            col_resp, occ_resp, taxon_resp = f_col.result(), f_occ.result(), f_taxon.result()
+            (occ_resp, col_resp), taxon_resp = f_counts.result(), f_taxon.result()
         timings['cards'] = time.perf_counter() - t_start
         translation.activate(lang)
 
@@ -2173,7 +2171,7 @@ def search_full(request):
 
     resp =  render(request, 'data/search_full.html', response)
 
-    # 超過 2 秒才記錄各段耗時（col/occ/taxon 平行；others = 新聞、問答等 DB 查詢 + render）
+    # 超過 2 秒才記錄各段耗時（occ_col/taxon 平行；others = 新聞、問答等 DB 查詢 + render）
     total = time.perf_counter() - t_start
     if total > 2:
         cards = timings.pop('cards', 0)
