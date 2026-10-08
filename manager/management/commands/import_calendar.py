@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         df = pd.read_csv(path, usecols=['西元日期', '是否放假'])
         df = df.rename(columns={'西元日期': 'date', '是否放假': 'is_dayoff'})
-        df['is_dayoff'] = df['is_dayoff'].replace({0: False, 2: True})
+        df['is_dayoff'] = df['is_dayoff'] == 2
         df['date'] = df['date'].apply(lambda x: datetime.strptime(str(x), '%Y%m%d').date())
 
         for row in df.itertuples(index=False):
