@@ -196,25 +196,48 @@
 
 .ms-toolbar {
     display: flex;
-    gap: 16px;
+    gap: 12px 24px;
     flex-wrap: wrap;
+    align-items: center;
     margin-bottom: 14px;
 }
 
+/* 標籤與下拉同一列、垂直置中，兩個欄位等高 */
 .ms-toolbar label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
     font-size: 13px;
     color: #5f6a64;
-    width: 45%;
+    white-space: nowrap;
 }
 
 .ms-toolbar select {
-    margin-left: 6px;
-    padding: 6px 9px;
+    box-sizing: border-box;
+    height: 36px;
+    margin: 0;
+    padding: 0 9px;
     border: 1px solid #dfe4de;
     border-radius: 3px;
     font-size: 14px;
     background: #fff;
     width: auto;
+}
+
+#ms-group {
+    min-width: 240px;
+    max-width: 100%;
+}
+
+@media (max-width: 600px) {
+    .ms-toolbar label {
+        flex: 1 1 100%;
+    }
+    .ms-toolbar select {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
 /* ── 前後次比較 ─────────────────────────────── */

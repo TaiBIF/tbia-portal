@@ -233,6 +233,10 @@ class Command(BaseCommand):
         h += (f'<p>本次共 {fmt(u["total"])} 筆紀錄，其中 <b>{u["rate"]:.1f}%</b> 對到來源提供的階層。</p>')
         h += (f'<img src="cid:{cid}" alt="{u["rights_holder"]} 學名比對狀況圖" '
               'style="max-width:100%;border:1px solid #dfe4de;border-radius:4px">')
+        noname = sum(r['records'] for r in u['snapshot'] if r.get('category_key') == 'noname')
+        if noname:
+            h += (f'<p style="font-size:13.5px;color:#5f6a64">另有 {fmt(noname)} 筆紀錄缺少學名，'
+                  '逐筆清單（含 occurrenceID、tbiaID）請至後台下載「無學名紀錄清單」。</p>')
         if c and not meta.get('logic_changed'):
             worse = c.get('worse', 0)
             h += (f'<div style="{BOX.format(c="#c0533f" if worse else "#2f6b5e")}">'

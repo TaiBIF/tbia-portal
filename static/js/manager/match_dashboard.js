@@ -193,6 +193,7 @@
     dc.appendChild(link("ms-dl", dl.partner, "夥伴可修清單", false));
     dc.appendChild(link("ms-dl alt", dl.taicol, "回報 TaiCOL 清單", false));
     dc.appendChild(link("ms-dl alt", dl.email, "比對狀況圖", true));
+    if (dl.noname) dc.appendChild(link("ms-dl alt", dl.noname, "無學名紀錄清單", false));
     if (dl.compare_category) dc.appendChild(link("ms-dl alt", dl.compare_category, "分類比較（較前次）", false));
     if (dl.compare_names) dc.appendChild(link("ms-dl alt", dl.compare_names, "學名變化清單（較前次）", false));
     body.appendChild(dc);

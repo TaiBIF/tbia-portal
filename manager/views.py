@@ -1345,7 +1345,7 @@ def manager_partner(request):
 
     return render(request, 'manager/partner/manager.html',{ 'download_url': download_url, 'holder_list': holder_list,
                                                             'data_year': data_year, 'stat_year': stat_year, 'stat_month': stat_month,
-                                                            'match_units': match_units(request.user)})
+                                                            'match_units': match_units(request.user, scope='partner')})
 
 
 def get_partner_stat(request):
@@ -3394,28 +3394,30 @@ def _allowed_groups(user):
  
  
 def _partner_units(p):
-    """一個 Partner 底下的資料庫清單（依 Partner.info），unit = {group}_{info_id}。"""
-    title = getattr(p, 'title', None) or p.group
+    """一個 Partner 底下的資料庫清單（依 Partner.info），unit = {group}_{info_id}。
+    名稱用 info 的 dbname（= rightsHolder），與其他統計圖的來源資料庫下拉一致。"""
     infos = p.info or []
     if not infos:
-        return [{'unit': f'{p.group}_0', 'name': title}]
-    multi = len(infos) > 1
+        return [{'unit': f'{p.group}_0', 'name': getattr(p, 'title', None) or p.group}]
     return [{'unit': f'{p.group}_{i.get("id")}',
-             'name': f'{title} - {i.get("subtitle")}' if multi and i.get('subtitle') else title}
+             'name': i.get('dbname') or i.get('subtitle') or p.title or p.group}
             for i in infos]
 
 
-def match_units(user):
-    """比對狀況面板的資料庫下拉清單；system admin 為全部，一般夥伴只回自己單位的資料庫。"""
+def match_units(user, scope='system'):
+    """比對狀況面板的資料庫下拉清單。
+    scope='partner'（夥伴後台）：只回使用者所屬單位的資料庫，系統管理員在夥伴後台也只看自己單位。
+    scope='system'（系統管理員後台）：系統管理員回全部資料庫。"""
     if user.is_anonymous:
         return []
-    if User.objects.filter(id=user.id, is_system_admin=True).exists():
-        return [u for p in Partner.objects.all().order_by('group') for u in _partner_units(p)]
+    if scope == 'system' and User.objects.filter(id=user.id, is_system_admin=True).exists():
+        units = [u for p in Partner.objects.all() for u in _partner_units(p)]
+        return sorted(units, key=lambda u: u['name'])
     if getattr(user, 'partner', None):
         return _partner_units(user.partner)
     return []
- 
- 
+
+
 def get_match_stat(request):
     """回傳單一資料庫某月的比對狀況（JSON），供儀表板前端繪製。
     unit = {group}_{info_id}（同一 group 可能有多個資料庫）。"""
@@ -3503,7 +3505,8 @@ def get_match_stat(request):
         'email': f"{base}/email.png",
     }
     # 比較檔僅在有前次時產出，存在才給連結
-    for k, fn in (('compare_category', 'compare_category.csv'),
+    for k, fn in (('noname', 'noname_records.zip'),
+                  ('compare_category', 'compare_category.csv'),
                   ('compare_names', 'compare_names.csv')):
         if (disk / fn).exists():
             downloads[k] = f"{base}/{fn}"
