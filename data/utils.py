@@ -1702,7 +1702,6 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
         taicol = taicol[taicol_cols]
         taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
-    taxon_ids = [f"taxonID:{d['id']}" for d in data['docs']]
 
     # 側邊欄
     menu_rows = []
@@ -1767,16 +1766,21 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         taxon_result_df['col_count'] = 0 
         taxon_result_df['occ_count'] = 0 
         # 取得出現紀錄及自然史典藏筆數
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.pivot=taxonID,recordType&facet=true&q.op=OR&q={" OR ".join(taxon_ids)}&rows=0', timeout=SOLR_TIMEOUT)
-        data = response.json()['facet_counts']['facet_pivot']['taxonID,recordType']
-
-        for d in data:
-            taxon_result_df.loc[taxon_result_df.taxonID==d['value'],'occ_count'] = d['count']
-            col_count = 0
-            for dp in d['pivot']:
-                if dp.get('value') == 'col':
-                    col_count = dp.get('count')
-            taxon_result_df.loc[taxon_result_df.taxonID==d['value'],'col_count'] = col_count
+        # 每個 taxonID 一個 query facet（走倒排索引），取代 facet.pivot=taxonID,recordType：
+        # recordType 是 text 欄位、pivot 冷啟動要先 uninvert 整個欄位，很慢；兩者筆數相同
+        tids = [t for t in taxon_result_df.taxonID.unique() if t]
+        count_facet = {f't{n}': {'type': 'query', 'q': f'taxonID:{solr_quote(t)}',
+                                 'facet': {'col': {'type': 'query', 'q': 'recordType:col'}}}
+                       for n, t in enumerate(tids)}
+        if count_facet:
+            response = requests.post(f'{SOLR_PREFIX}tbia_records/select',
+                                     data=json.dumps({'query': '*:*', 'limit': 0, 'facet': count_facet}),
+                                     headers={'content-type': "application/json"}, timeout=SOLR_TIMEOUT)
+            cf = response.json().get('facets', {})
+            for n, t in enumerate(tids):
+                f = cf.get(f't{n}', {})
+                taxon_result_df.loc[taxon_result_df.taxonID==t,'occ_count'] = f.get('count', 0)
+                taxon_result_df.loc[taxon_result_df.taxonID==t,'col_count'] = f.get('col', {}).get('count', 0)
         
         # 處理hightlight
         # taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))

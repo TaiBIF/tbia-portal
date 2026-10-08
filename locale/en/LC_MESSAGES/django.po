@@ -3784,3 +3784,6 @@ msgstr "Search keywords"
 
 msgid "檔案"
 msgstr "file"
+
+msgid "英文關鍵字請輸入至少 2 個字元"
+msgstr "Please enter at least 2 characters for English keywords"

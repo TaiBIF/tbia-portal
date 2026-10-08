@@ -1319,6 +1319,23 @@ function getTaxonRankFor(card_class) {
   return $(`.taxon-rank-filter[data-card_class="${card_class}"] select`).val() || ''
 }
 
+// 卡片區 loading：初次載入時模板已放好；按「更多結果」時插在卡片列表後面，並先隱藏按鈕避免重複點擊
+function showCardsLoading(card_class, more_type) {
+  $(more_type).addClass('d-none')
+  if (!$(`${card_class}-loading`).length) {
+    $(card_class).first().after(`
+      <div class="loading_area_partial ${card_class.substring(1)}-loading">
+        <div class="sc"><div class="load"><span>L</span>ading</div></div>
+      </div>`)
+  }
+}
+
+// 失敗時保留「更多結果」讓使用者重試（初次載入失敗則不顯示）
+function hideCardsLoading(card_class, more_type, failed = false, offset = 0) {
+  $(`${card_class}-loading`).remove()
+  if (failed && Number(offset) > 0) $(more_type).removeClass('d-none')
+}
+
 function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false) {
   $('input[name=keyword]').val($('.keyword-p').html())
 
@@ -1332,6 +1349,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
   }
 
   let offset = $(offset_value).val()
+  showCardsLoading(card_class, more_type)
   if (record_type == 'taxon') {
     $.ajax({
       url: "/get_more_cards_taxon",
@@ -1349,6 +1367,8 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
     })
       .done(function (response) {
 
+        hideCardsLoading(card_class, more_type)
+
         if (reset) {
           const $list = $(card_class)
           $list.empty()
@@ -1361,6 +1381,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
         if (response.has_more == true & response.reach_end == false) {
 
           $(offset_value).val(Number(offset) + 4)
+          $(more_type).removeClass('d-none')
 
         } else if (response.has_more == true) {
 
@@ -1506,6 +1527,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
         }
       })
       .fail(function (xhr, status, errorThrown) {
+        hideCardsLoading(card_class, more_type, true, offset)
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
@@ -1533,7 +1555,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
     })
       .done(function (response) {
 
-        $(`${card_class}-loading`).remove()  // 初始載入的卡片區 loading（.occ-card-loading / .col-card-loading）
+        hideCardsLoading(card_class, more_type)
 
         if (response.has_more == true & response.reach_end == false) {
           $(offset_value).val(Number(offset) + 9)
@@ -1598,7 +1620,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
 
       })
       .fail(function (xhr, status, errorThrown) {
-        $(`${card_class}-loading`).remove()  // 初始載入的卡片區 loading（.occ-card-loading / .col-card-loading）
+        hideCardsLoading(card_class, more_type, true, offset)
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {

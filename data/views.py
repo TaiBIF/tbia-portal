@@ -1,4 +1,5 @@
 import html
+import logging
 import io
 import shapely
 import re
@@ -11,6 +12,8 @@ import geopandas as gpd
 import os
 import threading
 from conf.background import run_light, run_heavy
+
+logger = logging.getLogger(__name__)
 import time
 from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
@@ -1992,11 +1995,14 @@ def get_higher_taxa(request):
     return HttpResponse(ds, content_type='application/json')
 
 
-def _run_card_task(func, kwargs):
-    # 在執行緒中執行卡片查詢，結束時歸還該執行緒借出的 DB 連線
+def _run_card_task(func, kwargs, timings=None, name=None):
+    # 在執行緒中執行卡片查詢，結束時歸還該執行緒借出的 DB 連線；timings 記錄各自耗時
+    t = time.perf_counter()
     try:
         return func(**kwargs)
     finally:
+        if timings is not None:
+            timings[name] = time.perf_counter() - t
         connection.close()
 
 
@@ -2007,6 +2013,9 @@ def search_full(request):
     # 單一英數字元（例如直接輸入網址 ?keyword=a）視同無關鍵字，避免高成本查詢
     too_short_latin = len(keyword.strip()) == 1 and keyword.strip().isascii() and keyword.strip().isalnum()
 
+    t_start = time.perf_counter()
+    timings = {}
+
     if keyword and len(keyword) < 2000 and not too_short_latin:
 
         col_kwargs = dict(keyword=keyword, card_class='.col', is_sub='false', offset=0, key=None, lang=lang, counts_only=True)
@@ -2016,10 +2025,11 @@ def search_full(request):
         # 三種卡片彼此獨立，平行查詢以縮短總等待時間
         # col / occ 只取總數與側欄（counts_only），卡片由前端載入後呼叫 get_more_cards
         with ThreadPoolExecutor(max_workers=3) as ex:
-            f_col = ex.submit(_run_card_task, get_search_full_cards, col_kwargs)
-            f_occ = ex.submit(_run_card_task, get_search_full_cards, occ_kwargs)
-            f_taxon = ex.submit(_run_card_task, get_search_full_cards_taxon, taxon_kwargs)
+            f_col = ex.submit(_run_card_task, get_search_full_cards, col_kwargs, timings, 'col')
+            f_occ = ex.submit(_run_card_task, get_search_full_cards, occ_kwargs, timings, 'occ')
+            f_taxon = ex.submit(_run_card_task, get_search_full_cards_taxon, taxon_kwargs, timings, 'taxon')
             col_resp, occ_resp, taxon_resp = f_col.result(), f_occ.result(), f_taxon.result()
+        timings['cards'] = time.perf_counter() - t_start
         translation.activate(lang)
 
         # collection
@@ -2158,9 +2168,17 @@ def search_full(request):
             'themeyear': {'count': 0},
             'qa': {'count': 0},
             'all_empty': True,
+            'too_short_latin': too_short_latin,
         }
 
     resp =  render(request, 'data/search_full.html', response)
+
+    # 超過 2 秒才記錄各段耗時（col/occ/taxon 平行；others = 新聞、問答等 DB 查詢 + render）
+    total = time.perf_counter() - t_start
+    if total > 2:
+        cards = timings.pop('cards', 0)
+        detail = ' '.join(f'{k}={v:.2f}s' for k, v in timings.items())
+        logger.warning('search_full slow: keyword=%r total=%.2fs %s others=%.2fs', keyword, total, detail, total - cards)
 
     media_rule = get_media_rule()
     resp._csp_update = {

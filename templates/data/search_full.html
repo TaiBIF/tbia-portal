@@ -300,7 +300,9 @@
       </div>
 
       <div class="rightbox_content">
-        {% if all_empty %}
+        {% if too_short_latin %}
+          <div class="no_data all_empty_no_data">{% trans '英文關鍵字請輸入至少 2 個字元' %}</div>
+        {% elif all_empty %}
           <div class="no_data all_empty_no_data">{% trans '無資料' %}</div>
         {% endif %} 
 
