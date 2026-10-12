@@ -28,6 +28,16 @@
   }
   function num(n) { return (n || 0).toLocaleString(); }
 
+  // 依筆數算百分比文字：有資料但不到 0.1% 顯示「<0.1%」，未滿 100% 但四捨五入成 100 顯示「>99.9%」
+  function pctText(n, total) {
+    n = n || 0;
+    if (!total) return "0%";
+    var p = n / total * 100;
+    if (n > 0 && p < 0.1) return "<0.1%";
+    if (n < total && p >= 99.95) return ">99.9%";
+    return (Math.round(p * 10) / 10).toFixed(1) + "%";
+  }
+
   function populateMonths(sel, months, current) {
     if (!sel) return;
     sel.textContent = "";
@@ -114,13 +124,16 @@
     var spectrum = d.spectrum || [];
     var reasons = d.reasons || [];
     var maxr = Math.max.apply(null, reasons.map(function (r) { return r.records || 0; }).concat([1]));
-    var unmatchedPct = Math.max(0, +(100 - d.overall_rate).toFixed(1));
+    // 未對到以筆數計算，避免整體對到率四捨五入成 100% 時漏掉未對到的部分
+    var unmatchedN = Math.max(0, (d.total || 0) - (d.matched || 0));
+    var unmatchedPct = d.total ? unmatchedN / d.total * 100 : 0;
+    var atrankN = spectrum.reduce(function (a, s) { return a + (s.key === "atrank" ? (s.records || 0) : 0); }, 0);
 
     // KPI
     var row = mk("div", "ms-row");
     var dt = deltaText(d);
-    row.appendChild(kpi(d.atrank_rate.toFixed(1) + "%", "對到來源提供的階層", dt[0], dt[1]));
-    row.appendChild(kpi(d.overall_rate.toFixed(1) + "%", "整體對到"));
+    row.appendChild(kpi(pctText(atrankN, d.total), "對到來源提供的階層", dt[0], dt[1]));
+    row.appendChild(kpi(pctText(d.matched, d.total), "整體對到"));
     row.appendChild(kpi(num(d.total), "記錄總筆數"));
     body.appendChild(row);
 
@@ -129,23 +142,24 @@
     qc.appendChild(mk("div", "ms-h", "資料解析品質 · 以來源階層為基準"));
     var stack = mk("div", "ms-stack");
     spectrum.forEach(function (s) {
-      stack.appendChild(fill(mk("span"), s.pct, COLORS[s.key] || "#5f9b86"));
+      stack.appendChild(fill(mk("span"), (s.records || 0) / d.total * 100, COLORS[s.key] || "#5f9b86"));
     });
-    if (unmatchedPct > 0) stack.appendChild(fill(mk("span"), unmatchedPct, UNMATCHED_BG));
+    if (unmatchedN > 0) stack.appendChild(fill(mk("span"), unmatchedPct, UNMATCHED_BG));
     qc.appendChild(stack);
 
     var legend = mk("div", "ms-legend");
     spectrum.forEach(function (s) {
       var item = mk("div");
       item.appendChild(fill(mk("span", "sw"), null, COLORS[s.key] || "#5f9b86"));
-      item.appendChild(document.createTextNode(s.label + " " + s.pct + "%"));
+      item.appendChild(document.createTextNode(s.label + " " + pctText(s.records, d.total)));
       item.appendChild(mk("span", "n", num(s.records)));
       legend.appendChild(item);
     });
-    if (unmatchedPct > 0) {
+    if (unmatchedN > 0) {
       var u = mk("div");
       u.appendChild(fill(mk("span", "sw"), null, UNMATCHED_BG));
-      u.appendChild(document.createTextNode("未對到 " + unmatchedPct + "%"));
+      u.appendChild(document.createTextNode("未對到 " + pctText(unmatchedN, d.total)));
+      u.appendChild(mk("span", "n", num(unmatchedN)));
       legend.appendChild(u);
     }
     qc.appendChild(legend);
