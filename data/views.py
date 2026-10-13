@@ -890,6 +890,8 @@ def get_records(request): # 全站搜尋
             sort =  sort = request.POST.get('sort')
         else:
             sort = 'asc'
+        if sort not in ['asc', 'desc']:
+            sort = 'asc'
 
         # only facet selected field
         fq_list = []
@@ -947,8 +949,10 @@ def get_records(request): # 全站搜尋
                 solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
             else:
                 solr_orderby = 'standardLongitude' + ' ' + sort
-        else:
+        elif orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
             solr_orderby = orderby + ' ' + sort
+        else:
+            solr_orderby = 'scientificName ' + sort
 
         query = {
             "query": q,
@@ -1638,6 +1642,8 @@ def get_conditional_records(request):
         limit = int(req_dict.get('limit', 10))
         orderby = req_dict.get('orderby', '')
         sort = req_dict.get('sort', 'asc')
+        if sort not in ['asc', 'desc']:
+            sort = 'asc'
         user_id = request.user.id if request.user.id else 0
         get_raw_map = if_raw_map(user_id)
 
@@ -1679,6 +1685,8 @@ def get_conditional_records(request):
                 solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
             else:
                 solr_orderby = 'standardLongitude' + ' ' + sort
+        elif orderby and orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
+            solr_orderby = orderby + ' ' + sort
         else:
             name_kw = req_dict.get('name', '')
             if not orderby and name_kw:
