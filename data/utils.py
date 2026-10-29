@@ -22,6 +22,7 @@ from datetime import datetime
 import geopandas as gpd
 import shapely.wkt as wkt
 from shapely.geometry import MultiPolygon
+from shapely.ops import unary_union
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
 from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG
@@ -1062,6 +1063,20 @@ def return_selected_grid_text(req_dict,map_dict):
 # datasetName, rightsHolder, locality, polygon
 # , generate_download_csv, generate_species_csv(v), get_map_grid(v), get_conditional_records(v)
 
+def merge_polygons(g_list):
+    """多個 WKT（POLYGON / MULTIPOLYGON）攤平後取聯集，回傳 Polygon 或 MultiPolygon"""
+    polys = []
+    for g in g_list:
+        geom = wkt.loads(g)
+        if geom.geom_type == 'MultiPolygon':
+            polys.extend(geom.geoms)
+        elif geom.geom_type == 'Polygon':
+            polys.append(geom)
+        else:
+            raise ValueError(f'unsupported geometry: {geom.geom_type}')
+    return unary_union(polys)
+
+
 def create_search_query(req_dict, get_raw_map=False):
 
     query_list = []
@@ -1237,14 +1252,15 @@ def create_search_query(req_dict, get_raw_map=False):
 
 
     # 地圖框選
+    # 資料皆為點位，使用 Intersects：落在邊線上的點也符合（共同規格要求包含邊界）
     if req_dict.get('geo_type') == 'map':
         if g_list := get_multi(req_dict, 'polygon'):
             try:
-                mp = MultiPolygon(map(wkt.loads, g_list))
+                mp = merge_polygons(g_list)
                 if get_raw_map:
-                    query_list += ['{!cache=false}location_rpt: "Within(%s)" OR raw_location_rpt: "Within(%s)" ' % (mp, mp)]
+                    query_list += ['{!cache=false}location_rpt: "Intersects(%s)" OR raw_location_rpt: "Intersects(%s)" ' % (mp, mp)]
                 else:
-                    query_list += ['{!cache=false}location_rpt: "Within(%s)"' % mp]
+                    query_list += ['{!cache=false}location_rpt: "Intersects(%s)"' % mp]
             except:
                 pass
 
@@ -1259,7 +1275,7 @@ def create_search_query(req_dict, get_raw_map=False):
                     geo_df = gpd.GeoDataFrame.from_features(geojson)
                     g_list = []
                     for i in geo_df.to_wkt()['geometry']:
-                        g_list += ['"Within(%s)"' % i]
+                        g_list += ['"Intersects(%s)"' % i]
                     if get_raw_map:
                         query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
                     else:
@@ -2507,134 +2523,6 @@ def ark_generator(data_type, size=6, chars=string.ascii_lowercase + string.digit
             is_new_ark = True
 
     return new_ark
-
-
-def create_tbn_query(req_dict):
-
-    query_str_list = [] # 可以轉換的
-    error_str_list = [] # 無法轉換的
-
-    # 學名相關
-    if val := req_dict.get('name'):
-        val = val.strip()
-        # 去除重複空格
-        val = re.sub(' +', ' ', val)
-        # 去除頭尾空格
-        val = val.strip()
-        query_str_list.append('{} = {}'.format(gettext('學名/中文名/中文別名/同物異名/誤用名'),val))
-
-    # 有無多媒體
-    if has_image := req_dict.get('has_image'):
-        media_type_map = {
-            'n': gettext('無多媒體'),
-            'image': gettext('影像'),
-            'video': gettext('影片'),
-            'audio': gettext('音檔'),
-            'y': gettext('有多媒體'),
-            'true': gettext('有多媒體'),
-        }
-        error_str_list.append('{} = {}'.format(
-            gettext('有無多媒體'),
-            media_type_map.get(has_image, has_image)
-        ))
-
-    # 是否為原生種
-    if is_native := req_dict.get('is_native'):
-        if is_native == ['y','true']:
-            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('是')))
-        elif is_native in ['n','false']:
-            query_str_list.append('{} = {}'.format(gettext('是否為原生種'),gettext('否')))
-
-    # 是否為保育類
-    if is_protected := req_dict.get('is_protected'):
-        if is_protected in ['y','true']:
-            query_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('是')))
-        elif is_protected in ['n','false']:
-            error_str_list.append('{} = {}'.format(gettext('是否為保育類'),gettext('否')))
-
-    tbn_vals = get_multi(req_dict, 'taxonGroup')
-
-    if len(tbn_vals) > 1:
-        # TBN 只支援單項物種類群查詢，多項一律視為無法對應
-        error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in tbn_vals])))
-    else:
-
-        valid_vals = [v for v in tbn_vals if v in taxon_group_map_tbn]
-        invalid_vals = [v for v in tbn_vals if v not in taxon_group_map_tbn]
-        if valid_vals:
-            query_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in valid_vals])))
-        if invalid_vals:
-            error_str_list.append('{} = {}'.format(gettext('物種類群'), ','.join([gettext(v) for v in invalid_vals])))
-
-    # 物種類群 以棲地區分
-    if hb_vals := get_multi(req_dict, 'habitat'):
-        error_str_list.append('{} = {}'.format(gettext('物種類群（以棲地區分）'), ','.join([gettext(habitat_map.get(v, v)) for v in hb_vals])))
-
-    if val := req_dict.get('taxonRank'):
-        if val == 'sub':
-            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext("種下")))
-        else:
-            error_str_list.append('{} = {}'.format(gettext('鑑定層級'),gettext(map_occurrence[val])))
-
-    if d_ids := get_multi(req_dict, 'datasetName'):
-        d_list = [get_dataset_name(d) for d in d_ids]
-        error_str_list.append('{} = {}'.format(gettext('資料集名稱'), ','.join(d_list)))
-
-    if l_list := get_multi(req_dict, 'locality'):
-        error_str_list.append('{} = {}'.format(gettext('出現地'), ','.join(l_list)))
-
-    if r_list := get_multi(req_dict, 'rightsHolder'):
-        error_str_list.append('{} = {}'.format(gettext('來源資料庫'), ','.join(r_list)))
-
-    if val := req_dict.get('basisOfRecord'):
-
-        error_str_list.append('{} = {}'.format(gettext('紀錄類型'),gettext(basis_map[val])))
-
-    # county, municipality 
-    # NOTE 這邊先改為不支援
-    if req_dict.get('county'):
-        error_str_list.append('{} = {}'.format(gettext('縣市'),req_dict.get('county')))
-
-    if req_dict.get('municipality'):
-        error_str_list.append('{} = {}'.format(gettext('鄉鎮市區'),req_dict.get('municipality')))
-
-    for i in ['recordedBy', 'resourceContacts', 'preservation','occurrenceID', 'catalogNumber', 'recordNumber','organismQuantity','typeStatus','taxonID']:
-        if val := req_dict.get(i):
-            if val != 'undefined':
-                error_str_list.append('{} = {}'.format(gettext(map_occurrence[i]),gettext(val)))
-
-    # NOTE 改為支援
-    if val := req_dict.get('higherTaxa'):
-        response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(val)}'}, timeout=SOLR_TIMEOUT)
-        if response.status_code == 200:
-            resp = response.json()
-            if data := resp['response']['docs']:
-                data = data[0]
-                query_str_list.append('{} = {}'.format(gettext('較高分類群'),f"{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"))
-
-    if req_dict.get('start_date') and req_dict.get('end_date'):
-        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
-        query_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
-    elif req_dict.get('start_date'):
-        query_str_list.append('{} = {}'.format(gettext('起始日期'),req_dict.get('start_date')))
-    elif req_dict.get('end_date'):
-        error_str_list.append('{} = {}'.format(gettext('結束日期'),req_dict.get('end_date')))
-
-    # 地圖框選
-    if req_dict.get('geo_type') == 'map':
-        if g_list := get_multi(req_dict, 'polygon'):
-            query_str_list.append('{} = {}'.format(gettext('地圖框選'), ','.join(g_list)))
-
-    # 上傳polygon
-    if req_dict.get('geo_type') == 'polygon':
-        error_str_list.append('{}'.format(gettext('上傳Polygon')))
-
-    # 圓中心框選
-    if req_dict.get('geo_type') == 'circle':
-        if circle_radius := req_dict.get('circle_radius'):
-            query_str_list.append('{} = {}'.format(gettext('圓中心框選'),f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"))
-
-    return query_str_list, error_str_list
 
 
 def get_family_taxon_ids(taxon_ids):

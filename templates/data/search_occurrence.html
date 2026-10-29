@@ -30,6 +30,22 @@
 {% endblock %}
 {% block body %}
   {% csrf_token %}
+  {% if messages %}
+  <!--共同規格查詢警告popbox-->
+  <div class="popbg common-search-warning-pop">
+    <div class="ovhy">
+      <div class="wbox_center">
+        <div class="xx"></div>
+        <div class="titlegreen">{% trans '查詢參數警告' %}</div>
+        <div class="p-10px">
+          <ul>
+            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <!--使用者統計popbox-->
   <div class="popbg user-stat-pop d-none" id="userStatModal">
     <div class="ovhy">
@@ -538,17 +554,8 @@
         <div class="from_area h-100p">
           <div class="txt_area mt-5p">
             <div class="circle-select">
-              <p>{% trans '半徑' %}</p>
-              <select name="circle_radius" id="circle_radius">
-                <option value="0.2">200M</option>
-                <option value="0.5">500M</option>
-                <option value="1">1KM</option>
-                <option value="2">2KM</option>
-                <option value="5">5KM</option>
-                <option value="10">10KM</option>
-                <option value="25">25KM</option>
-                <option value="50">50KM</option>
-              </select>
+              <p>{% trans '半徑' %}（KM）</p>
+              <input name="circle_radius" id="circle_radius" type="text" inputmode="decimal" value="0.2" placeholder="0 &lt; r ≤ 25">
             </div>
             <div class="circle-select">
               <p>{% trans '中心點經度' %}</p>

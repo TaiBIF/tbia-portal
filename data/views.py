@@ -22,6 +22,11 @@ from bson.objectid import ObjectId
 from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT
 from conf.utils import scheme
 from data.utils import *
+from data.common_search import (
+    TBN_COMMON_SEARCH_URL, parse_common_query, common_to_tbia, tbia_to_common, build_common_url,
+)
+from django.contrib import messages
+from django.urls import reverse
 from manager.utils import check_due
 from django.shortcuts import render, redirect
 from django.db.models import Q, Max
@@ -1596,35 +1601,9 @@ def get_tw_grid(request):
 
 
 def get_tbn_query(request):
-
-    req_dict = request.POST
-
-    tbn_error_str_list = []
-    tbn_query_str_list = []
-    tbn_url = ''
-
-    tbn_query_str_list, tbn_error_str_list = create_tbn_query(req_dict=req_dict)
-
-    filtered_params = {}
-    for k, v in request.POST.items():
-        if k in STAT_EXCLUDE_KEYS:
-            continue
-        if k == 'taxonGroup':
-            filtered_params[k] = taxon_group_map_e.get(v, v)
-        else:
-            filtered_params[k] = v
-  
-    # 多值 taxonGroup 補處理
-    tg_vals = request.POST.getlist('taxonGroup')
-    if len(tg_vals) > 1:
-        filtered_params['taxonGroup'] = [taxon_group_map_e.get(v, v) for v in tg_vals]
-
-    # 轉換成 query string
-    query_string = parse.urlencode(filtered_params, doseq=True)
-
-
-    tbn_url = 'https://www.tbn.org.tw/data/query_by_tbia?' + query_string
-
+    # 依 TBN-TBIA occurrence 查詢共同規格，轉換成 TBN 的 /commonsearch/occurrence 連結
+    common_params, tbn_query_str_list, tbn_error_str_list = tbia_to_common(request.POST)
+    tbn_url = build_common_url(TBN_COMMON_SEARCH_URL, common_params)
 
     response = {
         'tbn_url': tbn_url,
@@ -1633,6 +1612,31 @@ def get_tbn_query(request):
     }
     
     return HttpResponse(json.dumps(response, default=str), content_type='application/json')
+
+
+def commonsearch_occurrence(request):
+    # TBN-TBIA occurrence 查詢共同規格入口：驗證後轉成 TBIA 參數導向進階搜尋頁
+    params, warnings, errors = parse_common_query(request.META.get('QUERY_STRING', ''))
+
+    if errors:
+        items = ''.join(f'<li>{html.escape(e)}</li>' for e in errors + warnings)
+        body = (
+            '<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            f'<title>{html.escape(gettext("查詢參數錯誤"))}</title></head><body>'
+            f'<h1>{html.escape(gettext("查詢參數錯誤"))}</h1><ul>{items}</ul></body></html>'
+        )
+        return HttpResponse(body, status=400, content_type='text/html; charset=utf-8')
+
+    for w in warnings:
+        messages.warning(request, w)
+
+    tbia_params = common_to_tbia(params)
+    if tbia_params:
+        # 搜尋頁需至少 2 個參數才會還原條件並自動查詢，補上 page
+        tbia_params.append(('page', '1'))
+    query_string = parse.urlencode(tbia_params)
+    return redirect(reverse('search_occurrence') + ('?' + query_string if query_string else ''))
 
 
 def get_conditional_records(request):

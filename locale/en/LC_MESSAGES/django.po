@@ -3787,3 +3787,75 @@ msgstr "file"
 
 msgid "英文關鍵字請輸入至少 2 個字元"
 msgstr "Please enter at least 2 characters for English keywords"
+
+msgid "%(field)s：%(msg)s"
+msgstr "%(field)s: %(msg)s"
+
+msgid "重複參數：%(field)s"
+msgstr "Duplicate parameter: %(field)s"
+
+msgid "不支援的欄位：%(field)s"
+msgstr "Unsupported parameter: %(field)s"
+
+msgid "%(field)s 不接受的值：%(value)s"
+msgstr "Invalid value for %(field)s: %(value)s"
+
+msgid "列舉欄位包含不接受的值，停止查詢"
+msgstr "The query was stopped because an enumerated field has an invalid value."
+
+msgid "引號不成對"
+msgstr "Unbalanced quotation marks"
+
+msgid "多值集合包含空元素"
+msgstr "The multi-value list contains an empty element"
+
+msgid "無效日期：%(value)s"
+msgstr "Invalid date: %(value)s"
+
+msgid "起迄日期精度不同"
+msgstr "Start and end dates must use the same precision"
+
+msgid "結束日期早於起始日期"
+msgstr "The end date is earlier than the start date"
+
+msgid "指定 municipality 時必須指定 county"
+msgstr "county is required when municipality is specified"
+
+msgid "空間座標超出經緯度範圍"
+msgstr "Coordinates are out of the longitude/latitude range"
+
+msgid "circle 須為「經度 緯度 半徑」三個數值"
+msgstr "circle must be three numbers: longitude latitude radius"
+
+msgid "circle 半徑須符合 0 < r ≤ %(max)s"
+msgstr "circle radius must satisfy 0 < r ≤ %(max)s"
+
+msgid "polygon 僅接受完整 WKT 的 POLYGON／MULTIPOLYGON"
+msgstr "polygon only accepts full WKT POLYGON / MULTIPOLYGON"
+
+msgid "polygon WKT 格式錯誤"
+msgstr "Invalid polygon WKT format"
+
+msgid "polygon 僅接受 POLYGON／MULTIPOLYGON"
+msgstr "polygon only accepts POLYGON / MULTIPOLYGON"
+
+msgid "polygon 為空幾何"
+msgstr "polygon is an empty geometry"
+
+msgid "polygon 為無效幾何（例如自相交）"
+msgstr "polygon is an invalid geometry (e.g. self-intersecting)"
+
+msgid "本站不支援同時指定 circle 與 polygon"
+msgstr "This site does not support specifying both circle and polygon"
+
+#: data/views.py
+msgid "查詢參數錯誤"
+msgstr "Invalid query parameters"
+
+#: templates/data/search_occurrence.html
+msgid "查詢參數警告"
+msgstr "Query parameter warnings"
+
+#: static/js/data/search_occurrence.js static/js/data/search_collection.js
+msgid "框選失敗！半徑須大於 0 且小於或等於 25 公里"
+msgstr "Failed to draw the circle! The radius must be greater than 0 and no more than 25 km."

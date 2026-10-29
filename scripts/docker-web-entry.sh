@@ -12,6 +12,8 @@ exec gunicorn \
     --bind 0.0.0.0:8001 \
     --workers=2 \
     --timeout 60 \
+    --limit-request-line 0 \
+    --limit-request-field_size 0 \
     --access-logfile - \
     --error-logfile - \
     --capture-output \

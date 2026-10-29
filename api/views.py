@@ -142,7 +142,8 @@ def occurrence(request):
                 try:
                     mp = wkt.loads(polygon)
                     # TODO 如果是限制型API要修改成raw_location_rpt
-                    fq_list += ['location_rpt: "Within(%s)"' % mp]
+                    # 資料皆為點位，Intersects 讓邊線上的點也符合（與網頁搜尋一致）
+                    fq_list += ['location_rpt: "Intersects(%s)"' % mp]
                 except:
                     final_response['status'] = {'code': 400, 'message': f'Invalid polygon format'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')

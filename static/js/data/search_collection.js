@@ -65,10 +65,6 @@ let selectBox5 = new vanillaSelectBox("#taxonRank", {
     placeHolder: gettext("鑑定層級"), search: false, disableSelectAll: true,
 });
 
-let selectBox6 = new vanillaSelectBox("#circle_radius", {
-    placeHolder: gettext("半徑"), search: false, disableSelectAll: true,
-});
-selectBox6.setValue('0.2')
 
 let selectBox7 = new vanillaSelectBox("#has_image", {
     placeHolder: gettext("有無多媒體"), search: false, disableSelectAll: true,
@@ -740,7 +736,7 @@ $(function () {
         selectBox2.empty()
         selectBox4.empty()
         selectBox5.empty()
-        selectBox6.empty()
+        $('#circle_radius').val('0.2')
         selectBox7.empty()
         selectBox8.empty()
         selectBox9.empty()
@@ -847,10 +843,13 @@ $(function () {
             alert(gettext('框選失敗！請檢查經緯度格式是否正確'))
         } else if ($('input[name=center_lat]').val() > 90 | $('input[name=center_lat]').val() < -90 | $('input[name=center_lon]').val() > 180 | $('input[name=center_lon]').val() < -180) {
             alert(gettext('框選失敗！請檢查經緯度數值是否正確'))
+        } else if (!/^\d+(\.\d+)?$/.test($('#circle_radius').val().trim()) || parseFloat($('#circle_radius').val()) <= 0 || parseFloat($('#circle_radius').val()) > 25) {
+            alert(gettext('框選失敗！半徑須大於 0 且小於或等於 25 公里'))
         } else {
+            $('#circle_radius').val($('#circle_radius').val().trim())
             try {
                 let circle = L.circle([$('input[name=center_lat]').val(), $('input[name=center_lon]').val()],
-                    parseFloat($('select[name=circle_radius]').val()) * 1000, { className: 'addC' }).addTo(map);
+                    parseFloat($('#circle_radius').val()) * 1000, { className: 'addC' }).addTo(map);
                 drawnItems.clearLayers();
                 drawnItems.addLayer(circle);
                 // 這邊要重設
@@ -1046,7 +1045,6 @@ function inithigherTaxa(what, datasize) {
 
 function changeAction() {
 
-    $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
     $('.vsb-main button').css('border', '').css('background', '')
 
     let select_length = $(".search_condition_are select, .circle_popup select").length;
@@ -1117,8 +1115,7 @@ function changeAction() {
                     if (urlParams.get('geo_type') == 'circle') {
                         let circle = L.circle([urlParams.get('center_lat'), urlParams.get('center_lon')],
                             parseFloat(urlParams.get('circle_radius')) * 1000, { className: 'addC' }).addTo(map);
-                        selectBox6.setValue(urlParams.get('circle_radius'))
-                        $('#btn-group-circle_radius button span.title').addClass('black').removeClass('color-707070')
+                        $('#circle_radius').val(urlParams.get('circle_radius'))
                         drawnItems.addLayer(circle);
                         map.fitBounds(circle.getBounds());
                     } else if (urlParams.get('geo_type') == 'map') {
@@ -1384,7 +1381,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                 if ($('.addC').length > 0) {
                     map_condition = '&' + $.param({ 'geo_type': $('.btnupload p.active').data('type') })
                     map_condition += '&' + $.param({
-                        'circle_radius': $('select[name=circle_radius]').val(),
+                        'circle_radius': $('#circle_radius').val(),
                         'center_lon': $('input[name=center_lon]').val(), 'center_lat': $('input[name=center_lat]').val()
                     })
                 } else {

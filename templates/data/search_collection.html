@@ -640,17 +640,8 @@
                 <div class="from_area h-100p">
                     <div class="txt_area mt-5p">
                         <div class="circle-select">
-                            <p>{% trans '半徑' %}</p>
-                            <select name="circle_radius" id="circle_radius">
-                                <option value="0.2">200M</option>
-                                <option value="0.5">500M</option>
-                                <option value="1">1KM</option>
-                                <option value="2">2KM</option>
-                                <option value="5">5KM</option>
-                                <option value="10">10KM</option>
-                                <option value="25">25KM</option>
-                                <option value="50">50KM</option>
-                            </select>
+                            <p>{% trans '半徑' %}（KM）</p>
+                            <input name="circle_radius" id="circle_radius" type="text" inputmode="decimal" value="0.2" placeholder="0 &lt; r ≤ 25">
                         </div>
                         <div class="circle-select">
                             <p>{% trans '中心點經度' %}</p>
