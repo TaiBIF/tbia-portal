@@ -14,6 +14,10 @@ $(document).ready(function () {
   $('#search_full_form').on('submit', function (event) {
     event.preventDefault()
 
+    if (isTooShortLatin($('.search_full_keyword').val())) {
+      alert(gettext('英文關鍵字請輸入至少 2 個字元'))
+      return
+    }
     if ($('.search_full_keyword').val().length > 2000) {
       alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
     } else {

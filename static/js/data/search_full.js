@@ -176,7 +176,7 @@ function changeAction() {
   } else {
     // 如果只有keyword, show全部elements
     if ((queryString.split('&').length == 1) && (queryString.startsWith('?keyword='))) {
-      $('.rightbox_content .item').removeClass('d-none')
+      $('.rightbox_content > .item').removeClass('d-none')
       $('.rightbox_content .subitem').addClass('d-none')
 
       // 結果列表移除
@@ -191,8 +191,8 @@ function changeAction() {
     if ($('.rightbox_content > .all_empty_no_data').length &&
         !urlParams.get('item_class') && !urlParams.get('focus_card') && !urlParams.get('get_record')) {
       $('.rightbox_content > .all_empty_no_data').removeClass('d-none')
-      $('.rightbox_content .item > .titlebox_line').addClass('d-none')
-      $('.rightbox_content .item > .no_data').addClass('d-none')
+      $('.rightbox_content > .item > .titlebox_line').addClass('d-none')
+      $('.rightbox_content > .item > .no_data').addClass('d-none')
     }
 
     if (urlParams.get('item_class')) {
@@ -271,19 +271,31 @@ function showSlides(n, taxonID, cardclass) {
 
 $(document).ready(function () {
 
+  initTaxonRankFilter($('#item_spe .taxon-rank-filter'))
+
+  // occ / col 卡片延後載入：頁面先顯示總數與側欄
+  for (const rt of ['occ', 'col']) {
+    if ($(`.${rt}-card`).length) {
+      getMoreCards(`.${rt}-card`, `#${rt}_offset`, `.${rt}_more`, 'false')
+    }
+  }
+
   $('#fullSubmit').on('click', function () {
     $('#fullForm').submit()
   })
 
   $('#fullForm').on('submit', function (event) {
     event.preventDefault()
-
-    if ($('#fullForm input[name=keyword]').val().length > 2000) {
+    var kw = $('#fullForm input[name=keyword]').val()
+    if (isTooShortLatin(kw)) {
+      alert(gettext('英文關鍵字請輸入至少 2 個字元'))
+      return
+    }
+    if (kw.length > 2000) {
       alert(gettext('您查詢的條件網址超過 2000 個字元，可能無法在所有瀏覽器中正常運作。'))
     } else {
-      window.location = `/${$lang}/search/full?keyword=${$('#fullForm input[name=keyword]').val().replace(/&/g, "%26")}`
+      window.location = `/${$lang}/search/full?keyword=${kw.replace(/&/g, "%26")}`
     }
-
   })
 
   $('.imgarea').on('click', function () {
@@ -397,7 +409,7 @@ $(document).ready(function () {
 })
 
 function focusComponent(item_class, go_back) {
-
+  resetTaxonRankFilters()
   // 先移除掉原本的
   $('.item_list li').removeClass('now')
   $('.second_menu a').removeClass('now')
@@ -432,28 +444,29 @@ function focusComponent(item_class, go_back) {
   $('.page_number').remove()
 
   if (item_class == 'all') {
-    $('.rightbox_content .item').removeClass('d-none')
+    $('.rightbox_content > .item').removeClass('d-none')
     // 如果是再底下一個階層則不顯示
     $('.rightbox_content .subitem').addClass('d-none')
     if ($('.rightbox_content > .all_empty_no_data').length) {
       // 全部無資料：只顯示單一 no_data，隱藏各 item 的標題與 no_data
       $('.rightbox_content > .all_empty_no_data').removeClass('d-none')
-      $('.rightbox_content .item > .titlebox_line').addClass('d-none')
-      $('.rightbox_content .item > .no_data').addClass('d-none')
+      $('.rightbox_content > .item > .titlebox_line').addClass('d-none')
+      $('.rightbox_content > .item > .no_data').addClass('d-none')
     }
   } else {
     $('.rightbox_content > .all_empty_no_data').addClass('d-none')
     // 還原各 item 的標題與 no_data（切回單一 item 時仍要顯示其頁面）
-    $('.rightbox_content .item > .titlebox_line').removeClass('d-none')
-    $('.rightbox_content .item > .no_data').not('.taxon_more_end, .occ_more_end, .col_more_end').removeClass('d-none')
+    $('.rightbox_content > .item > .titlebox_line').removeClass('d-none')
+    $('.rightbox_content > .item > .no_data').not('[class*="_more_end"], .taxon_filter_no_data').removeClass('d-none')
     $(`.rightbox_content .${item_class}`).removeClass('d-none')
-    $('.rightbox_content .item').not($(`.${item_class}`)).not($('.items')).addClass('d-none')
+    $('.rightbox_content > .item').not($(`.${item_class}`)).not($('.items')).addClass('d-none')
     clickToAnchor(`#${item_class}`)
   }
 
 }
 
 function getRecords(record_type, key, value, scientific_name, limit, page, from, go_back, orderby, sort) {
+  resetTaxonRankFilters()
   page = parseInt(page, 10) || 1; 
   limit = parseInt(limit, 10) || -1;
   $('input[name=keyword]').val($('.keyword-p').html())
@@ -485,7 +498,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
   }
 
   // hide all items
-  $('.rightbox_content .item').addClass('d-none')
+  $('.rightbox_content > .item').addClass('d-none')
 
   // 移除前一次的紀錄
   $('.record_title').remove()
@@ -819,6 +832,7 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
 }
 
 function focusCards(record_type, key, go_back) {
+  resetTaxonRankFilters()
   $('input[name=keyword]').val($('.keyword-p').html())
 
   if ((!go_back) && ('URLSearchParams' in window)) {
@@ -872,13 +886,20 @@ function focusCards(record_type, key, go_back) {
             `<div class="item subitem ${response.item_class}" id="${response.item_class}_cards">
                 <div class="titlebox_line">
                   <div class="title">
-                    <p>${gettext(response.title)} (${response.total_count})</p>
+                    <p>${gettext(response.title)} (<span class="taxon-count">${response.total_count}</span>)</p>
                     <div class="line"></div>
                   </div>
                 </div>
+                <div class="taxon-rank-filter"
+                  data-card_class=".${response.card_class}"
+                  data-offset_value="#${record_type}_${key}_offset"
+                  data-more_type=".${record_type}_${key}_more"
+                  data-is_sub="true"></div>
                 <ul class="card_list_2 species_list ${response.card_class}">
                 </ul>
+                <div class="no_data taxon_filter_no_data d-none">${gettext('無資料')}</div>
               </div>`)
+
           // append cards
           for (let i = 0; i < response.data.length; i++) {
             let x = response.data[i];
@@ -1015,21 +1036,22 @@ function focusCards(record_type, key, go_back) {
               $(this).data('limit'), $(this).data('page'), $(this).data('from'), $(this).data('go_back'), $(this).data('orderby'), $(this).data('sort'))
           })
 
-          // append 更多結果 button if more than 4 cards
-          if (response.has_more == true) {
-            $(`.${response.card_class}`).after(`
-                <a class="more ${record_type}_${key}_more getMoreCards"
-                data-card_class=".${response.card_class}"
-                data-offset_value="#${record_type}_${key}_offset"
-                data-more_type=".${record_type}_${key}_more" 
-                data-is_sub="true"> ${gettext('更多結果')} </a>
-                <input type="hidden" id="${record_type}_${key}_offset" value="4">
-                <div class="no_data ${record_type}_${key}_more_end d-none"> 
-                ${gettext('符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字')}
-                </div> `)
-          }
+          // 更多結果：一律輸出，依 has_more 決定是否隱藏
+          $(`.${response.card_class}`).nextAll('.taxon_filter_no_data').first().after(`
+              <a class="more ${record_type}_${key}_more getMoreCards ${response.has_more ? '' : 'd-none'}"
+              data-card_class=".${response.card_class}"
+              data-offset_value="#${record_type}_${key}_offset"
+              data-more_type=".${record_type}_${key}_more"
+              data-is_sub="true"> ${gettext('更多結果')} </a>
+              <input type="hidden" id="${record_type}_${key}_offset" value="4">
+              <div class="no_data ${record_type}_${key}_more_end d-none">
+              ${gettext('符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字')}
+              </div> `)
+
+          initTaxonRankFilter($(`#${response.item_class}_cards .taxon-rank-filter`))
+
           $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
-          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
+          $('.rightbox_content > .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
 
           clickToAnchor(`#${response.item_class}_cards`)
 
@@ -1137,12 +1159,12 @@ function focusCards(record_type, key, go_back) {
               data-is_sub="true"> ${gettext('更多結果')} </a>
               <input type="hidden" id="${record_type}_${key}_offset" value="9">
               <div class="no_data ${record_type}_${key}_more_end d-none"> 
-              ${gettext('符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用進階搜尋功能指定更多或更符合的關鍵字')}
+              ${gettext('符合關鍵字的搜尋結果過多，本頁面僅列出前30項結果，建議使用<a href="/search/occurrence">進階搜尋</a>功能指定更多或更符合的關鍵字')}
               </div>      
               `)
           }
           $(`.rightbox_content .${response.item_class}`).removeClass('d-none')
-          $('.rightbox_content .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
+          $('.rightbox_content > .item').not($(`.${response.item_class}`)).not($('.items')).addClass('d-none')
 
           $('.getMoreCards').off('click')
           $('.getMoreCards').on('click', function () {
@@ -1163,8 +1185,8 @@ function focusCards(record_type, key, go_back) {
     }
 
   } else {
-    $(`.rightbox_content .item_${record_type}_${key}`).removeClass('d-none')
-    $('.rightbox_content .item').not($(`.item_${record_type}_${key}`)).not($('.items')).addClass('d-none')
+    $(`.rightbox_content > .item_${record_type}_${key}`).removeClass('d-none')
+    $('.rightbox_content > .item').not($(`.item_${record_type}_${key}`)).not($('.items')).addClass('d-none')
     clickToAnchor(`#item_${record_type}_${key}_cards`)
   }
 
@@ -1250,7 +1272,71 @@ function getMoreDocs(doc_type, offset_value, more_class, card_class) {
 
 }
 
-function getMoreCards(card_class, offset_value, more_type, is_sub) {
+function initTaxonRankFilter($holder) {
+  const tpl = document.getElementById('taxon-rank-filter-tpl')
+  if (!tpl || !$holder.length) return
+
+  $holder.html(tpl.innerHTML)
+  const $select = $holder.find('select')
+  const titles = new Set($select.find('option[data-title]').map(function () { return this.value }).get())
+
+  new TomSelect($select[0], {
+    create: false,
+    maxItems: 1,
+    allowEmptyOption: true,
+    items: [''],   // 預設選取「全部階層」
+    searchField: ['text'],
+    closeAfterSelect: true,
+    render: {
+      option: function (data, escape) {
+        return `<div class="${titles.has(data.value) ? 'rank-title' : 'rank-sub'}">${escape(data.text)}</div>`
+      }
+    },
+    onChange() {
+      const d = $holder.data()
+      $(d.offset_value).val(0)
+      getMoreCards(d.card_class, d.offset_value, d.more_type, d.is_sub, true)
+    }
+  })
+}
+
+// 離開區塊時重設所有階層篩選，並重新載入未篩選的卡片
+function resetTaxonRankFilters() {
+  $('.taxon-rank-filter').each(function () {
+    const $holder = $(this)
+    const ts = $holder.find('select')[0]?.tomselect
+    if (ts && ts.getValue()) {
+      ts.setValue('', true)  // 回到「全部階層」；silent 不觸發 onChange
+      const d = $holder.data()
+      $(d.offset_value).val(0)
+      getMoreCards(d.card_class, d.offset_value, d.more_type, d.is_sub, true)
+    }
+  })
+}
+
+
+function getTaxonRankFor(card_class) {
+  return $(`.taxon-rank-filter[data-card_class="${card_class}"] select`).val() || ''
+}
+
+// 卡片區 loading：初次載入時模板已放好；按「更多結果」時插在卡片列表後面，並先隱藏按鈕避免重複點擊
+function showCardsLoading(card_class, more_type) {
+  $(more_type).addClass('d-none')
+  if (!$(`${card_class}-loading`).length) {
+    $(card_class).first().after(`
+      <div class="loading_area_partial ${card_class.substring(1)}-loading">
+        <div class="sc"><div class="load"><span>L</span>ading</div></div>
+      </div>`)
+  }
+}
+
+// 失敗時保留「更多結果」讓使用者重試（初次載入失敗則不顯示）
+function hideCardsLoading(card_class, more_type, failed = false, offset = 0) {
+  $(`${card_class}-loading`).remove()
+  if (failed && Number(offset) > 0) $(more_type).removeClass('d-none')
+}
+
+function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false) {
   $('input[name=keyword]').val($('.keyword-p').html())
 
   let record_type;
@@ -1263,6 +1349,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
   }
 
   let offset = $(offset_value).val()
+  showCardsLoading(card_class, more_type)
   if (record_type == 'taxon') {
     $.ajax({
       url: "/get_more_cards_taxon",
@@ -1273,15 +1360,28 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         offset: offset,
         is_sub: is_sub,
         lang: $lang,
+        taxon_rank: getTaxonRankFor(card_class),
       },
       type: 'POST',
       dataType: 'json',
     })
       .done(function (response) {
 
+        hideCardsLoading(card_class, more_type)
+
+        if (reset) {
+          const $list = $(card_class)
+          $list.empty()
+          $list.closest('.item').find('.taxon-count').first().text(Number(response.total_count).toLocaleString())
+          $(`${more_type}_end`).addClass('d-none')
+          $list.nextAll('.taxon_filter_no_data').first().toggleClass('d-none', response.total_count > 0)
+          $(more_type).toggleClass('d-none', !response.has_more)
+        }
+
         if (response.has_more == true & response.reach_end == false) {
 
           $(offset_value).val(Number(offset) + 4)
+          $(more_type).removeClass('d-none')
 
         } else if (response.has_more == true) {
 
@@ -1427,6 +1527,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         }
       })
       .fail(function (xhr, status, errorThrown) {
+        hideCardsLoading(card_class, more_type, true, offset)
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {
@@ -1446,14 +1547,19 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
         offset: offset,
         is_sub: is_sub,
         lang: $lang,
+        // 側欄的命中欄位，後端可跳過第一階段計數（僅 is_sub=false 時使用）
+        hit_fields: (is_sub == 'false') ? $(`.focusCards[data-record_type="${record_type}"]`).map(function () { return $(this).data('key') }).get().join(',') : '',
       },
       type: 'POST',
       dataType: 'json',
     })
       .done(function (response) {
 
+        hideCardsLoading(card_class, more_type)
+
         if (response.has_more == true & response.reach_end == false) {
           $(offset_value).val(Number(offset) + 9)
+          $(more_type).removeClass('d-none')
         } else if (response.has_more == true) {
           $(more_type).addClass('d-none')
           if (response.reach_end) {
@@ -1514,6 +1620,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub) {
 
       })
       .fail(function (xhr, status, errorThrown) {
+        hideCardsLoading(card_class, more_type, true, offset)
         if (xhr.status == 504) {
           alert(gettext('要求連線逾時'))
         } else {

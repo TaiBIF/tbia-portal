@@ -7304,7 +7304,8 @@ body {
     padding: 10px 0px;
     position: relative;
     z-index: 2px;
-    display: none
+    display: none;
+    background:#F4F8F4
 }
 
 .two_cont_area .second_menu a {

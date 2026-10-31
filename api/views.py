@@ -5,17 +5,18 @@ import pandas as pd
 import numpy as np
 import psycopg2
 import threading
+from conf.background import run_light, run_heavy
 from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 from urllib import parse
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.http import HttpResponse
-from conf.settings import SOLR_PREFIX, datahub_db_settings
+from conf.settings import SOLR_PREFIX, datahub_db_settings, SOLR_TIMEOUT
 from conf.utils import scheme
 from api.models import APIkey
 from manager.models import SearchCount
-from data.utils import (download_cols, sensitive_cols, download_cols_with_sensitive,
+from data.utils import (solr_quote, download_cols, sensitive_cols, download_cols_with_sensitive,
                         background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
                         split_group_map, get_map_geojson, create_search_query, build_stat_query_string, datahub_conn)
 
@@ -81,7 +82,7 @@ def occurrence(request):
         # id={string}
         # 如果有id則忽略其他參數
         if id := req.get('id'):
-            fq_list.append(f"id:{req.get('id')}")
+            fq_list.append(f"id:{solr_quote(req.get('id'))}")
 
         else:
 
@@ -90,7 +91,7 @@ def occurrence(request):
             for u in union_list:
                 if values := req.get(u):
                     values = values.split(',')
-                    values = [f'"{v}"' for v in values]
+                    values = [solr_quote(v) for v in values]
                     fq_list.append(f'{u}: ({(" OR ").join(values)})')
 
             # eventDate, created, modified
@@ -141,7 +142,8 @@ def occurrence(request):
                 try:
                     mp = wkt.loads(polygon)
                     # TODO 如果是限制型API要修改成raw_location_rpt
-                    fq_list += ['location_rpt: "Within(%s)"' % mp]
+                    # 資料皆為點位，Intersects 讓邊線上的點也符合（與網頁搜尋一致）
+                    fq_list += ['location_rpt: "Intersects(%s)"' % mp]
                 except:
                     final_response['status'] = {'code': 400, 'message': f'Invalid polygon format'}
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
@@ -280,7 +282,7 @@ def occurrence(request):
         if not fq_list:
             aaa = query.pop('filter', None)
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         response = response.json()
 
         next_cursor = response.get('nextCursorMark')
@@ -331,8 +333,7 @@ def occurrence(request):
         # 記錄在SearchStat（從文件範例網址點進來的不列入統計）
         if not is_from_example:
             if cursor == '*':
-                task = threading.Thread(target=background_search_stat, args=(fq_list,'api_occ', query_string))
-                task.start()
+                run_light(background_search_stat, fq_list,'api_occ', query_string)
 
             obj, created = SearchCount.objects.update_or_create(
                     search_location='api_occ'
@@ -510,8 +511,7 @@ def dataset(request):
 
         if not is_from_example:
             if now_cursor == 0:
-                task = threading.Thread(target=background_search_stat, args=([], 'api_dataset', query_string, False))
-                task.start()
+                run_light(background_search_stat, [], 'api_dataset', query_string, False)
 
             obj, created = SearchCount.objects.update_or_create(
                     search_location='api_dataset'
@@ -554,7 +554,7 @@ def map(request):
         union_list = ['taxonID']
         for u in union_list:
             if values := req.getlist(u):
-                values = [f'"{v}"' for v in values]
+                values = [solr_quote(v) for v in values]
                 fq_list.append(f'{u}: ({(" OR ").join(values)})')
 
         if group_values := req.getlist('bioGroup'):
@@ -565,7 +565,7 @@ def map(request):
                 elif group_value in old_taxon_group_map_c:
                     group_value = old_taxon_group_map_c[group_value]
                 values.extend(split_group_map.get(group_value, [group_value]))
-            fq_list.append(f'bioGroup: ({" OR ".join(values)})')
+            fq_list.append(f'bioGroup: ({" OR ".join(solr_quote(v) for v in values)})')
     
         #  年份區間
         if year := req.get('year'):
@@ -586,10 +586,10 @@ def map(request):
                     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
         if county := req.get('county'):
-            fq_list += ['county: "%s"' % county]
+            fq_list += [f'county:{solr_quote(county)}']
 
         if municipality := req.get('municipality'):
-            fq_list += ['municipality: "%s"' % municipality]
+            fq_list += [f'municipality:{solr_quote(municipality)}']
 
         # 網格大小 // 需搭配地理範圍
         # 先統一使用模糊化座標
@@ -634,7 +634,7 @@ def map(request):
                 return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
-        query = { "query": "location_rpt:*",
+        query = { "query": "standardLatitude:*",  # 等同 location_rpt:*，冷啟動較快
                  "limit": 0,
                 "filter": fq_list,
                 "facet": {
@@ -652,7 +652,7 @@ def map(request):
             aaa = query.pop('filter', None)
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         if resp['facets']['count']:
@@ -670,8 +670,7 @@ def map(request):
         query_string = build_stat_query_string(now_dict)
 
         if not is_from_example:
-            task = threading.Thread(target=background_search_stat, args=([],'api_map', query_string, False))
-            task.start()
+            run_light(background_search_stat, [],'api_map', query_string, False)
 
             obj, created = SearchCount.objects.update_or_create(
                     search_location='api_map'

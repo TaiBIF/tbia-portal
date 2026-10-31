@@ -9,10 +9,17 @@ from numpy import nan
 
 from django.core.management.base import BaseCommand
 
-from conf.settings import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG
 from data.utils import rights_holder_map
 from manager.models import TaxonStat
 
+def _to_int(v):
+    """轉成 int，NaN / 無法轉換則回傳 None"""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(f) else int(f)
 
 # 只取 year 從1900開始的
 # 也有可能有 year 但沒有 month
@@ -61,22 +68,27 @@ def fetch_year_month_buckets(filter_list):
 
     # 1. year + month pivot
     url1 = f'{base}?q=*:*&facet.pivot=year,month&facet=true&facet.limit=-1&facet.mincount=1'
-    data1 = requests.post(url1, data=body, headers=headers).json()
+    data1 = requests.post(url1, data=body, headers=headers, timeout=SOLR_TIMEOUT_LONG).json()
     for dd in data1['facet_counts']['facet_pivot']['year,month']:
+        year = _to_int(dd['value'])
+        if year is None:
+            continue
         for ddd in (dd.get('pivot') or []):
-            results.append((
-                int(float(dd['value'])),
-                int(float(ddd['value'])),
-                ddd['count'],
-            ))
+            month = _to_int(ddd['value'])
+            if month is None:
+                continue
+            results.append((year, month, ddd['count']))
 
     # 2. 沒有 month 的，依 year facet
     url2 = f'{base}?q=-month:*&facet.field=year&facet=true&facet.limit=-1&facet.mincount=1'
-    data2 = requests.post(url2, data=body, headers=headers).json()
+    data2 = requests.post(url2, data=body, headers=headers, timeout=SOLR_TIMEOUT_LONG).json()
     yfacet = data2['facet_counts']['facet_fields']['year']
     for i in range(0, len(yfacet), 2):
-        results.append((int(float(yfacet[i])), 'x', int(float(yfacet[i + 1]))))
-
+        year = _to_int(yfacet[i])
+        if year is None:
+            continue
+        results.append((year, 'x', int(yfacet[i + 1])))
+        
     return results
 
 
@@ -145,7 +157,7 @@ class Command(BaseCommand):
                 body = json.dumps({"query": "*:*", "offset": 0, "limit": 0, "filter": fq})
                 resp = requests.post(
                     f'{SOLR_PREFIX}tbia_records/select',
-                    data=body, headers={'content-type': 'application/json'},
+                    data=body, headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
                 ).json()
                 taxon_stat_list.append({
                     'year': 'x', 'month': 'x', 'count': resp['response']['numFound'],
@@ -196,7 +208,7 @@ class Command(BaseCommand):
             }
             resp = requests.post(
                 f'{SOLR_PREFIX}tbia_records/select',
-                data=json.dumps(query), headers={'content-type': 'application/json'},
+                data=json.dumps(query), headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
             ).json()
             if resp['facets'].get('count'):
                 for d in resp['facets']['family']['buckets']:
@@ -238,7 +250,7 @@ class Command(BaseCommand):
             }
             response = requests.post(
                 f'{SOLR_PREFIX}taxa/select',
-                data=json.dumps(query), headers={'content-type': 'application/json'},
+                data=json.dumps(query), headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
             )
             data = response.json()['response']['docs']
             df = pd.DataFrame(data)
@@ -273,7 +285,7 @@ class Command(BaseCommand):
                 }
                 response = requests.post(
                     f'{SOLR_PREFIX}tbia_records/select',
-                    data=json.dumps(query), headers={'content-type': 'application/json'},
+                    data=json.dumps(query), headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
                 )
                 if response.json()['facets']['count']:
                     data = response.json()['facets']['taxon_id']['buckets']

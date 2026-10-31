@@ -91,4 +91,6 @@ urlpatterns = [
     # 首頁連結文字管理
     path('manager/system/index_event', views.system_index_event, name='system_index_event'),
     path('update_index_event', views.update_index_event, name='update_index_event'),
+    # 比對結果統計
+    path('get_match_stat', views.get_match_stat, name='get_match_stat'),
 ]

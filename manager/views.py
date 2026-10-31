@@ -3,7 +3,9 @@ import pytz
 import subprocess
 import os
 import threading
+from conf.background import run_light, run_heavy
 import json
+import re
 import requests
 import pandas as pd
 from pathlib import Path
@@ -28,10 +30,10 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from data.utils import solr_quote, ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
 
@@ -1289,7 +1291,7 @@ def get_request_detail(request):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -1305,7 +1307,7 @@ def get_request_detail(request):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -1342,7 +1344,8 @@ def manager_partner(request):
             data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
 
     return render(request, 'manager/partner/manager.html',{ 'download_url': download_url, 'holder_list': holder_list,
-                                                            'data_year': data_year, 'stat_year': stat_year, 'stat_month': stat_month})
+                                                            'data_year': data_year, 'stat_year': stat_year, 'stat_month': stat_month,
+                                                            'match_units': match_units(request.user, scope='partner')})
 
 
 def get_partner_stat(request):
@@ -1363,7 +1366,8 @@ def get_partner_stat(request):
 
     if rights_holder := request.GET.get('rights_holder'):
 
-        f = ['-taxonID:*',f'rightsHolder:{rights_holder}']
+        rh_q = f'rightsHolder:{solr_quote(rights_holder)}'  # 名稱含空白/括號，需加引號
+        f = ['-taxonID:*', rh_q]
         # TaiCOL對應狀況
         query = {
             "query": '*:*',
@@ -1371,16 +1375,15 @@ def get_partner_stat(request):
             "limit": 0,
             "facet": {},
             }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         no_taxon = response.json()['response']['numFound']
 
         # 資料筆數
-        url = f"{SOLR_PREFIX}tbia_records/select?q.op=OR&q=rightsHolder:{rights_holder}&rows=0&start=0"
-        data = requests.get(url).json()
+        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         data_count = data['response']['numFound']
         data_total.append({'name': rights_holder,'y': data_count, 'color': '#9AC4E8'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
             total_count = total_count - data_count
@@ -1389,20 +1392,20 @@ def get_partner_stat(request):
 
         # 影像資料筆數
 
-        url = f"{SOLR_PREFIX}tbia_records/select?q.op=OR&q=rightsHolder:{rights_holder}&q=associatedMedia:*&rows=0&start=0"
-        data = requests.get(url).json()
+        # 原本傳了兩個 q，Solr 只取第一個；改成 q + fq 才是「該單位的影像筆數」
+        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'fq': 'associatedMedia:*', 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         image_count = data['response']['numFound']
         image_data_total.append({'name': rights_holder,'y': image_count, 'color': '#B2D4B2'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             other_image_count = response.json()['response']['numFound']
             other_image_count = other_image_count - image_count
-            image_data_total += [{'name': '其他來源資料庫','y': total_count, 'color': '#ddd'}]
+            image_data_total += [{'name': '其他來源資料庫','y': other_image_count, 'color': '#ddd'}]  # 原本誤用 total_count
 
         # 資料品質 (入口網)
         url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-        data = requests.get(url).json()
+        data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         if data['responseHeader']['status'] == 0:
             facets = data['facet_counts']['facet_fields']['dataQuality']
             for r in range(0,len(facets),2):
@@ -1414,9 +1417,7 @@ def get_partner_stat(request):
 
         # 資料品質 (來源資料庫)
 
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=rightsHolder:{rights_holder}&rows=0&start=0"
-
-        quality_data = requests.get(url).json()
+        quality_data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'facet.pivot': 'rightsHolder,dataQuality', 'facet': 'true', 'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
 
         if quality_data['responseHeader']['status'] == 0:
             facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
@@ -1623,15 +1624,15 @@ def manager_system(request):
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
         # 改成用solr取得 如果沒有在列表就是代表沒有
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
         f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
         holder_list = [f_list[x] for x in range(0, len(f_list),2)]
         holder_list.append('total')
         # TaiCOL對應狀況
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             no_taxon = response.json()['response']['numFound']
         has_taxon = total_count - no_taxon
@@ -1648,7 +1649,7 @@ def manager_system(request):
     return render(request, 'manager/system/manager.html',{'partner_admin': partner_admin, 'no_taxon': no_taxon, 'has_taxon': has_taxon,
                                                           'match_logs': match_logs, 'stat_year': stat_year, 'stat_month': stat_month,
                                                           'keyword_year': keyword_year, 'keyword_month': keyword_month, 'checklist_year': checklist_year,
-                                                          'holder_list': holder_list, 'data_year': data_year})
+                                                          'holder_list': holder_list, 'data_year': data_year, 'match_units': match_units(request.user)})
 
 
 def get_keyword_stat(request):
@@ -1844,7 +1845,7 @@ def get_system_stat(request):
 
     # 資料筆數 - 
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
-    data = requests.get(url).json()
+    data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
         for f in facets:
@@ -1860,7 +1861,7 @@ def get_system_stat(request):
 
     # 影像資料筆數
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
-    image_data = requests.get(url).json()
+    image_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if image_data['responseHeader']['status'] == 0:
         facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
         for f in facets:
@@ -1874,11 +1875,11 @@ def get_system_stat(request):
                     image_data_total.append({'name': 'GBIF','y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # TaiCOL對應狀況
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0')
+    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
@@ -1927,7 +1928,7 @@ def get_system_stat(request):
 
     # 資料品質 (入口網)
     url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-    data = requests.get(url).json()
+    data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_fields']['dataQuality']
         for r in range(0,len(facets),2):
@@ -1939,7 +1940,7 @@ def get_system_stat(request):
 
     # 資料品質 (來源資料庫)
     url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
-    quality_data = requests.get(url).json()
+    quality_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if quality_data['responseHeader']['status'] == 0:
         facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
         for f in facets:
@@ -2251,8 +2252,7 @@ def send_notification(user_list, content, title, content_en=None):
         msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
         msg.content_subtype = "html"  # Main content is now text/html
         # 改成背景執行
-        task = threading.Thread(target=send_msg, args=(msg,))
-        task.start()
+        run_light(send_msg, msg)
         return {"status": 'success'}
     except:
         return {"status": 'fail'}
@@ -2797,8 +2797,7 @@ def submit_apply_ark(request):
         else:
 
             # 串接產生檔案的程式碼
-            task = threading.Thread(target=generate_storage_csv, args=(query_id, ark))
-            task.start()
+            run_heavy(generate_storage_csv, query_id, ark)
 
         response = {'message': '申請完成，因檔案產生需要時間，若點選ARK連結無法正確跳轉至下載檔案，請稍後再試或聯絡管理員。'}
 
@@ -3045,9 +3044,7 @@ def submit_sensitive_report(request):
         msg = EmailMessage(subject=subject, body=html_content, from_email='TBIA <no-reply@tbiadata.tw>', to=email_list)
         msg.content_subtype = "html"  # Main content is now text/html
         # 改成背景執行
-        task = threading.Thread(target=send_msg, args=(msg,))
-        # task.daemon = True
-        task.start()
+        run_light(send_msg, msg)
 
         response = {'message': '回報成功'}
 
@@ -3263,7 +3260,7 @@ def sensitive_apply_info(request, query_id):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "raw_location_rpt:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -3279,7 +3276,7 @@ def sensitive_apply_info(request, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" })
+        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -3355,3 +3352,174 @@ def update_index_event(request):
                 key=url_key, lang=lang,
                 defaults={'value': request.POST.get(url_field, '')})
         return JsonResponse({"status": 'success'}, safe=False)
+
+# 光譜（有對到）固定顯示順序：對到來源階層 → 較來源退階（依 category_key）
+_SPECTRUM_ORDER = ["atrank", "higher"]
+
+# 舊版 snapshot 沒有 category_key：依顯示名稱對回 key（含已改名的舊名稱）
+_LABEL_TO_KEY = {
+    "對到（來源階層）": "atrank",
+    "僅對到上階（較來源退階）": "higher",
+    "疑似錯字／格式": "fuzzy",
+    "多個候選無法判斷": "multiple",
+    "缺上階層資訊": "multiple",          # 舊名稱
+    "非正規學名（sp./cf. 等）": "nonstandard",
+    "無學名（資料缺漏）": "noname",
+    "暫定名（GTDB 等資料庫編號）": "placeholder",
+    "疑應可對到（比對保守否決）": "vetoed",
+    "TaiCOL 尚未收錄": "none",
+}
+
+
+def _cat_key(r):
+    return r.get('category_key') or _LABEL_TO_KEY.get(r.get('category'), r.get('category'))
+
+
+def _rates(rows):
+    total = sum((r['records'] or 0) for r in rows) or 1
+    matched = sum((r['records'] or 0) for r in rows if r['axis'] == 'matched')
+    atrank = sum((r['records'] or 0) for r in rows if _cat_key(r) == 'atrank')
+    return total, matched, atrank
+
+
+def _allowed_groups(user):
+    """system admin 可看全部（回 None）；一般夥伴只能看自己單位的 group。"""
+    if user.is_anonymous:
+        return set()
+    if User.objects.filter(id=user.id, is_system_admin=True).exists():
+        return None
+    if getattr(user, 'partner', None):
+        return {user.partner.group}
+    return set()
+ 
+ 
+def _partner_units(p):
+    """一個 Partner 底下的資料庫清單（依 Partner.info），unit = {group}_{info_id}。
+    名稱用 info 的 dbname（= rightsHolder），與其他統計圖的來源資料庫下拉一致。"""
+    infos = p.info or []
+    if not infos:
+        return [{'unit': f'{p.group}_0', 'name': getattr(p, 'title', None) or p.group}]
+    return [{'unit': f'{p.group}_{i.get("id")}',
+             'name': i.get('dbname') or i.get('subtitle') or p.title or p.group}
+            for i in infos]
+
+
+def match_units(user, scope='system'):
+    """比對狀況面板的資料庫下拉清單。
+    scope='partner'（夥伴後台）：只回使用者所屬單位的資料庫，系統管理員在夥伴後台也只看自己單位。
+    scope='system'（系統管理員後台）：系統管理員回全部資料庫。"""
+    if user.is_anonymous:
+        return []
+    if scope == 'system' and User.objects.filter(id=user.id, is_system_admin=True).exists():
+        units = [u for p in Partner.objects.all() for u in _partner_units(p)]
+        return sorted(units, key=lambda u: u['name'])
+    if getattr(user, 'partner', None):
+        return _partner_units(user.partner)
+    return []
+
+
+def get_match_stat(request):
+    """回傳單一資料庫某月的比對狀況（JSON），供儀表板前端繪製。
+    unit = {group}_{info_id}（同一 group 可能有多個資料庫）。"""
+    unit = request.GET.get('unit') or ''
+    m = re.fullmatch(r'(.+)_(\d+)', unit)
+    if not m:
+        return JsonResponse({'error': 'unit required'}, status=400)
+    group, info_id = m.group(1), int(m.group(2))
+
+    allowed = _allowed_groups(request.user)
+    if allowed is not None and group not in allowed:
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    # 該單位所有月份的資料一次取回（每月只有十列左右），趨勢圖與前次比較共用
+    all_rows = list(MatchStat.objects.filter(group=group, info_id=info_id)
+                    .values('year_month', 'axis', 'category_key', 'category',
+                            'responsibility', 'records', 'unique_names', 'rights_holder'))
+    by_month = {}
+    for r in all_rows:
+        by_month.setdefault(r['year_month'], []).append(r)
+    months = sorted(by_month, reverse=True)       # 只列有資料的月份，最新在前
+    year_month = request.GET.get('year_month') or (months[0] if months else '')
+
+    rows = by_month.get(year_month, [])
+    if not rows:
+        return JsonResponse({'unit': unit, 'group': group, 'year_month': year_month,
+                             'available_months': months, 'empty': True})
+
+    reports = {m.year_month: m for m in MatchReport.objects.filter(group=group, info_id=info_id)}
+    report = reports.get(year_month)
+    logic_changed = bool(report and report.logic_changed)
+
+    total, matched, atrank = _rates(rows)
+
+    def pct(n, t=total):
+        return round(n / t * 100, 1)
+
+    # 前次：優先用 meta.json 記錄的前次月份，否則取資料中上一個月份
+    older = [m for m in months if m < year_month]
+    prev_ym = (report.prev_year_month if report and report.prev_year_month in by_month
+               else (older[0] if older else None))
+    prev_rows = by_month.get(prev_ym, [])
+    comparable = bool(prev_rows) and not logic_changed
+    prev_by_key = {_cat_key(r): r for r in prev_rows}
+    delta = None
+    if comparable:
+        pt, _, pa = _rates(prev_rows)
+        delta = round(pct(atrank) - pct(pa, pt), 1)
+
+    matched_rows = sorted((r for r in rows if r['axis'] == 'matched'),
+                          key=lambda r: _SPECTRUM_ORDER.index(_cat_key(r))
+                          if _cat_key(r) in _SPECTRUM_ORDER else 99)
+    spectrum = [{'key': _cat_key(r), 'label': r['category'], 'records': r['records'],
+                 'pct': pct(r['records'] or 0)} for r in matched_rows]
+
+    reasons = []
+    for r in rows:
+        if r['axis'] != 'unmatched':
+            continue
+        k = _cat_key(r)
+        p = prev_by_key.get(k) if comparable else None
+        reasons.append({'key': k, 'label': r['category'], 'records': r['records'],
+                        'unique_names': r['unique_names'],
+                        'responsibility': r['responsibility'],
+                        # 無前次或比對邏輯變更時為 None（前端不顯示差異）
+                        'prev_records': (p['records'] or 0) if p else (0 if comparable else None)})
+    reasons.sort(key=lambda x: -(x['records'] or 0))
+
+    # 趨勢：由舊到新，比對邏輯變更的月份加標註
+    trend = []
+    for m in sorted(by_month):
+        t, _, a = _rates(by_month[m])
+        rep = reports.get(m)
+        trend.append({'year_month': m, 'atrank_rate': pct(a, t),
+                      'logic_changed': bool(rep and rep.logic_changed)})
+
+    rights_holder = next((r['rights_holder'] for r in rows if r['rights_holder']), group)
+
+    media = MEDIA_URL.rstrip('/')
+    base = f"{media}/match_report/{year_month}/{unit}"
+    disk = Path(MEDIA_ROOT) / 'match_report' / year_month / unit
+    downloads = {
+        'partner': f"{base}/unmatched_partner.csv",
+        'taicol': f"{base}/for_taicol.csv",
+        'email': f"{base}/email.png",
+    }
+    # 比較檔僅在有前次時產出，存在才給連結
+    for k, fn in (('noname', 'noname_records.zip'),
+                  ('compare_category', 'compare_category.csv'),
+                  ('compare_names', 'compare_names.csv')):
+        if (disk / fn).exists():
+            downloads[k] = f"{base}/{fn}"
+
+    return JsonResponse({
+        'unit': unit, 'group': group, 'rights_holder': rights_holder, 'year_month': year_month,
+        'available_months': months,
+        'total': total, 'matched': matched,
+        'overall_rate': pct(matched), 'atrank_rate': pct(atrank),
+        'prev_year_month': prev_ym, 'logic_changed': logic_changed,
+        'atrank_delta': delta,
+        'compare': report.compare if (report and not logic_changed) else None,
+        'trend': trend,
+        'spectrum': spectrum, 'reasons': reasons,
+        'downloads': downloads,
+    })

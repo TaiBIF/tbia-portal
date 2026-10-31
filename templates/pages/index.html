@@ -99,7 +99,7 @@
         <div class="input_set">
           <form id="search_full_form" action="{% url 'search_full' %}" method="GET">
             {% csrf_token %}
-            <input placeholder="{% trans '請輸入關鍵字' %}" type="text" class="search_full_keyword" name="keyword" />
+            <input placeholder="{% trans '關鍵字全站搜尋' %}" type="text" class="search_full_keyword" name="keyword" />
           </form>
           <button class="search_full_button">
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">

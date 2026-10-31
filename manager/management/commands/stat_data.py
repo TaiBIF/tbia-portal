@@ -4,7 +4,7 @@ import requests
 
 from django.core.management.base import BaseCommand
 
-from conf.settings import SOLR_PREFIX
+from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG
 from manager.models import DataStat
 from data.utils import rights_holder_map
 
@@ -37,7 +37,7 @@ class Command(BaseCommand):
         resp = requests.post(
             f'{SOLR_PREFIX}tbia_records/select',
             data=json.dumps(query),
-            headers={'content-type': 'application/json'},
+            headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
         ).json()
 
         buckets = resp['facets']['stat_rightsHolder']['buckets']
