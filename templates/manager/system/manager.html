@@ -826,7 +826,7 @@
                                 每月查詢參數統計
                             </div>
                             <div class="ml-20px mt-15px">
-                                <div class="d-flex">
+                                <div class="d-flex mt-15px">
                                     <select class="panel-select" name="search-param-stat-year">
                                         {% for y in stat_year %}
                                             <option value="{{ y }}" {% if y == keyword_year %}selected{% endif %}>{{ y }}</option>
@@ -840,6 +840,9 @@
                                     </select>
                                     <span class="ml-5px">月</span>
                                     <button class="feedback_btn ml-20px" id="download-search-param-stat">下載</button>
+                                </div>
+                                <div class="d-flex mt-15px">
+                                    <a class="fs-16px" href="/media/search_stat/tbia_search_stat_total.zip"  target="_blank">📥 下載總表</a>
                                 </div>
                             </div>
                         </div>

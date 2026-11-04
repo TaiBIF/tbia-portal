@@ -1,8 +1,10 @@
 """ 從共享 volume 的 snapshot.json / meta.json 匯入 MatchStat、MatchReport
 
-    python manage.py stat_match 2026-09              # 匯入當月全部單位
-    python manage.py stat_match 2026-09 --group nps   # 只匯入該 group 的資料庫（驗證用，預設不寄信）
-    python manage.py stat_match 2026-09 --no-mail     # 只匯入、不寄信
+    python manage.py stat_match 2026-09                         # 匯入當月全部單位
+    python manage.py stat_match 2026-09 --group nps namr        # 只匯入這些 group 的資料庫（驗證用，預設不寄信）
+    python manage.py stat_match 2026-09 --unit nps_1 namr_0     # 只匯入這些資料庫（驗證用，預設不寄信）
+    python manage.py stat_match 2026-09 --group nps --send-mail # 部分匯入後仍寄出這些單位的夥伴信件
+    python manage.py stat_match 2026-09 --no-mail               # 只匯入、不寄信
 
 匯入全部單位後會自動呼叫 send_match_report 寄信（已寄過的對象不會重複寄）。
 
@@ -18,6 +20,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import Q
 
 from manager.models import MatchStat, MatchReport
 
@@ -30,28 +33,34 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('year_month', help='YYYY-MM，例如 2026-09')
-        parser.add_argument('--group', default=None,
-                            help='只匯入該 group 的資料庫（省略則當月全部）')
+        parser.add_argument('--group', nargs='+', default=None,
+                            help='只匯入這些 group 的資料庫，可傳多個（省略則當月全部）')
+        parser.add_argument('--unit', nargs='+', default=None,
+                            help='只匯入這些資料庫，格式 {group}_{info_id}，可傳多個')
         parser.add_argument('--no-mail', action='store_true',
                             help='匯入後不寄信')
         parser.add_argument('--send-mail', action='store_true',
-                            help='搭配 --group 時仍寄出該單位的夥伴信件')
+                            help='搭配 --group / --unit 時仍寄出這些單位的夥伴信件')
 
     def handle(self, *args, **options):
         year_month = options['year_month']
-        group = options['group']
+        groups, units = options['group'], options['unit']
+        partial = bool(groups or units)
 
         base = MATCH_REPORT_DIR / year_month
-        dirs = []
+        dirs, keys = [], []          # keys：實際匯入的 (group, info_id)，部分匯入時只覆蓋這些
         if base.exists():
             for p in sorted(base.iterdir()):
                 # 只認 {group}_{info_id} 目錄；略過 _mail_preview 等內部目錄與舊格式（只有 group）
                 m = re.fullmatch(r'(.+)_(\d+)', p.name)
                 if not p.is_dir() or p.name.startswith('_') or not m:
                     continue
-                if group and m.group(1) != group:
+                if groups and m.group(1) not in groups:
+                    continue
+                if units and p.name not in units:
                     continue
                 dirs.append(p)
+                keys.append((m.group(1), int(m.group(2))))
 
         rows, reports, used = [], [], 0
         for d in dirs:
@@ -88,13 +97,19 @@ class Command(BaseCommand):
                     compare=m.get('compare'),
                 ))
 
-        # 與 stat_data 相同的可重跑策略：先刪當月（或當月該單位）舊資料再寫入。
-        # 帶 --group 時只覆蓋該 group 的資料庫，不動其他單位，方便逐一驗證。
+        # 與 stat_data 相同的可重跑策略：先刪當月（或當月指定單位）舊資料再寫入。
+        # 帶 --group / --unit 時只覆蓋這次實際匯入的資料庫，不動其他單位，方便逐一驗證。
+        if partial and not keys:
+            self.stdout.write(self.style.WARNING('沒有符合的資料庫，未做任何變更'))
+            return
         with transaction.atomic():
             for model in (MatchStat, MatchReport):
                 qs = model.objects.filter(year_month=year_month)
-                if group:
-                    qs = qs.filter(group=group)
+                if partial:
+                    cond = Q()
+                    for g, i in keys:
+                        cond |= Q(group=g, info_id=i)
+                    qs = qs.filter(cond)
                 qs.delete()
             MatchStat.objects.bulk_create(rows)
             MatchReport.objects.bulk_create(reports)
@@ -102,11 +117,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'{year_month} 匯入 {len(rows)} 列、{len(reports)} 份報告資訊，來自 {used} 個資料庫'))
 
-        # 匯入後自動寄信：全部單位匯入時預設寄出；單一單位（驗證用）需加 --send-mail
+        # 匯入後自動寄信：全部單位匯入時預設寄出；部分單位（驗證用）需加 --send-mail，且只寄夥伴信件
         if options['no_mail'] or not used:
             return
-        if group:
+        if partial:
             if options['send_mail']:
-                call_command('send_match_report', year_month, group=group, only=['partner'])
+                call_command('send_match_report', year_month,
+                             unit=[f'{g}_{i}' for g, i in keys], only=['partner'])
             return
         call_command('send_match_report', year_month)
