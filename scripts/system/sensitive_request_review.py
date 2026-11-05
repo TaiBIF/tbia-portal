@@ -3,7 +3,7 @@ from api.models import APIkey
 from django.db import connection
 from datetime import datetime, timedelta
 from data.views import generate_sensitive_csv
-import threading
+from conf.background import run_heavy
 from conf.settings import env
 from django.db.models import Max
 
@@ -52,81 +52,8 @@ for sdr in overdue_requests:
         query_id=sdr.query_id,
         status='pending'
     ).exclude(is_transferred=True).exists():
-        task = threading.Thread(target=generate_sensitive_csv, args=(sdr.query_id, scheme, host))
-        task.start()
-
-# # 系統管理員負責的
-# query = """
-# select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id, from manager_sensitivedataresponse sdr
-#     where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is null;
-# """
-# with connection.cursor() as cursor:
-#     cursor.execute(query)
-#     data = cursor.fetchall()
-
-# max_day = Workday.objects.all().aggregate(Max('date'))['date__max']
-
-# for d in data:
-#     # 找到當日的row
-#     c = 0
-#     # row_i = c_cal[c_cal.西元日期 == int(d[1])].index[0]
-#     row_date = d[1]
-#     while c < 7:
-#         row_date += timedelta(days=1)
-#         if not row_date > max_day:
-#             if Workday.objects.get(date=row_date).is_dayoff == 0:
-#                 due = row_date
-#                 c += 1
-#     if today > due:
-#         sdr_id = d[0]
-#         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
-#             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
-#             sdr.status = 'fail'
-#             sdr.reviewer_name = ''
-#             sdr.comment = '未獲得資料管理單位同意'
-#             sdr.save()
-#         # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
-#         # 排除已轉移給各單位審核的機關計畫
-#         if not SensitiveDataResponse.objects.filter(query_id=d[2],status='pending').exclude(is_transferred=True).exists():
-#             task = threading.Thread(target=generate_sensitive_csv, args=(d[2],scheme,host))
-#             task.start()
-
-
-
-# # 夥伴單位負責的
-# query = """
-# select sdr.id, (sdr.created AT TIME ZONE 'Asia/Taipei')::DATE, sdr.query_id from manager_sensitivedataresponse sdr
-# where sdr.is_transferred = 'f' and sdr.status = 'pending' and sdr.partner_id is not null;
-# """
-
-# with connection.cursor() as cursor:
-#     cursor.execute(query)
-#     data = cursor.fetchall()
-
-# for d in data:
-#     # 找到當日的row
-#     c = 0
-#     row_date = d[1]
-#     while c < 14:
-#         row_date += timedelta(days=1)
-#         if not row_date > max_day:
-#             if Workday.objects.get(date=row_date).is_dayoff == 0:
-#                 due = row_date
-#                 c += 1
-#     if today > due:
-#         sdr_id = d[0]
-#         if SensitiveDataResponse.objects.filter(id=sdr_id).exists():
-#             sdr = SensitiveDataResponse.objects.get(id=sdr_id)
-#             sdr.status = 'fail'
-#             sdr.reviewer_name = ''
-#             sdr.comment = '未獲得資料管理單位同意'
-#             sdr.save()
-#         # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
-#         # 排除已轉移給各單位審核的機關計畫
-#         if not SensitiveDataResponse.objects.filter(query_id=d[2],status='pending').exclude(is_transferred=True).exists():
-#             task = threading.Thread(target=generate_sensitive_csv, args=(d[2],scheme,host))
-#             task.start()
-
+        # 排進背景佇列，由 worker 依序產檔（不在排程程序內開執行緒）
+        run_heavy(generate_sensitive_csv, sdr.query_id, scheme, host, query_id=sdr.query_id)
 
 # API key
 api_keys = APIkey.objects.filter(status='pass')

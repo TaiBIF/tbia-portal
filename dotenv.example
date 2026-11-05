@@ -42,3 +42,11 @@ TBIA_ARKLET_INTERNAL=
 # Cloudflare Turnstile(人機驗證)
 TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
+
+# 背景工作（django-q2 worker 容器）
+# BG_HEAVY_WORKERS：同時產檔的工作數；BG_TASK_TIMEOUT：單一工作實際執行上限秒數（不含排隊）
+# BG_LIGHT_WORKERS：web 內寄信／統計的執行緒數；BG_SYNC=True 時不經佇列直接執行（本機無 worker 時用）
+BG_HEAVY_WORKERS=2
+BG_TASK_TIMEOUT=86400
+BG_LIGHT_WORKERS=4
+BG_SYNC=False

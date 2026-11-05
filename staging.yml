@@ -32,6 +32,33 @@ services:
     networks:
       - gateway
       - datahub
+  # 背景工作（下載產檔、敏感資料檔案、ARK 永久保存檔），與 web 共用 image 與程式碼
+  # 部署更新程式碼後需一併重啟：docker compose -f staging.yml restart worker
+  worker:
+    build: .
+    container_name: tbia-worker-stag-container
+    image: tbia-web-stag-image
+    depends_on:
+      - web
+      - postgres-web
+    volumes:
+      - .:/code
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+      - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/solr:/tbia-volumes/solr
+      - ../tbia-volumes/aws-certs:/etc/aws-certs:ro
+    command: python manage.py run_worker   # 先解鎖上次中斷的工作，再啟動 qcluster
+    restart: always
+    stop_grace_period: 2m   # 給執行中的工作收尾；仍被中止的工作會在 worker 重啟時補跑
+    env_file:
+      - .env
+    environment:
+      - AWS_CONFIG_FILE=/etc/aws-certs/aws_config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - gateway
+      - datahub
   postgres-web:
     image: postgres:16-alpine
     container_name: tbia-db-stag-container

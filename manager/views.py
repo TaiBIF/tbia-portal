@@ -3,6 +3,7 @@ import pytz
 import subprocess
 import os
 import threading
+import shutil
 from conf.background import run_light, run_heavy
 import json
 import re
@@ -1118,9 +1119,18 @@ def download_sensitive_report(request):
             if User.objects.filter(id=current_user.id, is_system_admin=True).exists():
                 sensitive_response = SensitiveDataResponse.objects.filter(partner_id__isnull=False)
 
+    rows = []
     if len(sensitive_response):
+        # 一次撈出相關資料，避免每列各查一次
+        sensitive_response = sensitive_response.select_related('partner')
+        query_ids = sensitive_response.values_list('query_id',flat=True)
+        responses = {}
+        for sdr in sensitive_response:
+            responses.setdefault(sdr.query_id, []).append(sdr)
+        details = {d.query_id: d for d in SensitiveDataRequest.objects.filter(query_id__in=query_ids)}
+
         # 申請請求
-        sensitive_query = SearchQuery.objects.filter(query_id__in=sensitive_response.values_list('query_id',flat=True))
+        sensitive_query = SearchQuery.objects.filter(query_id__in=query_ids).select_related('user')
         for s in sensitive_query:
             # 進階搜尋
             search_dict = parse_query_string(s.query)
@@ -1132,7 +1142,9 @@ def download_sensitive_report(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             # request
-            detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
+            detail = details.get(s.query_id)
+            if not detail:
+                continue
 
             users = []
             for u in detail.users:
@@ -1140,7 +1152,7 @@ def download_sensitive_report(request):
 
             # response
             comment = []
-            for sdr in sensitive_response.filter(query_id=s.query_id):
+            for sdr in responses.get(s.query_id, []):
                 if sdr.is_transferred:
                     comment.append('已轉交單位審核')
                 else:
@@ -1152,7 +1164,7 @@ def download_sensitive_report(request):
 
             comment_str = '\n---\n'.join(comment)
 
-            df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+            rows.append({'申請時間': date,
                                                 '檔案編號': s.query_id,
                                                 '搜尋條件': query,
                                                 '申請人姓名': detail.applicant,
@@ -1171,7 +1183,8 @@ def download_sensitive_report(request):
                                                 '審核意見': comment_str,
                                                 # '通過與否': ,
                                                 '檔案狀態': s.get_status_display(),
-                                                }])],ignore_index=True)
+                                                })
+        df = pd.DataFrame(rows)
 
 
     response = HttpResponse(content_type='application/xlsx')
@@ -1218,6 +1231,7 @@ def download_partner_sensitive_report(request):
                     cursor.execute(query, db_params)
                     results = cursor.fetchall()
 
+                rows = []
                 for s in results:
                     query = ''
                     search_dict = parse_query_string(s[2])
@@ -1249,13 +1263,14 @@ def download_partner_sensitive_report(request):
                     else:
                         partner_title = s[3]
 
-                    df = pd.concat([df, pd.DataFrame([{
+                    rows.append({
                                                     '下載時間': date,
                                                     '檔案編號': s[1],
                                                     '搜尋條件': query,
                                                     '下載者所屬單位': partner_title,
                                                     '下載檔案連結': f'{scheme}://{request.get_host()}/media/download/record/{s[1]}.zip'
-                                                    }])],ignore_index=True)
+                                                    })
+                df = pd.DataFrame(rows)
             
             response = HttpResponse(content_type='application/xlsx')
             response['Content-Disposition'] = f'attachment; filename="tbia_partner_sensitive_report_{now}.xlsx"'
@@ -2772,36 +2787,38 @@ def submit_apply_ark(request):
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
 
-        url = f"{env('TBIA_ARKLET_INTERNAL')}insert"
+        # 產生永久保存檔與向 arklet 註冊都移到背景；檔案完成後才註冊 ARK
         ark_url = f"{scheme}://{request.get_host()}/media/download/storage/tbia_{ark_obj.ark}.zip"
-        r = requests.post(url, headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))}, 
-                               data={'ark': f'ark:/{env("ARK_NAAN")}/{ark_obj.ark}', 
-                                     'naan': env("ARK_NAAN"),
-                                     'url': ark_url,
-                                     'shoulder': '/' + ark_obj.ark[:2]})
-
-        csv_folder = os.path.join(MEDIA_ROOT, 'download')
-        storage_folder = os.path.join(csv_folder, 'storage')
-
-        if sq.type == 'taxon':
-            # 直接複製一份
-            csv_folder = os.path.join(csv_folder, 'taxon')
-
-            original_path = os.path.join(csv_folder, f'tbia_{query_id}.zip')
-            target_path = os.path.join(storage_folder, f'tbia_{ark}.zip')
-
-            commands = "cp {} {}".format(original_path, target_path)
-            process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            process.communicate()
-
-        else:
-
-            # 串接產生檔案的程式碼
-            run_heavy(generate_storage_csv, query_id, ark)
+        run_heavy(build_storage_file, query_id, ark, ark_url)
 
         response = {'message': '申請完成，因檔案產生需要時間，若點選ARK連結無法正確跳轉至下載檔案，請稍後再試或聯絡管理員。'}
 
         return JsonResponse(response, safe=False)
+
+
+def build_storage_file(query_id, ark, ark_url):
+    """背景工作：產生永久保存檔，完成後向 arklet 註冊 ARK。可重複執行。"""
+    sq = SearchQuery.objects.get(query_id=query_id)
+    download_folder = os.path.join(MEDIA_ROOT, 'download')
+    storage_zip = os.path.join(download_folder, 'storage', f'tbia_{ark}.zip')
+
+    if not os.path.exists(storage_zip):
+        if sq.type == 'taxon':
+            # 名錄沒有敏感欄位，直接複製一份
+            shutil.copyfile(os.path.join(download_folder, 'taxon', f'tbia_{query_id}.zip'), storage_zip)
+        else:
+            generate_storage_csv(query_id, ark)
+        if not os.path.exists(storage_zip):
+            raise RuntimeError(f'storage file not generated: {storage_zip}')
+
+    r = requests.post(f"{env('TBIA_ARKLET_INTERNAL')}insert",
+                      headers={'Authorization': 'Bearer {}'.format(env('TBIA_ARKLET_KEY'))},
+                      data={'ark': f'ark:/{env("ARK_NAAN")}/{ark}',
+                            'naan': env("ARK_NAAN"),
+                            'url': ark_url,
+                            'shoulder': '/' + ark[:2]},
+                      timeout=60)
+    r.raise_for_status()
 
 
 # 永久保存資料
@@ -2817,7 +2834,7 @@ def generate_storage_csv(query_id, ark):
         storage_csv_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.csv')
         storage_zip_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.zip')
         # step 1 unzip
-        commands = f"cd {csv_folder}; unzip {zip_file_path}"
+        commands = f"cd {csv_folder}; unzip -o {zip_file_path}"
         process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
         # step 2 取得header
@@ -3063,17 +3080,20 @@ def download_applicant_sensitive_report(request):
 
         user_id = request.POST.get('applicant_user_id')
         
-        # 申請請求
-        sensitive_query = SearchQuery.objects.filter(user_id=user_id, type='sensitive')
+        # 申請請求（一次撈出相關資料，避免每列各查一次）
+        sensitive_query = list(SearchQuery.objects.filter(user_id=user_id, type='sensitive').select_related('user'))
+        query_ids = [s.query_id for s in sensitive_query]
+        reports = {r.query_id: r for r in SensitiveDataReport.objects.filter(query_id__in=query_ids)}
+        details = {d.query_id: d for d in SensitiveDataRequest.objects.filter(query_id__in=query_ids)}
+        rows = []
         for s in sensitive_query:
 
             report_modified = ''
             reported = False
-            if SensitiveDataReport.objects.filter(query_id=s.query_id).exists():
-                if SensitiveDataReport.objects.get(query_id=s.query_id).file or SensitiveDataReport.objects.get(query_id=s.query_id).content:
+            if report := reports.get(s.query_id):
+                if report.file or report.content:
                     reported = True 
-                    report_modified =  SensitiveDataReport.objects.get(query_id=s.query_id).modified 
-                    report_modified = report_modified.strftime("%Y-%m-%d")
+                    report_modified = report.modified.strftime("%Y-%m-%d") if report.modified else ''
 
             report_date = ''
             
@@ -3091,14 +3111,16 @@ def download_applicant_sensitive_report(request):
             date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             # request
-            detail =  SensitiveDataRequest.objects.get(query_id=s.query_id)
+            detail = details.get(s.query_id)
+            if not detail:
+                continue
 
             users = []
             for u in detail.users:
                 users.append(f"姓名：{u.get('user_name')}\n單位：{u.get('user_affiliation')}\n職稱：{u.get('user_job_title')}")
 
 
-            df = pd.concat([df, pd.DataFrame([{'申請時間': date,
+            rows.append({'申請時間': date,
                                                 '檔案編號': s.query_id,
                                                 '搜尋條件': query,
                                                 '申請人姓名': detail.applicant,
@@ -3118,7 +3140,8 @@ def download_applicant_sensitive_report(request):
                                                 '是否已回報成果': reported,
                                                 '實際回報完成時間': report_modified,
                                                 '此批申請資料其他使用者': '\n---\n'.join(users),
-                                                }])],ignore_index=True)
+                                                })
+        df = pd.DataFrame(rows)
 
         response = HttpResponse(content_type='application/xlsx')
         response['Content-Disposition'] = f'attachment; filename="tbia_applicant_report_{now}.xlsx"'
