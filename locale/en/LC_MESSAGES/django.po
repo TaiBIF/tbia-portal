@@ -2619,7 +2619,7 @@ msgid "原始資料提供之物種代碼，可能為舊TaiCOL namecode"
 msgstr "Scientific Name ID provieded by original data. Could be TaiCOL namecode."
 
 #:
-msgid "若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higer_taxon標示true，反之為false"
+msgid "若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higher_taxon標示true，反之為false"
 msgstr "If the taxon ID of the record is matched to its higher taxon. Yes = true, No = false."
 
 
