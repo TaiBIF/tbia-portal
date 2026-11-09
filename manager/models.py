@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
@@ -57,10 +59,25 @@ class Partner(models.Model):
     is_collaboration = models.BooleanField(default=False) # 是否為合作夥伴
     has_detail_page = models.BooleanField(default=True) # 是否有獨立頁面
 
+    # TBIA API v2 的 tbiaPartnerID（D2、D28）：一個單位一個 UUID，title 相同的列共用；產生後固定不變
+    # GBIF（group=gbif）不是夥伴，留空
+    tbia_partner_id = models.UUIDField(null=True, blank=True, editable=False, db_index=True)
+
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)
     class Meta:
         db_table = 'partner'
+
+    def save(self, *args, **kwargs):
+        if not self.tbia_partner_id and self.group != 'gbif':
+            existing = None
+            if self.title:
+                existing = (Partner.objects.filter(title=self.title, tbia_partner_id__isnull=False)
+                            .exclude(pk=self.pk).values_list('tbia_partner_id', flat=True).first())
+            self.tbia_partner_id = existing or uuid.uuid4()
+            if kwargs.get('update_fields') is not None:
+                kwargs['update_fields'] = list(kwargs['update_fields']) + ['tbia_partner_id']
+        super().save(*args, **kwargs)
 
 
 class User(AbstractUser):

@@ -17,7 +17,8 @@ class CustomUserAdmin(UserAdmin):
 
 
 class PartnerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'select_title')
+    list_display = ('id', 'group', 'title', 'select_title', 'tbia_partner_id')
+    readonly_fields = ('tbia_partner_id',)
 
 
 
