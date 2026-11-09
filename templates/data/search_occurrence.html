@@ -30,7 +30,7 @@
 {% endblock %}
 {% block body %}
   {% csrf_token %}
-  {% if messages %}
+  {% if common_search_warnings %}
   <!--共同規格查詢警告popbox-->
   <div class="popbg common-search-warning-pop">
     <div class="ovhy">
@@ -39,7 +39,7 @@
         <div class="titlegreen">{% trans '查詢參數警告' %}</div>
         <div class="p-10px">
           <ul>
-            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+            {% for message in common_search_warnings %}<li>{{ message }}</li>{% endfor %}
           </ul>
         </div>
       </div>

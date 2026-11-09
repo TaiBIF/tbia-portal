@@ -1349,7 +1349,11 @@ def search_occurrence(request):
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
+    # 只取共同規格的查詢警告；其他訊息（如 allauth 登入成功）在此一併讀掉，不顯示
+    common_search_warnings = [m.message for m in messages.get_messages(request) if 'common_search' in m.tags]
+
     response = render(request, 'data/search_occurrence.html', {'holder_list': holder_list, 
+        'common_search_warnings': common_search_warnings,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list,
         'affiliation_options': affiliation_options,
         'role_options': role_options,
@@ -1603,7 +1607,7 @@ def commonsearch_occurrence(request):
         return HttpResponse(body, status=400, content_type='text/html; charset=utf-8')
 
     for w in warnings:
-        messages.warning(request, w)
+        messages.warning(request, w, extra_tags='common_search')
 
     tbia_params = common_to_tbia(params)
     if tbia_params:
