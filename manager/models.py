@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
@@ -37,6 +39,11 @@ class UserManager(BaseUserManager):
         return user
 
 
+# tbiaPartnerID 的固定命名空間：ID = uuid5(此命名空間, title)，各環境（本機、測試站、正式站）算出相同的值
+# 不可更改，改了之後新產生的 ID 會跟既有的對不上
+TBIA_PARTNER_ID_NAMESPACE = uuid.UUID('d758a377-ad4e-4933-a135-2145f1abedac')
+
+
 class Partner(models.Model):
     abbreviation = models.CharField(max_length=100, null=True, blank=True) # 在網頁上夥伴頁面呈現在一頁
     group = models.CharField(max_length=100, null=True, blank=True) # 後台group
@@ -57,10 +64,25 @@ class Partner(models.Model):
     is_collaboration = models.BooleanField(default=False) # 是否為合作夥伴
     has_detail_page = models.BooleanField(default=True) # 是否有獨立頁面
 
+    # TBIA API v2 的 tbiaPartnerID（D2、D28）：一個單位一個 UUID，由 title 以 uuid5 算出，title 相同的列共用；產生後固定不變（之後改 title 也不變）
+    # GBIF（group=gbif）不是夥伴，留空
+    tbia_partner_id = models.UUIDField(null=True, blank=True, editable=False, db_index=True)
+
     created = models.DateTimeField(auto_now_add=True)
     modifed = models.DateTimeField(auto_now_add=True)
     class Meta:
         db_table = 'partner'
+
+    def save(self, *args, **kwargs):
+        if not self.tbia_partner_id and self.group != 'gbif':
+            existing = None
+            if self.title:
+                existing = (Partner.objects.filter(title=self.title, tbia_partner_id__isnull=False)
+                            .exclude(pk=self.pk).values_list('tbia_partner_id', flat=True).first())
+            self.tbia_partner_id = existing or (uuid.uuid5(TBIA_PARTNER_ID_NAMESPACE, self.title) if self.title else uuid.uuid4())
+            if kwargs.get('update_fields') is not None:
+                kwargs['update_fields'] = list(kwargs['update_fields']) + ['tbia_partner_id']
+        super().save(*args, **kwargs)
 
 
 class User(AbstractUser):
