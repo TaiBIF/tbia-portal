@@ -71,7 +71,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     # google provider
     'allauth.socialaccount.providers.google',
-    'django_ses'
+    'django_ses',
+    'django_q',
 ]
 
 SITE_ID = 1 # oauth
@@ -331,4 +332,26 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+# 背景工作佇列（django-q2，以 PostgreSQL 當 broker；由 worker 容器執行 python manage.py qcluster）
+# - BG_TASK_TIMEOUT：單一工作「實際執行」的最長秒數（不含排隊等待），超過會被中止並記為失敗
+# - retry 必須大於 timeout：worker 中斷時未完成的工作要等 retry 秒才會重新派送；
+#   worker 容器重啟時 run_worker 指令會先把這些工作解鎖，所以重啟後會立即補跑
+# - BG_SYNC=True：不經佇列直接在 request 中執行（本機開發沒有 worker 時用）
+BG_TASK_TIMEOUT = env.int('BG_TASK_TIMEOUT', default=86400)
+Q_CLUSTER = {
+    'name': 'tbia',
+    'orm': 'default',
+    'workers': env.int('BG_HEAVY_WORKERS', default=2),
+    'timeout': BG_TASK_TIMEOUT,
+    'retry': BG_TASK_TIMEOUT + 300,
+    'max_attempts': 2,
+    'ack_failures': True,   # 程式錯誤不重跑，只有「沒跑完就中斷」才重新派送
+    'recycle': 50,          # 跑一定數量後重開 worker process，釋放 pandas 佔用的記憶體
+    'poll': 2,              # ORM broker 輪詢間隔（秒）
+    'save_limit': 500,      # 成功紀錄保留筆數；失敗紀錄全部保留
+    'catch_up': False,
+    'sync': env.bool('BG_SYNC', default=False),
+    'label': '背景工作',
 }

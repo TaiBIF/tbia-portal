@@ -33,6 +33,36 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - datahub
+  # 背景工作（下載產檔、敏感資料檔案、ARK 永久保存檔），與 web 共用 image 與程式碼
+  # 部署更新程式碼後需一併重啟：docker compose restart worker
+  worker:
+    platform: linux/amd64
+    build: .
+    container_name: tbia-worker-dev-container
+    image: tbia-web-dev-image
+    depends_on:
+      - web
+      - postgres-web
+    volumes:
+      - .:/code
+      - ../tbia-volumes/bucket:/tbia-volumes/bucket
+      - ../tbia-volumes/media:/tbia-volumes/media
+      - ../tbia-volumes/solr:/tbia-volumes/solr
+    command: python manage.py run_worker   # 先解鎖上次中斷的工作，再啟動 qcluster
+    stop_grace_period: 2m   # 給執行中的工作收尾；仍被中止的工作會在 worker 重啟時補跑
+    env_file:
+      - .env
+    environment:
+      - WEB_ENV=dev
+      - POSTGRES_HOST=postgres-web
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - datahub
   postgres-web:
     platform: linux/amd64
     container_name: tbia-db-container

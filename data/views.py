@@ -31,7 +31,7 @@ from manager.utils import check_due
 from django.shortcuts import render, redirect
 from django.db.models import Q, Max
 from django.db import connection
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, QueryDict
 from django.utils import timezone
 from django.utils.translation import get_language, gettext
 from django.core.files.storage import FileSystemStorage
@@ -188,7 +188,8 @@ def submit_sensitive_response(request):
     # 確認是不是最後一個單位審核, 如果是的話產生下載檔案
     # 若是機關委託計畫，排除已轉移給各單位審核的
     if not SensitiveDataResponse.objects.filter(query_id=request.POST.get('query_id'),status='pending').exclude(is_transferred=True).exists():
-        run_heavy(generate_sensitive_csv, request.POST.get('query_id'),scheme,request.get_host())
+        query_id = request.POST.get('query_id')
+        run_heavy(generate_sensitive_csv, query_id, scheme, request.get_host(), query_id=query_id)
 
     return JsonResponse({"status": 'success'}, safe=False)
 
@@ -300,8 +301,11 @@ def partial_transfer_sensitive_response(request):
 
 def generate_sensitive_csv(query_id, scheme, host):
     
-    if SearchQuery.objects.filter(query_id=query_id).exists():
+    # 只處理 pending（或管理員重新送出的 fail）：避免重新派送或多位審核者同時完成時重複產檔、重複寄信
+    if SearchQuery.objects.filter(query_id=query_id, status__in=['pending', 'fail']).exists():
         sq = SearchQuery.objects.get(query_id=query_id)
+        if sq.status == 'fail':
+            SearchQuery.objects.filter(id=sq.id).update(status='pending', modified=timezone.now())
         req_dict = parse_query_string(sq.query)
 
         download_id = f"tbia_{query_id}"
@@ -373,7 +377,9 @@ def generate_sensitive_csv(query_id, scheme, host):
                 csv_queries = [query]
 
             file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path)
-            sq.status = 'pass' if file_done else 'fail'
+            if not file_done:
+                raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
+            sq.status = 'pass'
             
         else:
             # 沒有帳號通過 - 全部給模糊化後的資料
@@ -396,7 +402,9 @@ def generate_sensitive_csv(query_id, scheme, host):
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
             file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path)
-            sq.status = 'pass' if file_done else 'fail'
+            if not file_done:
+                raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
+            sq.status = 'pass'
 
         # 儲存到下載統計
         stat_rightsHolder = create_search_stat(query_list=query_list)
@@ -499,18 +507,70 @@ def return_geojson_query(request):
 
 def send_download_request(request):
     if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return JsonResponse({"status": 'fail'}, safe=False)
         if request.POST.get('from_full'):
-            run_heavy(generate_download_csv_full, request.POST, request.user.id, scheme, request.get_host())
+            func, sq_type = generate_download_csv_full, 'record'
         elif request.POST.get('taxon'):
-            run_heavy(generate_species_csv, request.POST, request.user.id, scheme, request.get_host())
+            func, sq_type = generate_species_csv, 'taxon'
         else:
-            run_heavy(generate_download_csv, request.POST, request.user.id, scheme, request.get_host())
+            func, sq_type = generate_download_csv, 'record'
+        # 先建立 pending 的 SearchQuery，使用者馬上就能在後台看到「處理中」；背景工作再依 query_id 產檔
+        query_id = create_download_query(request.POST, request.user.id, sq_type)
+        run_heavy(func, request.POST.urlencode(), request.user.id, scheme, request.get_host(), query_id, query_id=query_id)
         return JsonResponse({"status": 'success'}, safe=False)
 
 
+def flatten_download_req(req_dict):
+    """擷取 user_stat、排除重播用不到的 key、扁平化單元素列表。回傳 (req_dict, user_stat)。"""
+    req_dict = dict(req_dict)
+    user_stat = []
+    for key in ['user_affiliation', 'user_role', 'user_purpose']:
+        if key in req_dict:
+            user_stat.append(req_dict[key][0])
+    for key in QUERY_REPLAY_EXCLUDE_KEYS:
+        req_dict.pop(key, None)
+    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
+    return req_dict, user_stat
+
+
+def create_download_query(req_dict, user_id, sq_type):
+    req_dict, user_stat = flatten_download_req(req_dict)
+    query_string = build_query_string(req_dict)
+
+    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type=sq_type).aggregate(Max('personal_id'))
+    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
+
+    query_id = str(ObjectId())
+    SearchQuery.objects.create(
+        user = User.objects.filter(id=user_id).first(),
+        query = query_string,
+        status = 'pending',
+        type = sq_type,
+        query_id = query_id,
+        personal_id = current_personal_id,
+        user_stat = user_stat
+    )
+    return query_id
+
+
+def get_pending_download_query(query_id):
+    """取得待產檔的 SearchQuery：pending 或管理員重新送出的 fail（改回 pending）；已完成或已過期則回傳 None 不再執行。"""
+    sq = SearchQuery.objects.filter(query_id=query_id, status__in=['pending', 'fail']).first()
+    if sq and sq.status == 'fail':
+        sq.status = 'pending'
+        sq.modified = timezone.now()
+        sq.save()
+    return sq
+
+
 # 進階搜尋資料下載
-def generate_download_csv(req_dict, user_id, scheme, host):
-    download_id = f"tbia_{str(ObjectId())}"
+def generate_download_csv(post_str, user_id, scheme, host, query_id):
+    sq = get_pending_download_query(query_id)
+    if not sq:
+        return
+    req_dict = QueryDict(post_str)
+    download_id = f"tbia_{query_id}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols_with_sensitive
@@ -520,36 +580,6 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     get_raw_map = if_raw_map(user_id)
 
     query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
-
-    user_stat = []
-
-    req_dict = dict(req_dict)
-
-    # 先擷取 user_stat，再排除重播用不到的 key
-    for key in ['user_affiliation', 'user_role', 'user_purpose']:
-        if key in req_dict:
-            user_stat.append(req_dict[key][0])
-
-    for key in QUERY_REPLAY_EXCLUDE_KEYS:
-        req_dict.pop(key, None)
-
-    # 扁平化單元素列表
-    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
-
-    query_string = build_query_string(req_dict)
-
-    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
-    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
-
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'record',
-        query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id,
-        user_stat = user_stat
-    )
 
     query = { "query": "*:*",
             "offset": 0,
@@ -566,12 +596,9 @@ def generate_download_csv(req_dict, user_id, scheme, host):
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
-    # 等待檔案完成；失敗就標記 fail，不寄出下載連結
+    # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
     if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
-        sq.status = 'fail'
-        sq.modified = timezone.now()
-        sq.save()
-        return
+        raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
 
@@ -608,41 +635,15 @@ def generate_download_csv(req_dict, user_id, scheme, host):
 
 
 # 進階搜尋名錄下載
-def generate_species_csv(req_dict, user_id, scheme, host):
-    download_id = f"tbia_{str(ObjectId())}"
+def generate_species_csv(post_str, user_id, scheme, host, query_id):
+    sq = get_pending_download_query(query_id)
+    if not sq:
+        return
+    req_dict = QueryDict(post_str)
+    download_id = f"tbia_{query_id}"
 
     get_raw_map = if_raw_map(user_id)
     query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
-
-    user_stat = []
-
-    req_dict = dict(req_dict)
-
-    # 先擷取 user_stat，再排除重播用不到的 key
-    for key in ['user_affiliation', 'user_role', 'user_purpose']:
-        if key in req_dict:
-            user_stat.append(req_dict[key][0])
-
-    for key in QUERY_REPLAY_EXCLUDE_KEYS:
-        req_dict.pop(key, None)
-
-    # 扁平化單元素列表
-    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
-
-    query_string = build_query_string(req_dict)
-
-    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='taxon').aggregate(Max('personal_id'))
-    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
-
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'taxon',
-        query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id,
-        user_stat = user_stat
-    )
 
     query_list += ['taxonID:*']
 
@@ -736,30 +737,18 @@ def generate_species_csv(req_dict, user_id, scheme, host):
 
 
 # 全站搜尋資料下載
-def generate_download_csv_full(req_dict, user_id, scheme, host):
+def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
+    sq = get_pending_download_query(query_id)
+    if not sq:
+        return
+    req_dict, _ = flatten_download_req(QueryDict(post_str))
 
-
-    req_dict = dict(req_dict)
-
-    user_stat = []
-
-    # 先擷取 user_stat，再排除重播用不到的 key
-    for key in ['user_affiliation', 'user_role', 'user_purpose']:
-        if key in req_dict:
-            user_stat.append(req_dict[key][0])
-
-    for key in QUERY_REPLAY_EXCLUDE_KEYS:
-        req_dict.pop(key, None)
-
-    # 扁平化單元素列表
-    req_dict = {k: (v[0] if len(v) == 1 else v) for k, v in req_dict.items()}
-    
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
         fl_cols = download_cols_with_sensitive
     else:
         fl_cols = download_cols
 
-    download_id = f"tbia_{str(ObjectId())}"
+    download_id = f"tbia_{query_id}"
 
     keyword = req_dict.get('keyword', '')
     key = req_dict.get('key', '')
@@ -794,6 +783,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
             q = contains_clause(key, keyword, keyword_reg)
 
     if not re.fullmatch(r'\w+', key or ''):  # key 是欄位名稱，避免組出任意查詢
+        sq.status = 'fail'
+        sq.modified = timezone.now()
+        sq.save()
         return
     if key == 'sourceScientificName': # 若前後有<i>也算進去
         q = rf'sourceScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
@@ -801,21 +793,6 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
         fq_list.append(f'{key}:{solr_quote(value)}')
     if scientific_name and scientific_name != 'undefined':
         fq_list.append(f'scientificName:{solr_quote(scientific_name)}')
-
-    current_personal_id = SearchQuery.objects.filter(user_id=user_id,type='record').aggregate(Max('personal_id'))
-    current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
-
-    query_string = build_query_string(req_dict)
-
-    sq = SearchQuery.objects.create(
-        user = User.objects.filter(id=user_id).first(),
-        query = query_string,
-        status = 'pending',
-        type = 'record',
-        query_id = download_id.split('_')[-1],
-        personal_id = current_personal_id,
-        user_stat = user_stat
-    )
 
     query = { "query": q,
             "offset": 0,
@@ -832,12 +809,9 @@ def generate_download_csv_full(req_dict, user_id, scheme, host):
     csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
-    # 等待檔案完成；失敗就標記 fail，不寄出下載連結
+    # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
     if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
-        sq.status = 'fail'
-        sq.modified = timezone.now()
-        sq.save()
-        return
+        raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
     
@@ -1375,7 +1349,11 @@ def search_occurrence(request):
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
+    # 只取共同規格的查詢警告；其他訊息（如 allauth 登入成功）在此一併讀掉，不顯示
+    common_search_warnings = [m.message for m in messages.get_messages(request) if 'common_search' in m.tags]
+
     response = render(request, 'data/search_occurrence.html', {'holder_list': holder_list, 
+        'common_search_warnings': common_search_warnings,
         'rank_list': rank_list, 'basis_map': basis_map, 'county_list': county_list,
         'affiliation_options': affiliation_options,
         'role_options': role_options,
@@ -1629,7 +1607,7 @@ def commonsearch_occurrence(request):
         return HttpResponse(body, status=400, content_type='text/html; charset=utf-8')
 
     for w in warnings:
-        messages.warning(request, w)
+        messages.warning(request, w, extra_tags='common_search')
 
     tbia_params = common_to_tbia(params)
     if tbia_params:
@@ -2199,6 +2177,10 @@ def search_full(request):
 
 
 def background_submit_sensitive_request(project_type, req_dict, query_id):
+    # 重新派送時已建立過審核單就略過，避免重複通知
+    if SensitiveDataResponse.objects.filter(query_id=query_id).exists():
+        return
+
     if project_type == '0':
 
         # 個人研究計畫

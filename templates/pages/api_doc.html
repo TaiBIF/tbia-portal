@@ -685,7 +685,7 @@
                                         <td>match_higher_taxon</td>
                                         <td>{% trans '是否對應到上階層' %}</td>
                                         <td>boolean</td>
-                                        <td>{% trans '若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higer_taxon標示true，反之為false' %}</td>
+                                        <td>{% trans '若無法對到taxonID，則在taxonID欄位給予可以對到的上階層ID，此時match_higher_taxon標示true，反之為false' %}</td>
                                     </tr>
                                     <tr>
                                         <td>scientificName</td>
@@ -1056,7 +1056,7 @@
                                             {% trans '預設為1' %}
                                         </td>
                                         <td>
-                                            <a href="/api/v1/map?grid=122,23,121,22&grid=1&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
+                                            <a href="/api/v1/map?boundedBy=122,23,121,22&grid=1&from_example=1" target="_blank">/api/v1/map?boundedBy=122,23,121,22&grid=1</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1312,7 +1312,7 @@
 							},
 							"meta": {
 								"total": {% trans '符合查詢條件全部筆數' %},
-								"limit": {% trans '每頁回傳筆數' %},
+								"limit": {% trans '每頁回傳筆數' %}
 							},
 							"links": {
 								"self": {% trans '本頁網址' %},
@@ -1428,8 +1428,8 @@
                                                 原有的物種類群更動如下：
                                                 類群細分：原「昆蟲」拆分為甲蟲、蛾類、蝶類、蜻蛉、其他昆蟲；「維管束植物」細分為裸子植物、被子植物、蕨類植物。
                                                 新增類別：增加蝸牛與貝類、蝦蟹類。
-                                            </h3>
                                         {% endif %}
+                                        </h3>
                                     </div>
                                     <div class="flexbox">
                                         <div class="dot"></div>
@@ -1439,8 +1439,8 @@
                                                 The original field imagePresence has been renamed to hasMedia. The supported parameters are as follows: false, image, video, audio
                                             {% else %}
                                                 原 imagePresence 欄位更名為 hasMedia，可用參數如下：false (無多媒體)、image (影像)、video (影片)、audio (音檔)
-                                            </h3>
                                         {% endif %}
+                                        </h3>
                                     </div>
                                     <div class="flexbox">
                                         <div class="dot"></div>
