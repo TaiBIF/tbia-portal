@@ -175,6 +175,27 @@ rights_holder_map = {
 }
 
 rights_holder_list = list(rights_holder_map.values())
+
+# v2 來源資料庫名稱（11/12 定案）：舊 rightsHolder → 新 sourceDatabase，只列有改名的
+# 與 datahub scripts/utils/export.py 的 SOURCE_DATABASE_MAP 相同，P2-3 改由 Partner.info[].dbname 取得
+SOURCE_DATABASE_RENAME = {
+    '中央研究院生物多樣性中心動物標本館': '中央研究院動物標本館 ASIZ',
+    '中央研究院生物多樣性中心植物標本資料庫': '中央研究院植物標本館 HAST',
+    '國家海洋資料庫及共享平台': '國家海洋資料庫及共享平臺',
+    '國立海洋生物博物館生物典藏管理系統': '生物典藏管理系統',
+    '科博典藏 (NMNS Collection)': '科博典藏',
+    '國立臺灣博物館典藏': '國立臺灣博物館生物典藏資料',
+    '愛自然-臺灣(iNaturalist Taiwan)': '愛自然-臺灣',
+    '中油生態地圖': '中油生態保育資料庫',
+}
+
+# v2 sourceDatabase（新名稱）→ group；rights_holder_map（舊名稱）保留給讀舊紀錄（3.2 / 4.2）
+source_database_map = {SOURCE_DATABASE_RENAME.get(k, k): v for k, v in rights_holder_map.items()}
+
+
+def to_source_database(name):
+    """舊 rightsHolder 名稱 → 新 sourceDatabase 名稱；已是新名稱或未改名的原樣回傳"""
+    return SOURCE_DATABASE_RENAME.get(name, name)
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
 
 

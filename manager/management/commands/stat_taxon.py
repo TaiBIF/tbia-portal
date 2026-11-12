@@ -1,6 +1,7 @@
 """ python manage.py stat_taxon """
 import json
 import math
+import os
 from datetime import datetime
 
 import pandas as pd
@@ -9,8 +10,8 @@ from numpy import nan
 
 from django.core.management.base import BaseCommand
 
-from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG
-from data.utils import rights_holder_map
+from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG, RECORDS_CORE, TAXON_STAT_DIR
+from data.utils import source_database_map
 from manager.models import TaxonStat
 
 def _to_int(v):
@@ -26,7 +27,7 @@ def _to_int(v):
 # 這樣的話沒有month的year會被漏掉
 # 所以計算的時候 後面要再加一個 -month:*的 year facet 把 month為空值的部分考慮進去
 
-# 以 group + rightsHolder 為單位
+# 以 group + sourceDatabase 為單位（TaxonStat.rights_holder 存新名稱）
 
 
 taxon_group_map_e = {
@@ -59,9 +60,9 @@ TAXON_RANK_FQ = 'taxonRank:(species OR subspecies OR nothosubspecies OR variety 
 
 
 def fetch_year_month_buckets(filter_list):
-    """從 tbia_records 取得 (year+month) 與 (no-month) 的 facet buckets。
+    """從 records core 取得 (year+month) 與 (no-month) 的 facet buckets。
     回傳 list of (year, month, count)；month='x' 表示原始資料無 month。"""
-    base = f'{SOLR_PREFIX}tbia_records/select'
+    base = f'{SOLR_PREFIX}{RECORDS_CORE}/select'
     body = json.dumps({"offset": 0, "limit": 0, "filter": filter_list})
     headers = {'content-type': 'application/json'}
     results = []
@@ -97,7 +98,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = datetime.now()
-        rights_holder_map['total'] = 'total'
+        # 複製一份再加 total，不改到 data.utils 的共用 dict
+        rights_holder_map = {**source_database_map, 'total': 'total'}
 
         # ===== 1. temporal stat（時間空缺） =====
 
@@ -106,7 +108,7 @@ class Command(BaseCommand):
             print(k)
             fq = ['county:* OR rawCounty:*']
             if k != 'total':
-                fq.append(f'rightsHolder:"{k}"')
+                fq.append(f'sourceDatabase:"{k}"')
             for year, month, count in fetch_year_month_buckets(fq):
                 stat_list.append({
                     'year': year, 'month': month, 'count': count,
@@ -136,14 +138,14 @@ class Command(BaseCommand):
         for tt in taxon_group_map_e.keys():
             base_fq = [
                 'county:* OR rawCounty:*',
-                f'bioGroup:{tt}',
+                f'taxonGroup:{tt}',
                 TAXON_RANK_FQ,
                 'is_in_taiwan:1',
             ]
             for k in rights_holder_map.keys():
                 fq = list(base_fq)
                 if k != 'total':
-                    fq.append(f'rightsHolder:"{k}"')
+                    fq.append(f'sourceDatabase:"{k}"')
 
                 # 1+2. year+month 與 no-month
                 for year, month, count in fetch_year_month_buckets(fq):
@@ -156,7 +158,7 @@ class Command(BaseCommand):
                 # 3. 完全沒有時間考慮的總和
                 body = json.dumps({"query": "*:*", "offset": 0, "limit": 0, "filter": fq})
                 resp = requests.post(
-                    f'{SOLR_PREFIX}tbia_records/select',
+                    f'{SOLR_PREFIX}{RECORDS_CORE}/select',
                     data=body, headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
                 ).json()
                 taxon_stat_list.append({
@@ -196,7 +198,7 @@ class Command(BaseCommand):
             query = {
                 "query": "*:*",
                 "offset": 0, "limit": 0,
-                "filter": [f'rightsHolder:"{r}"'],
+                "filter": [f'sourceDatabase:"{r}"'],
                 "facet": {
                     "family": {
                         "type": "terms",
@@ -207,7 +209,7 @@ class Command(BaseCommand):
                 },
             }
             resp = requests.post(
-                f'{SOLR_PREFIX}tbia_records/select',
+                f'{SOLR_PREFIX}{RECORDS_CORE}/select',
                 data=json.dumps(query), headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
             ).json()
             if resp['facets'].get('count'):
@@ -233,12 +235,13 @@ class Command(BaseCommand):
         # csv 欄位: 學名 主要中文名 階層 所屬單位資料庫是否有收錄
 
 
+        os.makedirs(TAXON_STAT_DIR, exist_ok=True)
         taicol_df = pd.DataFrame()
         dfs = []
 
         for tt in taxon_group_map_e.keys():
             query_list = []
-            query_list += [f'bioGroup:{tt}']
+            query_list += [f'bioGroup:{tt}']   # taxa core 維持舊名（D21）
             query_list += [TAXON_RANK_FQ]
             query_list += ['is_in_taiwan:1']
             query = {
@@ -266,8 +269,8 @@ class Command(BaseCommand):
             for k in rights_holder_map.keys():
                 query_list = []
                 if k != 'total':
-                    query_list += [f'rightsHolder:"{k}"']
-                query_list += [f'bioGroup:{tt}']
+                    query_list += [f'sourceDatabase:"{k}"']
+                query_list += [f'taxonGroup:{tt}']
                 query_list += [TAXON_RANK_FQ]
                 query_list += ['is_in_taiwan:1']
                 query = {
@@ -284,7 +287,7 @@ class Command(BaseCommand):
                     },
                 }
                 response = requests.post(
-                    f'{SOLR_PREFIX}tbia_records/select',
+                    f'{SOLR_PREFIX}{RECORDS_CORE}/select',
                     data=json.dumps(query), headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
                 )
                 if response.json()['facets']['count']:
@@ -332,10 +335,10 @@ class Command(BaseCommand):
                     now_taicol_df = now_taicol_df[['scientificName', 'common_name_c', 'taxonRank', 'taxon_id', 'TBIA入口網是否有收錄']]
                     now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
                                                                 'taxon_id': 'taxonID'})
-                    now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k, tt), index=None)
+                    now_taicol_df.to_csv(f'{TAXON_STAT_DIR}/{k}_{tt}.csv', index=None)
                 else:
                     now_taicol_df['所屬單位資料庫是否有收錄'] = now_taicol_df['count'].apply(lambda x: False if math.isnan(x) else True)
                     now_taicol_df = now_taicol_df[['scientificName', 'common_name_c', 'taxonRank', 'taxon_id', '所屬單位資料庫是否有收錄']]
                     now_taicol_df = now_taicol_df.rename(columns={'scientificName': '學名', 'common_name_c': '中文名', 'taxonRank': '分類階層',
                                                                 'taxon_id': 'taxonID'})
-                    now_taicol_df.to_csv('/tbia-volumes/media/taxon_stat/{}_{}.csv'.format(k, tt), index=None)
+                    now_taicol_df.to_csv(f'{TAXON_STAT_DIR}/{k}_{tt}.csv', index=None)
