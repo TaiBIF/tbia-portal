@@ -68,6 +68,20 @@ def api_doc(request):
     return render(request, 'pages/api_doc.html', {'rights_holder_list': rights_holder_map.keys()})
 
 
+def partner_info(request):
+    """datahub 匯出 / 更新用：group → tbiaPartnerID、各資料庫 info id 與 dbname。非保密資訊，不需驗證。"""
+    from manager.models import Partner
+    data = []
+    for p in Partner.objects.order_by('id').values('group', 'title', 'tbia_partner_id', 'info'):
+        data.append({
+            'group': p['group'],
+            'partnerName': p['title'],
+            'tbiaPartnerID': str(p['tbia_partner_id']) if p['tbia_partner_id'] else None,  # GBIF 為 null（D2）
+            'databases': [{'id': i.get('id'), 'dbname': i.get('dbname')} for i in (p['info'] or [])],
+        })
+    return HttpResponse(json.dumps({'data': data}, ensure_ascii=False), content_type='application/json')
+
+
 def occurrence(request):
 
     final_response = {}
