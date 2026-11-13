@@ -2018,7 +2018,6 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
 
     return rows
 
-
 def get_resource_cate(extension):
     if extension.lower() in ['docx','csv','json','xlsx', 'xls']:
         cate = 'doc'
