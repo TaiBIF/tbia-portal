@@ -84,9 +84,11 @@
                         </p>
                     </div>
                     <div class="rightbox">
-                        <div class="pic">
-                            <img src="/static/image/partner/{{ i.image }}">
-                        </div>
+                        {% if i.image %}
+                            <div class="pic">
+                                <img src="/static/image/partner/{{ i.image }}">
+                            </div>
+                        {% endif %}
                         <a data-partner_id="{{ i.id }}" class="linkto contact_partner">{% trans '聯絡我們' %}</a>
                     </div>
                 </div>
