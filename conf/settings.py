@@ -28,6 +28,8 @@ SOLR_PREFIX = env('SOLR_PREFIX')
 # Solr 請求逾時（秒）：網頁/API 要小於 gunicorn --timeout 60；排程統計指令用較長的值
 SOLR_TIMEOUT = env.int('SOLR_TIMEOUT', default=45)
 SOLR_TIMEOUT_LONG = env.int('SOLR_TIMEOUT_LONG', default=600)
+# v2 records core（3.1 提前）：上線後 tbia_records 即 v2；開發期 portal-v2 的 .env 設 RECORDS_CORE=tbia_records_new
+RECORDS_CORE = env('RECORDS_CORE', default='tbia_records')
 
 datahub_db_settings = {
     "host": env('DATAHUB_POSTGRES_HOST'),
@@ -198,6 +200,8 @@ STATICFILES_DIRS = [default_static_dir, ]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = env('MEDIA_ROOT')
+# stat_taxon 產生的名錄比對 CSV；開發期設 /tbia-volumes/media/taxon_stat_v2，避免覆蓋測試站 v1
+TAXON_STAT_DIR = env('TAXON_STAT_DIR', default='/tbia-volumes/media/taxon_stat')
 
 
 # Default primary key field type

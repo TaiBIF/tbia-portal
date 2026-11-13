@@ -4,13 +4,13 @@ import requests
 
 from django.core.management.base import BaseCommand
 
-from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG
+from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT_LONG, RECORDS_CORE
 from manager.models import DataStat
-from data.utils import rights_holder_map
+from data.utils import source_database_map
 
 
 class Command(BaseCommand):
-    help = '統計各 rightsHolder 的資料筆數並寫入 DataStat'
+    help = '統計各 sourceDatabase 的資料筆數並寫入 DataStat（rights_holder 欄位存新名稱）'
 
     def add_arguments(self, parser):
         parser.add_argument('year_month', help='YYYY-MM, 例如 2026-03')
@@ -25,7 +25,7 @@ class Command(BaseCommand):
             "facet": {
                 "stat_rightsHolder": {
                     "type": "terms",
-                    "field": "rightsHolder",
+                    "field": "sourceDatabase",
                     "mincount": 1,
                     "limit": -1,
                     "allBuckets": False,
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         }
 
         resp = requests.post(
-            f'{SOLR_PREFIX}tbia_records/select',
+            f'{SOLR_PREFIX}{RECORDS_CORE}/select',
             data=json.dumps(query),
             headers={'content-type': 'application/json'}, timeout=SOLR_TIMEOUT_LONG,
         ).json()
@@ -43,7 +43,7 @@ class Command(BaseCommand):
         buckets = resp['facets']['stat_rightsHolder']['buckets']
         buckets.append({'val': 'total', 'count': resp['response']['numFound']})
 
-        group_map = {**rights_holder_map, 'total': 'total'}
+        group_map = {**source_database_map, 'total': 'total'}
 
         DataStat.objects.filter(year_month=year_month, type='data').delete()
         DataStat.objects.bulk_create([
