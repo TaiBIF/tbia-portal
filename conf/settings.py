@@ -28,8 +28,15 @@ SOLR_PREFIX = env('SOLR_PREFIX')
 # Solr 請求逾時（秒）：網頁/API 要小於 gunicorn --timeout 60；排程統計指令用較長的值
 SOLR_TIMEOUT = env.int('SOLR_TIMEOUT', default=45)
 SOLR_TIMEOUT_LONG = env.int('SOLR_TIMEOUT_LONG', default=600)
-# v2 records core（3.1 提前）：上線後 tbia_records 即 v2；開發期 portal-v2 的 .env 設 RECORDS_CORE=tbia_records_new
+# Solr core 名稱（3.1）：程式一律用這些設定，不寫死 core 名稱
+# 切換後（兩站）：RECORDS_CORE=tbia_records（v2）、RECORDS_V1_CORE=tbia_records_v1（凍結，只給 v1 API）
+# 開發期 portal-v2：RECORDS_CORE=tbia_records_new、RECORDS_V1_CORE=tbia_records、TW_GRID_CORE=tw_grid_new
 RECORDS_CORE = env('RECORDS_CORE', default='tbia_records')
+RECORDS_V1_CORE = env('RECORDS_V1_CORE', default='tbia_records_v1')
+TW_GRID_CORE = env('TW_GRID_CORE', default='tw_grid')
+RECORDS_URL = f'{SOLR_PREFIX}{RECORDS_CORE}/select'
+RECORDS_V1_URL = f'{SOLR_PREFIX}{RECORDS_V1_CORE}/select'
+TW_GRID_URL = f'{SOLR_PREFIX}{TW_GRID_CORE}/select'
 
 datahub_db_settings = {
     "host": env('DATAHUB_POSTGRES_HOST'),

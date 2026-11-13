@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
-from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT
+from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT, RECORDS_URL, TW_GRID_URL
 from conf.utils import scheme
 from data.utils import *
 from data.common_search import (
@@ -225,7 +225,7 @@ def transfer_sensitive_response(request):
             if not query_list:
                 query.pop('filter')
 
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+            response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
             group = response.json()['facets']['group']['buckets']
             groups = []
             for g in group:
@@ -670,7 +670,7 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
 
     df = pd.DataFrame(columns=['taxonID','scientificName'])
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     if response.json()['facets']['count']:
         data = response.json()['facets']['scientificName']['buckets']
         for d in data:
@@ -944,7 +944,7 @@ def get_records(request): # 全站搜尋
         if not fq_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         response = response.json()
         docs = pd.DataFrame(response['response']['docs'])
 
@@ -1105,7 +1105,7 @@ def get_more_cards(request):
 
 def search_dataset(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 
@@ -1312,7 +1312,7 @@ def get_media_rule():
 
 def search_collection(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
@@ -1339,7 +1339,7 @@ def search_collection(request):
     
 def search_occurrence(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
@@ -1505,7 +1505,7 @@ def get_map_grid(request):
             query.pop('filter')
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=grid)
@@ -1569,7 +1569,7 @@ def get_tw_grid(request):
             query.pop('filter')
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tw_grid/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{TW_GRID_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=5)
@@ -1729,7 +1729,7 @@ def get_conditional_records(request):
 
         query_req = json.dumps(query)
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         count = resp['response']['numFound']
@@ -2202,7 +2202,7 @@ def background_submit_sensitive_request(project_type, req_dict, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         groups = []
         if  response.json()['facets'].get('group'):
             group = response.json()['facets']['group']['buckets']
@@ -2294,7 +2294,7 @@ def get_taxon_by_region(request):
 
     query_req = json.dumps(query)
 
-    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    resp = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     resp = resp.json()
     taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
 

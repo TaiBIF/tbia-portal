@@ -25,7 +25,7 @@ from shapely.geometry import MultiPolygon
 from shapely.ops import unary_union
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
-from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG
+from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG, RECORDS_URL
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone, translation
@@ -369,7 +369,7 @@ logger = logging.getLogger(__name__)
 def solr_csv_to_zip(queries, csv_file_path, zip_file_path):
     """依序把 queries 的 Solr CSV 結果寫入 csv_file_path（第 2 組起去掉表頭），再壓成 zip_file_path。
     取代原本 shell=True 的 curl / cat / tail / zip 指令。成功回傳 True；失敗記錄錯誤、清掉半成品並回傳 False。"""
-    url = f'{SOLR_PREFIX}tbia_records/select?wt=csv'
+    url = f'{RECORDS_URL}?wt=csv'
     ok = False
     try:
         with open(csv_file_path, 'wb') as out:
@@ -1408,7 +1408,7 @@ def get_search_full_counts(keyword, lang=None, is_first_time=False):
         "filter": [' OR '.join(f'filter({c})' for c in clauses.values())],
         "facet": facet,
     }
-    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
+    resp = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
     cf = resp.get('facets', {})
 
     if is_first_time:
@@ -1518,7 +1518,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     }
     total_count = 0
     if hit_fields is None:
-        resp1 = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(count_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
+        resp1 = requests.post(RECORDS_URL, data=json.dumps(count_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT).json()
         total_count = resp1['response']['numFound']
         count_facets = resp1.get('facets', {})
         hit_fields = [i for i in clauses if count_facets.get(i, {}).get('count', 0) > 0]
@@ -1549,7 +1549,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                 domain['filter'] = ['recordType:col']
             facet_list['facet'][i].update({'domain': domain})
         query['facet'] = {i: facet_list['facet'][i] for i in hit_fields}
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         facets = response.json()['facets']
         facets.pop('count', None)
         # 第二階段用同一組主 filter，numFound 即總數（跳過第一階段時由此取得）
@@ -1882,7 +1882,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
                                  'facet': {'col': {'type': 'query', 'q': 'recordType:col'}}}
                        for n, t in enumerate(tids)}
         if count_facet:
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select',
+            response = requests.post(RECORDS_URL,
                                      data=json.dumps({'query': '*:*', 'limit': 0, 'facet': count_facet}),
                                      headers={'content-type': "application/json"}, timeout=SOLR_TIMEOUT)
             cf = response.json().get('facets', {})
@@ -1999,7 +1999,7 @@ def get_map_response(map_query, grid_list, get_raw_map):
         else:
             facet_str += f'&facet.field=grid_{g}_blurred'
             
-    map_response = requests.post(f'{SOLR_PREFIX}tbia_records/select?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT) 
+    map_response = requests.post(f'{RECORDS_URL}?facet=true&rows=0&facet.mincount=1&facet.limit=-1{facet_str}', data=json.dumps(map_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT) 
 
     data_c = {}
     for grid in grid_list:
@@ -2038,7 +2038,7 @@ def create_data_detail(id, user_id, record_type):
         'limit': 1,
         'filter': f"id:{id}",
         }
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(f'{RECORDS_URL}?', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     row = pd.DataFrame(response.json()['response']['docs'])
     row = row.replace({np.nan: '', 'nan': ''})
     row = row.to_dict('records')
@@ -2398,7 +2398,7 @@ def create_search_stat(query_list, q="*:*"):
     if not query_list:
         stat_query.pop('filter', None)
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(stat_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(RECORDS_URL, data=json.dumps(stat_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     total_count = response.json()['response']['numFound']
@@ -2458,7 +2458,7 @@ def create_sensitive_partner_stat(query_list, q="*:*"):
     if not query_list:
         query.pop('filter')
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     total_count = response.json()['response']['numFound']
@@ -2493,7 +2493,7 @@ def create_dataset_stat(query_list, q="*:*"):
     if not query_list:
         query.pop('filter', None)
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     # 不一定會有資料
