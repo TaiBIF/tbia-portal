@@ -22,6 +22,7 @@ from bson.objectid import ObjectId
 from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT, RECORDS_URL, TW_GRID_URL
 from conf.utils import scheme
 from data.utils import *
+from data.fields import SPECIES_DOWNLOAD_TAXA_FIELDS, TAXA_TO_RECORD, to_v2_field
 from data.common_search import (
     TBN_COMMON_SEARCH_URL, parse_common_query, common_to_tbia, tbia_to_common, build_common_url,
 )
@@ -56,7 +57,7 @@ def get_geojson(request,id):
 # 全站搜尋資料分布圖
 def get_taxon_dist_init(request):
     taxon_id = request.POST.get('taxonID')
-    query_list = [f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0']
+    query_list = [f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0']
 
 
     map_query = {"query": "*:*",
@@ -89,10 +90,10 @@ def get_taxon_dist(request):
     
     if get_raw_map:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0'] 
     else:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0'] 
 
     map_query = {"query": "*:*",
             "offset": 0,
@@ -209,7 +210,7 @@ def transfer_sensitive_response(request):
 
             query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
-            query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+            query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
@@ -688,16 +689,14 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
                     if data := resp['response']['docs']:
                         subset_taxon_list += data
             subset_taxon = pd.DataFrame(subset_taxon_list)
-            used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','bioGroup','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine',
-                        'kingdom','kingdom_c','phylum','phylum_c','class','class_c','order','order_c','family','family_c','genus','genus_c']
+            used_cols = SPECIES_DOWNLOAD_TAXA_FIELDS  # taxa core 舊名（D21），輸出時換成 v2 名稱
             subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
             for u in used_cols:
                 if u not in subset_taxon.keys():
                     subset_taxon[u] = ''
             # 整理順序
             subset_taxon = subset_taxon[used_cols]
-            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
+            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID', **TAXA_TO_RECORD})
             df = df.merge(subset_taxon, how='left')
             is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
             df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
@@ -754,6 +753,12 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
     key = req_dict.get('key', '')
     value = req_dict.get('value', '')
     record_type = req_dict.get('record_type', 'occ')
+
+    # [COMPAT-KEEP] 已存的下載條件可能是 v1 欄位名稱（例 common_name_c、rightsHolder），換成 v2
+    key = to_v2_field(key)
+    if key == 'sourceDatabase':
+        value = to_source_database(value)
+
     scientific_name = req_dict.get('scientific_name', '')
 
     # only facet selected field
@@ -787,8 +792,8 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
         sq.modified = timezone.now()
         sq.save()
         return
-    if key == 'sourceScientificName': # 若前後有<i>也算進去
-        q = rf'sourceScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
+    if key == 'verbatimScientificName': # 若前後有<i>也算進去
+        q = rf'verbatimScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
     else:
         fq_list.append(f'{key}:{solr_quote(value)}')
     if scientific_name and scientific_name != 'undefined':
@@ -857,6 +862,12 @@ def get_records(request): # 全站搜尋
         value = request.POST.get('value', '')
         record_type = request.POST.get('record_type', '')
         scientific_name = request.POST.get('scientific_name', '')
+        # key 是 records 欄位名稱：相容舊 key（[COMPAT-KEEP]），並避免組出任意查詢
+        key = to_v2_field(key)
+        if not re.fullmatch(r'\w+', key or ''):
+            return HttpResponse(json.dumps({'message': 'invalid key'}), content_type='application/json', status=400)
+        if key == 'sourceDatabase':
+            value = to_source_database(value)
         limit = to_int(request.POST.get('limit'), -1)
         page = to_int(request.POST.get('page'), 1)
         user_id = request.user.id if request.user.id else 0
@@ -914,24 +925,7 @@ def get_records(request): # 全站搜尋
         if scientific_name and scientific_name != 'undefined':
             fq_list.append(f'scientificName:{solr_quote(scientific_name)}')
 
-        if orderby == 'eventDate':
-            solr_orderby = 'standardDate' + ' ' + sort
-        elif orderby == 'organismQuantity':
-            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
-        elif orderby == 'verbatimLatitude':
-            if if_raw_map(user_id):
-                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLatitude' + ' ' + sort
-        elif orderby == 'verbatimLongitude':
-            if if_raw_map(user_id):
-                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLongitude' + ' ' + sort
-        elif orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
-            solr_orderby = orderby + ' ' + sort
-        else:
-            solr_orderby = 'scientificName ' + sort
+        solr_orderby = records_sort(orderby, sort, if_raw_map(user_id), map_dict) or f'scientificName {sort}'
 
         query = {
             "query": q,
@@ -960,7 +954,7 @@ def get_records(request): # 全站搜尋
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder','associatedMedia']
+            selected_col = ['scientificName','vernacularName','alternative_name_c','recordedBy','sourceDatabase','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -1105,8 +1099,8 @@ def get_more_cards(request):
 
 def search_dataset(request):
 
-    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 
     return render(request, 'data/search_dataset.html', {'holder_list': holder_list})
@@ -1165,8 +1159,9 @@ def get_conditional_dataset(request):
         if holders := req_dict.getlist('rightsHolder'):
             holder_clauses = []
             for h in holders:
-                holder_clauses.append('''"rights_holder" = %s''')
-                query_params.append(h)
+                for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
+                    holder_clauses.append('''"rights_holder" = %s''')
+                    query_params.append(alias)
             query_list.append(f"({' OR '.join(holder_clauses)})")
 
 
@@ -1261,8 +1256,9 @@ def download_dataset_results(request):
         if holders := req_dict.getlist('rightsHolder'):
             holder_clauses = []
             for h in holders:
-                holder_clauses.append('"rights_holder" = %s')
-                query_params.append(h)
+                for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
+                    holder_clauses.append('"rights_holder" = %s')
+                    query_params.append(alias)
             query_list.append('({})'.format(' OR '.join(holder_clauses)))
 
         dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
@@ -1312,8 +1308,8 @@ def get_media_rule():
 
 def search_collection(request):
 
-    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
@@ -1339,8 +1335,8 @@ def search_collection(request):
     
 def search_occurrence(request):
 
-    response = requests.get(f'{RECORDS_URL}?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
     rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
@@ -1475,7 +1471,7 @@ def get_map_grid(request):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
-        map_query_list = query_list + ['-standardOrganismQuantity:0']
+        map_query_list = query_list + ['-organismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
 
         if req_dict.get('from') == 'datagap':
@@ -1633,7 +1629,7 @@ def get_conditional_records(request):
         if req_dict.getlist('selected_col'):
             selected_col = req_dict.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
+            selected_col = ['scientificName','vernacularName','alternative_name_c', 'recordedBy', 'verbatimEventDate','associatedMedia']
 
         if orderby and orderby not in selected_col:
             selected_col.append(orderby)
@@ -1653,23 +1649,8 @@ def get_conditional_records(request):
 
         selected_grid_text = return_selected_grid_text(req_dict=req_dict, map_dict=map_dict)
 
-        if orderby == 'eventDate':
-            solr_orderby = 'standardDate' + ' ' + sort
-        elif orderby == 'organismQuantity':
-            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
-        elif orderby == 'verbatimLatitude':
-            if get_raw_map:
-                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLatitude' + ' ' + sort
-        elif orderby == 'verbatimLongitude':
-            if get_raw_map:
-                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLongitude' + ' ' + sort
-        elif orderby and orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
-            solr_orderby = orderby + ' ' + sort
-        else:
+        solr_orderby = records_sort(orderby, sort, get_raw_map, map_dict)
+        if not solr_orderby:
             name_kw = req_dict.get('name', '')
             if not orderby and name_kw:
                 # 與 create_search_query 的 name 正規化保持一致
@@ -1678,7 +1659,7 @@ def get_conditional_records(request):
                 is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
                 if is_chinese:
                     solr_orderby = (
-                        f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'vernacularName:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
@@ -1720,7 +1701,7 @@ def get_conditional_records(request):
         # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
         if not get_raw_map:
             query['facet']['has_sensitive'] =  {
-                            "q": "standardRawLatitude:*",
+                            "q": "rawDecimalLatitude:*",
                             "type": "query",
                         }
 
@@ -1799,7 +1780,9 @@ def change_dataset(request):
 
     elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
-            params = base + [('rows', 20), ('fq', f'rights_holder:{solr_quote(h)}')] + record_type
+            # [P2-2-REMOVE] dataset core 仍是舊名稱，新舊名稱都比對
+            h_fq = ' OR '.join(solr_quote(a) for a in source_database_aliases(h))
+            params = base + [('rows', 20), ('fq', f'rights_holder:({h_fq})')] + record_type
             response = requests.get(ds_url, params=params, timeout=SOLR_TIMEOUT)
             d_list = response.json()['response']['docs']
 
@@ -1903,7 +1886,8 @@ def get_dataset(request):
     h_str = []
     if rights_holder:
         # 多個來源資料庫也逐一加引號（原本未加引號，名稱含空白時會比對錯誤）
-        h_str = [('fq', f'rights_holder:({" OR ".join(solr_quote(h) for h in rights_holder)})')]
+        # [P2-2-REMOVE] dataset core 仍是舊名稱，新舊名稱都比對
+        h_str = [('fq', f'rights_holder:({" OR ".join(solr_quote(a) for h in rights_holder for a in source_database_aliases(h))})')]
 
     record_type = []
     if request.GET.get('record_type') == 'col':
@@ -2187,7 +2171,7 @@ def background_submit_sensitive_request(project_type, req_dict, query_id):
         query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
         # 抓出所有單位
-        query = { "query": "standardRawLatitude:*",
+        query = { "query": "rawDecimalLatitude:*",
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
@@ -2259,7 +2243,7 @@ def get_taxon_by_region(request):
     query_list = []
     if bioGroup := request.GET.get('bioGroup'):
         groups = split_group_map.get(bioGroup, [bioGroup])
-        query_list.append(f'bioGroup:({" OR ".join(solr_quote(g) for g in groups)})')
+        query_list.append(f'taxonGroup:({" OR ".join(solr_quote(g) for g in groups)})')
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')

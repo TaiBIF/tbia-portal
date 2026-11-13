@@ -101,13 +101,13 @@
                 </div>
               {% endif %}
             </div>
-            <h2>{% trans '中⽂名' %}{% trans '：' %}{{ row.common_name_c }}</h2>
+            <h2>{% trans '中⽂名' %}{% trans '：' %}{{ row.vernacularName }}</h2>
             <h2>{% trans '學名' %}{% trans '：' %}{{ row.formatted_name|safe }}</h2>
             <div class="flex_inf">
               <div class="short">
-                <p>{% trans '來源資料庫使⽤中⽂名' %}{% trans '：' %}{{ row.sourceVernacularName }}</p>
-                <p>{% trans '來源資料庫使⽤學名' %}{% trans '：' %}{{ row.sourceScientificName|safe }}</p>
-                <p>{% trans '原始紀錄物種' %}{% trans '：' %}{{ row.originalScientificName }}</p>
+                <p>{% trans '來源資料庫使⽤中⽂名' %}{% trans '：' %}{{ row.verbatimVernacularName }}</p>
+                <p>{% trans '來源資料庫使⽤學名' %}{% trans '：' %}{{ row.verbatimScientificName|safe }}</p>
+                <p>{% trans '原始紀錄物種' %}{% trans '：' %}{{ row.verbatimIdentification }}</p>
               </div>
               {% if row.taxonID %}
                 <div class="tooltip-wrapper" data-tooltip="{% trans '點擊查看此物種的分類資訊' %}">
@@ -202,19 +202,19 @@
               </li>
               <li>
                 <h3>{% trans '採集日期' %}{% trans '：' %}</h3>
-                {% if row.date != None and row.eventDate != row.date %}
+                {% if row.date != None and row.verbatimEventDate != row.date %}
                   <p>
                     {{ row.date }}
                     <br>
-                    <small class="color-silver">[{% trans '原始採集日期' %}] {{ row.eventDate }}</small>
+                    <small class="color-silver">[{% trans '原始採集日期' %}] {{ row.verbatimEventDate }}</small>
                   </p>
-                {% elif row.date != None and row.eventDate == row.date %}
+                {% elif row.date != None and row.verbatimEventDate == row.date %}
                   <p>{{ row.date }}</p>
-                {% elif row.date == None and row.eventDate != None %}
+                {% elif row.date == None and row.verbatimEventDate != None %}
                   <p>
                     ---
                     <br>
-                    <small class="color-silver">[{% trans '原始採集日期' %}] {{ row.eventDate }}</small>
+                    <small class="color-silver">[{% trans '原始採集日期' %}] {{ row.verbatimEventDate }}</small>
                   </p>
                 {% else %}
                   <p></p>
@@ -226,7 +226,7 @@
               </li>
               <li>
                 <h3>{% trans '保存方式' %}{% trans '：' %}</h3>
-                <p>{{ row.preservation }}</p>
+                <p>{{ row.preparations }}</p>
               </li>
               <li>
                 <h3>{% trans '數量' %}{% trans '：' %}</h3>
@@ -272,10 +272,10 @@
           </ul>
           {% if row.references != '' and  row.references != None %}
             <div class="tooltip-wrapper mt-30px" data-tooltip="{% trans '點擊查看更多來源資料庫資訊' %}">
-              <a href="{{ row.references }}" target="_blank" class="from_data pointer">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.rightsHolder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
+              <a href="{{ row.references }}" target="_blank" class="from_data pointer">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.sourceDatabase %} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>
             </div>
           {% else %}
-            <a class="from_data">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.rightsHolder %}</a>
+            <a class="from_data">{% trans '來源資料庫' %}{% trans '：' %}{% trans row.sourceDatabase %}</a>
           {% endif %}
         </div>
       </div>

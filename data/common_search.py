@@ -22,7 +22,7 @@ from conf.settings import SOLR_PREFIX, SOLR_TIMEOUT
 from data.utils import (
     get_multi, get_dataset_name, get_tbia_dataset_id, solr_quote, merge_polygons,
     split_group_map, taxon_group_map_c, old_taxon_group_map_c,
-    habitat_map, map_occurrence, basis_map,
+    habitat_map, map_occurrence, map_collection, basis_map, to_source_database, param_label,
 )
 
 
@@ -502,7 +502,7 @@ def tbia_to_common(req_dict):
         ng('出現地', ','.join(l_list))
 
     if r_list := get_multi(req_dict, 'rightsHolder'):
-        ng('來源資料庫', ','.join(r_list))
+        ng('來源資料庫', ','.join(to_source_database(r) for r in r_list))
 
     if val := req_dict.get('basisOfRecord'):
         ng('紀錄類型', gettext(basis_map.get(val, val)))
@@ -510,7 +510,7 @@ def tbia_to_common(req_dict):
     for i in ['recordedBy', 'resourceContacts', 'preservation', 'occurrenceID', 'catalogNumber',
               'recordNumber', 'organismQuantity', 'typeStatus']:
         if (val := req_dict.get(i)) and val != 'undefined':
-            ng(map_occurrence.get(i, i), gettext(val))
+            ng(param_label(i, map_collection) or i, gettext(val))
 
     return common, query_str_list, error_str_list
 

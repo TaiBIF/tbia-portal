@@ -582,9 +582,9 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
 
       $('.record_table').append(table_title);
 
-      // disable checkebox for common_name_c & scientificName
-      $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('disabled', true);
-      $('#col-common_name_c, #col-scientificName, #occ-common_name_c, #occ-scientificName').prop('checked', true);
+      // disable checkebox for vernacularName & scientificName
+      $('#col-vernacularName, #col-scientificName, #occ-vernacularName, #occ-scientificName').prop('disabled', true);
+      $('#col-vernacularName, #col-scientificName, #occ-vernacularName, #occ-scientificName').prop('checked', true);
 
       // append rows
       for (let i = 0; i < response.rows.length; i++) {
@@ -606,8 +606,8 @@ function getRecords(record_type, key, value, scientific_name, limit, page, from,
           if (tmp_value == null) {
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
           } else {
-            // 'basisOfRecord','rightsHolder' 因為有在關鍵字查詢中 所以不翻譯
-            if (['dataGeneralizations', 'taxonRank', 'bioGroup'].includes(Object.keys(map_dict)[j])) {
+            // 'basisOfRecord','sourceDatabase' 因為有在關鍵字查詢中 所以不翻譯
+            if (['dataGeneralizations', 'taxonRank', 'taxonGroup'].includes(Object.keys(map_dict)[j])) {
               tmp_value = gettext(tmp_value)
             }
             tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -971,7 +971,7 @@ function focusCards(record_type, key, go_back) {
             html = `	<li>							
               <div class="flex_top">
                 <div class="${left_text_class}">
-                  <p>${gettext('中⽂名')}${gettext('：')}${x.common_name_c}</p>
+                  <p>${gettext('中⽂名')}${gettext('：')}${x.vernacularName}</p>
                   <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
                   <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
                   <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
@@ -1136,7 +1136,7 @@ function focusCards(record_type, key, go_back) {
                 data-sort="asc">
                 <div class="num">${x.count}</div>
                 <div class="num_bottom"></div>
-                <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
+                <p>${gettext('中文名')}${gettext('：')}${x.vernacularName}</p>
                 <p>${gettext('學名')}${gettext('：')}${x.val}</p>
                 <p>${gettext('鑑定層級')}${gettext('：')}${gettext(x.taxonRank)}</p>
                 ${matched}
@@ -1466,7 +1466,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
           html = `<li>							
           <div class="flex_top">
           <div class="${left_text_class}">
-            <p>${gettext('中⽂名')}${gettext('：')}${x.common_name_c}</p>
+            <p>${gettext('中⽂名')}${gettext('：')}${x.vernacularName}</p>
             <p>${gettext('學名')}${gettext('：')}${x.formatted_name}</p>
             <p>${gettext('中文別名')}${gettext('：')}${x.alternative_name_c}</p>
             <p>${gettext('同物異名')}${gettext('：')}${x.synonyms}</p>
@@ -1605,7 +1605,7 @@ function getMoreCards(card_class, offset_value, more_type, is_sub, reset = false
             data-sort="asc">
           <div class="num">${x.count}</div>
           <div class="num_bottom"></div>
-          <p>${gettext('中文名')}${gettext('：')}${x.common_name_c}</p>
+          <p>${gettext('中文名')}${gettext('：')}${x.vernacularName}</p>
           <p>${gettext('學名')}${gettext('：')}${x.val}</p>
           <p>${gettext('鑑定層級')}${gettext('：')}${gettext(x.taxonRank)}</p>
           ${matched}

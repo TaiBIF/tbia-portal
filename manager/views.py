@@ -31,7 +31,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT
+from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import solr_quote, ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
@@ -1306,7 +1306,7 @@ def get_request_detail(request):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位（v2 欄位，3.2）
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -1322,7 +1322,7 @@ def get_request_detail(request):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -3283,7 +3283,7 @@ def sensitive_apply_info(request, query_id):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位（v2 欄位，3.2）
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -3299,7 +3299,7 @@ def sensitive_apply_info(request, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:

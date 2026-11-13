@@ -16,9 +16,13 @@ from conf.settings import SOLR_PREFIX, datahub_db_settings, SOLR_TIMEOUT, RECORD
 from conf.utils import scheme
 from api.models import APIkey
 from manager.models import SearchCount
-from data.utils import (solr_quote, download_cols, sensitive_cols, download_cols_with_sensitive,
-                        background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
-                        split_group_map, get_map_geojson, create_search_query, build_stat_query_string, datahub_conn)
+from data.utils import (solr_quote, background_search_stat, old_taxon_group_map_c, taxon_group_map_c,
+                        split_group_map, get_map_geojson, build_stat_query_string, datahub_conn)
+# [V1-API-REMOVE] v1 API 讀凍結的 tbia_records_v1：查詢條件與欄位清單用 v1 的凍結版本（D29）
+from api.v1_query import (create_search_query_v1 as create_search_query,
+                          DOWNLOAD_COLS_V1 as download_cols,
+                          DOWNLOAD_COLS_WITH_SENSITIVE_V1 as download_cols_with_sensitive,
+                          SENSITIVE_COLS_V1 as sensitive_cols)
 
 
 def pop_internal_flags(request):
@@ -82,6 +86,7 @@ def partner_info(request):
     return HttpResponse(json.dumps({'data': data}, ensure_ascii=False), content_type='application/json')
 
 
+# [V1-API-REMOVE] v1 occurrence API
 def occurrence(request):
 
     final_response = {}
@@ -347,7 +352,7 @@ def occurrence(request):
         # 記錄在SearchStat（從文件範例網址點進來的不列入統計）
         if not is_from_example:
             if cursor == '*':
-                run_light(background_search_stat, fq_list,'api_occ', query_string)
+                run_light(background_search_stat, fq_list,'api_occ', query_string, True, True)  # [V1-API-REMOVE] 最後一個 True = v1
 
             obj, created = SearchCount.objects.update_or_create(
                     search_location='api_occ'
@@ -364,6 +369,7 @@ def occurrence(request):
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
+# [V1-API-REMOVE] v1 dataset API
 def dataset(request):
     final_response = {}
 
@@ -555,6 +561,7 @@ def dataset(request):
     return HttpResponse(json.dumps(final_response, default=str), content_type='application/json')
 
 
+# [V1-API-REMOVE] v1 map API
 def map(request):
 
     final_response = {}

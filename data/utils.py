@@ -25,7 +25,7 @@ from shapely.geometry import MultiPolygon
 from shapely.ops import unary_union
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
-from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG, RECORDS_URL
+from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG, RECORDS_URL, RECORDS_V1_URL
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone, translation
@@ -36,9 +36,16 @@ from urllib.parse import urlencode, parse_qsl
 import ast
 from contextlib import contextmanager
 
-# taxon-related fields
-taxon_facets = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'taxonRank', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
-taxon_keyword_list = taxon_facets + ['sourceScientificName','sourceVernacularName','taxonID','originalScientificName']
+from data.fields import (
+    TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
+    LATIN_TXT_FIELDS, BIGRAM_FIELDS, NGRAM_FIELDS, map_occurrence, map_collection,
+    DOWNLOAD_FIELDS, DOWNLOAD_FIELDS_WITH_SENSITIVE, SENSITIVE_FIELDS, UNSORTABLE_KEYS,
+    to_record_field, to_taxa_field, to_v2_field, param_field, param_label,
+)
+
+# 欄位清單改由 data/fields.py 定義（D29）；以下名稱保留給既有 import 使用
+taxon_facets = TAXON_FACETS
+taxon_keyword_list = TAXON_KEYWORD_FIELDS
 
 
 # --- ngram 子字串查詢工具 ---
@@ -63,16 +70,7 @@ def _expand_composite_forms(keyword):
     return forms
 
 
-# 拉丁欄位走分詞+前綴(edge-ngram, A+)；datasetName 走 bigram；其餘走 unigram
-LATIN_TXT_FIELDS = frozenset([
-    'scientificName', 'sourceScientificName', 'originalScientificName',
-    'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species',
-    'synonyms', 'misapplied',
-])
-BIGRAM_FIELDS = frozenset([
-    'datasetName', 'locality', 'recordedBy', 'resourceContacts',
-    'sourceVernacularName', 'common_name_c', 'alternative_name_c',
-])
+# 拉丁欄位走分詞+前綴(edge-ngram, A+)；BIGRAM_FIELDS 走 bigram；其餘走 unigram（清單見 data/fields.py）
 
 
 def _esc_q(s):
@@ -106,20 +104,6 @@ def ngram_contains_query(field, keyword):
     suffix = '_bi' if (field in BIGRAM_FIELDS and len(kw) >= 2) else '_ngram'
     clauses = [f'{field}{suffix}:"{_esc_q(form)}"' for form in _expand_composite_forms(kw)]
     return '(' + ' OR '.join(clauses) + ')'
-
-
-# tbia_records 上有建 _ngram 的欄位（有的走 ngram，沒有的沿用舊 regex）
-NGRAM_FIELDS = frozenset([
-    # 名稱（18）
-    'scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied',
-    'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species',
-    'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c',
-    # 紀錄層（14）
-    'sourceScientificName', 'sourceVernacularName', 'originalScientificName',
-    'locality', 'recordedBy', 'datasetName', 'basisOfRecord', 'license',
-    'rightsHolder', 'sensitiveCategory', 'eventDate', 'typeStatus', 'preservation',
-    'resourceContacts',
-])
 
 
 def contains_clause(field, keyword, keyword_reg):
@@ -193,9 +177,21 @@ SOURCE_DATABASE_RENAME = {
 source_database_map = {SOURCE_DATABASE_RENAME.get(k, k): v for k, v in rights_holder_map.items()}
 
 
+# [COMPAT-KEEP] 舊網址、已存查詢、舊統計的舊名稱都靠它轉換，永久保留
 def to_source_database(name):
     """舊 rightsHolder 名稱 → 新 sourceDatabase 名稱；已是新名稱或未改名的原樣回傳"""
     return SOURCE_DATABASE_RENAME.get(name, name)
+
+
+_SOURCE_DATABASE_OLD = {v: k for k, v in SOURCE_DATABASE_RENAME.items()}
+
+
+def source_database_aliases(name):
+    """[P2-2-REMOVE] 同一來源資料庫的新舊名稱（去重、新名稱在前）。
+    P2-2 把 dataset core / PG dataset 改成新名稱後，呼叫端改用 to_source_database（舊網址的舊名稱仍要轉）即可刪除。
+    第一階段 dataset core 與 PG dataset 表仍是舊名稱（P2-2 才改），網頁下拉改用新名稱後，查 dataset 時新舊都要比對"""
+    new = to_source_database(name)
+    return list(dict.fromkeys([new, _SOURCE_DATABASE_OLD.get(new, new), name]))
 rights_holder_color_map = ['#FBEAD6', '#A8B89A', '#7A9B87', '#8DA3B5', '#B89AAC', '#F08A7A', '#DCB791', '#9CAA82', '#6E9B87', '#92BCD4', '#D199AC', '#DA816B', '#D99758', '#C8C4A3', '#587164', '#7AA8D9', '#936572', '#C2674A', '#B48556', '#C9C280', '#B1C0B8', '#5C668E', '#C69B9A', '#B45631', '#AA8B6B', '#837D40', '#ADD5B8', '#4A4F67', '#E28A88', '#C25519']
 
 
@@ -560,7 +556,7 @@ def is_alpha(word):
 
 
 # 進階搜尋查詢name欄位
-name_search_col = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName']
+name_search_col = NAME_SEARCH_FIELDS
 
 def get_key(val, my_dict):
     for key, value in my_dict.items():
@@ -568,159 +564,7 @@ def get_key(val, my_dict):
              return key
     return "key doesn't exist"
 
-map_occurrence = {
-    'associatedMedia': '多媒體',
-    'domain'	:'域',
-    'superkingdom'	:'總界',
-    'kingdom'	:'界',
-    'subkingdom'	:'亞界',
-    'infrakingdom'	:'下界',
-    'superdivision'	:'超部|總部',
-    'division'	:'部|類',
-    'subdivision'	:'亞部|亞類',
-    'infradivision'	:'下部|下類',
-    'parvdivision'	:'小部|小類',
-    'superphylum'	:'超門|總門',
-    'phylum'	:'門',
-    'subphylum'	:'亞門',
-    'infraphylum'	:'下門',
-    'microphylum'	:'微門',
-    'parvphylum'	:'小門',
-    'superclass'	:'超綱|總綱',
-    'class'	:'綱',
-    'subclass'	:'亞綱',
-    'infraclass'	:'下綱',
-    'superorder'	:'超目|總目',
-    'order'	:'目',
-    'suborder'	:'亞目',
-    'infraorder'	:'下目',
-    'superfamily'	:'超科|總科',
-    'family'	:'科',
-    'subfamily'	:'亞科',
-    'tribe'	:'族',
-    'subtribe'	:'亞族',
-    'genus'	:'屬',
-    'subgenus'	:'亞屬',
-    'section'	:'組|節',
-    'subsection'	:'亞組|亞節',
-    'species'	:'種',
-    'subspecies'	:'亞種',
-    'nothosubspecies'	:'雜交亞種',
-    'variety'	:'變種',
-    'subvariety'	:'亞變種',
-    'nothovariety'	:'雜交變種',
-    'form'	:'型',
-    'subform'	:'亞型',
-    'special form'	:'特別品型',
-    'race'	:'種族',
-    'stirp'	:'血統',
-    'morph'	:'形態型',
-    'aberration'	:'異常個體',
-    'hybrid formula'	:'雜交組合',
-    'domain_c'	:'域中文名',
-    'superkingdom_c'	:'總界中文名',
-    'kingdom_c'	:'界中文名',
-    'subkingdom_c'	:'亞界中文名',
-    'infrakingdom_c'	:'下界中文名',
-    'superdivision_c'	:'超部|總部中文名',
-    'division_c'	:'部|類中文名',
-    'subdivision_c'	:'亞部|亞類中文名',
-    'infradivision_c'	:'下部|下類中文名',
-    'parvdivision_c'	:'小部|小類中文名',
-    'superphylum_c'	:'超門|總門中文名',
-    'phylum_c'	:'門中文名',
-    'subphylum_c'	:'亞門中文名',
-    'infraphylum_c'	:'下門中文名',
-    'microphylum_c'	:'微門中文名',
-    'parvphylum_c'	:'小門中文名',
-    'superclass_c'	:'超綱|總綱中文名',
-    'class_c'	:'綱中文名',
-    'subclass_c'	:'亞綱中文名',
-    'infraclass_c'	:'下綱中文名',
-    'superorder_c'	:'超目|總目中文名',
-    'order_c'	:'目中文名',
-    'suborder_c'	:'亞目中文名',
-    'infraorder_c'	:'下目中文名',
-    'superfamily_c'	:'超科|總科中文名',
-    'family_c'	:'科中文名',
-    'subfamily_c'	:'亞科中文名',
-    'tribe_c'	:'族中文名',
-    'subtribe_c'	:'亞族中文名',
-    'genus_c'	:'屬中文名',
-    'subgenus_c'	:'亞屬中文名',
-    'section_c'	:'組|節中文名',
-    'subsection_c'	:'亞組|亞節中文名',
-    'species_c'	:'種中文名',
-    'subspecies_c'	:'亞種中文名',
-    'nothosubspecies_c'	:'雜交亞種中文名',
-    'variety_c'	:'變種中文名',
-    'subvariety_c'	:'亞變種中文名',
-    'nothovariety_c'	:'雜交變種中文名',
-    'form_c'	:'型中文名',
-    'subform_c'	:'亞型中文名',
-    'special form_c'	:'特別品型中文名',
-    'race_c'	:'種族中文名',
-    'stirp_c'	:'血統中文名',
-    'morph_c'	:'形態型中文名',
-    'aberration_c'	:'異常個體中文名',
-    'hybrid formula_c'	:'雜交組合中文名',
-    'higherTaxa'	:'較高分類群',
-    'taxonGroup'	:'物種類群（以分類區分）',
-    'scientificName': '學名',
-    'common_name_c': '中文名', 
-    'alternative_name_c': '中文別名', 
-    'synonyms': '同物異名',
-    'misapplied': '誤用名',
-    'sourceScientificName': '來源資料庫使用學名',
-    'sourceVernacularName': '來源資料庫使用中文名',
-    'originalScientificName': '原始紀錄物種',
-    'bioGroup': '物種類群（以分類區分）', 
-    'habitat': '物種類群（以棲地區分）',
-    'taxonRank': '鑑定層級', 
-    'sensitiveCategory': '敏感層級', 
-    'rightsHolder': '來源資料庫', 
-    'taxonID': 'TaiCOL物種編號', 
-    'eventDate': '紀錄日期', 
-    'county': '縣市',
-    'municipality': '鄉鎮市區',
-    'date': '紀錄日期', 
-    'locality': '出現地', 
-    'organismQuantity': '數量',
-    'quantity': '數量',
-    'organismQuantityType': '數量單位',
-    'recordedBy': '記錄者', 
-    'verbatimLongitude': '經度',
-    'verbatimLatitude': '緯度',
-    'lon': '經度',
-    'lat': '緯度',
-    'verbatimSRS': '空間參考系統',
-    'verbatimCoordinateSystem': '座標系統',
-    'coordinateUncertaintyInMeters': '座標誤差（公尺）',
-    'dataGeneralizations': '座標是否有模糊化',
-    'coordinatePrecision': '座標模糊化程度',
-    'basisOfRecord': '紀錄類型', 
-    'datasetName': '資料集名稱', 
-    'resourceContacts': '資料集聯絡人',
-    'license': '授權狀況',
-    'occurrenceID': 'occurrenceID',
-    'grid_1': '1公里網格編號',
-    'grid_5': '5公里網格編號',
-    'grid_10': '10公里網格編號',
-    'grid_100': '100公里網格編號',
-}
-
-# 抓出collection和occurrence不一樣的地方
-map_collection = { key: value for (key, value) in map_occurrence.items() }
-map_collection.update({
-    'eventDate': '採集日期',
-    'date': '採集日期',
-    'locality': '採集地',
-    'recordedBy': '採集者',
-    'recordNumber': '採集號',
-    'typeStatus': '標本類型',
-    'preservation': '保存方式',
-    'catalogNumber': '館藏號'
-})
+# map_occurrence / map_collection 由 data/fields.py 定義（key 為 records v2 欄位）
 
 
 date_formats = ['%Y/%m/%d','%Y%m%d','%Y-%m-%d','%Y/%m/%d %H:%M:%S','%Y-%m-%d %H:%M',
@@ -759,158 +603,9 @@ def convert_date(date):
     return formatted_date
 
 
-download_cols = [
-'id',
-'created',
-'modified',
-'standardDate',
-'standardLatitude',
-'standardLongitude',
-'standardOrganismQuantity',
-'associatedMedia',
-'basisOfRecord',
-'catalogNumber',
-'coordinatePrecision',
-'coordinateUncertaintyInMeters',
-'dataGeneralizations',
-'datasetName',
-'tbiaDatasetID',
-'sourceDatasetID',
-'gbifDatasetID',
-'eventDate',
-'county',
-'municipality',
-'license',
-'locality',
-'mediaLicense',
-'occurrenceID',
-'organismQuantity',
-'organismQuantityType',
-'originalScientificName',
-'preservation',
-'recordedBy',
-'recordNumber',
-'references',
-'resourceContacts',
-'rightsHolder',
-'sensitiveCategory',
-'sourceCreated',
-'sourceModified',
-'sourceScientificName',
-'sourceVernacularName',
-'typeStatus',
-'verbatimCoordinateSystem',
-'verbatimLatitude',
-'verbatimLongitude',
-'verbatimSRS',
-'scientificNameID',
-'taxonID',
-'match_higher_taxon',
-'scientificName',
-'name_author',
-'bioGroup',
-'taxonRank',
-'common_name_c',
-'alternative_name_c',
-'synonyms',
-'misapplied',
-'kingdom',
-'kingdom_c',
-'phylum',
-'phylum_c',
-'class',
-'class_c',
-'order',
-'order_c',
-'family',
-'family_c',
-'genus',
-'genus_c'
-]
-
-
-download_cols_with_sensitive = [
-'id',
-'created',
-'modified',
-'standardDate',
-'standardLatitude',
-'standardLongitude',
-'standardOrganismQuantity',
-'associatedMedia',
-'basisOfRecord',
-'catalogNumber',
-'coordinatePrecision',
-'coordinateUncertaintyInMeters',
-'dataGeneralizations',
-'datasetName',
-'tbiaDatasetID',
-'sourceDatasetID',
-'gbifDatasetID',
-'eventDate',
-'county',
-'municipality',
-'license',
-'locality',
-'mediaLicense',
-'occurrenceID',
-'organismQuantity',
-'organismQuantityType',
-'originalScientificName',
-'preservation',
-'recordedBy',
-'recordNumber',
-'references',
-'resourceContacts',
-'rightsHolder',
-'sensitiveCategory',
-'sourceCreated',
-'sourceModified',
-'sourceScientificName',
-'sourceVernacularName',
-'typeStatus',
-'verbatimCoordinateSystem',
-'verbatimLatitude',
-'verbatimLongitude',
-'verbatimSRS',
-'scientificNameID',
-'taxonID',
-'match_higher_taxon',
-'scientificName',
-'name_author',
-'bioGroup',
-'taxonRank',
-'common_name_c',
-'alternative_name_c',
-'synonyms',
-'misapplied',
-'kingdom',
-'kingdom_c',
-'phylum',
-'phylum_c',
-'class',
-'class_c',
-'order',
-'order_c',
-'family',
-'family_c',
-'genus',
-'genus_c',
-'standardRawLatitude',
-'standardRawLongitude',
-'verbatimRawLatitude',
-'verbatimRawLongitude',
-'rawCounty',
-'rawMunicipality',
-]
-
-sensitive_cols = ['standardRawLatitude',
-'standardRawLongitude',
-'verbatimRawLatitude',
-'verbatimRawLongitude',
-'rawCounty',
-'rawMunicipality',
-]
+download_cols = DOWNLOAD_FIELDS
+download_cols_with_sensitive = DOWNLOAD_FIELDS_WITH_SENSITIVE
+sensitive_cols = SENSITIVE_FIELDS
 
 
 def get_media_html(url, media_type=None):
@@ -957,18 +652,19 @@ def create_query_display(search_dict,lang=None):
         query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{search_dict.get("current_grid")}'
 
     for k in search_dict.keys():
-        if k in map_dict.keys():
+        # 參數名 → 標籤：參數名維持舊名（3.4 前），標籤依對應的 v2 欄位取得
+        if label := param_label(k, map_dict):
             if k == 'taxonRank':
                 if search_dict[k] in ['sub','infraspecies']:
-                    query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext("種下")}'
+                    query += f'<br><b>{gettext(label)}</b>{gettext("：")}{gettext("種下")}'
                 else:
-                    query += f'<br><b>{gettext(map_dict[k])}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
+                    query += f'<br><b>{gettext(label)}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
             elif k == 'datasetName':
                 for d in get_multi(search_dict, 'datasetName'):
                     if d_name := get_dataset_name(d):
                         d_list.append(d_name)
             elif k == 'rightsHolder':
-                r_list = get_multi(search_dict, 'rightsHolder')
+                r_list = [to_source_database(r) for r in get_multi(search_dict, 'rightsHolder')]
             elif k == 'locality':
                 l_list = get_multi(search_dict, 'locality')
             elif k == 'higherTaxa':
@@ -977,10 +673,10 @@ def create_query_display(search_dict,lang=None):
                     resp = response.json()
                     if data := resp['response']['docs']:
                         data = data[0]
-                        query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
+                        query += f"<br><b>{gettext(label)}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
             elif k == 'habitat':
                 vals = [gettext(habitat_map[v]) for v in get_multi(search_dict, 'habitat') if v in habitat_map]
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(vals)}"
+                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{'、'.join(vals)}"
             # 這邊要讓新舊互通 因為舊的會需要再次查詢
             elif k == 'taxonGroup':
                 vals = []
@@ -994,12 +690,12 @@ def create_query_display(search_dict,lang=None):
                     else:
                         vals.append(v)
                 display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(display_vals)}"
+                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{'、'.join(display_vals)}"
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
+                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{gettext(search_dict[k])}"
             else:
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k]}"
+                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{search_dict[k]}"
         # 地圖搜尋
         elif k == 'geo_type':
             if search_dict[k] == 'polygon':
@@ -1147,12 +843,13 @@ def create_search_query(req_dict, get_raw_map=False):
             bio_groups.append(v)
 
     if bio_groups:
-        query_list += [f'bioGroup:({" OR ".join(solr_quote(g) for g in bio_groups)})']
+        query_list += [f'taxonGroup:({" OR ".join(solr_quote(g) for g in bio_groups)})']
 
     habitat_vals = [v for v in get_multi(req_dict, 'habitat') if v in habitat_map]
     if habitat_vals:
         query_list += [f'({" OR ".join([f"{v}:true" for v in habitat_vals])})']
 
+    # 參數名 → v2 欄位（preservation → preparations）
     for i in ['recordedBy', 'resourceContacts', 'preservation']:
         if val := req_dict.get(i):
             if val != 'undefined':
@@ -1160,7 +857,7 @@ def create_search_query(req_dict, get_raw_map=False):
                 val = html.unescape(val)
                 keyword_reg = build_keyword_reg(val)
                 keyword_reg = process_text_variants(keyword_reg)
-                query_list += [contains_clause(i, val, keyword_reg)]
+                query_list += [contains_clause(param_field(i), val, keyword_reg)]
 
     for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
         if val := req_dict.get(i):
@@ -1186,7 +883,7 @@ def create_search_query(req_dict, get_raw_map=False):
     if quantity := req_dict.get('organismQuantity'):
         try:
             float(quantity)  # 前端是 number 欄位；非數字忽略
-            query_list += [f'standardOrganismQuantity:{solr_quote(quantity.strip())}']
+            query_list += [f'organismQuantity:{solr_quote(quantity.strip())}']
         except ValueError:
             pass
 
@@ -1220,11 +917,10 @@ def create_search_query(req_dict, get_raw_map=False):
     if d_list:
         query_list += [f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in d_list)})']
 
-    r_list = []
-    r_list = get_multi(req_dict, 'rightsHolder')
-    
+    # 來源資料庫：舊名稱（已存查詢、舊網址）轉成新名稱後查 sourceDatabase
+    r_list = list(dict.fromkeys(to_source_database(r) for r in get_multi(req_dict, 'rightsHolder')))
     if r_list:
-        query_list += [f'rightsHolder:({" OR ".join(solr_quote(r) for r in r_list)})']
+        query_list += [f'sourceDatabase:({" OR ".join(solr_quote(r) for r in r_list)})']
 
     l_list = []
 
@@ -1335,7 +1031,7 @@ def create_search_query(req_dict, get_raw_map=False):
     # rights_holder (後台儀表板的query)
     if rights_holder := req_dict.get('rights_holder'):
         if rights_holder != 'total':
-            query_list += ['rightsHolder:{}'.format(rights_holder)]
+            query_list += [f'sourceDatabase:{solr_quote(to_source_database(rights_holder))}']
 
     return query_list
 
@@ -1384,7 +1080,7 @@ def get_search_full_counts(keyword, lang=None, is_first_time=False):
 
     fields = {}
     for rt in ['occ', 'col']:
-        fields[rt] = [f for f in create_facet_list(record_type=rt)['facet'] if enable_query_date or f != 'eventDate']
+        fields[rt] = [f for f in create_facet_list(record_type=rt)['facet'] if enable_query_date or f != 'verbatimEventDate']
 
     clauses = {}
     for f in fields['occ'] + fields['col']:
@@ -1483,8 +1179,8 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
     facet_list = create_facet_list(record_type=record_type)
 
     if not enable_query_date:
-        if 'eventDate' in facet_list['facet'].keys():
-            facet_list['facet'].pop('eventDate')
+        if 'verbatimEventDate' in facet_list['facet'].keys():
+            facet_list['facet'].pop('verbatimEventDate')
 
     # 是否為特定facet卡片底下的
     if is_sub == 'true':
@@ -1587,7 +1283,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
         for k in x['buckets']:
             bucket = k['taxonID']['buckets']
             if bucket:
-                if i == 'eventDate':
+                if i == 'verbatimEventDate':
                     if f_date := convert_date(k['val']):
                         f_date = f_date.strftime('%Y-%m-%d %H:%M:%S')
                         for item in bucket:
@@ -1605,7 +1301,7 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
 
     if len(result_df):
         # 每個 taxonID 只切一次（保留原本列順序），取代每輪對整張表重新篩選
-        source_cols = ['sourceScientificName','sourceVernacularName','originalScientificName']
+        source_cols = SOURCE_NAME_FIELDS
         is_taxon = result_df.matched_col.isin(taxon_facets)
         is_source = result_df.matched_col.isin(source_cols)
         groups = {t: g.index for t, g in result_df.groupby('val', sort=False)}
@@ -1693,14 +1389,15 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
                         if u not in taicol.keys():
                             taicol[u] = ''
                     taicol = taicol[used_cols]
-                    taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+                    # taxa core 舊名 → v2（common_name_c → vernacularName）
+                    taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID', 'common_name_c': 'vernacularName'})
             if len(taicol):
                 result_df = pd.merge(result_df,taicol,left_on='val',right_on='taxonID', how='left')
                 result_df = result_df.replace({np.nan:'', None:''})
                 result_df['taxonRank'] = result_df['taxonRank'].apply(lambda x: map_dict[x] if x else x)
                 # 如果match_col是synonyms & misapplied 要修改
             else:
-                result_df['common_name_c'] = ''
+                result_df['vernacularName'] = ''
                 result_df['formatted_name'] = ''
                 result_df['taxonID'] = ''
                 result_df['name'] = ''
@@ -1708,8 +1405,8 @@ def get_search_full_cards(keyword, card_class, is_sub, offset, key, lang=None, i
             result_df['val'] = result_df['formatted_name']
             if (is_sub != 'true') or (is_sub == 'true' and key == 'scientificName'):
                 result_df['val'] = result_df['val'].apply(lambda x: highlight(x, keyword,'1'))
-            if (is_sub != 'true') or (is_sub == 'true' and key == 'common_name_c'):
-                result_df['common_name_c'] = result_df['common_name_c'].apply(lambda x: highlight(x, keyword,'1'))
+            if (is_sub != 'true') or (is_sub == 'true' and key == 'vernacularName'):
+                result_df['vernacularName'] = result_df['vernacularName'].apply(lambda x: highlight(x, keyword,'1'))
             result_df = result_df.replace({np.nan:'', None:''})
             result_df = result_df.drop(columns=['formatted_name'],errors='ignore')
 
@@ -1760,10 +1457,12 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
 
     taxon_result_dict = []
     offset = int(offset) if offset else offset
+    # key 是前端用的 v2 名稱；查 taxa core 時換回舊名（D21）
     if card_class and card_class != '.taxon-card':
         key = card_class.split('-')[1]
     else:
         key = None
+    taxa_key = to_taxa_field(key) if key else None
 
     taxon_facet_list = create_taxon_facet_list()
 
@@ -1777,7 +1476,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
     keyword_name_reg = process_text_variants(keyword_name_reg)
     
     if is_sub == 'true':
-        taxon_facet_list = {'facet': {k: v for k, v in taxon_facet_list['facet'].items() if k == key} }
+        taxon_facet_list = {'facet': {k: v for k, v in taxon_facet_list['facet'].items() if k == taxa_key} }
 
     taxon_q = ''
     rank_fq = get_taxon_rank_fq(taxon_rank)
@@ -1810,7 +1509,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         taicol = pd.DataFrame(data['docs'])
         taicol_cols = [c for c in ['common_name_c', 'alternative_name_c', 'synonyms', 'formatted_name', 'id', 'taxon_name_id','taxonRank', 'formatted_misapplied', 'formatted_synonyms'] if c in taicol.keys()]
         taicol = taicol[taicol_cols]
-        taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID'})
+        taicol = taicol.rename(columns={'scientificName': 'name', 'id': 'taxonID', 'common_name_c': 'vernacularName'})
 
     # 側邊欄
     menu_rows = []
@@ -1818,9 +1517,9 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         x = facets[i]
         if x['allBuckets']['count']:
             menu_rows.append({
-                'title': map_collection[i],
+                'title': map_collection[to_record_field(i)],
                 'total_count': x['allBuckets']['count'],
-                'key': i
+                'key': to_record_field(i)
             })
 
     taxon_result = []
@@ -1855,7 +1554,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
                                 match_val = taicol.loc[taicol.taxonID==tt][f'formatted_{match_col}'].values[0]
                         if match_val:
                             match_val = (', ').join(match_val.split(','))
-                    matched.append({'key': match_col, 'matched_col': map_collection[match_col], 'matched_value': match_val})
+                    matched.append({'key': to_record_field(match_col), 'matched_col': map_collection[to_record_field(match_col)], 'matched_value': match_val})
                 taxon_result_dict_all.append({
                     'val': tt,
                     'matched': matched,
@@ -1894,9 +1593,9 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
         # 處理hightlight
         # taxon_result_df['matched_value'] = taxon_result_df['matched_value'].apply(lambda x: highlight(x,keyword,'1'))
         # TODO 這邊應該可以簡化
-        if 'common_name_c' in taxon_result_df.keys():
-            if (is_sub == 'false') or (is_sub != 'false' and key == 'common_name_c') :
-                taxon_result_df['common_name_c'] = taxon_result_df['common_name_c'].apply(lambda x: highlight(x,keyword,'1'))
+        if 'vernacularName' in taxon_result_df.keys():
+            if (is_sub == 'false') or (is_sub != 'false' and key == 'vernacularName') :
+                taxon_result_df['vernacularName'] = taxon_result_df['vernacularName'].apply(lambda x: highlight(x,keyword,'1'))
         if 'alternative_name_c' in taxon_result_df.keys():
             if (is_sub == 'false') or (is_sub != 'false' and key == 'alternative_name_c') :
                 taxon_result_df['alternative_name_c'] = taxon_result_df['alternative_name_c'].apply(lambda x: highlight(x,keyword,'1'))
@@ -1906,7 +1605,7 @@ def get_search_full_cards_taxon(keyword, card_class, is_sub, offset, lang=None, 
                 lambda x: summarize_names(x, keyword, keyword_name_reg, do_highlight=do_hl))
         if (is_sub == 'false') or (is_sub != 'false' and key == 'scientificName') :
             taxon_result_df['formatted_name'] = taxon_result_df['formatted_name'].apply(lambda x: highlight(x,keyword,'1'))
-        for required_cols in ['common_name_c', 'alternative_name_c', 'synonyms']:
+        for required_cols in ['vernacularName', 'alternative_name_c', 'synonyms']:
             if required_cols not in taxon_result_df.keys():
                 taxon_result_df[required_cols] = ''
         taxon_result_df = taxon_result_df.replace({np.nan:'', None:''})
@@ -2049,7 +1748,12 @@ def create_data_detail(id, user_id, record_type):
     else:
         link_prefix = 'occurrence'
 
-    if (record_type == 'col' and row.get('recordType') == ['col']) or record_type == 'occ':
+    # recordType 在 v1 是多值（['col']），v2 為單值字串，兩種都接受
+    row_record_type = row.get('recordType')
+    if isinstance(row_record_type, list):
+        row_record_type = row_record_type[0] if row_record_type else ''
+
+    if (record_type == 'col' and row_record_type == 'col') or record_type == 'occ':
         if row.get('taxonRank', ''):
             row.update({'taxonRank': map_occurrence[row['taxonRank']]})
 
@@ -2074,36 +1778,22 @@ def create_data_detail(id, user_id, record_type):
                     am.append({'img': a, 'license': '', 'media_type': get_media_type(a)})
         row.update({'associatedMedia': am})
 
-        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-            row.update({'dataGeneralizations': '是'})
-        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-            row.update({'dataGeneralizations': '否'})
-        else:
-            pass
+        # dataGeneralizations：v2 為文字說明（2.3），直接顯示
 
-        # date
+        # date（v2 單值，D27）
         if date := row.get('standardDate'):
-            date = date[0].split('T')[0]
+            date = date.split('T')[0]
         else:
             date = None
         row.update({'date': date})
 
-        # 經緯度
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-            lat = None
-            if lat := row.get('standardRawLatitude'):
-                if -90 <= lat[0] and lat[0] <= 90:        
-                    lat = lat[0]
-                else:
-                    lat = None
-            row.update({'lat': lat})
-            lon = None
-            if lon := row.get('standardRawLongitude'):
-                if -180 <= lon[0] and lon[0] <= 180:             
-                    lon = lon[0]
-                else:
-                    lon = None
-            row.update({'lon': lon})
+        # 經緯度（v2 單值，D27）：有權限且為模糊化紀錄時用原始座標
+        def valid_coord(v, limit):
+            return v if v != '' and v is not None and -limit <= v <= limit else None
+
+        if row.get('raw_location_rpt') and if_raw_map(user_id):
+            row.update({'lat': valid_coord(row.get('rawDecimalLatitude'), 90)})
+            row.update({'lon': valid_coord(row.get('rawDecimalLongitude'), 180)})
 
             if row.get('rawCounty'):
                 row.update({'county': row.get('rawCounty')})
@@ -2112,25 +1802,12 @@ def create_data_detail(id, user_id, record_type):
                 row.update({'municipality': row.get('rawMunicipality')})
 
         else:
-            lat = None
-            if lat := row.get('standardLatitude'):
-                if -90 <= lat[0] and lat[0] <= 90:        
-                    lat = lat[0]
-                else:
-                    lat = None
-            row.update({'lat': lat})
+            row.update({'lat': valid_coord(row.get('decimalLatitude'), 90)})
+            row.update({'lon': valid_coord(row.get('decimalLongitude'), 180)})
 
-            lon = None
-            if lon := row.get('standardLongitude'):
-                if -180 <= lon[0] and lon[0] <= 180:             
-                    lon = lon[0]
-                else:
-                    lon = None
-            row.update({'lon': lon})
-
-        # 數量
-        if quantity := row.get('standardOrganismQuantity'):
-            quantity = str(quantity[0])
+        # 數量（v2 organismQuantity 即原 standardOrganismQuantity，單值）
+        if (quantity := row.get('organismQuantity')) not in ('', None):
+            quantity = str(quantity)
             if quantity.endswith('.0'):
                 quantity = quantity[:-2]
         else:
@@ -2170,21 +1847,42 @@ def create_data_detail(id, user_id, record_type):
                 logo = logo[0]['logo']
                 logo = 'partner/' + logo
 
-        # references
-        if not row.get('references'):
-            if Partner.objects.filter(group=group).values('info').exists():
-                row['references'] = Partner.objects.get(group=group).info[0]['link']
+        # references：同一 group 可能有多列 Partner（原本用 get 會 MultipleObjectsReturned），
+        # 依該筆 sourceDatabase 對到 info 中相同 dbname 的 link，對不到用第一項
+        if not row.get('references') and group:
+            if partner := Partner.objects.filter(group=group).order_by('id').first():
+                info = partner.info or []
+                source_db = row.get('sourceDatabase')
+                matched = [i for i in info if to_source_database(i.get('dbname', '')) == source_db]
+                if link := (matched or info or [{}])[0].get('link'):
+                    row['references'] = link
 
-        modified = row.get('modified')[0].split('.')[0].replace('T',' ').replace('Z',' ')
+        modified = (row.get('modified') or '').split('.')[0].replace('T',' ').replace('Z',' ')
         row.update({'modified': modified})
     else:
         row = [] # 如果不是自然史典藏，在自然史典藏頁面不顯示
     return row, path_str, logo
 
 
+# 表格排序：前端欄位 key（v2）→ Solr 排序欄位（to_v2_field 為 [COMPAT-KEEP]）；回傳 None 表示用呼叫端的預設排序
+def records_sort(orderby, sort, get_raw_map, map_dict):
+    orderby = to_v2_field(orderby)  # 相容舊 key
+    if orderby == 'verbatimEventDate':
+        return f'standardDate {sort}'
+    if orderby in ('verbatimLatitude', 'verbatimLongitude'):
+        axis = 'Latitude' if orderby == 'verbatimLatitude' else 'Longitude'
+        if get_raw_map:
+            return f'rawDecimal{axis} {sort},decimal{axis} {sort}'
+        return f'decimal{axis} {sort}'
+    if orderby in map_dict and orderby not in UNSORTABLE_KEYS:
+        return f'{orderby} {sort}'
+    return None
+
+
 # 進階搜尋 / 全站搜尋 表格整理
 def create_data_table(docs, user_id, obv_str, has_image=None):
     rows = []
+    get_raw_map = if_raw_map(user_id)  # 原本每一列都查一次 DB
 
     for i in docs.index:
         docs = docs.replace({np.nan:None})
@@ -2224,70 +1922,49 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
                 misapplied = ', '.join(misapplied)
             docs.loc[i, 'misapplied'] = misapplied
 
-        # date
+        # date（v2 單值，D27）：表格的日期欄位 key 為 verbatimEventDate
         if date := row.get('standardDate'):
-            date = date[0].split('T')[0]
-            docs.loc[i , 'eventDate'] = date
+            docs.loc[i , 'verbatimEventDate'] = date.split('T')[0]
         else:
-            if row.get('eventDate'):
+            if row.get('verbatimEventDate'):
                 date_str = gettext(f'原始{obv_str}日期')
-                docs.loc[i , 'eventDate'] = f'---<br><small class="color-silver">[{date_str}]' + row.get('eventDate') + '</small>'
+                docs.loc[i , 'verbatimEventDate'] = f'---<br><small class="color-silver">[{date_str}]' + row.get('verbatimEventDate') + '</small>'
 
-        # 經緯度
-        # 如果是正式會員直接給原始
-        if row.get('raw_location_rpt') and User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-            if lat := row.get('standardRawLatitude'):
-                docs.loc[i , 'verbatimLatitude'] = lat[0]
-            else:
-                if row.get('verbatimRawLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimRawLatitude') + '</small>'
-
-            if lon := row.get('standardRawLongitude'):
-                docs.loc[i , 'verbatimLongitude'] = lon[0]
-            else:
-                if row.get('verbatimRawLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimRawLongitude') + '</small>'
-
+        # 經緯度：表格欄位 key 為 verbatimLatitude / verbatimLongitude，優先顯示十進位座標
+        # 有權限且為模糊化紀錄時用原始座標（raw*）
+        if row.get('raw_location_rpt') and get_raw_map:
+            lat_cols = ('rawDecimalLatitude', 'rawVerbatimLatitude')
+            lon_cols = ('rawDecimalLongitude', 'rawVerbatimLongitude')
             if row.get('rawCounty'):
                 docs.loc[i , 'county'] = row.get('rawCounty')
-
             if row.get('rawMunicipality'):
                 docs.loc[i , 'municipality'] = row.get('rawMunicipality')
-                
         else:
-            if lat := row.get('standardLatitude'):
-                docs.loc[i , 'verbatimLatitude'] = lat[0]
-            else:
-                if row.get('verbatimLatitude'):
-                    docs.loc[i , 'verbatimLatitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄緯度")}]' + row.get('verbatimLatitude') + '</small>'
+            lat_cols = ('decimalLatitude', 'verbatimLatitude')
+            lon_cols = ('decimalLongitude', 'verbatimLongitude')
 
-            if lon := row.get('standardLongitude'):
-                docs.loc[i , 'verbatimLongitude'] = lon[0]
+        for out_col, (dec_col, verbatim_col), label in [('verbatimLatitude', lat_cols, '原始紀錄緯度'),
+                                                         ('verbatimLongitude', lon_cols, '原始紀錄經度')]:
+            if (val := row.get(dec_col)) not in ('', None):
+                docs.loc[i , out_col] = val
+            elif row.get(verbatim_col):
+                docs.loc[i , out_col] = f'---<br><small class="color-silver">[{gettext(label)}]' + row.get(verbatim_col) + '</small>'
             else:
-                if row.get('verbatimLongitude'):
-                    docs.loc[i , 'verbatimLongitude'] = f'---<br><small class="color-silver">[{gettext("原始紀錄經度")}]' + row.get('verbatimLongitude') + '</small>'
-        # 數量
-        if quantity := row.get('standardOrganismQuantity'):
-            quantity = str(quantity[0])
+                docs.loc[i , out_col] = ''
+
+        # 數量：v2 只存數值（原始字串不進 Solr）
+        if (quantity := row.get('organismQuantity')) not in ('', None):
+            quantity = str(quantity)
             if quantity.endswith('.0'):
                 quantity = quantity[:-2]
             docs.loc[i , 'organismQuantity'] = quantity
-        else:
-            if row.get('organismQuantity'):
-                docs.loc[i , 'organismQuantity'] = f'---<br><small class="color-silver">[{gettext("原始紀錄數量")}]' + row.get('organismQuantity') + '</small>'
-        
+
         # 分類階層
         if row.get('taxonRank', ''):
             now_rank = row.get('taxonRank')
             docs.loc[i , 'taxonRank'] = map_collection[now_rank]
 
-        # 座標是否有模糊化
-        if str(row.get('dataGeneralizations')) in ['True', True, "true"]:
-            docs.loc[i , 'dataGeneralizations'] = '是'
-        elif str(row.get('dataGeneralizations')) in ['False', False, "false"]:
-            docs.loc[i , 'dataGeneralizations'] = '否'
-        else:
-            pass
+        # dataGeneralizations：v2 為文字說明（2.3），直接顯示
 
         # 紀錄類型
         if row.get('basisOfRecord',''):
@@ -2325,9 +2002,8 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
 
-    rows = docs.to_dict('records')
-
     # 棲地:將 is_* 欄位轉成文字,多值以「、」串接
+    # （原本在 to_dict 之後才算，habitat 不會出現在回傳結果，改到前面）
     def get_habitat_text(r):
         vals = []
         for k, v in habitat_map.items():
@@ -2337,6 +2013,8 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
 
     if len(docs):
         docs['habitat'] = docs.apply(get_habitat_text, axis=1)
+
+    rows = docs.to_dict('records')
 
     return rows
 
@@ -2377,7 +2055,10 @@ def check_map_bound(map_bound, add_buffer=True):
     return new_map_bound
 
 
-def create_search_stat(query_list, q="*:*"):
+def create_search_stat(query_list, q="*:*", v1=False):
+    """依來源資料庫統計筆數。[V1-API-REMOVE] v1 參數與分支：v1=True 給 v1 API 用：查 tbia_records_v1 的 rightsHolder，
+    名稱在寫入前轉成新名稱，存進 SearchStat 的一律是 v2 名稱（4.4）"""
+    url, field = (RECORDS_V1_URL, 'rightsHolder') if v1 else (RECORDS_URL, 'sourceDatabase')
 
     stat_query = { "query": q,
             "offset": 0,
@@ -2386,7 +2067,7 @@ def create_search_stat(query_list, q="*:*"):
             "facet": {
                 "stat_rightsHolder": {
                     'type': 'terms',
-                    'field': 'rightsHolder',
+                    'field': field,
                     'mincount': 1,
                     'limit': -1,
                     'allBuckets': False,
@@ -2398,7 +2079,7 @@ def create_search_stat(query_list, q="*:*"):
     if not query_list:
         stat_query.pop('filter', None)
 
-    response = requests.post(RECORDS_URL, data=json.dumps(stat_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(url, data=json.dumps(stat_query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     facets = response.json()['facets']
 
     total_count = response.json()['response']['numFound']
@@ -2407,13 +2088,19 @@ def create_search_stat(query_list, q="*:*"):
 
     if total_count:
         stat_rightsHolder = facets['stat_rightsHolder']['buckets']
+        if v1:
+            merged = {}
+            for b in stat_rightsHolder:
+                name = to_source_database(b['val'])
+                merged[name] = merged.get(name, 0) + b['count']
+            stat_rightsHolder = [{'val': k, 'count': v} for k, v in merged.items()]
 
     stat_rightsHolder.append({'val': 'total', 'count': total_count})
 
     return stat_rightsHolder
 
 
-def background_search_stat(query_list, record_type, query_string, compute_stat=True):
+def background_search_stat(query_list, record_type, query_string, compute_stat=True, v1=False):  # [V1-API-REMOVE] v1 參數
     allowed = {value for value, _ in SearchStat.location_choice}
     if record_type not in allowed:
         return
@@ -2423,7 +2110,7 @@ def background_search_stat(query_list, record_type, query_string, compute_stat=T
         query_list = [query_list] if query_list else []
 
     try:
-        stat_rightsHolder = create_search_stat(query_list=query_list) if compute_stat else None
+        stat_rightsHolder = create_search_stat(query_list=query_list, v1=v1) if compute_stat else None
         SearchStat.objects.create(
             query=query_string,
             search_location=record_type,
@@ -2437,7 +2124,7 @@ def background_search_stat(query_list, record_type, query_string, compute_stat=T
 
 def create_sensitive_partner_stat(query_list, q="*:*"):
 
-    query_list.append("standardRawLatitude:*")  # 等同 raw_location_rpt:*，冷啟動較快
+    query_list.append("rawDecimalLatitude:*")  # 等同 raw_location_rpt:*，冷啟動較快
 
     query = { "query": q,
                 "offset": 0,
@@ -2446,7 +2133,7 @@ def create_sensitive_partner_stat(query_list, q="*:*"):
                 "facet": {
                     "stat_rightsHolder": {
                         'type': 'terms',
-                        'field': 'rightsHolder',
+                        'field': 'sourceDatabase',
                         'mincount': 1,
                         'limit': -1,
                         'allBuckets': False,

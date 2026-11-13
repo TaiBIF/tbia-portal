@@ -1289,7 +1289,7 @@ function setTable(response, queryString, from, orderby, sort) {
             if (tmp_value == null) {
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
             } else {
-                if (['basisOfRecord', 'taxonRank', 'rightsHolder', 'dataGeneralizations', 'bioGroup'].includes(Object.keys(map_dict)[j])) {
+                if (['basisOfRecord', 'taxonRank', 'sourceDatabase', 'dataGeneralizations', 'taxonGroup'].includes(Object.keys(map_dict)[j])) {
                     tmp_value = gettext(tmp_value)
                 }
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -1559,9 +1559,9 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                                 sendSelected()
                             }
 
-                            // disable checkebox for common_name_c & scientificName
-                            $('#col-common_name_c, #col-scientificName').prop('disabled', true);
-                            $('#col-common_name_c, #col-scientificName').prop('checked', true);
+                            // disable checkebox for vernacularName & scientificName
+                            $('#col-vernacularName, #col-scientificName').prop('disabled', true);
+                            $('#col-vernacularName, #col-scientificName').prop('checked', true);
 
                             // append pagination
 
@@ -1664,9 +1664,9 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
 
 function sendSelected() {
     let selected_field = $(`.col-choice input:checked`)
-    // 所有都先隱藏，除了common_name_c & scientificName
+    // 所有都先隱藏，除了vernacularName & scientificName
     $('td[class^="row-"]').addClass('d-none');
-    $('.row-common_name_c, .row-scientificName').removeClass('d-none');
+    $('.row-vernacularName, .row-scientificName').removeClass('d-none');
     // 再顯示選擇的欄位
     for (let i = 0; i < selected_field.length; i++) {
         $(`td.row-${selected_field[i].id.split('-')[1]}`).removeClass('d-none');

@@ -32,10 +32,10 @@ SOLR_TIMEOUT_LONG = env.int('SOLR_TIMEOUT_LONG', default=600)
 # 切換後（兩站）：RECORDS_CORE=tbia_records（v2）、RECORDS_V1_CORE=tbia_records_v1（凍結，只給 v1 API）
 # 開發期 portal-v2：RECORDS_CORE=tbia_records_new、RECORDS_V1_CORE=tbia_records、TW_GRID_CORE=tw_grid_new
 RECORDS_CORE = env('RECORDS_CORE', default='tbia_records')
-RECORDS_V1_CORE = env('RECORDS_V1_CORE', default='tbia_records_v1')
+RECORDS_V1_CORE = env('RECORDS_V1_CORE', default='tbia_records_v1')  # [V1-API-REMOVE]
 TW_GRID_CORE = env('TW_GRID_CORE', default='tw_grid')
 RECORDS_URL = f'{SOLR_PREFIX}{RECORDS_CORE}/select'
-RECORDS_V1_URL = f'{SOLR_PREFIX}{RECORDS_V1_CORE}/select'
+RECORDS_V1_URL = f'{SOLR_PREFIX}{RECORDS_V1_CORE}/select'  # [V1-API-REMOVE]
 TW_GRID_URL = f'{SOLR_PREFIX}{TW_GRID_CORE}/select'
 
 datahub_db_settings = {
