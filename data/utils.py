@@ -2304,8 +2304,6 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
 
-    rows = docs.to_dict('records')
-
     # 棲地:將 is_* 欄位轉成文字,多值以「、」串接
     def get_habitat_text(r):
         vals = []
@@ -2317,8 +2315,9 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
     if len(docs):
         docs['habitat'] = docs.apply(get_habitat_text, axis=1)
 
-    return rows
+    rows = docs.to_dict('records')
 
+    return rows
 
 def get_resource_cate(extension):
     if extension.lower() in ['docx','csv','json','xlsx', 'xls']:
