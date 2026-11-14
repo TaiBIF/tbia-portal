@@ -741,6 +741,15 @@ def create_query_display(search_dict,lang=None):
 
 
 # 整理搜尋條件 再次查詢按鈕的連結
+# [COMPAT-KEEP] 搜尋參數正規化：舊網址、再次查詢連結、書籤帶的舊參數名 / 舊值轉成標準形式
+# 3.4 起擴充成所有相容寫法的唯一入口（參數改 v2 名稱、taxonGroup 舊值、y/true 等）
+def normalize_search_params(query_dict):
+    qd = query_dict.copy()  # QueryDict.copy() 可修改
+    if 'rightsHolder' in qd:
+        qd.setlist('rightsHolder', list(dict.fromkeys(to_source_database(v) for v in qd.getlist('rightsHolder'))))
+    return qd
+
+
 def create_query_a(search_dict):
     """只負責 taxonGroup 舊→新群名正規化(前端不處理這塊)。
        其餘多值參數由 build_query_string 產生。"""
@@ -2017,6 +2026,7 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
     rows = docs.to_dict('records')
 
     return rows
+
 
 def get_resource_cate(extension):
     if extension.lower() in ['docx','csv','json','xlsx', 'xls']:

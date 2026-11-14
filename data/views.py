@@ -1308,6 +1308,11 @@ def get_media_rule():
 
 def search_collection(request):
 
+    # 網址帶舊參數值（例：舊來源資料庫名稱）時轉成新值並轉址，讓網址、下拉選單、查詢條件一致
+    normalized = normalize_search_params(request.GET)
+    if normalized.urlencode() != request.GET.urlencode():
+        return redirect(f'{request.path}?{normalized.urlencode()}')
+
     response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
@@ -1334,6 +1339,11 @@ def search_collection(request):
 
     
 def search_occurrence(request):
+
+    # 網址帶舊參數值（例：舊來源資料庫名稱）時轉成新值並轉址，讓網址、下拉選單、查詢條件一致
+    normalized = normalize_search_params(request.GET)
+    if normalized.urlencode() != request.GET.urlencode():
+        return redirect(f'{request.path}?{normalized.urlencode()}')
 
     response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
