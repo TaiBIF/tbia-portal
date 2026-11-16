@@ -26,7 +26,8 @@ exp = datetime.now() - timedelta(days=66)
 #     my_file.unlink(missing_ok=True)
 
 
-for folder in ['record', 'taxon', 'sensitive']:
+# record_public / sensitive_public：永久保存用的公開版，與主檔同期限
+for folder in ['record', 'taxon', 'sensitive', 'record_public', 'sensitive_public']:
     dir_path = Path(f'/tbia-volumes/media/download/{folder}')
     if dir_path.exists():
         for f in dir_path.iterdir():

@@ -220,32 +220,50 @@ def param_label(param, map_dict):
 
 
 # ---- 下載 ----
-# 3.2：v1 下載欄位逐一換成 v2 名稱（gbifDatasetID 與原始字串 organismQuantity 在 v2 已移除）
-# 最終對外欄位與公開 / 限制型取值規則於 3.3 依 v2 API 調整
+# 3.3：下載 CSV 的欄位與 API v2 回傳欄位一致（76 個，順序同 v2 回傳欄位表）。
+# Solr 的 uniqueKey 是 id，用 fl 別名 tbiaID:id 輸出 tbiaID；
+# 內部欄位（standardDate、sourceCreated / sourceModified、coordinatePrecision、match_higher_taxon、
+# alternative_name_c / synonyms / misapplied）v2 不對外，下載也不輸出。
 DOWNLOAD_FIELDS = [
-    'id', 'created', 'modified', 'standardDate',
-    'decimalLatitude', 'decimalLongitude', 'organismQuantity',
-    'associatedMedia', 'basisOfRecord', 'catalogNumber', 'coordinatePrecision',
-    'coordinateUncertaintyInMeters', 'dataGeneralizations', 'datasetName', 'tbiaDatasetID',
-    'datasetID', 'verbatimEventDate', 'county', 'municipality', 'license', 'locality',
-    'mediaLicense', 'occurrenceID', 'organismQuantityType', 'verbatimIdentification',
-    'preparations', 'recordedBy', 'recordNumber', 'references', 'resourceContacts',
-    'sourceDatabase', 'sensitiveCategory', 'sourceCreated', 'sourceModified',
-    'verbatimScientificName', 'verbatimVernacularName', 'typeStatus', 'verbatimCoordinateSystem',
-    'verbatimLatitude', 'verbatimLongitude', 'verbatimSRS', 'scientificNameID', 'taxonID',
-    'match_higher_taxon', 'scientificName', 'scientificNameAuthorship', 'taxonGroup', 'taxonRank',
-    'vernacularName', 'alternative_name_c', 'synonyms', 'misapplied',
-    'kingdom', 'kingdomChinese', 'phylum', 'phylumChinese', 'class', 'classChinese',
-    'order', 'orderChinese', 'family', 'familyChinese', 'genus', 'genusChinese',
+    'tbiaID', 'created', 'modified', 'verbatimEventDate', 'year', 'month', 'day', 'eventTime',
+    'decimalLatitude', 'decimalLongitude', 'verbatimLatitude', 'verbatimLongitude',
+    'county', 'municipality', 'countyCode', 'countryCode', 'geodeticDatum',
+    'coordinateUncertaintyInMeters', 'dataGeneralizations', 'organismQuantity',
+    'datasetID', 'resourceCitationIdentifier', 'sourceDatabase', 'tbiaPartnerID',
+    'preparations', 'typeStatus', 'verbatimIdentification', 'verbatimScientificName',
+    'verbatimVernacularName', 'scientificNameID', 'scientificNameAuthorship', 'vernacularName',
+    'taxonGroup', 'kingdomChinese', 'phylumChinese', 'classChinese', 'orderChinese',
+    'familyChinese', 'genusChinese', 'nameAccordingTo', 'taxonRank',
+    'eventID', 'samplingProtocol', 'partner', 'identifiedBy',
+    'institutionCode', 'institutionID', 'collectionCode', 'collectionID', 'individualCount',
+    'occurrenceID', 'catalogNumber', 'selfProduced', 'license', 'basisOfRecord', 'recordNumber',
+    'recordedBy', 'datasetName', 'tbiaDatasetID', 'resourceContacts', 'associatedMedia',
+    'mediaLicense', 'organismQuantityType', 'references', 'locality', 'verbatimCoordinateSystem',
+    'verbatimSRS', 'sensitiveCategory', 'taxonID', 'scientificName',
+    'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
 ]
 
-SENSITIVE_FIELDS = [
-    'rawDecimalLatitude', 'rawDecimalLongitude',
-    'rawVerbatimLatitude', 'rawVerbatimLongitude',
-    'rawCounty', 'rawMunicipality',
-]
+# 限制型取值（同 API，3.3 決定）：有權限的下載（單位帳號、管理員、敏感資料審核通過），
+# raw 欄位有值就取代對應的公開欄位，raw 欄位本身不輸出（檔案裡沒有任何 raw* 欄位）。
+# 永久保存用的公開版由 solr_csv_to_zip 在下載時同時寫出（public_zip_path），不從併入後的檔案還原。
+RESTRICTED_OVERRIDE = {
+    'decimalLatitude': 'rawDecimalLatitude',
+    'decimalLongitude': 'rawDecimalLongitude',
+    'verbatimLatitude': 'rawVerbatimLatitude',
+    'verbatimLongitude': 'rawVerbatimLongitude',
+    'county': 'rawCounty',
+    'municipality': 'rawMunicipality',
+    'countyCode': 'rawCountyCode',
+}
+
+# 有權限的下載要多向 Solr 取 raw 欄位（寫檔時併入公開欄位後丟掉）
+SENSITIVE_FIELDS = list(RESTRICTED_OVERRIDE.values())
 
 DOWNLOAD_FIELDS_WITH_SENSITIVE = DOWNLOAD_FIELDS + SENSITIVE_FIELDS
+
+# 下載 CSV 的 Solr fl（tbiaID 用別名取 id）；沒有權限的查詢（例：敏感審核不通過的單位）不取 raw 欄位
+DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS]
+DOWNLOAD_SOLR_FL_WITH_SENSITIVE = DOWNLOAD_SOLR_FL + SENSITIVE_FIELDS
 
 # 進階搜尋 物種名錄下載：從 taxa core 取的欄位（taxa 舊名），輸出時換成 v2 名稱
 SPECIES_DOWNLOAD_TAXA_FIELDS = [

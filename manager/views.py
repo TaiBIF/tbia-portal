@@ -34,7 +34,8 @@ from django.db.models import Q, Max, Sum
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import solr_quote, ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from api.v1_query import SENSITIVE_COLS_V1  # [V1-API-REMOVE] 舊格式下載檔的敏感欄位名稱
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
 
@@ -2781,9 +2782,25 @@ def delete_qa(request):
 def submit_apply_ark(request):
     if request.method == 'POST':
         query_id = request.POST.get('query_id')
-        sq = SearchQuery.objects.get(query_id=query_id)
+        sq = SearchQuery.objects.filter(query_id=query_id).first()
+        if not sq:
+            return JsonResponse({'message': '找不到這筆下載紀錄。'}, safe=False)
 
-        # TODO 這邊先確認是不是會產生兩個
+        # 只能申請自己的下載（畫面上也只列出自己的）
+        if not request.user.is_authenticated or sq.user_id != request.user.id:
+            return JsonResponse({'message': '找不到這筆下載紀錄。'}, safe=False)
+
+        # 只有狀態為 pass（下載連結仍有效）、尚未申請過、檔案還在才可以申請；不符合就不建立 ARK
+        if sq.status != 'pass':
+            return JsonResponse({'message': '下載檔案已過期或尚未完成，無法申請永久保存。'}, safe=False)
+        if Ark.objects.filter(model_id=sq.id, type='data').exists():
+            return JsonResponse({'message': '這筆下載已經申請過永久保存。'}, safe=False)
+        download_folder = os.path.join(MEDIA_ROOT, 'download')
+        if not any(os.path.exists(f) for f in [
+                os.path.join(download_folder, sq.type, f'tbia_{query_id}.zip'),
+                os.path.join(download_folder, f'{sq.type}_public', f'tbia_{query_id}.zip')]):
+            return JsonResponse({'message': '找不到下載檔案，無法申請永久保存，請聯絡管理員。'}, safe=False)
+
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
 
@@ -2833,15 +2850,26 @@ def generate_storage_csv(query_id, ark):
         storage_csv_folder = os.path.join(download_folder, 'storage')
         storage_csv_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.csv')
         storage_zip_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.zip')
+        # 有權限者的下載在產檔時已同時寫出公開版（同一次查詢；data.utils.solr_csv_to_zip public_zip_path），直接使用
+        public_zip_file = os.path.join(download_folder, f'{sq.type}_public', f'tbia_{query_id}.zip')
+        if os.path.exists(public_zip_file):
+            shutil.copyfile(public_zip_file, storage_zip_file_path)
+            return
+        # 沒有公開版（v2 之前產生的舊檔、或本來就是公開的檔案）：從檔案移除敏感欄位，v1 與 v2 的欄位名稱都要處理
         # step 1 unzip
         commands = f"cd {csv_folder}; unzip -o {zip_file_path}"
         process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
         # step 2 取得header
         cols = pd.read_csv(csv_file_path, index_col=False, nrows=0).columns.tolist()
+        # v2 格式、沒有公開版、但下載者有權限（或敏感申請有單位通過）：檔案可能已併入原始值，無法還原成公開版，不可保存
+        if 'tbiaID' in cols and not any(c in cols for c in sensitive_cols):
+            if (sq.type == 'record' and if_raw_map(sq.user_id)) or (sq.type == 'sensitive' and get_sensitive_status(query_id) in ('通過', '部分通過')):
+                os.remove(csv_file_path)
+                raise RuntimeError(f'找不到公開版下載檔，無法永久保存：{query_id}')
         # step 3 拿掉敏感欄位
         sensitive_index = []
-        for ss in sensitive_cols:
+        for ss in dict.fromkeys(list(sensitive_cols) + SENSITIVE_COLS_V1):
             # 找到所有sensitive_cols的index位置 並一次移除
             if ss in cols:
                 sensitive_index.append(cols.index(ss)+1)

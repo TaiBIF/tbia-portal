@@ -340,7 +340,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list1,
-                    "fields": download_cols_with_sensitive   
+                    "fields": download_fl_with_sensitive
                 }
 
                 query2 = {
@@ -348,7 +348,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list2,  
-                    "fields": download_cols  
+                    "fields": download_fl  # 不同意的單位不取 raw 欄位，不會併入原始值
                 }
 
                 csv_folder = os.path.join(MEDIA_ROOT, 'download')
@@ -365,7 +365,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list,
-                    "fields": download_cols_with_sensitive
+                    "fields": download_fl_with_sensitive
                 }
                 
                 if not query_list:
@@ -377,7 +377,9 @@ def generate_sensitive_csv(query_id, scheme, host):
                 zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
                 csv_queries = [query]
 
-            file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path)
+            # 有單位通過：檔案併入原始值（無 raw* 欄位），同時寫出公開版供永久保存使用（同一次查詢，無時間差）
+            file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path, out_cols=download_cols,
+                                        public_zip_path=public_zip_path_for('sensitive', download_id))
             if not file_done:
                 raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
             sq.status = 'pass'
@@ -391,7 +393,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                 "offset": 0,
                 "limit": 2140000000,
                 "filter": query_list,
-                "fields": download_cols
+                "fields": download_fl
             }
             
             if not query_list:
@@ -402,7 +404,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
-            file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path)
+            file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols)
             if not file_done:
                 raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
             sq.status = 'pass'
@@ -574,9 +576,9 @@ def generate_download_csv(post_str, user_id, scheme, host, query_id):
     download_id = f"tbia_{query_id}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols_with_sensitive
+        fl_cols, public_zip = download_fl_with_sensitive, public_zip_path_for('record', download_id)
     else:
-        fl_cols = download_cols
+        fl_cols, public_zip = download_fl, None
 
     get_raw_map = if_raw_map(user_id)
 
@@ -598,7 +600,7 @@ def generate_download_csv(post_str, user_id, scheme, host, query_id):
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
     # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
-    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols, public_zip_path=public_zip):
         raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
@@ -742,12 +744,12 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
         return
     req_dict, _ = flatten_download_req(QueryDict(post_str))
 
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols_with_sensitive
-    else:
-        fl_cols = download_cols
-
     download_id = f"tbia_{query_id}"
+
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
+        fl_cols, public_zip = download_fl_with_sensitive, public_zip_path_for('record', download_id)
+    else:
+        fl_cols, public_zip = download_fl, None
 
     keyword = req_dict.get('keyword', '')
     key = req_dict.get('key', '')
@@ -815,7 +817,7 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
     # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
-    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols, public_zip_path=public_zip):
         raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
@@ -1190,7 +1192,7 @@ def get_conditional_dataset(request):
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
                                                  "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
-            
+            df['rights_holder'] = df['rights_holder'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
 
         current_page = offset / limit + 1
         total_page = math.ceil(total_count / limit)
@@ -1280,6 +1282,7 @@ def download_dataset_results(request):
             cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=dataset_download_cols)
+        df['rightsHolder'] = df['rightsHolder'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
@@ -1446,17 +1449,33 @@ def dataset_detail(request, id):
 
         resp['datasetTaxonStat'] = new_taxon_stat
             
-        # 取得logo
+        # 取得logo：同一 group 可能有多列 Partner（原本用 get 會 MultipleObjectsReturned），
+        # 依資料集的來源資料庫對到 info 中相同 dbname 的那一項；PG dataset 仍是舊名稱（P2-2），Partner.dbname 在 8.1 前後新舊都有可能，兩邊都轉新名稱再比
+        resp['rights_holder'] = to_source_database(resp['rights_holder'])  # [P2-2-REMOVE]
         if resp['group'] == 'gbif':
             logo = 'GBIF-2015.png'
             link = 'https://www.gbif.org/'
             dataset_prefix = 'https://www.gbif.org/dataset/'
-        elif partner := Partner.objects.get(group=resp['group']):
-            logo = 'partner/' + partner.logo
-            for ii in partner.info:
-                if ii.get('dbname') == resp['rights_holder']:
-                    link = ii.get('link')
-                    dataset_prefix = ii.get('dataset_prefix')
+        else:
+            partners = list(Partner.objects.filter(group=resp['group']).order_by('id'))
+            matched = None
+            for partner in partners:
+                for ii in partner.info or []:
+                    if to_source_database(ii.get('dbname', '')) == resp['rights_holder']:
+                        matched = (partner, ii)
+                        break
+                if matched:
+                    break
+            if matched:
+                partner, ii = matched
+                link = ii.get('link')
+                dataset_prefix = ii.get('dataset_prefix')
+            elif partners:
+                partner = partners[0]
+            else:
+                partner = None
+            if partner:
+                logo = 'partner/' + partner.logo
 
 
     response = render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,

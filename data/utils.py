@@ -16,6 +16,9 @@ import bisect
 import mimetypes
 import zipfile
 import logging
+import csv
+import codecs
+import contextlib
 from os.path import exists
 from dateutil import parser
 from datetime import datetime
@@ -25,7 +28,7 @@ from shapely.geometry import MultiPolygon
 from shapely.ops import unary_union
 from data.solr_query import *
 from pages.templatetags.tags import highlight, process_text_variants
-from conf.settings import SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG, RECORDS_URL, RECORDS_V1_URL
+from conf.settings import MEDIA_ROOT, SOLR_PREFIX, env, datahub_db_settings, SOLR_TIMEOUT, SOLR_TIMEOUT_LONG, RECORDS_URL, RECORDS_V1_URL
 from django.db.models import Q
 from django.db import connection
 from django.utils import timezone, translation
@@ -40,6 +43,7 @@ from data.fields import (
     TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
     LATIN_TXT_FIELDS, BIGRAM_FIELDS, NGRAM_FIELDS, map_occurrence, map_collection,
     DOWNLOAD_FIELDS, DOWNLOAD_FIELDS_WITH_SENSITIVE, SENSITIVE_FIELDS, UNSORTABLE_KEYS,
+    DOWNLOAD_SOLR_FL, DOWNLOAD_SOLR_FL_WITH_SENSITIVE, RESTRICTED_OVERRIDE,
     to_record_field, to_taxa_field, to_v2_field, param_field, param_label,
 )
 
@@ -362,17 +366,85 @@ def escape_solr_query(string):
 logger = logging.getLogger(__name__)
 
 
-def solr_csv_to_zip(queries, csv_file_path, zip_file_path):
+csv.field_size_limit(2 ** 31 - 1)  # associatedMedia 等欄位可能很長
+
+
+def format_solr_date(value):
+    """Solr 日期 2026-11-05T01:23:45Z → API 格式 YYYYMMDD HHMMSS（D3，時間本身已是台灣時間）；不是日期格式的原樣回傳"""
+    if len(value) >= 19 and value[4] == '-' and value[10] == 'T':
+        return f'{value[:4]}{value[5:7]}{value[8:10]} {value[11:13]}{value[14:16]}{value[17:19]}'
+    return value
+
+
+def iter_text_lines(chunks):
+    """bytes 區塊 → 保留換行的文字行（只依 \n 切；引號內的換行由 csv.reader 接回同一欄）"""
+    decoder = codecs.getincrementaldecoder('utf-8')()
+    buf = ''
+    for chunk in chunks:
+        buf += decoder.decode(chunk)
+        parts = buf.split('\n')
+        buf = parts.pop()
+        for part in parts:
+            yield part + '\n'
+    buf += decoder.decode(b'', final=True)
+    if buf:
+        yield buf
+
+
+def write_download_rows(chunks, writer, out_cols, public_writer=None):
+    """把 Solr 的 CSV 內容依 out_cols 重排後寫出：Solr 沒有的欄位補空值、多取的欄位丟掉，
+    created / modified 轉成 API 格式。表頭由呼叫端寫（每個查詢的表頭不一定相同）。
+    限制型取值（同 API）：Solr 結果若含 raw 欄位且有值，就取代 writer 那份的對應公開欄位（RESTRICTED_OVERRIDE）。
+    public_writer 給了就同時寫一份只有公開值的版本（永久保存用），兩份來自同一次查詢。"""
+    reader = csv.reader(iter_text_lines(chunks))
+    header = next(reader, None)
+    if header is None:
+        return
+    pos = {c: i for i, c in enumerate(header)}
+    picks = [pos.get(c) for c in out_cols]
+    date_idx = [k for k, c in enumerate(out_cols) if c in ('created', 'modified')]
+    # (輸出欄位位置, raw 欄位在 Solr 結果的位置)：只有這次查詢真的取了 raw 欄位才會有
+    overrides = [(out_cols.index(c), pos[r]) for c, r in RESTRICTED_OVERRIDE.items() if c in out_cols and r in pos]
+    for row in reader:
+        if not row:
+            continue
+        new = [row[i] if i is not None and i < len(row) else '' for i in picks]
+        for k in date_idx:
+            new[k] = format_solr_date(new[k])
+        if public_writer:
+            public_writer.writerow(new)
+        for k, ri in overrides:
+            if ri < len(row) and row[ri] != '':
+                new[k] = row[ri]
+        writer.writerow(new)
+
+
+def solr_csv_to_zip(queries, csv_file_path, zip_file_path, out_cols=None, public_zip_path=None):
     """依序把 queries 的 Solr CSV 結果寫入 csv_file_path（第 2 組起去掉表頭），再壓成 zip_file_path。
-    取代原本 shell=True 的 curl / cat / tail / zip 指令。成功回傳 True；失敗記錄錯誤、清掉半成品並回傳 False。"""
+    取代原本 shell=True 的 curl / cat / tail / zip 指令。成功回傳 True；失敗記錄錯誤、清掉半成品並回傳 False。
+    給 out_cols（下載 CSV）時逐列重排成該欄位（見 write_download_rows），所有查詢的欄位因此一致；
+    不給（v1 API）則原樣串接 Solr 輸出。
+    public_zip_path：同時產出只有公開值的版本（zip 內檔名與主檔相同），給永久保存用；僅在 out_cols 時有效。"""
     url = f'{RECORDS_URL}?wt=csv'
     ok = False
+    public_csv_path = f'{csv_file_path}.public' if out_cols and public_zip_path else None
     try:
-        with open(csv_file_path, 'wb') as out:
+        with open(csv_file_path, 'w' if out_cols else 'wb', **({'encoding': 'utf-8', 'newline': ''} if out_cols else {})) as out, \
+                (open(public_csv_path, 'w', encoding='utf-8', newline='') if public_csv_path else contextlib.nullcontext()) as pub_out:
+            writer = public_writer = None
+            if out_cols:
+                writer = csv.writer(out, lineterminator='\n')
+                writer.writerow(out_cols)
+                if pub_out:
+                    public_writer = csv.writer(pub_out, lineterminator='\n')
+                    public_writer.writerow(out_cols)
             for n, query in enumerate(queries):
                 with requests.post(url, data=json.dumps(query), headers={'content-type': 'application/json'},
                                    stream=True, timeout=(10, SOLR_TIMEOUT_LONG)) as r:
                     r.raise_for_status()
+                    if out_cols:
+                        write_download_rows(r.iter_content(chunk_size=1 << 20), writer, out_cols, public_writer)
+                        continue
                     skip_header = n > 0
                     for chunk in r.iter_content(chunk_size=1 << 20):
                         if skip_header:
@@ -384,15 +456,29 @@ def solr_csv_to_zip(queries, csv_file_path, zip_file_path):
                         out.write(chunk)
         with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as z:
             z.write(csv_file_path, arcname=os.path.basename(csv_file_path))
+        if public_csv_path:
+            with zipfile.ZipFile(public_zip_path, 'w', zipfile.ZIP_DEFLATED) as z:
+                z.write(public_csv_path, arcname=os.path.basename(csv_file_path))
         ok = True
     except Exception:
         logger.exception('solr_csv_to_zip failed: %s', zip_file_path)
-        if os.path.exists(zip_file_path):
-            os.remove(zip_file_path)
+        for f in (zip_file_path, public_zip_path):
+            if f and os.path.exists(f):
+                os.remove(f)
     finally:
-        if os.path.exists(csv_file_path):
-            os.remove(csv_file_path)
+        for f in (csv_file_path, public_csv_path):
+            if f and os.path.exists(f):
+                os.remove(f)
     return ok
+
+
+def public_zip_path_for(folder, download_id):
+    """永久保存用的公開版 zip 路徑（download/<folder>_public/<download_id>.zip），資料夾不存在就建立。
+    檔案與主檔同期限，由 scripts/system/check_file_expired.py 一併清除。"""
+    public_dir = os.path.join(MEDIA_ROOT, 'download', f'{folder}_public')
+    os.makedirs(public_dir, exist_ok=True)
+    return os.path.join(public_dir, f'{download_id}.zip')
+
 
 
 # 舊的
@@ -603,8 +689,10 @@ def convert_date(date):
     return formatted_date
 
 
-download_cols = DOWNLOAD_FIELDS
+download_cols = DOWNLOAD_FIELDS  # 輸出欄位（CSV 表頭）
 download_cols_with_sensitive = DOWNLOAD_FIELDS_WITH_SENSITIVE
+download_fl = DOWNLOAD_SOLR_FL  # 送給 Solr 的 fl（tbiaID 用別名取 id）
+download_fl_with_sensitive = DOWNLOAD_SOLR_FL_WITH_SENSITIVE
 sensitive_cols = SENSITIVE_FIELDS
 
 
@@ -1809,6 +1897,11 @@ def create_data_detail(id, user_id, record_type):
 
             if row.get('rawMunicipality'):
                 row.update({'municipality': row.get('rawMunicipality')})
+
+            # 模糊化的紀錄公開 verbatim 座標為空（2.3），有權限時改顯示原始值
+            for k in ('verbatimLatitude', 'verbatimLongitude'):
+                if row.get(f'raw{k[0].upper()}{k[1:]}'):
+                    row.update({k: row.get(f'raw{k[0].upper()}{k[1:]}')})
 
         else:
             row.update({'lat': valid_coord(row.get('decimalLatitude'), 90)})
