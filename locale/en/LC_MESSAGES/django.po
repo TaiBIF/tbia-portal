@@ -2645,8 +2645,8 @@ msgid "臺灣物種名錄"
 msgstr "Catalogue of Life in Taiwan"
 
 #:
-msgid "綠島長期社會生態核心觀測站"
-msgstr "LTSER LYUDAO"
+msgid "臺灣長期社會生態核心觀測站"
+msgstr "LTSER TAIWAN"
 
 
 # 來源資料庫
