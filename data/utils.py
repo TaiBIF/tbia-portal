@@ -295,6 +295,36 @@ def get_multi(req_dict, key):
     return out
 
 
+_PARTNER_NAME_CACHE = {'t': 0, 'zh': {}, 'en': {}, 'group': {}}
+
+
+def get_partner_name_map(lang=None):
+    """tbiaPartnerID → partnerName（Partner.title；lang='en' 用 title_en，沒有就退回 title）。
+    Solr 與 PG dataset 只存 tbiaPartnerID，顯示 / 下載時才帶入名稱；結果快取 5 分鐘，
+    避免每次請求（表格每列、下載每列）都查 DB。下載 CSV 一律用中文 title（與 API 一致）"""
+    now = time.time()
+    if now - _PARTNER_NAME_CACHE['t'] > 300 or not _PARTNER_NAME_CACHE['zh']:
+        zh, en, by_group = {}, {}, {}
+        for pid, title, title_en, group in Partner.objects.exclude(tbia_partner_id__isnull=True).order_by('id').values_list('tbia_partner_id', 'title', 'title_en', 'group'):
+            zh.setdefault(str(pid), title)  # 同一單位多列 Partner 的 title 相同（D28）
+            en.setdefault(str(pid), title_en or title)
+            by_group.setdefault(group, str(pid))
+        _PARTNER_NAME_CACHE.update(t=now, zh=zh, en=en, group=by_group)
+    if lang is None:
+        lang = 'en' if str(translation.get_language() or '').startswith('en') else 'zh'
+    return _PARTNER_NAME_CACHE[lang]
+
+
+def get_partner_name(partner_id, lang=None):
+    return get_partner_name_map(lang).get(str(partner_id), '') if partner_id else ''
+
+
+def get_partner_id_by_group(group):
+    """records.group / dataset.group → tbiaPartnerID（PG dataset 沒有 tbiaPartnerID，靠 group 對 Partner）；gbif 沒有"""
+    get_partner_name_map()  # 確保快取已更新
+    return _PARTNER_NAME_CACHE['group'].get(group, '')
+
+
 def get_dataset_name(key):
     # 2024-12 修改為tbiaDatasetID
     name = ''
@@ -307,7 +337,7 @@ def get_dataset_name(key):
     for l in d_list:
         name = l['name'] 
         if l.get('is_duplicated_name'):
-            name += ' ({})'.format(l['rights_holder'])
+            name += ' ({})'.format(to_source_database(l['rights_holder']))  # [P2-2-REMOVE]
     return name
 
 
@@ -405,12 +435,18 @@ def write_download_rows(chunks, writer, out_cols, public_writer=None):
     date_idx = [k for k, c in enumerate(out_cols) if c in ('created', 'modified')]
     # (輸出欄位位置, raw 欄位在 Solr 結果的位置)：只有這次查詢真的取了 raw 欄位才會有
     overrides = [(out_cols.index(c), pos[r]) for c, r in RESTRICTED_OVERRIDE.items() if c in out_cols and r in pos]
+    # partnerName 不在 Solr：由 tbiaPartnerID 帶入
+    name_idx = out_cols.index('partnerName') if 'partnerName' in out_cols else None
+    id_idx = out_cols.index('tbiaPartnerID') if 'tbiaPartnerID' in out_cols else None
+    partner_names = get_partner_name_map('zh') if name_idx is not None and id_idx is not None else {}
     for row in reader:
         if not row:
             continue
         new = [row[i] if i is not None and i < len(row) else '' for i in picks]
         for k in date_idx:
             new[k] = format_solr_date(new[k])
+        if partner_names and new[id_idx]:
+            new[name_idx] = partner_names.get(new[id_idx], '')
         if public_writer:
             public_writer.writerow(new)
         for k, ri in overrides:
@@ -1959,6 +1995,8 @@ def create_data_detail(id, user_id, record_type):
                 if link := (matched or info or [{}])[0].get('link'):
                     row['references'] = link
 
+        row['partnerName'] = get_partner_name(row.get('tbiaPartnerID'))
+
         modified = (row.get('modified') or '').split('.')[0].replace('T',' ').replace('Z',' ')
         row.update({'modified': modified})
     else:
@@ -2103,6 +2141,11 @@ def create_data_table(docs, user_id, obv_str, has_image=None):
 
     docs = docs.replace({np.nan: ''})
     docs = docs.replace({'nan': ''})
+
+    # 夥伴單位：Solr 只存 tbiaPartnerID，這裡帶入名稱
+    if len(docs):
+        partner_names = get_partner_name_map()
+        docs['partnerName'] = docs['tbiaPartnerID'].map(lambda x: partner_names.get(str(x), '') if x else '') if 'tbiaPartnerID' in docs else ''
 
     # 棲地:將 is_* 欄位轉成文字,多值以「、」串接
     # （原本在 to_dict 之後才算，habitat 不會出現在回傳結果，改到前面）

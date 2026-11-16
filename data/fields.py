@@ -160,6 +160,7 @@ _RECORD_LABELS = {
     'habitat': '物種類群（以棲地區分）',
     'taxonRank': '鑑定層級',
     'sensitiveCategory': '敏感層級',
+    'partnerName': '夥伴單位',
     'sourceDatabase': '來源資料庫',
     'taxonID': 'TaiCOL物種編號',
     'verbatimEventDate': '紀錄日期',
@@ -220,7 +221,8 @@ def param_label(param, map_dict):
 
 
 # ---- 下載 ----
-# 3.3：下載 CSV 的欄位與 API v2 回傳欄位一致（76 個，順序同 v2 回傳欄位表）。
+# 3.3：下載 CSV 的欄位與 API v2 回傳欄位一致（77 個：v2 回傳欄位表的 76 個＋partnerName，順序同 v2 回傳欄位表）。
+# partnerName 不在 Solr，寫檔時由 tbiaPartnerID 對 Partner.title 帶入（見 data/utils.py write_download_rows）。
 # Solr 的 uniqueKey 是 id，用 fl 別名 tbiaID:id 輸出 tbiaID；
 # 內部欄位（standardDate、sourceCreated / sourceModified、coordinatePrecision、match_higher_taxon、
 # alternative_name_c / synonyms / misapplied）v2 不對外，下載也不輸出。
@@ -229,7 +231,7 @@ DOWNLOAD_FIELDS = [
     'decimalLatitude', 'decimalLongitude', 'verbatimLatitude', 'verbatimLongitude',
     'county', 'municipality', 'countyCode', 'countryCode', 'geodeticDatum',
     'coordinateUncertaintyInMeters', 'dataGeneralizations', 'organismQuantity',
-    'datasetID', 'resourceCitationIdentifier', 'sourceDatabase', 'tbiaPartnerID',
+    'datasetID', 'resourceCitationIdentifier', 'sourceDatabase', 'tbiaPartnerID', 'partnerName',
     'preparations', 'typeStatus', 'verbatimIdentification', 'verbatimScientificName',
     'verbatimVernacularName', 'scientificNameID', 'scientificNameAuthorship', 'vernacularName',
     'taxonGroup', 'kingdomChinese', 'phylumChinese', 'classChinese', 'orderChinese',
@@ -262,7 +264,9 @@ SENSITIVE_FIELDS = list(RESTRICTED_OVERRIDE.values())
 DOWNLOAD_FIELDS_WITH_SENSITIVE = DOWNLOAD_FIELDS + SENSITIVE_FIELDS
 
 # 下載 CSV 的 Solr fl（tbiaID 用別名取 id）；沒有權限的查詢（例：敏感審核不通過的單位）不取 raw 欄位
-DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS]
+# partnerName 不是 Solr 欄位，不送給 Solr
+NON_SOLR_DOWNLOAD_FIELDS = ('partnerName',)
+DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS if f not in NON_SOLR_DOWNLOAD_FIELDS]
 DOWNLOAD_SOLR_FL_WITH_SENSITIVE = DOWNLOAD_SOLR_FL + SENSITIVE_FIELDS
 
 # 進階搜尋 物種名錄下載：從 taxa core 取的欄位（taxa 舊名），輸出時換成 v2 名稱

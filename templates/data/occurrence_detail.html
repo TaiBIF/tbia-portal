@@ -260,6 +260,9 @@
               <p>{{ row.modified }}</p>
             </li>
           </ul>
+          {% if row.partnerName %}
+          <p class="from_data">{% trans '夥伴單位' %}{% trans '：' %}{{ row.partnerName }}</p>
+          {% endif %}
           {% if row.references != '' and  row.references != None %}
           <div class="tooltip-wrapper mt-30px" data-tooltip="{% trans '點擊查看更多來源資料庫資訊' %}">
             <a href="{{ row.references }}" target="_blank" class="from_data pointer" >{% trans '來源資料庫' %}{% trans '：' %}{% trans row.sourceDatabase %} <i class="fa-solid fa-arrow-up-right-from-square icon-size"></i></a>

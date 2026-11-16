@@ -94,6 +94,7 @@
 						{% if logo %}
 						<img src="/static/image/{{ logo }}" data-ref="{{ link }}" class="pointer open-ref">
 						{% endif %}
+						{% if resp.partnerName %}<p>{% trans '夥伴單位' %}：{{ resp.partnerName }}</p>{% endif %}
 						<a href="{{ link }}" class="code" target="_blank">{% trans '來源資料庫' %}：{% trans resp.rights_holder %} <i class="fa-solid fa-arrow-up-right-from-square icon-size ml-5px"></i></a>
 					</div>						
 					<div class="short">

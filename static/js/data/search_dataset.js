@@ -142,7 +142,8 @@ function submitSearch(is_preload, page) {
                     <td>${row['occurrenceCount']}</td>
                     <td>${row['datasetDateStart'] ? row['datasetDateStart'] : ''}</td>
                     <td>${row['datasetDateEnd'] ? row['datasetDateEnd'] : ''}</td>
-                    <td class="rightsHolder">${gettext(row['rights_holder'])}</td>
+                    <td>${row['partnerName'] ? row['partnerName'] : ''}</td>
+                    <td class="rightsHolder">${gettext(row['sourceDatabase'])}</td>
                     <td>${row['downloadCount']}</td>
                     </tr>
                     `

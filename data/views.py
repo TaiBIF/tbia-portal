@@ -1119,6 +1119,8 @@ def get_conditional_dataset(request):
         # 安全防護：對 orderby 與 sort 進行白名單過濾
         orderby = req_dict.get('orderby', 'name')
         allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'rights_holder', 'downloadCount'}
+        if orderby == 'sourceDatabase':  # 前端用 v2 名稱，PG 欄位仍是 rights_holder [P2-2-REMOVE]
+            orderby = 'rights_holder'
         if orderby not in allowed_columns:
             orderby = 'name' # 若傳入不合法欄位，強制設為預設值
             
@@ -1167,7 +1169,7 @@ def get_conditional_dataset(request):
             query_list.append(f"({' OR '.join(holder_clauses)})")
 
 
-        query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount" FROM dataset'
+        query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder" AS "sourceDatabase", "downloadCount", "group" FROM dataset'
         count_query = 'SELECT count(*) FROM dataset'
 
         if len(query_list):
@@ -1191,8 +1193,12 @@ def get_conditional_dataset(request):
             cursor.execute(query, query_params)
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
-                                                 "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
-            df['rights_holder'] = df['rights_holder'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+                                                 "datasetDateStart", "datasetDateEnd", "sourceDatabase", "downloadCount", "group"])
+            df['sourceDatabase'] = df['sourceDatabase'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+            # 夥伴單位：dataset 只有 group，靠 Partner 帶出 tbiaPartnerID 與名稱
+            df['tbiaPartnerID'] = df['group'].map(get_partner_id_by_group)
+            df['partnerName'] = df['tbiaPartnerID'].map(get_partner_name)
+            df = df.drop(columns=['group'])
 
         current_page = offset / limit + 1
         total_page = math.ceil(total_count / limit)
@@ -1223,6 +1229,8 @@ def download_dataset_results(request):
         allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart',
                         'datasetDateEnd', 'rights_holder', 'downloadCount'}
         orderby = req_dict.get('orderby', 'name')
+        if orderby == 'sourceDatabase':  # 前端用 v2 名稱，PG 欄位仍是 rights_holder [P2-2-REMOVE]
+            orderby = 'rights_holder'
 
         if orderby not in allowed_columns:
             orderby = 'name'
@@ -1263,11 +1271,14 @@ def download_dataset_results(request):
                     query_params.append(alias)
             query_list.append('({})'.format(' OR '.join(holder_clauses)))
 
-        dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
+        # 欄位名稱同 v2（3.3）：PG dataset 仍是舊名稱，用 SQL 別名輸出（[P2-2-REMOVE] 之後改欄位名即可）；
+        # created / modified 同紀錄下載格式 YYYYMMDD HHMMSS；tbiaPartnerID、partnerName 由 group 對 Partner 帶入
+        dataset_download_cols = ["datasetName","sourceDatabase","tbiaPartnerID","partnerName","tbiaDatasetID","datasetID","gbifDatasetID","resourceContacts",
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","resourceCitationIdentifier","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
-        query = '''SELECT "name","rights_holder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
+        query = '''SELECT "name","rights_holder","group","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup",
+                        TO_CHAR("created", 'YYYYMMDD HH24MISS'), TO_CHAR("modified", 'YYYYMMDD HH24MISS') FROM dataset'''
 
         if len(query_list):
             query += ' WHERE ' + (' AND ').join(query_list)
@@ -1276,13 +1287,17 @@ def download_dataset_results(request):
         # orderby/sort 已白名單，直接內插安全
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
-        df = pd.DataFrame(columns=dataset_download_cols)
+        pg_cols = ["datasetName","sourceDatabase","group","tbiaDatasetID","datasetID","gbifDatasetID","resourceContacts",
+                   "occurrenceCount","datasetDateStart","datasetDateEnd","resourceCitationIdentifier","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
         with datahub_conn() as conn, conn.cursor() as cursor:
             cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
-            df = pd.DataFrame(results, columns=dataset_download_cols)
-        df['rightsHolder'] = df['rightsHolder'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+            df = pd.DataFrame(results, columns=pg_cols)
+        df['sourceDatabase'] = df['sourceDatabase'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+        df['tbiaPartnerID'] = df['group'].map(get_partner_id_by_group)
+        df['partnerName'] = df['tbiaPartnerID'].map(lambda x: get_partner_name(x, 'zh'))
+        df = df[dataset_download_cols]
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
@@ -1452,6 +1467,8 @@ def dataset_detail(request, id):
         # 取得logo：同一 group 可能有多列 Partner（原本用 get 會 MultipleObjectsReturned），
         # 依資料集的來源資料庫對到 info 中相同 dbname 的那一項；PG dataset 仍是舊名稱（P2-2），Partner.dbname 在 8.1 前後新舊都有可能，兩邊都轉新名稱再比
         resp['rights_holder'] = to_source_database(resp['rights_holder'])  # [P2-2-REMOVE]
+        resp['tbiaPartnerID'] = get_partner_id_by_group(resp.get('group'))
+        resp['partnerName'] = get_partner_name(resp['tbiaPartnerID'])
         if resp['group'] == 'gbif':
             logo = 'GBIF-2015.png'
             link = 'https://www.gbif.org/'
@@ -1824,7 +1841,7 @@ def change_dataset(request):
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
             if l.get('is_duplicated_name'):
-                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+                ds.append({'text': l['name'] + ' ({})'.format(to_source_database(l['rights_holder'])), 'value': l['tbiaDatasetID']})
             else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
@@ -1935,7 +1952,7 @@ def get_dataset(request):
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
             if l.get('is_duplicated_name'):
-                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+                ds.append({'text': l['name'] + ' ({})'.format(to_source_database(l['rights_holder'])), 'value': l['tbiaDatasetID']})
             else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
