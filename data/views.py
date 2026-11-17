@@ -1346,7 +1346,7 @@ def search_collection(request):
     response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species')]
+    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species'), ('種下', 'Infraspecies')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
     user_stat_options = UserDownloadStat.option_choice
     affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
