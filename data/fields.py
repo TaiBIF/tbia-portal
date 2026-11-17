@@ -210,7 +210,7 @@ map_collection.update({
 
 # 表格欄位中不是 Solr 欄位的 key（顯示用或查詢參數），不能拿來排序
 UNSORTABLE_KEYS = frozenset([
-    'associatedMedia', 'habitat', 'higherTaxa', 'date', 'quantity', 'lat', 'lon',
+    'associatedMedia', 'habitat', 'partnerName', 'higherTaxa', 'date', 'quantity', 'lat', 'lon',
     'special form', 'hybrid formula', 'special form_c', 'hybrid formula_c',
 ])
 

@@ -1263,7 +1263,7 @@ function setTable(response, queryString, from, orderby, sort) {
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        if (!['associatedMedia', 'habitat'].includes(Object.keys(map_dict)[i])) {
+        if (!['associatedMedia', 'habitat', 'partnerName'].includes(Object.keys(map_dict)[i])) {
             a.className = 'orderby';
             a.dataset.orderby = Object.keys(map_dict)[i];
             a.dataset.sort = 'asc';
