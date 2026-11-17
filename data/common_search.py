@@ -23,10 +23,11 @@ from data.utils import (
     get_multi, get_dataset_name, get_tbia_dataset_id, solr_quote, merge_polygons,
     split_group_map, taxon_group_map_c, old_taxon_group_map_c,
     habitat_map, map_occurrence, map_collection, basis_map, to_source_database, param_label,
-    normalize_search_params, parse_range, parse_circle, HABITAT_PARAM,
+    normalize_search_params, parse_range, HABITAT_PARAM,
     NATIVENESS_LABELS, PROTECTED_STATUS_LABELS, TYPE_STATUS_LABELS, MEDIA_LABELS,
 )
-from data.search_params import PROTECTED_STATUS, format_range
+# 本檔自己有 parse_circle（共同規格「經度 緯度 半徑」），網站 v2 的 circle（逗號分隔）用別名
+from data.search_params import PROTECTED_STATUS, format_range, parse_circle as parse_v2_circle
 
 
 TBN_COMMON_SEARCH_URL = 'https://www.tbn.org.tw/commonsearch/occurrence'
@@ -483,7 +484,7 @@ def tbia_to_common(req_dict):
     elif c_raw := req_dict.get('circle'):
         lon_s, lat_s, r_s = (c_raw.split(',') + ['', '', ''])[:3]
         label_val = f"{gettext('半徑')} {r_s} KM {gettext('中心點經度')} {lon_s} {gettext('中心點緯度')} {lat_s}"
-        c = parse_circle(c_raw)
+        c = parse_v2_circle(c_raw)
         if c and c[2] <= CIRCLE_MAX_RADIUS:
             lon, lat, r = c
             common['circle'] = f'{lon:.10g} {lat:.10g} {r:.10g}'
