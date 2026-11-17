@@ -138,7 +138,7 @@ def submit_sensitive_request(request):
         for nq in (QUERY_REPLAY_EXCLUDE_KEYS | SENSITIVE_FORM_FIELDS):
             req_dict.pop(nq, None)
 
-        query_string = build_query_string(req_dict)
+        query_string = canonical_query_string(req_dict)  # 3.4：只存 v2 標準形式的查詢條件
         user_id = request.user.id
         query_id = str(ObjectId())
 
@@ -539,7 +539,7 @@ def flatten_download_req(req_dict):
 
 def create_download_query(req_dict, user_id, sq_type):
     req_dict, user_stat = flatten_download_req(req_dict)
-    query_string = build_query_string(req_dict)
+    query_string = canonical_query_string(req_dict)  # 3.4：只存 v2 標準形式的查詢條件（分頁、表單欄位等不存）
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type=sq_type).aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -947,7 +947,7 @@ def get_records(request): # 全站搜尋
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str, request.POST.get('has_image'))
+        rows = create_data_table(docs, user_id, obv_str, request.POST.get('mediaType'))
 
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
@@ -1136,7 +1136,8 @@ def get_conditional_dataset(request):
         query_params = [] # 用來存放參數化查詢的參數
 
         # taxonGroup
-        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        # 3.4：參數名同 Dataset API（datasetTaxonGroup / datasetName / sourceDatabase），舊名稱也接受
+        taxon_vals_raw = req_dict.getlist('datasetTaxonGroup') or req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
             for tv in taxon_vals_raw:
@@ -1155,12 +1156,12 @@ def get_conditional_dataset(request):
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName (改成 case-insensitive 的 ILIKE，並參數化)
-        if name := req_dict.get('name'):
+        if name := (req_dict.get('datasetName') or req_dict.get('name')):
             query_list.append('''"name" ILIKE %s''')
             query_params.append(f'%{name}%')
 
         # rightsHolder (參數化)
-        if holders := req_dict.getlist('rightsHolder'):
+        if holders := (req_dict.getlist('sourceDatabase') or req_dict.getlist('rightsHolder')):
             holder_clauses = []
             for h in holders:
                 for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
@@ -1242,7 +1243,8 @@ def download_dataset_results(request):
         query_params = []   # 參數化用
 
         # taxonGroup
-        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        # 3.4：參數名同 Dataset API（datasetTaxonGroup / datasetName / sourceDatabase），舊名稱也接受
+        taxon_vals_raw = req_dict.getlist('datasetTaxonGroup') or req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
             for tv in taxon_vals_raw:
@@ -1258,12 +1260,12 @@ def download_dataset_results(request):
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName
-        if name := req_dict.get('name'):
+        if name := (req_dict.get('datasetName') or req_dict.get('name')):
             query_list.append('"name" like %s')
             query_params.append(f'%{name}%')
 
         # rightsHolder
-        if holders := req_dict.getlist('rightsHolder'):
+        if holders := (req_dict.getlist('sourceDatabase') or req_dict.getlist('rightsHolder')):
             holder_clauses = []
             for h in holders:
                 for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
@@ -1324,24 +1326,37 @@ def get_media_rule():
     return results
 
 
+def redirect_to_v2_params(request):
+    """搜尋頁入口：參數不是 v2 標準形式就轉址；被移除 / 轉換的條件以 messages 帶到下一頁顯示"""
+    normalized = normalize_search_params(request.GET)
+    if normalized.urlencode() == request.GET.urlencode():
+        return None
+    for text in search_notices(normalized):
+        messages.warning(request, text, extra_tags='common_search')
+    return redirect(f'{request.path}?{normalized.urlencode()}')
+
+
 def search_collection(request):
 
-    # 網址帶舊參數值（例：舊來源資料庫名稱）時轉成新值並轉址，讓網址、下拉選單、查詢條件一致
-    normalized = normalize_search_params(request.GET)
-    if normalized.urlencode() != request.GET.urlencode():
-        return redirect(f'{request.path}?{normalized.urlencode()}')
+    # [COMPAT-KEEP] 舊網址 / 書籤 / 再次查詢帶舊參數（3.4）時轉成 v2 並轉址，讓網址、表單、查詢條件一致；
+    # 已停止提供的條件會被移除，轉址後在頁面上提示
+    if resp := redirect_to_v2_params(request):
+        return resp
 
     response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
     user_stat_options = UserDownloadStat.option_choice
     affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
+    common_search_warnings = [m.message for m in messages.get_messages(request) if 'common_search' in m.tags]
+
     response = render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+        'common_search_warnings': common_search_warnings,
         'rank_list': rank_list, 'county_list': county_list,
         'affiliation_options': affiliation_options,
         'role_options': role_options,
@@ -1358,15 +1373,15 @@ def search_collection(request):
     
 def search_occurrence(request):
 
-    # 網址帶舊參數值（例：舊來源資料庫名稱）時轉成新值並轉址，讓網址、下拉選單、查詢條件一致
-    normalized = normalize_search_params(request.GET)
-    if normalized.urlencode() != request.GET.urlencode():
-        return redirect(f'{request.path}?{normalized.urlencode()}')
+    # [COMPAT-KEEP] 舊網址 / 書籤 / 再次查詢帶舊參數（3.4）時轉成 v2 並轉址，讓網址、表單、查詢條件一致；
+    # 已停止提供的條件會被移除，轉址後在頁面上提示
+    if resp := redirect_to_v2_params(request):
+        return resp
 
     response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
     f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
+    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species'), ('種下', 'Infraspecies')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
     user_stat_options = UserDownloadStat.option_choice
     affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
@@ -1775,7 +1790,7 @@ def get_conditional_records(request):
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: '', 'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str, req_dict.get('has_image'))
+        rows = create_data_table(docs, user_id, obv_str, normalize_search_params(req_dict).get('mediaType'))
 
         current_page = offset / limit + 1
         total_page = math.ceil(count / limit)
@@ -1783,8 +1798,8 @@ def get_conditional_records(request):
 
         if req_dict.get('from') == 'search':
 
-            # 搜尋紀錄：排除規則統一由 build_stat_query_string / STAT_EXCLUDE_KEYS 處理
-            query_string = build_stat_query_string(req_dict)
+            # 搜尋紀錄：v2 標準形式＋查詢條件白名單（3.4）
+            query_string = canonical_query_string(req_dict)
 
             run_light(background_search_stat, query_list,record_type,query_string)
 

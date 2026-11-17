@@ -23,7 +23,10 @@ from data.utils import (
     get_multi, get_dataset_name, get_tbia_dataset_id, solr_quote, merge_polygons,
     split_group_map, taxon_group_map_c, old_taxon_group_map_c,
     habitat_map, map_occurrence, map_collection, basis_map, to_source_database, param_label,
+    normalize_search_params, parse_range, parse_circle, HABITAT_PARAM,
+    NATIVENESS_LABELS, PROTECTED_STATUS_LABELS, TYPE_STATUS_LABELS, MEDIA_LABELS,
 )
+from data.search_params import PROTECTED_STATUS, format_range
 
 
 TBN_COMMON_SEARCH_URL = 'https://www.tbn.org.tw/commonsearch/occurrence'
@@ -313,31 +316,38 @@ def parse_common_query(raw_qs):
 def common_to_tbia(params):
     """parse_common_query 的結果 → TBIA /search/occurrence 參數（list of tuples，支援多值）"""
     out = []
-    simple = {'taxon_name': 'name', 'taxon_id': 'taxonID', 'higher_taxon_id': 'higherTaxa',
-              'is_native': 'is_native', 'is_protected': 'is_protected',
+    # 3.4：輸出 v2 網站參數
+    simple = {'taxon_name': 'name', 'taxon_id': 'taxonID', 'higher_taxon_id': 'higherTaxonID',
               'county': 'county', 'municipality': 'municipality'}
     for k, tbia_k in simple.items():
         if v := params.get(k):
             out.append((tbia_k, v))
 
+    if v := params.get('is_native'):
+        out += [('nativeness', 'native')] if v == 'y' else [('nativeness', x) for x in ('naturalized', 'invasive', 'cultured')]
+    if v := params.get('is_protected'):
+        if v == 'y':
+            out += [('protectedStatus', x) for x in PROTECTED_STATUS]
+        else:
+            # 「非保育類」已停止提供：照舊參數帶過去，搜尋頁 normalize 時會移除並提示使用者
+            out.append(('is_protected', 'n'))
+
     for t in params.get('taxon_group', []):
         out.append(('taxonGroup', COMMON_TAXON_GROUP_MAP[t]))
 
     for d in params.get('tbia_dataset_id', []):
-        out.append(('datasetName', d))
+        out.append(('tbiaDatasetID', d))
 
-    if d := params.get('event_date_from'):
-        out.append(('start_date', d.isoformat()))
-    if d := params.get('event_date_to'):
-        out.append(('end_date', d.isoformat()))
+    s, e = params.get('event_date_from'), params.get('event_date_to')
+    if s or e:
+        out.append(('eventDate', format_range(s.strftime('%Y%m%d') if s else None, e.strftime('%Y%m%d') if e else None)))
 
     if c := params.get('circle'):
         lon, lat, r = c
         # .10g 讓 1.0 → '1'，才能對上前端半徑選單的值
-        out += [('geo_type', 'circle'), ('center_lon', f'{lon:.10g}'), ('center_lat', f'{lat:.10g}'), ('circle_radius', f'{r:.10g}')]
+        out.append(('circle', f'{lon:.10g},{lat:.10g},{r:.10g}'))
     elif g := params.get('polygon'):
         # 前端以多個 polygon 參數表示，逐一拆開（孔洞保留在各自的 Polygon 內）
-        out.append(('geo_type', 'map'))
         polys = g.geoms if g.geom_type == 'MultiPolygon' else [g]
         for p in polys:
             out.append(('polygon', p.wkt))
@@ -365,6 +375,7 @@ def tbia_to_common(req_dict):
     """
     common = {}
     query_str_list, error_str_list = [], []
+    req_dict = normalize_search_params(req_dict)  # 3.4：讀 v2 網站參數（舊參數也先轉換）
 
     def ok(label, val):
         query_str_list.append('{} = {}'.format(gettext(label), val))
@@ -384,7 +395,7 @@ def tbia_to_common(req_dict):
             common['taxon_id'] = val.strip()
             ok(map_occurrence['taxonID'], val.strip())
 
-    if val := req_dict.get('higherTaxa'):
+    if val := req_dict.get('higherTaxonID'):
         common['higher_taxon_id'] = val
         display = val
         try:
@@ -397,39 +408,39 @@ def tbia_to_common(req_dict):
         ok('較高分類群', display)
 
     # 物種類群：展開父類群、相容英文舊值
-    groups = []
-    for v in get_multi(req_dict, 'taxonGroup'):
-        v = taxon_group_map_c.get(v) or old_taxon_group_map_c.get(v) or v
-        groups.extend(split_group_map.get(v, [v]))
-    groups = list(dict.fromkeys(groups))
+    groups = req_dict.getlist('taxonGroup')   # normalize 已展開父類群、轉換英文舊值
     if valid := [g for g in groups if g in TBIA_TAXON_GROUP_TO_COMMON]:
         common['taxon_group'] = ','.join(TBIA_TAXON_GROUP_TO_COMMON[g] for g in valid)
         ok('物種類群', ','.join(gettext(g) for g in valid))
     if invalid := [g for g in groups if g not in TBIA_TAXON_GROUP_TO_COMMON]:
         ng('物種類群', ','.join(gettext(g) for g in invalid))
 
-    # 原生種／保育類
-    for key, label in (('is_native', '是否為原生種'), ('is_protected', '是否為保育類')):
-        if val := req_dict.get(key):
-            if val in ('y', 'true'):
-                common[key] = 'y'
-                ok(label, gettext('是'))
-            elif val in ('n', 'false'):
-                common[key] = 'n'
-                ok(label, gettext('否'))
+    # 原生性／保育類：共同規格只有是／否
+    if vals := req_dict.getlist('nativeness'):
+        label_val = '、'.join(gettext(NATIVENESS_LABELS.get(v, v)) for v in vals)
+        if set(vals) == {'native'}:
+            common['is_native'] = 'y'
+            ok('原生性', label_val)
+        elif set(vals) == {'naturalized', 'invasive', 'cultured'}:
+            common['is_native'] = 'n'
+            ok('原生性', label_val)
+        else:
+            ng('原生性', label_val)
+    if vals := req_dict.getlist('protectedStatus'):
+        label_val = '、'.join(gettext(PROTECTED_STATUS_LABELS.get(v, v)) for v in vals)
+        if set(vals) == set(PROTECTED_STATUS):
+            common['is_protected'] = 'y'
+            ok('保育類等級', label_val)
+        else:
+            ng('保育類等級', label_val)
 
-    # 日期（起訖可單獨使用）
-    s_raw, e_raw = req_dict.get('start_date'), req_dict.get('end_date')
-    s_date = _to_iso_date(s_raw) if s_raw else None
-    e_date = _to_iso_date(e_raw) if e_raw else None
-    if s_date and e_date and e_date < s_date:
-        s_date = e_date = None  # 起訖顛倒，兩者都不帶
-    for raw_val, d, common_key, label in ((s_raw, s_date, 'event_date_from', '起始日期'), (e_raw, e_date, 'event_date_to', '結束日期')):
-        if d:
-            common[common_key] = d
-            ok(label, d)
-        elif raw_val:
-            ng(label, raw_val)
+    # 日期（eventDate=YYYYMMDD 區間，一邊可為 *）
+    if r := parse_range(req_dict.get('eventDate')):
+        for d8, common_key, label in ((r[0], 'event_date_from', '起始日期'), (r[1], 'event_date_to', '結束日期')):
+            if d8:
+                d = f'{d8[:4]}-{d8[4:6]}-{d8[6:]}'
+                common[common_key] = d
+                ok(label, d)
 
     # 行政區
     if county := req_dict.get('county'):
@@ -442,7 +453,7 @@ def tbia_to_common(req_dict):
         ng('鄉鎮市區', municipality)
 
     # 資料集
-    if d_ids := get_multi(req_dict, 'datasetName'):
+    if d_ids := req_dict.getlist('tbiaDatasetID'):
         tbia_ids, names = [], []
         for d in d_ids:
             if tid := get_tbia_dataset_id(d):
@@ -458,59 +469,53 @@ def tbia_to_common(req_dict):
                 ng('資料集名稱', ','.join(names))
 
     # 空間
-    geo_type = req_dict.get('geo_type')
-    if geo_type == 'map':
-        if g_list := get_multi(req_dict, 'polygon'):
-            try:
-                geom = merge_polygons(g_list)
-                if geom.is_empty or not geom.is_valid:
-                    raise ValueError
-                common['polygon'] = geom.wkt
-                ok('地圖框選', geom.wkt)
-            except Exception:
-                ng('地圖框選', ','.join(g_list))
-    elif geo_type == 'polygon':
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            geom = merge_polygons(g_list)
+            if geom.is_empty or not geom.is_valid:
+                raise ValueError
+            common['polygon'] = geom.wkt
+            ok('地圖框選', geom.wkt)
+        except Exception:
+            ng('地圖框選', ','.join(g_list))
+    elif req_dict.get('geojson_id'):
         ng('上傳Polygon')
-    elif geo_type == 'circle':
-        if circle_radius := req_dict.get('circle_radius'):
-            label_val = f"{gettext('半徑')} {circle_radius} KM {gettext('中心點經度')} {req_dict.get('center_lon')} {gettext('中心點緯度')} {req_dict.get('center_lat')}"
-            try:
-                lon, lat, r = (float(req_dict.get(k)) for k in ('center_lon', 'center_lat', 'circle_radius'))
-                _check_lon_lat(lon, lat)
-                if not (0 < r <= CIRCLE_MAX_RADIUS):
-                    raise ValueError
-                common['circle'] = f'{lon:.10g} {lat:.10g} {r:.10g}'
-                ok('圓中心框選', label_val)
-            except (TypeError, ValueError):
-                ng('圓中心框選', label_val)
+    elif c_raw := req_dict.get('circle'):
+        lon_s, lat_s, r_s = (c_raw.split(',') + ['', '', ''])[:3]
+        label_val = f"{gettext('半徑')} {r_s} KM {gettext('中心點經度')} {lon_s} {gettext('中心點緯度')} {lat_s}"
+        c = parse_circle(c_raw)
+        if c and c[2] <= CIRCLE_MAX_RADIUS:
+            lon, lat, r = c
+            common['circle'] = f'{lon:.10g} {lat:.10g} {r:.10g}'
+            ok('圓中心框選', label_val)
+        else:
+            ng('圓中心框選', label_val)
 
     # 共同規格沒有的欄位
-    if has_image := req_dict.get('has_image'):
-        media_type_map = {
-            'n': gettext('無多媒體'), 'image': gettext('影像'), 'video': gettext('影片'),
-            'audio': gettext('音檔'), 'y': gettext('有多媒體'), 'true': gettext('有多媒體'),
-        }
-        ng('有無多媒體', media_type_map.get(has_image, has_image))
+    if has_media := req_dict.get('hasMedia'):
+        ng('有無多媒體', '、'.join(gettext(MEDIA_LABELS.get(v, v)) for v in (req_dict.getlist('mediaType') or [has_media])))
 
-    if hb_vals := get_multi(req_dict, 'habitat'):
-        ng('物種類群（以棲地區分）', ','.join(gettext(habitat_map.get(v, v)) for v in hb_vals))
+    if hb_vals := req_dict.getlist('taxonGroupByHabitat'):
+        ng('物種類群（以棲地區分）', ','.join(gettext(habitat_map.get(HABITAT_PARAM.get(v, v), v)) for v in hb_vals))
 
     if val := req_dict.get('taxonRank'):
-        ng('鑑定層級', gettext('種下') if val == 'sub' else gettext(map_occurrence.get(val, val)))
+        ng('鑑定層級', gettext('種下') if val == 'Infraspecies' else gettext(map_occurrence.get(val.lower(), val)))
 
     if l_list := get_multi(req_dict, 'locality'):
         ng('出現地', ','.join(l_list))
 
-    if r_list := get_multi(req_dict, 'rightsHolder'):
-        ng('來源資料庫', ','.join(to_source_database(r) for r in r_list))
+    if r_list := req_dict.getlist('sourceDatabase'):
+        ng('來源資料庫', ','.join(r_list))
 
     if val := req_dict.get('basisOfRecord'):
         ng('紀錄類型', gettext(basis_map.get(val, val)))
 
-    for i in ['recordedBy', 'resourceContacts', 'preservation', 'occurrenceID', 'catalogNumber',
-              'recordNumber', 'organismQuantity', 'typeStatus']:
+    for i in ['recordedBy', 'resourceContacts', 'preparations', 'occurrenceID', 'catalogNumber',
+              'recordNumber', 'organismQuantity']:
         if (val := req_dict.get(i)) and val != 'undefined':
             ng(param_label(i, map_collection) or i, gettext(val))
+    if vals := req_dict.getlist('typeStatus'):
+        ng('標本類型', '、'.join(gettext(TYPE_STATUS_LABELS.get(v, v)) for v in vals))
 
     return common, query_str_list, error_str_list
 

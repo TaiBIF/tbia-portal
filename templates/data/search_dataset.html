@@ -43,18 +43,18 @@
 				<form id="searchForm" method="POST" action="/download_dataset_results">
 				{% csrf_token %}
 				<div class="one_input">
-					<input type="text" name="name" placeholder="{% trans '資料集名稱' %}">
+					<input type="text" name="datasetName" placeholder="{% trans '資料集名稱' %}">
 				</div>
 				<div class="two_input">
 					<div class="input_item">
-						<select name="rightsHolder" id="rightsHolder" multiple size="1" class="d-none">
+						<select name="sourceDatabase" id="rightsHolder" multiple size="1" class="d-none">
 							{% for i in holder_list %}
 							<option value="{{ i }}">{% trans i %}</option>
 							{% endfor %}
 						</select>		  
 					</div>
 					<div class="input_item">
-						<select id="taxonGroup" name="taxonGroup" multiple>
+						<select id="taxonGroup" name="datasetTaxonGroup" multiple>
 						<optgroup label="{% trans '昆蟲' %}" data-way="open">
 							<option value="甲蟲類">{% trans "甲蟲類" %}</option>
 							<option value="蛾類">{% trans "蛾類" %}</option>

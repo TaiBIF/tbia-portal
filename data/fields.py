@@ -5,7 +5,7 @@ records core（tbia_records，v2 欄位名稱）、taxa core（D21 維持舊名�
 
 - records 欄位：送給前端的 key、表格欄位、排序值都用 v2 名稱
 - taxa core：查詢時用舊名，取回的結果用 TAXA_TO_RECORD 換成 v2 名稱再給前端
-- 網址參數：3.4 前維持舊參數名，查詢時用 PARAM_TO_FIELD 換成 v2 欄位（舊值轉新值見 data/utils.py）
+- 網址參數：3.4 起為 v2 名稱與值，舊寫法的轉換、存檔白名單在 data/search_params.py
 - v1 API 用的欄位清單在 api/v1_query.py，v1 停用（8.2）時整個檔案刪除
 
 標籤（可 grep）：[V1-API-REMOVE] v1 API 停用時刪除；[P2-2-REMOVE] P2-2 後刪除；
@@ -63,12 +63,16 @@ def to_v2_field(name):
     return V1_TO_V2_FIELD.get(name, name)
 
 
-# ---- 網址搜尋參數 → records v2 欄位 ---- [COMPAT-KEEP]
-# 3.4 參數改 v2 名稱時，舊參數名改由轉換表處理，這裡只剩參數名與欄位名不同的項目
+# ---- 網址搜尋參數 → 標籤用的欄位 key ---- [COMPAT-KEEP]
+# 3.4 起參數為 v2 名稱（舊參數名由 data/search_params.py 轉換）；這裡只列參數名與表格標籤 key 不同的項目
 PARAM_TO_FIELD = {
+    'higherTaxonID': 'higherTaxa',
+    'tbiaDatasetID': 'datasetName',
+    'taxonGroupByHabitat': 'habitat',
+    'eventDate': 'verbatimEventDate',
+    # 舊參數名（common_search 等仍可能傳入）
     'rightsHolder': 'sourceDatabase',
     'preservation': 'preparations',
-    'eventDate': 'verbatimEventDate',
     'bioGroup': 'taxonGroup',
 }
 

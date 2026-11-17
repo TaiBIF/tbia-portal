@@ -39,6 +39,11 @@ from urllib.parse import urlencode, parse_qsl
 import ast
 from contextlib import contextmanager
 
+# 3.4：參數相容層與類群 / 來源資料庫對照移到 data/search_params.py，這裡 re-export 給既有的 import
+from data.search_params import (
+    old_taxon_group_map_c, taxon_group_map_c, split_group_map, SOURCE_DATABASE_RENAME, to_source_database,
+    normalize_pairs, canonical_pairs, parse_range, parse_circle, HABITAT_PARAM, TYPE_STATUS,
+)
 from data.fields import (
     TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
     LATIN_TXT_FIELDS, BIGRAM_FIELDS, NGRAM_FIELDS, map_occurrence, map_collection,
@@ -164,27 +169,8 @@ rights_holder_map = {
 
 rights_holder_list = list(rights_holder_map.values())
 
-# v2 來源資料庫名稱（11/12 定案）：舊 rightsHolder → 新 sourceDatabase，只列有改名的
-# 與 datahub scripts/utils/export.py 的 SOURCE_DATABASE_MAP 相同，P2-3 改由 Partner.info[].dbname 取得
-SOURCE_DATABASE_RENAME = {
-    '中央研究院生物多樣性中心動物標本館': '中央研究院動物標本館 ASIZ',
-    '中央研究院生物多樣性中心植物標本資料庫': '中央研究院植物標本館 HAST',
-    '國家海洋資料庫及共享平台': '國家海洋資料庫及共享平臺',
-    '國立海洋生物博物館生物典藏管理系統': '生物典藏管理系統',
-    '科博典藏 (NMNS Collection)': '科博典藏',
-    '國立臺灣博物館典藏': '國立臺灣博物館生物典藏資料',
-    '愛自然-臺灣(iNaturalist Taiwan)': '愛自然-臺灣',
-    '中油生態地圖': '中油生態保育資料庫',
-}
-
 # v2 sourceDatabase（新名稱）→ group；rights_holder_map（舊名稱）保留給讀舊紀錄（3.2 / 4.2）
 source_database_map = {SOURCE_DATABASE_RENAME.get(k, k): v for k, v in rights_holder_map.items()}
-
-
-# [COMPAT-KEEP] 舊網址、已存查詢、舊統計的舊名稱都靠它轉換，永久保留
-def to_source_database(name):
-    """舊 rightsHolder 名稱 → 新 sourceDatabase 名稱；已是新名稱或未改名的原樣回傳"""
-    return SOURCE_DATABASE_RENAME.get(name, name)
 
 
 _SOURCE_DATABASE_OLD = {v: k for k, v in SOURCE_DATABASE_RENAME.items()}
@@ -227,9 +213,11 @@ def build_query_string(mapping):
     return urlencode(mapping, doseq=True)
 
 
-def parse_query_string(query):
-    """統一讀取 SearchStat.query，回傳 QueryDict。
-       相容 DB 既有舊格式 key=['A','B']，自動展開成真正的多值。"""
+def parse_query_string(query, normalize=True):
+    """統一讀取已存的查詢字串（SearchQuery.query / SearchStat.query），回傳 QueryDict。
+       相容 DB 既有舊格式 key=['A','B']，自動展開成真正的多值。
+       normalize=True（預設）時轉成 v2 標準形式（3.4），回傳值帶 .removed / .notes（見 normalize_search_params）；
+       統計 v1 API 的原始參數時用 normalize=False"""
     qd = QueryDict('', mutable=True)
     for key, value in parse_qsl(query or '', keep_blank_values=True):
         if value.startswith('[') and value.endswith(']'):
@@ -242,7 +230,19 @@ def parse_query_string(query):
             except (ValueError, SyntaxError):
                 pass
         qd.appendlist(key, value)
-    return qd
+    return normalize_search_params(qd) if normalize else qd
+
+
+def _mapping_pairs(mapping):
+    """QueryDict / dict（值可能是 list）→ (key, value) 清單"""
+    if hasattr(mapping, 'lists'):
+        return [(k, v) for k, vals in mapping.lists() for v in vals]
+    pairs = []
+    for k, v in (mapping or {}).items():
+        for x in (v if isinstance(v, (list, tuple)) else [v]):
+            if x is not None:
+                pairs.append((k, str(x)))
+    return pairs
 
 
 STAT_EXCLUDE_KEYS = {
@@ -517,41 +517,6 @@ def public_zip_path_for(folder, download_id):
 
 
 
-# 舊的
-old_taxon_group_map_c = {
-    'Plants': '維管束植物',
-    'Insects': '昆蟲',
-    'Vascular Plants': '維管束植物',
-    'Ferns': '蕨類植物',
-}
-
-
-taxon_group_map_c = {
-    'Birds':	'鳥類',
-    'Reptiles':	'爬蟲類',
-    'Mammals':	'哺乳類',
-    'Beetles':	'甲蟲類',
-    'Fishes':	'魚類',
-    'Amphibians':	'兩棲類',
-    'Moths':	'蛾類',
-    'Butterflies':	'蝶類',
-    'Spiders':	'蜘蛛',
-    'Dragonflies':	'蜻蛉類', 
-    'Snails & Shells':	'蝸牛與貝類', 
-    'Other Insects':	'其他昆蟲',
-    'Crustaceans':	'蝦蟹類',
-    'Gymnosperms':	'裸子植物', 
-    'Angiosperms':	'被子植物',
-    'Ferns':	'蕨類植物',
-    'Mosses':	'苔蘚植物',
-    'Fungi':	'真菌',
-    'Vascular Plants':	'維管束植物',
-    'Insects':	'昆蟲',
-    'Algae':	'藻類',
-    'Viruses':	'病毒',
-    'Bacteria':	'細菌'
-}
-
 taxon_group_map_e = {
     '鳥類':	'Birds',
     '爬蟲類':	'Reptiles',
@@ -612,11 +577,6 @@ taxon_group_map_tbn = [
     '真菌',
 ]
 
-
-split_group_map = {
-    '昆蟲': ['甲蟲類', '蛾類', '蝶類', '蜻蛉類', '其他昆蟲'],
-    '維管束植物': ['被子植物', '裸子植物', '蕨類植物'],
-}
 
 habitat_map = {
     'is_terrestrial': '陸域',
@@ -757,121 +717,143 @@ def get_media_type(url):
 
 
 # 整理搜尋條件
-def create_query_display(search_dict,lang=None):
+# 3.4：查詢條件顯示用的值標籤（v2 參數值 → 中文，顯示時 gettext）
+NATIVENESS_LABELS = {'native': '原生', 'naturalized': '歸化', 'invasive': '入侵', 'cultured': '栽培豢養'}
+PROTECTED_STATUS_LABELS = {'I': '第 I 級（瀕臨絕種）', 'II': '第 II 級（珍貴稀有）', 'III': '第 III 級（其他應予保育）',
+                           'CHPA': '文化資產保存法珍貴稀有植物'}
+TYPE_STATUS_LABELS = {'HOLOTYPE': '正模標本', 'PARATYPE': '副模標本', 'ISOTYPE': '複模標本', 'ALLOTYPE': '配模標本',
+                      'SYNTYPE': '總模標本', 'LECTOTYPE': '選模標本', 'PARALECTOTYPE': '副選模標本',
+                      'NEOTYPE': '新模標本', 'TOPOTYPE': '模式地標本'}
+MEDIA_LABELS = {'false': '無多媒體', 'true': '有多媒體', 'image': '影像', 'video': '影片', 'audio': '音檔'}
+
+
+def _ymd(d8):
+    return f'{d8[:4]}-{d8[4:6]}-{d8[6:]}' if d8 else ''
+
+
+def create_query_display(search_dict, lang=None):
+    """搜尋條件的文字說明（後台下載紀錄、敏感申請、申請頁）。輸入可為舊字串讀出的條件，一律先轉成 v2 標準形式；
+       已停止提供的條件列在最後（標示已停用），讓使用者知道再次查詢的結果會和當初不同"""
     if lang:
         translation.activate(lang)
+    sd = normalize_search_params(search_dict)
+    removed = list(dict.fromkeys((getattr(search_dict, 'removed', None) or []) + sd.removed))
+    notes = list(dict.fromkeys((getattr(search_dict, 'notes', None) or []) + sd.notes))
+
+    sep = gettext('：')
+    def line(label, val):
+        return f'<br><b>{gettext(label)}</b>{sep}{val}'
+
     query = ''
-    if search_dict.get('record_type') == 'occ':
-        query += f'<b>{gettext("類別")}</b>{gettext("：")}{gettext("物種出現紀錄")}'
+    if sd.get('record_type') == 'occ':
+        query += f'<b>{gettext("類別")}</b>{sep}{gettext("物種出現紀錄")}'
         map_dict = map_occurrence
     else:
         map_dict = map_collection
-        query += f'<b>{gettext("類別")}</b>{gettext("：")}{gettext("自然史典藏")}'
+        query += f'<b>{gettext("類別")}</b>{sep}{gettext("自然史典藏")}'
 
-    d_list = []
-    r_list = []
-    l_list = []
+    d_list, r_list, l_list = [], [], []
 
-    if search_dict.get('current_grid_level') in map_dict.keys() and search_dict.get('current_grid'):
-        query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{search_dict.get("current_grid")}'
+    if sd.get('current_grid_level') in map_dict.keys() and sd.get('current_grid'):
+        query += line(map_dict[sd['current_grid_level']], sd.get('current_grid'))
 
-    for k in search_dict.keys():
-        # 參數名 → 標籤：參數名維持舊名（3.4 前），標籤依對應的 v2 欄位取得
-        if label := param_label(k, map_dict):
-            if k == 'taxonRank':
-                if search_dict[k] in ['sub','infraspecies']:
-                    query += f'<br><b>{gettext(label)}</b>{gettext("：")}{gettext("種下")}'
-                else:
-                    query += f'<br><b>{gettext(label)}</b>{gettext("：")}{gettext(map_dict[search_dict[k]])}'
-            elif k == 'datasetName':
-                for d in get_multi(search_dict, 'datasetName'):
-                    if d_name := get_dataset_name(d):
-                        d_list.append(d_name)
-            elif k == 'rightsHolder':
-                r_list = [to_source_database(r) for r in get_multi(search_dict, 'rightsHolder')]
-            elif k == 'locality':
-                l_list = get_multi(search_dict, 'locality')
-            elif k == 'higherTaxa':
-                response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(search_dict[k])}'}, timeout=SOLR_TIMEOUT)
-                if response.status_code == 200:
-                    resp = response.json()
-                    if data := resp['response']['docs']:
-                        data = data[0]
-                        query += f"<br><b>{gettext(label)}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
-            elif k == 'habitat':
-                vals = [gettext(habitat_map[v]) for v in get_multi(search_dict, 'habitat') if v in habitat_map]
-                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{'、'.join(vals)}"
-            # 這邊要讓新舊互通 因為舊的會需要再次查詢
-            elif k == 'taxonGroup':
-                vals = []
-                for v in get_multi(search_dict, 'taxonGroup'):
-                    if v in split_group_map:
-                        vals.extend(split_group_map[v])
-                    elif v in taxon_group_map_c:
-                        vals.append(taxon_group_map_c[v])
-                    elif v in old_taxon_group_map_c:
-                        vals.append(old_taxon_group_map_c[v])
-                    else:
-                        vals.append(v)
-                display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
-                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{'、'.join(display_vals)}"
-            # 需要調整的選單內容
-            elif k in ['basisOfRecord','dataGeneralizations']:
-                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{gettext(search_dict[k])}"
+    for k in sd.keys():
+        vals = sd.getlist(k)
+        if k == 'name':
+            query += line('學名/中文名/中文別名/同物異名/誤用名', sd.get(k))
+        elif k == 'taxonRank':
+            v = sd.get(k)
+            text = gettext('種下') if v == 'Infraspecies' else gettext(map_dict.get(v.lower(), v))
+            query += line(map_dict['taxonRank'], text)
+        elif k == 'tbiaDatasetID':
+            d_list = [n for n in (get_dataset_name(d) for d in vals) if n]
+        elif k == 'sourceDatabase':
+            r_list = vals
+        elif k == 'locality':
+            l_list = vals
+        elif k == 'higherTaxonID':
+            response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(sd.get(k))}'}, timeout=SOLR_TIMEOUT)
+            if response.status_code == 200 and (data := response.json()['response']['docs']):
+                data = data[0]
+                query += line(map_dict['higherTaxa'], f"{data.get('scientificName')} {data.get('common_name_c') or ''}")
+        elif k == 'taxonGroupByHabitat':
+            query += line(map_dict['habitat'], '、'.join(gettext(habitat_map[HABITAT_PARAM[v]]) for v in vals if v in HABITAT_PARAM))
+        elif k == 'taxonGroup':
+            display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
+            query += line(map_dict['taxonGroup'], '、'.join(display_vals))
+        elif k == 'nativeness':
+            query += line('原生性', '、'.join(gettext(NATIVENESS_LABELS.get(v, v)) for v in vals))
+        elif k == 'protectedStatus':
+            query += line('保育類等級', '、'.join(gettext(PROTECTED_STATUS_LABELS.get(v, v)) for v in vals))
+        elif k == 'typeStatus':
+            query += line('標本類型', '、'.join(gettext(TYPE_STATUS_LABELS.get(v, v)) for v in vals))
+        elif k == 'hasMedia':
+            media = sd.getlist('mediaType') or [sd.get(k)]
+            query += line('有無多媒體', '、'.join(gettext(MEDIA_LABELS.get(v, v)) for v in media))
+        elif k == 'eventDate':
+            if r := parse_range(sd.get(k)):
+                if r[0]:
+                    query += line('起始日期', _ymd(r[0]))
+                if r[1]:
+                    query += line('結束日期', _ymd(r[1]))
+        elif k == 'circle':
+            if c := parse_circle(sd.get(k)):
+                lon, lat, rad = sd.get(k).split(',')
+                query += line('圓中心框選', f"{gettext('半徑')} {rad} KM {gettext('中心點經度')} {lon} {gettext('中心點緯度')} {lat}")
+        elif k == 'polygon':
+            query += line('地圖框選', '; '.join(vals))
+        elif k == 'geojson_id':
+            geojson_path = f"media/geojson/{sd.get(k)}.json"
+            if exists(os.path.join('/tbia-volumes/', geojson_path)):
+                query += line('上傳Polygon', f"<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>")
+        elif k in ('mediaType', 'record_type', 'current_grid_level', 'current_grid'):
+            continue
+        elif label := param_label(k, map_dict):
+            if k in ['basisOfRecord', 'dataGeneralizations']:
+                query += line(label, gettext(sd.get(k)))
             else:
-                query += f"<br><b>{gettext(label)}</b>{gettext('：')}{search_dict[k]}"
-        # 地圖搜尋
-        elif k == 'geo_type':
-            if search_dict[k] == 'polygon':
-                geojson_path= f"media/geojson/{search_dict.get('geojson_id')}.json"
-                if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                    query += f"<br><b>{gettext('上傳Polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
-            elif search_dict[k] == 'circle':
-                if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
-                    query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {search_dict.get('circle_radius')} KM {gettext('中心點經度')} {search_dict.get('center_lon')} {gettext('中心點緯度')} {search_dict.get('center_lat')}" 
-            elif search_dict[k] == 'map' and search_dict.get('polygon'):
-                query += f"<br><b>{gettext('地圖框選')}</b>{gettext('：')}{search_dict.get('polygon')}" 
-        # 日期
-        elif k == 'start_date':
-            query += f"<br><b>{gettext('起始日期')}</b>{gettext('：')}{search_dict.get('start_date')}" 
-        elif k == 'end_date':
-            query += f"<br><b>{gettext('結束日期')}</b>{gettext('：')}{search_dict.get('end_date')}" 
-        elif k == 'name':
-            query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
-        elif k == 'has_image':
-            media_type_map = {
-                'n': gettext('無多媒體'),
-                'image': gettext('影像'),
-                'video': gettext('影片'),
-                'audio': gettext('音檔'),
-                'y': gettext('有多媒體'),  # 兼容舊參數
-                'true': gettext('有多媒體'),
-            }
-            val = search_dict.get('has_image')
-            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{media_type_map.get(val, val)}"
-        elif k == 'is_protected':
-            query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') in ['y','true'] else gettext('否')}" 
-        elif k == 'is_native':
-            query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_native') in ['y','true'] else gettext('否')}" 
+                query += line(label, sd.get(k))
     if r_list:
-        r_list = [gettext(r) for r in r_list]
-        query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
+        query += line('來源資料庫', '、'.join(gettext(r) for r in r_list))
     if d_list:
-        query += f"<br><b>{gettext('資料集名稱')}</b>{gettext('：')}{'、'.join(d_list)}" 
+        query += line('資料集名稱', '、'.join(d_list))
     if l_list:
-        query += f"<br><b>{gettext(map_dict['locality'])}</b>{gettext('：')}{'、'.join(l_list)}" 
-
+        query += line(map_dict['locality'], '、'.join(l_list))
+    for r in removed:
+        query += f"<br><b>{gettext(r)}</b> <span class=\"color-silver\">（{gettext('已停用')}）</span>"
+    for n in notes:
+        query += f"<br><small class=\"color-silver\">※ {gettext(n)}</small>"
     return query
 
 
-# 整理搜尋條件 再次查詢按鈕的連結
-# [COMPAT-KEEP] 搜尋參數正規化：舊網址、再次查詢連結、書籤帶的舊參數名 / 舊值轉成標準形式
-# 3.4 起擴充成所有相容寫法的唯一入口（參數改 v2 名稱、taxonGroup 舊值、y/true 等）
+# [COMPAT-KEEP] 搜尋參數正規化（3.4，D20）：舊網址、再次查詢連結、書籤、已存查詢帶的舊參數名 / 舊值轉成 v2 標準形式
+# 規則在 data/search_params.py；網頁入口（搜尋頁、AJAX 查詢）、parse_query_string、create_search_query 都經過這裡，可重複呼叫
 def normalize_search_params(query_dict):
-    qd = query_dict.copy()  # QueryDict.copy() 可修改
-    if 'rightsHolder' in qd:
-        qd.setlist('rightsHolder', list(dict.fromkeys(to_source_database(v) for v in qd.getlist('rightsHolder'))))
+    """回傳新的 QueryDict（可修改），另帶兩個屬性：
+       removed：已停止提供、被自動移除的條件說明；notes：轉換後結果可能略有不同的提示（都是中文，顯示時再 gettext）"""
+    pairs, removed, notes = normalize_pairs(_mapping_pairs(query_dict))
+    qd = QueryDict('', mutable=True)
+    for k, v in pairs:
+        qd.appendlist(k, v)
+    qd.removed, qd.notes = removed, notes
     return qd
+
+
+def canonical_query_string(mapping):
+    """存進資料庫的查詢字串（下載、敏感申請、網站搜尋紀錄）：v2 標準形式＋只留查詢條件（白名單）。
+       分頁、排序、表單欄位、追蹤參數、掃描工具亂填的參數與不合法的值都不會存進去"""
+    pairs, _, _ = canonical_pairs(_mapping_pairs(mapping))
+    return urlencode(pairs)
+
+
+def search_notices(qd):
+    """搜尋頁 / 後台顯示用：已停用條件與轉換提示（已翻譯）"""
+    out = []
+    if removed := getattr(qd, 'removed', None):
+        out.append(gettext('以下篩選條件已停止提供，已自動移除：') + '、'.join(gettext(r) for r in removed))
+    for n in getattr(qd, 'notes', None) or []:
+        out.append(gettext(n))
+    return out
 
 
 def create_query_a(search_dict):
@@ -927,70 +909,52 @@ def merge_polygons(g_list):
     return unary_union(polys)
 
 
-def create_search_query(req_dict, get_raw_map=False):
+# 種下階層（taxonRank=Infraspecies）
+INFRASPECIES_RANKS = ['subspecies', 'nothosubspecies', 'variety', 'subvariety', 'nothovariety', 'form', 'subform',
+                      '"special form"', 'race', 'stirp', 'morph', 'aberration']
 
+
+def create_search_query(req_dict, get_raw_map=False):
+    """網站搜尋條件 → Solr filter 清單。參數為 v2 標準形式（3.4）；舊參數名 / 舊值在這裡先轉換（normalize 可重複呼叫）"""
+    req_dict = normalize_search_params(req_dict)
     query_list = []
 
-    # 有無多媒體
-    if has_image := req_dict.get('has_image'):
-        if has_image == 'n':
-            query_list += ['-associatedMedia:*']
-        elif has_image in ['image', 'video', 'audio']:
-            query_list += [f'associatedMediaType:{has_image}']
-        # 兼容舊參數 y / true（一律視為有任何多媒體）
-        elif has_image in ['y', 'true']:
+    # 多媒體：hasMedia=true/false，mediaType 限定類型（可多個，聯集；需 hasMedia=true）
+    has_media = req_dict.get('hasMedia')
+    if has_media == 'false':
+        query_list += ['-associatedMedia:*']
+    elif has_media == 'true':
+        if media_types := req_dict.getlist('mediaType'):
+            query_list += [f'associatedMediaType:({" OR ".join(media_types)})']
+        else:
             query_list += ['associatedMedia:*']
 
-    # 是否為原生種
-    if is_native := req_dict.get('is_native'):
-        if is_native in ['y','true']:
-            query_list += ['alien_type:native']
-        elif is_native in ['n','false']:
-            query_list += ['alien_type:(naturalized OR invasive OR cultured)']
+    # 原生性
+    if vals := req_dict.getlist('nativeness'):
+        query_list += [f'alien_type:({" OR ".join(vals)})']
 
+    # 保育類等級：CHPA 過渡期同時對應 taxa core 的舊值 1（D12）
+    if vals := req_dict.getlist('protectedStatus'):
+        vals = vals + ['1'] if 'CHPA' in vals else vals
+        query_list += [f'protected:({" OR ".join(solr_quote(v) for v in vals)})']
 
-    # 是否為保育類
-    if is_protected := req_dict.get('is_protected'):
-        if is_protected in ['y','true']:
-            query_list += ['protected:*']
-        elif is_protected in ['n','false']:
-            query_list += ['-protected:*']
-
-
-    record_type = req_dict.get('record_type')
-    if record_type == 'col': # occurrence include occurrence + collection
+    if req_dict.get('record_type') == 'col':  # occurrence include occurrence + collection
         query_list += ['recordType:col']
 
-    raw_vals = get_multi(req_dict, 'taxonGroup')
-    bio_groups = []
-    for v in raw_vals:
-        if v in split_group_map:
-            bio_groups.extend(split_group_map[v])
-        elif v in taxon_group_map_e:
-            bio_groups.append(v)
-        elif v in taxon_group_map_c:
-            bio_groups.append(taxon_group_map_c[v])
-        elif v in old_taxon_group_map_c:
-            bio_groups.append(old_taxon_group_map_c[v])
-        elif v:
-            bio_groups.append(v)
-
-    if bio_groups:
+    if bio_groups := req_dict.getlist('taxonGroup'):
         query_list += [f'taxonGroup:({" OR ".join(solr_quote(g) for g in bio_groups)})']
 
-    habitat_vals = [v for v in get_multi(req_dict, 'habitat') if v in habitat_map]
-    if habitat_vals:
+    if habitat_vals := [HABITAT_PARAM[v] for v in req_dict.getlist('taxonGroupByHabitat') if v in HABITAT_PARAM]:
         query_list += [f'({" OR ".join([f"{v}:true" for v in habitat_vals])})']
 
-    # 參數名 → v2 欄位（preservation → preparations）
-    for i in ['recordedBy', 'resourceContacts', 'preservation']:
+    for i in ['recordedBy', 'resourceContacts', 'preparations']:
         if val := req_dict.get(i):
             if val != 'undefined':
                 val = val.strip()
                 val = html.unescape(val)
                 keyword_reg = build_keyword_reg(val)
                 keyword_reg = process_text_variants(keyword_reg)
-                query_list += [contains_clause(param_field(i), val, keyword_reg)]
+                query_list += [contains_clause(i, val, keyword_reg)]
 
     for i in ['taxonID', 'occurrenceID', 'catalogNumber', 'recordNumber']:
         if val := req_dict.get(i):
@@ -1000,10 +964,8 @@ def create_search_query(req_dict, get_raw_map=False):
     if req_dict.get('current_grid_level') in ['grid_1','grid_10','grid_100','grid_5'] and req_dict.get('current_grid'):
         query_list += [f"{req_dict.get('current_grid_level')}:{solr_quote(req_dict.get('current_grid'))}"]
 
-    # higherTaxa
-    # 找到該分類群的階層 & 名稱
-    # 要包含自己的階層
-    if val := req_dict.get('higherTaxa'):
+    # higherTaxonID：該分類群本身及其下所有子分類群
+    if val := req_dict.get('higherTaxonID'):
         response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(val)}'}, timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             resp = response.json()
@@ -1020,74 +982,45 @@ def create_search_query(req_dict, get_raw_map=False):
         except ValueError:
             pass
 
-    if val := req_dict.get('typeStatus'):
-        if val == '模式':
-            query_list += [f'typeStatus:[* TO *]']
-        elif val == '一般':
-            query_list += [f'-typeStatus:*']
-    
+    # typeStatus：控制詞彙；Solr 多值以 | 串在同一個字串（D23），用 regex 比對其中一段
+    if vals := [v for v in req_dict.getlist('typeStatus') if v in TYPE_STATUS]:
+        query_list += ['(' + ' OR '.join(f'typeStatus:/(.*\\|)?{v}(\\|.*)?/' for v in vals) + ')']
+
     if val := req_dict.get('basisOfRecord'):
         if val in basis_map.keys():
             query_list += [f'basisOfRecord:{val}']
 
-    # 下拉選單單選
-    for i in ['sensitiveCategory', 'taxonRank']: 
-        if val := req_dict.get(i):
-            if i == 'sensitiveCategory' and val == '無':
-                query_list += [f'-(-{i}:{val} {i}:*)']
-            elif i == 'taxonRank' and val in ['sub','infraspecies']:
-                query_list += [f'taxonRank:(subspecies OR nothosubspecies OR variety  OR subvariety  OR nothovariety OR form OR subform OR "special form" OR race OR stirp OR morph OR aberration)']
-            else:
-                query_list += [f'{i}:{solr_quote(val)}']
+    if val := req_dict.get('sensitiveCategory'):
+        if val == '無':
+            query_list += [f'-(-sensitiveCategory:{val} sensitiveCategory:*)']
+        else:
+            query_list += [f'sensitiveCategory:{solr_quote(val)}']
 
-    # 下拉選單多選
-    d_list = []
-    for v in get_multi(req_dict, 'datasetName'):
-        if d_id := get_tbia_dataset_id(v):
-            d_list.append(d_id)
+    # taxonRank：v2 值首字大寫，Solr 維持 TaiCOL 小寫（D26）
+    if val := req_dict.get('taxonRank'):
+        if val == 'Infraspecies':
+            query_list += [f'taxonRank:({" OR ".join(INFRASPECIES_RANKS)})']
+        else:
+            query_list += [f'taxonRank:{solr_quote(val.lower())}']
 
-    # 這邊要改成tbiaDatasetID才對
+    # 資料集（值為 tbiaDatasetID；舊的數字 id 由 get_tbia_dataset_id 轉換）
+    d_list = [d_id for d_id in (get_tbia_dataset_id(v) for v in req_dict.getlist('tbiaDatasetID')) if d_id]
     if d_list:
         query_list += [f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in d_list)})']
 
-    # 來源資料庫：舊名稱（已存查詢、舊網址）轉成新名稱後查 sourceDatabase
-    r_list = list(dict.fromkeys(to_source_database(r) for r in get_multi(req_dict, 'rightsHolder')))
-    if r_list:
+    if r_list := req_dict.getlist('sourceDatabase'):
         query_list += [f'sourceDatabase:({" OR ".join(solr_quote(r) for r in r_list)})']
 
-    l_list = []
-
-    l_list = get_multi(req_dict, 'locality')
-    if l_list:
+    if l_list := req_dict.getlist('locality'):
         query_list += [f'locality:({" OR ".join(solr_quote(l) for l in l_list)})']
 
-    if req_dict.get('start_date') and req_dict.get('end_date'):
-        try: 
-            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-            end_date = end_date.isoformat() + 'Z'
-            end_date = end_date.replace('00:00:00','23:59:59')
-            query_list += [f'standardDate:[{start_date} TO {end_date}]']
-        except:
-            pass
-    elif req_dict.get('start_date'):
-        try: 
-            start_date = datetime.strptime(req_dict.get('start_date'), '%Y-%m-%d').isoformat() + 'Z'
-            query_list += [f'standardDate:[{start_date} TO *]']
-        except:
-            pass
-    elif req_dict.get('end_date'):
-        try: 
-            end_date = datetime.strptime(req_dict.get('end_date'), '%Y-%m-%d')
-            end_date = end_date.isoformat() + 'Z'
-            end_date = end_date.replace('00:00:00','23:59:59')
-            query_list += [f'standardDate:[* TO {end_date}]']
-        except:
-            pass
-
+    # eventDate：YYYYMMDD 或區間（一邊可為 *），以日期為粒度
+    if r := parse_range(req_dict.get('eventDate')):
+        start = f'{r[0][:4]}-{r[0][4:6]}-{r[0][6:]}T00:00:00Z' if r[0] else '*'
+        end = f'{r[1][:4]}-{r[1][4:6]}-{r[1][6:]}T23:59:59Z' if r[1] else '*'
+        query_list += [f'standardDate:[{start} TO {end}]']
 
     #  要處理敏感資料
-
     if county := req_dict.get('county'):
         if get_raw_map:
             query_list += [f'county:{solr_quote(county)} OR rawCounty:{solr_quote(county)}']
@@ -1100,47 +1033,37 @@ def create_search_query(req_dict, get_raw_map=False):
         else:
             query_list += [f'municipality:{solr_quote(municipality)}']
 
+    # 地圖框選（可多個 polygon）：資料皆為點位，使用 Intersects，落在邊線上的點也符合（共同規格要求包含邊界）
+    if g_list := req_dict.getlist('polygon'):
+        try:
+            mp = merge_polygons(g_list)
+            if get_raw_map:
+                query_list += ['{!cache=false}location_rpt: "Intersects(%s)" OR raw_location_rpt: "Intersects(%s)" ' % (mp, mp)]
+            else:
+                query_list += ['{!cache=false}location_rpt: "Intersects(%s)"' % mp]
+        except:
+            pass
 
-    # 地圖框選
-    # 資料皆為點位，使用 Intersects：落在邊線上的點也符合（共同規格要求包含邊界）
-    if req_dict.get('geo_type') == 'map':
-        if g_list := get_multi(req_dict, 'polygon'):
-            try:
-                mp = merge_polygons(g_list)
+    # 上傳polygon：geojson_id 會組成檔案路徑，只接受英數、底線、連字號（normalize 已檢查），避免路徑穿越
+    if (g_id := req_dict.get('geojson_id')) and re.fullmatch(r'[\w-]+', g_id):
+        try:
+            with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
+                geojson = json.loads(j.read())
+                geo_df = gpd.GeoDataFrame.from_features(geojson)
+                g_list = []
+                for i in geo_df.to_wkt()['geometry']:
+                    g_list += ['"Intersects(%s)"' % i]
                 if get_raw_map:
-                    query_list += ['{!cache=false}location_rpt: "Intersects(%s)" OR raw_location_rpt: "Intersects(%s)" ' % (mp, mp)]
+                    query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
                 else:
-                    query_list += ['{!cache=false}location_rpt: "Intersects(%s)"' % mp]
-            except:
-                pass
+                    query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)})" ]
+        except:
+            pass
 
-    # 上傳polygon
-    if req_dict.get('geo_type') == 'polygon':
-
-        # geojson_id 會組成檔案路徑，只接受英數、底線、連字號，避免路徑穿越
-        if (g_id := req_dict.get('geojson_id')) and re.fullmatch(r'[\w-]+', g_id):
-            try:
-                with open(f'/tbia-volumes/media/geojson/{g_id}.json', 'r') as j:
-                    geojson = json.loads(j.read())
-                    geo_df = gpd.GeoDataFrame.from_features(geojson)
-                    g_list = []
-                    for i in geo_df.to_wkt()['geometry']:
-                        g_list += ['"Intersects(%s)"' % i]
-                    if get_raw_map:
-                        query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)}) OR raw_location_rpt: ({' OR '.join(g_list)})" ]
-                    else:
-                        query_list += [ f"{{!cache=false}}location_rpt: ({' OR '.join(g_list)})" ]
-            except:
-                pass
-
-    # 圓中心框選
-    if req_dict.get('geo_type') == 'circle':
-        if circle_radius := req_dict.get('circle_radius'):
-            try:
-                c_lat, c_lon = float(req_dict.get('center_lat')), float(req_dict.get('center_lon'))
-                query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' %  (req_dict.get('center_lat').strip(), req_dict.get('center_lon').strip(), float(circle_radius))]
-            except (TypeError, ValueError):
-                pass
+    # 圓形範圍：circle=經度,緯度,半徑（公里，0 < 半徑 ≤ 50）
+    if c := parse_circle(req_dict.get('circle')):
+        lon, lat, radius = c
+        query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' % (lat, lon, radius)]
 
     # 學名相關
     if val := req_dict.get('name'):
@@ -1972,7 +1895,7 @@ def create_data_detail(id, user_id, record_type):
 
                     t_taxonID = t_rank.get(f"{r}_taxonID")
 
-                    current_str = f'{r.capitalize()} <a target="_blank" href="/search/{link_prefix}?higherTaxa={t_taxonID}&from=search">{current_str}</a>'
+                    current_str = f'{r.capitalize()} <a target="_blank" href="/search/{link_prefix}?higherTaxonID={t_taxonID}&from=search">{current_str}</a>'
                     path.append(current_str)
 
         path_str = ' > '.join(path)

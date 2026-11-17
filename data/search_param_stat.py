@@ -18,9 +18,13 @@ MONTH_ZIP_RE = re.compile(r'tbia_search_stat_(\d{4})_(\d{2})\.zip')
 EXCLUDE_KEYS = STAT_EXCLUDE_KEYS | {
     'search_location',
     'get_record',
-    'polygon', 'geojson_id', 'center_lat', 'center_lon', 'circle_radius', 'boundedBy',
+    'polygon', 'geojson_id', 'center_lat', 'center_lon', 'circle_radius', 'boundedBy', 'circle',
     'geo_type',   # 本身排除,改用展開後的 geo_type:<值>
 }
+# 3.4：網站搜尋（occ / col）的舊字串先轉成 v2 參數再統計，新舊月份的參數名稱一致；API 的紀錄維持原始參數
+NORMALIZE_LOCATIONS = {'occ', 'col'}
+# v2 沒有 geo_type，由空間參數推回原本的統計項名稱（統計表沿用 geo_type:map / circle / polygon）
+V2_GEO_KEYS = (('polygon', 'map'), ('circle', 'circle'), ('geojson_id', 'polygon'))
 GEO_TYPES = ('map', 'circle', 'polygon')
 
 COUNT_HEADER = ['search_location', 'param', 'count']
@@ -69,10 +73,12 @@ def build_month_zip(year_month):
 
     for location, query in ss.iterator():
         location = location or ''
-        qd = parse_query_string(query or '')
+        qd = parse_query_string(query or '', normalize=location in NORMALIZE_LOCATIONS)
 
         # 空間查詢方式:把 geo_type 的值展開成獨立統計項
         gt = qd.get('geo_type')
+        if gt is None:
+            gt = next((g for k, g in V2_GEO_KEYS if qd.get(k)), None)
         if gt in GEO_TYPES:
             count_data[(location, f'geo_type:{gt}')] += 1
 

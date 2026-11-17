@@ -71,6 +71,33 @@ let selectBox7 = new vanillaSelectBox("#has_image", {
     placeHolder: gettext("有無多媒體"), search: false, disableSelectAll: true,
 });
 
+// 多媒體（3.4）：「有多媒體」群組可一次勾選三種類型；「無多媒體」不能和其他選項同時選
+document.getElementById('btn-group-has_image').addEventListener('click', function (e) {
+    const li = e.target.closest('li.grouped-option');
+    if (li) {
+        if (e.target.tagName === 'B') {
+            selectBox7.checkUncheckFromParent(li);
+        }
+        e.stopPropagation();
+    }
+});
+window.prev_media = [];
+$('#has_image').on('change', function () {
+    if (window.media_lock) return
+    let cur = selectBox7.getResult() || []
+    let next = cur
+    if (cur.includes('n') && cur.length > 1) {
+        // 剛選了「無多媒體」→ 只留它；原本是「無多媒體」又選了類型 → 拿掉「無多媒體」
+        next = window.prev_media.includes('n') ? cur.filter(v => v !== 'n') : ['n']
+    }
+    window.prev_media = next
+    if (next.length !== cur.length) {
+        window.media_lock = true
+        selectBox7.setValue(next)
+        window.media_lock = false
+    }
+});
+
 let selectBox8 = new vanillaSelectBox("#higherTaxa",
     {
         search: true,
@@ -115,11 +142,11 @@ let selectBox10 = new vanillaSelectBox("#locality",
     });
 
 let selectBox11 = new vanillaSelectBox("#is_native", {
-    placeHolder: gettext("是否為原生種"), search: false, disableSelectAll: true,
+    placeHolder: gettext("原生性"), search: false, disableSelectAll: true,
 });
 
 let selectBox12 = new vanillaSelectBox("#is_protected", {
-    placeHolder: gettext("是否為保育類"), search: false, disableSelectAll: true,
+    placeHolder: gettext("保育類等級"), search: false, disableSelectAll: true,
 });
 
 let selectBox13 = new vanillaSelectBox("#county", {
@@ -883,8 +910,8 @@ $(function () {
             alert(gettext('框選失敗！請檢查經緯度格式是否正確'))
         } else if ($('input[name=center_lat]').val() > 90 | $('input[name=center_lat]').val() < -90 | $('input[name=center_lon]').val() > 180 | $('input[name=center_lon]').val() < -180) {
             alert(gettext('框選失敗！請檢查經緯度數值是否正確'))
-        } else if (!/^\d+(\.\d+)?$/.test($('#circle_radius').val().trim()) || parseFloat($('#circle_radius').val()) <= 0 || parseFloat($('#circle_radius').val()) > 25) {
-            alert(gettext('框選失敗！半徑須大於 0 且小於或等於 25 公里'))
+        } else if (!/^\d+(\.\d+)?$/.test($('#circle_radius').val().trim()) || parseFloat($('#circle_radius').val()) <= 0 || parseFloat($('#circle_radius').val()) > CIRCLE_MAX_KM) {
+            alert(gettext('框選失敗！半徑須大於 0 且小於或等於 50 公里'))
         } else {
             $('#circle_radius').val($('#circle_radius').val().trim())
             try {
@@ -1028,7 +1055,7 @@ function inithigherTaxa(what, datasize) {
     let valueProperty = "value";
     let textProperty = "text";
     let urlParams = new URLSearchParams(window.location.search);
-    let taxon_id = urlParams.get('higherTaxa')
+    let taxon_id = urlParams.get('higherTaxonID')
     let get_url = '/get_higher_taxa'
     if (taxon_id) {
         get_url += `?taxon_id=${taxon_id}`
@@ -1102,7 +1129,8 @@ function changeAction() {
     }
 
     let queryString = window.location.search;
-    let urlParams = new URLSearchParams(queryString);
+    // 網址是 v2 參數（3.4），轉成表單欄位再還原條件（見 search_params.js）
+    let urlParams = v2ToForm(new URLSearchParams(queryString));
 
     if (queryString.split('&').length > 1) {
         window.condition = queryString.substring(1)
@@ -1115,33 +1143,37 @@ function changeAction() {
         let l_list = Array();
         let tg_list = Array();
         let hb_list = Array();
+        let nat_list = Array();
+        let media_list = Array();
+        let ps_list = Array();
+        let ts_list = Array();
         let county;
 
         for (const [key, value] of entries) {
-            if (key == 'datasetName') {
+            if (key == 'tbiaDatasetID') {
                 d_list.push(value)
-            } else if (key == 'rightsHolder') {
+            } else if (key == 'sourceDatabase') {
                 r_list.push(value)
             } else if (key == 'basisOfRecord') {
                 selectBox4.setValue(value)
             } else if (key == 'taxonRank') {
                 selectBox5.setValue(value)
             } else if (key == 'has_image') {
-                selectBox7.setValue(value)
-            } else if (key == 'is_native') {
-                selectBox11.setValue(value)
-            } else if (key == 'is_protected') {
-                selectBox12.setValue(value)
+                media_list.push(value)
+            } else if (key == 'nativeness') {
+                nat_list.push(value)
+            } else if (key == 'protectedStatus') {
+                ps_list.push(value)
             } else if (key == 'county') {
                 county = value
             } else if (key == 'municipality') {
                 window.has_municipality = true
                 window.municipality = value
-            } else if (key == 'higherTaxa') {
+            } else if (key == 'higherTaxonID') {
                 console.log(value)
             } else if (key == 'taxonGroup') {
                 tg_list.push(value)
-            } else if (key == 'habitat') {
+            } else if (key == 'taxonGroupByHabitat') {
                 hb_list.push(value)
             } else if (key == 'locality') {
                 l_list.push(value)
@@ -1220,6 +1252,9 @@ function changeAction() {
         }
         if (tg_expanded.length > 0) selectBox9.setValue(tg_expanded)
         if (hb_list.length > 0) selectBox15.setValue(hb_list)
+        if (nat_list.length > 0) selectBox11.setValue(nat_list)
+        if (media_list.length > 0) { window.prev_media = media_list; selectBox7.setValue(media_list) }
+        if (ps_list.length > 0) selectBox12.setValue(ps_list)
 
         if (county) {
             selectBox13.setValue(county)
@@ -1482,7 +1517,7 @@ function submitSearch(page, from, new_click, limit, orderby, sort, push_state) {
                     }
                 }
             })
-            window.condition = form.serialize() + map_condition
+            window.condition = formToV2(form.serialize() + map_condition)  // 送出與網址都用 v2 參數（3.4）
         } else if (from == 'page') {
             // 如果是從分頁，要記錄selected columns
             $(`.occ-choice input:checked`).each(function () {

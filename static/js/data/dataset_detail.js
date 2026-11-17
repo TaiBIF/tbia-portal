@@ -505,7 +505,7 @@ function submitSearch(page = 1, from, new_click, limit, orderby, sort, push_stat
     }
 
     if (!window.condition) {
-        window.condition = 'record_type=occ&datasetName=' + $('#tbiaDatasetID').html();
+        window.condition = 'record_type=occ&tbiaDatasetID=' + $('#tbiaDatasetID').html();
     }
 
     const current_pars = new URLSearchParams(window.condition)

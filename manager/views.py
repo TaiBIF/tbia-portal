@@ -359,9 +359,10 @@ def change_manager_page(request):
             query = ''
             fd = parse_query_string(r.query)
 
-            if fd.get('from_full') == 'yes':
-                # 相容:舊紀錄把條件包在 search_str,新紀錄攤平在頂層
-                inner = parse_query_string(fd.get('search_str')) if fd.get('search_str') else fd
+            # 全站搜尋下載：舊紀錄有 from_full=yes（條件包在 search_str，parse_query_string 已攤平）；
+            # 新紀錄（只存查詢條件，3.4）以 keyword 判斷
+            if fd.get('from_full') == 'yes' or fd.get('keyword'):
+                inner = fd
 
                 if inner.get('record_type') == 'occ':
                     map_dict = map_occurrence
@@ -1236,9 +1237,9 @@ def download_partner_sensitive_report(request):
                 for s in results:
                     query = ''
                     search_dict = parse_query_string(s[2])
-                    if search_dict.get('from_full') == 'yes':
+                    if search_dict.get('from_full') == 'yes' or search_dict.get('keyword'):
                         query = '全站搜尋<br>'
-                        inner = parse_query_string(search_dict.get('search_str')) if search_dict.get('search_str') else search_dict
+                        inner = search_dict  # parse_query_string 已攤平舊的 search_str（3.4）
 
                         query += f"關鍵字：{inner.get('keyword', '')}"
                         if inner.get('record_type') == 'occ':
