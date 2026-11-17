@@ -34,7 +34,7 @@ from django.db.models import Q, Max, Sum
 from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, search_again_url, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
 from api.v1_query import SENSITIVE_COLS_V1  # [V1-API-REMOVE] 舊格式下載檔的敏感欄位名稱
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
@@ -259,9 +259,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
 
-            tmp_a = create_query_a(search_dict)
-            search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-            query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+            query_a = search_again_url(t.query, search_dict, search_prefix)
 
             query = query_a_href(query,query_a)
 
@@ -386,9 +384,7 @@ def change_manager_page(request):
                 else:
                     search_prefix = 'occurrence'
 
-                tmp_a = create_query_a(search_dict)
-                search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-                query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+                query_a = search_again_url(r.query, search_dict, search_prefix)
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
@@ -499,9 +495,7 @@ def change_manager_page(request):
                         search_prefix = 'collection'
                     else:
                         search_prefix = 'occurrence'
-                    tmp_a = create_query_a(search_dict)
-                    search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-                    query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+                    query_a = search_again_url(r.query, search_dict, search_prefix)
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
@@ -3266,9 +3260,7 @@ def sensitive_apply_info(request, query_id):
         else:
             search_prefix = 'occurrence'
 
-        tmp_a = create_query_a(search_dict)
-        search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-        query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+        query_a = search_again_url(r.query, search_dict, search_prefix)
 
         query_str = query_a_href(query,query_a)
 

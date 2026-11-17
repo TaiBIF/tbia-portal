@@ -856,6 +856,17 @@ def search_notices(qd):
     return out
 
 
+def search_again_url(raw_query, search_dict, search_prefix):
+    """「再次查詢」連結。條件有被停用（search_dict.removed）時連原始字串，
+       讓搜尋頁轉址成 v2 並跳出「已停止提供」提示；否則直接給 v2 網址"""
+    if getattr(search_dict, 'removed', None):
+        return f'/search/{search_prefix}?{raw_query}'
+    tmp_a = create_query_a(search_dict)
+    rest = search_dict.copy()
+    rest.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
+    return f'/search/{search_prefix}?' + build_query_string(rest) + tmp_a
+
+
 def create_query_a(search_dict):
     """只負責 taxonGroup 舊→新群名正規化(前端不處理這塊)。
        其餘多值參數由 build_query_string 產生。"""
