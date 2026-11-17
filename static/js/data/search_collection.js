@@ -81,6 +81,11 @@ document.getElementById('btn-group-has_image').addEventListener('click', functio
     }
 });
 window.prev_media = [];
+// setValue / empty 不會更新群組標題的勾選狀態，依子選項重新計算「有多媒體」是否勾選
+function syncMediaGroup() {
+    const child = document.querySelector('#btn-group-has_image li[data-parent]')
+    if (child) selectBox7.checkUncheckFromChild(child)
+}
 $('#has_image').on('change', function () {
     if (window.media_lock) return
     let cur = selectBox7.getResult() || []
@@ -94,6 +99,7 @@ $('#has_image').on('change', function () {
         window.media_lock = true
         selectBox7.setValue(next)
         window.media_lock = false
+        syncMediaGroup()
     }
 });
 
@@ -764,7 +770,7 @@ $(function () {
         selectBox4.empty()
         selectBox5.empty()
         $('#circle_radius').val('0.2')
-        selectBox7.empty()
+        selectBox7.empty(); syncMediaGroup()
         selectBox8.empty()
         selectBox9.empty()
         selectBox15.empty()
@@ -1213,7 +1219,7 @@ function changeAction() {
         if (tg_expanded.length > 0) selectBox9.setValue(tg_expanded)
         if (hb_list.length > 0) selectBox15.setValue(hb_list)
         if (nat_list.length > 0) selectBox11.setValue(nat_list)
-        if (media_list.length > 0) { window.prev_media = media_list; selectBox7.setValue(media_list) }
+        if (media_list.length > 0) { window.prev_media = media_list; selectBox7.setValue(media_list); syncMediaGroup() }
         if (ps_list.length > 0) selectBox12.setValue(ps_list)
         if (ts_list.length > 0) selectBox4.setValue(ts_list)
     
