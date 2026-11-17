@@ -325,7 +325,9 @@ def check_redirects():
         if r2.status_code != 200:
             errs.append(f'{loc} 狀態 {r2.status_code}')
             continue
-        warn = ' '.join(str(m) for m in (r2.context.get('common_search_warnings') or [])) if r2.context else ''
+        # shell 裡沒有 setup_test_environment，r2.context 會是 None，直接看 HTML 的提示框
+        html = r2.content.decode('utf-8', 'ignore')
+        warn = ' '.join(re.findall(r'<li>(.*?)</li>', html.split('common-search-warning-pop', 1)[1].split('</ul>', 1)[0])) if 'common-search-warning-pop' in html else ''
         for n in notices:
             if n not in warn:
                 errs.append(f'{url} 頁面沒有提示「{n}」（拿到的提示：{warn or "無"}）')
