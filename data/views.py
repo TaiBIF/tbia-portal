@@ -1482,8 +1482,6 @@ def dataset_detail(request, id):
         # 取得logo：同一 group 可能有多列 Partner（原本用 get 會 MultipleObjectsReturned），
         # 依資料集的來源資料庫對到 info 中相同 dbname 的那一項；PG dataset 仍是舊名稱（P2-2），Partner.dbname 在 8.1 前後新舊都有可能，兩邊都轉新名稱再比
         resp['rights_holder'] = to_source_database(resp['rights_holder'])  # [P2-2-REMOVE]
-        resp['tbiaPartnerID'] = get_partner_id_by_group(resp.get('group'))
-        resp['partnerName'] = get_partner_name(resp['tbiaPartnerID'])
         if resp['group'] == 'gbif':
             logo = 'GBIF-2015.png'
             link = 'https://www.gbif.org/'
