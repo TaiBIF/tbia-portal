@@ -1,11 +1,10 @@
 # 每月更新後台儀表板統計
 from manager.models import *
-import urllib.parse
 import pandas as pd
 from django.utils import timezone
 import os
 import dateutil.relativedelta
-from data.utils import source_database_map, to_source_database
+from data.utils import source_database_map, to_source_database, parse_query_string
 
 # 先找出前一個月；STAT_YEAR_MONTH=YYYY-MM 可指定月份（重跑 / 驗證用）
 now = timezone.now()
@@ -28,10 +27,10 @@ UserDownloadStat.objects.filter(year_month=current_year_month).delete()
 ss = SearchStat.objects.filter(search_location='full', created__contains=current_year_month)
 stat_list = []
 for s in ss:
-    query_dict = urllib.parse.parse_qs(s.query)
-    if query_dict.get('keyword'):
-        for k in query_dict.get('keyword'):
-            stat_list.append({'keyword': k})
+    # 4.2：已存字串統一用 parse_query_string 讀（相容舊格式 key=['A','B']）；全站搜尋只取 keyword，不需轉 v2
+    query_dict = parse_query_string(s.query or '', normalize=False)
+    for k in query_dict.getlist('keyword'):
+        stat_list.append({'keyword': k})
 
 stat_df = pd.DataFrame(stat_list)
 stat_df = stat_df.groupby(['keyword']).size().reset_index(name='count').sort_values(['count'], ascending=[False])
@@ -291,7 +290,6 @@ DataStat.objects.create(
     count = len(ss),
     type = 'ark'
 )
-
 
 # ============ 每月查詢參數統計(次數 + 值分佈,輸出 zip,並更新總表) ============
 from data.search_param_stat import build_month_zip, build_total_zip
