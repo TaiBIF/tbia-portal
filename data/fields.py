@@ -284,7 +284,7 @@ SPECIES_DOWNLOAD_COLUMNS = [
     ('family', 'family'), ('family_c', 'familyChinese'), ('genus', 'genus'), ('genus_c', 'genusChinese'),
     ('is_endemic', 'isEndemic'), ('alien_type', 'nativeness'), ('protected', 'protectedStatus'),
     ('sensitive', 'suggestedSensitiveCategory'),
-    ('cites', 'citesAppendix'), ('iucn', 'iucnCategory'), ('redlist', 'redlistCategory'),
+    ('cites', 'citesAppendix'), ('iucn', 'iucnCategory'), ('redlist', 'redListCategory'),
     ('is_fossil', 'isFossil'), ('is_terrestrial', 'isTerrestrial'), ('is_freshwater', 'isFreshwater'),
     ('is_brackish', 'isBrackish'), ('is_marine', 'isMarine'),
 ]

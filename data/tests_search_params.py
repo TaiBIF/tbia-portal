@@ -64,7 +64,9 @@ class ValueTests(unittest.TestCase):
 
     def test_habitat(self):
         d, _, _ = norm('habitat=is_marine&habitat=is_freshwater&taxonGroupByHabitat=brackish&habitat=fossil')
-        self.assertEqual(d['taxonGroupByHabitat'], ['marine', 'freshWater', 'brackish'])
+        self.assertEqual(d['taxonGroupByHabitat'], ['marine', 'freshwater', 'brackish'])
+        d, _, _ = norm('taxonGroupByHabitat=freshWater')
+        self.assertEqual(d['taxonGroupByHabitat'], ['freshwater'])
 
     def test_has_image(self):
         for old, has, mt in (('n', 'false', None), ('false', 'false', None), ('y', 'true', None),

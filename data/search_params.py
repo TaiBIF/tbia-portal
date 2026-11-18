@@ -77,7 +77,8 @@ TAXON_GROUPS = ['鳥類', '爬蟲類', '哺乳類', '甲蟲類', '魚類', '兩�
                 '蝸牛與貝類', '其他昆蟲', '蝦蟹類', '裸子植物', '被子植物', '蕨類植物', '苔蘚植物',
                 '真菌', '藻類', '病毒', '細菌']
 # 參數值 → Solr 欄位（user.html 另有 fossil，Solr 沒有對應欄位，網站與查詢都不提供）
-HABITAT_PARAM = {'terrestrial': 'is_terrestrial', 'freshWater': 'is_freshwater',
+# 11/18：freshWater → freshwater（freshwater 是一個字）；測試站 11/17～18 存下的 freshWater 也接受
+HABITAT_PARAM = {'terrestrial': 'is_terrestrial', 'freshwater': 'is_freshwater',
                  'brackish': 'is_brackish', 'marine': 'is_marine'}
 TAXON_RANKS = ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species', 'Infraspecies']
 NATIVENESS = ['native', 'naturalized', 'invasive', 'cultured']
@@ -337,6 +338,7 @@ def normalize_pairs(pairs):
     # taxonGroupByHabitat：舊值是 Solr 欄位名（is_marine）
     if 'taxonGroupByHabitat' in m:
         old = {f: p for p, f in HABITAT_PARAM.items()}
+        old['freshWater'] = 'freshwater'
         vals = [old.get(v.strip(), v.strip()) for v in m.getlist('taxonGroupByHabitat')]
         m.setlist('taxonGroupByHabitat', [v for v in _dedupe(vals) if v in HABITAT_PARAM])
 
