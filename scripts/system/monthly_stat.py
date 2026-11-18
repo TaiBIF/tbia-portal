@@ -276,9 +276,10 @@ ss = Ark.objects.filter(created__contains=current_year_month,type='data')
     
 DataStat.objects.create(
     year_month = current_year_month,
-    count = len(sq),
+    count = len(ss),
     type = 'ark'
 )
+
 
 # ============ 每月查詢參數統計(次數 + 值分佈,輸出 zip,並更新總表) ============
 from data.search_param_stat import build_month_zip, build_total_zip
