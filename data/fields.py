@@ -274,10 +274,18 @@ DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS
 DOWNLOAD_SOLR_FL_WITH_SENSITIVE = DOWNLOAD_SOLR_FL + SENSITIVE_FIELDS
 
 # 進階搜尋 物種名錄下載：從 taxa core 取的欄位（taxa 舊名），輸出時換成 v2 名稱
-SPECIES_DOWNLOAD_TAXA_FIELDS = [
-    'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'id', 'bioGroup',
-    'cites', 'iucn', 'redlist', 'protected', 'sensitive', 'alien_type', 'is_endemic',
-    'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine',
-    'kingdom', 'kingdom_c', 'phylum', 'phylum_c', 'class', 'class_c', 'order', 'order_c',
-    'family', 'family_c', 'genus', 'genus_c',
+# 3.5（11/18 定案）：物種名錄下載欄位。(taxa core 欄位, 輸出名稱)，依此順序輸出；
+# taxonID、scientificName 來自 records facet。中文別名 / 同物異名 / 誤用名不輸出（同紀錄下載）
+SPECIES_DOWNLOAD_COLUMNS = [
+    ('name_author', 'scientificNameAuthorship'), ('taxonRank', 'taxonRank'),
+    ('common_name_c', 'vernacularName'), ('bioGroup', 'taxonGroup'),
+    ('kingdom', 'kingdom'), ('kingdom_c', 'kingdomChinese'), ('phylum', 'phylum'), ('phylum_c', 'phylumChinese'),
+    ('class', 'class'), ('class_c', 'classChinese'), ('order', 'order'), ('order_c', 'orderChinese'),
+    ('family', 'family'), ('family_c', 'familyChinese'), ('genus', 'genus'), ('genus_c', 'genusChinese'),
+    ('is_endemic', 'isEndemic'), ('alien_type', 'nativeness'), ('protected', 'protectedStatus'),
+    ('sensitive', 'suggestedSensitiveCategory'),
+    ('cites', 'citesAppendix'), ('iucn', 'iucnCategory'), ('redlist', 'redlistCategory'),
+    ('is_fossil', 'isFossil'), ('is_terrestrial', 'isTerrestrial'), ('is_freshwater', 'isFreshwater'),
+    ('is_brackish', 'isBrackish'), ('is_marine', 'isMarine'),
 ]
+SPECIES_DOWNLOAD_BOOL_COLUMNS = ['isEndemic', 'isFossil', 'isTerrestrial', 'isFreshwater', 'isBrackish', 'isMarine']

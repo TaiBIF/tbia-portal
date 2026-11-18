@@ -22,7 +22,7 @@ from bson.objectid import ObjectId
 from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT, RECORDS_URL, TW_GRID_URL
 from conf.utils import scheme
 from data.utils import *
-from data.fields import SPECIES_DOWNLOAD_TAXA_FIELDS, TAXA_TO_RECORD, to_v2_field
+from data.fields import SPECIES_DOWNLOAD_COLUMNS, SPECIES_DOWNLOAD_BOOL_COLUMNS, TAXA_TO_RECORD, to_v2_field
 from data.common_search import (
     TBN_COMMON_SEARCH_URL, parse_common_query, common_to_tbia, tbia_to_common, build_common_url,
 )
@@ -691,17 +691,19 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
                     if data := resp['response']['docs']:
                         subset_taxon_list += data
             subset_taxon = pd.DataFrame(subset_taxon_list)
-            used_cols = SPECIES_DOWNLOAD_TAXA_FIELDS  # taxa core 舊名（D21），輸出時換成 v2 名稱
-            subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
-            for u in used_cols:
-                if u not in subset_taxon.keys():
-                    subset_taxon[u] = ''
-            # 整理順序
-            subset_taxon = subset_taxon[used_cols]
-            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID', **TAXA_TO_RECORD})
+            # 3.5：taxa core 舊名（D21）→ 名錄下載欄位名稱，順序依 SPECIES_DOWNLOAD_COLUMNS
+            taxa_cols = ['id'] + [c for c, _ in SPECIES_DOWNLOAD_COLUMNS]
+            for c in taxa_cols:
+                if c not in subset_taxon.keys():
+                    subset_taxon[c] = ''
+            subset_taxon = subset_taxon[taxa_cols].rename(columns={'id': 'taxonID', **dict(SPECIES_DOWNLOAD_COLUMNS)})
+            subset_taxon['taxonRank'] = subset_taxon['taxonRank'].map(lambda x: x.capitalize() if isinstance(x, str) else x)
+            # 文資法珍貴稀有植物在 taxa core 是 1（D12）
+            subset_taxon['protectedStatus'] = subset_taxon['protectedStatus'].map(lambda x: 'CHPA' if str(x) == '1' else x)
             df = df.merge(subset_taxon, how='left')
-            is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-            df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
+            df[SPECIES_DOWNLOAD_BOOL_COLUMNS] = df[SPECIES_DOWNLOAD_BOOL_COLUMNS].replace({1: 'true', 0: 'false', True: 'true', False: 'false'})
+    # 沒有資料時也輸出完整表頭
+    df = df.reindex(columns=['taxonID', 'scientificName'] + [c for _, c in SPECIES_DOWNLOAD_COLUMNS])
     csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
