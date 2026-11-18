@@ -32,16 +32,18 @@ for s in ss:
     for k in query_dict.getlist('keyword'):
         stat_list.append({'keyword': k})
 
-stat_df = pd.DataFrame(stat_list)
-stat_df = stat_df.groupby(['keyword']).size().reset_index(name='count').sort_values(['count'], ascending=[False])
+# 該月沒有全站搜尋時 groupby 會 KeyError，整支中止（後面的統計都不會產生）
+if stat_list:
+    stat_df = pd.DataFrame(stat_list)
+    stat_df = stat_df.groupby(['keyword']).size().reset_index(name='count').sort_values(['count'], ascending=[False])
 
-# 只存每個月的前十名
-for v in stat_df.values[:10]:
-    KeywordStat.objects.create(
-        keyword = v[0],
-        year_month = current_year_month,
-        count = v[1],
-    )
+    # 只存每個月的前十名
+    for v in stat_df.values[:10]:
+        KeywordStat.objects.create(
+            keyword = v[0],
+            year_month = current_year_month,
+            count = v[1],
+        )
 
 
 # 每月名錄下載次數
