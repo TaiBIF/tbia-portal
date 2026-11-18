@@ -1,14 +1,11 @@
 from conf.settings import env
+from data.fields import OCC_CARD_FIELDS, COL_CARD_FIELDS, TAXA_CARD_FIELDS
 
 SOLR_PREFIX = env('SOLR_PREFIX')
 
-occ_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName', 
-              'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
-              'rightsHolder', 'sensitiveCategory', 'locality', 'recordedBy', 'basisOfRecord', 'datasetName', 'license', 'eventDate']
-
-col_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 'sourceScientificName', 'sourceVernacularName', 'originalScientificName', 
-              'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c', 
-              'rightsHolder', 'sensitiveCategory', 'locality', 'recordedBy', 'datasetName', 'license', 'eventDate', 'typeStatus', 'preservation']
+# 全站搜尋卡片欄位定義在 data/fields.py（records 用 v2 名稱、taxa core 用舊名）
+occ_fields = OCC_CARD_FIELDS
+col_fields = COL_CARD_FIELDS
 
 
 def create_facet_list(record_type):
@@ -39,9 +36,8 @@ def create_facet_list(record_type):
 
 
 def create_taxon_facet_list():
-    taxon_fields = ['scientificName', 'common_name_c', 'alternative_name_c', 'synonyms', 'misapplied', 
-    'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'kingdom_c', 
-    'phylum_c', 'class_c', 'order_c', 'family_c', 'genus_c']
+    # taxa core 欄位（舊名，D21）
+    taxon_fields = TAXA_CARD_FIELDS
 
     facets = {}
     facets['facet'] = {}

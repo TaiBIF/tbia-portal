@@ -19,9 +19,10 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
-from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT
+from conf.settings import  MEDIA_ROOT, SOLR_PREFIX, SOLR_TIMEOUT, RECORDS_URL, TW_GRID_URL
 from conf.utils import scheme
 from data.utils import *
+from data.fields import SPECIES_DOWNLOAD_COLUMNS, SPECIES_DOWNLOAD_BOOL_COLUMNS, TAXA_TO_RECORD, to_v2_field
 from data.common_search import (
     TBN_COMMON_SEARCH_URL, parse_common_query, common_to_tbia, tbia_to_common, build_common_url,
 )
@@ -56,7 +57,7 @@ def get_geojson(request,id):
 # 全站搜尋資料分布圖
 def get_taxon_dist_init(request):
     taxon_id = request.POST.get('taxonID')
-    query_list = [f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0']
+    query_list = [f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0']
 
 
     map_query = {"query": "*:*",
@@ -89,10 +90,10 @@ def get_taxon_dist(request):
     
     if get_raw_map:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound} OR raw_location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0'] 
     else:
         query_list = [f"{{!cache=false}}location_rpt:{map_bound}"]
-        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-standardOrganismQuantity:0'] 
+        query_list += [ f'taxonID:{solr_quote(taxon_id)}','-organismQuantity:0'] 
 
     map_query = {"query": "*:*",
             "offset": 0,
@@ -137,7 +138,7 @@ def submit_sensitive_request(request):
         for nq in (QUERY_REPLAY_EXCLUDE_KEYS | SENSITIVE_FORM_FIELDS):
             req_dict.pop(nq, None)
 
-        query_string = build_query_string(req_dict)
+        query_string = canonical_query_string(req_dict)  # 3.4：只存 v2 標準形式的查詢條件
         user_id = request.user.id
         query_id = str(ObjectId())
 
@@ -209,7 +210,7 @@ def transfer_sensitive_response(request):
 
             query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
-            query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+            query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
@@ -225,7 +226,7 @@ def transfer_sensitive_response(request):
             if not query_list:
                 query.pop('filter')
 
-            response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+            response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
             group = response.json()['facets']['group']['buckets']
             groups = []
             for g in group:
@@ -339,7 +340,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list1,
-                    "fields": download_cols_with_sensitive   
+                    "fields": download_fl_with_sensitive
                 }
 
                 query2 = {
@@ -347,7 +348,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list2,  
-                    "fields": download_cols  
+                    "fields": download_fl  # 不同意的單位不取 raw 欄位，不會併入原始值
                 }
 
                 csv_folder = os.path.join(MEDIA_ROOT, 'download')
@@ -364,7 +365,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                     "offset": 0,
                     "limit": 2140000000,
                     "filter": query_list,
-                    "fields": download_cols_with_sensitive
+                    "fields": download_fl_with_sensitive
                 }
                 
                 if not query_list:
@@ -376,7 +377,9 @@ def generate_sensitive_csv(query_id, scheme, host):
                 zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
                 csv_queries = [query]
 
-            file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path)
+            # 有單位通過：檔案併入原始值（無 raw* 欄位），同時寫出公開版供永久保存使用（同一次查詢，無時間差）
+            file_done = solr_csv_to_zip(csv_queries, csv_file_path, zip_file_path, out_cols=download_cols,
+                                        public_zip_path=public_zip_path_for('sensitive', download_id))
             if not file_done:
                 raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
             sq.status = 'pass'
@@ -390,7 +393,7 @@ def generate_sensitive_csv(query_id, scheme, host):
                 "offset": 0,
                 "limit": 2140000000,
                 "filter": query_list,
-                "fields": download_cols
+                "fields": download_fl
             }
             
             if not query_list:
@@ -401,7 +404,7 @@ def generate_sensitive_csv(query_id, scheme, host):
             csv_file_path = os.path.join(csv_folder, f'{download_id}.csv')
             zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
-            file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path)
+            file_done = solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols)
             if not file_done:
                 raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')  # 交給 on_task_failed 標記失敗並通知
             sq.status = 'pass'
@@ -536,7 +539,7 @@ def flatten_download_req(req_dict):
 
 def create_download_query(req_dict, user_id, sq_type):
     req_dict, user_stat = flatten_download_req(req_dict)
-    query_string = build_query_string(req_dict)
+    query_string = canonical_query_string(req_dict)  # 3.4：只存 v2 標準形式的查詢條件（分頁、表單欄位等不存）
 
     current_personal_id = SearchQuery.objects.filter(user_id=user_id,type=sq_type).aggregate(Max('personal_id'))
     current_personal_id = current_personal_id.get('personal_id__max') + 1 if current_personal_id.get('personal_id__max') else 1
@@ -573,9 +576,9 @@ def generate_download_csv(post_str, user_id, scheme, host, query_id):
     download_id = f"tbia_{query_id}"
 
     if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols_with_sensitive
+        fl_cols, public_zip = download_fl_with_sensitive, public_zip_path_for('record', download_id)
     else:
-        fl_cols = download_cols
+        fl_cols, public_zip = download_fl, None
 
     get_raw_map = if_raw_map(user_id)
 
@@ -597,7 +600,7 @@ def generate_download_csv(post_str, user_id, scheme, host, query_id):
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
     # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
-    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols, public_zip_path=public_zip):
         raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
@@ -670,7 +673,7 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
 
     df = pd.DataFrame(columns=['taxonID','scientificName'])
 
-    response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     if response.json()['facets']['count']:
         data = response.json()['facets']['scientificName']['buckets']
         for d in data:
@@ -688,19 +691,19 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
                     if data := resp['response']['docs']:
                         subset_taxon_list += data
             subset_taxon = pd.DataFrame(subset_taxon_list)
-            used_cols = ['common_name_c','alternative_name_c','synonyms','misapplied','id','bioGroup','cites','iucn','redlist','protected','sensitive','alien_type','is_endemic',
-                        'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine',
-                        'kingdom','kingdom_c','phylum','phylum_c','class','class_c','order','order_c','family','family_c','genus','genus_c']
-            subset_taxon = subset_taxon[[u for u in used_cols if u in subset_taxon.keys()]]
-            for u in used_cols:
-                if u not in subset_taxon.keys():
-                    subset_taxon[u] = ''
-            # 整理順序
-            subset_taxon = subset_taxon[used_cols]
-            subset_taxon = subset_taxon.rename(columns={'id': 'taxonID'})
+            # 3.5：taxa core 舊名（D21）→ 名錄下載欄位名稱，順序依 SPECIES_DOWNLOAD_COLUMNS
+            taxa_cols = ['id'] + [c for c, _ in SPECIES_DOWNLOAD_COLUMNS]
+            for c in taxa_cols:
+                if c not in subset_taxon.keys():
+                    subset_taxon[c] = ''
+            subset_taxon = subset_taxon[taxa_cols].rename(columns={'id': 'taxonID', **dict(SPECIES_DOWNLOAD_COLUMNS)})
+            subset_taxon['taxonRank'] = subset_taxon['taxonRank'].map(lambda x: x.capitalize() if isinstance(x, str) else x)
+            # 文資法珍貴稀有植物在 taxa core 是 1（D12）
+            subset_taxon['protectedStatus'] = subset_taxon['protectedStatus'].map(lambda x: 'CHPA' if str(x) == '1' else x)
             df = df.merge(subset_taxon, how='left')
-            is_list = ['is_endemic', 'is_fossil', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
-            df[is_list] = df[is_list].replace({1: 'true', 0: 'false'})
+            df[SPECIES_DOWNLOAD_BOOL_COLUMNS] = df[SPECIES_DOWNLOAD_BOOL_COLUMNS].replace({1: 'true', 0: 'false', True: 'true', False: 'false'})
+    # 沒有資料時也輸出完整表頭
+    df = df.reindex(columns=['taxonID', 'scientificName'] + [c for _, c in SPECIES_DOWNLOAD_COLUMNS])
     csv_folder = os.path.join(MEDIA_ROOT, 'download')
     csv_folder = os.path.join(csv_folder, 'taxon')
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
@@ -743,17 +746,23 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
         return
     req_dict, _ = flatten_download_req(QueryDict(post_str))
 
-    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
-        fl_cols = download_cols_with_sensitive
-    else:
-        fl_cols = download_cols
-
     download_id = f"tbia_{query_id}"
+
+    if User.objects.filter(id=user_id).filter(Q(is_partner_account=True,partner__is_collaboration=False)|Q(is_partner_admin=True,partner__is_collaboration=False)|Q(is_system_admin=True)).exists():
+        fl_cols, public_zip = download_fl_with_sensitive, public_zip_path_for('record', download_id)
+    else:
+        fl_cols, public_zip = download_fl, None
 
     keyword = req_dict.get('keyword', '')
     key = req_dict.get('key', '')
     value = req_dict.get('value', '')
     record_type = req_dict.get('record_type', 'occ')
+
+    # [COMPAT-KEEP] 已存的下載條件可能是 v1 欄位名稱（例 common_name_c、rightsHolder），換成 v2
+    key = to_v2_field(key)
+    if key == 'sourceDatabase':
+        value = to_source_database(value)
+
     scientific_name = req_dict.get('scientific_name', '')
 
     # only facet selected field
@@ -787,8 +796,8 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
         sq.modified = timezone.now()
         sq.save()
         return
-    if key == 'sourceScientificName': # 若前後有<i>也算進去
-        q = rf'sourceScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
+    if key == 'verbatimScientificName': # 若前後有<i>也算進去
+        q = rf'verbatimScientificName: (/.*[<i>]{escape_solr_query(value)}[<\/i>].*/ OR {solr_quote(value)})'
     else:
         fq_list.append(f'{key}:{solr_quote(value)}')
     if scientific_name and scientific_name != 'undefined':
@@ -810,7 +819,7 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
     zip_file_path = os.path.join(csv_folder, f'{download_id}.zip')
 
     # 等待檔案完成；失敗就丟出例外，交給 on_task_failed 標記 fail 並通知使用者與管理員
-    if not solr_csv_to_zip([query], csv_file_path, zip_file_path):
+    if not solr_csv_to_zip([query], csv_file_path, zip_file_path, out_cols=download_cols, public_zip_path=public_zip):
         raise RuntimeError(f'Solr 匯出失敗：{zip_file_path}')
 
     # 儲存到下載統計
@@ -857,6 +866,12 @@ def get_records(request): # 全站搜尋
         value = request.POST.get('value', '')
         record_type = request.POST.get('record_type', '')
         scientific_name = request.POST.get('scientific_name', '')
+        # key 是 records 欄位名稱：相容舊 key（[COMPAT-KEEP]），並避免組出任意查詢
+        key = to_v2_field(key)
+        if not re.fullmatch(r'\w+', key or ''):
+            return HttpResponse(json.dumps({'message': 'invalid key'}), content_type='application/json', status=400)
+        if key == 'sourceDatabase':
+            value = to_source_database(value)
         limit = to_int(request.POST.get('limit'), -1)
         page = to_int(request.POST.get('page'), 1)
         user_id = request.user.id if request.user.id else 0
@@ -914,24 +929,7 @@ def get_records(request): # 全站搜尋
         if scientific_name and scientific_name != 'undefined':
             fq_list.append(f'scientificName:{solr_quote(scientific_name)}')
 
-        if orderby == 'eventDate':
-            solr_orderby = 'standardDate' + ' ' + sort
-        elif orderby == 'organismQuantity':
-            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
-        elif orderby == 'verbatimLatitude':
-            if if_raw_map(user_id):
-                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLatitude' + ' ' + sort
-        elif orderby == 'verbatimLongitude':
-            if if_raw_map(user_id):
-                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLongitude' + ' ' + sort
-        elif orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
-            solr_orderby = orderby + ' ' + sort
-        else:
-            solr_orderby = 'scientificName ' + sort
+        solr_orderby = records_sort(orderby, sort, if_raw_map(user_id), map_dict) or f'scientificName {sort}'
 
         query = {
             "query": q,
@@ -944,14 +942,14 @@ def get_records(request): # 全站搜尋
         if not fq_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         response = response.json()
         docs = pd.DataFrame(response['response']['docs'])
 
         docs = docs.replace({np.nan: ''})
         docs = docs.replace({'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str, request.POST.get('has_image'))
+        rows = create_data_table(docs, user_id, obv_str, request.POST.get('mediaType'))
 
         current_page = offset / 10 + 1
         total_page = math.ceil(limit / 10)
@@ -960,7 +958,7 @@ def get_records(request): # 全站搜尋
         if request.POST.getlist('selected_col'):
             selected_col = request.POST.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c','recordedBy','rightsHolder','associatedMedia']
+            selected_col = ['scientificName','vernacularName','alternative_name_c','recordedBy','sourceDatabase','associatedMedia']
 
         if orderby not in selected_col:
             selected_col.append(orderby)
@@ -1105,8 +1103,8 @@ def get_more_cards(request):
 
 def search_dataset(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
 
     return render(request, 'data/search_dataset.html', {'holder_list': holder_list})
@@ -1123,6 +1121,8 @@ def get_conditional_dataset(request):
         # 安全防護：對 orderby 與 sort 進行白名單過濾
         orderby = req_dict.get('orderby', 'name')
         allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'rights_holder', 'downloadCount'}
+        if orderby == 'sourceDatabase':  # 前端用 v2 名稱，PG 欄位仍是 rights_holder [P2-2-REMOVE]
+            orderby = 'rights_holder'
         if orderby not in allowed_columns:
             orderby = 'name' # 若傳入不合法欄位，強制設為預設值
             
@@ -1138,7 +1138,8 @@ def get_conditional_dataset(request):
         query_params = [] # 用來存放參數化查詢的參數
 
         # taxonGroup
-        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        # 3.4：參數名同 Dataset API（datasetTaxonGroup / datasetName / sourceDatabase），舊名稱也接受
+        taxon_vals_raw = req_dict.getlist('datasetTaxonGroup') or req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
             for tv in taxon_vals_raw:
@@ -1157,20 +1158,21 @@ def get_conditional_dataset(request):
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName (改成 case-insensitive 的 ILIKE，並參數化)
-        if name := req_dict.get('name'):
+        if name := (req_dict.get('datasetName') or req_dict.get('name')):
             query_list.append('''"name" ILIKE %s''')
             query_params.append(f'%{name}%')
 
         # rightsHolder (參數化)
-        if holders := req_dict.getlist('rightsHolder'):
+        if holders := (req_dict.getlist('sourceDatabase') or req_dict.getlist('rightsHolder')):
             holder_clauses = []
             for h in holders:
-                holder_clauses.append('''"rights_holder" = %s''')
-                query_params.append(h)
+                for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
+                    holder_clauses.append('''"rights_holder" = %s''')
+                    query_params.append(alias)
             query_list.append(f"({' OR '.join(holder_clauses)})")
 
 
-        query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount" FROM dataset'
+        query = 'SELECT "tbiaDatasetID", "name", "occurrenceCount", "datasetDateStart", "datasetDateEnd", "rights_holder" AS "sourceDatabase", "downloadCount", "group" FROM dataset'
         count_query = 'SELECT count(*) FROM dataset'
 
         if len(query_list):
@@ -1194,8 +1196,12 @@ def get_conditional_dataset(request):
             cursor.execute(query, query_params)
             results = cursor.fetchall()
             df = pd.DataFrame(results, columns=["tbiaDatasetID", "name", "occurrenceCount",
-                                                 "datasetDateStart", "datasetDateEnd", "rights_holder", "downloadCount"])
-            
+                                                 "datasetDateStart", "datasetDateEnd", "sourceDatabase", "downloadCount", "group"])
+            df['sourceDatabase'] = df['sourceDatabase'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+            # 夥伴單位：dataset 只有 group，靠 Partner 帶出 tbiaPartnerID 與名稱
+            df['tbiaPartnerID'] = df['group'].map(get_partner_id_by_group)
+            df['partnerName'] = df['tbiaPartnerID'].map(get_partner_name)
+            df = df.drop(columns=['group'])
 
         current_page = offset / limit + 1
         total_page = math.ceil(total_count / limit)
@@ -1226,6 +1232,8 @@ def download_dataset_results(request):
         allowed_columns = {'tbiaDatasetID', 'name', 'occurrenceCount', 'datasetDateStart',
                         'datasetDateEnd', 'rights_holder', 'downloadCount'}
         orderby = req_dict.get('orderby', 'name')
+        if orderby == 'sourceDatabase':  # 前端用 v2 名稱，PG 欄位仍是 rights_holder [P2-2-REMOVE]
+            orderby = 'rights_holder'
 
         if orderby not in allowed_columns:
             orderby = 'name'
@@ -1237,7 +1245,8 @@ def download_dataset_results(request):
         query_params = []   # 參數化用
 
         # taxonGroup
-        taxon_vals_raw = req_dict.getlist('taxonGroup')
+        # 3.4：參數名同 Dataset API（datasetTaxonGroup / datasetName / sourceDatabase），舊名稱也接受
+        taxon_vals_raw = req_dict.getlist('datasetTaxonGroup') or req_dict.getlist('taxonGroup')
         if taxon_vals_raw:
             expanded = []
             for tv in taxon_vals_raw:
@@ -1253,23 +1262,27 @@ def download_dataset_results(request):
             query_list.append('({})'.format(' OR '.join(like_clauses)))
 
         # datasetName
-        if name := req_dict.get('name'):
+        if name := (req_dict.get('datasetName') or req_dict.get('name')):
             query_list.append('"name" like %s')
             query_params.append(f'%{name}%')
 
         # rightsHolder
-        if holders := req_dict.getlist('rightsHolder'):
+        if holders := (req_dict.getlist('sourceDatabase') or req_dict.getlist('rightsHolder')):
             holder_clauses = []
             for h in holders:
-                holder_clauses.append('"rights_holder" = %s')
-                query_params.append(h)
+                for alias in source_database_aliases(h):  # [P2-2-REMOVE] PG dataset 仍是舊名稱
+                    holder_clauses.append('"rights_holder" = %s')
+                    query_params.append(alias)
             query_list.append('({})'.format(' OR '.join(holder_clauses)))
 
-        dataset_download_cols = ["datasetName","rightsHolder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
+        # 欄位名稱同 v2（3.3）：PG dataset 仍是舊名稱，用 SQL 別名輸出（[P2-2-REMOVE] 之後改欄位名即可）；
+        # created / modified 同紀錄下載格式 YYYYMMDD HHMMSS；tbiaPartnerID、partnerName 由 group 對 Partner 帶入
+        dataset_download_cols = ["datasetName","sourceDatabase","tbiaPartnerID","partnerName","tbiaDatasetID","datasetID","gbifDatasetID","resourceContacts",
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","resourceCitationIdentifier","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
-        query = '''SELECT "name","rights_holder","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
-                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup","created", "modified" FROM dataset'''
+        query = '''SELECT "name","rights_holder","group","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
+                        "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup",
+                        TO_CHAR("created", 'YYYYMMDD HH24MISS'), TO_CHAR("modified", 'YYYYMMDD HH24MISS') FROM dataset'''
 
         if len(query_list):
             query += ' WHERE ' + (' AND ').join(query_list)
@@ -1278,12 +1291,17 @@ def download_dataset_results(request):
         # orderby/sort 已白名單，直接內插安全
         query += ' ORDER BY "{}" {}'.format(orderby, sort)
 
-        df = pd.DataFrame(columns=dataset_download_cols)
+        pg_cols = ["datasetName","sourceDatabase","group","tbiaDatasetID","datasetID","gbifDatasetID","resourceContacts",
+                   "occurrenceCount","datasetDateStart","datasetDateEnd","resourceCitationIdentifier","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
 
         with datahub_conn() as conn, conn.cursor() as cursor:
             cursor.execute(query, query_params)   # ← 傳入參數
             results = cursor.fetchall()
-            df = pd.DataFrame(results, columns=dataset_download_cols)
+            df = pd.DataFrame(results, columns=pg_cols)
+        df['sourceDatabase'] = df['sourceDatabase'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
+        df['tbiaPartnerID'] = df['group'].map(get_partner_id_by_group)
+        df['partnerName'] = df['tbiaPartnerID'].map(lambda x: get_partner_name(x, 'zh'))
+        df = df[dataset_download_cols]
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] =  f'attachment; filename=tbia_dataset_{now.strftime("%Y%m%d%H%M%s")}.csv'
@@ -1310,19 +1328,37 @@ def get_media_rule():
     return results
 
 
+def redirect_to_v2_params(request):
+    """搜尋頁入口：參數不是 v2 標準形式就轉址；被移除 / 轉換的條件以 messages 帶到下一頁顯示"""
+    normalized = normalize_search_params(request.GET)
+    if normalized.urlencode() == request.GET.urlencode():
+        return None
+    for text in search_notices(normalized):
+        messages.warning(request, text, extra_tags='common_search')
+    return redirect(f'{request.path}?{normalized.urlencode()}')
+
+
 def search_collection(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    # [COMPAT-KEEP] 舊網址 / 書籤 / 再次查詢帶舊參數（3.4）時轉成 v2 並轉址，讓網址、表單、查詢條件一致；
+    # 已停止提供的條件會被移除，轉址後在頁面上提示
+    if resp := redirect_to_v2_params(request):
+        return resp
+
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0&fq=recordType:col', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species')]
+    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species'), ('種下', 'Infraspecies')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
     user_stat_options = UserDownloadStat.option_choice
     affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
     role_options = [u for u in user_stat_options if u[0].startswith('b')]
     purpose_options = [u for u in user_stat_options if u[0].startswith('c')]
 
+    common_search_warnings = [m.message for m in messages.get_messages(request) if 'common_search' in m.tags]
+
     response = render(request, 'data/search_collection.html', {'holder_list': holder_list, #'sensitive_list': sensitive_list,
+        'common_search_warnings': common_search_warnings,
         'rank_list': rank_list, 'county_list': county_list,
         'affiliation_options': affiliation_options,
         'role_options': role_options,
@@ -1339,10 +1375,15 @@ def search_collection(request):
     
 def search_occurrence(request):
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-    f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+    # [COMPAT-KEEP] 舊網址 / 書籤 / 再次查詢帶舊參數（3.4）時轉成 v2 並轉址，讓網址、表單、查詢條件一致；
+    # 已停止提供的條件會被移除，轉址後在頁面上提示
+    if resp := redirect_to_v2_params(request):
+        return resp
+
+    response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+    f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
     holder_list = [f_list[x] for x in range(0, len(f_list),2)]
-    rank_list = [('界', 'kingdom'), ('門', 'phylum'), ('綱', 'class'), ('目', 'order'), ('科', 'family'), ('屬', 'genus'), ('種', 'species'), ('種下', 'sub')]
+    rank_list = [('界', 'Kingdom'), ('門', 'Phylum'), ('綱', 'Class'), ('目', 'Order'), ('科', 'Family'), ('屬', 'Genus'), ('種', 'Species'), ('種下', 'Infraspecies')]
     county_list = Municipality.objects.filter(municipality__isnull=True).order_by('order').values('county','county_en').distinct()
     user_stat_options = UserDownloadStat.option_choice
     affiliation_options = [u for u in user_stat_options if u[0].startswith('a')]
@@ -1440,17 +1481,33 @@ def dataset_detail(request, id):
 
         resp['datasetTaxonStat'] = new_taxon_stat
             
-        # 取得logo
+        # 取得logo：同一 group 可能有多列 Partner（原本用 get 會 MultipleObjectsReturned），
+        # 依資料集的來源資料庫對到 info 中相同 dbname 的那一項；PG dataset 仍是舊名稱（P2-2），Partner.dbname 在 8.1 前後新舊都有可能，兩邊都轉新名稱再比
+        resp['rights_holder'] = to_source_database(resp['rights_holder'])  # [P2-2-REMOVE]
         if resp['group'] == 'gbif':
             logo = 'GBIF-2015.png'
             link = 'https://www.gbif.org/'
             dataset_prefix = 'https://www.gbif.org/dataset/'
-        elif partner := Partner.objects.get(group=resp['group']):
-            logo = 'partner/' + partner.logo
-            for ii in partner.info:
-                if ii.get('dbname') == resp['rights_holder']:
-                    link = ii.get('link')
-                    dataset_prefix = ii.get('dataset_prefix')
+        else:
+            partners = list(Partner.objects.filter(group=resp['group']).order_by('id'))
+            matched = None
+            for partner in partners:
+                for ii in partner.info or []:
+                    if to_source_database(ii.get('dbname', '')) == resp['rights_holder']:
+                        matched = (partner, ii)
+                        break
+                if matched:
+                    break
+            if matched:
+                partner, ii = matched
+                link = ii.get('link')
+                dataset_prefix = ii.get('dataset_prefix')
+            elif partners:
+                partner = partners[0]
+            else:
+                partner = None
+            if partner:
+                logo = 'partner/' + partner.logo
 
 
     response = render(request, 'data/dataset_detail.html', {'logo': logo, 'link': link, 'resp': resp, 'dataset_prefix': dataset_prefix,
@@ -1475,7 +1532,7 @@ def get_map_grid(request):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=get_raw_map)
 
-        map_query_list = query_list + ['-standardOrganismQuantity:0']
+        map_query_list = query_list + ['-organismQuantity:0']
         map_bound = check_map_bound(req_dict.get('map_bound'))
 
         if req_dict.get('from') == 'datagap':
@@ -1505,7 +1562,7 @@ def get_map_grid(request):
             query.pop('filter')
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=grid)
@@ -1569,7 +1626,7 @@ def get_tw_grid(request):
             query.pop('filter')
 
         query_req = json.dumps(query)
-        response = requests.post(f'{SOLR_PREFIX}tw_grid/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{TW_GRID_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         map_geojson = get_map_geojson(data_c=resp['facets'][facet_grid]['buckets'], grid=5)
@@ -1633,7 +1690,7 @@ def get_conditional_records(request):
         if req_dict.getlist('selected_col'):
             selected_col = req_dict.getlist('selected_col')
         else:
-            selected_col = ['scientificName','common_name_c','alternative_name_c', 'recordedBy', 'eventDate','associatedMedia']
+            selected_col = ['scientificName','vernacularName','alternative_name_c', 'recordedBy', 'verbatimEventDate','associatedMedia']
 
         if orderby and orderby not in selected_col:
             selected_col.append(orderby)
@@ -1653,23 +1710,8 @@ def get_conditional_records(request):
 
         selected_grid_text = return_selected_grid_text(req_dict=req_dict, map_dict=map_dict)
 
-        if orderby == 'eventDate':
-            solr_orderby = 'standardDate' + ' ' + sort
-        elif orderby == 'organismQuantity':
-            solr_orderby =  'standardOrganismQuantity' + ' ' + sort
-        elif orderby == 'verbatimLatitude':
-            if get_raw_map:
-                solr_orderby = 'standardRawLatitude' + ' ' + sort + ',' +  'standardLatitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLatitude' + ' ' + sort
-        elif orderby == 'verbatimLongitude':
-            if get_raw_map:
-                solr_orderby = 'standardRawLongitude' + ' ' + sort + ',' +  'standardLongitude' + ' ' + sort 
-            else:
-                solr_orderby = 'standardLongitude' + ' ' + sort
-        elif orderby and orderby in map_dict and orderby not in ['associatedMedia', 'habitat']:
-            solr_orderby = orderby + ' ' + sort
-        else:
+        solr_orderby = records_sort(orderby, sort, get_raw_map, map_dict)
+        if not solr_orderby:
             name_kw = req_dict.get('name', '')
             if not orderby and name_kw:
                 # 與 create_search_query 的 name 正規化保持一致
@@ -1678,7 +1720,7 @@ def get_conditional_records(request):
                 is_chinese = any('\u4e00' <= c <= '\u9fff' for c in name_kw)
                 if is_chinese:
                     solr_orderby = (
-                        f'query({{!lucene v=\'common_name_c:"{esc}"\'}}) desc,'
+                        f'query({{!lucene v=\'vernacularName:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'alternative_name_c:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'synonyms:"{esc}"\'}}) desc,'
                         f'query({{!lucene v=\'misapplied:"{esc}"\'}}) desc,'
@@ -1720,7 +1762,7 @@ def get_conditional_records(request):
         # 如果是夥伴單位 / 系統管理員 帳號，disable敏感資料申請按鈕
         if not get_raw_map:
             query['facet']['has_sensitive'] =  {
-                            "q": "standardRawLatitude:*",
+                            "q": "rawDecimalLatitude:*",
                             "type": "query",
                         }
 
@@ -1729,7 +1771,7 @@ def get_conditional_records(request):
 
         query_req = json.dumps(query)
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         resp = response.json()
 
         count = resp['response']['numFound']
@@ -1748,7 +1790,7 @@ def get_conditional_records(request):
         docs = pd.DataFrame(response.json()['response']['docs'])
         docs = docs.replace({np.nan: '', 'nan': ''})
 
-        rows = create_data_table(docs, user_id, obv_str, req_dict.get('has_image'))
+        rows = create_data_table(docs, user_id, obv_str, normalize_search_params(req_dict).get('mediaType'))
 
         current_page = offset / limit + 1
         total_page = math.ceil(count / limit)
@@ -1756,8 +1798,8 @@ def get_conditional_records(request):
 
         if req_dict.get('from') == 'search':
 
-            # 搜尋紀錄：排除規則統一由 build_stat_query_string / STAT_EXCLUDE_KEYS 處理
-            query_string = build_stat_query_string(req_dict)
+            # 搜尋紀錄：v2 標準形式＋查詢條件白名單（3.4）
+            query_string = canonical_query_string(req_dict)
 
             run_light(background_search_stat, query_list,record_type,query_string)
 
@@ -1799,7 +1841,9 @@ def change_dataset(request):
 
     elif holder := request.GET.getlist('holder'): # 有指定rightsHolder
         for h in holder:
-            params = base + [('rows', 20), ('fq', f'rights_holder:{solr_quote(h)}')] + record_type
+            # [P2-2-REMOVE] dataset core 仍是舊名稱，新舊名稱都比對
+            h_fq = ' OR '.join(solr_quote(a) for a in source_database_aliases(h))
+            params = base + [('rows', 20), ('fq', f'rights_holder:({h_fq})')] + record_type
             response = requests.get(ds_url, params=params, timeout=SOLR_TIMEOUT)
             d_list = response.json()['response']['docs']
 
@@ -1812,7 +1856,7 @@ def change_dataset(request):
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
             if l.get('is_duplicated_name'):
-                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+                ds.append({'text': l['name'] + ' ({})'.format(to_source_database(l['rights_holder'])), 'value': l['tbiaDatasetID']})
             else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
@@ -1903,7 +1947,8 @@ def get_dataset(request):
     h_str = []
     if rights_holder:
         # 多個來源資料庫也逐一加引號（原本未加引號，名稱含空白時會比對錯誤）
-        h_str = [('fq', f'rights_holder:({" OR ".join(solr_quote(h) for h in rights_holder)})')]
+        # [P2-2-REMOVE] dataset core 仍是舊名稱，新舊名稱都比對
+        h_str = [('fq', f'rights_holder:({" OR ".join(solr_quote(a) for h in rights_holder for a in source_database_aliases(h))})')]
 
     record_type = []
     if request.GET.get('record_type') == 'col':
@@ -1922,7 +1967,7 @@ def get_dataset(request):
     for l in d_list:
         if l['name'] not in [d['text'] for d in ds]:
             if l.get('is_duplicated_name'):
-                ds.append({'text': l['name'] + ' ({})'.format(l['rights_holder']), 'value': l['tbiaDatasetID']})
+                ds.append({'text': l['name'] + ' ({})'.format(to_source_database(l['rights_holder'])), 'value': l['tbiaDatasetID']})
             else:
                 ds.append({'text': l['name'], 'value': l['tbiaDatasetID']})
 
@@ -2187,7 +2232,7 @@ def background_submit_sensitive_request(project_type, req_dict, query_id):
         query_list = create_search_query(req_dict=req_dict, get_raw_map=True)
 
         # 抓出所有單位
-        query = { "query": "standardRawLatitude:*",
+        query = { "query": "rawDecimalLatitude:*",
                     "offset": 0,
                     "limit": 0,
                     "filter": query_list,
@@ -2202,7 +2247,7 @@ def background_submit_sensitive_request(project_type, req_dict, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         groups = []
         if  response.json()['facets'].get('group'):
             group = response.json()['facets']['group']['buckets']
@@ -2259,7 +2304,7 @@ def get_taxon_by_region(request):
     query_list = []
     if bioGroup := request.GET.get('bioGroup'):
         groups = split_group_map.get(bioGroup, [bioGroup])
-        query_list.append(f'bioGroup:({" OR ".join(solr_quote(g) for g in groups)})')
+        query_list.append(f'taxonGroup:({" OR ".join(solr_quote(g) for g in groups)})')
 
     if is_in_taiwan == 'yes':
         query_list.append('is_in_taiwan:true')
@@ -2294,7 +2339,7 @@ def get_taxon_by_region(request):
 
     query_req = json.dumps(query)
 
-    resp = requests.post(f'{SOLR_PREFIX}tbia_records/select?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+    resp = requests.post(f'{RECORDS_URL}?', data=query_req, headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
     resp = resp.json()
     taxon_ids = [r['val'] for r in resp['facets']['taxonID']['buckets']]
 

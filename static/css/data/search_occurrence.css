@@ -467,12 +467,14 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* 隱藏 span（開合 toggle）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option>span {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>span,
+#btn-group-has_image .vsb-menu li.grouped-option>span {
     display: none !important;
 }
 
 /* <i> 改成和 ::before checkbox 一樣的樣式 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option>i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>i,
+#btn-group-has_image .vsb-menu li.grouped-option>i {
     display: inline-block !important;
     float: none !important;
     margin-left: 0 !important;
@@ -488,7 +490,8 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* checked 時和 active::before 一樣用 checkmark.svg + 綠底 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i,
+#btn-group-has_image .vsb-menu li.grouped-option.checked>i {
     background: url("/static/image/checkmark.svg") no-repeat center !important;
     background-color: #76A578 !important;
     background-size: 70% !important;
@@ -496,24 +499,28 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* 拿掉原本的 ::after border-trick（會跑到框外）*/
-#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i::after {
+#btn-group-taxonGroup .vsb-menu li.grouped-option.checked>i::after,
+#btn-group-has_image .vsb-menu li.grouped-option.checked>i::after {
     display: none !important;
 }
 
 /* <b> 位置對齊 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option>b {
+#btn-group-taxonGroup .vsb-menu li.grouped-option>b,
+#btn-group-has_image .vsb-menu li.grouped-option>b {
     transform: none !important;
     margin-left: 6px !important;
     font-size: 14px !important;
 }
 
 /* 子項目縮排 */
-#btn-group-taxonGroup .vsb-menu li[data-parent] {
+#btn-group-taxonGroup .vsb-menu li[data-parent],
+#btn-group-has_image .vsb-menu li[data-parent] {
     padding-left: 26px !important;
 }
 
 /* optgroup label 背景 */
-#btn-group-taxonGroup .vsb-menu li.grouped-option {
+#btn-group-taxonGroup .vsb-menu li.grouped-option,
+#btn-group-has_image .vsb-menu li.grouped-option {
     font-weight: 600;
     color: #3F5146;
     background: #f2f5f2;

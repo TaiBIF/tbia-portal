@@ -40,6 +40,22 @@
 {% endblock %}
 {% block body %}
     {% csrf_token %}
+    {% if common_search_warnings %}
+    <!--查詢條件提示popbox（已停用條件、舊網址轉換）-->
+    <div class="popbg common-search-warning-pop">
+        <div class="ovhy">
+            <div class="wbox_center">
+                <div class="xx"></div>
+                <div class="titlegreen">{% trans '查詢參數警告' %}</div>
+                <div class="p-10px">
+                    <ul>
+                        {% for message in common_search_warnings %}<li>{{ message }}</li>{% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     <!--使用者統計popbox-->
     <div class="popbg user-stat-pop d-none" id="userStatModal">
         <div class="ovhy">
@@ -183,20 +199,26 @@
                                     </select>
                                 </div>
                                 <div class="input_item">
-                                    <select id="habitat" name="habitat" multiple>
-                                        <option value="is_terrestrial">{% trans "陸域" %}</option>
-                                        <option value="is_freshwater">{% trans "淡水" %}</option>
-                                        <option value="is_brackish">{% trans "半鹹水" %}</option>
-                                        <option value="is_marine">{% trans "海洋" %}</option>
+                                    <select id="habitat" name="taxonGroupByHabitat" multiple>
+                                        <option value="terrestrial">{% trans "陸域" %}</option>
+                                        <option value="freshwater">{% trans "淡水" %}</option>
+                                        <option value="brackish">{% trans "半鹹水" %}</option>
+                                        <option value="marine">{% trans "海洋" %}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="two_input">
                                 <div class="input_item">
-                                    <select name="typeStatus" id="typeStatus">
-                                        <option value="">{% trans '-- 不限 --' %}</option>
-                                        <option value="一般">{% trans '一般' %}</option>
-                                        <option value="模式">{% trans '模式' %}</option>
+                                    <select name="typeStatus" id="typeStatus" multiple>
+                                        <option value="HOLOTYPE">{% trans '正模標本' %}</option>
+                                        <option value="PARATYPE">{% trans '副模標本' %}</option>
+                                        <option value="ISOTYPE">{% trans '複模標本' %}</option>
+                                        <option value="ALLOTYPE">{% trans '配模標本' %}</option>
+                                        <option value="SYNTYPE">{% trans '總模標本' %}</option>
+                                        <option value="LECTOTYPE">{% trans '選模標本' %}</option>
+                                        <option value="PARALECTOTYPE">{% trans '副選模標本' %}</option>
+                                        <option value="NEOTYPE">{% trans '新模標本' %}</option>
+                                        <option value="TOPOTYPE">{% trans '模式地標本' %}</option>
                                     </select>
                                 </div>
                                 <div class="input_item">
@@ -210,40 +232,43 @@
                             </div>
                             <div class="two_input">
                                 <div class="input_item input-100">
-                                    <select id="higherTaxa" name="higherTaxa"></select>
+                                    <select id="higherTaxa" name="higherTaxonID"></select>
                                 </div>
                             </div>
                             <div class="two_input">
                                 <div class="input_item">
-                                    <select name="is_native" id="is_native">
-                                        <option value="">{% trans '-- 不限 --' %}</option>
-                                        <option value="y">{% trans '是' %}</option>
-                                        <option value="n">{% trans '否' %}</option>
+                                    <select name="nativeness" id="is_native" multiple>
+                                        <option value="native">{% trans '原生' %}</option>
+                                        <option value="naturalized">{% trans '歸化' %}</option>
+                                        <option value="invasive">{% trans '入侵' %}</option>
+                                        <option value="cultured">{% trans '栽培豢養' %}</option>
                                     </select>
                                 </div>
                                 <div class="input_item">
-                                    <select name="is_protected" id="is_protected">
-                                        <option value="">{% trans '-- 不限 --' %}</option>
-                                        <option value="y">{% trans '是' %}</option>
-                                        <option value="n">{% trans '否' %}</option>
+                                    <select name="protectedStatus" id="is_protected" multiple>
+                                        <option value="I">{% trans '第 I 級（瀕臨絕種）' %}</option>
+                                        <option value="II">{% trans '第 II 級（珍貴稀有）' %}</option>
+                                        <option value="III">{% trans '第 III 級（其他應予保育）' %}</option>
+                                        <option value="CHPA">{% trans '文化資產保存法珍貴稀有植物' %}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="two_input">
                                 <div class="input_item">
-                                    <select name="rightsHolder" id="rightsHolder" multiple size="1">
+                                    <select name="sourceDatabase" id="rightsHolder" multiple size="1">
                                         {% for i in holder_list %}
                                             <option value="{{ i }}">{% trans i %}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
                                 <div class="input_item">
-                                    <select name="has_image" id="has_image">
-                                        <option value="">{% trans '-- 不限 --' %}</option>
+                                    <select name="has_image" id="has_image" multiple>
                                         <option value="n">{% trans '無多媒體' %}</option>
-                                        <option value="image">{% trans '影像' %}</option>
-                                        <option value="video">{% trans '影片' %}</option>
-                                        <option value="audio">{% trans '音檔' %}</option>
+                                        <optgroup label="{% trans '有多媒體' %}" data-way="open">
+                                          <option value="image">{% trans '影像' %}</option>
+                                          <option value="video">{% trans '影片' %}</option>
+                                          <option value="audio">{% trans '音檔' %}</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                             </div>
@@ -306,7 +331,7 @@
                                            value="" />
                                 </div>
                                 <div class="input_item">
-                                    <input name="preservation"
+                                    <input name="preparations"
                                            type="text"
                                            placeholder="{% trans '保存方式' %}"
                                            value="" />
@@ -314,7 +339,7 @@
                             </div>
                             <div class="two_input">
                                 <div class="input_item">
-                                    <select name="datasetName" id="datasetName" multiple size="1"></select>
+                                    <select name="tbiaDatasetID" id="datasetName" multiple size="1"></select>
                                 </div>
                                 <div class="input_item">
                                     <input name="resourceContacts"
@@ -452,7 +477,7 @@
                 </div>
                 <ul class="catalist">
                     <li>
-                        <input type="checkbox" class="chebox" id="col-common_name_c">
+                        <input type="checkbox" class="chebox" id="col-vernacularName">
                         <p>{% trans '中文名' %}</p>
                     </li>
                     <li>
@@ -472,19 +497,23 @@
                         <p>{% trans '誤用名' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-sourceScientificName">
+                        <input type="checkbox" class="chebox" id="col-verbatimScientificName">
                         <p>{% trans '來源資料庫使用學名' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-sourceVernacularName">
+                        <input type="checkbox" class="chebox" id="col-verbatimVernacularName">
                         <p>{% trans '來源資料庫使用中文名' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-originalScientificName">
+                        <input type="checkbox" class="chebox" id="col-verbatimIdentification">
                         <p>{% trans '原始紀錄物種' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-rightsHolder">
+                        <input type="checkbox" class="chebox" id="col-partnerName">
+                        <p>{% trans '夥伴單位' %}</p>
+                    </li>
+                    <li>
+                        <input type="checkbox" class="chebox" id="col-sourceDatabase">
                         <p>{% trans '來源資料庫' %}</p>
                     </li>
                     <li>
@@ -496,7 +525,7 @@
                         <p>{% trans '館藏號' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-bioGroup">
+                        <input type="checkbox" class="chebox" id="col-taxonGroup">
                         <p>{% trans '物種類群（以分類區分）' %}</p>
                     </li>
                     <li>
@@ -516,11 +545,11 @@
                         <p>{% trans '標本類型' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-preservation">
+                        <input type="checkbox" class="chebox" id="col-preparations">
                         <p>{% trans '保存方式' %}</p>
                     </li>
                     <li>
-                        <input type="checkbox" class="chebox" id="col-eventDate">
+                        <input type="checkbox" class="chebox" id="col-verbatimEventDate">
                         <p>{% trans '採集日期' %}</p>
                     </li>
                     <li>
@@ -641,7 +670,7 @@
                     <div class="txt_area mt-5p">
                         <div class="circle-select">
                             <p>{% trans '半徑' %}（KM）</p>
-                            <input name="circle_radius" id="circle_radius" type="text" inputmode="decimal" value="0.2" placeholder="0 &lt; r ≤ 25">
+                            <input name="circle_radius" id="circle_radius" type="text" inputmode="decimal" value="0.2" placeholder="0 &lt; r ≤ 50">
                         </div>
                         <div class="circle-select">
                             <p>{% trans '中心點經度' %}</p>
@@ -662,5 +691,6 @@
 {% block script %}
     <script src="{% static 'js/wicket.js' %}"></script>
     <script src="{% static 'js/wicket-leaflet.js' %}"></script>
+    <script src="{% static 'js/data/search_params.js' %}"></script>
     <script src="{% static 'js/data/search_collection.js' %}"></script>
 {% endblock %}

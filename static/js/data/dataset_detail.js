@@ -408,7 +408,7 @@ function setTable(response, queryString, from, orderby, sort) {
         // 表格title
         var text = document.createTextNode(gettext(map_dict[Object.keys(map_dict)[i]]));
         let a = document.createElement("a");
-        if (Object.keys(map_dict)[i] != 'associatedMedia') {
+        if (!['associatedMedia', 'habitat', 'partnerName'].includes(Object.keys(map_dict)[i])) {
             a.className = 'orderby';
             a.dataset.orderby = Object.keys(map_dict)[i];
             a.dataset.sort = 'asc';
@@ -434,7 +434,7 @@ function setTable(response, queryString, from, orderby, sort) {
             if (tmp_value == null) {
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none"></td>`
             } else {
-                if (['basisOfRecord', 'taxonRank', 'rightsHolder', 'dataGeneralizations', 'bioGroup'].includes(Object.keys(map_dict)[j])) {
+                if (['basisOfRecord', 'taxonRank', 'sourceDatabase', 'dataGeneralizations', 'taxonGroup'].includes(Object.keys(map_dict)[j])) {
                     tmp_value = gettext(tmp_value)
                 }
                 tmp_td += `<td class="row-${Object.keys(map_dict)[j]} d-none">${tmp_value}</td>`
@@ -505,7 +505,7 @@ function submitSearch(page = 1, from, new_click, limit, orderby, sort, push_stat
     }
 
     if (!window.condition) {
-        window.condition = 'record_type=occ&datasetName=' + $('#tbiaDatasetID').html();
+        window.condition = 'record_type=occ&tbiaDatasetID=' + $('#tbiaDatasetID').html();
     }
 
     const current_pars = new URLSearchParams(window.condition)
@@ -611,9 +611,9 @@ function submitSearch(page = 1, from, new_click, limit, orderby, sort, push_stat
                         sendSelected()
                     }
 
-                    // disable checkebox for common_name_c & scientificName
-                    $('#occ-common_name_c, #occ-scientificName').prop('disabled', true);
-                    $('#occ-common_name_c, #occ-scientificName').prop('checked', true);
+                    // disable checkebox for vernacularName & scientificName
+                    $('#occ-vernacularName, #occ-scientificName').prop('disabled', true);
+                    $('#occ-vernacularName, #occ-scientificName').prop('checked', true);
 
                     // append pagination
 
@@ -713,9 +713,9 @@ function submitSearch(page = 1, from, new_click, limit, orderby, sort, push_stat
 
 function sendSelected() {
     let selected_field = $(`.occ-choice input:checked`)
-    // 所有都先隱藏，除了common_name_c & scientificName
+    // 所有都先隱藏，除了vernacularName & scientificName
     $('td[class^="row-"]').addClass('d-none');
-    $('.row-common_name_c, .row-scientificName').removeClass('d-none');
+    $('.row-vernacularName, .row-scientificName').removeClass('d-none');
     // 再顯示選擇的欄位
     for (let i = 0; i < selected_field.length; i++) {
         $(`td.row-${selected_field[i].id.split('-')[1]}`).removeClass('d-none');
