@@ -3,13 +3,25 @@ from manager.models import *
 import urllib.parse
 import pandas as pd
 from django.utils import timezone
+import os
 import dateutil.relativedelta
-from data.utils import rights_holder_map
+from data.utils import source_database_map, to_source_database
 
-# 先找出前一個月
+# 先找出前一個月；STAT_YEAR_MONTH=YYYY-MM 可指定月份（重跑 / 驗證用）
 now = timezone.now()
 current_year_month = now + dateutil.relativedelta.relativedelta(months=-1)
-current_year_month = current_year_month.strftime('%Y-%m')
+current_year_month = os.environ.get('STAT_YEAR_MONTH') or current_year_month.strftime('%Y-%m')
+
+# 4.1：來源資料庫一律存 v2 sourceDatabase 名稱。已存的 stat / sensitive_stat 在 4.4 migration 前有舊名稱、
+# v1 API 也可能寫入舊名稱，統計前先轉新名稱（新舊名稱合併計算），再以 source_database_map 對 group
+rights_holder_map = source_database_map
+
+# 可重跑：先刪除這個月份由本程式產生的統計（DataStat 的 data 由 stat_data 產生，不刪）
+KeywordStat.objects.filter(year_month=current_year_month).delete()
+ChecklistStat.objects.filter(year_month=current_year_month).delete()
+DataStat.objects.filter(year_month=current_year_month,
+                        type__in=['search', 'download', 'search_times', 'download_times', 'sensitive', 'ark']).delete()
+UserDownloadStat.objects.filter(year_month=current_year_month).delete()
 
 # 每月最常被搜尋的10個關鍵字
 
@@ -52,7 +64,7 @@ stat_list = []
 for s in ss:
     if s.stat:
         for sst in s.stat:
-            stat_list.append({'count': sst['count'], 'rights_holder': sst['val']})
+            stat_list.append({'count': sst['count'], 'rights_holder': to_source_database(sst['val'])})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -87,7 +99,7 @@ stat_list = []
 for s in ss:
     if s.stat:
         for sst in s.stat:
-            stat_list.append({'count': sst['count'], 'rights_holder': sst['val']})
+            stat_list.append({'count': sst['count'], 'rights_holder': to_source_database(sst['val'])})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -125,7 +137,7 @@ stat_list = []
 for s in ss:
     if s.stat:
         for sst in s.stat:
-            stat_list.append({'year_month': current_year_month, 'rights_holder': sst['val']})
+            stat_list.append({'year_month': current_year_month, 'rights_holder': to_source_database(sst['val'])})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -162,7 +174,7 @@ stat_list = []
 for s in ss:
     if s.stat:
         for sst in s.stat:
-            stat_list.append({'rights_holder': sst['val'], 'year_month': current_year_month})
+            stat_list.append({'rights_holder': to_source_database(sst['val']), 'year_month': current_year_month})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -198,7 +210,7 @@ for s in ss:
     if s.sensitive_stat:
         for sst in s.sensitive_stat:
             # if sst['val'] in rights_holder_map.keys():
-            stat_list.append({'rights_holder': sst['val'],'count': sst['count'],'year_month': current_year_month})
+            stat_list.append({'rights_holder': to_source_database(sst['val']),'count': sst['count'],'year_month': current_year_month})
 
 if len(stat_list):
     stat_df = pd.DataFrame(stat_list)
@@ -234,7 +246,7 @@ for s in ss:
             for sst in s.stat:
                 stat_list.append({
                     'option': option,
-                    'rights_holder': sst['val']
+                    'rights_holder': to_source_database(sst['val'])
                 })
 
 if len(stat_list):
@@ -276,7 +288,7 @@ ss = Ark.objects.filter(created__contains=current_year_month,type='data')
     
 DataStat.objects.create(
     year_month = current_year_month,
-    count = len(sq),
+    count = len(ss),
     type = 'ark'
 )
 

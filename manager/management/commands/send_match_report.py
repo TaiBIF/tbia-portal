@@ -35,6 +35,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand, CommandError
 
 from conf.settings import env
+from data.search_params import to_source_database
 from manager.models import Partner, User
 
 MATCH_REPORT_DIR = Path(settings.MEDIA_ROOT) / 'match_report'
@@ -157,7 +158,8 @@ class Command(BaseCommand):
             units.append({
                 'unit': d.name, 'group': m.group(1), 'info_id': int(m.group(2)),
                 'dir': d, 'snapshot': snap, 'meta': meta,
-                'rights_holder': snap[0].get('rights_holder') or d.name,
+                # datahub 的 snapshot 來自 PG（第一階段仍是舊名稱），信件顯示用 v2 sourceDatabase 名稱
+                'rights_holder': to_source_database(snap[0].get('rights_holder')) or d.name,
                 'rate': rate, 'total': total,
                 'overall': round(sum(r['records'] for r in snap if r['axis'] == 'matched')
                                  / (total or 1) * 100, 1),

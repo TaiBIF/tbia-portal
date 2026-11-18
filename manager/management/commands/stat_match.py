@@ -22,6 +22,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Q
 
+from data.search_params import to_source_database
 from manager.models import MatchStat, MatchReport
 
 # 共享 volume 上比對報告的根目錄（web 端 = /tbia-volumes/media/match_report）
@@ -73,7 +74,8 @@ class Command(BaseCommand):
                 rows.append(MatchStat(
                     group=r.get('group'),
                     info_id=r.get('info_id'),
-                    rights_holder=r.get('rights_holder'),
+                    # snapshot 來自 datahub PG（第一階段仍是舊名稱，D17），寫入時轉 v2 sourceDatabase（4.4）
+                    rights_holder=to_source_database(r.get('rights_holder')),
                     year_month=r.get('year_month', year_month),
                     axis=r.get('axis'),
                     category_key=r.get('category_key') or '',
@@ -90,7 +92,7 @@ class Command(BaseCommand):
                 reports.append(MatchReport(
                     group=m.get('group'),
                     info_id=m.get('info_id'),
-                    rights_holder=m.get('rights_holder'),
+                    rights_holder=to_source_database(m.get('rights_holder')),
                     year_month=m.get('year_month', year_month),
                     prev_year_month=m.get('prev_year_month'),
                     logic_changed=bool(m.get('logic_changed')),

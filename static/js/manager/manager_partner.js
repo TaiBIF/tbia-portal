@@ -1384,7 +1384,7 @@ function generateCategoryInfo(category, points, chart) {
         html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
     }
 
-    html += `<br><a href="/media/taxon_stat/${$('select[name=rightsholder-select]').find(':selected').val()}_${category}.csv">📥 下載比對結果清單</a>`;
+    html += `<br><a href="${window.TAXON_STAT_URL}${encodeURIComponent($('select[name=rightsholder-select]').find(':selected').val())}_${encodeURIComponent(category)}.csv">📥 下載比對結果清單</a>`;
 
     return html;
 
