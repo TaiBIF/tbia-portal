@@ -333,7 +333,7 @@ class Command(BaseCommand):
                     s[f'{kind}_n'] += 1
                     s[f'{kind}_r'] += int(row[2] or 0)
         if header:
-            rows.sort(key=lambda x: -int(x[2] or 0))      # 依影響筆數排序
+            rows.sort(key=lambda x: (x[0].casefold(), x[0], x[1], x[-1]))   # 依學名字母排序（同名再依類別、單位）
             with open(out, 'w', newline='', encoding='utf-8-sig') as f:
                 w = csv.writer(f)
                 w.writerow(header)
@@ -385,7 +385,7 @@ class Command(BaseCommand):
                       f'<td style="{TDN}">{fmt(n)}</td><td style="{TDN}">{fmt(rec)}</td></tr>')
             h += ('</table><p style="font-size:13px;color:#5f6a64">學名數為各單位加總，不同單位的相同學名會重複計算。'
                   '「上階層與 TaiCOL 不符」若經來源確認無誤，可能為 TaiCOL 尚未收錄的同名異物，屆時會再回報。</p>')
-        h += '<p>附件依影響筆數排序，並附來源中文名、科與格式提醒欄位，方便判斷是否為格式問題。</p>'
+        h += '<p>附件依學名字母排序，並附影響筆數、來源中文名、科與格式提醒欄位，方便判斷是否為格式問題。</p>'
         h += f'<p>{SIGNATURE}</p></div>'
 
         ok = self.deliver('taicol', to, f'{self.ym} 待 TaiCOL 確認學名清單', h,
