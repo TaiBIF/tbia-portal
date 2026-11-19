@@ -71,6 +71,11 @@ NOT_FOR_TAICOL = {
 }
 
 
+# for_taicol.csv「類別」欄 → 統計 key（同 match_report 的 write_csvs）
+TAICOL_KIND = {'TaiCOL 尚未收錄': 'none', '僅對到上階': 'higher', '字尾變化': 'ending'}
+TAICOL_STAT_KEYS = ['none_n', 'none_r', 'higher_n', 'higher_r', 'ending_n', 'ending_r']
+
+
 def fmt(n):
     return f'{int(n or 0):,}'
 
@@ -94,7 +99,8 @@ def read_json(p):
 def atrank_rate(snapshot):
     total = sum(r['records'] for r in snapshot) or 1
     at = sum(r['records'] for r in snapshot
-             if (r.get('category_key') == 'atrank') or r.get('category') == '對到（來源階層）')
+             # 疑似錯字（typo）也是對到正確物種，算進對到來源階層（同 match_report 的 ATRANK_KEYS）
+             if r.get('category_key') in ('atrank', 'typo') or r.get('category') == '對到（來源階層）')
     return round(at / total * 100, 1), sum(r['records'] for r in snapshot)
 
 
@@ -326,10 +332,10 @@ class Command(BaseCommand):
                 h = next(r, None)
                 header = header or h
                 s = stats.setdefault(u['rights_holder'],
-                                     {'none_n': 0, 'none_r': 0, 'higher_n': 0, 'higher_r': 0})
+                                     {k: 0 for k in TAICOL_STAT_KEYS})
                 for row in r:
                     rows.append(row)
-                    kind = 'none' if row[1] == 'TaiCOL 尚未收錄' else 'higher'
+                    kind = TAICOL_KIND.get(row[1], 'higher')
                     s[f'{kind}_n'] += 1
                     s[f'{kind}_r'] += int(row[2] or 0)
         if header:
@@ -344,8 +350,9 @@ class Command(BaseCommand):
         h = (f'<table style="border-collapse:collapse;font-size:13.5px;margin:10px 0">'
              f'<tr><th style="{TH}">單位</th><th style="{TH}">尚未收錄（學名數）</th>'
              f'<th style="{TH}">影響筆數</th><th style="{TH}">僅對到上階（學名數）</th>'
+             f'<th style="{TH}">影響筆數</th><th style="{TH}">字尾變化（學名數）</th>'
              f'<th style="{TH}">影響筆數</th></tr>')
-        tot = {'none_n': 0, 'none_r': 0, 'higher_n': 0, 'higher_r': 0}
+        tot = {k: 0 for k in TAICOL_STAT_KEYS}
         for rh, s in sorted(stats.items(), key=lambda x: -x[1]['none_r']):
             h += f'<tr><td style="{TD}">{rh}</td>'
             for k in tot:
@@ -368,6 +375,9 @@ class Command(BaseCommand):
         h += '<p>TaiCOL 管理員您好：</p>'
         h += (f'<p>{self.ym} 資料更新後，以下學名在 TaiCOL 尚未收錄，或只能對到較來源更上層的階層，'
               '彙整如附件，請協助確認是否需要收錄或補充。</p>')
+        h += ('<p style="font-size:13.5px;color:#5f6a64">「字尾變化」為種小名字尾與 TaiCOL 學名不同'
+              '（如 formosana／formosanus）、已依 TaiCOL 學名對到的學名，附件「格式提醒」欄列出對應的 TaiCOL 學名，'
+              '可評估是否收錄為異名。</p>')
         if logic_changed:
             h += (f'<div style="{BOX.format(c="#2f6b5e")}">本次更新了學名比對邏輯並重新比對全部資料，'
                   '數量與前次的差異主要來自比對方式調整。</div>')
