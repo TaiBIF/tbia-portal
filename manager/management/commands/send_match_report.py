@@ -72,8 +72,8 @@ NOT_FOR_TAICOL = {
 
 
 # for_taicol.csv「類別」欄 → 統計 key（同 match_report 的 write_csvs）
-TAICOL_KIND = {'TaiCOL 尚未收錄': 'none', '僅對到上階': 'higher', '字尾變化': 'ending'}
-TAICOL_STAT_KEYS = ['none_n', 'none_r', 'higher_n', 'higher_r', 'ending_n', 'ending_r']
+TAICOL_KIND = {'TaiCOL 尚未收錄': 'none', '僅對到上階': 'higher', '字尾變化': 'ending', '拼寫不同': 'typo'}
+TAICOL_STAT_KEYS = ['none_n', 'none_r', 'higher_n', 'higher_r', 'ending_n', 'ending_r', 'typo_n', 'typo_r']
 
 
 def fmt(n):
@@ -351,6 +351,7 @@ class Command(BaseCommand):
              f'<tr><th style="{TH}">單位</th><th style="{TH}">尚未收錄（學名數）</th>'
              f'<th style="{TH}">影響筆數</th><th style="{TH}">僅對到上階（學名數）</th>'
              f'<th style="{TH}">影響筆數</th><th style="{TH}">字尾變化（學名數）</th>'
+             f'<th style="{TH}">影響筆數</th><th style="{TH}">拼寫不同（學名數）</th>'
              f'<th style="{TH}">影響筆數</th></tr>')
         tot = {k: 0 for k in TAICOL_STAT_KEYS}
         for rh, s in sorted(stats.items(), key=lambda x: -x[1]['none_r']):
@@ -377,7 +378,8 @@ class Command(BaseCommand):
               '彙整如附件，請協助確認是否需要收錄或補充。</p>')
         h += ('<p style="font-size:13.5px;color:#5f6a64">「字尾變化」為種小名字尾與 TaiCOL 學名不同'
               '（如 formosana／formosanus）、已依 TaiCOL 學名對到的學名，附件「格式提醒」欄列出對應的 TaiCOL 學名，'
-              '可評估是否收錄為異名。</p>')
+              '可評估是否收錄為異名。「拼寫不同」為與 TaiCOL 學名只差 1～2 個字元、已依 TaiCOL 學名對到的學名，'
+              '多為來源錯字（已請來源單位確認），但也可能是 TaiCOL 端的拼寫問題，請一併確認。</p>')
         if logic_changed:
             h += (f'<div style="{BOX.format(c="#2f6b5e")}">本次更新了學名比對邏輯並重新比對全部資料，'
                   '數量與前次的差異主要來自比對方式調整。</div>')
