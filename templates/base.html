@@ -31,11 +31,9 @@
     <script src="{% static 'js/tokml.js' %}"></script>
     <!-- use django template in js -->
     <script src="{% url 'javascript-catalog' %}"></script>
-    <script>
-      // 統計檔下載路徑（settings TAXON_STAT_DIR / SEARCH_STAT_DIR，4.1）
-      window.TAXON_STAT_URL = "{{ TAXON_STAT_URL|default:'/media/taxon_stat/'|escapejs }}";
-      window.SEARCH_STAT_URL = "{{ SEARCH_STAT_URL|default:'/media/search_stat/'|escapejs }}";
-    </script>
+    {# 統計檔下載路徑（settings TAXON_STAT_DIR / SEARCH_STAT_DIR，4.1）；CSP 不允許 inline script，改由 JS 讀 meta #}
+    <meta name="taxon-stat-url" content="{{ TAXON_STAT_URL|default:'/media/taxon_stat/' }}">
+    <meta name="search-stat-url" content="{{ SEARCH_STAT_URL|default:'/media/search_stat/' }}">
     {% block head %}
     {% endblock head %}
     {% block style %}

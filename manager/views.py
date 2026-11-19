@@ -1640,7 +1640,11 @@ def get_user_download_stat(request):
             color_index += 1
 
         resp['data'] = series_data
-        resp['categories'] = [ f'{year}-{"{:02d}".format(i)}' for i in range(1, 13)]
+
+    # 該年完全沒有資料時仍回傳一條 0 的線，前端才畫得出圖（原本回傳空陣列，圖不會出現）
+    resp['categories'] = [f'{year}-{i:02d}' for i in range(1, 13)]
+    if not resp.get('data'):
+        resp['data'] = [{'name': '無資料', 'data': [0] * 12, 'color': '#ccc'}]
 
     return JsonResponse(resp, safe=False)
 
