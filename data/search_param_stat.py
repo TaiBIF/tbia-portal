@@ -7,10 +7,11 @@ import re
 import zipfile
 from collections import Counter, defaultdict
 
+from conf.settings import SEARCH_STAT_DIR
 from data.utils import STAT_EXCLUDE_KEYS, parse_query_string
 from manager.models import SearchStat
 
-OUTPUT_DIR = '/tbia-volumes/media/search_stat'
+OUTPUT_DIR = SEARCH_STAT_DIR   # 開發期 search_stat_v2，避免覆蓋測試站 v1（4.1）
 TOPN = 10
 TOTAL_NAME = 'tbia_search_stat_total'
 MONTH_ZIP_RE = re.compile(r'tbia_search_stat_(\d{4})_(\d{2})\.zip')

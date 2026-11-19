@@ -31,13 +31,26 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
+from conf.settings import env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, search_again_url, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, search_again_url, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int, to_source_database, source_database_aliases
 from api.v1_query import SENSITIVE_COLS_V1  # [V1-API-REMOVE] 舊格式下載檔的敏感欄位名稱
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
+
+
+def _source_database_param(request, key='rights_holder'):
+    """後台統計的來源資料庫參數轉成 v2 sourceDatabase 名稱（4.1）。
+    夥伴後台下拉來自 Partner.info.dbname，8.1 ② migration 前是舊名稱；DataStat / TaxonStat / Solr 已是新名稱。
+    'total' 原樣回傳。"""
+    val = request.GET.get(key)
+    return to_source_database(val) if val else val
+
+
+def _same_source_database(a, b):
+    """新舊名稱都轉成新名稱再比對（Partner.dbname 與已存統計在 4.4 migration 前後新舊都有可能）"""
+    return bool(a) and bool(b) and to_source_database(a) == to_source_database(b)
 
 quality_map = {
     3: '金',
@@ -1199,10 +1212,15 @@ def download_partner_sensitive_report(request):
         current_user = request.user
         if current_user.partner:
             # 參數化：dbname 來自 partner.info，不可直接串進 SQL 字串
+            # 已存的 sensitive_stat 在 4.4 migration 前有舊名稱，dbname 也可能是舊名稱：新舊名稱都比對
             db_clauses, db_params = [], []
+            names = []
             for ii in (current_user.partner.info or []):
+                if ii.get('dbname'):
+                    names += source_database_aliases(ii.get('dbname'))
+            for name in dict.fromkeys(names):
                 db_clauses.append("sq.sensitive_stat @> %s::jsonb")
-                db_params.append(json.dumps([{"val": "{}".format(ii.get('dbname'))}]))
+                db_params.append(json.dumps([{"val": name}]))
 
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
@@ -1351,7 +1369,7 @@ def manager_partner(request):
         current_user = request.user
         if current_user.partner:
             for pp in current_user.partner.info:
-                holder_list.append(pp.get('dbname'))
+                holder_list.append(to_source_database(pp.get('dbname')))  # 下拉值 = v2 sourceDatabase
             data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
 
     return render(request, 'manager/partner/manager.html',{ 'download_url': download_url, 'holder_list': holder_list,
@@ -1375,9 +1393,9 @@ def get_partner_stat(request):
 
     # 以下改用來源資料庫取得資料
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
 
-        rh_q = f'rightsHolder:{solr_quote(rights_holder)}'  # 名稱含空白/括號，需加引號
+        rh_q = f'sourceDatabase:{solr_quote(rights_holder)}'  # 名稱含空白/括號，需加引號
         f = ['-taxonID:*', rh_q]
         # TaiCOL對應狀況
         query = {
@@ -1386,15 +1404,15 @@ def get_partner_stat(request):
             "limit": 0,
             "facet": {},
             }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         no_taxon = response.json()['response']['numFound']
 
         # 資料筆數
-        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        data = requests.get(RECORDS_URL, params={'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         data_count = data['response']['numFound']
         data_total.append({'name': rights_holder,'y': data_count, 'color': '#9AC4E8'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
             total_count = total_count - data_count
@@ -1404,18 +1422,18 @@ def get_partner_stat(request):
         # 影像資料筆數
 
         # 原本傳了兩個 q，Solr 只取第一個；改成 q + fq 才是「該單位的影像筆數」
-        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'fq': 'associatedMedia:*', 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        data = requests.get(RECORDS_URL, params={'q': rh_q, 'fq': 'associatedMedia:*', 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         image_count = data['response']['numFound']
         image_data_total.append({'name': rights_holder,'y': image_count, 'color': '#B2D4B2'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             other_image_count = response.json()['response']['numFound']
             other_image_count = other_image_count - image_count
             image_data_total += [{'name': '其他來源資料庫','y': other_image_count, 'color': '#ddd'}]  # 原本誤用 total_count
 
         # 資料品質 (入口網)
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+        url = f"{RECORDS_URL}?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
         data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         if data['responseHeader']['status'] == 0:
             facets = data['facet_counts']['facet_fields']['dataQuality']
@@ -1428,10 +1446,10 @@ def get_partner_stat(request):
 
         # 資料品質 (來源資料庫)
 
-        quality_data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'facet.pivot': 'rightsHolder,dataQuality', 'facet': 'true', 'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        quality_data = requests.get(RECORDS_URL, params={'facet.pivot': 'sourceDatabase,dataQuality', 'facet': 'true', 'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
 
         if quality_data['responseHeader']['status'] == 0:
-            facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+            facets = quality_data['facet_counts']['facet_pivot']['sourceDatabase,dataQuality']
             for f in facets:
                 p_dbname = f.get('value')
                 quality_str_list = []
@@ -1502,11 +1520,12 @@ def get_partner_stat(request):
                 'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count if TaxonStat.objects.filter(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).exists() else 0
             })
 
-        if Partner.objects.filter(info__contains=[{'dbname': rights_holder}]).exists():
-            partner = Partner.objects.get(info__contains=[{'dbname': rights_holder}])
-            for pp in partner.info:
-                if pp.get('dbname') == rights_holder:
-                    download_url = f'/media/match_log/{partner.group}_{pp["id"]}_match_log.zip'
+        # Partner.dbname 可能仍是舊名稱（8.1 ② 前），轉新名稱再比
+        for partner in Partner.objects.order_by('id'):
+            pp = next((i for i in (partner.info or []) if _same_source_database(i.get('dbname'), rights_holder)), None)
+            if pp:
+                download_url = f'/media/match_log/{partner.group}_{pp["id"]}_match_log.zip'
+                break
 
     response = {
         'data_total': data_total,
@@ -1528,7 +1547,7 @@ def get_taxon_group_stat(request):
 
     # 以下改用來源資料庫取得資料
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
 
         # 系統整體資料
         taxon_query_system = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
@@ -1563,7 +1582,7 @@ def get_taxon_group_stat(request):
                 'data': holder_data,
                 'color': taxon_group_color_map[group]['light'],
                 'unitPercentage': unit_percentage,
-                'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count
+                'taiwanPercentage': TaxonStat.objects.filter(type='taiwan_percentage', name=taxon_group_map_e[group], rights_holder=rights_holder).values_list('count', flat=True).first() or 0
             })
         
     response = {
@@ -1575,12 +1594,11 @@ def get_taxon_group_stat(request):
 def get_user_download_stat(request):
 
     year = int(request.GET.get('year'))
-    rights_holder = request.GET.get('rights_holder')
     type = request.GET.get('type')
 
     resp = {}
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
         # 從 model 取得 choices 字典
         OPTION_DICT = dict(UserDownloadStat.option_choice)
         colors = [
@@ -1622,7 +1640,11 @@ def get_user_download_stat(request):
             color_index += 1
 
         resp['data'] = series_data
-        resp['categories'] = [ f'{year}-{"{:02d}".format(i)}' for i in range(1, 13)]
+
+    # 該年完全沒有資料時仍回傳一條 0 的線，前端才畫得出圖（原本回傳空陣列，圖不會出現）
+    resp['categories'] = [f'{year}-{i:02d}' for i in range(1, 13)]
+    if not resp.get('data'):
+        resp['data'] = [{'name': '無資料', 'data': [0] * 12, 'color': '#ccc'}]
 
     return JsonResponse(resp, safe=False)
 
@@ -1635,15 +1657,15 @@ def manager_system(request):
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
         # 改成用solr取得 如果沒有在列表就是代表沒有
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-        f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+        response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+        f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
         holder_list = [f_list[x] for x in range(0, len(f_list),2)]
         holder_list.append('total')
         # TaiCOL對應狀況
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             no_taxon = response.json()['response']['numFound']
         has_taxon = total_count - no_taxon
@@ -1724,10 +1746,10 @@ def get_ark_stat(request):
 def get_data_stat(request):
 
     year = int(request.GET.get('year'))
-    rights_holder = request.GET.get('rights_holder')
+    rights_holder = _source_database_param(request)
     type = request.GET.get('type')
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder:
         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month','rights_holder'))
     elif group :=  request.GET.get('group'):
         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
@@ -1855,10 +1877,10 @@ def get_system_stat(request):
     db_quality_stat = []
 
     # 資料筆數 - 
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=group,sourceDatabase&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
-        facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
+        facets = data['facet_counts']['facet_pivot']['group,sourceDatabase']
         for f in facets:
             p_group = f.get('value')
             for fp in f.get('pivot'):
@@ -1871,10 +1893,10 @@ def get_system_stat(request):
                     data_total.append({'name': 'GBIF','y': p_count,  'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # 影像資料筆數
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=group,sourceDatabase&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
     image_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if image_data['responseHeader']['status'] == 0:
-        facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
+        facets = image_data['facet_counts']['facet_pivot']['group,sourceDatabase']
         for f in facets:
             p_group = f.get('value')
             for fp in f.get('pivot'):
@@ -1886,11 +1908,11 @@ def get_system_stat(request):
                     image_data_total.append({'name': 'GBIF','y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # TaiCOL對應狀況
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
@@ -1938,7 +1960,7 @@ def get_system_stat(request):
         top5_family_list.append({'rights_holder': h, 'data': data})
 
     # 資料品質 (入口網)
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
     data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_fields']['dataQuality']
@@ -1950,10 +1972,10 @@ def get_system_stat(request):
             })
 
     # 資料品質 (來源資料庫)
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=sourceDatabase,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
     quality_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if quality_data['responseHeader']['status'] == 0:
-        facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+        facets = quality_data['facet_counts']['facet_pivot']['sourceDatabase,dataQuality']
         for f in facets:
             p_dbname = f.get('value')
             quality_str_list = [p_dbname]
@@ -2908,7 +2930,7 @@ def get_temporal_stat(request):
             color = '#3F5146'
         year_taxon_query = year_taxon_query.filter(group=current_group)
 
-    elif current_rights_holder := request.GET.get('rights_holder'):
+    elif current_rights_holder := _source_database_param(request):
         year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
         if current_rights_holder == 'total':
             color = '#3F5146'
@@ -2973,7 +2995,7 @@ def get_temporal_stat(request):
     if current_group := request.GET.get('group'):
         month_taxon_query = month_taxon_query.filter(group=current_group)
 
-    elif current_rights_holder := request.GET.get('rights_holder'):
+    elif current_rights_holder := _source_database_param(request):
         month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
@@ -3269,7 +3291,7 @@ def sensitive_apply_info(request, query_id):
         if r.sensitive_stat:
             if is_system_admin:
 
-                data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
+                data_count = [f"{to_source_database(stat.get('val'))}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
                 data_count = '<br>'.join(data_count)
             
             elif is_partner:
@@ -3279,12 +3301,12 @@ def sensitive_apply_info(request, query_id):
                     data_count = []
                     for pp in partner_info:
                         for stat in r.sensitive_stat:
-                            if stat.get('val') == pp.get('dbname'):
-                                data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
+                            if _same_source_database(stat.get('val'), pp.get('dbname')):
+                                data_count.append(f"{to_source_database(pp.get('dbname'))}: {stat.get('count')}")
                     data_count = '<br>'.join(data_count)
                 elif len(partner_info) == 1:
                     for stat in r.sensitive_stat:
-                        if stat.get('val') == partner_info[0].get('dbname'):
+                        if _same_source_database(stat.get('val'), partner_info[0].get('dbname')):
                             data_count = stat.get('count')
 
     sdr_id = request.GET.get('sdr_id')
@@ -3439,12 +3461,12 @@ def _allowed_groups(user):
  
 def _partner_units(p):
     """一個 Partner 底下的資料庫清單（依 Partner.info），unit = {group}_{info_id}。
-    名稱用 info 的 dbname（= rightsHolder），與其他統計圖的來源資料庫下拉一致。"""
+    名稱用 info 的 dbname 轉成 v2 sourceDatabase，與其他統計圖的來源資料庫下拉一致。"""
     infos = p.info or []
     if not infos:
         return [{'unit': f'{p.group}_0', 'name': getattr(p, 'title', None) or p.group}]
     return [{'unit': f'{p.group}_{i.get("id")}',
-             'name': i.get('dbname') or i.get('subtitle') or p.title or p.group}
+             'name': to_source_database(i.get('dbname')) or i.get('subtitle') or p.title or p.group}
             for i in infos]
 
 

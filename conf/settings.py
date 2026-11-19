@@ -139,6 +139,7 @@ TEMPLATES = [
                 'pages.custom_context_processor.get_index_collaborates',
                 'pages.custom_context_processor.today',
                 'conf.context_processors.turnstile',
+                'conf.context_processors.stat_urls',
             ],
         },
     },
@@ -209,6 +210,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = env('MEDIA_ROOT')
 # stat_taxon 產生的名錄比對 CSV；開發期設 /tbia-volumes/media/taxon_stat_v2，避免覆蓋測試站 v1
 TAXON_STAT_DIR = env('TAXON_STAT_DIR', default='/tbia-volumes/media/taxon_stat')
+# monthly_stat / search_param_stat 產生的查詢參數統計 zip；開發期設 /tbia-volumes/media/search_stat_v2（4.1）
+SEARCH_STAT_DIR = env('SEARCH_STAT_DIR', default='/tbia-volumes/media/search_stat')
+# 前端下載連結：兩個目錄都直接放在 media 底下，網址 = MEDIA_URL + 目錄名稱
+TAXON_STAT_URL = f"{MEDIA_URL}{os.path.basename(TAXON_STAT_DIR.rstrip('/'))}/"
+SEARCH_STAT_URL = f"{MEDIA_URL}{os.path.basename(SEARCH_STAT_DIR.rstrip('/'))}/"
 
 
 # Default primary key field type

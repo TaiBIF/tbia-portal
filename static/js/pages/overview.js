@@ -454,11 +454,11 @@ function generateCategoryInfo(category, points, chart) {
         if ($lang == 'en-us') {
             html += `<p>${Highcharts.numberFormat(unitCount, 0)} records (${unitTotalPercentage}%)<br>`;
             html += `${taiwanPercentage}% of TaiCOL ${gettext(category)} Species in Taiwan</p>`
-            html += `<br><a href="/media/taxon_stat/total_${category}.csv">📥 Download comparison list</a>`;
+            html += `<br><a href="${$('meta[name=taxon-stat-url]').attr('content')}total_${encodeURIComponent(category)}.csv">📥 Download comparison list</a>`;
         } else {
             html += `<p>${Highcharts.numberFormat(unitCount, 0)} 筆 (${unitTotalPercentage}%)<br>`;
             html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
-            html += `<br><a href="/media/taxon_stat/total_${category}.csv">📥 下載比對結果清單</a>`;
+            html += `<br><a href="${$('meta[name=taxon-stat-url]').attr('content')}total_${encodeURIComponent(category)}.csv">📥 下載比對結果清單</a>`;
         }
     }
 

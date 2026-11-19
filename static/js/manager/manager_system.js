@@ -738,7 +738,7 @@ $(document).ready(function () {
             let year = $('select[name=search-param-stat-year]').find(':selected').val()
             let month = $('select[name=search-param-stat-month]').find(':selected').val()
             let mm = ('0' + month).slice(-2)
-            let url = `/media/search_stat/tbia_search_stat_${year}_${mm}.zip`
+            let url = `${$('meta[name=search-stat-url]').attr('content')}tbia_search_stat_${year}_${mm}.zip`
 
             fetch(url, { method: 'HEAD' })
                 .then(function (res) {
@@ -1415,7 +1415,7 @@ function generateCategoryInfo(category, points, chart) {
         html += `<b>佔TaiCOL臺灣${category}物種數：</b><br>${taiwanPercentage}%</p>`;
     }
 
-    html += `<br><a href="/media/taxon_stat/${$('select[name=taxon-group-stat-rightsholder]').find(':selected').val()}_${category}.csv">📥 下載比對結果清單</a>`;
+    html += `<br><a href="${$('meta[name=taxon-stat-url]').attr('content')}${encodeURIComponent($('select[name=taxon-group-stat-rightsholder]').find(':selected').val())}_${encodeURIComponent(category)}.csv">📥 下載比對結果清單</a>`;
 
     return html;
 
