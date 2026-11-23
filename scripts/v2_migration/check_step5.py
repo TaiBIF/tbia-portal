@@ -132,8 +132,12 @@ def c_4():
         pages += 1
         nxt = b['links']['next']
         params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
-    report('5.2-4', len(ids) == n == len(set(ids)) and params is None,
-           f'分頁：資料集 {ds} {n} 筆，{pages} 頁取回 {len(ids)} 筆、不重複，最後一頁 next 為 null')
+    # 總數剛好是 limit 的倍數：最後一頁取滿後 next 應為 null，不能多一頁空的（11/23 修正）
+    code, b = api({'tbiaDatasetID': ds, 'limit': n})
+    exact = code == 200 and len(b['data']) == n and b['links']['next'] is None
+    report('5.2-4', len(ids) == n == len(set(ids)) and params is None and exact,
+           f'分頁：資料集 {ds} {n} 筆，{pages} 頁取回 {len(ids)} 筆、不重複，最後一頁 next 為 null；'
+           f'limit={n}（剛好一頁）next 為 null：{exact}')
 
 
 def c_5():
@@ -347,8 +351,20 @@ def d_2():
         pages += 1
         nxt = b['links']['next']
         params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
-    report('5.3-2', len(ids) == n == len(set(ids)) and params is None,
-           f'分頁：{name} {n} 個資料集，{pages} 頁取回 {len(ids)} 個、不重複，最後一頁 next 為 null')
+    # 總數剛好是 limit 的倍數：最後一頁取滿後 next 應為 null，不能多一頁空的（11/23 修正）
+    lim = next((k for k in range(7, n) if n % k == 0), n)
+    params, pages2, empty = {'sourceDatabase': name, 'limit': lim}, 0, 0
+    while params is not None and pages2 < 100:
+        code, b = ds(params)
+        assert code == 200, b
+        pages2 += 1
+        empty += not b['data']
+        nxt = b['links']['next']
+        params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
+    exact = empty == 0 and pages2 == n // lim
+    report('5.3-2', len(ids) == n == len(set(ids)) and params is None and exact,
+           f'分頁：{name} {n} 個資料集，{pages} 頁取回 {len(ids)} 個、不重複，最後一頁 next 為 null；'
+           f'limit={lim}（整除）{pages2} 頁、沒有空頁：{exact}')
 
 
 def d_3():

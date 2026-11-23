@@ -91,6 +91,20 @@ def record_stat(location, fq, params, compute_stat=True):
     obj.save()
 
 
+def has_more_docs(query, next_cursor):
+    """本頁取滿時，用下一個 cursor 取 1 筆 id 確認還有沒有資料（Solr cursorMark 在剛好取完時仍會給新的 cursor，
+    要再查一次才會得到空頁）。查詢失敗時當作還有，保留 next（最多多一頁空的，不影響資料）"""
+    probe = dict(query, params={'cursorMark': next_cursor}, limit=1, fields=['id'])
+    try:
+        r = requests.post(RECORDS_URL, data=json.dumps(probe), headers={'content-type': 'application/json'},
+                          timeout=SOLR_TIMEOUT)
+        r.raise_for_status()
+        return bool(r.json()['response']['docs'])
+    except (requests.RequestException, ValueError, KeyError):
+        logger.warning('api v2 occurrence: next page probe failed', exc_info=True)
+        return True
+
+
 def occurrence(request):
     if request.method != 'GET':
         return error_response(400, 'Only GET is supported')
@@ -144,6 +158,9 @@ def occurrence(request):
 
     body = resp.json()
     docs = body['response']['docs']
+    next_cursor = body.get('nextCursorMark')
+    if len(docs) == limit and next_cursor and next_cursor != cursor and not has_more_docs(query, next_cursor):
+        next_cursor = None   # 剛好取完（總數是 limit 的倍數），不給空的下一頁
     partner_names = get_partner_name_map('zh')
     data = [format_occurrence(d, restricted, partner_names) for d in docs]
 
@@ -152,7 +169,7 @@ def occurrence(request):
 
     return json_response(200, {
         'meta': {'total': body['response']['numFound'], 'limit': limit},
-        'links': page_links(request, request.path, params, cursor, body.get('nextCursorMark'), len(docs), limit),
+        'links': page_links(request, request.path, params, cursor, next_cursor, len(docs), limit),
         'data': data,
     })
 
@@ -188,11 +205,14 @@ def dataset(request):
         with datahub_conn() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('SELECT count(*) AS n FROM dataset' + cond, values)
             total = cur.fetchone()['n']
-            cur.execute(DATASET_SELECT + page_cond + ' ORDER BY "id" LIMIT %s', page_values + [limit])
+            # 多取 1 筆判斷是否還有下一頁（總數剛好是 limit 的倍數時，不給空的下一頁）
+            cur.execute(DATASET_SELECT + page_cond + ' ORDER BY "id" LIMIT %s', page_values + [limit + 1])
             rows = cur.fetchall()
     except psycopg2.Error:
         logger.exception('api v2 dataset: PG query failed')
         return error_response(500)
+    has_more = len(rows) > limit
+    rows = rows[:limit]
 
     partner_names = get_partner_name_map('zh')
     data = [format_dataset(r, _GroupToPartner(), partner_names) for r in rows]
@@ -201,7 +221,7 @@ def dataset(request):
         record_stat('api_dataset', [], params, compute_stat=False)
 
     cur_str = str(cursor) if cursor is not None else '*'
-    next_str = str(rows[-1]['id']) if rows else None
+    next_str = str(rows[-1]['id']) if has_more else None
     return json_response(200, {
         'meta': {'total': total, 'limit': limit},
         'links': page_links(request, request.path, params, cur_str, next_str, len(rows), limit),
