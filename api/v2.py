@@ -1,27 +1,32 @@
-"""API v2（5.2 occurrence；5.3 dataset / map、5.4 partner 之後加在這裡）
+"""API v2（5.2 occurrence；5.3 dataset / map；5.4 partner 之後加在這裡）
 
 共通行為（user.html）：
 - 回傳 {status: {code, message}, meta: {total, limit}, links: {self, next}, data: [...]}；map 例外（直接回 GeoJSON）
 - HTTP 狀態碼與 status.code 一致：200（查無資料也是 200、data 為空陣列）、400、401、404、500
 - 游標分頁：參數 cursor 由 links.next 帶，使用者不用自己組；最後一頁 links.next 為 null
-- 限制型：Authorization: Bearer <API_KEY>（APIkey.status='pass'）；帶了但無效 → 401
+- 限制型（只有 occurrence）：Authorization: Bearer <API_KEY>（APIkey.status='pass'）；帶了但無效 → 401。
+  dataset / map 只有公開版，不看 Authorization header（11/23 Kim）
 參數驗證與欄位整理在 api/v2_params.py（不需要 Django，有單元測試）。
 """
 import json
 import logging
 from urllib.parse import urlencode
 
+import psycopg2
 import requests
+from psycopg2.extras import RealDictCursor
 from django.http import HttpResponse, QueryDict
 
 from api.models import APIkey
-from api.v2_params import ParamError, parse_limit, occurrence_query, format_occurrence
+from api.v2_params import (ParamError, parse_limit, occurrence_query, format_occurrence,
+                           parse_cursor_id, dataset_query, format_dataset, DATASET_SELECT, map_query)
 from conf.background import run_light
 from conf.settings import RECORDS_URL, SOLR_TIMEOUT
 from conf.utils import scheme
 from data.fields import API_OCCURRENCE_SOLR_FL, API_OCCURRENCE_SOLR_FL_WITH_SENSITIVE
-from data.utils import create_search_query, background_search_stat, build_stat_query_string, get_partner_name_map
-from manager.models import SearchCount
+from data.utils import (create_search_query, background_search_stat, build_stat_query_string, get_partner_name_map,
+                        get_partner_id_by_group, get_map_geojson, datahub_conn)
+from manager.models import SearchCount, Partner
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +80,12 @@ def page_links(request, path, params, cursor, next_cursor, n_docs, limit):
     return {'self': url(cursor), 'next': url(next_cursor) if has_next else None}
 
 
-def record_stat(location, fq, params):
-    """SearchStat（第一頁）與 SearchCount；v2 存原始的 v2 參數（不含 cursor / limit）"""
+def record_stat(location, fq, params, compute_stat=True):
+    """SearchStat（第一頁）與 SearchCount；v2 存原始的 v2 參數（不含 cursor / limit）。
+    dataset / map 同 v1 不算各單位筆數（compute_stat=False）"""
     query_string = build_stat_query_string({k: v for k, v in params.items()})
     if not params.get('cursor'):
-        run_light(background_search_stat, fq, location, query_string, True, False)
+        run_light(background_search_stat, fq, location, query_string, compute_stat, False)
     obj, _ = SearchCount.objects.get_or_create(search_location=location)
     obj.count += 1
     obj.save()
@@ -149,3 +155,101 @@ def occurrence(request):
         'links': page_links(request, request.path, params, cursor, body.get('nextCursorMark'), len(docs), limit),
         'data': data,
     })
+
+
+def partner_groups_map():
+    """tbiaPartnerID → [Partner.group]（dataset 篩選用；PG dataset 沒有 tbiaPartnerID）[P2-2-REMOVE]"""
+    out = {}
+    for pid, group in Partner.objects.exclude(tbia_partner_id__isnull=True).values_list('tbia_partner_id', 'group'):
+        out.setdefault(str(pid), [])
+        if group not in out[str(pid)]:
+            out[str(pid)].append(group)
+    return out
+
+
+def dataset(request):
+    """5.3 v2 dataset：查 PG dataset（第一階段仍是舊欄位名，用別名輸出 v2 名稱）。游標為 dataset.id"""
+    if request.method != 'GET':
+        return error_response(400, 'Only GET is supported')
+
+    params, is_from_example = request_params(request)
+    try:
+        limit = parse_limit(params)
+        cursor = parse_cursor_id(params)
+        groups = partner_groups_map() if params.get('tbiaPartnerID') else {}
+        where, values = dataset_query(params, groups)
+    except ParamError as e:
+        return error_response(400, str(e))
+
+    cond = ' WHERE ' + ' AND '.join(where)
+    page_cond = cond + (' AND "id" > %s' if cursor is not None else '')
+    page_values = values + ([cursor] if cursor is not None else [])
+    try:
+        with datahub_conn() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute('SELECT count(*) AS n FROM dataset' + cond, values)
+            total = cur.fetchone()['n']
+            cur.execute(DATASET_SELECT + page_cond + ' ORDER BY "id" LIMIT %s', page_values + [limit])
+            rows = cur.fetchall()
+    except psycopg2.Error:
+        logger.exception('api v2 dataset: PG query failed')
+        return error_response(500)
+
+    partner_names = get_partner_name_map('zh')
+    data = [format_dataset(r, _GroupToPartner(), partner_names) for r in rows]
+
+    if not is_from_example:
+        record_stat('api_dataset', [], params, compute_stat=False)
+
+    cur_str = str(cursor) if cursor is not None else '*'
+    next_str = str(rows[-1]['id']) if rows else None
+    return json_response(200, {
+        'meta': {'total': total, 'limit': limit},
+        'links': page_links(request, request.path, params, cur_str, next_str, len(rows), limit),
+        'data': data,
+    })
+
+
+class _GroupToPartner:
+    """format_dataset 用的 group → tbiaPartnerID（走 data.utils 的 5 分鐘快取）"""
+    def get(self, group):
+        return get_partner_id_by_group(group) if group else None
+
+
+def map(request):
+    """5.3 v2 map：成功時直接回 GeoJSON FeatureCollection（user.html）；錯誤同其他 v2 API 回 {status}。
+    只有公開版：模糊化網格 grid_N_blurred、公開縣市（11/23 Kim）"""
+    if request.method != 'GET':
+        return error_response(400, 'Only GET is supported')
+
+    params, is_from_example = request_params(request)
+    try:
+        grid, fq = map_query(params)
+    except ParamError as e:
+        return error_response(400, str(e))
+
+    facet_grid = f'grid_{grid}_blurred'
+    query = {
+        'query': '*:*',
+        'limit': 0,
+        'filter': fq,
+        'facet': {facet_grid: {'field': facet_grid, 'mincount': 1, 'type': 'terms', 'limit': -1}},
+    }
+    try:
+        resp = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': 'application/json'},
+                             timeout=SOLR_TIMEOUT)
+    except requests.RequestException:
+        logger.exception('api v2 map: Solr request failed')
+        return error_response(500)
+    if resp.status_code != 200:
+        logger.error('api v2 map: Solr %s %s', resp.status_code, resp.text[:500])
+        return error_response(500)
+
+    facets = resp.json().get('facets') or {}
+    buckets = (facets.get(facet_grid) or {}).get('buckets') or []
+    geojson = get_map_geojson(data_c=buckets, grid=grid)[f'grid_{grid}']
+
+    if not is_from_example:
+        record_stat('api_map', [], params, compute_stat=False)
+
+    return HttpResponse(json.dumps(geojson, ensure_ascii=False), status=200,
+                        content_type='application/json; charset=utf-8')

@@ -1,4 +1,4 @@
-"""5.2 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
+"""5.2 / 5.3 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
 執行：python -m unittest api.tests_v2 -v"""
 import ast
 import re
@@ -7,8 +7,9 @@ from pathlib import Path
 
 from api.v2_params import (
     ParamError, parse_limit, occurrence_query, format_occurrence, taxon_rank_v2,
+    dataset_query, format_dataset, format_ymd, parse_cursor_id, map_query, parse_year, like_escape,
 )
-from data.fields import API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS
+from data.fields import API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS, API_DATASET_FIELDS
 from data.search_params import (
     normalize_pairs, TAICOL_RANKS, TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, RANK_ZH,
 )
@@ -279,3 +280,174 @@ class FormatTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+# ===================== 5.3 dataset =====================
+
+def P(params):
+    return {k: (v if isinstance(v, list) else [v]) for k, v in params.items()}
+
+
+def dq(params, groups=None):
+    return dataset_query(P(params), groups or {})
+
+
+class DatasetFieldsTest(unittest.TestCase):
+    def test_fields(self):
+        # 與資料集下載 CSV（data/views.py download_dataset_results）的欄位集合相同
+        download = ["datasetName", "sourceDatabase", "tbiaPartnerID", "partnerName", "tbiaDatasetID", "datasetID",
+                    "gbifDatasetID", "resourceContacts", "occurrenceCount", "datasetDateStart", "datasetDateEnd",
+                    "resourceCitationIdentifier", "datasetPublisher", "datasetLicense", "datasetTaxonGroup",
+                    "created", "modified"]
+        self.assertEqual(set(API_DATASET_FIELDS), set(download))
+        self.assertEqual(len(API_DATASET_FIELDS), 17)
+        i = API_DATASET_FIELDS.index('tbiaPartnerID')
+        self.assertEqual(API_DATASET_FIELDS[i + 1], 'partnerName')
+
+
+class DatasetQueryTest(unittest.TestCase):
+    def test_default(self):
+        where, values = dq({})
+        self.assertEqual(where, ['"deprecated" = \'f\''])
+        self.assertEqual(values, [])
+
+    def test_ids(self):
+        where, values = dq({'tbiaDatasetID': 'abc', 'datasetID': 'src1', 'gbifDatasetID': 'g1'})
+        self.assertIn('"tbiaDatasetID" = %s', where)
+        self.assertIn('"sourceDatasetID" = %s', where)
+        self.assertIn('"gbifDatasetID" = %s', where)
+        self.assertEqual(values, ['abc', 'src1', 'g1'])
+        with self.assertRaises(ParamError):
+            dq({'tbiaDatasetID': ['a', 'b']})   # 單值參數
+
+    def test_partner(self):
+        groups = {'p1': ['ntm', 'ntm2'], 'p2': ['tbri']}
+        where, values = dq({'tbiaPartnerID': 'p1,p2'}, groups)
+        self.assertIn('"group" IN (%s, %s, %s)', where)
+        self.assertEqual(values, ['ntm', 'ntm2', 'tbri'])
+        where, values = dq({'tbiaPartnerID': 'not-exist'}, groups)
+        self.assertIn('FALSE', where)
+
+    def test_source_database_new_name_only(self):
+        # 新名稱：同時比對 PG 的舊名稱；舊名稱：不接受（查無資料）；未改名的：原樣
+        where, values = dq({'sourceDatabase': '科博典藏'})
+        self.assertEqual(values, ['科博典藏', '科博典藏 (NMNS Collection)'])
+        where, values = dq({'sourceDatabase': '科博典藏 (NMNS Collection)'})
+        self.assertIn('FALSE', where)
+        self.assertEqual(values, [])
+        where, values = dq({'sourceDatabase': '台灣生物多樣性網絡 TBN,科博典藏 (NMNS Collection)'})
+        self.assertEqual(values, ['台灣生物多樣性網絡 TBN'])
+
+    def test_name_and_group(self):
+        where, values = dq({'datasetName': 'eBird_100%', 'datasetTaxonGroup': '鳥類,哺乳類'})
+        self.assertIn('"name" LIKE %s', where)
+        self.assertIn('("datasetTaxonGroup" LIKE %s OR "datasetTaxonGroup" LIKE %s)', where)
+        self.assertEqual(values, ['%eBird\\_100\\%%', '%鳥類%', '%哺乳類%'])
+        with self.assertRaises(ParamError):
+            dq({'datasetTaxonGroup': '昆蟲'})   # 舊類群不接受
+        self.assertEqual(like_escape('a\\b'), 'a\\\\b')
+
+    def test_dates(self):
+        where, values = dq({'created': '20240101,20241231'})
+        self.assertEqual(where[1:], ['"created" >= %s', '"created" < (%s::date + 1)'])
+        self.assertEqual(values, ['2024-01-01', '2024-12-31'])
+        where, values = dq({'modified': '20240105'})
+        self.assertEqual(values, ['2024-01-05', '2024-01-05'])
+        where, values = dq({'modified': '*,20240131'})
+        self.assertEqual(where[1:], ['"modified" < (%s::date + 1)'])
+        for bad in ('2024-01-01', '20240230', '2024'):
+            with self.assertRaises(ParamError):
+                dq({'created': bad})
+
+    def test_cursor(self):
+        self.assertIsNone(parse_cursor_id({}))
+        self.assertEqual(parse_cursor_id({'cursor': ['123']}), 123)
+        with self.assertRaises(ParamError):
+            parse_cursor_id({'cursor': ['abc']})
+
+    def test_apikey_param_ignored(self):
+        self.assertEqual(dq({'apikey': 'x'}), dq({}))
+
+    def test_values_count_matches_placeholders(self):
+        where, values = dq({'tbiaDatasetID': 'a', 'tbiaPartnerID': 'p1', 'sourceDatabase': '科博典藏',
+                            'datasetName': 'x', 'datasetTaxonGroup': '鳥類', 'created': '20240101,20240102'},
+                           {'p1': ['g']})
+        self.assertEqual(sum(w.count('%s') for w in where), len(values))
+
+
+class FormatDatasetTest(unittest.TestCase):
+    def test_format(self):
+        import datetime
+        row = {'id': 5, 'datasetName': 'D', 'group': 'ntm', 'rights_holder': '國立臺灣博物館典藏',
+               'tbiaDatasetID': 't1', 'datasetID': '', 'gbifDatasetID': None, 'resourceContacts': 'A',
+               'occurrenceCount': 10, 'datasetDateStart': datetime.date(2020, 1, 2), 'datasetDateEnd': '2021-03-04',
+               'resourceCitationIdentifier': 'https://x', 'datasetPublisher': None, 'datasetLicense': 'CC0',
+               'datasetTaxonGroup': '鳥類,哺乳類', 'created': '20240101 080000', 'modified': '20240102 090000'}
+        d = format_dataset(row, {'ntm': 'p1'}, {'p1': '國立臺灣博物館'})
+        self.assertEqual(list(d), API_DATASET_FIELDS)
+        self.assertEqual(d['sourceDatabase'], '國立臺灣博物館生物典藏資料')
+        self.assertEqual(d['tbiaPartnerID'], 'p1')
+        self.assertEqual(d['partnerName'], '國立臺灣博物館')
+        self.assertEqual(d['datasetDateStart'], '20200102')
+        self.assertEqual(d['datasetDateEnd'], '20210304')
+        self.assertIsNone(d['datasetID'])
+        self.assertIsNone(d['gbifDatasetID'])
+        self.assertNotIn('id', d)
+        self.assertNotIn('group', d)
+        # GBIF：沒有夥伴單位
+        d = format_dataset({**row, 'group': 'gbif'}, {'ntm': 'p1'}, {'p1': 'x'})
+        self.assertIsNone(d['tbiaPartnerID'])
+        self.assertIsNone(d['partnerName'])
+
+    def test_ymd(self):
+        self.assertIsNone(format_ymd(None))
+        self.assertIsNone(format_ymd(''))
+        self.assertEqual(format_ymd('2020-01-02 00:00:00'), '20200102')
+        self.assertEqual(format_ymd('2020'), '2020')
+
+
+# ===================== 5.3 map =====================
+
+class MapQueryTest(unittest.TestCase):
+    def mq(self, params):
+        return map_query(P(params))
+
+    def test_required(self):
+        with self.assertRaises(ParamError):
+            self.mq({'boundedBy': '122,23,121,22'})          # 沒有 grid
+        with self.assertRaises(ParamError):
+            self.mq({'grid': '1'})                            # 沒有 boundedBy
+        for g in ('2', 'x', '0'):
+            with self.assertRaises(ParamError):
+                self.mq({'grid': g, 'boundedBy': '122,23,121,22'})
+
+    def test_span(self):
+        grid, fq = self.mq({'grid': '1', 'boundedBy': '122,23,121,22'})
+        self.assertEqual(grid, 1)
+        self.assertEqual(fq[:2], ['location_rpt:[22.0,121.0 TO 23.0,122.0]', '-organismQuantity:0'])
+        with self.assertRaises(ParamError):
+            self.mq({'grid': '1', 'boundedBy': '122,23.5,121,22'})
+        self.mq({'grid': '100', 'boundedBy': '120,25,80,-15'})   # user.html 範例
+        with self.assertRaises(ParamError):
+            self.mq({'grid': '5', 'boundedBy': '121,23,122,22'})  # 最大最小顛倒
+
+    def test_filters(self):
+        _, fq = self.mq({'grid': '10', 'boundedBy': '122,23,121,22', 'taxonID': 't0001',
+                         'taxonGroup': '鳥類,哺乳類', 'year': '2020', 'county': '臺東縣', 'municipality': '綠島鄉'})
+        self.assertIn('taxonID:"t0001"', fq)
+        self.assertIn('taxonGroup:("鳥類" OR "哺乳類")', fq)
+        self.assertIn('year:2020', fq)
+        self.assertIn('county:"臺東縣"', fq)
+        self.assertIn('municipality:"綠島鄉"', fq)
+        self.assertFalse(any('raw' in f for f in fq))
+        with self.assertRaises(ParamError):
+            self.mq({'grid': '1', 'boundedBy': '122,23,121,22', 'taxonGroup': '昆蟲'})
+
+    def test_year(self):
+        self.assertEqual(parse_year('2020'), 'year:2020')            # v1 為該年以後，v2 為該年
+        self.assertEqual(parse_year('2018,2021'), 'year:[2018 TO 2021]')
+        self.assertEqual(parse_year('2020,*'), 'year:[2020 TO *]')
+        self.assertEqual(parse_year('*,2020'), 'year:[* TO 2020]')
+        for bad in ('20', '2020-01', '*', '*,*', '2021,2018', '2020,2021,2022'):
+            with self.assertRaises(ParamError):
+                parse_year(bad)

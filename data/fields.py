@@ -296,6 +296,14 @@ API_OCCURRENCE_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in API_OCCUR
                           if f not in NON_SOLR_DOWNLOAD_FIELDS]
 API_OCCURRENCE_SOLR_FL_WITH_SENSITIVE = API_OCCURRENCE_SOLR_FL + SENSITIVE_FIELDS
 
+# 5.3：dataset 回傳欄位，順序同 user.html「資料集 回傳欄位」表，partnerName 接在 tbiaPartnerID 後（API 規格調整 11/16）。
+# 與資料集下載 CSV 的欄位集合相同（下載的順序是 3.3 定的，sourceDatabase 在 tbiaPartnerID 前），api/tests_v2.py 有檢查
+API_DATASET_FIELDS = [
+    'datasetName', 'tbiaPartnerID', 'partnerName', 'sourceDatabase', 'tbiaDatasetID', 'datasetID', 'gbifDatasetID',
+    'resourceContacts', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'resourceCitationIdentifier',
+    'datasetPublisher', 'datasetLicense', 'datasetTaxonGroup', 'created', 'modified',
+]
+
 # 進階搜尋 物種名錄下載：從 taxa core 取的欄位（taxa 舊名），輸出時換成 v2 名稱
 # 3.5（11/18 定案）：物種名錄下載欄位。(taxa core 欄位, 輸出名稱)，依此順序輸出；
 # taxonID、scientificName 來自 records facet。中文別名 / 同物異名 / 誤用名不輸出（同紀錄下載）

@@ -1,11 +1,12 @@
-# 步驟 5（5.1 / 5.2）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
+# 步驟 5（5.1 / 5.2 / 5.3）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
 # 用法（在 ~/tbia-portal-v2）：
 #   docker compose -f staging-v2.yml exec -T web-v2 python manage.py shell < scripts/v2_migration/check_step5.py > /tmp/check_step5.txt 2>&1
 # 選項（exec 後加 -e，例 exec -T -e STEP5_TEMP_KEY=1 web-v2 ...）：
 #   STEP5_TEMP_KEY=1  DB 沒有 status=pass 的 APIkey 時，暫時建一把測限制型，結束時刪除（會寫 portal-v2 DB）
 #   STEP5_STAT=1      檢查第一頁會寫 SearchStat、from_example=1 不寫（會寫 portal-v2 DB 的 SearchStat / SearchCount）
+#   STEP5_ONLY=5.3    只跑 5.3（dataset / map）的項目
 # 不加選項時只讀不寫（所有呼叫都帶 from_example=1，不列入統計）。
-# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」
+# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」「5.3 測試清單」
 import json
 import os
 import re
@@ -22,7 +23,9 @@ from api.models import APIkey
 from manager.models import SearchStat
 from data.fields import API_OCCURRENCE_FIELDS
 from data.utils import INFRASPECIES_RANKS
-from data.search_params import RANK_SOLR_TO_EN
+from data.search_params import RANK_SOLR_TO_EN, TAXON_GROUPS, SOURCE_DATABASE_RENAME
+from data.fields import API_DATASET_FIELDS
+from data.utils import datahub_conn
 from conf.settings import SOLR_PREFIX
 import api.v2 as v2
 import api.views as av
@@ -287,21 +290,267 @@ def c_11():
            f'第一頁寫 1 筆 SearchStat（query={last.query if last else None}）、from_example=1 不寫')
 
 
-run('5.1-1', c_5_1)
-run('5.2-1~3', c_1)
-run('5.2-4', c_4)
-run('5.2-5', c_5)
-run('5.2-6', c_6)
-run('5.2-7', c_7)
-run('5.2-8', c_8)
-run('5.2-9', c_9)
-key, temp = find_key()
-try:
-    run('5.2-10', lambda: c_10(key))
-finally:
-    if temp:
-        APIkey.objects.filter(key=key).delete()
-run('5.2-11', c_11)
+# ===================== 5.3 dataset =====================
+
+def call(view, path, params, stat=False, **headers):
+    params = dict(params or {})
+    if not stat:
+        params['from_example'] = '1'
+    resp = view(RF.get(path, params, HTTP_HOST=HOST, **headers))
+    return resp.status_code, json.loads(resp.content)
+
+
+def ds(params, stat=False, **headers):
+    return call(v2.dataset, '/api/v2/dataset', params, stat, **headers)
+
+
+def pg(sql, values=()):
+    with datahub_conn() as conn, conn.cursor() as cur:
+        cur.execute(sql, list(values))
+        return cur.fetchall()
+
+
+def pg_count(cond='', values=()):
+    return pg('SELECT count(*) FROM dataset WHERE "deprecated" = \'f\'' + (' AND ' + cond if cond else ''), values)[0][0]
+
+
+def ds_total(params):
+    code, b = ds(params)
+    if code != 200:
+        raise AssertionError(f'{params} 回 {code} {b.get("status")}')
+    return b['meta']['total']
+
+
+def d_1():
+    code, b = ds({'limit': 5})
+    t = pg_count()
+    ok = (code == 200 and set(b) == {'status', 'meta', 'links', 'data'} and len(b['data']) == 5
+          and all(list(d) == API_DATASET_FIELDS for d in b['data']) and b['meta']['total'] == t)
+    report('5.3-1', ok, f'結構、每筆 {len(API_DATASET_FIELDS)} 欄（順序同 user.html，partnerName 在 tbiaPartnerID 後）、'
+                        f'total {b["meta"]["total"]:,} = PG {t:,}')
+
+
+def d_2():
+    # 找一個 30～300 個資料集的來源資料庫，limit=25 走完 links.next
+    rows = pg('SELECT "rights_holder", count(*) FROM dataset WHERE "deprecated" = \'f\' GROUP BY 1 '
+              'HAVING count(*) BETWEEN 30 AND 300 ORDER BY 2')
+    if not rows:
+        report('5.3-2', None, '找不到 30～300 個資料集的來源資料庫')
+        return
+    old, n = rows[0]
+    name = SOURCE_DATABASE_RENAME.get(old, old)
+    params, ids, pages = {'sourceDatabase': name, 'limit': 25}, [], 0
+    while params is not None and pages < 30:
+        code, b = ds(params)
+        assert code == 200, b
+        ids += [d['tbiaDatasetID'] for d in b['data']]
+        pages += 1
+        nxt = b['links']['next']
+        params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
+    report('5.3-2', len(ids) == n == len(set(ids)) and params is None,
+           f'分頁：{name} {n} 個資料集，{pages} 頁取回 {len(ids)} 個、不重複，最後一頁 next 為 null')
+
+
+def d_3():
+    # 各參數與 PG 直接查詢筆數一致
+    from manager.models import Partner
+    for p in Partner.objects.exclude(tbia_partner_id__isnull=True).exclude(group='gbif').order_by('id'):
+        groups = list(Partner.objects.filter(tbia_partner_id=p.tbia_partner_id).values_list('group', flat=True).distinct())
+        s = pg_count('"group" = ANY(%s)', [groups])
+        if s:
+            break
+    a = ds_total({'tbiaPartnerID': str(p.tbia_partner_id)})
+    report('5.3-3a', a == s and a > 0, f'tbiaPartnerID（{p.title}，group {groups}）：API {a:,} / PG {s:,}')
+
+    old, new = '科博典藏 (NMNS Collection)', '科博典藏'
+    a, s = ds_total({'sourceDatabase': new}), pg_count('"rights_holder" IN (%s, %s)', [old, new])
+    a_old = ds_total({'sourceDatabase': old})
+    report('5.3-3b', a == s and a > 0 and a_old == 0, f'sourceDatabase 新名稱 {new}：API {a:,} / PG {s:,}；舊名稱 {a_old}（應為 0）')
+
+    a, s = ds_total({'datasetTaxonGroup': '鳥類,哺乳類'}), pg_count(
+        '("datasetTaxonGroup" LIKE %s OR "datasetTaxonGroup" LIKE %s)', ['%鳥類%', '%哺乳類%'])
+    report('5.3-3c', a == s and a > 0, f'datasetTaxonGroup=鳥類,哺乳類：API {a:,} / PG {s:,}')
+
+    a, s = ds_total({'datasetName': '調查'}), pg_count('"name" LIKE %s', ['%調查%'])
+    report('5.3-3d', a == s and a > 0, f'datasetName=調查（部分比對）：API {a:,} / PG {s:,}')
+
+    # created：取 PG 最常見的建立日期，單日、區間、一邊為 *
+    day = pg('SELECT "created"::date, count(*) FROM dataset WHERE "deprecated" = \'f\' GROUP BY 1 ORDER BY 2 DESC LIMIT 1')[0][0]
+    d8 = day.strftime('%Y%m%d')
+    checks = [
+        ({'created': d8}, '"created"::date = %s', [day]),
+        ({'created': f'{d8},*'}, '"created"::date >= %s', [day]),
+        ({'modified': f'*,{d8}'}, '"modified"::date <= %s', [day]),
+    ]
+    out = []
+    for params, cond, vals in checks:
+        a, s = ds_total(params), pg_count(cond, vals)
+        out.append((a == s, f'{params}：{a:,}/{s:,}'))
+    report('5.3-3e', all(o for o, _ in out), '日期：' + '；'.join(m for _, m in out))
+
+    r = pg('SELECT "tbiaDatasetID", "sourceDatasetID" FROM dataset WHERE "deprecated" = \'f\' '
+           'AND "sourceDatasetID" <> \'\' AND "gbifDatasetID" <> \'\' LIMIT 1')
+    if r:
+        code, b = ds({'tbiaDatasetID': r[0][0]})
+        report('5.3-3f', code == 200 and b['meta']['total'] == 1 and b['data'][0]['tbiaDatasetID'] == r[0][0],
+               f'tbiaDatasetID={r[0][0]} 取回 1 筆')
+    else:
+        report('5.3-3f', None, '找不到同時有 datasetID 與 gbifDatasetID 的資料集')
+
+
+def d_4():
+    # 值的格式：created / modified YYYYMMDD HHMMSS、datasetDateStart / End YYYYMMDD、夥伴單位、GBIF
+    code, b = ds({'limit': 1000})
+    data = b['data']
+    bad_time = [d['tbiaDatasetID'] for d in data for f in ('created', 'modified')
+                if d[f] is not None and not re.fullmatch(r'\d{8} \d{6}', d[f])]
+    report('5.3-4a', not bad_time, f'前 {len(data)} 筆 created / modified 皆為 YYYYMMDD HHMMSS' + (f'；不符 {bad_time[:5]}' if bad_time else ''))
+    bad_date = sorted({d[f] for d in data for f in ('datasetDateStart', 'datasetDateEnd')
+                       if d[f] is not None and not re.fullmatch(r'\d{8}', d[f])})
+    col_type = pg("SELECT data_type FROM information_schema.columns WHERE table_name = 'dataset' AND column_name = 'datasetDateStart'")
+    report('5.3-4b', not bad_date, f'datasetDateStart / End 皆為 YYYYMMDD（PG 型別 {col_type[0][0] if col_type else "?"}）'
+           + (f'；其他格式 {bad_date[:10]}' if bad_date else ''))
+    no_name = [d['tbiaDatasetID'] for d in data if d['tbiaPartnerID'] and not d['partnerName']]
+    report('5.3-4c', not no_name, '有 tbiaPartnerID 的都有 partnerName' + (f'；缺 {no_name[:5]}' if no_name else ''))
+    g = pg('SELECT count(*) FROM dataset WHERE "deprecated" = \'f\' AND "group" = \'gbif\'')[0][0]
+    if g:
+        a = ds_total({'sourceDatabase': 'GBIF'})
+        code, b = ds({'sourceDatabase': 'GBIF', 'limit': 50})
+        report('5.3-4d', b['data'] and all(d['tbiaPartnerID'] is None and d['partnerName'] is None for d in b['data']),
+               f'GBIF 資料集（{a:,} 個）tbiaPartnerID / partnerName 為 null')
+    else:
+        report('5.3-4d', None, 'PG 沒有 group=gbif 的資料集')
+    # 實際存在的類群詞（不在 v2 控制詞彙的列出來：查詢用 LIKE，舊類群詞會查不到）
+    tokens = {}
+    for (v,) in pg('SELECT "datasetTaxonGroup" FROM dataset WHERE "deprecated" = \'f\' AND "datasetTaxonGroup" <> \'\''):
+        for t in re.split(r'[,、;|]\s*', v or ''):
+            if t.strip():
+                tokens[t.strip()] = tokens.get(t.strip(), 0) + 1
+    other = {k: n for k, n in tokens.items() if k not in TAXON_GROUPS}
+    report('5.3-4e', not other, 'PG datasetTaxonGroup 的值都在 v2 類群詞彙內' + (f'；其他值 {other}' if other else ''))
+
+
+DS_BAD = [
+    ({'cursor': 'abc'}, '不合法 cursor'),
+    ({'limit': '0'}, 'limit=0'),
+    ({'datasetTaxonGroup': '昆蟲'}, '舊類群'),
+    ({'created': '2024-01-01'}, 'created 非 YYYYMMDD'),
+    ({'tbiaDatasetID': ['a', 'b']}, 'tbiaDatasetID 重複帶不同值'),
+]
+
+
+def d_5():
+    fails = [f'{label}→{ds(p)[0]}' for p, label in DS_BAD if ds(p)[0] != 400]
+    code, b = ds({'limit': 1}, HTTP_AUTHORIZATION='Bearer not-a-key')
+    zero = ds_total({'tbiaPartnerID': 'not-a-partner'})
+    report('5.3-5', not fails and code == 200 and zero == 0,
+           f'不合法參數 {len(DS_BAD)} 種回 400；帶無效 Bearer 仍 200（dataset 不看金鑰）；不存在的 tbiaPartnerID 0 筆'
+           + (f'；不符：{fails}' if fails else ''))
+
+
+# ===================== 5.3 map =====================
+
+def mp(params, stat=False):
+    return call(v2.map, '/api/v2/map', params, stat)
+
+
+def map_sum(params):
+    code, b = mp(params)
+    if code != 200:
+        raise AssertionError(f'{params} 回 {code} {b}')
+    return sum(f['properties']['counts'] for f in b['features']), b
+
+
+def m_1():
+    params = {'boundedBy': '122,24,121,23', 'grid': '5', 'taxonGroup': '鳥類'}
+    n, b = map_sum(params)
+    s = solr_count(['location_rpt:[23,121 TO 24,122]', '-organismQuantity:0', 'taxonGroup:"鳥類"'])
+    props_ok = all(set(f['properties']) == {'counts', 'current_grid_level', 'current_grid'}
+                   and f['properties']['current_grid_level'] == 'grid_5' for f in b['features'])
+    report('5.3-6', b.get('type') == 'FeatureCollection' and 'status' not in b and props_ok and n == s and n > 0,
+           f'直接回 FeatureCollection（{len(b["features"])} 格，properties 為 counts / current_grid_level / current_grid）；'
+           f'網格筆數合計 {n:,} / Solr {s:,}（不含 organismQuantity=0）')
+
+
+def m_2():
+    base = {'boundedBy': '122,24,121,23', 'grid': '10'}
+    box = ['location_rpt:[23,121 TO 24,122]', '-organismQuantity:0']
+    out = []
+    for y, fq in [('2020', 'year:2020'), ('2018,2021', 'year:[2018 TO 2021]'),
+                  ('2020,*', 'year:[2020 TO *]'), ('*,2000', 'year:[* TO 2000]')]:
+        n, _ = map_sum({**base, 'year': y})
+        s = solr_count(box + [fq])
+        out.append((n == s, f'{y}：{n:,}/{s:,}'))
+    n, _ = map_sum({**base, 'county': '臺東縣'})
+    s = solr_count(box + ['county:"臺東縣"'])
+    out.append((n == s, f'county 臺東縣：{n:,}/{s:,}'))
+    report('5.3-7', all(o for o, _ in out), 'year 單一值為該年（v1 為該年以後）、區間與縣市與 Solr 一致：' + '；'.join(m for _, m in out))
+
+
+MAP_BAD = [
+    ({'grid': '1'}, '缺 boundedBy'),
+    ({'boundedBy': '122,23,121,22'}, '缺 grid'),
+    ({'boundedBy': '122,23,121,22', 'grid': '2'}, 'grid=2'),
+    ({'boundedBy': '125,25,115,15', 'grid': '1'}, '1 公里網格跨度 10 度'),
+    ({'boundedBy': '122,23,121,22', 'grid': '1', 'year': '20'}, 'year 非 yyyy'),
+    ({'boundedBy': '122,23,121,22', 'grid': '1', 'taxonGroup': '昆蟲'}, '舊類群'),
+]
+
+
+def m_3():
+    fails = []
+    for p, label in MAP_BAD:
+        code, b = mp(p)
+        if not (code == 400 and b.get('status', {}).get('code') == 400):
+            fails.append(f'{label}→{code}')
+    # user.html 的 4 個網格範例都要 200
+    ex = [('122,23,121,22', '1'), ('125,25,115,15', '5'), ('122,23,102,3', '10'), ('120,25,80,-15', '100')]
+    ex_fail = [g for bb, g in ex if mp({'boundedBy': bb, 'grid': g})[0] != 200]
+    report('5.3-8', not fails and not ex_fail, f'不合法參數 {len(MAP_BAD)} 種回 400（{{status}} 格式）；user.html 4 個網格範例皆 200'
+           + (f'；不符：{fails} {ex_fail}' if fails or ex_fail else ''))
+
+
+def m_4():
+    if os.environ.get('STEP5_STAT') != '1':
+        report('5.3-9', None, '加 -e STEP5_STAT=1 才檢查（會寫 SearchStat）')
+        return
+    res = []
+    for loc, fn, params in [('api_dataset', ds, {'limit': 1}),
+                            ('api_map', mp, {'boundedBy': '122,23,121,22', 'grid': '1'})]:
+        before = SearchStat.objects.filter(search_location=loc).count()
+        fn(params, stat=True)
+        fn(params)    # from_example=1
+        time.sleep(5)
+        res.append((loc, SearchStat.objects.filter(search_location=loc).count() - before))
+    report('5.3-9', all(n == 1 for _, n in res), f'各寫 1 筆 SearchStat、from_example=1 不寫：{res}')
+
+
+if os.environ.get('STEP5_ONLY') != '5.3':
+    run('5.1-1', c_5_1)
+    run('5.2-1~3', c_1)
+    run('5.2-4', c_4)
+    run('5.2-5', c_5)
+    run('5.2-6', c_6)
+    run('5.2-7', c_7)
+    run('5.2-8', c_8)
+    run('5.2-9', c_9)
+    key, temp = find_key()
+    try:
+        run('5.2-10', lambda: c_10(key))
+    finally:
+        if temp:
+            APIkey.objects.filter(key=key).delete()
+    run('5.2-11', c_11)
+
+run('5.3-1', d_1)
+run('5.3-2', d_2)
+run('5.3-3', d_3)
+run('5.3-4', d_4)
+run('5.3-5', d_5)
+run('5.3-6', m_1)
+run('5.3-7', m_2)
+run('5.3-8', m_3)
+run('5.3-9', m_4)
 
 counts = {}
 for _, s in RESULTS:

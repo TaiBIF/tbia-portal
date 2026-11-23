@@ -1,4 +1,4 @@
-"""API v2 的查詢參數驗證、Solr 條件與回傳欄位整理（5.2；5.3 / 5.4 會繼續用）。
+"""API v2 的查詢參數驗證、Solr / SQL 條件與回傳欄位整理（5.2 occurrence；5.3 dataset、map）。
 
 不需要 Django，單元測試在 api/tests_v2.py：python -m unittest api.tests_v2 -v
 規格：user.html 與交接文件「API 規格調整」。和網站共用 data/search_params.py 的控制詞彙、parse_range、parse_circle。
@@ -16,8 +16,9 @@ from shapely.errors import ShapelyError
 from data.search_params import (
     parse_range, parse_circle, TAXON_GROUPS, HABITAT_PARAM, NATIVENESS, PROTECTED_STATUS,
     TYPE_STATUS, MEDIA_TYPES, BASIS_OF_RECORD, RANK_EN_TO_SOLR, RANK_SOLR_TO_EN, INFRASPECIES_RANKS,
+    SOURCE_DATABASE_RENAME, to_source_database,
 )
-from data.fields import API_OCCURRENCE_FIELDS, RESTRICTED_OVERRIDE
+from data.fields import API_OCCURRENCE_FIELDS, RESTRICTED_OVERRIDE, API_DATASET_FIELDS
 
 DEFAULT_LIMIT = 20
 MAX_LIMIT = 1000
@@ -282,3 +283,182 @@ def format_occurrence(doc, restricted, partner_names):
     pid = out['tbiaPartnerID']
     out['partnerName'] = partner_names.get(str(pid)) or None if pid else None
     return out
+
+
+# ---- dataset（5.3） ----
+# PG dataset 第一階段仍是舊欄位名稱與舊來源資料庫名稱（P2-2 改名），這裡用 SQL 別名輸出 v2 名稱。
+# [P2-2-REMOVE] P2-2 之後：rights_holder → sourceDatabase、sourceDatasetID → datasetID、datasetURL → resourceCitationIdentifier，
+# tbiaPartnerID 直接查欄位，_SOURCE_DATABASE_OLD 與 group 對照都可拿掉
+
+_SOURCE_DATABASE_OLD = {v: k for k, v in SOURCE_DATABASE_RENAME.items()}   # 新名稱 → 舊名稱
+
+DATASET_SELECT = (
+    'SELECT "id", "name" AS "datasetName", "group", "rights_holder", "tbiaDatasetID", '
+    '"sourceDatasetID" AS "datasetID", "gbifDatasetID", "resourceContacts", "occurrenceCount", '
+    '"datasetDateStart", "datasetDateEnd", "datasetURL" AS "resourceCitationIdentifier", '
+    '"datasetPublisher", "datasetLicense", "datasetTaxonGroup", '
+    "TO_CHAR(\"created\", 'YYYYMMDD HH24MISS') AS \"created\", "
+    "TO_CHAR(\"modified\", 'YYYYMMDD HH24MISS') AS \"modified\" "
+    'FROM dataset'
+)
+
+
+def like_escape(v):
+    """LIKE 的萬用字元當一般字元比對（PostgreSQL 預設跳脫字元為反斜線）"""
+    return v.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
+
+def parse_cursor_id(params):
+    """dataset 的游標是 PG dataset.id（由 links.next 帶入）；第一頁為 None"""
+    v = get_single(params, 'cursor')
+    if v is None or v == '*':
+        return None
+    if not re.fullmatch(r'\d+', v):
+        raise ParamError('cursor', 'Invalid cursor')
+    return int(v)
+
+
+def _pg_date(yyyymmdd):
+    return f'{yyyymmdd[:4]}-{yyyymmdd[4:6]}-{yyyymmdd[6:]}'
+
+
+def dataset_query(params, partner_groups):
+    """dataset 查詢參數 → (where, values)：where 為 SQL 條件字串清單（%s 佔位），values 依序對應。
+    partner_groups：{tbiaPartnerID: [Partner.group, ...]}（PG dataset 沒有 tbiaPartnerID，靠 group 篩選）。
+    - datasetName：部分比對、區分大小寫（user.html 大小寫規則；網站資料集搜尋是 ILIKE，API 同 v1 用 LIKE）
+    - sourceDatabase：只認新名稱（不接受舊名，11/23 Kim）；PG 仍存舊名稱，所以新名稱同時比對對應的舊名稱
+    - 對不到任何值（夥伴單位 ID 都不存在、來源資料庫都是舊名）→ 查無資料，而不是不加條件
+    - 只有公開版：apikey 參數與 Authorization header 都不處理（規格沒列的參數忽略）"""
+    where, values = ['"deprecated" = \'f\''], []
+
+    for key, col in (('tbiaDatasetID', 'tbiaDatasetID'), ('datasetID', 'sourceDatasetID'),
+                     ('gbifDatasetID', 'gbifDatasetID')):
+        if v := get_single(params, key):
+            where.append(f'"{col}" = %s')
+            values.append(v)
+
+    if vals := get_values(params, 'tbiaPartnerID'):
+        groups = []
+        for pid in vals:
+            for g in partner_groups.get(pid, []):
+                if g not in groups:
+                    groups.append(g)
+        if groups:
+            where.append('"group" IN (' + ', '.join(['%s'] * len(groups)) + ')')
+            values += groups
+        else:
+            where.append('FALSE')
+
+    if vals := get_values(params, 'sourceDatabase'):
+        names = []
+        for v in vals:
+            if to_source_database(v) != v:   # 舊名稱：不接受（API 規格調整 11/20：API 不轉換舊名稱）
+                continue
+            for n in (v, _SOURCE_DATABASE_OLD.get(v)):
+                if n and n not in names:
+                    names.append(n)
+        if names:
+            where.append('"rights_holder" IN (' + ', '.join(['%s'] * len(names)) + ')')
+            values += names
+        else:
+            where.append('FALSE')
+
+    if v := get_single(params, 'datasetName'):
+        where.append('"name" LIKE %s')
+        values.append(f'%{like_escape(v)}%')
+
+    if vals := check_vocab(params, 'datasetTaxonGroup', TAXON_GROUPS):
+        where.append('(' + ' OR '.join(['"datasetTaxonGroup" LIKE %s'] * len(vals)) + ')')
+        values += [f'%{like_escape(v)}%' for v in vals]
+
+    # created / modified 為台灣時間（同下載 CSV，TO_CHAR 直接輸出），以日期為粒度
+    for k in ('created', 'modified'):
+        if v := get_single(params, k):
+            start, end = parse_date_range(v, k)
+            if start:
+                where.append(f'"{k}" >= %s')
+                values.append(_pg_date(start))
+            if end:
+                where.append(f'"{k}" < (%s::date + 1)')
+                values.append(_pg_date(end))
+
+    return where, values
+
+
+def format_ymd(value):
+    """datasetDateStart / End → YYYYMMDD（11/23 Kim）；date / datetime 或 YYYY-MM-DD 開頭的字串都轉，其他格式原樣輸出"""
+    if value is None or value == '':
+        return None
+    if hasattr(value, 'strftime'):
+        return value.strftime('%Y%m%d')
+    s = str(value)
+    if re.match(r'\d{4}-\d{2}-\d{2}', s):
+        return s[:4] + s[5:7] + s[8:10]
+    return s
+
+
+def format_dataset(row, partner_id_by_group, partner_names):
+    """PG dataset 一列（DATASET_SELECT 的欄位）→ v2 dataset 一筆；順序同 API_DATASET_FIELDS，沒有值為 null"""
+    row = dict(row)
+    rh = row.get('rights_holder')
+    row['sourceDatabase'] = to_source_database(rh) if rh else None   # [P2-2-REMOVE]
+    pid = partner_id_by_group.get(row.get('group')) or None
+    row['tbiaPartnerID'] = pid
+    row['partnerName'] = (partner_names.get(str(pid)) or None) if pid else None
+    for f in ('datasetDateStart', 'datasetDateEnd'):
+        row[f] = format_ymd(row.get(f))
+    return {f: (None if _empty(row.get(f)) else row.get(f)) for f in API_DATASET_FIELDS}
+
+
+# ---- map（5.3） ----
+# 網格大小（公里）→ boundedBy 經緯度最大跨度（度），同 v1 check_grid_bound 與 user.html
+GRID_MAX_SPAN = {1: 1, 5: 10, 10: 20, 100: 40}
+
+
+def parse_year(value):
+    """year：yyyy 單一值（該年，v1 是該年以後）或區間，一邊可為 *（API 規格調整 11/17）→ Solr 條件"""
+    parts = [p.strip() for p in value.split(',')]
+    if len(parts) > 2 or any(p not in ('', '*') and not re.fullmatch(r'\d{4}', p) for p in parts):
+        raise ParamError('year', 'Invalid year: 格式為 yyyy 或 yyyy,yyyy')
+    if len(parts) == 1:
+        if parts[0] in ('', '*'):
+            raise ParamError('year')
+        return f'year:{int(parts[0])}'
+    start, end = (p if p not in ('', '*') else '*' for p in parts)
+    if start == '*' and end == '*':
+        raise ParamError('year')
+    if start != '*' and end != '*' and int(start) > int(end):
+        raise ParamError('year', 'Invalid year: 起始年大於結束年')
+    return f'year:[{start} TO {end}]'
+
+
+def map_query(params):
+    """map 查詢參數 → (grid, fq)。只有公開版（模糊化網格 grid_N_blurred、公開的縣市），不看金鑰（11/23 Kim）。
+    boundedBy、grid 必填；跨度不得超過該網格允許的最大跨度。
+    排除 organismQuantity=0（未發現紀錄），與網站地圖相同（v1 API 沒有排除）"""
+    v = get_single(params, 'grid')
+    if v is None:
+        raise ParamError('grid', 'Parameter grid is required')
+    if not re.fullmatch(r'\d+', v) or int(v) not in GRID_MAX_SPAN:
+        raise ParamError('grid', 'Invalid grid: 只提供 1、5、10、100')
+    grid = int(v)
+
+    v = get_single(params, 'boundedBy')
+    if v is None:
+        raise ParamError('boundedBy', 'Parameter boundedBy is required')
+    max_lon, max_lat, min_lon, min_lat = parse_bounded_by(v)
+    span = GRID_MAX_SPAN[grid]
+    if max_lon - min_lon > span or max_lat - min_lat > span:
+        raise ParamError('boundedBy', f'Invalid boundedBy: {grid} 公里網格的經緯度跨度不得超過 {span} 度')
+
+    fq = [f'location_rpt:[{min_lat},{min_lon} TO {max_lat},{max_lon}]', '-organismQuantity:0']
+    if v := get_single(params, 'taxonID'):
+        fq.append(f'taxonID:{solr_quote(v)}')
+    if vals := check_vocab(params, 'taxonGroup', TAXON_GROUPS):
+        fq.append(f'taxonGroup:({" OR ".join(solr_quote(g) for g in vals)})')
+    if v := get_single(params, 'year'):
+        fq.append(parse_year(v))
+    for k in ('county', 'municipality'):
+        if v := get_single(params, k):
+            fq.append(f'{k}:{solr_quote(v)}')
+    return grid, fq
