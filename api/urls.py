@@ -7,6 +7,7 @@ urlpatterns = [
     path('api/v2/occurrence', v2.occurrence, name='api_v2_occurrence'),
     path('api/v2/dataset', v2.dataset, name='api_v2_dataset'),
     path('api/v2/map', v2.map, name='api_v2_map'),
+    path('api/v2/partner', v2.partner, name='api_v2_partner'),
     path('api/doc', views.api_doc, name='api_doc'),
     path('api/partner-info', views.partner_info, name='api_partner_info'),  # 名稱不可與 manager 的 partner_info 重複
     # [V1-API-REMOVE] v1 路由

@@ -1,4 +1,4 @@
-"""5.2 / 5.3 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
+"""5.2 / 5.3 / 5.4 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
 執行：python -m unittest api.tests_v2 -v"""
 import ast
 import re
@@ -8,6 +8,7 @@ from pathlib import Path
 from api.v2_params import (
     ParamError, parse_limit, occurrence_query, format_occurrence, taxon_rank_v2,
     dataset_query, format_dataset, format_ymd, parse_cursor_id, map_query, parse_year, like_escape,
+    unique_partners, partner_query, partner_page, format_partner,
 )
 from data.fields import API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS, API_DATASET_FIELDS
 from data.search_params import (
@@ -451,3 +452,40 @@ class MapQueryTest(unittest.TestCase):
         for bad in ('20', '2020-01', '*', '*,*', '2021,2018', '2020,2021,2022'):
             with self.assertRaises(ParamError):
                 parse_year(bad)
+
+
+# ===================== 5.4 partner =====================
+
+ROWS = [  # (Partner.id, tbia_partner_id, title)；同一單位多列、GBIF 沒有 ID
+    (3, 'p-b', '國立臺灣博物館'), (1, 'p-a', '國立自然科學博物館'), (5, None, 'GBIF'),
+    (4, 'p-b', '國立臺灣博物館'), (7, 'p-c', '農業部生物多樣性研究所'), (9, 'p-d', '海洋委員會海洋保育署'),
+]
+
+
+class PartnerTest(unittest.TestCase):
+    def test_unique(self):
+        ps = unique_partners(ROWS)
+        self.assertEqual([p['tbiaPartnerID'] for p in ps], ['p-a', 'p-b', 'p-c', 'p-d'])
+        self.assertEqual([p['order'] for p in ps], [1, 3, 7, 9])
+        self.assertEqual(format_partner(ps[0]), {'tbiaPartnerID': 'p-a', 'partnerName': '國立自然科學博物館'})
+
+    def test_query(self):
+        ps = unique_partners(ROWS)
+        self.assertEqual(len(partner_query(ps, P({}))), 4)
+        self.assertEqual([p['tbiaPartnerID'] for p in partner_query(ps, P({'tbiaPartnerID': 'p-c'}))], ['p-c'])
+        self.assertEqual(len(partner_query(ps, P({'partnerName': '博物館'}))), 2)
+        self.assertEqual(len(partner_query(ps, P({'partnerName': '博物館', 'tbiaPartnerID': 'p-c'}))), 0)
+        self.assertEqual(len(partner_query(ps, P({'tbiaPartnerID': 'nope'}))), 0)
+        with self.assertRaises(ParamError):
+            partner_query(ps, P({'tbiaPartnerID': ['p-a', 'p-b']}))
+
+    def test_page(self):
+        ps = unique_partners(ROWS)
+        page, nxt = partner_page(ps, None, 2)
+        self.assertEqual(([p['order'] for p in page], nxt), ([1, 3], 3))
+        page, nxt = partner_page(ps, 3, 2)
+        self.assertEqual(([p['order'] for p in page], nxt), ([7, 9], None))   # 剛好取完：不給下一頁
+        page, nxt = partner_page(ps, 9, 2)
+        self.assertEqual((page, nxt), ([], None))
+        page, nxt = partner_page(ps, None, 20)
+        self.assertEqual((len(page), nxt), (4, None))

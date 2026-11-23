@@ -1,11 +1,11 @@
-"""API v2（5.2 occurrence；5.3 dataset / map；5.4 partner 之後加在這裡）
+"""API v2（5.2 occurrence；5.3 dataset / map；5.4 partner）
 
 共通行為（user.html）：
 - 回傳 {status: {code, message}, meta: {total, limit}, links: {self, next}, data: [...]}；map 例外（直接回 GeoJSON）
 - HTTP 狀態碼與 status.code 一致：200（查無資料也是 200、data 為空陣列）、400、401、404、500
 - 游標分頁：參數 cursor 由 links.next 帶，使用者不用自己組；最後一頁 links.next 為 null
 - 限制型（只有 occurrence）：Authorization: Bearer <API_KEY>（APIkey.status='pass'）；帶了但無效 → 401。
-  dataset / map 只有公開版，不看 Authorization header（11/23 Kim）
+  dataset / map / partner 只有公開版，不看 Authorization header（11/23 Kim）
 參數驗證與欄位整理在 api/v2_params.py（不需要 Django，有單元測試）。
 """
 import json
@@ -19,7 +19,8 @@ from django.http import HttpResponse, QueryDict
 
 from api.models import APIkey
 from api.v2_params import (ParamError, parse_limit, occurrence_query, format_occurrence,
-                           parse_cursor_id, dataset_query, format_dataset, DATASET_SELECT, map_query)
+                           parse_cursor_id, dataset_query, format_dataset, DATASET_SELECT, map_query,
+                           unique_partners, partner_query, partner_page, format_partner)
 from conf.background import run_light
 from conf.settings import RECORDS_URL, SOLR_TIMEOUT
 from conf.utils import scheme
@@ -82,7 +83,7 @@ def page_links(request, path, params, cursor, next_cursor, n_docs, limit):
 
 def record_stat(location, fq, params, compute_stat=True):
     """SearchStat（第一頁）與 SearchCount；v2 存原始的 v2 參數（不含 cursor / limit）。
-    dataset / map 同 v1 不算各單位筆數（compute_stat=False）"""
+    dataset / map / partner 同 v1 不算各單位筆數（compute_stat=False）"""
     query_string = build_stat_query_string({k: v for k, v in params.items()})
     if not params.get('cursor'):
         run_light(background_search_stat, fq, location, query_string, compute_stat, False)
@@ -273,3 +274,30 @@ def map(request):
 
     return HttpResponse(json.dumps(geojson, ensure_ascii=False), status=200,
                         content_type='application/json; charset=utf-8')
+
+
+def partner(request):
+    """5.4 v2 partner：夥伴單位 tbiaPartnerID 與名稱（Partner.title）。共通格式、游標分頁（游標為 Partner.id）"""
+    if request.method != 'GET':
+        return error_response(400, 'Only GET is supported')
+
+    params, is_from_example = request_params(request)
+    try:
+        limit = parse_limit(params)
+        cursor = parse_cursor_id(params)
+        rows = Partner.objects.exclude(tbia_partner_id__isnull=True).values_list('id', 'tbia_partner_id', 'title')
+        matched = partner_query(unique_partners(rows), params)
+    except ParamError as e:
+        return error_response(400, str(e))
+
+    page, next_cursor = partner_page(matched, cursor, limit)
+
+    if not is_from_example:
+        record_stat('api_partner', [], params, compute_stat=False)
+
+    return json_response(200, {
+        'meta': {'total': len(matched), 'limit': limit},
+        'links': page_links(request, request.path, params, str(cursor) if cursor is not None else '*',
+                            str(next_cursor) if next_cursor is not None else None, len(page), limit),
+        'data': [format_partner(p) for p in page],
+    })

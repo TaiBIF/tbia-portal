@@ -126,6 +126,7 @@ class SearchStat(models.Model):
             ('api_map', '地圖API'),
             ('api_dataset', '資料集API'),
             ('dataset', '資料集搜尋'),
+            ('api_partner', '夥伴單位API'),  # 5.4（API v2）
         ]
 
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
@@ -140,6 +141,7 @@ class SearchCount(models.Model):
         ('api_occ', '物種出現紀錄API'),
         ('api_dataset', '資料集API'),
         ('api_map', '地圖API'),
+        ('api_partner', '夥伴單位API'),  # 5.4（API v2）
     ]
     search_location = models.CharField(choices=location_choice,max_length=20, blank=True) 
     count = models.IntegerField(default=0)

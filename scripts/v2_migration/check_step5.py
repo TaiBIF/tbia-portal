@@ -1,12 +1,12 @@
-# 步驟 5（5.1 / 5.2 / 5.3）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
+# 步驟 5（5.1～5.4）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
 # 用法（在 ~/tbia-portal-v2）：
 #   docker compose -f staging-v2.yml exec -T web-v2 python manage.py shell < scripts/v2_migration/check_step5.py > /tmp/check_step5.txt 2>&1
 # 選項（exec 後加 -e，例 exec -T -e STEP5_TEMP_KEY=1 web-v2 ...）：
 #   STEP5_TEMP_KEY=1  DB 沒有 status=pass 的 APIkey 時，暫時建一把測限制型，結束時刪除（會寫 portal-v2 DB）
 #   STEP5_STAT=1      檢查第一頁會寫 SearchStat、from_example=1 不寫（會寫 portal-v2 DB 的 SearchStat / SearchCount）
-#   STEP5_ONLY=5.3    只跑 5.3（dataset / map）的項目
+#   STEP5_ONLY=5.3    只跑指定的項目，可用逗號分隔（例 5.3,5.4）；不加時 5.1～5.4 全跑
 # 不加選項時只讀不寫（所有呼叫都帶 from_example=1，不列入統計）。
-# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」「5.3 測試清單」
+# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」「5.3 測試清單」「5.4 測試清單」
 import json
 import os
 import re
@@ -541,7 +541,106 @@ def m_4():
     report('5.3-9', all(n == 1 for _, n in res), f'各寫 1 筆 SearchStat、from_example=1 不寫：{res}')
 
 
-if os.environ.get('STEP5_ONLY') != '5.3':
+# ===================== 5.4 partner =====================
+
+def pt(params, stat=False):
+    return call(v2.partner, '/api/v2/partner', params, stat)
+
+
+def p_expected():
+    """Partner 表直接算：每個 tbia_partner_id 一筆，依最早的 Partner.id 排序"""
+    from manager.models import Partner
+    out = {}
+    for pk, pid, title in Partner.objects.exclude(tbia_partner_id__isnull=True).order_by('id').values_list('id', 'tbia_partner_id', 'title'):
+        out.setdefault(str(pid), title)
+    return out
+
+
+def p_1():
+    exp = p_expected()
+    code, b = pt({'limit': 1000})
+    got = {d['tbiaPartnerID']: d['partnerName'] for d in b['data']}
+    ok = (code == 200 and set(b) == {'status', 'meta', 'links', 'data'} and b['meta']['total'] == len(exp)
+          and all(list(d) == ['tbiaPartnerID', 'partnerName'] for d in b['data'])
+          and len(got) == len(b['data']) and got == exp and list(got) == list(exp) and b['links']['next'] is None)
+    report('5.4-1', ok, f'結構、每筆 2 欄、{len(got)} 個夥伴單位與 Partner 表一致（ID 不重複、名稱為 title、依建立順序、GBIF 不列）')
+
+
+def p_2():
+    # 其他 API 用到的 tbiaPartnerID 都查得到
+    code, b = pt({'limit': 1000})
+    ids = {d['tbiaPartnerID'] for d in b['data']}
+    r = requests.get(RECORDS_URL, params={'q': '*:*', 'rows': 0, 'facet': 'true', 'facet.field': 'tbiaPartnerID',
+                                          'facet.limit': -1, 'facet.mincount': 1}, timeout=SOLR_TIMEOUT).json()
+    f = r['facet_counts']['facet_fields']['tbiaPartnerID']
+    solr_ids = {f[i] for i in range(0, len(f), 2)}
+    ds_ids, params = set(), {'limit': 1000}
+    while params is not None:
+        code, d = ds(params)
+        ds_ids |= {x['tbiaPartnerID'] for x in d['data'] if x['tbiaPartnerID']}
+        nxt = d['links']['next']
+        params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
+    miss_solr, miss_ds = solr_ids - ids, ds_ids - ids
+    report('5.4-2', not miss_solr and not miss_ds,
+           f'records 的 {len(solr_ids)} 個、dataset 的 {len(ds_ids)} 個 tbiaPartnerID 都在 Partner API'
+           + (f'；缺：records {miss_solr} dataset {miss_ds}' if miss_solr or miss_ds else ''))
+
+
+def p_3():
+    exp = p_expected()
+    pid, title = next(iter(exp.items()))
+    code, b = pt({'tbiaPartnerID': pid})
+    one = code == 200 and b['meta']['total'] == 1 and b['data'][0] == {'tbiaPartnerID': pid, 'partnerName': title}
+    word = '博物館' if any('博物館' in t for t in exp.values()) else title[:2]
+    n_exp = sum(1 for t in exp.values() if word in (t or ''))
+    n = pt({'partnerName': word})[1]['meta']['total']
+    zero = pt({'tbiaPartnerID': 'not-a-partner'})[1]['meta']['total']
+    # 分頁：limit 整除與不整除都走完，不重複、沒有空頁
+    pages_ok = []
+    for lim in sorted({next((k for k in range(2, len(exp)) if len(exp) % k == 0), len(exp)), 5}):
+        params, got, empty = {'limit': lim}, [], 0
+        while params is not None and len(got) <= len(exp) + lim:
+            code, b = pt(params)
+            got += [d['tbiaPartnerID'] for d in b['data']]
+            empty += not b['data']
+            nxt = b['links']['next']
+            params = dict(parse_qsl(urlsplit(nxt).query)) if nxt else None
+        pages_ok.append((lim, got == list(exp) and empty == 0))
+    report('5.4-3', one and n == n_exp and zero == 0 and all(o for _, o in pages_ok),
+           f'tbiaPartnerID 完全比對 1 筆：{one}；partnerName={word}：{n} / 預期 {n_exp}；不存在的 ID 0 筆；'
+           f'分頁（limit, 正確）：{pages_ok}')
+
+
+def p_4():
+    bad = [({'limit': '0'}, 'limit=0'), ({'cursor': 'abc'}, '不合法 cursor'),
+           ({'tbiaPartnerID': ['a', 'b']}, 'tbiaPartnerID 重複帶不同值')]
+    fails = [f'{label}→{pt(p)[0]}' for p, label in bad if pt(p)[0] != 400]
+    report('5.4-4', not fails, f'不合法參數 {len(bad)} 種回 400' + (f'；不符：{fails}' if fails else ''))
+
+
+def p_5():
+    if os.environ.get('STEP5_STAT') != '1':
+        report('5.4-5', None, '加 -e STEP5_STAT=1 才檢查（會寫 SearchStat）')
+        return
+    from manager.models import SearchCount
+    before = SearchStat.objects.filter(search_location='api_partner').count()
+    c0 = getattr(SearchCount.objects.filter(search_location='api_partner').first(), 'count', 0)
+    pt({'limit': 1}, stat=True)
+    pt({'limit': 1})    # from_example=1
+    time.sleep(5)
+    n = SearchStat.objects.filter(search_location='api_partner').count() - before
+    c1 = getattr(SearchCount.objects.filter(search_location='api_partner').first(), 'count', 0)
+    report('5.4-5', n == 1 and c1 - c0 == 1, f'SearchStat api_partner +{n}、SearchCount +{c1 - c0}（應各 +1，from_example=1 不寫）')
+
+
+ONLY = [x.strip() for x in os.environ.get('STEP5_ONLY', '').split(',') if x.strip()]
+
+
+def want(sec):
+    return not ONLY or sec in ONLY
+
+
+if want('5.2'):
     run('5.1-1', c_5_1)
     run('5.2-1~3', c_1)
     run('5.2-4', c_4)
@@ -558,15 +657,23 @@ if os.environ.get('STEP5_ONLY') != '5.3':
             APIkey.objects.filter(key=key).delete()
     run('5.2-11', c_11)
 
-run('5.3-1', d_1)
-run('5.3-2', d_2)
-run('5.3-3', d_3)
-run('5.3-4', d_4)
-run('5.3-5', d_5)
-run('5.3-6', m_1)
-run('5.3-7', m_2)
-run('5.3-8', m_3)
-run('5.3-9', m_4)
+if want('5.3'):
+    run('5.3-1', d_1)
+    run('5.3-2', d_2)
+    run('5.3-3', d_3)
+    run('5.3-4', d_4)
+    run('5.3-5', d_5)
+    run('5.3-6', m_1)
+    run('5.3-7', m_2)
+    run('5.3-8', m_3)
+    run('5.3-9', m_4)
+
+if want('5.4'):
+    run('5.4-1', p_1)
+    run('5.4-2', p_2)
+    run('5.4-3', p_3)
+    run('5.4-4', p_4)
+    run('5.4-5', p_5)
 
 counts = {}
 for _, s in RESULTS:

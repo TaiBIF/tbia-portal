@@ -1,4 +1,4 @@
-"""API v2 的查詢參數驗證、Solr / SQL 條件與回傳欄位整理（5.2 occurrence；5.3 dataset、map）。
+"""API v2 的查詢參數驗證、Solr / SQL 條件與回傳欄位整理（5.2 occurrence；5.3 dataset、map；5.4 partner）。
 
 不需要 Django，單元測試在 api/tests_v2.py：python -m unittest api.tests_v2 -v
 規格：user.html 與交接文件「API 規格調整」。和網站共用 data/search_params.py 的控制詞彙、parse_range、parse_circle。
@@ -462,3 +462,41 @@ def map_query(params):
         if v := get_single(params, k):
             fq.append(f'{k}:{solr_quote(v)}')
     return grid, fq
+
+
+# ---- partner（5.4） ----
+# 資料來源：manager.Partner。一個夥伴單位可能有多列（同 title、同 tbia_partner_id，D28），以 tbiaPartnerID 合併；
+# GBIF（tbia_partner_id 為空）不是夥伴，不列。排序與游標 = 該單位最早一列的 Partner.id（建立順序）
+
+def unique_partners(rows):
+    """[(Partner.id, tbia_partner_id, title), ...]（依 Partner.id 排序）→
+    [{'order': 最早的 Partner.id, 'tbiaPartnerID', 'partnerName'}]，每個 tbiaPartnerID 一筆"""
+    out, seen = [], set()
+    for pk, pid, title in sorted(rows, key=lambda r: r[0]):
+        if not pid or str(pid) in seen:
+            continue
+        seen.add(str(pid))
+        out.append({'order': pk, 'tbiaPartnerID': str(pid), 'partnerName': title or None})
+    return out
+
+
+def partner_query(partners, params):
+    """partners：unique_partners 的結果 → 符合條件的清單（不分頁）。
+    tbiaPartnerID 完全比對（單值）；partnerName 部分比對、區分大小寫，只比中文 title（11/23 Kim）"""
+    pid = get_single(params, 'tbiaPartnerID')
+    name = get_single(params, 'partnerName')
+    return [p for p in partners
+            if (pid is None or p['tbiaPartnerID'] == pid)
+            and (name is None or name in (p['partnerName'] or ''))]
+
+
+def partner_page(matched, cursor, limit):
+    """依 order 分頁：回傳 (本頁, 下一頁游標或 None)。多看 1 筆判斷有沒有下一頁"""
+    rest = [p for p in matched if cursor is None or p['order'] > cursor]
+    page = rest[:limit]
+    next_cursor = page[-1]['order'] if len(rest) > limit else None
+    return page, next_cursor
+
+
+def format_partner(p):
+    return {'tbiaPartnerID': p['tbiaPartnerID'], 'partnerName': p['partnerName']}
