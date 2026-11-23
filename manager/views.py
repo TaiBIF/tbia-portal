@@ -1,4 +1,5 @@
 import math
+import secrets
 import pytz
 import subprocess
 import os
@@ -27,16 +28,33 @@ from django.utils import timezone, translation
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str 
 from django.utils.translation import gettext, get_language
+from django.utils.html import escape
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
 from django.db.models import Q, Max, Sum 
-from conf.settings import SOLR_PREFIX, env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT
+from conf.settings import env, MEDIA_ROOT, MEDIA_URL, SOLR_TIMEOUT, RECORDS_URL
 from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
-from data.utils import solr_quote, ark_generator, sensitive_cols, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int
+from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, search_again_url, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int, to_source_database, source_database_aliases
+from api.v1_query import SENSITIVE_COLS_V1  # [V1-API-REMOVE] 舊格式下載檔的敏感欄位名稱
+from api.models import APIkey
+from conf.decorators import system_admin_post_required
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
+
+
+def _source_database_param(request, key='rights_holder'):
+    """後台統計的來源資料庫參數轉成 v2 sourceDatabase 名稱（4.1）。
+    夥伴後台下拉來自 Partner.info.dbname，8.1 ② migration 前是舊名稱；DataStat / TaxonStat / Solr 已是新名稱。
+    'total' 原樣回傳。"""
+    val = request.GET.get(key)
+    return to_source_database(val) if val else val
+
+
+def _same_source_database(a, b):
+    """新舊名稱都轉成新名稱再比對（Partner.dbname 與已存統計在 4.4 migration 前後新舊都有可能）"""
+    return bool(a) and bool(b) and to_source_database(a) == to_source_database(b)
 
 quality_map = {
     3: '金',
@@ -208,13 +226,46 @@ def update_feedback(request):
         return JsonResponse({'status': 'success'}, safe=False)
 
 
+# change_manager_page 各 menu 的權限
+_MANAGER_PAGE_PERMS = {
+    # 個人帳號後台
+    'notification': lambda u, frm: True,
+    'download_taxon': lambda u, frm: True,
+    'sensitive': lambda u, frm: True,
+    'download': lambda u, frm: True,
+    # 系統後台
+    'feedback': lambda u, frm: u.is_system_admin,
+    'sensitive_track': lambda u, frm: u.is_system_admin,
+    'news_apply': lambda u, frm: u.is_system_admin,
+    'resource': lambda u, frm: u.is_system_admin,
+    'qa': lambda u, frm: u.is_system_admin,
+    # 單位後台 / 系統後台
+    'account': lambda u, frm: (u.is_partner_admin and u.partner_id) if frm == 'partner' else u.is_system_admin,
+    'sensitive_apply': lambda u, frm: (u.is_partner_admin and u.partner_id) if frm == 'partner' else u.is_system_admin,
+    # 單位後台 最新消息
+    'news': lambda u, frm: u.is_partner_admin or u.is_partner_account,
+}
+
+
 def change_manager_page(request):
+    if request.method != 'POST':
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+    if not request.user.is_authenticated:
+        return JsonResponse({'message': 'Permission denied'}, status=403)
+
+    params = request.POST
+    menu = params.get('menu')
+    perm = _MANAGER_PAGE_PERMS.get(menu)
+    if not perm:
+        return JsonResponse({'message': 'Invalid menu'}, status=400)
+    if not perm(request.user, params.get('from')):
+        return JsonResponse({'message': 'Permission denied'}, status=403)
+
     # 這邊和帳號後台相關的要translation active
-    lang = request.GET.get('lang')
+    lang = params.get('lang')
     translation.activate(lang)
-    page = request.GET.get('page')
-    menu = request.GET.get('menu')
-    offset = (int(page)-1) * 10
+    page = max(to_int(params.get('page'), 1), 1)
+    offset = (page-1) * 10
     response = {}
     now = datetime.now()
     now = now.replace(tzinfo=pytz.timezone('UTC'))
@@ -224,7 +275,7 @@ def change_manager_page(request):
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
         for n in notifications:
             created = n.created + timedelta(hours=8)
-            content = '<p>' + gettext(n.get_type_display()).replace('0000', n.content)+ '</p>'
+            content = '<p>' + gettext(n.get_type_display()).replace('0000', escape(n.content or ''))+ '</p>'
             if not n.is_read:
                 content = '<div class="noti-dottt"></div>' + content
                 content = f'<div class="d-flex">{content}</div>'
@@ -258,9 +309,7 @@ def change_manager_page(request):
             else:
                 search_prefix = 'occurrence'
 
-            tmp_a = create_query_a(search_dict)
-            search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-            query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+            query_a = search_again_url(t.query, search_dict, search_prefix)
 
             query = query_a_href(query,query_a)
 
@@ -323,7 +372,7 @@ def change_manager_page(request):
                     report_file = SensitiveDataReport.objects.get(query_id=s.query_id).file
                     report_content = SensitiveDataReport.objects.get(query_id=s.query_id).content
                 
-                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ report_file if report_file else "" }" data-report_content="{ report_content }">{gettext("回報")}</a>'
+                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ escape(report_file or "") }" data-report_content="{ escape(report_content or "") }">{gettext("回報")}</a>'
                 report_date = s.modified + relativedelta(years=2)
                 report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
                 # 就算已回報過也可以顯示 可重複回報
@@ -358,19 +407,20 @@ def change_manager_page(request):
             query = ''
             fd = parse_query_string(r.query)
 
-            if fd.get('from_full') == 'yes':
-                # 相容:舊紀錄把條件包在 search_str,新紀錄攤平在頂層
-                inner = parse_query_string(fd.get('search_str')) if fd.get('search_str') else fd
+            # 全站搜尋下載：舊紀錄有 from_full=yes（條件包在 search_str，parse_query_string 已攤平）；
+            # 新紀錄（只存查詢條件，3.4）以 keyword 判斷
+            if fd.get('from_full') == 'yes' or fd.get('keyword'):
+                inner = fd
 
                 if inner.get('record_type') == 'occ':
                     map_dict = map_occurrence
                 else:
                     map_dict = map_collection
-                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{inner.get('keyword', '')}"
+                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{escape(inner.get('keyword', ''))}"
                 key = map_dict.get(inner.get('key'))
-                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{inner.get('value', '')}"
+                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{escape(inner.get('value', ''))}"
                 if inner.get('scientific_name'):
-                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{inner.get('scientific_name')}"
+                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{escape(inner.get('scientific_name'))}"
                 inner.pop('total_count', None)
                 query_a = '/search/full?' + build_query_string(inner)
                 
@@ -384,9 +434,7 @@ def change_manager_page(request):
                 else:
                     search_prefix = 'occurrence'
 
-                tmp_a = create_query_a(search_dict)
-                search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-                query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+                query_a = search_again_url(r.query, search_dict, search_prefix)
 
             link = ''
             if r.status == 'pass' and r.status != 'expired':
@@ -438,11 +486,11 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{f.id}",
-                'partner': partner_title,
+                'partner': escape(partner_title or ''),
                 'created': date,
-                'email': f.email,
+                'email': escape(f.email or ''),
                 'type': f.get_type_display(),
-                'content': f.content,
+                'content': escape(f.content or ''),
                 'a': a
             })
 
@@ -472,7 +520,7 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{s.id}",
-                'name': sq.user.name,
+                'name': escape(sq.user.name),
                 'query_id': s.query_id,
                 'date':  date + '<br>審核期限：<br>' + due,
                 'status': result,
@@ -483,7 +531,7 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
 
     elif menu == 'sensitive_apply': # 敏感資料申請 單位後台 / 系統後台
-        if request.GET.get('from') == 'partner':
+        if params.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = sdr.due.strftime('%Y-%m-%d')
@@ -497,9 +545,7 @@ def change_manager_page(request):
                         search_prefix = 'collection'
                     else:
                         search_prefix = 'occurrence'
-                    tmp_a = create_query_a(search_dict)
-                    search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-                    query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+                    query_a = search_again_url(r.query, search_dict, search_prefix)
                     a = f'<a class="pointer btn-style1" target="_blank" href="/manager/apply/{ sdr.query_id }?sdr_id={sdr.id}">查看</a></td>' 
                     
                     link = ''
@@ -516,7 +562,7 @@ def change_manager_page(request):
 
                     data.append({
                         'id': f'#{sdr.id}',
-                        'name': r.user.name,
+                        'name': escape(r.user.name),
                         'created':  created + '<br>審核期限：<br>'+due,
                         'status': status_str,
                         'a': a,
@@ -560,7 +606,7 @@ def change_manager_page(request):
 
                     data.append({
                         'id': f'#{sdr.id}',
-                        'name': r.user.name,
+                        'name': escape(r.user.name),
                         'query_id': sdr.query_id,
                         'created':  date,
                         'status': status_str,
@@ -572,7 +618,7 @@ def change_manager_page(request):
 
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
         # 正式會員
-        if request.GET.get('from') == 'partner':
+        if params.get('from') == 'partner':
             # 排除掉自己的
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
@@ -592,7 +638,7 @@ def change_manager_page(request):
                 status +=  '</select>'
                 data.append({
                     'id': f"#{a.id}",
-                    'name': f"{a.name} ({a.email})",
+                    'name': escape(f"{a.name} ({a.email})"),
                     'select': select,
                     'status': status,
                     'a': f'<button class="btn-style1 save_btn" data-id="{ a.id }">儲存</button>'
@@ -624,8 +670,8 @@ def change_manager_page(request):
 
                 data.append({
                     'id': f"#{a.id}",
-                    'name': f"{a.name} ({a.email})",
-                    'partner_title': partner_title,
+                    'name': escape(f"{a.name} ({a.email})"),
+                    'partner_title': escape(partner_title or ''),
                     'select': select,
                     'status': status,
                     'a': f'<button class="btn-style1 save_btn saveStatus" data-pmid="{ a.id }">儲存</button>'
@@ -656,10 +702,10 @@ def change_manager_page(request):
             data.append({
                 'edit': f'<a class="btn-style1" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>',
                 'id': f'#{n.id}',
-                'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ escape(n.title) }</a>',
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
-                'partner_title': partner_title,
+                'partner_title': escape(partner_title or ''),
                 'publish_date': publish_date,
                 'status': n.get_status_display(),
                 'modified': modified,
@@ -695,10 +741,10 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{n.id}",
-                'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ escape(n.title) }</a>',
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
-                'user': n.user.name if n.user else '',
+                'user': escape(n.user.name) if n.user else '',
                 'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
@@ -708,7 +754,7 @@ def change_manager_page(request):
     elif menu == 'resource':
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
             data.append({
-                'title': r.title,
+                'title': escape(r.title),
                 'resource_type': r.get_resource_type_display(),
                 'content_type': r.get_content_type_display(),
                 'lang': r.get_lang_display(),
@@ -723,7 +769,7 @@ def change_manager_page(request):
             data.append({
                 'content_type': q.get_type_display(),
                 'order': q.order,
-                'question': q.question,
+                'question': escape(q.question),
                 'edit': f'<a class="btn-style1" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
                 'delete': f'<a class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
             })
@@ -732,11 +778,11 @@ def change_manager_page(request):
 
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
-    page_list = get_page_list(int(page), total_page)
+    page_list = get_page_list(page, total_page)
     response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
     response['page_list'] = page_list
     response['total_page'] = total_page
-    response['current_page'] = int(page)
+    response['current_page'] = page
 
     return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -1134,7 +1180,7 @@ def download_sensitive_report(request):
         for s in sensitive_query:
             # 進階搜尋
             search_dict = parse_query_string(s.query)
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, escape_values=False)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
@@ -1203,10 +1249,15 @@ def download_partner_sensitive_report(request):
         current_user = request.user
         if current_user.partner:
             # 參數化：dbname 來自 partner.info，不可直接串進 SQL 字串
+            # 已存的 sensitive_stat 在 4.4 migration 前有舊名稱，dbname 也可能是舊名稱：新舊名稱都比對
             db_clauses, db_params = [], []
+            names = []
             for ii in (current_user.partner.info or []):
+                if ii.get('dbname'):
+                    names += source_database_aliases(ii.get('dbname'))
+            for name in dict.fromkeys(names):
                 db_clauses.append("sq.sensitive_stat @> %s::jsonb")
-                db_params.append(json.dumps([{"val": "{}".format(ii.get('dbname'))}]))
+                db_params.append(json.dumps([{"val": name}]))
 
             now = timezone.now() + timedelta(hours=8)
             now = now.strftime('%Y-%m-%d')
@@ -1235,9 +1286,9 @@ def download_partner_sensitive_report(request):
                 for s in results:
                     query = ''
                     search_dict = parse_query_string(s[2])
-                    if search_dict.get('from_full') == 'yes':
+                    if search_dict.get('from_full') == 'yes' or search_dict.get('keyword'):
                         query = '全站搜尋<br>'
-                        inner = parse_query_string(search_dict.get('search_str')) if search_dict.get('search_str') else search_dict
+                        inner = search_dict  # parse_query_string 已攤平舊的 search_str（3.4）
 
                         query += f"關鍵字：{inner.get('keyword', '')}"
                         if inner.get('record_type') == 'occ':
@@ -1250,7 +1301,7 @@ def download_partner_sensitive_report(request):
                             query += f"<br>學名：{inner.get('scientific_name')}"
                     else:
                         query = '進階搜尋<br>'
-                        query += create_query_display(search_dict)
+                        query += create_query_display(search_dict, escape_values=False)
                         query = query.replace('<b>','').replace('</b>','')
 
                     query = query.replace('<br>','\n')
@@ -1306,7 +1357,7 @@ def get_request_detail(request):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位（v2 欄位，3.2）
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -1322,7 +1373,7 @@ def get_request_detail(request):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -1355,7 +1406,7 @@ def manager_partner(request):
         current_user = request.user
         if current_user.partner:
             for pp in current_user.partner.info:
-                holder_list.append(pp.get('dbname'))
+                holder_list.append(to_source_database(pp.get('dbname')))  # 下拉值 = v2 sourceDatabase
             data_year = int(DataStat.objects.filter(type='data').aggregate(Max('year_month'))['year_month__max'].split('-')[0])
 
     return render(request, 'manager/partner/manager.html',{ 'download_url': download_url, 'holder_list': holder_list,
@@ -1379,9 +1430,9 @@ def get_partner_stat(request):
 
     # 以下改用來源資料庫取得資料
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
 
-        rh_q = f'rightsHolder:{solr_quote(rights_holder)}'  # 名稱含空白/括號，需加引號
+        rh_q = f'sourceDatabase:{solr_quote(rights_holder)}'  # 名稱含空白/括號，需加引號
         f = ['-taxonID:*', rh_q]
         # TaiCOL對應狀況
         query = {
@@ -1390,15 +1441,15 @@ def get_partner_stat(request):
             "limit": 0,
             "facet": {},
             }
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         no_taxon = response.json()['response']['numFound']
 
         # 資料筆數
-        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        data = requests.get(RECORDS_URL, params={'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         data_count = data['response']['numFound']
         data_total.append({'name': rights_holder,'y': data_count, 'color': '#9AC4E8'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
             total_count = total_count - data_count
@@ -1408,18 +1459,18 @@ def get_partner_stat(request):
         # 影像資料筆數
 
         # 原本傳了兩個 q，Solr 只取第一個；改成 q + fq 才是「該單位的影像筆數」
-        data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'q': rh_q, 'fq': 'associatedMedia:*', 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        data = requests.get(RECORDS_URL, params={'q': rh_q, 'fq': 'associatedMedia:*', 'rows': 0}, timeout=SOLR_TIMEOUT).json()
         image_count = data['response']['numFound']
         image_data_total.append({'name': rights_holder,'y': image_count, 'color': '#B2D4B2'})
                         
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=associatedMedia:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             other_image_count = response.json()['response']['numFound']
             other_image_count = other_image_count - image_count
             image_data_total += [{'name': '其他來源資料庫','y': other_image_count, 'color': '#ddd'}]  # 原本誤用 total_count
 
         # 資料品質 (入口網)
-        url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+        url = f"{RECORDS_URL}?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
         data = requests.get(url, timeout=SOLR_TIMEOUT).json()
         if data['responseHeader']['status'] == 0:
             facets = data['facet_counts']['facet_fields']['dataQuality']
@@ -1432,10 +1483,10 @@ def get_partner_stat(request):
 
         # 資料品質 (來源資料庫)
 
-        quality_data = requests.get(f'{SOLR_PREFIX}tbia_records/select', params={'facet.pivot': 'rightsHolder,dataQuality', 'facet': 'true', 'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
+        quality_data = requests.get(RECORDS_URL, params={'facet.pivot': 'sourceDatabase,dataQuality', 'facet': 'true', 'q': rh_q, 'rows': 0}, timeout=SOLR_TIMEOUT).json()
 
         if quality_data['responseHeader']['status'] == 0:
-            facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+            facets = quality_data['facet_counts']['facet_pivot']['sourceDatabase,dataQuality']
             for f in facets:
                 p_dbname = f.get('value')
                 quality_str_list = []
@@ -1506,11 +1557,12 @@ def get_partner_stat(request):
                 'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count if TaxonStat.objects.filter(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).exists() else 0
             })
 
-        if Partner.objects.filter(info__contains=[{'dbname': rights_holder}]).exists():
-            partner = Partner.objects.get(info__contains=[{'dbname': rights_holder}])
-            for pp in partner.info:
-                if pp.get('dbname') == rights_holder:
-                    download_url = f'/media/match_log/{partner.group}_{pp["id"]}_match_log.zip'
+        # Partner.dbname 可能仍是舊名稱（8.1 ② 前），轉新名稱再比
+        for partner in Partner.objects.order_by('id'):
+            pp = next((i for i in (partner.info or []) if _same_source_database(i.get('dbname'), rights_holder)), None)
+            if pp:
+                download_url = f'/media/match_log/{partner.group}_{pp["id"]}_match_log.zip'
+                break
 
     response = {
         'data_total': data_total,
@@ -1532,7 +1584,7 @@ def get_taxon_group_stat(request):
 
     # 以下改用來源資料庫取得資料
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
 
         # 系統整體資料
         taxon_query_system = list(TaxonStat.objects.filter(year='x', month='x', rights_holder='total',type='taxon_group').order_by('-count').values('name','count'))
@@ -1567,7 +1619,7 @@ def get_taxon_group_stat(request):
                 'data': holder_data,
                 'color': taxon_group_color_map[group]['light'],
                 'unitPercentage': unit_percentage,
-                'taiwanPercentage': TaxonStat.objects.get(type='taiwan_percentage',  name=taxon_group_map_e[group], rights_holder=rights_holder).count
+                'taiwanPercentage': TaxonStat.objects.filter(type='taiwan_percentage', name=taxon_group_map_e[group], rights_holder=rights_holder).values_list('count', flat=True).first() or 0
             })
         
     response = {
@@ -1579,12 +1631,11 @@ def get_taxon_group_stat(request):
 def get_user_download_stat(request):
 
     year = int(request.GET.get('year'))
-    rights_holder = request.GET.get('rights_holder')
     type = request.GET.get('type')
 
     resp = {}
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder := _source_database_param(request):
         # 從 model 取得 choices 字典
         OPTION_DICT = dict(UserDownloadStat.option_choice)
         colors = [
@@ -1626,7 +1677,11 @@ def get_user_download_stat(request):
             color_index += 1
 
         resp['data'] = series_data
-        resp['categories'] = [ f'{year}-{"{:02d}".format(i)}' for i in range(1, 13)]
+
+    # 該年完全沒有資料時仍回傳一條 0 的線，前端才畫得出圖（原本回傳空陣列，圖不會出現）
+    resp['categories'] = [f'{year}-{i:02d}' for i in range(1, 13)]
+    if not resp.get('data'):
+        resp['data'] = [{'name': '無資料', 'data': [0] * 12, 'color': '#ccc'}]
 
     return JsonResponse(resp, safe=False)
 
@@ -1639,15 +1694,15 @@ def manager_system(request):
     stat_month = [*range(1, 13, 1)]
     if not request.user.is_anonymous:
         # 改成用solr取得 如果沒有在列表就是代表沒有
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?facet.field=rightsHolder&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
-        f_list = response.json()['facet_counts']['facet_fields']['rightsHolder']
+        response = requests.get(f'{RECORDS_URL}?facet.field=sourceDatabase&facet.mincount=1&facet.limit=-1&facet=true&q.op=OR&q=*%3A*&rows=0', timeout=SOLR_TIMEOUT)
+        f_list = response.json()['facet_counts']['facet_fields']['sourceDatabase']
         holder_list = [f_list[x] for x in range(0, len(f_list),2)]
         holder_list.append('total')
         # TaiCOL對應狀況
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             total_count = response.json()['response']['numFound']
-        response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
+        response = requests.get(f'{RECORDS_URL}?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
         if response.status_code == 200:
             no_taxon = response.json()['response']['numFound']
         has_taxon = total_count - no_taxon
@@ -1728,10 +1783,10 @@ def get_ark_stat(request):
 def get_data_stat(request):
 
     year = int(request.GET.get('year'))
-    rights_holder = request.GET.get('rights_holder')
+    rights_holder = _source_database_param(request)
     type = request.GET.get('type')
 
-    if rights_holder := request.GET.get('rights_holder'):
+    if rights_holder:
         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', rights_holder=rights_holder, type=type).order_by('year_month').values('count','year_month','rights_holder'))
     elif group :=  request.GET.get('group'):
         data_list = list(DataStat.objects.filter(year_month__contains=f'{year}-', group=group, type=type).order_by('year_month').values('count','year_month','rights_holder'))
@@ -1859,10 +1914,10 @@ def get_system_stat(request):
     db_quality_stat = []
 
     # 資料筆數 - 
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=group,sourceDatabase&facet=true&q.op=OR&q=*%3A*&rows=0&start=0"
     data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
-        facets = data['facet_counts']['facet_pivot']['group,rightsHolder']
+        facets = data['facet_counts']['facet_pivot']['group,sourceDatabase']
         for f in facets:
             p_group = f.get('value')
             for fp in f.get('pivot'):
@@ -1875,10 +1930,10 @@ def get_system_stat(request):
                     data_total.append({'name': 'GBIF','y': p_count,  'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # 影像資料筆數
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=group,rightsHolder&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=group,sourceDatabase&facet=true&q.op=OR&q=associatedMedia:*&rows=0&start=0"
     image_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if image_data['responseHeader']['status'] == 0:
-        facets = image_data['facet_counts']['facet_pivot']['group,rightsHolder']
+        facets = image_data['facet_counts']['facet_pivot']['group,sourceDatabase']
         for f in facets:
             p_group = f.get('value')
             for fp in f.get('pivot'):
@@ -1890,11 +1945,11 @@ def get_system_stat(request):
                     image_data_total.append({'name': 'GBIF','y': p_count, 'color': rights_holder_color_map[rights_holder_list.index(p_group)]})
 
     # TaiCOL對應狀況
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?q=*:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         total_count = response.json()['response']['numFound']
 
-    response = requests.get(f'{SOLR_PREFIX}tbia_records/select?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
+    response = requests.get(f'{RECORDS_URL}?q=-taxonID:*&rows=0', timeout=SOLR_TIMEOUT)
     if response.status_code == 200:
         no_taxon = response.json()['response']['numFound']
 
@@ -1942,7 +1997,7 @@ def get_system_stat(request):
         top5_family_list.append({'rights_holder': h, 'data': data})
 
     # 資料品質 (入口網)
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.field=dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
     data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if data['responseHeader']['status'] == 0:
         facets = data['facet_counts']['facet_fields']['dataQuality']
@@ -1954,10 +2009,10 @@ def get_system_stat(request):
             })
 
     # 資料品質 (來源資料庫)
-    url = f"{SOLR_PREFIX}tbia_records/select?facet.pivot=rightsHolder,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
+    url = f"{RECORDS_URL}?facet.pivot=sourceDatabase,dataQuality&facet=true&q.op=OR&q=*:*&rows=0&start=0"
     quality_data = requests.get(url, timeout=SOLR_TIMEOUT).json()
     if quality_data['responseHeader']['status'] == 0:
-        facets = quality_data['facet_counts']['facet_pivot']['rightsHolder,dataQuality']
+        facets = quality_data['facet_counts']['facet_pivot']['sourceDatabase,dataQuality']
         for f in facets:
             p_dbname = f.get('value')
             quality_str_list = [p_dbname]
@@ -2781,9 +2836,25 @@ def delete_qa(request):
 def submit_apply_ark(request):
     if request.method == 'POST':
         query_id = request.POST.get('query_id')
-        sq = SearchQuery.objects.get(query_id=query_id)
+        sq = SearchQuery.objects.filter(query_id=query_id).first()
+        if not sq:
+            return JsonResponse({'message': '找不到這筆下載紀錄。'}, safe=False)
 
-        # TODO 這邊先確認是不是會產生兩個
+        # 只能申請自己的下載（畫面上也只列出自己的）
+        if not request.user.is_authenticated or sq.user_id != request.user.id:
+            return JsonResponse({'message': '找不到這筆下載紀錄。'}, safe=False)
+
+        # 只有狀態為 pass（下載連結仍有效）、尚未申請過、檔案還在才可以申請；不符合就不建立 ARK
+        if sq.status != 'pass':
+            return JsonResponse({'message': '下載檔案已過期或尚未完成，無法申請永久保存。'}, safe=False)
+        if Ark.objects.filter(model_id=sq.id, type='data').exists():
+            return JsonResponse({'message': '這筆下載已經申請過永久保存。'}, safe=False)
+        download_folder = os.path.join(MEDIA_ROOT, 'download')
+        if not any(os.path.exists(f) for f in [
+                os.path.join(download_folder, sq.type, f'tbia_{query_id}.zip'),
+                os.path.join(download_folder, f'{sq.type}_public', f'tbia_{query_id}.zip')]):
+            return JsonResponse({'message': '找不到下載檔案，無法申請永久保存，請聯絡管理員。'}, safe=False)
+
         ark = ark_generator(data_type='data')
         ark_obj = Ark.objects.create(type='data', ark=ark, model_id=sq.id)
 
@@ -2833,15 +2904,26 @@ def generate_storage_csv(query_id, ark):
         storage_csv_folder = os.path.join(download_folder, 'storage')
         storage_csv_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.csv')
         storage_zip_file_path = os.path.join(storage_csv_folder, f'tbia_{ark}.zip')
+        # 有權限者的下載在產檔時已同時寫出公開版（同一次查詢；data.utils.solr_csv_to_zip public_zip_path），直接使用
+        public_zip_file = os.path.join(download_folder, f'{sq.type}_public', f'tbia_{query_id}.zip')
+        if os.path.exists(public_zip_file):
+            shutil.copyfile(public_zip_file, storage_zip_file_path)
+            return
+        # 沒有公開版（v2 之前產生的舊檔、或本來就是公開的檔案）：從檔案移除敏感欄位，v1 與 v2 的欄位名稱都要處理
         # step 1 unzip
         commands = f"cd {csv_folder}; unzip -o {zip_file_path}"
         process = subprocess.Popen(commands, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
         # step 2 取得header
         cols = pd.read_csv(csv_file_path, index_col=False, nrows=0).columns.tolist()
+        # v2 格式、沒有公開版、但下載者有權限（或敏感申請有單位通過）：檔案可能已併入原始值，無法還原成公開版，不可保存
+        if 'tbiaID' in cols and not any(c in cols for c in sensitive_cols):
+            if (sq.type == 'record' and if_raw_map(sq.user_id)) or (sq.type == 'sensitive' and get_sensitive_status(query_id) in ('通過', '部分通過')):
+                os.remove(csv_file_path)
+                raise RuntimeError(f'找不到公開版下載檔，無法永久保存：{query_id}')
         # step 3 拿掉敏感欄位
         sensitive_index = []
-        for ss in sensitive_cols:
+        for ss in dict.fromkeys(list(sensitive_cols) + SENSITIVE_COLS_V1):
             # 找到所有sensitive_cols的index位置 並一次移除
             if ss in cols:
                 sensitive_index.append(cols.index(ss)+1)
@@ -2885,7 +2967,7 @@ def get_temporal_stat(request):
             color = '#3F5146'
         year_taxon_query = year_taxon_query.filter(group=current_group)
 
-    elif current_rights_holder := request.GET.get('rights_holder'):
+    elif current_rights_holder := _source_database_param(request):
         year_taxon_query = year_taxon_query.filter(rights_holder=current_rights_holder)
         if current_rights_holder == 'total':
             color = '#3F5146'
@@ -2950,7 +3032,7 @@ def get_temporal_stat(request):
     if current_group := request.GET.get('group'):
         month_taxon_query = month_taxon_query.filter(group=current_group)
 
-    elif current_rights_holder := request.GET.get('rights_holder'):
+    elif current_rights_holder := _source_database_param(request):
         month_taxon_query = month_taxon_query.filter(rights_holder=current_rights_holder)
 
     if taxon_group := request.GET.get('taxon_group'):
@@ -3103,7 +3185,7 @@ def download_applicant_sensitive_report(request):
 
             # 進階搜尋
             search_dict = parse_query_string(s.query)
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, escape_values=False)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
@@ -3237,9 +3319,7 @@ def sensitive_apply_info(request, query_id):
         else:
             search_prefix = 'occurrence'
 
-        tmp_a = create_query_a(search_dict)
-        search_dict.pop('taxonGroup', None)          # 已由 tmp_a 正規化輸出，避免重複
-        query_a = f'/search/{search_prefix}?' + build_query_string(search_dict) + tmp_a
+        query_a = search_again_url(r.query, search_dict, search_prefix)
 
         query_str = query_a_href(query,query_a)
 
@@ -3248,7 +3328,7 @@ def sensitive_apply_info(request, query_id):
         if r.sensitive_stat:
             if is_system_admin:
 
-                data_count = [f"{stat.get('val')}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
+                data_count = [f"{to_source_database(stat.get('val'))}: {stat.get('count')}" for stat in r.sensitive_stat if stat.get('val') != 'total']
                 data_count = '<br>'.join(data_count)
             
             elif is_partner:
@@ -3258,12 +3338,12 @@ def sensitive_apply_info(request, query_id):
                     data_count = []
                     for pp in partner_info:
                         for stat in r.sensitive_stat:
-                            if stat.get('val') == pp.get('dbname'):
-                                data_count.append(f"{pp.get('dbname')}: {stat.get('count')}")
+                            if _same_source_database(stat.get('val'), pp.get('dbname')):
+                                data_count.append(f"{to_source_database(pp.get('dbname'))}: {stat.get('count')}")
                     data_count = '<br>'.join(data_count)
                 elif len(partner_info) == 1:
                     for stat in r.sensitive_stat:
-                        if stat.get('val') == partner_info[0].get('dbname'):
+                        if _same_source_database(stat.get('val'), partner_info[0].get('dbname')):
                             data_count = stat.get('count')
 
     sdr_id = request.GET.get('sdr_id')
@@ -3283,7 +3363,7 @@ def sensitive_apply_info(request, query_id):
 
         query_list = create_search_query(req_dict=req_dict, get_raw_map=False)
 
-        query = { "query": "standardRawLatitude:*", # 要只轉交給有敏感資料的單位
+        query = { "query": "rawDecimalLatitude:*", # 要只轉交給有敏感資料的單位（v2 欄位，3.2）
                 "offset": 0,
                 "limit": 0,
                 "filter": query_list,
@@ -3299,7 +3379,7 @@ def sensitive_apply_info(request, query_id):
         if not query_list:
             query.pop('filter')
 
-        response = requests.post(f'{SOLR_PREFIX}tbia_records/select', data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
+        response = requests.post(RECORDS_URL, data=json.dumps(query), headers={'content-type': "application/json" }, timeout=SOLR_TIMEOUT)
         group = response.json()['facets']['group']['buckets']
         groups = []
         for g in group:
@@ -3418,12 +3498,12 @@ def _allowed_groups(user):
  
 def _partner_units(p):
     """一個 Partner 底下的資料庫清單（依 Partner.info），unit = {group}_{info_id}。
-    名稱用 info 的 dbname（= rightsHolder），與其他統計圖的來源資料庫下拉一致。"""
+    名稱用 info 的 dbname 轉成 v2 sourceDatabase，與其他統計圖的來源資料庫下拉一致。"""
     infos = p.info or []
     if not infos:
         return [{'unit': f'{p.group}_0', 'name': getattr(p, 'title', None) or p.group}]
     return [{'unit': f'{p.group}_{i.get("id")}',
-             'name': i.get('dbname') or i.get('subtitle') or p.title or p.group}
+             'name': to_source_database(i.get('dbname')) or i.get('subtitle') or p.title or p.group}
             for i in infos]
 
 
@@ -3546,3 +3626,140 @@ def get_match_stat(request):
         'spectrum': spectrum, 'reasons': reasons,
         'downloads': downloads,
     })
+
+
+# ---------------- 限制型 API key 管理 ----------------
+APIKEY_PAGE_SIZE = 10
+APIKEY_VALID_DAYS = 365  # 與 scripts/system/sensitive_request_review.py 一致
+
+
+def _mask_key(key):
+    if not key:
+        return ''
+    return f'{key[:4]}{"*" * 8}{key[-4:]}' if len(key) > 8 else '*' * len(key)
+
+
+def system_apikey(request):
+    # 權限不足由模板處理
+    partners = []
+    if request.user.is_authenticated and request.user.is_system_admin:
+        partners = Partner.objects.order_by('id').values('id', 'title')
+    return render(request, 'manager/system/apikey.html', {'partners': partners})
+
+
+@system_admin_post_required
+def get_apikey_list(request):
+    page = to_int(request.POST.get('page'), 1) or 1
+    qs = APIkey.objects.select_related('user', 'partner').order_by('-id')
+    total_page = math.ceil(qs.count() / APIKEY_PAGE_SIZE)
+    page = min(max(page, 1), max(total_page, 1))
+    offset = (page - 1) * APIKEY_PAGE_SIZE
+
+    status_map = dict(APIkey._meta.get_field('status').choices)
+    page_keys = list(qs[offset:offset + APIKEY_PAGE_SIZE])
+    # 已有啟用中 key 的使用者，其過期 / 停用的紀錄不顯示更新按鈕
+    active_users = set(APIkey.objects.filter(status='pass', user_id__in=[k.user_id for k in page_keys if k.user_id])
+                       .values_list('user_id', flat=True))
+    data = []
+    for k in page_keys:
+        created = k.created + timedelta(hours=8)
+        expired = created + timedelta(days=APIKEY_VALID_DAYS)
+        data.append({
+            'id': k.id,
+            'key': _mask_key(k.key),
+            'applicant': k.applicant,
+            'user': f'{k.user.name} ({k.user.email})' if k.user else '',
+            'partner': k.partner.title if k.partner else '',
+            'created': created.strftime('%Y-%m-%d %H:%M:%S'),
+            'expired': expired.strftime('%Y-%m-%d'),
+            'status': k.status,
+            'status_display': status_map.get(k.status, k.status),
+            'can_renew': k.status in ('expired', 'disabled') and bool(k.user_id) and k.user_id not in active_users,
+        })
+
+    return JsonResponse({
+        'data': data,
+        'total_page': total_page,
+        'current_page': page,
+        'page_list': get_page_list(page, total_page) if total_page else [],
+    })
+
+
+@system_admin_post_required
+def get_apikey_user(request):
+    # 新增前確認申請者為資料庫使用者
+    email = (request.POST.get('email') or '').strip()
+    u = User.objects.filter(email__iexact=email).select_related('partner').first() if email else None
+    if not u:
+        return JsonResponse({'status': 'fail', 'message': '查無此使用者'})
+    return JsonResponse({'status': 'success', 'user': {
+        'id': u.id,
+        'name': u.name,
+        'email': u.email,
+        'register_method': u.register_method,
+        'partner_id': u.partner_id,
+    }})
+
+
+@system_admin_post_required
+def create_apikey(request):
+    user = User.objects.filter(id=to_int(request.POST.get('user_id'))).first()
+    if not user:
+        return JsonResponse({'status': 'fail', 'message': '查無此使用者'})
+
+    applicant = (request.POST.get('applicant') or '').strip()[:100]
+    if not applicant:
+        return JsonResponse({'status': 'fail', 'message': '請填寫申請者姓名'})
+
+    partner = None
+    if partner_id := to_int(request.POST.get('partner_id')):
+        partner = Partner.objects.filter(id=partner_id).first()
+
+    key = secrets.token_urlsafe(32)
+    while APIkey.objects.filter(key=key).exists():
+        key = secrets.token_urlsafe(32)
+
+    k = APIkey.objects.create(key=key, status='pass', user=user, partner=partner, applicant=applicant)
+    # 完整 key 只在建立時回傳一次
+    return JsonResponse({'status': 'success', 'id': k.id, 'key': key})
+
+
+@system_admin_post_required
+def reveal_apikey(request):
+    k = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not k:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    return JsonResponse({'status': 'success', 'key': k.key})
+
+
+@system_admin_post_required
+def disable_apikey(request):
+    k = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not k:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    if k.status != 'pass':
+        return JsonResponse({'status': 'fail', 'message': '此 API key 非啟用狀態'})
+    k.status = 'disabled'
+    k.save(update_fields=['status'])
+    return JsonResponse({'status': 'success'})
+
+
+@system_admin_post_required
+def renew_apikey(request):
+    # 過期 / 停用的 key 重新產生：新增一筆新紀錄（沿用使用者、單位、申請者姓名），舊紀錄保留
+    old = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not old:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    if old.status not in ('expired', 'disabled'):
+        return JsonResponse({'status': 'fail', 'message': '僅過期或停用的 API key 可以更新'})
+    if not old.user:
+        return JsonResponse({'status': 'fail', 'message': '此 API key 未綁定使用者，請改用新增'})
+    if APIkey.objects.filter(user=old.user, status='pass').exists():
+        return JsonResponse({'status': 'fail', 'message': '此使用者已有啟用中的 API key'})
+
+    key = secrets.token_urlsafe(32)
+    while APIkey.objects.filter(key=key).exists():
+        key = secrets.token_urlsafe(32)
+
+    k = APIkey.objects.create(key=key, status='pass', user=old.user, partner=old.partner, applicant=old.applicant)
+    return JsonResponse({'status': 'success', 'id': k.id, 'key': key})
