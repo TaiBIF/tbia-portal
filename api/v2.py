@@ -1,4 +1,4 @@
-"""API v2（5.2 occurrence；5.3 dataset / map；5.4 partner）
+"""API v2（5.2 occurrence；5.3 dataset / map；5.4 partner；5.5 其他網址回 JSON 404）
 
 共通行為（user.html）：
 - 回傳 {status: {code, message}, meta: {total, limit}, links: {self, next}, data: [...]}；map 例外（直接回 GeoJSON）
@@ -301,3 +301,8 @@ def partner(request):
                             str(next_cursor) if next_cursor is not None else None, len(page), limit),
         'data': [format_partner(p) for p in page],
     })
+
+
+def not_found(request, *args, **kwargs):
+    """5.5：/api/v2/ 底下沒有的網址回 JSON 404（不回網站的 404 頁）"""
+    return error_response(404, 'Not Found: 服務網址為 /api/v2/occurrence、/api/v2/dataset、/api/v2/map、/api/v2/partner')

@@ -287,3 +287,25 @@
     font-size: 14px;
     color: #3F5146;
 }
+/* ===== 5.5 v2：鑑定層級分組（可開合） ===== */
+.api-editer .rank-group {
+    margin-bottom: 8px;
+    border: 1px solid #E5E5E0;
+    border-radius: 6px;
+    background: #FFF;
+}
+
+.api-editer .rank-group > summary {
+    cursor: pointer;
+    padding: 8px 14px;
+    font-weight: 500;
+    color: #3F5146;
+}
+
+.api-editer .rank-group[open] > summary {
+    border-bottom: 1px solid #E5E5E0;
+}
+
+.api-editer .rank-group .table_style2 {
+    margin: 0;
+}

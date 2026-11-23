@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}5.5 API v2 說明頁：回傳欄位表（內容在 api/doc_v2.py，順序同 API 實際回傳）{% endcomment %}
+<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td>{% trans '參數' %}</td>
+        <td>{% trans '名稱' %}</td>
+        <td>{% trans '型值' %}</td>
+        <td>{% trans '備註' %}</td>
+    </tr>
+    {% for f in fields %}
+    <tr>
+        <td>{{ f.name }}</td>
+        <td>{{ f.label }}</td>
+        <td>{{ f.type }}</td>
+        <td>{{ f.remark }}</td>
+    </tr>
+    {% endfor %}
+</table>

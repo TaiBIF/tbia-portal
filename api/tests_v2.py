@@ -1,4 +1,4 @@
-"""5.2 / 5.3 / 5.4 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
+"""5.2～5.5 API v2 參數驗證與回傳欄位的單元測試（不需要 Django / DB / Solr）
 執行：python -m unittest api.tests_v2 -v"""
 import ast
 import re
@@ -489,3 +489,73 @@ class PartnerTest(unittest.TestCase):
         self.assertEqual((page, nxt), ([], None))
         page, nxt = partner_page(ps, None, 20)
         self.assertEqual((len(page), nxt), (4, None))
+
+
+# ===================== 5.5 說明頁 =====================
+
+from urllib.parse import urlsplit, parse_qs  # noqa: E402
+
+from api import doc_v2  # noqa: E402
+
+
+def example_params(url):
+    return {k: v for k, v in parse_qs(urlsplit(url).query, keep_blank_values=True).items()}
+
+
+class DocTest(unittest.TestCase):
+    def test_fields_match_api(self):
+        # 文件的回傳欄位與順序 = API 實際回傳
+        self.assertEqual([f[0] for f in doc_v2.OCCURRENCE_FIELDS], API_OCCURRENCE_FIELDS)
+        self.assertEqual([f[0] for f in doc_v2.DATASET_FIELDS], API_DATASET_FIELDS)
+        self.assertEqual([f[0] for f in doc_v2.PARTNER_FIELDS], ['tbiaPartnerID', 'partnerName'])
+
+    def test_occurrence_examples_parse(self):
+        # 每個查詢參數的範例都能通過 API 的參數驗證，且真的產生查詢條件（參數名沒有拼錯）
+        for name, _t, _d, url, *_ in doc_v2.OCCURRENCE_PARAMS:
+            with self.subTest(name=name):
+                site, fq = occurrence_query(example_params(url), False)
+                self.assertTrue(site or fq, url)
+
+    def test_dataset_examples_parse(self):
+        for name, _t, _d, url, *_ in doc_v2.DATASET_PARAMS:
+            with self.subTest(name=name):
+                where, _v = dataset_query(example_params(url), {doc_v2.EX_PARTNER_ID: ['tbri']})
+                self.assertGreater(len(where), 1, url)
+
+    def test_map_examples_parse(self):
+        for url in [p[3] for p in doc_v2.MAP_PARAMS] + [g[2] for g in doc_v2.MAP_GRIDS] + [doc_v2.EXAMPLE_YEAR_RANGE]:
+            with self.subTest(url=url):
+                map_query(example_params(url))
+
+    def test_partner_and_paging_examples_parse(self):
+        ps = [{'order': 1, 'tbiaPartnerID': doc_v2.EX_PARTNER_ID, 'partnerName': '農業部生物多樣性研究所'},
+              {'order': 2, 'tbiaPartnerID': doc_v2.EX_PARTNER_ID_2, 'partnerName': '國立自然科學博物館'}]
+        for name, _t, _d, url, *_ in doc_v2.PARTNER_PARAMS:
+            with self.subTest(name=name):
+                self.assertTrue(partner_query(ps, example_params(url)))
+        self.assertEqual(parse_limit(example_params(doc_v2.PAGING_PARAMS[0][3])), 1000)
+
+    def test_all_params_documented(self):
+        # API 接受的 occurrence 參數都寫在文件裡
+        documented = {p[0] for p in doc_v2.OCCURRENCE_PARAMS}
+        accepted = {'tbiaID', 'occurrenceID', 'catalogNumber', 'recordNumber', 'name', 'taxonID', 'higherTaxonID',
+                    'taxonGroup', 'taxonGroupByHabitat', 'taxonRank', 'isCollection', 'nativeness', 'protectedStatus',
+                    'hasMedia', 'mediaType', 'tbiaPartnerID', 'sourceDatabase', 'recordedBy', 'resourceContacts',
+                    'tbiaDatasetID', 'datasetID', 'basisOfRecord', 'eventDate', 'preparations', 'typeStatus',
+                    'county', 'municipality', 'boundedBy', 'polygon', 'circle', 'created', 'modified'}
+        self.assertEqual(documented, accepted)
+        self.assertEqual({p[0] for p in doc_v2.MAP_PARAMS if len(p) > 4 and p[4]}, {'boundedBy', 'grid'})
+
+    def test_vocab(self):
+        ranks = [v for _label, items in doc_v2.taxon_rank_groups() for v, _zh in items]
+        self.assertEqual(sorted(ranks), sorted(en for _k, en, _z in TAICOL_RANKS))   # 57 個，各出現一次
+        self.assertNotIn('Infraspecies', ranks)                                    # 可查詢但不列（11/20）
+        self.assertEqual([k for k, _ in doc_v2.VOCAB_HABITAT], ['terrestrial', 'freshwater', 'brackish', 'marine'])
+        self.assertEqual(len(doc_v2.VOCAB_BASIS_OF_RECORD), 11)
+        self.assertEqual(len(doc_v2.VOCAB_TYPE_STATUS), 9)
+
+    def test_examples_unique_and_v2(self):
+        urls = doc_v2.all_examples()
+        self.assertTrue(all(u.startswith('/api/v2/') for u in urls))
+        self.assertEqual(doc_v2.example('/api/v2/dataset')[1], '/api/v2/dataset?from_example=1')
+        self.assertEqual(doc_v2.example('/api/v2/dataset?x=1')[1], '/api/v2/dataset?x=1&from_example=1')

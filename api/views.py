@@ -68,8 +68,16 @@ def check_coor(lon,lat):
 
 
 def api_doc(request):
+    """5.5：API v2 說明頁，內容在 api/doc_v2.py"""
+    from api.doc_v2 import doc_context
+    from data.utils import source_database_map
+    return render(request, 'pages/api_doc.html', doc_context(list(source_database_map.keys())))
+
+
+# [V1-API-REMOVE] v1 說明頁（5.5 移到 /api/doc/v1）
+def api_doc_v1(request):
     from data.utils import rights_holder_map
-    return render(request, 'pages/api_doc.html', {'rights_holder_list': rights_holder_map.keys()})
+    return render(request, 'pages/api_doc_v1.html', {'rights_holder_list': rights_holder_map.keys()})
 
 
 def partner_info(request):

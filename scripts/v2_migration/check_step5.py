@@ -1,12 +1,12 @@
-# 步驟 5（5.1～5.4）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
+# 步驟 5（5.1～5.5）程式化檢查：測試站 portal-v2 用，直接呼叫 API view，結果與 Solr 直接查詢比對
 # 用法（在 ~/tbia-portal-v2）：
 #   docker compose -f staging-v2.yml exec -T web-v2 python manage.py shell < scripts/v2_migration/check_step5.py > /tmp/check_step5.txt 2>&1
 # 選項（exec 後加 -e，例 exec -T -e STEP5_TEMP_KEY=1 web-v2 ...）：
 #   STEP5_TEMP_KEY=1  DB 沒有 status=pass 的 APIkey 時，暫時建一把測限制型，結束時刪除（會寫 portal-v2 DB）
 #   STEP5_STAT=1      檢查第一頁會寫 SearchStat、from_example=1 不寫（會寫 portal-v2 DB 的 SearchStat / SearchCount）
-#   STEP5_ONLY=5.3    只跑指定的項目，可用逗號分隔（例 5.3,5.4）；不加時 5.1～5.4 全跑
+#   STEP5_ONLY=5.3    只跑指定的項目，可用逗號分隔（例 5.3,5.4）；不加時 5.1～5.5 全跑
 # 不加選項時只讀不寫（所有呼叫都帶 from_example=1，不列入統計）。
-# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」「5.3 測試清單」「5.4 測試清單」
+# 每項印 PASS / FAIL / SKIP / INFO，編號對應交接文件「5.2 測試清單」「5.3 測試清單」「5.4 測試清單」「5.5 測試清單」
 import json
 import os
 import re
@@ -633,6 +633,63 @@ def p_5():
     report('5.4-5', n == 1 and c1 - c0 == 1, f'SearchStat api_partner +{n}、SearchCount +{c1 - c0}（應各 +1，from_example=1 不寫）')
 
 
+# ===================== 5.5 說明頁、JSON 404 =====================
+
+def s_1():
+    from django.test import Client
+    from api import doc_v2
+    c = Client()
+    r2, r1 = c.get('/api/doc', HTTP_HOST=HOST), c.get('/api/doc/v1', HTTP_HOST=HOST)
+    html = r2.content.decode('utf-8') if r2.status_code == 200 else ''
+    missing = [f for f in API_OCCURRENCE_FIELDS + API_DATASET_FIELDS if f'<td>{f}</td>' not in html]
+    v1_ok = r1.status_code == 200 and '/api/v1/occurrence' in r1.content.decode('utf-8')
+    report('5.5-1', r2.status_code == 200 and not missing and 'TBIA API - V2' in html and '/api/doc/v1' in html and v1_ok,
+           f'/api/doc {r2.status_code}（v2，回傳欄位都在、連到 v1）、/api/doc/v1 {r1.status_code}（v1 舊版）'
+           + (f'；文件缺欄位 {missing}' if missing else ''))
+
+
+def s_2():
+    # 說明頁上每個範例網址實際呼叫（經過 urls.py，帶 from_example=1 不列入統計）
+    from django.test import Client
+    from api.doc_v2 import all_examples, example
+    c, fails, n = Client(), [], 0
+    for url in all_examples():
+        r = c.get(example(url)[1], HTTP_HOST=HOST)
+        n += 1
+        body = json.loads(r.content)
+        ok = r.status_code == 200 and (body.get('type') == 'FeatureCollection' if '/map' in url else body['status']['code'] == 200)
+        if not ok:
+            fails.append(f'{url} → {r.status_code}')
+    report('5.5-2', not fails, f'說明頁範例網址 {n} 個皆回 200' + (f'；不符：{fails}' if fails else ''))
+
+
+def s_3():
+    from django.test import Client
+    c, out = Client(), []
+    for url in ['/api/v2', '/api/v2/', '/api/v2/occurrences', '/api/v2/occurrence/', '/api/v2/dataset/abc']:
+        r = c.get(url, HTTP_HOST=HOST)
+        try:
+            code = json.loads(r.content)['status']['code']
+        except (ValueError, KeyError, TypeError):
+            code = None
+        out.append((url, r.status_code, code))
+    report('5.5-3', all(s == 404 and c_ == 404 for _, s, c_ in out),
+           f'/api/v2 底下不存在的網址回 JSON 404：{out}')
+
+
+def s_4():
+    # 文件的來源資料庫列表涵蓋 records 實際的 sourceDatabase
+    from data.utils import source_database_map
+    r = requests.get(RECORDS_URL, params={'q': '*:*', 'rows': 0, 'facet': 'true', 'facet.field': 'sourceDatabase',
+                                          'facet.limit': -1, 'facet.mincount': 1}, timeout=SOLR_TIMEOUT).json()
+    f = r['facet_counts']['facet_fields']['sourceDatabase']
+    actual = {f[i] for i in range(0, len(f), 2)}
+    listed = set(source_database_map)
+    report('5.5-4', actual <= listed, f'文件列 {len(listed)} 個來源資料庫，records 實際 {len(actual)} 個'
+           + (f'；文件缺 {actual - listed}' if actual - listed else '')
+           + (f'；文件多列（目前沒有資料）{listed - actual}' if listed - actual else ''))
+
+
 ONLY = [x.strip() for x in os.environ.get('STEP5_ONLY', '').split(',') if x.strip()]
 
 
@@ -674,6 +731,12 @@ if want('5.4'):
     run('5.4-3', p_3)
     run('5.4-4', p_4)
     run('5.4-5', p_5)
+
+if want('5.5'):
+    run('5.5-1', s_1)
+    run('5.5-2', s_2)
+    run('5.5-3', s_3)
+    run('5.5-4', s_4)
 
 counts = {}
 for _, s in RESULTS:

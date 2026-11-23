@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}5.5 API v2 說明頁：查詢參數表（內容在 api/doc_v2.py）{% endcomment %}
+<table class="table_style2 marb_20" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td>{% trans '參數' %}</td>
+        <td>{% trans '型值' %}</td>
+        <td>{% trans '說明' %}</td>
+        <td>{% trans '範例網址' %}</td>
+    </tr>
+    {% for p in params %}
+    <tr>
+        <td>{{ p.name }}{% if p.required %}<span class="req-tag">{% trans '必填' %}</span>{% endif %}</td>
+        <td>{{ p.type }}</td>
+        <td>{{ p.desc }}</td>
+        <td><a href="{{ p.href|iriencode }}" target="_blank">{{ p.example }}</a></td>
+    </tr>
+    {% endfor %}
+</table>
