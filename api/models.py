@@ -10,6 +10,7 @@ class APIkey(models.Model):
         ('pass', '通過'),
         # ('fail', '不通過'),
         ('expired', '過期'),
+        ('disabled', '停用'),
     ]
 
     key = models.CharField(max_length=100, blank=False, null=False)
