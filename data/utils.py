@@ -731,9 +731,11 @@ def _ymd(d8):
     return f'{d8[:4]}-{d8[4:6]}-{d8[6:]}' if d8 else ''
 
 
-def create_query_display(search_dict, lang=None):
+def create_query_display(search_dict, lang=None, escape_values=True):
     """搜尋條件的文字說明（後台下載紀錄、敏感申請、申請頁）。輸入可為舊字串讀出的條件，一律先轉成 v2 標準形式；
-       已停止提供的條件列在最後（標示已停用），讓使用者知道再次查詢的結果會和當初不同"""
+       已停止提供的條件列在最後（標示已停用），讓使用者知道再次查詢的結果會和當初不同
+       escape_values：輸出到網頁時跳脫使用者輸入（預設）；轉純文字（敏感資料報表 Excel）時傳 False（11/21 main 合入）"""
+    _v = (lambda x: html.escape(str(x)) if x is not None else '') if escape_values else (lambda x: '' if x is None else x)
     if lang:
         translation.activate(lang)
     sd = normalize_search_params(search_dict)
@@ -741,8 +743,9 @@ def create_query_display(search_dict, lang=None):
     notes = list(dict.fromkeys((getattr(search_dict, 'notes', None) or []) + sd.notes))
 
     sep = gettext('：')
-    def line(label, val):
-        return f'<br><b>{gettext(label)}</b>{sep}{val}'
+    def line(label, val, raw=False):
+        # raw=True：val 是程式組好的 HTML（只用在 GeoJSON 下載連結），其餘一律跳脫
+        return f'<br><b>{gettext(label)}</b>{sep}{val if raw else _v(val)}'
 
     query = ''
     if sd.get('record_type') == 'occ':
@@ -805,7 +808,7 @@ def create_query_display(search_dict, lang=None):
         elif k == 'geojson_id':
             geojson_path = f"media/geojson/{sd.get(k)}.json"
             if exists(os.path.join('/tbia-volumes/', geojson_path)):
-                query += line('上傳Polygon', f"<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>")
+                query += line('上傳Polygon', f"<a target='_blank' href='/{_v(geojson_path)}'>{gettext('點此下載GeoJSON')}</a>", raw=True)
         elif k in ('mediaType', 'record_type', 'current_grid_level', 'current_grid'):
             continue
         elif label := param_label(k, map_dict):
@@ -820,9 +823,9 @@ def create_query_display(search_dict, lang=None):
     if l_list:
         query += line(map_dict['locality'], '、'.join(l_list))
     for r in removed:
-        query += f"<br><b>{gettext(r)}</b> <span class=\"color-silver\">（{gettext('已停用')}）</span>"
+        query += f"<br><b>{_v(gettext(r))}</b> <span class=\"color-silver\">（{gettext('已停用')}）</span>"
     for n in notes:
-        query += f"<br><small class=\"color-silver\">※ {gettext(n)}</small>"
+        query += f"<br><small class=\"color-silver\">※ {_v(gettext(n))}</small>"
     return query
 
 
@@ -887,7 +890,7 @@ def create_query_a(search_dict):
 def query_a_href(query, query_a, lang=None):
     if lang:
         translation.activate(lang)
-    query += f'''<br><a class="search-again-a" target="_blank" href="{query_a}">{gettext('再次查詢')}<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
+    query += f'''<br><a class="search-again-a" target="_blank" href="{html.escape(query_a)}">{gettext('再次查詢')}<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
     return query
 
 

@@ -1,4 +1,5 @@
 import math
+import secrets
 import pytz
 import subprocess
 import os
@@ -27,6 +28,7 @@ from django.utils import timezone, translation
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str 
 from django.utils.translation import gettext, get_language
+from django.utils.html import escape
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection, transaction
@@ -36,6 +38,8 @@ from conf.utils import scheme
 from manager.utils import generate_token, check_due, clean_quill_html, get_sensitive_status, verify_turnstile
 from data.utils import solr_quote, ark_generator, sensitive_cols, if_raw_map, rights_holder_color_map, rights_holder_list, map_collection, map_occurrence, create_query_display, get_page_list, create_query_a, search_again_url, query_a_href, taxon_group_map_c, taxon_group_map_e, create_search_query, parse_query_string, build_query_string, to_int, to_source_database, source_database_aliases
 from api.v1_query import SENSITIVE_COLS_V1  # [V1-API-REMOVE] 舊格式下載檔的敏感欄位名稱
+from api.models import APIkey
+from conf.decorators import system_admin_post_required
 from manager.models import *
 from pages.models import Keyword, Qa, Feedback, News, Notification, Resource, ResourceVersion, Link, SiteSetting
 
@@ -222,13 +226,46 @@ def update_feedback(request):
         return JsonResponse({'status': 'success'}, safe=False)
 
 
+# change_manager_page 各 menu 的權限
+_MANAGER_PAGE_PERMS = {
+    # 個人帳號後台
+    'notification': lambda u, frm: True,
+    'download_taxon': lambda u, frm: True,
+    'sensitive': lambda u, frm: True,
+    'download': lambda u, frm: True,
+    # 系統後台
+    'feedback': lambda u, frm: u.is_system_admin,
+    'sensitive_track': lambda u, frm: u.is_system_admin,
+    'news_apply': lambda u, frm: u.is_system_admin,
+    'resource': lambda u, frm: u.is_system_admin,
+    'qa': lambda u, frm: u.is_system_admin,
+    # 單位後台 / 系統後台
+    'account': lambda u, frm: (u.is_partner_admin and u.partner_id) if frm == 'partner' else u.is_system_admin,
+    'sensitive_apply': lambda u, frm: (u.is_partner_admin and u.partner_id) if frm == 'partner' else u.is_system_admin,
+    # 單位後台 最新消息
+    'news': lambda u, frm: u.is_partner_admin or u.is_partner_account,
+}
+
+
 def change_manager_page(request):
+    if request.method != 'POST':
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+    if not request.user.is_authenticated:
+        return JsonResponse({'message': 'Permission denied'}, status=403)
+
+    params = request.POST
+    menu = params.get('menu')
+    perm = _MANAGER_PAGE_PERMS.get(menu)
+    if not perm:
+        return JsonResponse({'message': 'Invalid menu'}, status=400)
+    if not perm(request.user, params.get('from')):
+        return JsonResponse({'message': 'Permission denied'}, status=403)
+
     # 這邊和帳號後台相關的要translation active
-    lang = request.GET.get('lang')
+    lang = params.get('lang')
     translation.activate(lang)
-    page = request.GET.get('page')
-    menu = request.GET.get('menu')
-    offset = (int(page)-1) * 10
+    page = max(to_int(params.get('page'), 1), 1)
+    offset = (page-1) * 10
     response = {}
     now = datetime.now()
     now = now.replace(tzinfo=pytz.timezone('UTC'))
@@ -238,7 +275,7 @@ def change_manager_page(request):
         notifications = Notification.objects.filter(user_id=request.user.id).order_by('-created')[offset:offset+10]
         for n in notifications:
             created = n.created + timedelta(hours=8)
-            content = '<p>' + gettext(n.get_type_display()).replace('0000', n.content)+ '</p>'
+            content = '<p>' + gettext(n.get_type_display()).replace('0000', escape(n.content or ''))+ '</p>'
             if not n.is_read:
                 content = '<div class="noti-dottt"></div>' + content
                 content = f'<div class="d-flex">{content}</div>'
@@ -335,7 +372,7 @@ def change_manager_page(request):
                     report_file = SensitiveDataReport.objects.get(query_id=s.query_id).file
                     report_content = SensitiveDataReport.objects.get(query_id=s.query_id).content
                 
-                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ report_file if report_file else "" }" data-report_content="{ report_content }">{gettext("回報")}</a>'
+                report = f'<a class="btn-style1 addReport" data-query_id="{ s.query_id }" data-report_file="{ escape(report_file or "") }" data-report_content="{ escape(report_content or "") }">{gettext("回報")}</a>'
                 report_date = s.modified + relativedelta(years=2)
                 report += f'<br><span class="expired-notice">*{gettext("建議回報完成時間")}：{report_date.strftime("%Y-%m-%d")}</span>'
                 # 就算已回報過也可以顯示 可重複回報
@@ -379,11 +416,11 @@ def change_manager_page(request):
                     map_dict = map_occurrence
                 else:
                     map_dict = map_collection
-                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{inner.get('keyword', '')}"
+                query += f"<b>{gettext('關鍵字')}</b>{gettext('：')}{escape(inner.get('keyword', ''))}"
                 key = map_dict.get(inner.get('key'))
-                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{inner.get('value', '')}"
+                query += f"<br><b>{gettext(key)}</b>{gettext('：')}{escape(inner.get('value', ''))}"
                 if inner.get('scientific_name'):
-                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{inner.get('scientific_name')}"
+                    query += f"<br><b>{gettext('學名')}</b>{gettext('：')}{escape(inner.get('scientific_name'))}"
                 inner.pop('total_count', None)
                 query_a = '/search/full?' + build_query_string(inner)
                 
@@ -449,11 +486,11 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{f.id}",
-                'partner': partner_title,
+                'partner': escape(partner_title or ''),
                 'created': date,
-                'email': f.email,
+                'email': escape(f.email or ''),
                 'type': f.get_type_display(),
-                'content': f.content,
+                'content': escape(f.content or ''),
                 'a': a
             })
 
@@ -483,7 +520,7 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{s.id}",
-                'name': sq.user.name,
+                'name': escape(sq.user.name),
                 'query_id': s.query_id,
                 'date':  date + '<br>審核期限：<br>' + due,
                 'status': result,
@@ -494,7 +531,7 @@ def change_manager_page(request):
         total_page = math.ceil(SearchQuery.objects.filter(type='sensitive',query_id__in=SensitiveDataResponse.objects.exclude(partner_id=None).values_list('query_id',flat=True)).count() / 10)
 
     elif menu == 'sensitive_apply': # 敏感資料申請 單位後台 / 系統後台
-        if request.GET.get('from') == 'partner':
+        if params.get('from') == 'partner':
             for sdr in SensitiveDataResponse.objects.filter(partner_id=request.user.partner.id).order_by('-id')[offset:offset+10]:
                 created = sdr.created + timedelta(hours=8)
                 due = sdr.due.strftime('%Y-%m-%d')
@@ -525,7 +562,7 @@ def change_manager_page(request):
 
                     data.append({
                         'id': f'#{sdr.id}',
-                        'name': r.user.name,
+                        'name': escape(r.user.name),
                         'created':  created + '<br>審核期限：<br>'+due,
                         'status': status_str,
                         'a': a,
@@ -569,7 +606,7 @@ def change_manager_page(request):
 
                     data.append({
                         'id': f'#{sdr.id}',
-                        'name': r.user.name,
+                        'name': escape(r.user.name),
                         'query_id': sdr.query_id,
                         'created':  date,
                         'status': status_str,
@@ -581,7 +618,7 @@ def change_manager_page(request):
 
     elif menu == 'account': # 單位帳號管理 單位後台 / 系統後台
         # 正式會員
-        if request.GET.get('from') == 'partner':
+        if params.get('from') == 'partner':
             # 排除掉自己的
             for a in User.objects.filter(partner_id=request.user.partner.id).order_by('-id').exclude(status='withdraw').exclude(id=request.user.id)[offset:offset+10]:
 
@@ -601,7 +638,7 @@ def change_manager_page(request):
                 status +=  '</select>'
                 data.append({
                     'id': f"#{a.id}",
-                    'name': f"{a.name} ({a.email})",
+                    'name': escape(f"{a.name} ({a.email})"),
                     'select': select,
                     'status': status,
                     'a': f'<button class="btn-style1 save_btn" data-id="{ a.id }">儲存</button>'
@@ -633,8 +670,8 @@ def change_manager_page(request):
 
                 data.append({
                     'id': f"#{a.id}",
-                    'name': f"{a.name} ({a.email})",
-                    'partner_title': partner_title,
+                    'name': escape(f"{a.name} ({a.email})"),
+                    'partner_title': escape(partner_title or ''),
                     'select': select,
                     'status': status,
                     'a': f'<button class="btn-style1 save_btn saveStatus" data-pmid="{ a.id }">儲存</button>'
@@ -665,10 +702,10 @@ def change_manager_page(request):
             data.append({
                 'edit': f'<a class="btn-style1" href="/manager/system/news?menu=edit&news_id={ n.id }">編輯</a>',
                 'id': f'#{n.id}',
-                'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'a': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ escape(n.title) }</a>',
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
-                'partner_title': partner_title,
+                'partner_title': escape(partner_title or ''),
                 'publish_date': publish_date,
                 'status': n.get_status_display(),
                 'modified': modified,
@@ -704,10 +741,10 @@ def change_manager_page(request):
 
             data.append({
                 'id': f"#{n.id}",
-                'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ n.title }</a>',
+                'title': f'<a class="search-again-a" target="_blank" href="/news/detail/{n.id}">{ escape(n.title) }</a>',
                 'type': n.get_type_display(),
                 'lang': n.get_lang_display(),
-                'user': n.user.name if n.user else '',
+                'user': escape(n.user.name) if n.user else '',
                 'publish_date': publish_date,
                 'modified': modified,
                 'status': n.get_status_display(),
@@ -717,7 +754,7 @@ def change_manager_page(request):
     elif menu == 'resource':
         for r in Resource.objects.all().order_by('-modified')[offset:offset+10]:
             data.append({
-                'title': r.title,
+                'title': escape(r.title),
                 'resource_type': r.get_resource_type_display(),
                 'content_type': r.get_content_type_display(),
                 'lang': r.get_lang_display(),
@@ -732,7 +769,7 @@ def change_manager_page(request):
             data.append({
                 'content_type': q.get_type_display(),
                 'order': q.order,
-                'question': q.question,
+                'question': escape(q.question),
                 'edit': f'<a class="btn-style1" href="/manager/system/qa?menu=edit&qa_id={q.id}">編輯</a>',
                 'delete': f'<a class="delete_qa del_btn" data-qa_id="{q.id}">刪除</a>', 
             })
@@ -741,11 +778,11 @@ def change_manager_page(request):
 
     df = pd.DataFrame(data)
     html_table = df.to_html(index=False,escape=False)
-    page_list = get_page_list(int(page), total_page)
+    page_list = get_page_list(page, total_page)
     response['data'] = html_table.split('<tbody>')[1].split('</tbody>')[0]
     response['page_list'] = page_list
     response['total_page'] = total_page
-    response['current_page'] = int(page)
+    response['current_page'] = page
 
     return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -1143,7 +1180,7 @@ def download_sensitive_report(request):
         for s in sensitive_query:
             # 進階搜尋
             search_dict = parse_query_string(s.query)
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, escape_values=False)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
@@ -1264,7 +1301,7 @@ def download_partner_sensitive_report(request):
                             query += f"<br>學名：{inner.get('scientific_name')}"
                     else:
                         query = '進階搜尋<br>'
-                        query += create_query_display(search_dict)
+                        query += create_query_display(search_dict, escape_values=False)
                         query = query.replace('<b>','').replace('</b>','')
 
                     query = query.replace('<br>','\n')
@@ -3148,7 +3185,7 @@ def download_applicant_sensitive_report(request):
 
             # 進階搜尋
             search_dict = parse_query_string(s.query)
-            query = create_query_display(search_dict)
+            query = create_query_display(search_dict, escape_values=False)
             query = query.replace('<b>','').replace('</b>','')
             query = query.replace('<br>','\n')
 
@@ -3589,3 +3626,140 @@ def get_match_stat(request):
         'spectrum': spectrum, 'reasons': reasons,
         'downloads': downloads,
     })
+
+
+# ---------------- 限制型 API key 管理 ----------------
+APIKEY_PAGE_SIZE = 10
+APIKEY_VALID_DAYS = 365  # 與 scripts/system/sensitive_request_review.py 一致
+
+
+def _mask_key(key):
+    if not key:
+        return ''
+    return f'{key[:4]}{"*" * 8}{key[-4:]}' if len(key) > 8 else '*' * len(key)
+
+
+def system_apikey(request):
+    # 權限不足由模板處理
+    partners = []
+    if request.user.is_authenticated and request.user.is_system_admin:
+        partners = Partner.objects.order_by('id').values('id', 'title')
+    return render(request, 'manager/system/apikey.html', {'partners': partners})
+
+
+@system_admin_post_required
+def get_apikey_list(request):
+    page = to_int(request.POST.get('page'), 1) or 1
+    qs = APIkey.objects.select_related('user', 'partner').order_by('-id')
+    total_page = math.ceil(qs.count() / APIKEY_PAGE_SIZE)
+    page = min(max(page, 1), max(total_page, 1))
+    offset = (page - 1) * APIKEY_PAGE_SIZE
+
+    status_map = dict(APIkey._meta.get_field('status').choices)
+    page_keys = list(qs[offset:offset + APIKEY_PAGE_SIZE])
+    # 已有啟用中 key 的使用者，其過期 / 停用的紀錄不顯示更新按鈕
+    active_users = set(APIkey.objects.filter(status='pass', user_id__in=[k.user_id for k in page_keys if k.user_id])
+                       .values_list('user_id', flat=True))
+    data = []
+    for k in page_keys:
+        created = k.created + timedelta(hours=8)
+        expired = created + timedelta(days=APIKEY_VALID_DAYS)
+        data.append({
+            'id': k.id,
+            'key': _mask_key(k.key),
+            'applicant': k.applicant,
+            'user': f'{k.user.name} ({k.user.email})' if k.user else '',
+            'partner': k.partner.title if k.partner else '',
+            'created': created.strftime('%Y-%m-%d %H:%M:%S'),
+            'expired': expired.strftime('%Y-%m-%d'),
+            'status': k.status,
+            'status_display': status_map.get(k.status, k.status),
+            'can_renew': k.status in ('expired', 'disabled') and bool(k.user_id) and k.user_id not in active_users,
+        })
+
+    return JsonResponse({
+        'data': data,
+        'total_page': total_page,
+        'current_page': page,
+        'page_list': get_page_list(page, total_page) if total_page else [],
+    })
+
+
+@system_admin_post_required
+def get_apikey_user(request):
+    # 新增前確認申請者為資料庫使用者
+    email = (request.POST.get('email') or '').strip()
+    u = User.objects.filter(email__iexact=email).select_related('partner').first() if email else None
+    if not u:
+        return JsonResponse({'status': 'fail', 'message': '查無此使用者'})
+    return JsonResponse({'status': 'success', 'user': {
+        'id': u.id,
+        'name': u.name,
+        'email': u.email,
+        'register_method': u.register_method,
+        'partner_id': u.partner_id,
+    }})
+
+
+@system_admin_post_required
+def create_apikey(request):
+    user = User.objects.filter(id=to_int(request.POST.get('user_id'))).first()
+    if not user:
+        return JsonResponse({'status': 'fail', 'message': '查無此使用者'})
+
+    applicant = (request.POST.get('applicant') or '').strip()[:100]
+    if not applicant:
+        return JsonResponse({'status': 'fail', 'message': '請填寫申請者姓名'})
+
+    partner = None
+    if partner_id := to_int(request.POST.get('partner_id')):
+        partner = Partner.objects.filter(id=partner_id).first()
+
+    key = secrets.token_urlsafe(32)
+    while APIkey.objects.filter(key=key).exists():
+        key = secrets.token_urlsafe(32)
+
+    k = APIkey.objects.create(key=key, status='pass', user=user, partner=partner, applicant=applicant)
+    # 完整 key 只在建立時回傳一次
+    return JsonResponse({'status': 'success', 'id': k.id, 'key': key})
+
+
+@system_admin_post_required
+def reveal_apikey(request):
+    k = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not k:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    return JsonResponse({'status': 'success', 'key': k.key})
+
+
+@system_admin_post_required
+def disable_apikey(request):
+    k = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not k:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    if k.status != 'pass':
+        return JsonResponse({'status': 'fail', 'message': '此 API key 非啟用狀態'})
+    k.status = 'disabled'
+    k.save(update_fields=['status'])
+    return JsonResponse({'status': 'success'})
+
+
+@system_admin_post_required
+def renew_apikey(request):
+    # 過期 / 停用的 key 重新產生：新增一筆新紀錄（沿用使用者、單位、申請者姓名），舊紀錄保留
+    old = APIkey.objects.filter(id=to_int(request.POST.get('id'))).first()
+    if not old:
+        return JsonResponse({'status': 'fail', 'message': '查無此 API key'})
+    if old.status not in ('expired', 'disabled'):
+        return JsonResponse({'status': 'fail', 'message': '僅過期或停用的 API key 可以更新'})
+    if not old.user:
+        return JsonResponse({'status': 'fail', 'message': '此 API key 未綁定使用者，請改用新增'})
+    if APIkey.objects.filter(user=old.user, status='pass').exists():
+        return JsonResponse({'status': 'fail', 'message': '此使用者已有啟用中的 API key'})
+
+    key = secrets.token_urlsafe(32)
+    while APIkey.objects.filter(key=key).exists():
+        key = secrets.token_urlsafe(32)
+
+    k = APIkey.objects.create(key=key, status='pass', user=old.user, partner=old.partner, applicant=old.applicant)
+    return JsonResponse({'status': 'success', 'id': k.id, 'key': key})

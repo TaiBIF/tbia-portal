@@ -1,0 +1,43 @@
+.apikey-user-search {
+    display: flex;
+    gap: 10px;
+}
+
+.apikey-user-search input {
+    flex: 1;
+}
+
+.apikey-user-result {
+    color: #76A578;
+}
+
+.createApikey:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.apikey-new-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    background: #F4F8F4;
+    border-radius: 3px;
+}
+
+.apikey-new-key {
+    word-break: break-all;
+}
+
+.apikey-notice {
+    margin: 10px;
+    font-size: 14px;
+    color: #888;
+}
+
+.apikey_table .apikey-mask {
+    margin-right: 6px;
+    word-break: break-all;
+    font-family: monospace;
+}

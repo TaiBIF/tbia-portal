@@ -61,8 +61,36 @@ BTN = ('display:inline-block;background:#2f6b5e;color:#fff;text-decoration:none;
        'padding:8px 16px;border-radius:4px;')
 
 
+# 未對到、但不回報 TaiCOL（不列入 for_taicol.csv）的類別：名稱本身或來源欄位的問題，請來源單位處理
+# key 對應 match_report 的 CATEGORY_META；依顯示順序排列
+NOT_FOR_TAICOL = {
+    'placeholder': '暫定名（BOLD／GTDB 等資料庫編號）',
+    'invalid':     '非學名（代號、數字、unknown／未發現等）',
+    'nonstandard': '非正規學名（sp.、cf. 等）',
+    'rank':        '階層（rank）與學名不符',
+    'conflict':    '上階層與 TaiCOL 不符',
+}
+
+
+# for_taicol.csv「類別」欄 → 統計 key（同 match_report 的 write_csvs）
+TAICOL_KIND = {'TaiCOL 尚未收錄': 'none', '僅對到上階': 'higher', '字尾變化': 'ending', '拼寫不同': 'typo'}
+TAICOL_STAT_KEYS = ['none_n', 'none_r', 'higher_n', 'higher_r', 'ending_n', 'ending_r', 'typo_n', 'typo_r']
+
+
 def fmt(n):
     return f'{int(n or 0):,}'
+
+
+def category_sums(units, keys):
+    """各類別的 {key: (學名數, 筆數)}；學名數為各資料庫加總（不同資料庫的同名會重複計）。"""
+    out = {}
+    for u in units:
+        for r in u['snapshot']:
+            k = r.get('category_key')
+            if k in keys:
+                n, rec = out.get(k, (0, 0))
+                out[k] = (n + int(r.get('unique_names') or 0), rec + int(r.get('records') or 0))
+    return {k: out[k] for k in keys if k in out}
 
 
 def read_json(p):
@@ -72,7 +100,8 @@ def read_json(p):
 def atrank_rate(snapshot):
     total = sum(r['records'] for r in snapshot) or 1
     at = sum(r['records'] for r in snapshot
-             if (r.get('category_key') == 'atrank') or r.get('category') == '對到（來源階層）')
+             # 疑似錯字（typo）也是對到正確物種，算進對到來源階層（同 match_report 的 ATRANK_KEYS）
+             if r.get('category_key') in ('atrank', 'typo') or r.get('category') == '對到（來源階層）')
     return round(at / total * 100, 1), sum(r['records'] for r in snapshot)
 
 
@@ -275,6 +304,13 @@ class Command(BaseCommand):
                          f'unmatched_partner_{u["unit"]}_{self.ym}.csv'))
         h += ('<p>附件為' + ('各資料庫' if multi else '貴單位') + '可協助修正的學名清單，每筆附有原因說明與格式提醒。'
               '「TaiCOL 尚未收錄」的學名已由 TBIA 彙整回報，無需貴單位處理。</p>')
+        # 暫定名、非學名無法對應 TaiCOL、也不會回報 TaiCOL，需由來源補正 → 有才提醒
+        own = category_sums(units, ['placeholder', 'invalid'])
+        if own:
+            items = '、'.join(f'{NOT_FOR_TAICOL[k]} {fmt(n)} 個（{fmt(rec)} 筆）'
+                              for k, (n, rec) in own.items())
+            h += (f'<div style="{BOX.format(c="#c0533f")}">其中{items}並非正式學名，無法對應 TaiCOL，'
+                  '也不會回報給 TaiCOL。若已鑑定，請於來源資料填入學名；若為欄位錯位，請協助修正。</div>')
         h += f'<p><a href="{MANAGER_URL}" style="{BTN}">前往後台查看完整比對狀況</a></p>'
         h += f'<p>{SIGNATURE}</p></div>'
 
@@ -298,14 +334,14 @@ class Command(BaseCommand):
                 h = next(r, None)
                 header = header or h
                 s = stats.setdefault(u['rights_holder'],
-                                     {'none_n': 0, 'none_r': 0, 'higher_n': 0, 'higher_r': 0})
+                                     {k: 0 for k in TAICOL_STAT_KEYS})
                 for row in r:
                     rows.append(row)
-                    kind = 'none' if row[1] == 'TaiCOL 尚未收錄' else 'higher'
+                    kind = TAICOL_KIND.get(row[1], 'higher')
                     s[f'{kind}_n'] += 1
                     s[f'{kind}_r'] += int(row[2] or 0)
         if header:
-            rows.sort(key=lambda x: -int(x[2] or 0))      # 依影響筆數排序
+            rows.sort(key=lambda x: (x[0].casefold(), x[0], x[1], x[-1]))   # 依學名字母排序（同名再依類別、單位）
             with open(out, 'w', newline='', encoding='utf-8-sig') as f:
                 w = csv.writer(f)
                 w.writerow(header)
@@ -316,8 +352,10 @@ class Command(BaseCommand):
         h = (f'<table style="border-collapse:collapse;font-size:13.5px;margin:10px 0">'
              f'<tr><th style="{TH}">單位</th><th style="{TH}">尚未收錄（學名數）</th>'
              f'<th style="{TH}">影響筆數</th><th style="{TH}">僅對到上階（學名數）</th>'
+             f'<th style="{TH}">影響筆數</th><th style="{TH}">字尾變化（學名數）</th>'
+             f'<th style="{TH}">影響筆數</th><th style="{TH}">拼寫不同（學名數）</th>'
              f'<th style="{TH}">影響筆數</th></tr>')
-        tot = {'none_n': 0, 'none_r': 0, 'higher_n': 0, 'higher_r': 0}
+        tot = {k: 0 for k in TAICOL_STAT_KEYS}
         for rh, s in sorted(stats.items(), key=lambda x: -x[1]['none_r']):
             h += f'<tr><td style="{TD}">{rh}</td>'
             for k in tot:
@@ -339,12 +377,29 @@ class Command(BaseCommand):
         h = '<div style="font-size:14.5px;line-height:1.75;color:#191e1b;max-width:680px">'
         h += '<p>TaiCOL 管理員您好：</p>'
         h += (f'<p>{self.ym} 資料更新後，以下學名在 TaiCOL 尚未收錄，或只能對到較來源更上層的階層，'
-              '彙整如附件，請協助確認是否需要收錄或補充。已排除非正規學名（sp.、cf. 等）與暫定名。</p>')
+              '彙整如附件，請協助確認是否需要收錄或補充。</p>')
+        h += ('<p style="font-size:13.5px;color:#5f6a64">「字尾變化」為種小名字尾與 TaiCOL 學名不同'
+              '（如 formosana／formosanus）、已依 TaiCOL 學名對到的學名，附件「格式提醒」欄列出對應的 TaiCOL 學名，'
+              '可評估是否收錄為異名。「拼寫不同」為與 TaiCOL 學名只差 1～2 個字元、已依 TaiCOL 學名對到的學名，'
+              '多為來源錯字（已請來源單位確認），但也可能是 TaiCOL 端的拼寫問題，請一併確認。</p>')
         if logic_changed:
             h += (f'<div style="{BOX.format(c="#2f6b5e")}">本次更新了學名比對邏輯並重新比對全部資料，'
                   '數量與前次的差異主要來自比對方式調整。</div>')
         h += self.taicol_table(stats) if stats else '<p>本次沒有需要回報的學名。</p>'
-        h += '<p>附件依影響筆數排序，並附來源中文名、科與格式提醒欄位，方便判斷是否為格式問題。</p>'
+        # 未列入附件的未對到類別：已請來源單位處理，讓 TaiCOL 知道這些不需收錄
+        excluded = category_sums(units, list(NOT_FOR_TAICOL))
+        if excluded:
+            h += ('<p>以下未對到的學名屬於名稱本身或來源欄位的問題，<b>未列入附件</b>，'
+                  '已於各單位的比對狀況信件中請來源單位確認修正：</p>')
+            h += (f'<table style="border-collapse:collapse;font-size:13.5px;margin:10px 0">'
+                  f'<tr><th style="{TH}">類別</th><th style="{TH}">學名數</th>'
+                  f'<th style="{TH}">影響筆數</th></tr>')
+            for k, (n, rec) in excluded.items():
+                h += (f'<tr><td style="{TD}">{NOT_FOR_TAICOL[k]}</td>'
+                      f'<td style="{TDN}">{fmt(n)}</td><td style="{TDN}">{fmt(rec)}</td></tr>')
+            h += ('</table><p style="font-size:13px;color:#5f6a64">學名數為各單位加總，不同單位的相同學名會重複計算。'
+                  '「上階層與 TaiCOL 不符」若經來源確認無誤，可能為 TaiCOL 尚未收錄的同名異物，屆時會再回報。</p>')
+        h += '<p>附件依學名字母排序，並附影響筆數、來源中文名、科與格式提醒欄位，方便判斷是否為格式問題。</p>'
         h += f'<p>{SIGNATURE}</p></div>'
 
         ok = self.deliver('taicol', to, f'{self.ym} 待 TaiCOL 確認學名清單', h,
