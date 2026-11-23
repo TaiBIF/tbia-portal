@@ -917,7 +917,9 @@ def get_media_type(url):
 
 
 # 整理搜尋條件
-def create_query_display(search_dict,lang=None):
+def create_query_display(search_dict,lang=None,escape_values=True):
+    # escape_values: 輸出到網頁時跳脫使用者輸入；轉純文字（報表）時傳 False
+    _v = (lambda x: html.escape(str(x)) if x is not None else '') if escape_values else (lambda x: x)
     if lang:
         translation.activate(lang)
     query = ''
@@ -933,7 +935,7 @@ def create_query_display(search_dict,lang=None):
     l_list = []
 
     if search_dict.get('current_grid_level') in map_dict.keys() and search_dict.get('current_grid'):
-        query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{search_dict.get("current_grid")}'
+        query += f'<br><b>{gettext(map_dict[search_dict["current_grid_level"]])}</b>{gettext("：")}{_v(search_dict.get("current_grid"))}'
 
     for k in search_dict.keys():
         if k in map_dict.keys():
@@ -956,7 +958,7 @@ def create_query_display(search_dict,lang=None):
                     resp = response.json()
                     if data := resp['response']['docs']:
                         data = data[0]
-                        query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{data.get('scientificName')} {data.get('common_name_c') if data.get('common_name_c')  else ''}"                    
+                        query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{_v(data.get('scientificName'))} {_v(data.get('common_name_c')) if data.get('common_name_c')  else ''}"                    
             elif k == 'habitat':
                 vals = [gettext(habitat_map[v]) for v in get_multi(search_dict, 'habitat') if v in habitat_map]
                 query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(vals)}"
@@ -973,12 +975,12 @@ def create_query_display(search_dict,lang=None):
                     else:
                         vals.append(v)
                 display_vals = [taxon_group_map_e.get(v, v) for v in vals] if lang == 'en-us' else vals
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(display_vals)}"
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{'、'.join(_v(v) for v in display_vals)}"
             # 需要調整的選單內容
             elif k in ['basisOfRecord','dataGeneralizations']:
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{gettext(search_dict[k])}"
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{_v(gettext(search_dict[k]))}"
             else:
-                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{search_dict[k]}"
+                query += f"<br><b>{gettext(map_dict[k])}</b>{gettext('：')}{_v(search_dict[k])}"
         # 地圖搜尋
         elif k == 'geo_type':
             if search_dict[k] == 'polygon':
@@ -987,16 +989,16 @@ def create_query_display(search_dict,lang=None):
                     query += f"<br><b>{gettext('上傳Polygon')}</b>{gettext('：')}<a target='_blank' href='/{geojson_path}'>{gettext('點此下載GeoJSON')}</a>"
             elif search_dict[k] == 'circle':
                 if search_dict.get('circle_radius') and search_dict.get('center_lon') and search_dict.get('center_lat'):
-                    query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {search_dict.get('circle_radius')} KM {gettext('中心點經度')} {search_dict.get('center_lon')} {gettext('中心點緯度')} {search_dict.get('center_lat')}" 
+                    query += f"<br><b>{gettext('圓中心框選')}</b>{gettext('：')}{gettext('半徑')} {_v(search_dict.get('circle_radius'))} KM {gettext('中心點經度')} {_v(search_dict.get('center_lon'))} {gettext('中心點緯度')} {_v(search_dict.get('center_lat'))}" 
             elif search_dict[k] == 'map' and search_dict.get('polygon'):
-                query += f"<br><b>{gettext('地圖框選')}</b>{gettext('：')}{search_dict.get('polygon')}" 
+                query += f"<br><b>{gettext('地圖框選')}</b>{gettext('：')}{_v(search_dict.get('polygon'))}" 
         # 日期
         elif k == 'start_date':
-            query += f"<br><b>{gettext('起始日期')}</b>{gettext('：')}{search_dict.get('start_date')}" 
+            query += f"<br><b>{gettext('起始日期')}</b>{gettext('：')}{_v(search_dict.get('start_date'))}" 
         elif k == 'end_date':
-            query += f"<br><b>{gettext('結束日期')}</b>{gettext('：')}{search_dict.get('end_date')}" 
+            query += f"<br><b>{gettext('結束日期')}</b>{gettext('：')}{_v(search_dict.get('end_date'))}" 
         elif k == 'name':
-            query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{search_dict.get('name')}" 
+            query += f"<br><b>{gettext('學名/中文名/中文別名/同物異名/誤用名')}</b>{gettext('：')}{_v(search_dict.get('name'))}" 
         elif k == 'has_image':
             media_type_map = {
                 'n': gettext('無多媒體'),
@@ -1007,18 +1009,18 @@ def create_query_display(search_dict,lang=None):
                 'true': gettext('有多媒體'),
             }
             val = search_dict.get('has_image')
-            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{media_type_map.get(val, val)}"
+            query += f"<br><b>{gettext('有無多媒體')}</b>{gettext('：')}{_v(media_type_map.get(val, val))}"
         elif k == 'is_protected':
             query += f"<br><b>{gettext('是否為保育類')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_protected') in ['y','true'] else gettext('否')}" 
         elif k == 'is_native':
             query += f"<br><b>{gettext('是否為原生種')}</b>{gettext('：')}{gettext('是') if search_dict.get('is_native') in ['y','true'] else gettext('否')}" 
     if r_list:
         r_list = [gettext(r) for r in r_list]
-        query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(r_list)}" 
+        query += f"<br><b>{gettext('來源資料庫')}</b>{gettext('：')}{'、'.join(_v(r) for r in r_list)}" 
     if d_list:
-        query += f"<br><b>{gettext('資料集名稱')}</b>{gettext('：')}{'、'.join(d_list)}" 
+        query += f"<br><b>{gettext('資料集名稱')}</b>{gettext('：')}{'、'.join(_v(d) for d in d_list)}" 
     if l_list:
-        query += f"<br><b>{gettext(map_dict['locality'])}</b>{gettext('：')}{'、'.join(l_list)}" 
+        query += f"<br><b>{gettext(map_dict['locality'])}</b>{gettext('：')}{'、'.join(_v(l) for l in l_list)}" 
 
     return query
 
@@ -1044,7 +1046,7 @@ def create_query_a(search_dict):
 def query_a_href(query, query_a, lang=None):
     if lang:
         translation.activate(lang)
-    query += f'''<br><a class="search-again-a" target="_blank" href="{query_a}">{gettext('再次查詢')}<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
+    query += f'''<br><a class="search-again-a" target="_blank" href="{html.escape(query_a)}">{gettext('再次查詢')}<svg class="search-again-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><g id="loupe" transform="translate(0 -0.003)"><g id="Group_13" data-name="Group 13" transform="translate(0 0.003)"><path id="Path_54" data-name="Path 54" d="M24.695,23.225l-7.109-7.109a9.915,9.915,0,1,0-1.473,1.473L23.222,24.7a1.041,1.041,0,1,0,1.473-1.473ZM9.9,17.711A7.812,7.812,0,1,1,17.708,9.9,7.821,7.821,0,0,1,9.9,17.711Z" transform="translate(0 -0.003)" fill="#3f5146"></path></g></g></svg></a>'''
     return query
 
 
