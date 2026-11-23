@@ -298,9 +298,8 @@ $(document).ready(function () {
 
 function changePage(page, menu) {
     $.ajax({
-        url: '/change_manager_page',
-        type: 'POST',
-        data: { page: page, menu: menu, csrfmiddlewaretoken: $csrf_token },
+        url: `/change_manager_page?page=${page}&menu=${menu}`,
+        type: 'GET',
         success: function (response) {
 
             // 保留表格 header 修改表格內容

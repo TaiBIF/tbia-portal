@@ -91,14 +91,6 @@ urlpatterns = [
     # 首頁連結文字管理
     path('manager/system/index_event', views.system_index_event, name='system_index_event'),
     path('update_index_event', views.update_index_event, name='update_index_event'),
-    # 限制型 API key 管理
-    path('manager/system/apikey', views.system_apikey, name='system_apikey'),
-    path('get_apikey_list', views.get_apikey_list, name='get_apikey_list'),
-    path('get_apikey_user', views.get_apikey_user, name='get_apikey_user'),
-    path('create_apikey', views.create_apikey, name='create_apikey'),
-    path('reveal_apikey', views.reveal_apikey, name='reveal_apikey'),
-    path('disable_apikey', views.disable_apikey, name='disable_apikey'),
-    path('renew_apikey', views.renew_apikey, name='renew_apikey'),
     # 比對結果統計
     path('get_match_stat', views.get_match_stat, name='get_match_stat'),
 ]

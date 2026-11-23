@@ -2,9 +2,8 @@ var $csrf_token = $('[name="csrfmiddlewaretoken"]').attr("value");
 
 function changePage(page, menu) {
     $.ajax({
-        url: '/change_manager_page',
-        type: 'POST',
-        data: { page: page, menu: menu, lang: $lang, csrfmiddlewaretoken: $csrf_token },
+        url: `/change_manager_page?page=${page}&menu=${menu}&lang=${$lang}`,
+        type: 'GET',
         success: function (response) {
 
             // 保留表格 header 修改表格內容
