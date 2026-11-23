@@ -43,6 +43,7 @@ from contextlib import contextmanager
 from data.search_params import (
     old_taxon_group_map_c, taxon_group_map_c, split_group_map, SOURCE_DATABASE_RENAME, to_source_database,
     normalize_pairs, canonical_pairs, parse_range, parse_circle, HABITAT_PARAM, TYPE_STATUS,
+    TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, VALID_TAXON_RANKS,
 )
 from data.fields import (
     TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
@@ -923,11 +924,6 @@ def merge_polygons(g_list):
     return unary_union(polys)
 
 
-# 種下階層（taxonRank=Infraspecies）
-INFRASPECIES_RANKS = ['subspecies', 'nothosubspecies', 'variety', 'subvariety', 'nothovariety', 'form', 'subform',
-                      '"special form"', 'race', 'stirp', 'morph', 'aberration']
-
-
 def create_search_query(req_dict, get_raw_map=False):
     """網站搜尋條件 → Solr filter 清單。參數為 v2 標準形式（3.4）；舊參數名 / 舊值在這裡先轉換（normalize 可重複呼叫）"""
     req_dict = normalize_search_params(req_dict)
@@ -979,15 +975,17 @@ def create_search_query(req_dict, get_raw_map=False):
         query_list += [f"{req_dict.get('current_grid_level')}:{solr_quote(req_dict.get('current_grid'))}"]
 
     # higherTaxonID：該分類群本身及其下所有子分類群
+    # 11/20：taxa core 查不到時查無資料（原本不加條件，等於回傳全部資料）；taxa core 錯誤直接丟例外，不靜默放寬條件
     if val := req_dict.get('higherTaxonID'):
         response = requests.get(f'{SOLR_PREFIX}taxa/select', params={'q': f'id:{solr_quote(val)}'}, timeout=SOLR_TIMEOUT)
-        if response.status_code == 200:
-            resp = response.json()
-            if data := resp['response']['docs']:
-                data = data[0]
-                higher_rank = data.get('taxonRank')
-                higher_name = data.get('scientificName')
-                query_list += [f'({higher_rank}:{solr_quote(higher_name)} OR taxonID:{solr_quote(val)})']
+        response.raise_for_status()
+        if data := response.json()['response']['docs']:
+            data = data[0]
+            higher_rank = data.get('taxonRank')
+            higher_name = data.get('scientificName')
+            query_list += [f'({higher_rank}:{solr_quote(higher_name)} OR taxonID:{solr_quote(val)})']
+        else:
+            query_list += ['-*:*']
 
     if quantity := req_dict.get('organismQuantity'):
         try:
@@ -1018,9 +1016,13 @@ def create_search_query(req_dict, get_raw_map=False):
             query_list += [f'taxonRank:{solr_quote(val.lower())}']
 
     # 資料集（值為 tbiaDatasetID；舊的數字 id 由 get_tbia_dataset_id 轉換）
-    d_list = [d_id for d_id in (get_tbia_dataset_id(v) for v in req_dict.getlist('tbiaDatasetID')) if d_id]
-    if d_list:
-        query_list += [f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in d_list)})']
+    # 11/20：有帶資料集但全部對不到時查無資料（原本不加條件，等於回傳全部資料）
+    if d_vals := req_dict.getlist('tbiaDatasetID'):
+        d_list = [d_id for d_id in (get_tbia_dataset_id(v) for v in d_vals) if d_id]
+        if d_list:
+            query_list += [f'tbiaDatasetID:({" OR ".join(solr_quote(d) for d in d_list)})']
+        else:
+            query_list += ['-*:*']
 
     if r_list := req_dict.getlist('sourceDatabase'):
         query_list += [f'sourceDatabase:({" OR ".join(solr_quote(r) for r in r_list)})']
@@ -2338,31 +2340,8 @@ def get_family_taxon_ids(taxon_ids):
 
     return list(set(final_taxon_ids))
 
-# 階層篩選選項：(大標題 key, 大標題名稱, [(子階層 key, 名稱), ...])
-TAXON_RANK_GROUPS = [
-    ('species', '種', []),
-    ('sub', '種下', [('subspecies', '亞種'), ('variety', '變種'), ('form', '型'), ('subform', '亞型'),
-                   ('subvariety', '亞變種'), ('nothosubspecies', '雜交亞種'), ('nothovariety', '雜交變種'),
-                   ('special-form', '特別品型'), ('hybrid-formula', '雜交組合')]),
-    ('genus', '屬', [('subgenus', '亞屬'), ('section', '組|節'), ('subsection', '亞組|亞節')]),
-    ('family', '科', [('subfamily', '亞科'), ('tribe', '族'), ('subtribe', '亞族')]),
-    ('order', '目', [('suborder', '亞目'), ('infraorder', '下目'), ('superfamily', '超科|總科')]),
-    ('class', '綱', [('subclass', '亞綱'), ('infraclass', '下綱'), ('superorder', '超目|總目')]),
-    ('phylum', '門', [('subphylum', '亞門'), ('infraphylum', '下門'), ('microphylum', '微門'),
-                     ('parvphylum', '小門'), ('superclass', '超綱|總綱')]),
-    ('division', '部|類', [('subdivision', '亞部|亞類'), ('infradivision', '下部|下類'),
-                          ('parvdivision', '小部|小類'), ('superphylum', '超門|總門')]),
-    ('kingdom', '界', [('subkingdom', '亞界'), ('infrakingdom', '下界'), ('superdivision', '超部|總部')]),
-    ('domain', '域', [('superkingdom', '總界'), ('realm', '病毒域')]),
-]
-
-INFRASPECIES_RANKS = ['subspecies', 'nothosubspecies', 'variety', 'subvariety', 'nothovariety', 'form',
-                      'subform', '"special form"', 'race', 'stirp', 'morph', 'aberration']
-
-# key 與 Solr 內 taxonRank 值不同者
-RANK_SOLR_VALUE = {'special-form': '"special form"', 'hybrid-formula': '"hybrid formula"'}
-
-VALID_TAXON_RANKS = {g[0] for g in TAXON_RANK_GROUPS} | {r[0] for g in TAXON_RANK_GROUPS for r in g[2]}
+# 階層篩選選項 TAXON_RANK_GROUPS、種下 INFRASPECIES_RANKS、RANK_SOLR_VALUE、VALID_TAXON_RANKS
+# 11/20 移到 data/search_params.py（依 TaiCOL ranks 表），上方 import 後在這裡沿用
 
 
 def get_taxon_rank_fq(taxon_rank):

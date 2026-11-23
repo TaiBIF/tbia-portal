@@ -273,6 +273,29 @@ NON_SOLR_DOWNLOAD_FIELDS = ('partnerName',)
 DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS if f not in NON_SOLR_DOWNLOAD_FIELDS]
 DOWNLOAD_SOLR_FL_WITH_SENSITIVE = DOWNLOAD_SOLR_FL + SENSITIVE_FIELDS
 
+# ---- API v2 ----
+# 5.2：occurrence 回傳欄位，順序同 user.html「回傳欄位」表，partnerName 接在 tbiaPartnerID 後（API 規格調整 11/16）。
+# 欄位集合與 DOWNLOAD_FIELDS 相同（只有順序不同），api/tests_v2.py 有檢查。每筆都輸出全部欄位，沒有值為 null。
+API_OCCURRENCE_FIELDS = [
+    'tbiaID', 'occurrenceID', 'catalogNumber', 'eventID', 'created', 'modified', 'selfProduced', 'license',
+    'basisOfRecord', 'recordNumber', 'recordedBy', 'samplingProtocol', 'partner', 'identifiedBy',
+    'datasetName', 'tbiaDatasetID', 'datasetID', 'resourceCitationIdentifier', 'resourceContacts',
+    'associatedMedia', 'mediaLicense', 'individualCount', 'organismQuantity', 'organismQuantityType',
+    'references', 'tbiaPartnerID', 'partnerName', 'sourceDatabase', 'typeStatus', 'preparations',
+    'institutionCode', 'institutionID', 'collectionCode', 'collectionID', 'locality',
+    'verbatimLongitude', 'verbatimLatitude', 'verbatimCoordinateSystem', 'verbatimSRS', 'geodeticDatum',
+    'coordinateUncertaintyInMeters', 'dataGeneralizations', 'decimalLongitude', 'decimalLatitude',
+    'countryCode', 'county', 'countyCode', 'municipality', 'verbatimEventDate', 'year', 'month', 'day',
+    'eventTime', 'verbatimIdentification', 'verbatimScientificName', 'verbatimVernacularName',
+    'taxonID', 'scientificName', 'scientificNameAuthorship', 'vernacularName', 'scientificNameID',
+    'nameAccordingTo', 'taxonRank', 'taxonGroup', 'sensitiveCategory',
+    'kingdom', 'kingdomChinese', 'phylum', 'phylumChinese', 'class', 'classChinese',
+    'order', 'orderChinese', 'family', 'familyChinese', 'genus', 'genusChinese',
+]
+API_OCCURRENCE_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in API_OCCURRENCE_FIELDS
+                          if f not in NON_SOLR_DOWNLOAD_FIELDS]
+API_OCCURRENCE_SOLR_FL_WITH_SENSITIVE = API_OCCURRENCE_SOLR_FL + SENSITIVE_FIELDS
+
 # 進階搜尋 物種名錄下載：從 taxa core 取的欄位（taxa 舊名），輸出時換成 v2 名稱
 # 3.5（11/18 定案）：物種名錄下載欄位。(taxa core 欄位, 輸出名稱)，依此順序輸出；
 # taxonID、scientificName 來自 records facet。中文別名 / 同物異名 / 誤用名不輸出（同紀錄下載）
