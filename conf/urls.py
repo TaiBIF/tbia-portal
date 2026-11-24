@@ -30,6 +30,7 @@ urlpatterns = [
     path('', include('data.urls')),
     path('', include('manager.urls')),
     path('', include('api.urls')),
+    path('', include('api.urls_fallback')),  # /api/v2 其他網址回 JSON 404；不可放進下面的 i18n_patterns（5.5）
     path('accounts/', include('allauth.urls')),  # django-allauth網址
     path("robots.txt",TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),),
     path("sitemap.xml",TemplateView.as_view(template_name="sitemap.xml", content_type="text/xml"),),

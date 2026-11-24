@@ -287,3 +287,43 @@
     font-size: 14px;
     color: #3F5146;
 }
+/* ===== 5.5 v2：鑑定層級分組（可開合） ===== */
+.api-editer .rank-group {
+    margin-bottom: 8px;
+    border: 1px solid #E5E5E0;
+    border-radius: 6px;
+    background: #FFF;
+}
+
+.api-editer .rank-group > summary {
+    cursor: pointer;
+    padding: 8px 14px;
+    font-weight: 500;
+    color: #3F5146;
+}
+
+.api-editer .rank-group[open] > summary {
+    border-bottom: 1px solid #E5E5E0;
+}
+
+.api-editer .rank-group .table_style2 {
+    margin: 0;
+}
+
+/* ===== 5.5 v2：提醒區塊與下方內容保持間距（原本只有上方 margin） ===== */
+.api-editer .api-note {
+    margin-bottom: 20px;
+}
+
+/* ===== 5.5 v2：說明文字中的參數名、欄位名、格式（表格、段落、清單） ===== */
+/* 特異度低於 .api-note code / .attr-list code，那兩處維持原樣式；JSON 範例的 pre code 不套用 */
+.api-editer :not(pre) > code {
+    padding: 1px 6px;
+    background: #F4F4F2;
+    border: 1px solid #E5E5E0;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #3F5146;
+    word-break: break-all;
+}

@@ -1,0 +1,13 @@
+{% load i18n %}{% comment %}5.5 API v2 說明頁：控制詞彙表（控制詞彙, 中文名稱）{% endcomment %}
+<div class="green_title">
+    <div class="line_mark"></div>
+    <h4>{{ title }}</h4>
+</div>
+<div class="mb_scroll">
+    <table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+        <tr><td>{% trans '控制詞彙' %}</td><td>{% trans '中文名稱' %}</td></tr>
+        {% for value, zh in items %}
+        <tr><td>{{ value }}</td><td>{{ zh }}</td></tr>
+        {% endfor %}
+    </table>
+</div>

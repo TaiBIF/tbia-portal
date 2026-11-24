@@ -76,11 +76,125 @@ def to_source_database(name):
 TAXON_GROUPS = ['鳥類', '爬蟲類', '哺乳類', '甲蟲類', '魚類', '兩棲類', '蛾類', '蝶類', '蜘蛛', '蜻蛉類',
                 '蝸牛與貝類', '其他昆蟲', '蝦蟹類', '裸子植物', '被子植物', '蕨類植物', '苔蘚植物',
                 '真菌', '藻類', '病毒', '細菌']
-# 參數值 → Solr 欄位（user.html 另有 fossil，Solr 沒有對應欄位，網站與查詢都不提供）
-# 11/18：freshWater → freshwater（freshwater 是一個字）；測試站 11/17～18 存下的 freshWater 也接受
+# 參數值 → Solr 欄位（fossil 為 user.html 誤植，11/20 決定移除；Solr 雖有 is_fossil，網站與 API 都不提供）
+# 11/18：freshWater → freshwater（freshwater 是一個字）；網站仍接受測試站 11/17～18 存下的 freshWater，API 只認 freshwater
 HABITAT_PARAM = {'terrestrial': 'is_terrestrial', 'freshwater': 'is_freshwater',
                  'brackish': 'is_brackish', 'marine': 'is_marine'}
+# 網站進階搜尋的鑑定層級（只列常見階層，方便使用）；API 接受 TaiCOL 全部階層（TAICOL_RANKS）
 TAXON_RANKS = ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species', 'Infraspecies']
+
+# ---- TaiCOL 分類階層（11/20，taicol-web ranks 表 2026-11-20 匯出） ----
+# (key, en-us, zh-tw)，依 ranks.order 由高到低。API v2 的 taxonRank 查詢與輸出值 = en-us（D26 修訂）。
+# Solr（taxa core 與 records）存的是小寫、以空白分隔的名稱：key 的連字號換成空白（special-form → special form）
+TAICOL_RANKS = [
+    ('unranked', 'Unranked', '未定義階層'),
+    ('realm', 'Realm', '病毒域'),
+    ('subrealm', 'Subrealm', '病毒亞域'),
+    ('domain', 'Domain', '域'),
+    ('superkingdom', 'Superkingdom', '總界'),
+    ('kingdom', 'Kingdom', '界'),
+    ('subkingdom', 'Subkingdom', '亞界'),
+    ('infrakingdom', 'Infrakingdom', '下界'),
+    ('superdivision', 'Superdivision', '超部|總部'),
+    ('division', 'Division', '部|類'),
+    ('subdivision', 'Subdivision', '亞部|亞類'),
+    ('infradivision', 'Infradivision', '下部|下類'),
+    ('parvdivision', 'Parvdivision', '小部|小類'),
+    ('superphylum', 'Superphylum', '超門|總門'),
+    ('phylum', 'Phylum', '門'),
+    ('subphylum', 'Subphylum', '亞門'),
+    ('infraphylum', 'Infraphylum', '下門'),
+    ('microphylum', 'Microphylum', '微門'),
+    ('parvphylum', 'Parvphylum', '小門'),
+    ('megaclass', 'Megaclass', '高綱'),
+    ('superclass', 'Superclass', '超綱|總綱'),
+    ('grandclass', 'Grandclass', '大綱'),
+    ('mirclass', 'Mirclass', '上綱'),
+    ('class', 'Class', '綱'),
+    ('subclass', 'Subclass', '亞綱'),
+    ('infraclass', 'Infraclass', '下綱'),
+    ('superorder', 'Superorder', '超目|總目'),
+    ('order', 'Order', '目'),
+    ('suborder', 'Suborder', '亞目'),
+    ('infraorder', 'Infraorder', '下目'),
+    ('superfamily', 'Superfamily', '超科|總科'),
+    ('epifamily', 'Epifamily', '領科'),
+    ('family', 'Family', '科'),
+    ('subfamily', 'Subfamily', '亞科'),
+    ('tribe', 'Tribe', '族'),
+    ('subtribe', 'Subtribe', '亞族'),
+    ('genus', 'Genus', '屬'),
+    ('subgenus', 'Subgenus', '亞屬'),
+    ('section', 'Section', '組|節'),
+    ('subsection', 'Subsection', '亞組|亞節'),
+    ('species', 'Species', '種'),
+    ('subspecies', 'Subspecies', '亞種'),
+    ('nothosubspecies', 'Nothosubspecies', '雜交亞種'),
+    ('variety', 'Variety', '變種'),
+    ('subvariety', 'Subvariety', '亞變種'),
+    ('nothovariety', 'Nothovariety', '雜交變種'),
+    ('form', 'Form', '型'),
+    ('subform', 'Subform', '亞型'),
+    ('special-form', 'Special Form', '特別品型'),
+    ('race', 'Race', '種族'),
+    ('stirp', 'Stirp', '血統'),
+    ('morph', 'Morph', '形態型'),
+    ('aberration', 'Aberration', '異常個體'),
+    ('lusus', 'Lusus', '畸變'),
+    ('hybrid-formula', 'Hybrid Formula', '雜交組合'),
+    ('cultivar-group', 'Group', '品種群'),
+    ('cultivar', 'Cultivar', '品種'),
+]
+RANK_ZH = {k: zh for k, _, zh in TAICOL_RANKS}
+
+
+def rank_solr_value(key):
+    """ranks.key → Solr 的 taxonRank 值（special-form → special form）"""
+    return key.replace('-', ' ')
+
+
+def _solr_term(v):
+    """Solr 查詢用：含空白的值加引號"""
+    return f'"{v}"' if ' ' in v else v
+
+
+RANK_EN_TO_SOLR = {en: rank_solr_value(k) for k, en, _ in TAICOL_RANKS}
+RANK_SOLR_TO_EN = {v: en for en, v in RANK_EN_TO_SOLR.items()}
+
+# 全站搜尋物種卡片的「分類階層」下拉：(大標題 key, 大標題名稱, [(子階層 key, 名稱), ...])，名稱取 RANK_ZH。
+# 分組大致依 ranks 表的 parent_group；種下（sub）是網站自訂的群組，Infraspecies 只含 INFRASPECIES_RANK_KEYS。
+# cultivar-group 是 TaiCOL 新階層，Solr 目前可能還沒有，Solr 寫法（暫定 cultivar group）於 P2 資料更新程式碼一併處理
+def _g(key, subs, label=None):
+    return (key, label or RANK_ZH[key], [(s, RANK_ZH[s]) for s in subs])
+
+
+INFRASPECIES_RANK_KEYS = ['subspecies', 'nothosubspecies', 'variety', 'subvariety', 'nothovariety', 'form', 'subform',
+                          'special-form', 'race', 'stirp', 'morph', 'aberration', 'lusus']   # lusus 11/20 Kim 加入
+# 列在「種下」組、但不算 Infraspecies（目前沒有）
+SUB_GROUP_EXTRA_KEYS = []
+TAXON_RANK_GROUPS = [
+    _g('species', []),
+    ('sub', '種下', [(s, RANK_ZH[s]) for s in INFRASPECIES_RANK_KEYS + SUB_GROUP_EXTRA_KEYS]),
+    # 雜交組合、品種群、品種：不屬於種下，各自獨立（11/20 Kim）
+    _g('hybrid-formula', []),
+    _g('cultivar-group', []),
+    _g('cultivar', []),
+    _g('genus', ['subgenus', 'section', 'subsection']),
+    _g('family', ['subfamily', 'tribe', 'subtribe']),
+    _g('order', ['suborder', 'infraorder', 'superfamily', 'epifamily']),
+    _g('class', ['subclass', 'infraclass', 'superorder']),
+    _g('phylum', ['subphylum', 'infraphylum', 'microphylum', 'parvphylum', 'megaclass', 'superclass',
+                  'grandclass', 'mirclass']),
+    _g('division', ['subdivision', 'infradivision', 'parvdivision', 'superphylum']),
+    _g('kingdom', ['subkingdom', 'infrakingdom', 'superdivision']),
+    _g('domain', ['superkingdom', 'realm', 'subrealm']),   # realm 照原本放在「域」組（11/20 Kim）
+    _g('unranked', []),
+]
+# 種下階層的 Solr 查詢值（網站 taxonRank=Infraspecies、全站搜尋「種下」、API Infraspecies 共用）
+INFRASPECIES_RANKS = [_solr_term(rank_solr_value(k)) for k in INFRASPECIES_RANK_KEYS]
+# 全站搜尋下拉的 key → Solr 查詢值（只列和 key 不同的）
+RANK_SOLR_VALUE = {k: _solr_term(rank_solr_value(k)) for k, _, _ in TAICOL_RANKS if '-' in k}
+VALID_TAXON_RANKS = {g[0] for g in TAXON_RANK_GROUPS} | {r[0] for g in TAXON_RANK_GROUPS for r in g[2]}
 NATIVENESS = ['native', 'naturalized', 'invasive', 'cultured']
 PROTECTED_STATUS = ['I', 'II', 'III', 'CHPA']
 TYPE_STATUS = ['HOLOTYPE', 'PARATYPE', 'ISOTYPE', 'ALLOTYPE', 'SYNTYPE', 'LECTOTYPE',

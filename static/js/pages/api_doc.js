@@ -117,6 +117,7 @@ $(document).ready(function () {
     $('.api-editer .gray-box pre code').each(function () {
         const $code = $(this);
         const raw = $code.text();
+        if (raw.trim()[0] !== '{') return;  // 5.5：只處理 JSON 範例（例：Authorization header 範例不上色）
         const lines = raw.split('\n');
 
         // 跳過第一行算最小縮排（第一行通常緊貼 <code> 沒縮排）
@@ -137,7 +138,7 @@ $(document).ready(function () {
 
         let html = $code.html();
         html = html.replace(/"([^"]+)"(\s*:)/g, '<span class="j-key">"$1"</span>$2');
-        html = html.replace(/:(\s*)([\u4e00-\u9fa5][^\n,]*)/g,
+        html = html.replace(/:(\s*)([\u4e00-\u9fa5A-Za-z][^\n,]*)/g,  // 5.5：英文介面的說明也標成註解色
             ': <span class="j-comment">$2</span>');
         $code.html(html);
     });
