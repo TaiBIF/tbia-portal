@@ -10,7 +10,7 @@
     <tr>
         <td>{{ p.name }}{% if p.required %}<span class="req-tag">{% trans '必填' %}</span>{% endif %}</td>
         <td>{{ p.type }}</td>
-        <td>{{ p.desc }}</td>
+        <td>{{ p.desc|safe }}</td>
         <td><a href="{{ p.href|iriencode }}" target="_blank">{{ p.example }}</a></td>
     </tr>
     {% endfor %}

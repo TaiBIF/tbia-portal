@@ -43,14 +43,14 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                             </div>
                             <div class="marb_20">
                                 <p>{% trans 'TBIA 提供開放 API，讓使用者可以透過程式設計方式查詢與取得 TBIA 資料。本 API 為公開服務，對所有人開放，惟請注意：' %}</p>
-                                <ul>
-                                    <li>{% trans '本服務會進行部分資訊模糊化，以保護敏感物種。可取得未模糊化資料的限制型 API 僅適用於物種出現紀錄（Occurrence API），目前僅供 TBIA 夥伴單位申請使用；有需求之夥伴單位可來信聯絡 TBIA 秘書處' %}
+                                <ul class="attr-list">
+                                    <li>{% trans '本服務會進行部分資訊模糊化，以保護敏感物種。可取得未模糊化資料的限制型 API 僅適用於<a class="col_blue" href="#occurrence-area">物種出現紀錄（Occurrence API）</a>，目前僅供 TBIA 夥伴單位申請使用；有需求之夥伴單位可來信聯絡 TBIA 秘書處' %}
                                         <a class="col_blue" href="mailto:tbianoti@gmail.com">tbianoti@gmail.com</a>
                                         <ul class="attr-list">
-                                            <li>{% trans '模糊化精度依敏感層級（sensitiveCategory）而定，處理方式記載於 dataGeneralizations。' %}</li>
-                                            <li>{% trans 'decimalLatitude／decimalLongitude：公開 API 為模糊化後的坐標，限制型 API 為原始坐標。' %}</li>
-                                            <li>{% trans 'verbatimLatitude／verbatimLongitude：公開 API 中如該筆紀錄經模糊化處理，本欄位將轉為空值；限制型 API 為原始坐標。' %}</li>
-                                            <li>{% trans 'county／countyCode／municipality：公開 API 依模糊化後坐標推算，限制型 API 依原始坐標推算。' %}</li>
+                                            <li>{% trans '模糊化精度依敏感層級（<code>sensitiveCategory</code>）而定，處理方式記載於 <code>dataGeneralizations</code>。' %}</li>
+                                            <li>{% trans '<code>decimalLatitude</code>／<code>decimalLongitude</code>：公開 API 為模糊化後的坐標，限制型 API 為原始坐標。' %}</li>
+                                            <li>{% trans '<code>verbatimLatitude</code>／<code>verbatimLongitude</code>：公開 API 中如該筆紀錄經模糊化處理，本欄位將轉為空值；限制型 API 為原始坐標。' %}</li>
+                                            <li>{% trans '<code>county</code>／<code>countyCode</code>／<code>municipality</code>：公開 API 依模糊化後坐標推算，限制型 API 依原始坐標推算。' %}</li>
                                         </ul>
                                     </li>
                                     <li>{% trans '本 API 目的為供機器間自動處理，非供直接閱讀。' %}</li>
@@ -66,29 +66,29 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                     {% trans '本 API 為僅使用 HTTP GET protocol 的 RESTful API，回傳格式為 JSON。' %}</p>
                                 <p><strong>{% trans 'API 服務類型' %}</strong><br>
                                     {% trans '本 API 提供四種服務類型（各服務網址與參數請見下方各章節）：' %}</p>
-                                <ul>
-                                    <li><strong>{% trans '物種出現紀錄 occurrence' %}</strong>{% trans '：提供 TBIA 收錄之物種出現紀錄查詢。本服務會進行部分資訊模糊化。' %}</li>
-                                    <li><strong>{% trans '資料集 dataset' %}</strong>{% trans '：提供 TBIA 收錄資料集查詢。可用於了解各資料集之後設資料。' %}</li>
-                                    <li><strong>{% trans '地圖 map' %}</strong>{% trans '：提供以網格聚合之物種出現點位統計，回傳 GeoJSON 格式。' %}</li>
-                                    <li><strong>{% trans '夥伴單位 partner' %}</strong>{% trans '：提供 TBIA 夥伴單位查詢。可用於取得 tbiaPartnerID 與對應之單位名稱。' %}</li>
+                                <ul class="attr-list">
+                                    <li><a class="col_blue" href="#occurrence-area"><strong>{% trans '物種出現紀錄 occurrence' %}</strong></a>{% trans '：提供 TBIA 收錄之物種出現紀錄查詢。本服務會進行部分資訊模糊化。' %}</li>
+                                    <li><a class="col_blue" href="#dataset-area"><strong>{% trans '資料集 dataset' %}</strong></a>{% trans '：提供 TBIA 收錄資料集查詢。可用於了解各資料集之後設資料。' %}</li>
+                                    <li><a class="col_blue" href="#map-area"><strong>{% trans '地圖 map' %}</strong></a>{% trans '：提供以網格聚合之物種出現點位統計，回傳 GeoJSON 格式。' %}</li>
+                                    <li><a class="col_blue" href="#partner-area"><strong>{% trans '夥伴單位 partner' %}</strong></a>{% trans '：提供 TBIA 夥伴單位查詢。可用於取得 <code>tbiaPartnerID</code> 與對應之單位名稱。' %}</li>
                                 </ul>
 
                                 <p><strong>{% trans '分頁與筆數限制' %}</strong><br>
-                                    {% trans '因效能考量，本 API 不會於單次請求回傳全部資料，而以分頁方式提供。請透過 limit 控制單頁筆數，並以 links.next 遞迴取得後續分頁。' %}</p>
+                                    {% trans '因效能考量，本 API 不會於單次請求回傳全部資料，而以分頁方式提供。請透過 <code>limit</code> 控制單頁筆數，並以 <code>links.next</code> 遞迴取得後續分頁。' %}</p>
                                 <div class="mb_scroll">
                                     {% include 'pages/api_doc_params.html' with params=paging_params %}
                                     <div class="api-note">
                                         <p><strong>{% trans '遞迴擷取邏輯' %}</strong></p>
                                         <ul>
-                                            <li>{% trans '本 API 採游標式分頁，使用者無須自行帶入分頁位置參數；除 limit 外，翻頁一律使用回傳的 links.next。' %}</li>
-                                            <li>{% trans '取得下一頁：當資料尚有下一頁時，links.next 會提供下一頁的完整 API 網址。直接對該網址發送請求即可取得下一批資料。' %}</li>
-                                            <li>{% trans '終止條件：當已無剩餘資料時，links.next 為 null，代表已取得全部資料。' %}</li>
+                                            <li>{% trans '本 API 採游標式分頁，使用者無須自行帶入分頁位置參數；除 <code>limit</code> 外，翻頁一律使用回傳的 <code>links.next</code>。' %}</li>
+                                            <li>{% trans '取得下一頁：當資料尚有下一頁時，<code>links.next</code> 會提供下一頁的完整 API 網址。直接對該網址發送請求即可取得下一批資料。' %}</li>
+                                            <li>{% trans '終止條件：當已無剩餘資料時，<code>links.next</code> 為 <code>null</code>，代表已取得全部資料。' %}</li>
                                         </ul>
                                     </div>
                                 </div>
 
                                 <p><strong>{% trans '回傳格式' %}</strong><br>
-                                    {% trans '除 map 服務直接回傳 GeoJSON FeatureCollection 外，其餘服務均回傳如下之 JSON 結果物件：' %}</p>
+                                    {% trans '除 map 服務直接回傳 GeoJSON <code>FeatureCollection</code> 外，其餘服務均回傳如下之 JSON 結果物件：' %}</p>
                                 <div class="gray-box">
 <pre><code>{
     "status": {
@@ -124,7 +124,9 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                             <div class="marb_20">
                                 <p>{% trans '取得未模糊化之限制型資料需申請 API 金鑰，並以 HTTP Header 傳遞：' %}</p>
                                 <div class="gray-box"><pre><code>Authorization: Bearer &lt;API_KEY&gt;</code></pre></div>
-                                <p>{% trans '※ v1 原以查詢參數 apikey 傳遞，v2 改為 Header，避免金鑰出現於網址、日誌與快取；v2 帶 apikey 參數會回 400。未帶金鑰者僅能取得模糊化後之資料；金鑰無效或格式不是 Bearer 時回 401。' %}</p>
+                                <div class="api-note">
+                                    <p>{% trans 'v1 原以查詢參數 <code>apikey</code> 傳遞，v2 改為 Header，避免金鑰出現於網址、日誌與快取；v2 帶 <code>apikey</code> 參數會回 400。未帶金鑰者僅能取得模糊化後之資料；金鑰無效或格式不是 Bearer 時回 401。' %}</p>
+                                </div>
                             </div>
                             <div class="green_title">
                                 <div class="line_mark"></div>
@@ -139,7 +141,9 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                             </div>
                             <div class="mb_scroll">
                                 {% include 'pages/api_doc_fields.html' with fields=occurrence_fields %}
-                                <p class="mart_10">{% trans '每筆資料皆回傳上列全部欄位，無資料的欄位值為 null。' %}</p>
+                                <div class="api-note">
+                                    <p>{% trans '每筆資料皆回傳上列全部欄位，無資料的欄位值為 <code>null</code>。' %}</p>
+                                </div>
                             </div>
                         </div>
 
@@ -180,7 +184,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                             <div class="mb_scroll">
                                 {% include 'pages/api_doc_params.html' with params=map_params %}
                                 <div class="api-note">
-                                    <p>{% trans '因應效能考量，四邊形座標範圍需搭配網格大小（grid）使用，boundedBy 與 grid 皆為必填。若您需要較大的地理範圍，請先切割成較小範圍分次取得。' %}</p>
+                                    <p>{% trans '因應效能考量，四邊形座標範圍需搭配網格大小（<code>grid</code>）使用，<code>boundedBy</code> 與 <code>grid</code> 皆為必填。若您需要較大的地理範圍，請先切割成較小範圍分次取得。' %}</p>
                                     <table class="grid-table">
                                         <thead>
                                             <tr>
@@ -206,14 +210,16 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 <h4>{% trans '回傳欄位' %}</h4>
                             </div>
                             <div class="mb_scroll">
-                                <p>{% trans '以 GeoJSON FeatureCollection 格式回傳 1、5、10 或 100 公里網格化的多邊形，取得之 GeoJSON 可直接套疊於地圖上，每個 feature 代表一個網格，並帶有以下屬性：' %}</p>
+                                <p>{% trans '以 GeoJSON <code>FeatureCollection</code> 格式回傳 1、5、10 或 100 公里網格化的多邊形，取得之 GeoJSON 可直接套疊於地圖上，每個 <code>feature</code> 代表一個網格，並帶有以下屬性：' %}</p>
                                 <ul class="attr-list">
                                     {% for key, label in map_properties %}
                                     <li>{{ label }} <code>{{ key }}</code></li>
                                     {% endfor %}
                                 </ul>
-                                <p>{% trans '網格筆數不含數量為 0 的未發現紀錄（organismQuantity=0），與入口網地圖相同；沒有資料的網格不會回傳。地圖僅提供模糊化後坐標的網格。' %}</p>
-                                {% trans '若您想繪製與入口網相同的地圖，可參考以下資料筆數對應的色碼代號：' %}
+                                <div class="api-note">
+                                    <p>{% trans '網格筆數不含數量為 0 的未發現紀錄（<code>organismQuantity=0</code>），與入口網地圖相同；沒有資料的網格不會回傳。地圖僅提供模糊化後坐標的網格。' %}</p>
+                                </div>
+                                <p>{% trans '若您想繪製與入口網相同的地圖，可參考以下資料筆數對應的色碼代號：' %}</p>
                                 <table class="table_style2 marb_20 mart_10" cellspacing="0" cellpadding="0" border="0">
                                     <tr>
                                         <td>{% trans '資料筆數' %}</td>
@@ -261,21 +267,21 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 <h4>{% trans '大小寫規則' %}</h4>
                             </div>
                             <div class="mb_scroll">
-                                {% trans '所有查詢參數的值皆區分大小寫，控制詞彙須完全相同。例如學名請填 Passer montanus，而非 passer montanus，否則可能查無資料。' %}
+                                {% trans '所有查詢參數的值皆區分大小寫，控制詞彙須完全相同。例如學名請填 <code>Passer montanus</code>，而非 <code>passer montanus</code>，否則可能查無資料。' %}
                             </div>
                             <div class="green_title">
                                 <div class="line_mark"></div>
                                 <h4>{% trans '預設查詢行為' %}</h4>
                             </div>
                             <div class="mb_scroll">
-                                {% trans '未帶入任何查詢條件時，將回傳全部資料（map 除外，boundedBy 與 grid 為必填）；回傳筆數仍受 limit 限制（預設 20 筆），並可透過 links.next 遞迴取得後續資料。文件未列出的參數將被忽略。' %}
+                                {% trans '未帶入任何查詢條件時，將回傳全部資料（map 除外，<code>boundedBy</code> 與 <code>grid</code> 為必填）；回傳筆數仍受 <code>limit</code> 限制（預設 20 筆），並可透過 <code>links.next</code> 遞迴取得後續資料。文件未列出的參數將被忽略。' %}
                             </div>
                             <div class="green_title" id="composite-query-area">
                                 <div class="line_mark"></div>
                                 <h4>{% trans '複合查詢' %}</h4>
                             </div>
                             <div class="mb_scroll">
-                                {% trans '各查詢參數均可做交集查詢，部分參數可做聯集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。同一參數的多個值，請以半形逗號分隔（例如 taxonGroup=鳥類,哺乳類）。' %}
+                                {% trans '各查詢參數均可做交集查詢，部分參數可做聯集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。同一參數的多個值，請以半形逗號分隔（例如 <code>taxonGroup=鳥類,哺乳類</code>）。' %}
                                 <br><br>
                                 <strong>{% trans '範例 1：不同參數（取交集）' %}</strong><br>
                                 <a class="col_blue" href="{{ ex.intersect.href|iriencode }}" target="_blank">{{ ex.intersect.example }}</a>
@@ -288,7 +294,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 <h4>{% trans '區間查詢' %}</h4>
                             </div>
                             <div class="mb_scroll">
-                                {% trans '部分日期或年份參數支援以半形逗號分隔起迄值的區間查詢（包含起迄當日／當年）。只填一邊時另一邊以 * 表示：20240101,* 為該日以後，*,20240131 為該日以前；年份同理（2020,*）。日期須為實際存在的日期。' %}
+                                {% trans '部分日期或年份參數支援以半形逗號分隔起迄值的區間查詢（包含起迄當日／當年）。只填一邊時另一邊以 <code>*</code> 表示：<code>20240101,*</code> 為該日以後，<code>*,20240131</code> 為該日以前；年份同理（<code>2020,*</code>）。日期須為實際存在的日期。' %}
                                 <br><br>
                                 <strong>{% trans '範例 1：日期區間' %}</strong><br>
                                 <a class="col_blue" href="{{ ex.date_range.href|iriencode }}" target="_blank">{{ ex.date_range.example }}</a>
@@ -311,15 +317,15 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                     </tr>
                                     <tr>
                                         <td>200</td>
-                                        <td>{% trans '輸入的請求成功；即使查無符合條件的資料，仍回傳 200 並以空的 data 陣列表示。' %}</td>
+                                        <td>{% trans '輸入的請求成功；即使查無符合條件的資料，仍回傳 200 並以空的 <code>data</code> 陣列表示。' %}</td>
                                     </tr>
                                     <tr>
                                         <td>400</td>
-                                        <td>{% trans '輸入的請求無效：參數值不符合格式或控制詞彙（例如日期格式錯誤、類群名稱不存在），message 會指出是哪個參數。' %}</td>
+                                        <td>{% trans '輸入的請求無效：參數值不符合格式或控制詞彙（例如日期格式錯誤、類群名稱不存在），<code>status.message</code> 會指出是哪個參數。' %}</td>
                                     </tr>
                                     <tr>
                                         <td>401</td>
-                                        <td>{% trans '提供的 API 金鑰無效（僅 Occurrence API）。' %}</td>
+                                        <td>{% trans '提供的 API 金鑰無效（僅 <a class="col_blue" href="#occurrence-area">Occurrence API</a>）。' %}</td>
                                     </tr>
                                     <tr>
                                         <td>404</td>
@@ -332,7 +338,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 </table>
                             </div>
                             <div class="api-note">
-                                <p>{% trans 'HTTP 回應的狀態碼與回傳內容 status.code 一致；map 發生錯誤時同樣回傳 status 物件。' %}</p>
+                                <p>{% trans 'HTTP 回應的狀態碼與回傳內容 <code>status.code</code> 一致；map 發生錯誤時同樣回傳 <code>status</code> 物件。' %}</p>
                             </div>
                         </div>
 
@@ -354,7 +360,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 <details class="rank-group">
                                     <summary>{{ label }}</summary>
                                     <table class="table_style2" cellspacing="0" cellpadding="0" border="0">
-                                        <tr><td>{% trans '控制詞彙' %}</td><td>{% trans '中文名稱' %}</td></tr>
+                                        <tr><td>{% trans '控制詞彙' %}</td><td>{% trans '階層中文名稱' %}</td></tr>
                                         {% for value, zh in items %}
                                         <tr><td>{{ value }}</td><td>{{ zh }}</td></tr>
                                         {% endfor %}
@@ -416,7 +422,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                         <div class="dot"></div>
                                         <h3>
                                             {{ v2_release_date }} ｜ V2
-                                            {% trans '發布 v2：欄位名稱對齊 TBIA 資料規格；新增 Partner API 與 tbiaPartnerID、partnerName；金鑰改以 Authorization Header 傳遞；HTTP 狀態碼與 status.code 一致；日期格式改為 YYYYMMDD；map 直接回傳 GeoJSON FeatureCollection，year 單一值改為該年。' %}
+                                            {% trans '發布 v2：欄位名稱對齊 TBIA 資料規格；新增 Partner API 與 <code>tbiaPartnerID</code>、<code>partnerName</code>；金鑰改以 <code>Authorization</code> Header 傳遞；HTTP 狀態碼與 <code>status.code</code> 一致；日期格式改為 <code>YYYYMMDD</code>；map 直接回傳 GeoJSON <code>FeatureCollection</code>，<code>year</code> 單一值改為該年。' %}
                                         </h3>
                                     </div>
                                     <div class="flexbox">
@@ -430,7 +436,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                         <div class="dot"></div>
                                         <h3>
                                             2026-05-15 ｜
-                                            {% trans '原 imagePresence 欄位更名為 hasMedia（true：有多媒體／false：無多媒體），並新增 mediaType 參數指定多媒體類型：image (影像)、video (影片)、audio (音檔)。' %}
+                                            {% trans '原 <code>imagePresence</code> 欄位更名為 <code>hasMedia</code>（<code>true</code>：有多媒體／<code>false</code>：無多媒體），並新增 <code>mediaType</code> 參數指定多媒體類型：<code>image</code> (影像)、<code>video</code> (影片)、<code>audio</code> (音檔)。' %}
                                         </h3>
                                     </div>
                                     <div class="flexbox">
@@ -445,7 +451,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 <li>
                                     <div class="flexbox">
                                         <div class="dot"></div>
-                                        <h3>2024-06-27 ｜ {% trans '修改分頁參數取得方式：棄用offset，改以next參數提供下一分頁網址。' %}</h3>
+                                        <h3>2024-06-27 ｜ {% trans '修改分頁參數取得方式：棄用 <code>offset</code>，改以 <code>next</code> 參數提供下一分頁網址。' %}</h3>
                                     </div>
                                 </li>
                                 <li>

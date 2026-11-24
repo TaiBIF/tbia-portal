@@ -3859,3 +3859,1696 @@ msgstr "Query parameter warnings"
 #: static/js/data/search_occurrence.js static/js/data/search_collection.js
 msgid "框選失敗！半徑須大於 0 且小於或等於 25 公里"
 msgstr "Failed to draw the circle! The radius must be greater than 0 and no more than 25 km."
+
+# ---- 5.5 API v2 說明頁（/api/doc）----
+#: templates/pages/api_doc.html
+msgid "v1 API 將於過渡期後停止提供，請改用 v2。"
+msgstr ""
+"API v1 will be discontinued after the transition period. Please use v2. "
+
+#: templates/pages/api_doc.html
+msgid "查看 v1 舊版說明文件"
+msgstr "View the v1 (legacy) documentation"
+
+#: templates/pages/api_doc.html
+msgid "API 基本說明"
+msgstr "API Overview"
+
+#: templates/pages/api_doc.html
+msgid "TBIA 提供開放 API，讓使用者可以透過程式設計方式查詢與取得 TBIA 資料。本 API 為公開服務，對所有人開放，惟請注意："
+msgstr ""
+"TBIA provides an open API that lets users query and retrieve TBIA data "
+"programmatically. The API is a public service open to everyone; please note:"
+
+#: templates/pages/api_doc.html
+msgid ""
+"本服務會進行部分資訊模糊化，以保護敏感物種。可取得未模糊化資料的限制型 API 僅適用於<a class=\"col_blue\" "
+"href=\"#occurrence-area\">物種出現紀錄（Occurrence API）</a>，目前僅供 TBIA "
+"夥伴單位申請使用；有需求之夥伴單位可來信聯絡 TBIA 秘書處"
+msgstr ""
+"Some information is generalized (blurred) to protect sensitive species. The "
+"restricted API, which returns non-generalized data, applies only to <a "
+"class=\"col_blue\" href=\"#occurrence-area\">occurrence records (Occurrence "
+"API)</a> and is currently available only to TBIA partners; partners who need"
+" it may contact the TBIA Secretariat at"
+
+#: templates/pages/api_doc.html
+msgid ""
+"模糊化精度依敏感層級（<code>sensitiveCategory</code>）而定，處理方式記載於 "
+"<code>dataGeneralizations</code>。"
+msgstr ""
+"The generalization precision depends on the sensitivity category "
+"(<code>sensitiveCategory</code>); the method applied is described in "
+"<code>dataGeneralizations</code>."
+
+#: templates/pages/api_doc.html
+msgid ""
+"<code>decimalLatitude</code>／<code>decimalLongitude</code>：公開 API "
+"為模糊化後的坐標，限制型 API 為原始坐標。"
+msgstr ""
+"<code>decimalLatitude</code> / <code>decimalLongitude</code>: generalized "
+"coordinates in the public API; original coordinates in the restricted API."
+
+#: templates/pages/api_doc.html
+msgid ""
+"<code>verbatimLatitude</code>／<code>verbatimLongitude</code>：公開 API "
+"中如該筆紀錄經模糊化處理，本欄位將轉為空值；限制型 API 為原始坐標。"
+msgstr ""
+"<code>verbatimLatitude</code> / <code>verbatimLongitude</code>: empty in the"
+" public API if the record has been generalized; original coordinates in the "
+"restricted API."
+
+#: templates/pages/api_doc.html
+msgid ""
+"<code>county</code>／<code>countyCode</code>／<code>municipality</code>：公開 API"
+" 依模糊化後坐標推算，限制型 API 依原始坐標推算。"
+msgstr ""
+"<code>county</code> / <code>countyCode</code> / <code>municipality</code>: "
+"derived from the generalized coordinates in the public API, and from the "
+"original coordinates in the restricted API."
+
+#: templates/pages/api_doc.html
+msgid "本 API 目的為供機器間自動處理，非供直接閱讀。"
+msgstr ""
+"This API is intended for machine-to-machine processing, not for direct "
+"reading."
+
+#: templates/pages/api_doc.html
+msgid "API 基本架構"
+msgstr "API Structure"
+
+#: templates/pages/api_doc.html
+msgid "介接方式"
+msgstr "Access"
+
+#: templates/pages/api_doc.html
+msgid "本 API 為僅使用 HTTP GET protocol 的 RESTful API，回傳格式為 JSON。"
+msgstr "This is a RESTful API that uses HTTP GET only and returns JSON."
+
+#: templates/pages/api_doc.html
+msgid "API 服務類型"
+msgstr "Services"
+
+#: templates/pages/api_doc.html
+msgid "本 API 提供四種服務類型（各服務網址與參數請見下方各章節）："
+msgstr ""
+"The API provides four services (see the sections below for the URLs and "
+"parameters of each):"
+
+#: templates/pages/api_doc.html
+msgid "物種出現紀錄 occurrence"
+msgstr "Occurrence"
+
+#: templates/pages/api_doc.html
+msgid "：提供 TBIA 收錄之物種出現紀錄查詢。本服務會進行部分資訊模糊化。"
+msgstr ""
+": occurrence records collected by TBIA. Some information is generalized."
+
+#: templates/pages/api_doc.html
+msgid "資料集 dataset"
+msgstr "Dataset"
+
+#: templates/pages/api_doc.html
+msgid "：提供 TBIA 收錄資料集查詢。可用於了解各資料集之後設資料。"
+msgstr ""
+": datasets collected by TBIA, for looking up the metadata of each dataset."
+
+#: templates/pages/api_doc.html
+msgid "地圖 map"
+msgstr "Map"
+
+#: templates/pages/api_doc.html
+msgid "：提供以網格聚合之物種出現點位統計，回傳 GeoJSON 格式。"
+msgstr ": grid-aggregated counts of occurrence records, returned as GeoJSON."
+
+#: templates/pages/api_doc.html
+msgid "夥伴單位 partner"
+msgstr "Partner"
+
+#: templates/pages/api_doc.html
+msgid "：提供 TBIA 夥伴單位查詢。可用於取得 <code>tbiaPartnerID</code> 與對應之單位名稱。"
+msgstr ""
+": TBIA partners, for looking up <code>tbiaPartnerID</code> and the "
+"corresponding partner name."
+
+#: templates/pages/api_doc.html
+msgid "分頁與筆數限制"
+msgstr "Pagination and Limits"
+
+#: templates/pages/api_doc.html
+msgid ""
+"因效能考量，本 API 不會於單次請求回傳全部資料，而以分頁方式提供。請透過 <code>limit</code> 控制單頁筆數，並以 "
+"<code>links.next</code> 遞迴取得後續分頁。"
+msgstr ""
+"For performance reasons, the API does not return all data in a single "
+"request; results are paginated. Use <code>limit</code> to set the page size "
+"and follow <code>links.next</code> to retrieve subsequent pages."
+
+#: templates/pages/api_doc.html
+msgid "遞迴擷取邏輯"
+msgstr "Retrieving All Pages"
+
+#: templates/pages/api_doc.html
+msgid ""
+"本 API 採游標式分頁，使用者無須自行帶入分頁位置參數；除 <code>limit</code> 外，翻頁一律使用回傳的 "
+"<code>links.next</code>。"
+msgstr ""
+"The API uses cursor-based pagination, so you do not need to pass any page "
+"position; apart from <code>limit</code>, always use the returned "
+"<code>links.next</code> to turn pages."
+
+#: templates/pages/api_doc.html
+msgid ""
+"取得下一頁：當資料尚有下一頁時，<code>links.next</code> 會提供下一頁的完整 API "
+"網址。直接對該網址發送請求即可取得下一批資料。"
+msgstr ""
+"Next page: when more data is available, <code>links.next</code> contains the"
+" full API URL of the next page. Send a request to that URL to get the next "
+"batch."
+
+#: templates/pages/api_doc.html
+msgid "終止條件：當已無剩餘資料時，<code>links.next</code> 為 <code>null</code>，代表已取得全部資料。"
+msgstr ""
+"End: when no data remains, <code>links.next</code> is <code>null</code>, "
+"meaning all data has been retrieved."
+
+#: templates/pages/api_doc.html
+msgid ""
+"除 map 服務直接回傳 GeoJSON <code>FeatureCollection</code> 外，其餘服務均回傳如下之 JSON 結果物件："
+msgstr ""
+"Except for the map service, which returns a GeoJSON "
+"<code>FeatureCollection</code> directly, all services return the following "
+"JSON object:"
+
+#: templates/pages/api_doc.html
+msgid "回傳狀態代碼（與 HTTP 狀態碼相同）"
+msgstr "Status code (same as the HTTP status code)"
+
+#: templates/pages/api_doc.html
+msgid "下一分頁網址（無下一頁時為 null）"
+msgstr "URL of the next page (null if there is no next page)"
+
+#: templates/pages/api_doc.html
+msgid "本服務會進行部分資訊模糊化，可取得未模糊化資料的限制型API目前僅供TBIA夥伴單位申請使用。"
+msgstr ""
+"Some information is generalized. The restricted API, which returns non-"
+"generalized data, is currently available only to TBIA partners."
+
+#: templates/pages/api_doc.html
+msgid "認證方式"
+msgstr "Authentication"
+
+#: templates/pages/api_doc.html
+msgid "取得未模糊化之限制型資料需申請 API 金鑰，並以 HTTP Header 傳遞："
+msgstr ""
+"Non-generalized (restricted) data requires an API key, sent in the HTTP "
+"header:"
+
+#: templates/pages/api_doc.html
+msgid ""
+"v1 原以查詢參數 <code>apikey</code> 傳遞，v2 改為 Header，避免金鑰出現於網址、日誌與快取；v2 帶 "
+"<code>apikey</code> 參數會回 400。未帶金鑰者僅能取得模糊化後之資料；金鑰無效或格式不是 Bearer 時回 401。"
+msgstr ""
+"In v1 the key was sent as the <code>apikey</code> query parameter; v2 uses a"
+" header instead so that the key does not appear in URLs, logs or caches. "
+"Sending the <code>apikey</code> parameter in v2 returns 400. Requests "
+"without a key only receive generalized data; an invalid key or a non-Bearer "
+"header returns 401."
+
+#: templates/pages/api_doc.html
+msgid "每筆資料皆回傳上列全部欄位，無資料的欄位值為 <code>null</code>。"
+msgstr ""
+"Every record includes all of the fields above; fields without a value are "
+"<code>null</code>."
+
+#: templates/pages/api_doc.html
+msgid ""
+"因應效能考量，四邊形座標範圍需搭配網格大小（<code>grid</code>）使用，<code>boundedBy</code> 與 "
+"<code>grid</code> 皆為必填。若您需要較大的地理範圍，請先切割成較小範圍分次取得。"
+msgstr ""
+"For performance reasons, the bounding box must be used together with a grid "
+"size (<code>grid</code>); both <code>boundedBy</code> and <code>grid</code> "
+"are required. If you need a larger area, split it into smaller boxes and "
+"request them separately."
+
+#: templates/pages/api_doc.html
+msgid ""
+"以 GeoJSON <code>FeatureCollection</code> 格式回傳 1、5、10 或 100 公里網格化的多邊形，取得之 "
+"GeoJSON 可直接套疊於地圖上，每個 <code>feature</code> 代表一個網格，並帶有以下屬性："
+msgstr ""
+"Returns 1, 5, 10 or 100 km grid cells as polygons in a GeoJSON "
+"<code>FeatureCollection</code>, which can be overlaid directly on a map. "
+"Each <code>feature</code> represents one grid cell and has the following "
+"properties:"
+
+#: templates/pages/api_doc.html
+msgid ""
+"網格筆數不含數量為 0 "
+"的未發現紀錄（<code>organismQuantity=0</code>），與入口網地圖相同；沒有資料的網格不會回傳。地圖僅提供模糊化後坐標的網格。"
+msgstr ""
+"Grid counts exclude absence records (<code>organismQuantity=0</code>), as on"
+" the portal map; grid cells without data are not returned. The map provides "
+"grids of generalized coordinates only."
+
+#: templates/pages/api_doc.html
+msgid "夥伴單位 - Partner API"
+msgstr "Partner API"
+
+#: templates/pages/api_doc.html
+msgid "進階查詢說明"
+msgstr "Advanced Queries"
+
+#: templates/pages/api_doc.html
+msgid "大小寫規則"
+msgstr "Case Sensitivity"
+
+#: templates/pages/api_doc.html
+msgid ""
+"所有查詢參數的值皆區分大小寫，控制詞彙須完全相同。例如學名請填 <code>Passer montanus</code>，而非 <code>passer"
+" montanus</code>，否則可能查無資料。"
+msgstr ""
+"All parameter values are case-sensitive, and controlled vocabularies must "
+"match exactly. For example, enter <code>Passer montanus</code> rather than "
+"<code>passer montanus</code>, or no data may be found."
+
+#: templates/pages/api_doc.html
+msgid "預設查詢行為"
+msgstr "Default Behavior"
+
+#: templates/pages/api_doc.html
+msgid ""
+"未帶入任何查詢條件時，將回傳全部資料（map 除外，<code>boundedBy</code> 與 <code>grid</code> "
+"為必填）；回傳筆數仍受 <code>limit</code> 限制（預設 20 筆），並可透過 <code>links.next</code> "
+"遞迴取得後續資料。文件未列出的參數將被忽略。"
+msgstr ""
+"Without any query parameters, all data is returned (except for map, where "
+"<code>boundedBy</code> and <code>grid</code> are required); the number of "
+"results is still limited by <code>limit</code> (default 20), and you can "
+"follow <code>links.next</code> to retrieve the rest. Parameters not listed "
+"in this documentation are ignored."
+
+#: templates/pages/api_doc.html
+msgid ""
+"各查詢參數均可做交集查詢，部分參數可做聯集查詢。當同時使用同一參數查詢多個值，將取聯集；當同時查詢不同參數，則取交集。同一參數的多個值，請以半形逗號分隔（例如"
+" <code>taxonGroup=鳥類,哺乳類</code>）。"
+msgstr ""
+"All query parameters can be combined (intersection), and some parameters "
+"accept multiple values (union). Multiple values of the same parameter are "
+"combined with OR; different parameters are combined with AND. Separate "
+"multiple values with commas (e.g. <code>taxonGroup=鳥類,哺乳類</code>)."
+
+#: templates/pages/api_doc.html
+msgid ""
+"部分日期或年份參數支援以半形逗號分隔起迄值的區間查詢（包含起迄當日／當年）。只填一邊時另一邊以 <code>*</code> "
+"表示：<code>20240101,*</code> 為該日以後，<code>*,20240131</code> "
+"為該日以前；年份同理（<code>2020,*</code>）。日期須為實際存在的日期。"
+msgstr ""
+"Some date and year parameters support range queries, with the start and end "
+"values separated by a comma (both ends inclusive). To leave one end open, "
+"use <code>*</code>: <code>20240101,*</code> means on or after that date, and"
+" <code>*,20240131</code> means on or before that date; the same applies to "
+"years (<code>2020,*</code>). Dates must be valid calendar dates."
+
+#: templates/pages/api_doc.html
+msgid "範例 2：某日以後"
+msgstr "Example 2: On or after a date"
+
+#: templates/pages/api_doc.html
+msgid "範例 3：年份區間"
+msgstr "Example 3: Year range"
+
+#: templates/pages/api_doc.html
+msgid "輸入的請求成功；即使查無符合條件的資料，仍回傳 200 並以空的 <code>data</code> 陣列表示。"
+msgstr ""
+"The request succeeded; if no data matches, 200 is still returned with an "
+"empty <code>data</code> array."
+
+#: templates/pages/api_doc.html
+msgid ""
+"輸入的請求無效：參數值不符合格式或控制詞彙（例如日期格式錯誤、類群名稱不存在），<code>status.message</code> "
+"會指出是哪個參數。"
+msgstr ""
+"Invalid request: a parameter value does not match the required format or "
+"controlled vocabulary (e.g. an invalid date or an unknown taxon group); "
+"<code>status.message</code> indicates which parameter."
+
+#: templates/pages/api_doc.html
+msgid ""
+"提供的 API 金鑰無效（僅 <a class=\"col_blue\" href=\"#occurrence-area\">Occurrence "
+"API</a>）。"
+msgstr ""
+"Invalid API key (<a class=\"col_blue\" href=\"#occurrence-area\">Occurrence "
+"API</a> only)."
+
+#: templates/pages/api_doc.html
+msgid "網址錯誤或資源不存在。"
+msgstr "Invalid URL or resource not found."
+
+#: templates/pages/api_doc.html
+msgid "後端伺服器錯誤。"
+msgstr "Internal server error."
+
+#: templates/pages/api_doc.html
+msgid ""
+"HTTP 回應的狀態碼與回傳內容 <code>status.code</code> 一致；map 發生錯誤時同樣回傳 "
+"<code>status</code> 物件。"
+msgstr ""
+"The HTTP status code always equals <code>status.code</code> in the response "
+"body; on errors, map also returns the <code>status</code> object."
+
+#: templates/pages/api_doc.html
+msgid "以下參數使用控制詞彙，查詢時請填入下列對應值。"
+msgstr ""
+"The following parameters use controlled vocabularies. Use the values below "
+"in your queries."
+
+#: templates/pages/api_doc.html
+msgid "鑑定層級 taxonRank"
+msgstr "Taxon Rank (taxonRank)"
+
+#: templates/pages/api_doc.html
+msgid "採用臺灣物種名錄（TaiCOL）的分類位階，依階層分組（點選展開）。"
+msgstr ""
+"Taxonomic ranks of the Taiwan Catalogue of Life (TaiCOL), grouped by rank "
+"(click to expand)."
+
+#: templates/pages/api_doc.html
+msgid "階層中文名稱"
+msgstr "Chinese name"
+
+#: templates/pages/api_doc.html
+msgid "來源資料庫 sourceDatabase"
+msgstr "Source Database (sourceDatabase)"
+
+#: templates/pages/api_doc.html
+msgid "物種類群 taxonGroup / datasetTaxonGroup"
+msgstr "Taxon Group (taxonGroup / datasetTaxonGroup)"
+
+#: templates/pages/api_doc.html
+msgid "欲搜尋所有昆蟲：請以複合查詢「甲蟲類、蛾類、蝶類、蜻蛉類、其他昆蟲」。"
+msgstr ""
+"To search all insects, combine 甲蟲類 (beetles), 蛾類 (moths), 蝶類 (butterflies), "
+"蜻蛉類 (dragonflies) and 其他昆蟲 (other insects)."
+
+#: templates/pages/api_doc.html
+msgid ""
+"發布 v2：欄位名稱對齊 TBIA 資料規格；新增 Partner API 與 "
+"<code>tbiaPartnerID</code>、<code>partnerName</code>；金鑰改以 "
+"<code>Authorization</code> Header 傳遞；HTTP 狀態碼與 <code>status.code</code> "
+"一致；日期格式改為 <code>YYYYMMDD</code>；map 直接回傳 GeoJSON "
+"<code>FeatureCollection</code>，<code>year</code> 單一值改為該年。"
+msgstr ""
+"Released v2: field names aligned with the TBIA data specification; added the"
+" Partner API, <code>tbiaPartnerID</code> and <code>partnerName</code>; the "
+"API key is now sent in the <code>Authorization</code> header; the HTTP "
+"status code now equals <code>status.code</code>; dates now use "
+"<code>YYYYMMDD</code>; map returns a GeoJSON <code>FeatureCollection</code> "
+"directly, and a single <code>year</code> value now means that year only."
+
+#: templates/pages/api_doc.html
+msgid ""
+"原有的物種類群更動如下：類群細分：原「昆蟲」拆分為甲蟲類、蛾類、蝶類、蜻蛉類、其他昆蟲；「維管束植物」細分為裸子植物、被子植物、蕨類植物。新增類別：增加蝸牛與貝類、蝦蟹類。"
+msgstr ""
+"Changes to taxon groups: \"Insects\" was split into Beetles, Moths, "
+"Butterflies, Dragonflies and Other Insects; \"Vascular Plants\" was split "
+"into Gymnosperms, Angiosperms and Ferns. New groups: Snails &amp; Shells, "
+"Crustaceans."
+
+#: templates/pages/api_doc.html
+msgid ""
+"原 <code>imagePresence</code> 欄位更名為 "
+"<code>hasMedia</code>（<code>true</code>：有多媒體／<code>false</code>：無多媒體），並新增 "
+"<code>mediaType</code> 參數指定多媒體類型：<code>image</code> (影像)、<code>video</code> "
+"(影片)、<code>audio</code> (音檔)。"
+msgstr ""
+"The <code>imagePresence</code> field was renamed <code>hasMedia</code> "
+"(<code>true</code>: has media / <code>false</code>: no media), and the "
+"<code>mediaType</code> parameter was added to specify the media type: "
+"<code>image</code>, <code>video</code>, <code>audio</code>."
+
+#: templates/pages/api_doc.html
+msgid "新增地圖API"
+msgstr "Added the Map API"
+
+#: templates/pages/api_doc.html
+msgid "新增資料集API"
+msgstr "Added the Dataset API"
+
+#: templates/pages/api_doc.html
+msgid "修改分頁參數取得方式：棄用 <code>offset</code>，改以 <code>next</code> 參數提供下一分頁網址。"
+msgstr ""
+"Changed pagination: <code>offset</code> was deprecated; the URL of the next "
+"page is now provided in <code>next</code>."
+
+#: templates/pages/api_doc.html
+msgid "公告"
+msgstr "Released"
+
+#: templates/pages/api_doc.html
+msgid "目錄"
+msgstr "Contents"
+
+#: templates/pages/api_doc.html
+msgid "紀錄類型 basisOfRecord"
+msgstr "Basis of Record (basisOfRecord)"
+
+#: templates/pages/api_doc.html
+msgid "原生性 nativeness"
+msgstr "Nativeness (nativeness)"
+
+#: templates/pages/api_doc.html
+msgid "保育類等級 protectedStatus"
+msgstr "Protected Status (protectedStatus)"
+
+#: templates/pages/api_doc.html
+msgid "典藏模式／引證類型 typeStatus"
+msgstr "Type Status (typeStatus)"
+
+#: templates/pages/api_doc.html
+msgid "物種類群（以棲地區分） taxonGroupByHabitat"
+msgstr "Taxon Group by Habitat (taxonGroupByHabitat)"
+
+#: templates/pages/api_doc_vocab.html
+msgid "中文名稱"
+msgstr "Description"
+
+#: api/doc_v2.py
+msgid "取得指定 TBIA 物種出現紀錄編碼的出現紀錄資料。"
+msgstr "Occurrence records with the specified TBIA occurrence ID."
+
+#: api/doc_v2.py
+msgid "取得指定來源資料庫的物種出現紀錄編碼的出現紀錄資料。"
+msgstr ""
+"Occurrence records with the specified occurrence ID in the source database."
+
+#: api/doc_v2.py
+msgid "取得指定典藏機構登錄號的出現紀錄資料。"
+msgstr "Occurrence records with the specified catalog number."
+
+#: api/doc_v2.py
+msgid "取得指定採集號的出現紀錄資料。"
+msgstr "Occurrence records with the specified record (collector) number."
+
+#: api/doc_v2.py
+msgid "取得指定學名／中文名／中文別名／同物異名／誤用名的出現紀錄資料。"
+msgstr ""
+"Occurrence records with the specified scientific name, Chinese name, Chinese"
+" alternative name, synonym or misapplied name."
+
+#: api/doc_v2.py
+msgid "取得指定臺灣物種名錄（TaiCOL）物種編號的出現紀錄資料。"
+msgstr ""
+"Occurrence records with the specified Taiwan Catalogue of Life (TaiCOL) "
+"taxon ID."
+
+#: api/doc_v2.py
+msgid ""
+"以臺灣物種名錄（TaiCOL）物種編號指定分類群，回傳該分類群本身及其下所有子分類群的紀錄。與 <code>taxonID</code> "
+"僅比對單一分類群不同。"
+msgstr ""
+"Specifies a taxon by its Taiwan Catalogue of Life (TaiCOL) taxon ID and "
+"returns records of that taxon and all of its descendants. Unlike "
+"<code>taxonID</code>, which matches a single taxon only."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定物種類群的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records of the specified taxon groups. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定物種類群（以棲地區分）的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records of the specified taxon groups by habitat. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "取得指定鑑定層級的出現紀錄資料，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records with the specified taxon rank; see <a class=\"col_blue\" "
+"href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "是否為自然史典藏資料，是=<code>true</code>，否=<code>false</code>。"
+msgstr ""
+"Whether the record is a natural history collection record: <code>true</code>"
+" or <code>false</code>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定原生性的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records with the specified nativeness. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定保育類等級的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records with the specified protected status. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "是否具有多媒體，是=<code>true</code>，否=<code>false</code>。"
+msgstr ""
+"Whether the record has media: <code>true</code> or <code>false</code>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定多媒體類型的出現紀錄資料，影像=<code>image</code>，影片=<code>video</code>，音檔=<code>audio</code>；可<a"
+" class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，三種都選等同不限類型。使用此參數時 <code>hasMedia</code> 必須為 "
+"<code>true</code>。"
+msgstr ""
+"Occurrence records with the specified media type: <code>image</code>, "
+"<code>video</code> or <code>audio</code>. Supports <a class=\"col_blue\" "
+"href=\"#composite-query-area\">combined queries</a>; selecting all three is "
+"the same as any type. <code>hasMedia</code> must be <code>true</code> when "
+"this parameter is used."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定 TBIA 夥伴單位識別碼的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，識別碼請見 <a class=\"col_blue\" href=\"#partner-area\">Partner "
+"API</a>。"
+msgstr ""
+"Occurrence records from the specified TBIA partners. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"the <a class=\"col_blue\" href=\"#partner-area\">Partner API</a> for partner"
+" IDs."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定來源資料庫的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records from the specified source databases. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "取得指定記錄者／採集者的出現紀錄資料。"
+msgstr "Occurrence records with the specified recorder / collector."
+
+#: api/doc_v2.py
+msgid "取得指定資料集聯絡人的出現紀錄資料。"
+msgstr "Occurrence records with the specified dataset contact."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定 TBIA 資料集識別碼的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>。"
+msgstr ""
+"Occurrence records in the specified TBIA datasets. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定來源資料庫的資料集識別碼的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>。不同來源資料庫的資料集識別碼可能重複，建議優先使用 <code>tbiaDatasetID</code>。"
+msgstr ""
+"Occurrence records in the datasets with the specified source dataset IDs. "
+"Supports <a class=\"col_blue\" href=\"#composite-query-area\">combined "
+"queries</a>. Dataset IDs from different source databases may collide; prefer"
+" <code>tbiaDatasetID</code>."
+
+#: api/doc_v2.py
+msgid "取得指定紀錄類型的出現紀錄資料，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records with the specified basis of record; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定紀錄日期的出現紀錄資料，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a "
+"class=\"col_blue\" href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Occurrence records with the specified event date. Format: "
+"<code>YYYYMMDD</code> (matched by day, covering the whole day). Supports "
+"single values and <a class=\"col_blue\" href=\"#range-query-area\">range "
+"queries</a>."
+
+#: api/doc_v2.py
+msgid "取得指定典藏保存方式的出現紀錄資料。"
+msgstr "Occurrence records with the specified preparation."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定標本類型的出現紀錄資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Occurrence records with the specified type status. Supports <a "
+"class=\"col_blue\" href=\"#composite-query-area\">combined queries</a>; see "
+"<a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "取得指定縣市的出現紀錄資料。"
+msgstr "Occurrence records in the specified county / city."
+
+#: api/doc_v2.py
+msgid "取得指定行政區的出現紀錄資料，本參數最細支援至鄉/鎮/市/區層級。"
+msgstr ""
+"Occurrence records in the specified municipality (township / district level "
+"at the finest)."
+
+#: api/doc_v2.py
+msgid "取得指定四邊形座標範圍內出現紀錄資料，輸入值=<code>{最大經度},{最大緯度},{最小經度},{最小緯度}</code>。"
+msgstr ""
+"Occurrence records within the specified bounding box. Value: "
+"<code>{maxLon},{maxLat},{minLon},{minLat}</code>."
+
+#: api/doc_v2.py
+msgid "取得指定多邊形座標範圍內的出現紀錄資料。僅支援有效且閉合的 WKT <code>POLYGON</code> 格式。"
+msgstr ""
+"Occurrence records within the specified polygon. Only valid, closed WKT "
+"<code>POLYGON</code> is supported."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定圓形座標範圍內的出現紀錄資料，輸入值=<code>{經度},{緯度},{半徑}</code>。半徑單位為公里，須大於 0 且不超過 "
+"50，可為小數。"
+msgstr ""
+"Occurrence records within the specified circle. Value: "
+"<code>{lon},{lat},{radius}</code>. The radius is in kilometers, greater than"
+" 0 and at most 50; decimals are allowed."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定資料建立時間的出現紀錄資料，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a "
+"class=\"col_blue\" href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Occurrence records created on the specified date. Format: "
+"<code>YYYYMMDD</code> (matched by day, covering the whole day). Supports "
+"single values and <a class=\"col_blue\" href=\"#range-query-area\">range "
+"queries</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定資料更新時間的出現紀錄資料，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a "
+"class=\"col_blue\" href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Occurrence records modified on the specified date. Format: "
+"<code>YYYYMMDD</code> (matched by day, covering the whole day). Supports "
+"single values and <a class=\"col_blue\" href=\"#range-query-area\">range "
+"queries</a>."
+
+#: api/doc_v2.py
+msgid "以 TBIA 資料集識別碼取得指定的資料集。"
+msgstr "The dataset with the specified TBIA dataset ID."
+
+#: api/doc_v2.py
+msgid "以來源資料庫的資料集編碼取得指定的資料集。"
+msgstr "The dataset with the specified source dataset ID."
+
+#: api/doc_v2.py
+msgid "以 GBIF 的資料集編碼取得指定的資料集。"
+msgstr "The dataset with the specified GBIF dataset ID."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定 TBIA 夥伴單位識別碼的資料集，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，識別碼請見 <a class=\"col_blue\" href=\"#partner-area\">Partner "
+"API</a>。"
+msgstr ""
+"Datasets of the specified TBIA partners. Supports <a class=\"col_blue\" "
+"href=\"#composite-query-area\">combined queries</a>; see the <a "
+"class=\"col_blue\" href=\"#partner-area\">Partner API</a> for partner IDs."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定來源資料庫的資料集，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Datasets from the specified source databases. Supports <a class=\"col_blue\""
+" href=\"#composite-query-area\">combined queries</a>; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "以資料集名稱查詢，支援部分查詢。"
+msgstr "Search by dataset name; partial matches are supported."
+
+#: api/doc_v2.py
+msgid ""
+"取得涵蓋指定物種類群的資料集，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Datasets covering the specified taxon groups. Supports <a class=\"col_blue\""
+" href=\"#composite-query-area\">combined queries</a>; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid ""
+"資料集建立時間，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a "
+"class=\"col_blue\" href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Dataset creation date. Format: <code>YYYYMMDD</code> (matched by day, "
+"covering the whole day). Supports single values and <a class=\"col_blue\" "
+"href=\"#range-query-area\">range queries</a>."
+
+#: api/doc_v2.py
+msgid ""
+"資料集更新時間，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a "
+"class=\"col_blue\" href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Dataset modification date. Format: <code>YYYYMMDD</code> (matched by day, "
+"covering the whole day). Supports single values and <a class=\"col_blue\" "
+"href=\"#range-query-area\">range queries</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定四邊形座標範圍內物種出現紀錄網格資料，輸入值=<code>{最大經度},{最大緯度},{最小經度},{最小緯度}</code>。經緯度跨度不得超過網格允許之最大跨度。"
+msgstr ""
+"Grid data of occurrence records within the specified bounding box. Value: "
+"<code>{maxLon},{maxLat},{minLon},{minLat}</code>. The extent must not exceed"
+" the maximum allowed for the grid size."
+
+#: api/doc_v2.py
+msgid "網格大小，提供 1、5、10、100 公里網格。"
+msgstr "Grid size: 1, 5, 10 or 100 km."
+
+#: api/doc_v2.py
+msgid "取得指定臺灣物種名錄（TaiCOL）物種編號的物種網格資料。"
+msgstr ""
+"Grid data of the specified Taiwan Catalogue of Life (TaiCOL) taxon ID."
+
+#: api/doc_v2.py
+msgid ""
+"取得涵蓋指定物種類群的網格資料，可<a class=\"col_blue\" href=\"#composite-query-"
+"area\">複合查詢</a>，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"Grid data of the specified taxon groups. Supports <a class=\"col_blue\" "
+"href=\"#composite-query-area\">combined queries</a>; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid ""
+"取得指定資料年份的網格資料，年份格式：<code>yyyy</code>。支援單一值或<a class=\"col_blue\" "
+"href=\"#range-query-area\">區間查詢</a>。"
+msgstr ""
+"Grid data of the specified year. Format: <code>yyyy</code>. Supports single "
+"values and <a class=\"col_blue\" href=\"#range-query-area\">range "
+"queries</a>."
+
+#: api/doc_v2.py
+msgid "取得指定縣市的網格資料。"
+msgstr "Grid data in the specified county / city."
+
+#: api/doc_v2.py
+msgid "取得指定行政區的網格資料，本參數最細支援至鄉/鎮/市/區層級。"
+msgstr ""
+"Grid data in the specified municipality (township / district level at the "
+"finest)."
+
+#: api/doc_v2.py
+msgid "以 TBIA 夥伴單位識別碼取得指定的夥伴單位。"
+msgstr "The partner with the specified TBIA partner ID."
+
+#: api/doc_v2.py
+msgid "以夥伴單位名稱查詢，支援部分查詢。"
+msgstr "Search by partner name; partial matches are supported."
+
+#: api/doc_v2.py
+msgid "限制單頁回傳的最大筆數。預設 20 筆，上限 1000（超過以 1000 計）；非正整數回 400。"
+msgstr ""
+"Maximum number of results per page. Default 20, maximum 1000 (larger values "
+"are treated as 1000); returns 400 if not a positive integer."
+
+#: api/doc_v2.py
+msgid "TBIA物種出現紀錄編碼"
+msgstr "TBIA occurrence ID"
+
+#: api/doc_v2.py
+msgid "該筆紀錄於TBIA入口網的永久識別編號。"
+msgstr "Permanent identifier of the record on the TBIA portal."
+
+#: api/doc_v2.py
+msgid "物種出現紀錄編碼"
+msgstr "Occurrence ID"
+
+#: api/doc_v2.py
+msgid "該筆紀錄於來源資料庫的永久識別編號。"
+msgstr "Permanent identifier of the record in the source database."
+
+#: api/doc_v2.py
+msgid "典藏機構登錄號"
+msgstr "Catalog number"
+
+#: api/doc_v2.py
+msgid "存證物件（如存證標本）入藏典藏機構（如博物館）後，由典藏機構於登錄或編目過程賦予的正式編碼，也可稱館號或編目號。"
+msgstr ""
+"The formal number assigned by the institution (e.g. a museum) when a voucher"
+" (e.g. a specimen) is accessioned or catalogued; also called the accession "
+"or catalog number."
+
+#: api/doc_v2.py
+msgid "調查活動編碼"
+msgstr "Event ID"
+
+#: api/doc_v2.py
+msgid "調查活動識別碼；同一調查活動所產生的多筆物種出現紀錄使用相同的 <code>eventID</code>。"
+msgstr ""
+"Identifier of the sampling event; occurrence records from the same event "
+"share the same <code>eventID</code>."
+
+#: api/doc_v2.py
+msgid "臺灣本地時區之資料建立時間"
+msgstr "Created (Taiwan time)"
+
+#: api/doc_v2.py
+msgid "該筆紀錄於TBIA入口網的建立時間，值格式為 <code>YYYYMMDD HHMMSS</code>。"
+msgstr ""
+"Creation time of the record on the TBIA portal, formatted as <code>YYYYMMDD "
+"HHMMSS</code>."
+
+#: api/doc_v2.py
+msgid "臺灣本地時區之資料更新時間"
+msgstr "Modified (Taiwan time)"
+
+#: api/doc_v2.py
+msgid "該筆紀錄於TBIA入口網的更新時間，值格式為 <code>YYYYMMDD HHMMSS</code>。"
+msgstr ""
+"Last modification time of the record on the TBIA portal, formatted as "
+"<code>YYYYMMDD HHMMSS</code>."
+
+#: api/doc_v2.py
+msgid "第一手資料"
+msgstr "Self-produced"
+
+#: api/doc_v2.py
+msgid "資料提供單位自行或委託他方獲取之第一手資料，而非介接自其他資料庫／集。"
+msgstr ""
+"First-hand data collected by the data provider or on its behalf, rather than"
+" harvested from other databases or datasets."
+
+#: api/doc_v2.py
+msgid "資料授權標示或條款"
+msgstr "License"
+
+#: api/doc_v2.py
+msgid "該筆紀錄資料授權標示或條款。"
+msgstr "License or terms of use of the record."
+
+#: api/doc_v2.py
+msgid "資料於記錄當下的類型，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"The nature of the record at the time it was recorded; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "該筆紀錄關聯之標本採集識別編號。"
+msgstr "Collector number of the specimen associated with the record."
+
+#: api/doc_v2.py
+msgid "記錄者／採集者"
+msgstr "Recorded by"
+
+#: api/doc_v2.py
+msgid "該筆紀錄之實際觀察／調查／記錄／採集者。"
+msgstr ""
+"The person(s) who observed, surveyed, recorded or collected the record."
+
+#: api/doc_v2.py
+msgid "調查方法"
+msgstr "Sampling protocol"
+
+#: api/doc_v2.py
+msgid "該筆紀錄使用之調查方法，可為採集／觀測方法或流程的名稱、描述，或參考文獻。"
+msgstr ""
+"Free-text description of the sampling method: the name or description of the"
+" collecting / observation method or procedure, or a reference."
+
+#: api/doc_v2.py
+msgid "調查同行者"
+msgstr "Partner (fellow surveyor)"
+
+#: api/doc_v2.py
+msgid "該筆紀錄所屬調查活動「記錄者／採集者」以外的同行人員。"
+msgstr "People on the sampling event other than the recorder / collector."
+
+#: api/doc_v2.py
+msgid "鑑定者"
+msgstr "Identified by"
+
+#: api/doc_v2.py
+msgid "該筆紀錄的物種鑑定負責人。"
+msgstr "The person responsible for the species identification of the record."
+
+#: api/doc_v2.py
+msgid "該筆紀錄所屬之資料集名稱。"
+msgstr "Name of the dataset the record belongs to."
+
+#: api/doc_v2.py
+msgid "TBIA資料集識別碼"
+msgstr "TBIA dataset ID"
+
+#: api/doc_v2.py
+msgid ""
+"該筆紀錄所屬資料集於TBIA入口網的永久識別編號，可對應 <a class=\"col_blue\" href=\"#dataset-"
+"area\">Dataset API</a> 的 <code>tbiaDatasetID</code>。"
+msgstr ""
+"Permanent identifier on the TBIA portal of the dataset the record belongs "
+"to; corresponds to <code>tbiaDatasetID</code> in the <a class=\"col_blue\" "
+"href=\"#dataset-area\">Dataset API</a>."
+
+#: api/doc_v2.py
+msgid "資料集識別碼"
+msgstr "Dataset ID"
+
+#: api/doc_v2.py
+msgid "該筆紀錄所屬資料集於來源資料庫的識別碼。"
+msgstr ""
+"Identifier in the source database of the dataset the record belongs to."
+
+#: api/doc_v2.py
+msgid "資料集連結網址"
+msgstr "Dataset URL"
+
+#: api/doc_v2.py
+msgid "該筆紀錄所屬資料集的連結網址（URL）。"
+msgstr "URL of the dataset the record belongs to."
+
+#: api/doc_v2.py
+msgid "該筆紀錄所屬之資料集聯絡人。"
+msgstr "Contact of the dataset the record belongs to."
+
+#: api/doc_v2.py
+msgid "關聯多媒體"
+msgstr "Associated media"
+
+#: api/doc_v2.py
+msgid "該筆紀錄關聯的多媒體資源連結網址（URL）。"
+msgstr "URLs of media associated with the record."
+
+#: api/doc_v2.py
+msgid "多媒體資料授權標示或條款"
+msgstr "Media license"
+
+#: api/doc_v2.py
+msgid "該筆資料關聯之多媒體資料其授權標示或條款。"
+msgstr "License or terms of use of the media associated with the record."
+
+#: api/doc_v2.py
+msgid "個體數量"
+msgstr "Individual count"
+
+#: api/doc_v2.py
+msgid "經標準化後該筆紀錄代表的個體數量。"
+msgstr "Standardized number of individuals represented by the record."
+
+#: api/doc_v2.py
+msgid "經標準化後對該筆紀錄的生物定量，須與 <code>organismQuantityType</code> 搭配使用。"
+msgstr ""
+"Standardized quantity of the organism in the record; used with "
+"<code>organismQuantityType</code>."
+
+#: api/doc_v2.py
+msgid "生物定量單位，須與 <code>organismQuantity</code> 搭配使用。"
+msgstr ""
+"Unit of the organism quantity; used with <code>organismQuantity</code>."
+
+#: api/doc_v2.py
+msgid "來源資料庫URL"
+msgstr "Source URL"
+
+#: api/doc_v2.py
+msgid "該筆紀錄於來源資料庫的網頁URL。"
+msgstr "URL of the record page in the source database."
+
+#: api/doc_v2.py
+msgid "TBIA夥伴單位識別碼"
+msgstr "TBIA partner ID"
+
+#: api/doc_v2.py
+msgid ""
+"資料來源的TBIA夥伴單位識別碼，請見 <a class=\"col_blue\" href=\"#partner-area\">Partner "
+"API</a>；GBIF 資料為 <code>null</code>。"
+msgstr ""
+"TBIA partner ID of the data source; see the <a class=\"col_blue\" "
+"href=\"#partner-area\">Partner API</a>. <code>null</code> for GBIF data."
+
+#: api/doc_v2.py
+msgid "夥伴單位名稱"
+msgstr "Partner name"
+
+#: api/doc_v2.py
+msgid "<code>tbiaPartnerID</code> 對應的夥伴單位名稱。"
+msgstr "Name of the partner identified by <code>tbiaPartnerID</code>."
+
+#: api/doc_v2.py
+msgid "資料來源所屬的資料庫，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"The database the data comes from; see <a class=\"col_blue\" href=\"#vocab-"
+"area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "典藏模式/引證類型"
+msgstr "Type status"
+
+#: api/doc_v2.py
+msgid ""
+"典藏被引證的類型；模式引證的詞彙請見<a class=\"col_blue\" href=\"#vocab-"
+"area\">控制詞彙列表</a>。多項引證以「|」分隔。"
+msgstr ""
+"The type status of the specimen; for type vocabularies, see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>. "
+"Multiple values are separated by \"|\"."
+
+#: api/doc_v2.py
+msgid "典藏保存方式"
+msgstr "Preparations"
+
+#: api/doc_v2.py
+msgid "典藏的前處理、製作和保存方式；多項以「|」分隔。"
+msgstr ""
+"Preparation and preservation methods of the specimen; multiple values are "
+"separated by \"|\"."
+
+#: api/doc_v2.py
+msgid "典藏機構代碼"
+msgstr "Institution code"
+
+#: api/doc_v2.py
+msgid "典藏機構所使用的名稱或縮寫。"
+msgstr "Name or acronym of the institution holding the collection."
+
+#: api/doc_v2.py
+msgid "典藏機構ID"
+msgstr "Institution ID"
+
+#: api/doc_v2.py
+msgid "研究機構唯一識別碼，建議使用 ROR 或 GRSciColl 機構代碼。"
+msgstr ""
+"Identifier of the institution; ROR or GRSciColl institution codes are "
+"recommended."
+
+#: api/doc_v2.py
+msgid "典藏代碼"
+msgstr "Collection code"
+
+#: api/doc_v2.py
+msgid "用於標示典藏或資料集的名稱、縮寫、代碼或首字母縮寫詞。"
+msgstr ""
+"Name, acronym, code or initialism identifying the collection or dataset."
+
+#: api/doc_v2.py
+msgid "典藏ID"
+msgstr "Collection ID"
+
+#: api/doc_v2.py
+msgid "典藏紀錄唯一識別碼，建議使用 GRSciColl 唯一識別碼。"
+msgstr "Identifier of the collection; a GRSciColl identifier is recommended."
+
+#: api/doc_v2.py
+msgid "地區"
+msgstr "Locality"
+
+#: api/doc_v2.py
+msgid "該筆紀錄的最小地點描述。"
+msgstr "The most specific description of the place of the record."
+
+#: api/doc_v2.py
+msgid "原始經度"
+msgstr "Verbatim longitude"
+
+#: api/doc_v2.py
+msgid "來源提供的原始經度。公開 API 中如該筆紀錄經模糊化處理，本欄位為空值；限制型 API 為原始值。"
+msgstr ""
+"Original longitude provided by the source. Empty in the public API if the "
+"record has been generalized; original value in the restricted API."
+
+#: api/doc_v2.py
+msgid "原始緯度"
+msgstr "Verbatim latitude"
+
+#: api/doc_v2.py
+msgid "來源提供的原始緯度。公開 API 中如該筆紀錄經模糊化處理，本欄位為空值；限制型 API 為原始值。"
+msgstr ""
+"Original latitude provided by the source. Empty in the public API if the "
+"record has been generalized; original value in the restricted API."
+
+#: api/doc_v2.py
+msgid "原始坐標系統"
+msgstr "Verbatim coordinate system"
+
+#: api/doc_v2.py
+msgid "原始經度及原始緯度欄位使用之坐標系統（坐標格式）。"
+msgstr "Coordinate system (format) of the verbatim longitude and latitude."
+
+#: api/doc_v2.py
+msgid "原始大地基準"
+msgstr "Verbatim SRS"
+
+#: api/doc_v2.py
+msgid "原始經度及原始緯度欄位使用之大地基準（空間參考系統）。"
+msgstr ""
+"Geodetic datum (spatial reference system) of the verbatim longitude and "
+"latitude."
+
+#: api/doc_v2.py
+msgid "大地基準"
+msgstr "Geodetic datum"
+
+#: api/doc_v2.py
+msgid "十進位經度與十進位緯度採用之大地基準，採用 EPSG:4326 (WGS84)。"
+msgstr ""
+"Geodetic datum of the decimal longitude and latitude: EPSG:4326 (WGS84)."
+
+#: api/doc_v2.py
+msgid "以公尺為單位的坐標誤差"
+msgstr "Coordinate uncertainty in meters"
+
+#: api/doc_v2.py
+msgid "以公尺為單位的坐標誤差，給定涵蓋實際調查對象所在位置的最小圓形區域半徑。"
+msgstr ""
+"Coordinate uncertainty in meters: the radius of the smallest circle that "
+"contains the actual location."
+
+#: api/doc_v2.py
+msgid "模糊化方式說明"
+msgstr "Data generalizations"
+
+#: api/doc_v2.py
+msgid ""
+"說明公開座標經 TBIA 依敏感層級統一模糊化的方式（例：公開座標由 TBIA 統一模糊化，取至小數點後 1 位），未模糊化以空值表示。限制型 API "
+"的座標為原始值，本欄內容與公開 API 相同。"
+msgstr ""
+"How the public coordinates were generalized by TBIA according to the "
+"sensitivity category (e.g. \"公開座標由 TBIA 統一模糊化，取至小數點後 1 位\", i.e. rounded to "
+"1 decimal place); empty if not generalized. The restricted API returns "
+"original coordinates, and this field is the same as in the public API."
+
+#: api/doc_v2.py
+msgid "十進位經度"
+msgstr "Decimal longitude"
+
+#: api/doc_v2.py
+msgid "校正後十進位制經度坐標，大地基準採用 EPSG:4326 (WGS84)。公開 API 為模糊化後的值；限制型 API 為原始值。"
+msgstr ""
+"Standardized decimal longitude (EPSG:4326, WGS84). Generalized in the public"
+" API; original value in the restricted API."
+
+#: api/doc_v2.py
+msgid "十進位緯度"
+msgstr "Decimal latitude"
+
+#: api/doc_v2.py
+msgid "校正後十進位制緯度坐標，大地基準採用 EPSG:4326 (WGS84)。公開 API 為模糊化後的值；限制型 API 為原始值。"
+msgstr ""
+"Standardized decimal latitude (EPSG:4326, WGS84). Generalized in the public "
+"API; original value in the restricted API."
+
+#: api/doc_v2.py
+msgid "國家代碼"
+msgstr "Country code"
+
+#: api/doc_v2.py
+msgid "國家標準代碼，遵循 ISO 3166-1 alpha-2 二位字母代碼。"
+msgstr "Standard country code, following ISO 3166-1 alpha-2."
+
+#: api/doc_v2.py
+msgid "直轄市或省轄縣市"
+msgstr "County / city"
+
+#: api/doc_v2.py
+msgid "十進位坐標所在的直轄市或省轄縣市。公開 API 依模糊化後坐標推算；限制型 API 依原始坐標推算。"
+msgstr ""
+"County or city of the decimal coordinates. Derived from the generalized "
+"coordinates in the public API, and from the original coordinates in the "
+"restricted API."
+
+#: api/doc_v2.py
+msgid "縣市別代碼"
+msgstr "County code"
+
+#: api/doc_v2.py
+msgid "十進位坐標所在的直轄市或省轄縣市代碼。公開 API 依模糊化後坐標推算；限制型 API 依原始坐標推算。"
+msgstr ""
+"Code of the county or city of the decimal coordinates. Derived from the "
+"generalized coordinates in the public API, and from the original coordinates"
+" in the restricted API."
+
+#: api/doc_v2.py
+msgid "行政區"
+msgstr "Municipality"
+
+#: api/doc_v2.py
+msgid "十進位坐標所在的行政區（鄉/鎮/市/區層級）。公開 API 依模糊化後坐標推算；限制型 API 依原始坐標推算。"
+msgstr ""
+"Municipality (township / district level) of the decimal coordinates. Derived"
+" from the generalized coordinates in the public API, and from the original "
+"coordinates in the restricted API."
+
+#: api/doc_v2.py
+msgid "原始調查日期"
+msgstr "Verbatim event date"
+
+#: api/doc_v2.py
+msgid "最原始記錄且未被轉譯過的調查日期。"
+msgstr "The original, untranslated event date."
+
+#: api/doc_v2.py
+msgid "西元年"
+msgstr "Year"
+
+#: api/doc_v2.py
+msgid "原始調查日期標準化後的觀察記錄起始日期之西元年。"
+msgstr "Year of the start date, standardized from the verbatim event date."
+
+#: api/doc_v2.py
+msgid "原始調查日期標準化後的觀察記錄起始日期之月。"
+msgstr "Month of the start date, standardized from the verbatim event date."
+
+#: api/doc_v2.py
+msgid "日"
+msgstr "Day"
+
+#: api/doc_v2.py
+msgid "原始調查日期標準化後的觀察記錄起始日期之日。"
+msgstr "Day of the start date, standardized from the verbatim event date."
+
+#: api/doc_v2.py
+msgid "觀察記錄起始時間"
+msgstr "Event time"
+
+#: api/doc_v2.py
+msgid "原始調查日期標準化後的觀察記錄起始時間。"
+msgstr "Start time, standardized from the verbatim event date."
+
+#: api/doc_v2.py
+msgid "原始鑑定物種名稱"
+msgstr "Verbatim identification"
+
+#: api/doc_v2.py
+msgid "資料原始觀察或採集者所鑑定的物種名稱，可以是俗名或學名。"
+msgstr ""
+"The name assigned by the original observer or collector; may be a common or "
+"scientific name."
+
+#: api/doc_v2.py
+msgid "原始鑑定物種學名"
+msgstr "Verbatim scientific name"
+
+#: api/doc_v2.py
+msgid "資料原始提供者所鑑定之物種學名。"
+msgstr "Scientific name as identified by the original data provider."
+
+#: api/doc_v2.py
+msgid "原始鑑定物種俗名"
+msgstr "Verbatim vernacular name"
+
+#: api/doc_v2.py
+msgid "資料原始提供者所鑑定之物種俗名。"
+msgstr "Vernacular name as identified by the original data provider."
+
+#: api/doc_v2.py
+msgid "臺灣物種名錄物種編號"
+msgstr "TaiCOL taxon ID"
+
+#: api/doc_v2.py
+msgid "採用的臺灣物種名錄（TaiCOL）物種編號（<code>taxon_id</code>）。"
+msgstr ""
+"The Taiwan Catalogue of Life (TaiCOL) taxon ID (<code>taxon_id</code>) "
+"applied to the record."
+
+#: api/doc_v2.py
+msgid "校定物種學名"
+msgstr "Scientific name"
+
+#: api/doc_v2.py
+msgid "採用的臺灣物種名錄（TaiCOL）物種編號所對應的物種學名。"
+msgstr "Scientific name of the TaiCOL taxon ID applied to the record."
+
+#: api/doc_v2.py
+msgid "校定學名作者"
+msgstr "Scientific name authorship"
+
+#: api/doc_v2.py
+msgid "採用的臺灣物種名錄（TaiCOL）物種編號所對應的學名作者。"
+msgstr ""
+"Authorship of the scientific name of the TaiCOL taxon ID applied to the "
+"record."
+
+#: api/doc_v2.py
+msgid "校定物種俗名"
+msgstr "Vernacular name"
+
+#: api/doc_v2.py
+msgid "採用的臺灣物種名錄（TaiCOL）物種編號所對應的物種俗名。"
+msgstr "Vernacular name of the TaiCOL taxon ID applied to the record."
+
+#: api/doc_v2.py
+msgid "校定物種學名編號"
+msgstr "Scientific name ID"
+
+#: api/doc_v2.py
+msgid "校定物種學名於臺灣物種名錄（TaiCOL）的學名編碼（<code>name_id</code>）。"
+msgstr ""
+"Name ID (<code>name_id</code>) of the scientific name in the Taiwan "
+"Catalogue of Life (TaiCOL)."
+
+#: api/doc_v2.py
+msgid "校定學名來源依據"
+msgstr "Name according to"
+
+#: api/doc_v2.py
+msgid "校定物種學名的參考來源，如臺灣物種名錄的版本。"
+msgstr "The reference of the scientific name, such as the TaiCOL version."
+
+#: api/doc_v2.py
+msgid ""
+"採用的臺灣物種名錄（TaiCOL）物種編號所對應的分類位階，請見<a class=\"col_blue\" href=\"#vocab-"
+"area\">控制詞彙列表</a>。"
+msgstr ""
+"Taxonomic rank of the TaiCOL taxon ID applied to the record; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "生物類群"
+msgstr "Taxon group"
+
+#: api/doc_v2.py
+msgid ""
+"採用的臺灣物種名錄（TaiCOL）物種編號所對應的物種類群，請見<a class=\"col_blue\" href=\"#vocab-"
+"area\">控制詞彙列表</a>。"
+msgstr ""
+"Taxon group of the TaiCOL taxon ID applied to the record; see <a "
+"class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "依據生物多樣性敏感資料開放作業原則標準所列之敏感層級類別。"
+msgstr ""
+"Sensitivity category under the principles for opening sensitive biodiversity"
+" data."
+
+#: api/doc_v2.py
+msgid "「界」之科學名稱。"
+msgstr "Scientific name of the kingdom."
+
+#: api/doc_v2.py
+msgid "「界」之中文名稱。"
+msgstr "Chinese name of the kingdom."
+
+#: api/doc_v2.py
+msgid "「門」之科學名稱。"
+msgstr "Scientific name of the phylum."
+
+#: api/doc_v2.py
+msgid "「門」之中文名稱。"
+msgstr "Chinese name of the phylum."
+
+#: api/doc_v2.py
+msgid "「綱」之科學名稱。"
+msgstr "Scientific name of the class."
+
+#: api/doc_v2.py
+msgid "「綱」之中文名稱。"
+msgstr "Chinese name of the class."
+
+#: api/doc_v2.py
+msgid "「目」之科學名稱。"
+msgstr "Scientific name of the order."
+
+#: api/doc_v2.py
+msgid "「目」之中文名稱。"
+msgstr "Chinese name of the order."
+
+#: api/doc_v2.py
+msgid "「科」之科學名稱。"
+msgstr "Scientific name of the family."
+
+#: api/doc_v2.py
+msgid "「科」之中文名稱。"
+msgstr "Chinese name of the family."
+
+#: api/doc_v2.py
+msgid "「屬」之科學名稱。"
+msgstr "Scientific name of the genus."
+
+#: api/doc_v2.py
+msgid "「屬」之中文名稱。"
+msgstr "Chinese name of the genus."
+
+#: api/doc_v2.py
+msgid "該資料集的名稱。"
+msgstr "Name of the dataset."
+
+#: api/doc_v2.py
+msgid ""
+"該資料集的TBIA夥伴單位識別碼，請見 <a class=\"col_blue\" href=\"#partner-area\">Partner "
+"API</a>；GBIF 資料集為 <code>null</code>。"
+msgstr ""
+"TBIA partner ID of the dataset; see the <a class=\"col_blue\" "
+"href=\"#partner-area\">Partner API</a>. <code>null</code> for GBIF datasets."
+
+#: api/doc_v2.py
+msgid "該資料集所屬的資料庫，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr ""
+"The database the dataset belongs to; see <a class=\"col_blue\" "
+"href=\"#vocab-area\">Controlled Vocabularies</a>."
+
+#: api/doc_v2.py
+msgid "該資料集於TBIA入口網的永久識別編號。"
+msgstr "Permanent identifier of the dataset on the TBIA portal."
+
+#: api/doc_v2.py
+msgid "資料集編碼"
+msgstr "Dataset ID"
+
+#: api/doc_v2.py
+msgid "該資料集於來源資料庫的識別編號。"
+msgstr "Identifier of the dataset in the source database."
+
+#: api/doc_v2.py
+msgid "GBIF資料集識別碼"
+msgstr "GBIF dataset ID"
+
+#: api/doc_v2.py
+msgid "該資料集於GBIF的識別編號。"
+msgstr "Identifier of the dataset in GBIF."
+
+#: api/doc_v2.py
+msgid "該資料集的聯絡人。"
+msgstr "Contact of the dataset."
+
+#: api/doc_v2.py
+msgid "涵蓋資料筆數"
+msgstr "Occurrence count"
+
+#: api/doc_v2.py
+msgid "該資料集涵蓋資料筆數。"
+msgstr "Number of records in the dataset."
+
+#: api/doc_v2.py
+msgid "該資料集涵蓋的起始日期，值格式為 <code>YYYYMMDD</code>。"
+msgstr ""
+"Start date covered by the dataset, formatted as <code>YYYYMMDD</code>."
+
+#: api/doc_v2.py
+msgid "該資料集涵蓋的結束日期，值格式為 <code>YYYYMMDD</code>。"
+msgstr "End date covered by the dataset, formatted as <code>YYYYMMDD</code>."
+
+#: api/doc_v2.py
+msgid "該資料集的連結網址（URL）。"
+msgstr "URL of the dataset."
+
+#: api/doc_v2.py
+msgid "該資料集的發布者。"
+msgstr "Publisher of the dataset."
+
+#: api/doc_v2.py
+msgid "資料集授權標示或條款"
+msgstr "Dataset license"
+
+#: api/doc_v2.py
+msgid "該資料集的授權標示或條款。"
+msgstr "License or terms of use of the dataset."
+
+#: api/doc_v2.py
+msgid "涵蓋物種類群"
+msgstr "Taxon groups covered"
+
+#: api/doc_v2.py
+msgid "該資料集涵蓋之物種類群。"
+msgstr "Taxon groups covered by the dataset."
+
+#: api/doc_v2.py
+msgid "臺灣本地時區之資料集建立時間"
+msgstr "Created (Taiwan time)"
+
+#: api/doc_v2.py
+msgid "該資料集於TBIA入口網的建立時間，值格式為 <code>YYYYMMDD HHMMSS</code>。"
+msgstr ""
+"Creation time of the dataset on the TBIA portal, formatted as <code>YYYYMMDD"
+" HHMMSS</code>."
+
+#: api/doc_v2.py
+msgid "臺灣本地時區之資料集更新時間"
+msgstr "Modified (Taiwan time)"
+
+#: api/doc_v2.py
+msgid "該資料集於TBIA入口網的更新時間，值格式為 <code>YYYYMMDD HHMMSS</code>。"
+msgstr ""
+"Last modification time of the dataset on the TBIA portal, formatted as "
+"<code>YYYYMMDD HHMMSS</code>."
+
+#: api/doc_v2.py
+msgid ""
+"TBIA夥伴單位的識別碼，對應 <a class=\"col_blue\" href=\"#occurrence-area\">Occurrence "
+"API</a> 與 <a class=\"col_blue\" href=\"#dataset-area\">Dataset API</a> 的 "
+"<code>tbiaPartnerID</code>。"
+msgstr ""
+"Identifier of the TBIA partner; corresponds to <code>tbiaPartnerID</code> in"
+" the <a class=\"col_blue\" href=\"#occurrence-area\">Occurrence API</a> and "
+"<a class=\"col_blue\" href=\"#dataset-area\">Dataset API</a>."
+
+#: api/doc_v2.py
+msgid "TBIA夥伴單位的名稱。"
+msgstr "Name of the TBIA partner."
+
+#: api/doc_v2.py
+msgid "網格內資料筆數（不含數量為 0 的未發現紀錄）"
+msgstr ""
+"Number of records in the grid cell (excluding absence records with quantity "
+"0)"
+
+#: api/doc_v2.py
+msgid "組織樣本"
+msgstr "Material sample"
+
+#: api/doc_v2.py
+msgid "引用資料"
+msgstr "Material citation"
+
+#: api/doc_v2.py
+msgid "分類資訊"
+msgstr "Taxon"
+
+#: api/doc_v2.py
+msgid "出現記錄"
+msgstr "Occurrence"
+
+#: api/doc_v2.py
+msgid "原生"
+msgstr "Native"
+
+#: api/doc_v2.py
+msgid "歸化"
+msgstr "Naturalized"
+
+#: api/doc_v2.py
+msgid "入侵"
+msgstr "Invasive"
+
+#: api/doc_v2.py
+msgid "栽培豢養"
+msgstr "Cultivated / captive"
+
+#: api/doc_v2.py
+msgid "瀕臨絕種保育類野生動物"
+msgstr "Endangered wildlife"
+
+#: api/doc_v2.py
+msgid "珍貴稀有保育類野生動物"
+msgstr "Rare and valuable wildlife"
+
+#: api/doc_v2.py
+msgid "其他應予保育之野生動物"
+msgstr "Other conservation-deserving wildlife"
+
+#: api/doc_v2.py
+msgid "文化資產保存法 珍貴稀有植物"
+msgstr "Rare and valuable plants (Cultural Heritage Preservation Act)"
+
+#: api/doc_v2.py
+msgid "正模標本"
+msgstr "Holotype"
+
+#: api/doc_v2.py
+msgid "副模標本"
+msgstr "Paratype"
+
+#: api/doc_v2.py
+msgid "複模標本"
+msgstr "Isotype"
+
+#: api/doc_v2.py
+msgid "配模標本"
+msgstr "Allotype"
+
+#: api/doc_v2.py
+msgid "總模標本"
+msgstr "Syntype"
+
+#: api/doc_v2.py
+msgid "選模標本"
+msgstr "Lectotype"
+
+#: api/doc_v2.py
+msgid "副選模標本"
+msgstr "Paralectotype"
+
+#: api/doc_v2.py
+msgid "新模標本"
+msgstr "Neotype"
+
+#: api/doc_v2.py
+msgid "模式地標本"
+msgstr "Topotype"
+
+#: api/doc_v2.py
+msgid "陸生"
+msgstr "Terrestrial"
+
+#: api/doc_v2.py
+msgid "半鹹水域"
+msgstr "Brackish"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "來源資料庫"
+msgstr "Source database"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "人為觀測"
+msgstr "Human observation"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "機器觀測"
+msgstr "Machine observation"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "保存標本"
+msgstr "Preserved specimen"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "活體標本"
+msgstr "Living specimen"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "化石標本"
+msgstr "Fossil specimen"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "材料實體"
+msgstr "Material entity"
+
+#: api/doc_v2.py
+msgctxt "api doc"
+msgid "調查活動"
+msgstr "Event (sampling event)"

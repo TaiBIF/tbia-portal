@@ -9,9 +9,9 @@
     {% for f in fields %}
     <tr>
         <td>{{ f.name }}</td>
-        <td>{{ f.label }}</td>
+        <td>{{ f.label|safe }}</td>
         <td>{{ f.type }}</td>
-        <td>{{ f.remark }}</td>
+        <td>{{ f.remark|safe }}</td>
     </tr>
     {% endfor %}
 </table>
