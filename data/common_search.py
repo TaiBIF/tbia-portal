@@ -7,6 +7,7 @@ TBN-TBIA occurrence 查詢共同規格（version 1.01 / 2026.10.29）
 
 日期：起訖兩端都可單獨使用（只給 from = 起始日（含）以後；只給 to = 結束日（含）以前）。
 空間：同時指定 circle 與 polygon 時規格要求須同時符合，本站目前不支援，回錯誤。
+半徑上限 25 公里（共同規格），與網站 / API v2 共用 CIRCLE_MAX_KM（11/24 三邊統一為 25）。
 """
 import calendar
 import math
@@ -27,7 +28,7 @@ from data.utils import (
     NATIVENESS_LABELS, PROTECTED_STATUS_LABELS, TYPE_STATUS_LABELS, MEDIA_LABELS,
 )
 # 本檔自己有 parse_circle（共同規格「經度 緯度 半徑」），網站 v2 的 circle（逗號分隔）用別名
-from data.search_params import PROTECTED_STATUS, format_range, parse_circle as parse_v2_circle
+from data.search_params import PROTECTED_STATUS, CIRCLE_MAX_KM, format_range, parse_circle as parse_v2_circle
 
 
 TBN_COMMON_SEARCH_URL = 'https://www.tbn.org.tw/commonsearch/occurrence'
@@ -63,7 +64,8 @@ MULTI_FIELDS = {'taxon_group', 'tbia_dataset_id'}
 ALL_FIELDS = SINGLE_FIELDS | MULTI_FIELDS
 YN_FIELDS = {'is_native', 'is_protected'}
 
-CIRCLE_MAX_RADIUS = 25
+# 共同規格半徑上限 25 公里，與網站 / API v2 同一個設定（11/24 網站、API 由 50 改回 25）
+CIRCLE_MAX_RADIUS = CIRCLE_MAX_KM
 
 # 列舉欄位出現未列出的值時：規格為「必須警告、建議停止」，本站選擇停止，避免忽略該值後查詢範圍變大
 STOP_ON_INVALID_ENUM = True

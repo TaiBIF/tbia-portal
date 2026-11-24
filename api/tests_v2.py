@@ -178,11 +178,11 @@ class SpatialTest(unittest.TestCase):
                 q({'boundedBy': v})
 
     def test_circle(self):
-        _, fq = q({'circle': '121.5,23.5,50'})
-        self.assertIn('_query_:"{!geofilt sfield=location_rpt pt=23.5,121.5 d=50.0}"', fq)
+        _, fq = q({'circle': '121.5,23.5,25'})
+        self.assertIn('_query_:"{!geofilt sfield=location_rpt pt=23.5,121.5 d=25.0}"', fq)
         _, fq = q({'circle': '121.5,23.5,0.3'}, restricted=True)
         self.assertTrue(any('raw_location_rpt' in f and 'location_rpt pt' in f for f in fq))
-        for v in ['121.5,23.5,51', '121.5,23.5,0', '121.5,23.5', '121.5,95,1']:
+        for v in ['121.5,23.5,25.01', '121.5,23.5,50', '121.5,23.5,0', '121.5,23.5', '121.5,95,1']:
             with self.assertRaises(ParamError, msg=v):
                 q({'circle': v})
 

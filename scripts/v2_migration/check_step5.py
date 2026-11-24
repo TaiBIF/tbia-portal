@@ -156,7 +156,7 @@ BAD = [
     ({'taxonGroup': '昆蟲'}, '舊類群'),
     ({'mediaType': 'image'}, 'mediaType 無 hasMedia'),
     ({'hasMedia': 'yes'}, 'hasMedia 非布林'),
-    ({'circle': '121.5,23.5,51'}, 'circle 51 公里'),
+    ({'circle': '121.5,23.5,25.01'}, 'circle 25.01 公里'),
     ({'polygon': 'POLYGON((121 22,122 22,122 23))'}, 'polygon 未閉合'),
     ({'boundedBy': '121,23,122,22'}, 'boundedBy 最大小於最小'),
     ({'created': '2024-01-01'}, 'created 非 YYYYMMDD'),
@@ -191,7 +191,7 @@ def c_8():
     same('5.2-8d', 'modified 一邊 *', {'modified': '20261101,*'}, 'modified:[2026-11-01T00:00:00Z TO *]')
     same('5.2-8e', 'eventDate 一邊 *', {'eventDate': '*,19991231'}, 'standardDate:[* TO 1999-12-31T23:59:59Z]')
     same('5.2-8f', 'boundedBy', {'boundedBy': '121.6,22.7,121.4,22.6'}, 'location_rpt:[22.6,121.4 TO 22.7,121.6]')
-    same('5.2-8g', 'circle 50 公里', {'circle': '121.5,23.5,50'}, '{!geofilt sfield=location_rpt pt=23.5,121.5 d=50}')
+    same('5.2-8g', 'circle 25 公里', {'circle': '121.5,23.5,25'}, '{!geofilt sfield=location_rpt pt=23.5,121.5 d=25}')
     same('5.2-8h', 'protectedStatus=CHPA（含舊值 1）', {'protectedStatus': 'CHPA'}, 'protected:("CHPA" OR "1")')
     same('5.2-8i', 'taxonRank=Infraspecies', {'taxonRank': 'Infraspecies'}, f'taxonRank:({" OR ".join(INFRASPECIES_RANKS)})')
     same('5.2-8r', 'taxonRank=Subspecies（TaiCOL 全部階層）', {'taxonRank': 'Subspecies'}, 'taxonRank:subspecies')

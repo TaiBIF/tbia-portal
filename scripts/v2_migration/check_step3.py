@@ -298,9 +298,9 @@ def check_param_counts():
     b = count('record_type=occ&mediaType=image') + count('record_type=occ&mediaType=audio')
     report('5.4', a <= b and a >= max(count('record_type=occ&mediaType=image'), count('record_type=occ&mediaType=audio')),
            f'影像＋音檔聯集 {a:,}（各別相加 {b:,}）')
-    n50 = normalize_search_params(QueryDict('circle=121.56,25.03,50')).get('circle')
-    n51 = normalize_search_params(QueryDict('circle=121.56,25.03,51')).get('circle')
-    report('5.5', n50 and not n51, '半徑 50 接受、51 移除')
+    n25 = normalize_search_params(QueryDict('circle=121.56,25.03,25')).get('circle')
+    n26 = normalize_search_params(QueryDict('circle=121.56,25.03,25.01')).get('circle')
+    report('5.5', n25 and not n26, '半徑 25 接受、25.01 移除（11/24 上限改回 25）')
 
 
 def check_redirects():

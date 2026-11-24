@@ -152,8 +152,9 @@ class ValueTests(unittest.TestCase):
         self.assertEqual(d['circle'], ['121.5,23.5,3'])
         for k in ('geo_type', 'center_lat', 'center_lon', 'circle_radius', 'polygon', 'geojson_id'):
             self.assertNotIn(k, d)
-        self.assertEqual(norm('circle=121.5,23.5,50')[0]['circle'], ['121.5,23.5,50'])
-        self.assertNotIn('circle', norm('circle=121.5,23.5,51')[0])
+        self.assertEqual(norm('circle=121.5,23.5,25')[0]['circle'], ['121.5,23.5,25'])
+        self.assertNotIn('circle', norm('circle=121.5,23.5,25.01')[0])
+        self.assertNotIn('circle', norm('circle=121.5,23.5,50')[0])
         self.assertNotIn('circle', norm('circle=121.5,23.5,0')[0])
         self.assertNotIn('circle', norm('geo_type=circle&center_lat=23.5&center_lon=121.5&circle_radius=')[0])
 

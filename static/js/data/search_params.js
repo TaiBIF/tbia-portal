@@ -82,4 +82,4 @@ function v2ToForm(urlParams) {
 }
 
 // 圓形範圍半徑上限（公里，同 API）
-const CIRCLE_MAX_KM = 50
+const CIRCLE_MAX_KM = 25

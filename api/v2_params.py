@@ -231,7 +231,7 @@ def occurrence_query(params, restricted):
     if v := get_single(params, 'circle'):
         c = parse_circle(v)
         if not c:
-            raise ParamError('circle', 'Invalid circle: 格式為 {經度},{緯度},{半徑}，0 < 半徑 ≤ 50 公里')
+            raise ParamError('circle', 'Invalid circle: 格式為 {經度},{緯度},{半徑}，0 < 半徑 ≤ 25 公里')
         lon, lat, r = c
         fields = ['location_rpt', 'raw_location_rpt'] if restricted else ['location_rpt']
         fq.append(or_spatial([f'_query_:"{{!geofilt sfield={f} pt={lat},{lon} d={r}}}"' for f in fields]))

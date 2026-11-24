@@ -4536,11 +4536,11 @@ msgstr ""
 #: api/doc_v2.py
 msgid ""
 "取得指定圓形座標範圍內的出現紀錄資料，輸入值=<code>{經度},{緯度},{半徑}</code>。半徑單位為公里，須大於 0 且不超過 "
-"50，可為小數。"
+"25，可為小數。"
 msgstr ""
 "Occurrence records within the specified circle. Value: "
 "<code>{lon},{lat},{radius}</code>. The radius is in kilometers, greater than"
-" 0 and at most 50; decimals are allowed."
+" 0 and at most 25; decimals are allowed."
 
 #: api/doc_v2.py
 msgid ""

@@ -1076,7 +1076,7 @@ def create_search_query(req_dict, get_raw_map=False):
         except:
             pass
 
-    # 圓形範圍：circle=經度,緯度,半徑（公里，0 < 半徑 ≤ 50）
+    # 圓形範圍：circle=經度,緯度,半徑（公里，0 < 半徑 ≤ CIRCLE_MAX_KM）
     if c := parse_circle(req_dict.get('circle')):
         lon, lat, radius = c
         query_list += ['{!geofilt cache=false pt=%s,%s sfield=location_rpt d=%s}' % (lat, lon, radius)]

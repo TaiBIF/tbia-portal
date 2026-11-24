@@ -877,7 +877,7 @@ $(function () {
         } else if ($('input[name=center_lat]').val() > 90 | $('input[name=center_lat]').val() < -90 | $('input[name=center_lon]').val() > 180 | $('input[name=center_lon]').val() < -180) {
             alert(gettext('框選失敗！請檢查經緯度數值是否正確'))
         } else if (!/^\d+(\.\d+)?$/.test($('#circle_radius').val().trim()) || parseFloat($('#circle_radius').val()) <= 0 || parseFloat($('#circle_radius').val()) > CIRCLE_MAX_KM) {
-            alert(gettext('框選失敗！半徑須大於 0 且小於或等於 50 公里'))
+            alert(gettext('框選失敗！半徑須大於 0 且小於或等於 25 公里'))
         } else {
             $('#circle_radius').val($('#circle_radius').val().trim())
             try {

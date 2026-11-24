@@ -92,7 +92,7 @@ OCCURRENCE_PARAMS = [
      '/api/v2/occurrence?boundedBy=122,23,121,22'),
     ('polygon', 'string', _('取得指定多邊形座標範圍內的出現紀錄資料。僅支援有效且閉合的 WKT <code>POLYGON</code> 格式。'),
      '/api/v2/occurrence?polygon=POLYGON((121 22,122 22,122 23,121 23,121 22))'),
-    ('circle', 'string', _('取得指定圓形座標範圍內的出現紀錄資料，輸入值=<code>{經度},{緯度},{半徑}</code>。半徑單位為公里，須大於 0 且不超過 50，可為小數。'),
+    ('circle', 'string', _('取得指定圓形座標範圍內的出現紀錄資料，輸入值=<code>{經度},{緯度},{半徑}</code>。半徑單位為公里，須大於 0 且不超過 25，可為小數。'),
      '/api/v2/occurrence?circle=121.5,23.5,10'),
     ('created', 'date', _('取得指定資料建立時間的出現紀錄資料，日期格式：<code>YYYYMMDD</code>（以日期為粒度，自動比對當日整段時間）。支援單一值或<a class="col_blue" href="#range-query-area">區間查詢</a>。'),
      '/api/v2/occurrence?created=20240101,20241231'),

@@ -204,7 +204,7 @@ BASIS_OF_RECORD = ['HumanObservation', 'MachineObservation', 'PreservedSpecimen'
                    'LivingSpecimen', 'FossilSpecimen', 'MaterialCitation', 'MaterialEntity', 'Taxon',
                    'Occurrence', 'Event']
 GRID_LEVELS = ['grid_1', 'grid_5', 'grid_10', 'grid_100']
-CIRCLE_MAX_KM = 50
+CIRCLE_MAX_KM = 25
 
 # ---- 參數名稱 ----
 # 舊參數名 → v2（值不用轉換的）
@@ -304,7 +304,7 @@ def format_range(start, end):
 
 
 def parse_circle(value):
-    """'經度,緯度,半徑（公里）' → (lon, lat, r) 浮點數；不合法回傳 None（0 < r ≤ 50）"""
+    """'經度,緯度,半徑（公里）' → (lon, lat, r) 浮點數；不合法回傳 None（0 < r ≤ CIRCLE_MAX_KM）"""
     parts = [p.strip() for p in (value or '').split(',')]
     if len(parts) != 3 or not all(_NUM.match(p) for p in parts):
         return None
