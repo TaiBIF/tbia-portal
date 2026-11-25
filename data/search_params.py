@@ -161,6 +161,15 @@ def _solr_term(v):
 RANK_EN_TO_SOLR = {en: rank_solr_value(k) for k, en, _ in TAICOL_RANKS}
 RANK_SOLR_TO_EN = {v: en for en, v in RANK_EN_TO_SOLR.items()}
 
+
+def taxon_rank_v2(value):
+    """Solr taxonRank（TaiCOL 小寫、空白分隔，例 special form）→ TaiCOL ranks 表的 en-us（Special Form）。
+    11/20 Kim 決定與 TaiCOL 階層一致（D26 修訂）；對不到的值（ranks 表沒有）首字大寫原樣輸出，check_step5 會列出。
+    API v2、紀錄下載、名錄下載共用（7.1：下載的值以 API 為準）"""
+    if not value:
+        return None
+    return RANK_SOLR_TO_EN.get(value) or value[:1].upper() + value[1:]
+
 # 全站搜尋物種卡片的「分類階層」下拉：(大標題 key, 大標題名稱, [(子階層 key, 名稱), ...])，名稱取 RANK_ZH。
 # 分組大致依 ranks 表的 parent_group；種下（sub）是網站自訂的群組，Infraspecies 只含 INFRASPECIES_RANK_KEYS。
 # cultivar-group 是 TaiCOL 新階層，Solr 目前可能還沒有，Solr 寫法（暫定 cultivar group）於 P2 資料更新程式碼一併處理

@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 def _c(text):
     """說明頁專用的翻譯（msgctxt "api doc"）：中文與網站其他地方相同、但英文要不同時使用。
-    例：網站的「來源資料庫」英文是 Rights Holder（v1 名稱）、basisOfRecord 中文名稱的英文就是詞彙本身"""
+    例：basisOfRecord 中文名稱的英文就是詞彙本身（7.1 起網站「來源資料庫」也改為 Source Database）"""
     return pgettext_lazy('api doc', text)
 
 from data.search_params import (

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% comment %}
+7.1：下載檔案欄位說明頁（/data-fields），取代 /media/資料欄位說明文件.pdf、名錄欄位說明文件.pdf。
+欄位內容在 data/field_doc.py（物種出現紀錄、資料集沿用 api/doc_v2.py 的說明）。樣式與目錄沿用 API 說明頁（CSP：不可 inline script / style）。
+{% endcomment %}
+{% block title %}{% trans '下載檔案欄位說明' %}｜{% endblock %}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/pages/api_doc.css' %}" />
+{% endblock style %}
+{% block body %}
+    <div class="path">
+        <div class="main_1240">
+            <a href="/" class="home"></a> <span>></span>
+            <p>{% trans '下載檔案欄位說明' %}</p>
+        </div>
+    </div>
+    <div class="minh_content">
+        <div class="nbn_title">
+            <h2>{% trans '下載檔案欄位說明' %}</h2>
+        </div>
+        <div class="main_1240">
+            <div class="news-flexbox">
+                <div class="news_de">
+                    <div class="w_border10_box api-editer">
+                        <p class="marb_20">{% trans '說明 TBIA 入口網下載檔案（CSV）的欄位。物種出現紀錄與資料集的欄位與 API v2 回傳欄位相同，控制詞彙請見' %} <a class="col_blue" href="{{ api_doc_url }}#vocab-area">{% trans 'API說明文件' %}</a>{% trans '。' %}</p>
+
+                        <div class="item_one" id="occurrence-area">
+                            <div class="sec_title mb-30px">
+                                <h3>{% trans '物種出現紀錄' %}</h3>
+                            </div>
+                            <p class="marb_10">{% trans '適用：進階搜尋與全站搜尋的「資料下載」、單次使用敏感資料申請通過後的下載。' %}</p>
+                            <div class="api-note marb_20">
+                                <p>{% trans '標示 ※ 的欄位，一般下載為模糊化後的值；有權限的下載為原始值。有權限的下載是指：夥伴單位帳號（不含合作單位）、系統管理員的下載，以及單次使用敏感資料申請審核通過後的下載。' %}</p>
+                            </div>
+                            {% include 'pages/data_fields_table.html' with fields=occurrence_fields %}
+                        </div>
+
+                        <div class="item_one" id="dataset-area">
+                            <div class="sec_title mb-30px">
+                                <h3>{% trans '資料集' %}</h3>
+                            </div>
+                            <p class="marb_10">{% trans '適用：資料集搜尋的下載。' %}</p>
+                            {% include 'pages/data_fields_table.html' with fields=dataset_fields %}
+                        </div>
+
+                        <div class="item_one" id="species-area">
+                            <div class="sec_title mb-30px">
+                                <h3>{% trans '物種名錄' %}</h3>
+                            </div>
+                            <p class="marb_10">{% trans '適用：進階搜尋的「名錄下載」，列出搜尋結果涵蓋的物種，物種資訊依臺灣物種名錄（TaiCOL）。' %}</p>
+                            {% include 'pages/data_fields_table.html' with fields=species_fields %}
+                        </div>
+                    </div>
+                </div>
+                <div class="right-directory">
+                    <div class="mb-cbtn">
+                        <p>{% trans '目錄' %}</p>
+                        <img class="ardown" src="/static/image/ardown.svg">
+                    </div>
+                    <ul id="toc">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+{% block script %}
+    <script src="{% static 'js/pages/api_doc.js' %}"></script>
+{% endblock script %}

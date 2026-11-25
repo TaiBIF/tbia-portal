@@ -183,8 +183,7 @@ _RECORD_LABELS = {
     'verbatimSRS': '空間參考系統',
     'verbatimCoordinateSystem': '座標系統',
     'coordinateUncertaintyInMeters': '座標誤差（公尺）',
-    'dataGeneralizations': '座標是否有模糊化',  # v2 改文字，標籤與說明 7.1 調整
-    'coordinatePrecision': '座標模糊化程度',
+    'dataGeneralizations': '模糊化方式說明',  # 7.1：v2 為文字說明，標籤同 API
     'basisOfRecord': '紀錄類型',
     'datasetName': '資料集名稱',
     'resourceContacts': '資料集聯絡人',

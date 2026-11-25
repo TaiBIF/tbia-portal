@@ -16,7 +16,7 @@ from shapely.errors import ShapelyError
 from data.search_params import (
     parse_range, parse_circle, TAXON_GROUPS, HABITAT_PARAM, NATIVENESS, PROTECTED_STATUS,
     TYPE_STATUS, MEDIA_TYPES, BASIS_OF_RECORD, RANK_EN_TO_SOLR, RANK_SOLR_TO_EN, INFRASPECIES_RANKS,
-    SOURCE_DATABASE_RENAME, to_source_database,
+    SOURCE_DATABASE_RENAME, to_source_database, taxon_rank_v2,
 )
 from data.fields import API_OCCURRENCE_FIELDS, RESTRICTED_OVERRIDE, API_DATASET_FIELDS
 
@@ -241,12 +241,7 @@ def occurrence_query(params, restricted):
 
 # ---- 回傳欄位 ----
 
-def taxon_rank_v2(value):
-    """Solr taxonRank（TaiCOL 小寫、空白分隔，例 special form）→ TaiCOL ranks 表的 en-us（Special Form）。
-    11/20 Kim 決定與 TaiCOL 階層一致（D26 修訂）；對不到的值（ranks 表沒有）首字大寫原樣輸出，check_step5 會列出"""
-    if not value:
-        return None
-    return RANK_SOLR_TO_EN.get(value) or value[:1].upper() + value[1:]
+# taxon_rank_v2 在 data/search_params.py（7.1：下載共用）
 
 
 def format_solr_date(value):

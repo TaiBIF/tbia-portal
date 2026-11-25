@@ -473,8 +473,8 @@ def generate_sensitive_csv(query_id, scheme, host):
             if sq.status == 'pass':
                 content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/sensitive/{download_id}.zip"
                 content_en += f"<br><br>Download Link: {scheme}://{host}/media/download/sensitive/{download_id}.zip"
-                content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
-                content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+                content += f"<br><br>下載檔案欄位說明：{scheme}://{host}/data-fields#occurrence-area"
+                content_en += f"<br><br>Field Description for the Downloaded File: {scheme}://{host}/en-us/data-fields#occurrence-area"
             # 欄位說明
             send_notification([sq.user_id],content,'單次使用敏感資料申請結果通知 Your application of non-blurred sensitive data for one-time use is completed',
                               content_en=content_en)
@@ -631,8 +631,8 @@ def generate_download_csv(post_str, user_id, scheme, host, query_id):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
-    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
-    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content += f"<br><br>下載檔案欄位說明：{scheme}://{host}/data-fields#occurrence-area"
+    content_en += f"<br><br>Field Description for the Downloaded File: {scheme}://{host}/en-us/data-fields#occurrence-area"
     # 欄位說明
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 
@@ -690,18 +690,10 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
                     resp = response.json()
                     if data := resp['response']['docs']:
                         subset_taxon_list += data
-            subset_taxon = pd.DataFrame(subset_taxon_list)
-            # 3.5：taxa core 舊名（D21）→ 名錄下載欄位名稱，順序依 SPECIES_DOWNLOAD_COLUMNS
-            taxa_cols = ['id'] + [c for c, _ in SPECIES_DOWNLOAD_COLUMNS]
-            for c in taxa_cols:
-                if c not in subset_taxon.keys():
-                    subset_taxon[c] = ''
-            subset_taxon = subset_taxon[taxa_cols].rename(columns={'id': 'taxonID', **dict(SPECIES_DOWNLOAD_COLUMNS)})
-            subset_taxon['taxonRank'] = subset_taxon['taxonRank'].map(lambda x: x.capitalize() if isinstance(x, str) else x)
-            # 文資法珍貴稀有植物在 taxa core 是 1（D12）
-            subset_taxon['protectedStatus'] = subset_taxon['protectedStatus'].map(lambda x: 'CHPA' if str(x) == '1' else x)
+            # 3.5 / 7.1：taxa core 舊名（D21）→ 名錄下載欄位，值以 API 為準（format_species_download）
+            subset_taxon = pd.DataFrame(format_species_download(subset_taxon_list),
+                                        columns=['taxonID'] + [c for _, c in SPECIES_DOWNLOAD_COLUMNS])
             df = df.merge(subset_taxon, how='left')
-            df[SPECIES_DOWNLOAD_BOOL_COLUMNS] = df[SPECIES_DOWNLOAD_BOOL_COLUMNS].replace({1: 'true', 0: 'false', True: 'true', False: 'false'})
     # 沒有資料時也輸出完整表頭
     df = df.reindex(columns=['taxonID', 'scientificName'] + [c for _, c in SPECIES_DOWNLOAD_COLUMNS])
     csv_folder = os.path.join(MEDIA_ROOT, 'download')
@@ -733,8 +725,8 @@ def generate_species_csv(post_str, user_id, scheme, host, query_id):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/taxon/{download_id}.zip"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
-    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E5%90%8D%E9%8C%84%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
-    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E5%90%8D%E9%8C%84%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content += f"<br><br>下載檔案欄位說明：{scheme}://{host}/data-fields#species-area"
+    content_en += f"<br><br>Field Description for the Downloaded File: {scheme}://{host}/en-us/data-fields#species-area"
     # 欄位說明
     send_notification([user_id],content,'下載名錄已完成通知 Your TBIA checklist download is ready', content_en=content_en)
 
@@ -852,8 +844,8 @@ def generate_download_csv_full(post_str, user_id, scheme, host, query_id):
     content = content.replace("請至後台查看", "")
     content += f"<br><br>檔案下載連結：{scheme}://{host}/media/download/record/{download_id}.zip <br>"
     content += f"<br><br>*下載檔案連結將保留三個月<br>"
-    content += "<br><br>下載檔案欄位說明：https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
-    content_en += f"<br><br>Field Description for the Downloaded File: https://tbiadata.tw/media/%E8%B3%87%E6%96%99%E6%AC%84%E4%BD%8D%E8%AA%AA%E6%98%8E%E6%96%87%E4%BB%B6.pdf?"
+    content += f"<br><br>下載檔案欄位說明：{scheme}://{host}/data-fields#occurrence-area"
+    content_en += f"<br><br>Field Description for the Downloaded File: {scheme}://{host}/en-us/data-fields#occurrence-area"
     # 欄位說明
     send_notification([user_id],content,'下載資料已完成通知 Your TBIA records download is ready', content_en=content_en)
 
@@ -1277,8 +1269,8 @@ def download_dataset_results(request):
 
         # 欄位名稱同 v2（3.3）：PG dataset 仍是舊名稱，用 SQL 別名輸出（[P2-2-REMOVE] 之後改欄位名即可）；
         # created / modified 同紀錄下載格式 YYYYMMDD HHMMSS；tbiaPartnerID、partnerName 由 group 對 Partner 帶入
-        dataset_download_cols = ["datasetName","sourceDatabase","tbiaPartnerID","partnerName","tbiaDatasetID","datasetID","gbifDatasetID","resourceContacts",
-                        "occurrenceCount","datasetDateStart","datasetDateEnd","resourceCitationIdentifier","datasetPublisher","datasetLicense","datasetTaxonGroup","created","modified"]
+        from data.field_doc import DATASET_DOWNLOAD_COLUMNS  # 7.1：欄位說明頁共用同一份順序
+        dataset_download_cols = DATASET_DOWNLOAD_COLUMNS
 
         query = '''SELECT "name","rights_holder","group","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
                         "occurrenceCount","datasetDateStart","datasetDateEnd","datasetURL","datasetPublisher","datasetLicense","datasetTaxonGroup",

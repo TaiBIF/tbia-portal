@@ -1211,13 +1211,13 @@ msgstr "Higher Taxon"
 #: static/js/data/search_collection.js:70
 #: static/js/data/search_occurrence.js:79
 msgid "物種類群"
-msgstr "Biological Group"
+msgstr "Taxon Group"
 
 msgid "物種類群（以分類區分）"
-msgstr "Biological Group"
+msgstr "Taxon Group"
 
 msgid "物種類群（以棲地區分）"
-msgstr "Biological Group by Habitat"
+msgstr "Taxon Group by Habitat"
 
 msgid "陸域"
 msgstr "Terrestrial"
@@ -1414,17 +1414,17 @@ msgstr "Scientific Name"
 #: templates/data/collection_detail.html:74
 #: templates/data/occurrence_detail.html:75
 msgid "來源資料庫使⽤中⽂名"
-msgstr "Source Vernacular Name"
+msgstr "Verbatim Vernacular Name"
 
 #: templates/data/collection_detail.html:75
 #: templates/data/occurrence_detail.html:76
 msgid "來源資料庫使⽤學名"
-msgstr "Source Scientific Name"
+msgstr "Verbatim Scientific Name"
 
 #: templates/data/collection_detail.html:77
 #: templates/data/occurrence_detail.html:78
 msgid "原始紀錄物種"
-msgstr "Original Taxon"
+msgstr "Verbatim Identification"
 
 #: templates/data/collection_detail.html:81
 #: templates/data/collection_detail.html:83
@@ -1481,7 +1481,7 @@ msgstr "Event Date"
 #: templates/data/collection_detail.html:150
 #: templates/data/collection_detail.html:154
 msgid "原始採集日期"
-msgstr "Original Event Date"
+msgstr "Verbatim Event Date"
 
 #: templates/data/collection_detail.html:160
 #: templates/data/search_collection.html:281
@@ -1494,7 +1494,7 @@ msgstr "Locality"
 #: templates/data/search_collection.html:273
 #: templates/data/search_full.html:688
 msgid "保存方式"
-msgstr "Preservation"
+msgstr "Preparations"
 
 #: templates/data/collection_detail.html:168
 #: templates/data/occurrence_detail.html:153
@@ -1549,7 +1549,7 @@ msgstr "Resource Contacts"
 #: templates/data/search_full.html:664 templates/data/search_full.html:810
 #: templates/data/search_occurrence.html:254
 msgid "來源資料庫"
-msgstr "Rights Holder"
+msgstr "Source Database"
 
 #: templates/data/collection_detail.html:217
 #: templates/data/occurrence_detail.html:204
@@ -1562,7 +1562,7 @@ msgstr "Longitude"
 #: templates/data/collection_detail.html:221
 #: templates/data/occurrence_detail.html:208
 msgid "原始紀錄經度"
-msgstr "Original Longitude"
+msgstr "Verbatim Longitude"
 
 #: templates/data/collection_detail.html:227
 #: templates/data/occurrence_detail.html:214
@@ -1583,7 +1583,7 @@ msgstr "Latitude"
 #: templates/data/collection_detail.html:236
 #: templates/data/occurrence_detail.html:222
 msgid "原始紀錄緯度"
-msgstr "Original Latitude"
+msgstr "Verbatim Latitude"
 
 #: templates/data/collection_detail.html:242
 #: templates/data/occurrence_detail.html:228
@@ -1632,7 +1632,7 @@ msgstr "Event Date"
 #: templates/data/occurrence_detail.html:143
 #: templates/data/occurrence_detail.html:147
 msgid "原始紀錄日期"
-msgstr "Original Event Date"
+msgstr "Verbatim Event Date"
 
 #: templates/data/occurrence_detail.html:167
 #: templates/data/search_full.html:822
@@ -1672,13 +1672,13 @@ msgstr "Misapplied Name"
 #: templates/data/search_full.html:656 templates/data/search_full.html:794
 #: templates/data/search_occurrence.html:238
 msgid "來源資料庫使用學名"
-msgstr "Source Scientific Name"
+msgstr "Verbatim Scientific Name"
 
 #: templates/data/search_collection.html:245
 #: templates/data/search_full.html:660 templates/data/search_full.html:798
 #: templates/data/search_occurrence.html:242
 msgid "來源資料庫使用中文名"
-msgstr "Source Vernacular Name"
+msgstr "Verbatim Vernacular Name"
 
 #: templates/data/search_collection.html:313
 #: templates/data/search_full.html:728 templates/data/search_full.html:846
@@ -3432,7 +3432,7 @@ msgstr "Click to view the taxonomic information for this species"
 
 #: 
 msgid "點擊查看更多來源資料庫資訊"
-msgstr "Click to view more information for the rights holder"
+msgstr "Click to view more information about the source database"
 
 #: 
 msgid "區間查詢"
@@ -5568,3 +5568,148 @@ msgstr "Material entity"
 msgctxt "api doc"
 msgid "調查活動"
 msgstr "Event (sampling event)"
+
+# ---- 7.1 下載檔案欄位說明頁（/data-fields）、全站 v2 新字串 ----
+msgid "來源提供的原始經度。一般下載中如該筆紀錄經模糊化處理，本欄位為空值；有權限的下載為原始值。"
+msgstr "Original longitude provided by the source. Empty in standard downloads if the record has been generalized; original value in authorized downloads."
+
+msgid "來源提供的原始緯度。一般下載中如該筆紀錄經模糊化處理，本欄位為空值；有權限的下載為原始值。"
+msgstr "Original latitude provided by the source. Empty in standard downloads if the record has been generalized; original value in authorized downloads."
+
+msgid "說明公開座標經 TBIA 依敏感層級統一模糊化的方式（例：公開座標由 TBIA 統一模糊化，取至小數點後 1 位），未模糊化以空值表示。有權限的下載座標為原始值，本欄內容與一般下載相同。"
+msgstr "How the public coordinates were generalized by TBIA according to the sensitivity category (e.g. \"公開座標由 TBIA 統一模糊化，取至小數點後 1 位\", i.e. rounded to 1 decimal place); empty if not generalized. Authorized downloads contain original coordinates, and this field is the same as in standard downloads."
+
+msgid "校正後十進位制經度坐標，大地基準採用 EPSG:4326 (WGS84)。一般下載為模糊化後的值；有權限的下載為原始值。"
+msgstr "Standardized decimal longitude (EPSG:4326, WGS84). Generalized in standard downloads; original value in authorized downloads."
+
+msgid "校正後十進位制緯度坐標，大地基準採用 EPSG:4326 (WGS84)。一般下載為模糊化後的值；有權限的下載為原始值。"
+msgstr "Standardized decimal latitude (EPSG:4326, WGS84). Generalized in standard downloads; original value in authorized downloads."
+
+msgid "十進位坐標所在的直轄市或省轄縣市。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
+msgstr "County or city of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
+
+msgid "十進位坐標所在的直轄市或省轄縣市代碼。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
+msgstr "County or city code of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
+
+msgid "十進位坐標所在的行政區（鄉/鎮/市/區層級）。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
+msgstr "Township, town, city or district of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
+
+msgid "臺灣特有種"
+msgstr "Endemic to Taiwan"
+
+msgid "是否為臺灣特有種，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the taxon is endemic to Taiwan, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "原生性"
+msgstr "Nativeness"
+
+msgid "依臺灣物種名錄（TaiCOL），值為 <code>native</code>（原生）、<code>naturalized</code>（歸化）、<code>invasive</code>（入侵）、<code>cultured</code>（栽培豢養）；TaiCOL 未提供為空值。"
+msgstr "According to TaiCOL: <code>native</code>, <code>naturalized</code>, <code>invasive</code> or <code>cultured</code> (cultivated / captive); empty if not provided by TaiCOL."
+
+msgid "保育類等級"
+msgstr "Protected Status"
+
+msgid "值為 <code>I</code>（瀕臨絕種）、<code>II</code>（珍貴稀有）、<code>III</code>（其他應予保育）、<code>CHPA</code>（文化資產保存法珍貴稀有植物）；非保育類為空值。"
+msgstr "<code>I</code> (endangered), <code>II</code> (rare and valuable), <code>III</code> (other conservation-deserving) or <code>CHPA</code> (rare and valuable plants under the Cultural Heritage Preservation Act); empty if not protected."
+
+msgid "建議敏感層級"
+msgstr "Suggested Sensitive Category"
+
+msgid "依據生物多樣性敏感資料開放作業原則標準，建議該物種適用的敏感層級類別，值為「輕度」「重度」「縣市」「座標不開放」；非敏感物種為空值。"
+msgstr "The sensitivity category suggested for the taxon under the guidelines for opening sensitive biodiversity data: 輕度 (minor), 重度 (severe), 縣市 (county / city) or 座標不開放 (coordinates withheld); empty if not sensitive."
+
+msgid "CITES 附錄"
+msgstr "CITES Appendix"
+
+msgid "瀕臨絕種野生動植物國際貿易公約（CITES）附錄等級，值為 <code>I</code>、<code>II</code>、<code>III</code>、<code>NC</code>，多個以「/」分隔（例：<code>I/II</code>）；未列入為空值。"
+msgstr "Appendix of the Convention on International Trade in Endangered Species of Wild Fauna and Flora (CITES): <code>I</code>, <code>II</code>, <code>III</code> or <code>NC</code>, multiple values separated by \"/\" (e.g. <code>I/II</code>); empty if not listed."
+
+msgid "IUCN 評估類別"
+msgstr "IUCN Category"
+
+msgid "IUCN 紅皮書名錄的評估類別，值為 <code>EX</code>、<code>EW</code>、<code>CR</code>、<code>EN</code>、<code>VU</code>、<code>NT</code>、<code>LC</code>、<code>DD</code>，少數為舊版類別（例：<code>LR/cd</code>）；未評估為空值。"
+msgstr "Category on the IUCN Red List of Threatened Species: <code>EX</code>, <code>EW</code>, <code>CR</code>, <code>EN</code>, <code>VU</code>, <code>NT</code>, <code>LC</code> or <code>DD</code>; a few use older categories (e.g. <code>LR/cd</code>); empty if not assessed."
+
+msgid "臺灣紅皮書評估類別"
+msgstr "Taiwan Red List Category"
+
+msgid "臺灣紅皮書名錄的評估類別，值為 <code>EX</code>、<code>EW</code>、<code>RE</code>、<code>NCR</code>、<code>NEN</code>、<code>NVU</code>、<code>NNT</code>、<code>NLC</code>、<code>DD</code>、<code>NA</code>、<code>NE</code>；未評估為空值。"
+msgstr "Category on the Taiwan Red List: <code>EX</code>, <code>EW</code>, <code>RE</code>, <code>NCR</code>, <code>NEN</code>, <code>NVU</code>, <code>NNT</code>, <code>NLC</code>, <code>DD</code>, <code>NA</code> or <code>NE</code>; empty if not assessed."
+
+msgid "化石種"
+msgstr "Fossil"
+
+msgid "是否為化石種，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the taxon is a fossil taxon, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "棲地是否包含陸域，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the habitat includes terrestrial environments, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "棲地是否包含淡水，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the habitat includes freshwater, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "棲地是否包含半鹹水，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the habitat includes brackish water, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "棲地是否包含海洋，依臺灣物種名錄（TaiCOL），值為 <code>true</code> / <code>false</code>；TaiCOL 未提供為空值。"
+msgstr "Whether the habitat includes marine environments, according to TaiCOL: <code>true</code> or <code>false</code>; empty if not provided by TaiCOL."
+
+msgid "下載檔案欄位說明"
+msgstr "Download Field Descriptions"
+
+msgid "說明 TBIA 入口網下載檔案（CSV）的欄位。物種出現紀錄與資料集的欄位與 API v2 回傳欄位相同，控制詞彙請見"
+msgstr "Fields of the files (CSV) downloaded from the TBIA portal. Occurrence and dataset fields are the same as the API v2 response fields. For controlled vocabularies, see the"
+
+msgid "。"
+msgstr "."
+
+msgid "適用：進階搜尋與全站搜尋的「資料下載」、單次使用敏感資料申請通過後的下載。"
+msgstr "Applies to: \"Download Records\" in Advanced Search and Full Search, and downloads of approved one-time sensitive data applications."
+
+msgid "標示 ※ 的欄位，一般下載為模糊化後的值；有權限的下載為原始值。有權限的下載是指：夥伴單位帳號（不含合作單位）、系統管理員的下載，以及單次使用敏感資料申請審核通過後的下載。"
+msgstr "Fields marked ※ are generalized in standard downloads and contain original values in authorized downloads. Authorized downloads are downloads by partner accounts (excluding collaborators) and system administrators, and downloads of approved one-time sensitive data applications."
+
+msgid "資料集"
+msgstr "Dataset"
+
+msgid "適用：資料集搜尋的下載。"
+msgstr "Applies to: downloads from Dataset Search."
+
+msgid "物種名錄"
+msgstr "Checklist"
+
+msgid "適用：進階搜尋的「名錄下載」，列出搜尋結果涵蓋的物種，物種資訊依臺灣物種名錄（TaiCOL）。"
+msgstr "Applies to: \"Download Checklist\" in Advanced Search. Lists the taxa in the search results; taxon information follows TaiCOL."
+
+msgid "欄位"
+msgstr "Field"
+
+msgid "資料欄位說明"
+msgstr "Record Field Descriptions"
+
+msgid "名錄欄位說明"
+msgstr "Checklist Field Descriptions"
+
+msgid "夥伴單位"
+msgstr "Partner"
+
+msgid "更新時間"
+msgstr "Last Updated"
+
+msgid "已停用"
+msgstr "Discontinued"
+
+msgid "以下篩選條件已停止提供，已自動移除："
+msgstr "The following filters are no longer available and have been removed: "
+
+msgid "第 I 級（瀕臨絕種）"
+msgstr "Class I (Endangered)"
+
+msgid "第 II 級（珍貴稀有）"
+msgstr "Class II (Rare and Valuable)"
+
+msgid "第 III 級（其他應予保育）"
+msgstr "Class III (Other Conservation-Deserving)"
+
+msgid "文化資產保存法珍貴稀有植物"
+msgstr "Rare and Valuable Plants (Cultural Heritage Preservation Act)"

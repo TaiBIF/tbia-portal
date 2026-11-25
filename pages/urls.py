@@ -19,6 +19,7 @@ urlpatterns = [
     path('agreement', views.agreement, name='agreement'),
     path('application', views.application, name='application'),
     path('terms', views.terms, name='terms'),
+    path('data-fields', views.data_fields, name='data_fields'),
     path('policy', views.policy, name='policy'),
     path('ark/ids', views.ark_ids, name='ark_ids'),
     # 取得頁面資料

@@ -118,6 +118,12 @@ def terms(request):
     return render(request, 'pages/terms.html')
 
 
+def data_fields(request):
+    """7.1：下載檔案欄位說明（取代 /media 的資料／名錄欄位說明文件 PDF），內容在 data/field_doc.py"""
+    from data.field_doc import field_doc_context
+    return render(request, 'pages/data_fields.html', field_doc_context())
+
+
 def update_is_read(request):
     if request.method == 'GET':
         if user_id := request.user.id:

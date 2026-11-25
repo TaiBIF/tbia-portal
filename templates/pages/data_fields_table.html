@@ -1,0 +1,19 @@
+{% load i18n %}{% comment %}7.1 下載檔案欄位說明：欄位表（內容在 data/field_doc.py，順序同實際下載檔案）{% endcomment %}
+<div class="mb_scroll">
+<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td>{% trans '欄位' %}</td>
+        <td>{% trans '名稱' %}</td>
+        <td>{% trans '型值' %}</td>
+        <td>{% trans '說明' %}</td>
+    </tr>
+    {% for f in fields %}
+    <tr>
+        <td>{{ f.name }}{% if f.restricted %} ※{% endif %}</td>
+        <td>{{ f.label|safe }}</td>
+        <td>{{ f.type }}</td>
+        <td>{{ f.remark|safe }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>

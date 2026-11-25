@@ -43,13 +43,14 @@ from contextlib import contextmanager
 from data.search_params import (
     old_taxon_group_map_c, taxon_group_map_c, split_group_map, SOURCE_DATABASE_RENAME, to_source_database,
     normalize_pairs, canonical_pairs, parse_range, parse_circle, HABITAT_PARAM, TYPE_STATUS,
-    TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, VALID_TAXON_RANKS,
+    TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, VALID_TAXON_RANKS, taxon_rank_v2,
 )
 from data.fields import (
     TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
     LATIN_TXT_FIELDS, BIGRAM_FIELDS, NGRAM_FIELDS, map_occurrence, map_collection,
     DOWNLOAD_FIELDS, DOWNLOAD_FIELDS_WITH_SENSITIVE, SENSITIVE_FIELDS, UNSORTABLE_KEYS,
     DOWNLOAD_SOLR_FL, DOWNLOAD_SOLR_FL_WITH_SENSITIVE, RESTRICTED_OVERRIDE,
+    SPECIES_DOWNLOAD_COLUMNS, SPECIES_DOWNLOAD_BOOL_COLUMNS,
     to_record_field, to_taxa_field, to_v2_field, param_field, param_label,
 )
 
@@ -422,9 +423,42 @@ def iter_text_lines(chunks):
         yield buf
 
 
+# 7.1：名錄下載與 API 重複的欄位，值以 API 為準
+# taxa core 的 alien_type 有 1 筆 cultivated（TaiCOL 舊值），併入 API 的 cultured
+SPECIES_NATIVENESS_FIX = {'cultivated': 'cultured'}
+# 文資法珍貴稀有植物在 taxa core 是 1（D12）
+SPECIES_PROTECTED_FIX = {'1': 'CHPA'}
+
+
+def format_species_download(taxa_docs):
+    """taxa core 的 docs（舊欄位名，D21）→ 名錄下載的欄位（v2 名稱，順序同 SPECIES_DOWNLOAD_COLUMNS，含 taxonID）。
+    taxonRank 同 API（Special Form），protectedStatus / nativeness 用 API 的詞彙，布林欄位為 true / false，沒有值為空字串"""
+    rows = []
+    for d in taxa_docs:
+        row = {'taxonID': d.get('id', '')}
+        for src, out in SPECIES_DOWNLOAD_COLUMNS:
+            v = d.get(src)
+            if isinstance(v, list):
+                v = v[0] if v else None
+            if v is None or v == '':
+                row[out] = ''
+            elif out in SPECIES_DOWNLOAD_BOOL_COLUMNS:
+                row[out] = 'true' if v in (True, 1, 't', 'true', 'True', '1') else 'false'
+            elif out == 'taxonRank':
+                row[out] = taxon_rank_v2(str(v))
+            elif out == 'protectedStatus':
+                row[out] = SPECIES_PROTECTED_FIX.get(str(v), str(v))
+            elif out == 'nativeness':
+                row[out] = SPECIES_NATIVENESS_FIX.get(str(v), str(v))
+            else:
+                row[out] = v
+        rows.append(row)
+    return rows
+
+
 def write_download_rows(chunks, writer, out_cols, public_writer=None):
     """把 Solr 的 CSV 內容依 out_cols 重排後寫出：Solr 沒有的欄位補空值、多取的欄位丟掉，
-    created / modified 轉成 API 格式。表頭由呼叫端寫（每個查詢的表頭不一定相同）。
+    created / modified、taxonRank 轉成 API 格式（7.1：值以 API 為準）。表頭由呼叫端寫（每個查詢的表頭不一定相同）。
     限制型取值（同 API）：Solr 結果若含 raw 欄位且有值，就取代 writer 那份的對應公開欄位（RESTRICTED_OVERRIDE）。
     public_writer 給了就同時寫一份只有公開值的版本（永久保存用），兩份來自同一次查詢。"""
     reader = csv.reader(iter_text_lines(chunks))
@@ -434,6 +468,7 @@ def write_download_rows(chunks, writer, out_cols, public_writer=None):
     pos = {c: i for i, c in enumerate(header)}
     picks = [pos.get(c) for c in out_cols]
     date_idx = [k for k, c in enumerate(out_cols) if c in ('created', 'modified')]
+    rank_idx = out_cols.index('taxonRank') if 'taxonRank' in out_cols else None
     # (輸出欄位位置, raw 欄位在 Solr 結果的位置)：只有這次查詢真的取了 raw 欄位才會有
     overrides = [(out_cols.index(c), pos[r]) for c, r in RESTRICTED_OVERRIDE.items() if c in out_cols and r in pos]
     # partnerName 不在 Solr：由 tbiaPartnerID 帶入
@@ -446,6 +481,8 @@ def write_download_rows(chunks, writer, out_cols, public_writer=None):
         new = [row[i] if i is not None and i < len(row) else '' for i in picks]
         for k in date_idx:
             new[k] = format_solr_date(new[k])
+        if rank_idx is not None and new[rank_idx]:
+            new[rank_idx] = taxon_rank_v2(new[rank_idx])
         if partner_names and new[id_idx]:
             new[name_idx] = partner_names.get(new[id_idx], '')
         if public_writer:
