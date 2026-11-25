@@ -5,6 +5,13 @@
 {% block title %}
     {% trans '帳號後台' %}｜
 {% endblock %}
+{% block head %}
+    {# 7.1：欄位說明按鈕的連結 icon（同詳細頁的來源資料庫、TaiCOL 連結） #}
+    <link href="/static/fontawesome-free-6.2.1/css/solid.min.css" rel="stylesheet" />
+    <link href="/static/fontawesome-free-6.2.1/css/v5-font-face.min.css" rel="stylesheet" />
+    <script src="/static/fontawesome-free-6.2.1/js/fontawesome.min.js" data-auto-add-css="false"></script>
+    <script src="/static/fontawesome-free-6.2.1/js/solid.min.js" data-auto-add-css="false"></script>
+{% endblock head %}
 {% block style %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/manager/manager.css' %}" />
 {% endblock style %}
@@ -208,9 +215,7 @@
                         <div class="d-flex-jc-sb">
                             <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
                             <a href="{% url 'data_fields' %}#occurrence-area" target="_blank" class="dow_btn">
-                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 <p>{% trans '資料欄位說明' %}</p>
                             </a>
                         </div>
@@ -247,9 +252,7 @@
                     <div class="d-flex-jc-sb">
                         <p class="expired-p">*{% trans '下載檔案連結將保留三個月' %}</p>
                         <a href="{% url 'data_fields' %}#species-area" target="_blank" class="dow_btn">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
                             <p>{% trans '名錄欄位說明' %}</p>
                         </a>
                     </div>
@@ -290,9 +293,7 @@
                         *{% trans '針對審核結果為「不通過」或「部分通過」之申請，系統仍將提供該部分資料之模糊化後版本' %}
                     </p>
                     <a href="{% url 'data_fields' %}#occurrence-area" target="_blank" class="dow_btn">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 14.5V16.75C1 17.3467 1.23705 17.919 1.65901 18.341C2.08097 18.7629 2.65326 19 3.25 19H16.75C17.3467 19 17.919 18.7629 18.341 18.341C18.7629 17.919 19 17.3467 19 16.75V14.5M14.5 10L10 14.5M10 14.5L5.5 10M10 14.5V1" stroke="#3F5146" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         <p>{% trans '資料欄位說明' %}</p>
                     </a>
                 </div>
