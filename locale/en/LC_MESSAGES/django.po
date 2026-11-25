@@ -3862,9 +3862,25 @@ msgstr "Failed to draw the circle! The radius must be greater than 0 and no more
 
 # ---- 5.5 API v2 說明頁（/api/doc）----
 #: templates/pages/api_doc.html
-msgid "v1 API 將於過渡期後停止提供，請改用 v2。"
+msgid ""
+"v1 API 提供至 %(end)s，資料只更新到 %(updated)s，之後的新資料只在 v2 提供，請改用 "
+"v2。"
 msgstr ""
-"API v1 will be discontinued after the transition period. Please use v2. "
+"API v1 will be available until %(end)s. Its data was last updated in "
+"%(updated)s; newer data is only available in v2. Please use v2. "
+
+#: templates/pages/api_doc_v1.html
+msgid ""
+"v1 為舊版 API，提供至 %(end)s；資料只更新到 %(updated)s，之後的新資料只在 v2 "
+"提供，請改用 v2。"
+msgstr ""
+"API v1 is the legacy version and will be available until %(end)s. Its data "
+"was last updated in %(updated)s; newer data is only available in v2. Please "
+"use v2. "
+
+#: templates/pages/api_doc_v1.html
+msgid "查看 v2 說明文件"
+msgstr "View the v2 documentation"
 
 #: templates/pages/api_doc.html
 msgid "查看 v1 舊版說明文件"

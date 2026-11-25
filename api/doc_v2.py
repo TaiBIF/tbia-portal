@@ -28,8 +28,12 @@ def example(url):
     return url, url + ('&' if '?' in url else '?') + 'from_example=1'
 
 
-# 更新紀錄的 v2 上線日期：8.1 上線時確認（排定 12/10 切換）
+# 更新紀錄的 v2 上線日期：8.1 上線時確認（11/24：上線日期未定，暫填 2026-12-10）
 V2_RELEASE_DATE = '2026-12-10'
+
+# [V1-API-REMOVE] v1 提供期限與 v1 資料最後更新時間（11/24 Kim 確認），v1 / v2 說明頁頁首提醒用
+V1_END_DATE = '2027-06-30'
+V1_DATA_UPDATED = '2026-11'
 
 # ---- 查詢參數：(參數, 型值, 說明, 範例網址, 必填) ----
 
@@ -366,4 +370,6 @@ def doc_context(source_databases):
         'taxon_rank_groups': taxon_rank_groups(),
         'ex': ex,
         'v2_release_date': V2_RELEASE_DATE,
+        'v1_end_date': V1_END_DATE,
+        'v1_data_updated': V1_DATA_UPDATED,
     }

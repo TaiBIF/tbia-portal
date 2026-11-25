@@ -76,8 +76,10 @@ def api_doc(request):
 
 # [V1-API-REMOVE] v1 說明頁（5.5 移到 /api/doc/v1）
 def api_doc_v1(request):
+    from api.doc_v2 import V1_END_DATE, V1_DATA_UPDATED
     from data.utils import rights_holder_map
-    return render(request, 'pages/api_doc_v1.html', {'rights_holder_list': rights_holder_map.keys()})
+    return render(request, 'pages/api_doc_v1.html', {'rights_holder_list': rights_holder_map.keys(),
+                                                     'v1_end_date': V1_END_DATE, 'v1_data_updated': V1_DATA_UPDATED})
 
 
 def partner_info(request):

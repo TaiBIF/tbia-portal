@@ -29,7 +29,7 @@
                         </div>
                         <p class="marb_20">{% trans '臺灣生物多樣性資訊聯盟 (Taiwan Biodiversity Information Alliance, TBIA) API使用說明' %}</p>
                         <div class="api-note marb_30">
-                            <p>{% trans 'v1 為舊版 API，將於過渡期後停止提供，請改用 v2。' %}<a class="col_blue" href="{% url 'api_doc' %}">{% trans '查看 v2 說明文件' %}</a></p>
+                            <p>{% blocktrans with end=v1_end_date updated=v1_data_updated %}v1 為舊版 API，提供至 {{ end }}；資料只更新到 {{ updated }}，之後的新資料只在 v2 提供，請改用 v2。{% endblocktrans %}<a class="col_blue" href="{% url 'api_doc' %}">{% trans '查看 v2 說明文件' %}</a></p>
                         </div>
                         {% comment %} <div class="green_borbox marb_40">
 					<ul class="li_style1">
