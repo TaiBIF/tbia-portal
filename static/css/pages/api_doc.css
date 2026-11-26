@@ -327,3 +327,18 @@
     color: #3F5146;
     word-break: break-all;
 }
+
+/* 11/26：錨點（頁內「控制詞彙列表」連結、外部帶 #… 連進來）跳轉時預留固定頁首高度，數值同 api_doc.js 目錄捲動的 offset */
+.api-editer [id] {
+    scroll-margin-top: 105px;
+}
+@media (max-width: 1599px) {
+    .api-editer [id] {
+        scroll-margin-top: 85px;
+    }
+}
+@media (max-width: 999px) {
+    .api-editer [id] {
+        scroll-margin-top: 65px;
+    }
+}
