@@ -41,17 +41,36 @@ $(document).ready(function () {
         $('.right-directory').remove();
     }
 
-    // 11/26：從其他頁連進來帶錨點（例 /api/doc#vocab-taxonGroup、/data-fields#species-area）時，
-    // 目錄建好後再捲一次，扣掉固定頁首，標題才不會被擋住
-    if (location.hash.length > 1) {
-        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-        if (target) {
-            setTimeout(function () {
-                const w = $(window).width();
-                const offset = w <= 999 ? 65 : (w <= 1599 ? 85 : 105);
-                $('html, body').scrollTop($(target).offset().top - offset);
-            }, 0);
+    // 11/26：錨點跳轉都扣掉固定頁首（offset 同目錄），標題才不會被擋住
+    function headerOffset() {
+        const w = $(window).width();
+        return w <= 999 ? 65 : (w <= 1599 ? 85 : 105);
+    }
+    function scrollToId(id, animate) {
+        const target = document.getElementById(id);
+        if (!target) return false;
+        const top = $(target).offset().top - headerOffset();
+        if (animate) {
+            $('html, body').animate({ scrollTop: top }, 400);
+        } else {
+            $('html, body').scrollTop(top);
         }
+        return true;
+    }
+
+    // 頁內連結（控制詞彙列表、區間查詢、複合查詢等 href="#…"）：攔下預設跳轉，改用扣掉頁首的捲動，網址列仍更新錨點
+    $apiContent.on('click', 'a[href^="#"]', function (e) {
+        const id = decodeURIComponent(($(this).attr('href') || '').slice(1));
+        if (id && scrollToId(id, true)) {
+            e.preventDefault();
+            if (history.replaceState) history.replaceState(null, '', '#' + id);
+        }
+    });
+
+    // 從其他頁連進來帶錨點（例 /api/doc#vocab-taxonGroup、/data-fields#species-area）：目錄建好後再捲一次
+    if (location.hash.length > 1) {
+        const id = decodeURIComponent(location.hash.slice(1));
+        setTimeout(function () { scrollToId(id, false); }, 0);
     }
 
     $('.mb-cbtn').on('click', function () {
