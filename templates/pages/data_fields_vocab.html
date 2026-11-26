@@ -1,0 +1,15 @@
+{% load i18n %}{% comment %}11/26 欄位說明頁：紅皮書評估類別表（內容在 data/field_doc.py）{% endcomment %}
+<div class="mb_scroll marb_20">
+<table class="table_style2" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td>{% trans '值' %}</td>
+        <td>{% trans '說明' %}</td>
+    </tr>
+    {% for code, label in vocab %}
+    <tr>
+        <td>{{ code }}</td>
+        <td>{{ label }}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>

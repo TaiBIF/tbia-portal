@@ -64,9 +64,16 @@ class SpeciesDownloadTest(unittest.TestCase):
         self.assertEqual((row['isEndemic'], row['isFossil'], row['isMarine']), ('true', 'false', 'true'))
 
     def test_other_values_as_is(self):
-        row = self.one(cites='I/II/NC', iucn='LR/cd', redlist='NVU', sensitive='座標不開放')
-        self.assertEqual((row['citesAppendix'], row['iucnCategory'], row['redListCategory'],
-                          row['suggestedSensitiveCategory']), ('I/II/NC', 'LR/cd', 'NVU', '座標不開放'))
+        row = self.one(cites='I/II/NC', iucn='LR/cd', redlist='DD', sensitive='座標不開放')
+        self.assertEqual((row['citesAppendix'], row['iucnRedListCategory'], row['taiwanRedListCategory'],
+                          row['suggestedSensitiveCategory']), ('I/II/NC', 'LR/cd', 'DD', '座標不開放'))
+
+    def test_taiwan_red_list(self):
+        # 11/26：taxa core 的國家評估代碼 NCR 等 → CR 等；其他值不變
+        for src, out in [('NCR', 'CR'), ('NEN', 'EN'), ('NVU', 'VU'), ('NNT', 'NT'), ('NLC', 'LC'),
+                         ('EX', 'EX'), ('EW', 'EW'), ('RE', 'RE'), ('DD', 'DD'), ('NA', 'NA'), ('NE', 'NE'), ('', '')]:
+            self.assertEqual(self.one(redlist=src)['taiwanRedListCategory'], out)
+        self.assertEqual(self.one(iucn='CR')['iucnRedListCategory'], 'CR')
 
     def test_list_values(self):
         self.assertEqual(self.one(taxonRank=['variety'])['taxonRank'], 'Variety')

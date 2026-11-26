@@ -428,11 +428,15 @@ def iter_text_lines(chunks):
 SPECIES_NATIVENESS_FIX = {'cultivated': 'cultured'}
 # 文資法珍貴稀有植物在 taxa core 是 1（D12）
 SPECIES_PROTECTED_FIX = {'1': 'CHPA'}
+# 11/26：臺灣紅皮書在 taxa core（TaiCOL）是國家評估代碼 NCR / NEN …，下載輸出與網站篩選顯示相同的 CR / EN …
+# （只在下載轉換，taxa core 與網站篩選的值不動）
+TAIWAN_RED_LIST_FIX = {'NCR': 'CR', 'NEN': 'EN', 'NVU': 'VU', 'NNT': 'NT', 'NLC': 'LC'}
 
 
 def format_species_download(taxa_docs):
     """taxa core 的 docs（舊欄位名，D21）→ 名錄下載的欄位（v2 名稱，順序同 SPECIES_DOWNLOAD_COLUMNS，含 taxonID）。
-    taxonRank 同 API（Special Form），protectedStatus / nativeness 用 API 的詞彙，布林欄位為 true / false，沒有值為空字串"""
+    taxonRank 同 API（Special Form），protectedStatus / nativeness 用 API 的詞彙，臺灣紅皮書 NCR → CR 等，
+    布林欄位為 true / false，沒有值為空字串"""
     rows = []
     for d in taxa_docs:
         row = {'taxonID': d.get('id', '')}
@@ -450,6 +454,8 @@ def format_species_download(taxa_docs):
                 row[out] = SPECIES_PROTECTED_FIX.get(str(v), str(v))
             elif out == 'nativeness':
                 row[out] = SPECIES_NATIVENESS_FIX.get(str(v), str(v))
+            elif out == 'taiwanRedListCategory':
+                row[out] = TAIWAN_RED_LIST_FIX.get(str(v), str(v))
             else:
                 row[out] = v
         rows.append(row)

@@ -59,9 +59,17 @@ def check_species():
     for name, bad in [('taxonRank', bad_rank), ('nativeness', bad_nat), ('protectedStatus', bad_pro), ('布林', bad_bool)]:
         if bad:
             errs.append(f'{name} 不在 API 詞彙：{sorted(bad)[:10]}')
-    for f in ('suggestedSensitiveCategory', 'citesAppendix', 'iucnCategory', 'redListCategory'):
+    for f in ('suggestedSensitiveCategory', 'citesAppendix', 'iucnRedListCategory', 'taiwanRedListCategory'):
         vals = sorted({x[f] for x in rows if x[f]})
         print(f'    {f}：{vals}')
+    # 11/26：紅皮書的值都要在欄位說明頁的類別表內（IUCN 舊版類別 LR/cd 等不列，只印出）
+    from data.field_doc import TAIWAN_RED_LIST_VOCAB, IUCN_RED_LIST_VOCAB
+    bad_tw = {x['taiwanRedListCategory'] for x in rows} - {c for c, _ in TAIWAN_RED_LIST_VOCAB} - {''}
+    old_iucn = {x['iucnRedListCategory'] for x in rows} - {c for c, _ in IUCN_RED_LIST_VOCAB} - {''}
+    if bad_tw:
+        errs.append(f'taiwanRedListCategory 不在類別表：{sorted(bad_tw)}')
+    if old_iucn:
+        print(f'    iucnRedListCategory 不在類別表（舊版類別，照原值輸出）：{sorted(old_iucn)}')
     report('7.1-1', not errs, '；'.join(errs) or f'taxa {len(rows):,} 筆：taxonRank、nativeness、protectedStatus、布林欄位皆為 API 的值')
 
 

@@ -32,7 +32,7 @@
                             </div>
                             <p class="marb_10">{% trans '適用：進階搜尋與全站搜尋的「資料下載」、單次使用敏感資料申請通過後的下載。' %}</p>
                             <div class="api-note marb_20">
-                                <p>{% trans '標示 ※ 的欄位，一般下載為模糊化後的值；有權限的下載為原始值。有權限的下載是指：夥伴單位帳號（不含合作單位）、系統管理員的下載，以及單次使用敏感資料申請審核通過後的下載。' %}</p>
+                                <p>{% trans '標示 ※ 的欄位，一般下載為模糊化後的值，未模糊化資料需透過「單次使用去模糊化敏感資料」進行申請。' %}</p>
                             </div>
                             {% include 'pages/data_fields_table.html' with fields=occurrence_fields %}
                         </div>
@@ -51,6 +51,16 @@
                             </div>
                             <p class="marb_10">{% trans '適用：進階搜尋的「名錄下載」，列出搜尋結果涵蓋的物種，物種資訊依臺灣物種名錄（TaiCOL）。' %}</p>
                             {% include 'pages/data_fields_table.html' with fields=species_fields %}
+                        </div>
+
+                        <div class="item_one" id="red-list-area">
+                            <div class="sec_title mb-30px">
+                                <h3>{% trans '紅皮書評估類別' %}</h3>
+                            </div>
+                            <h4 class="marb_10" id="taiwan-red-list">{% trans '臺灣紅皮書評估類別' %}</h4>
+                            {% include 'pages/data_fields_vocab.html' with vocab=taiwan_red_list_vocab %}
+                            <h4 class="marb_10" id="iucn-red-list">{% trans 'IUCN 紅皮書評估類別' %}</h4>
+                            {% include 'pages/data_fields_vocab.html' with vocab=iucn_red_list_vocab %}
                         </div>
                     </div>
                 </div>

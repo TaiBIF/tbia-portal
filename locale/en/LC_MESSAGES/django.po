@@ -5569,30 +5569,13 @@ msgctxt "api doc"
 msgid "調查活動"
 msgstr "Event (sampling event)"
 
-# ---- 7.1 下載檔案欄位說明頁（/data-fields）、全站 v2 新字串 ----
-msgid "來源提供的原始經度。一般下載中如該筆紀錄經模糊化處理，本欄位為空值；有權限的下載為原始值。"
-msgstr "Original longitude provided by the source. Empty in standard downloads if the record has been generalized; original value in authorized downloads."
 
-msgid "來源提供的原始緯度。一般下載中如該筆紀錄經模糊化處理，本欄位為空值；有權限的下載為原始值。"
-msgstr "Original latitude provided by the source. Empty in standard downloads if the record has been generalized; original value in authorized downloads."
 
-msgid "說明公開座標經 TBIA 依敏感層級統一模糊化的方式（例：公開座標由 TBIA 統一模糊化，取至小數點後 1 位），未模糊化以空值表示。有權限的下載座標為原始值，本欄內容與一般下載相同。"
-msgstr "How the public coordinates were generalized by TBIA according to the sensitivity category (e.g. \"公開座標由 TBIA 統一模糊化，取至小數點後 1 位\", i.e. rounded to 1 decimal place); empty if not generalized. Authorized downloads contain original coordinates, and this field is the same as in standard downloads."
 
-msgid "校正後十進位制經度坐標，大地基準採用 EPSG:4326 (WGS84)。一般下載為模糊化後的值；有權限的下載為原始值。"
-msgstr "Standardized decimal longitude (EPSG:4326, WGS84). Generalized in standard downloads; original value in authorized downloads."
 
-msgid "校正後十進位制緯度坐標，大地基準採用 EPSG:4326 (WGS84)。一般下載為模糊化後的值；有權限的下載為原始值。"
-msgstr "Standardized decimal latitude (EPSG:4326, WGS84). Generalized in standard downloads; original value in authorized downloads."
 
-msgid "十進位坐標所在的直轄市或省轄縣市。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
-msgstr "County or city of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
 
-msgid "十進位坐標所在的直轄市或省轄縣市代碼。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
-msgstr "County or city code of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
 
-msgid "十進位坐標所在的行政區（鄉/鎮/市/區層級）。一般下載依模糊化後坐標推算；有權限的下載依原始坐標推算。"
-msgstr "Township, town, city or district of the decimal coordinates. Derived from the generalized coordinates in standard downloads, and from the original coordinates in authorized downloads."
 
 msgid "臺灣特有種"
 msgstr "Endemic to Taiwan"
@@ -5624,17 +5607,11 @@ msgstr "CITES Appendix"
 msgid "瀕臨絕種野生動植物國際貿易公約（CITES）附錄等級，值為 <code>I</code>、<code>II</code>、<code>III</code>、<code>NC</code>，多個以「/」分隔（例：<code>I/II</code>）；未列入為空值。"
 msgstr "Appendix of the Convention on International Trade in Endangered Species of Wild Fauna and Flora (CITES): <code>I</code>, <code>II</code>, <code>III</code> or <code>NC</code>, multiple values separated by \"/\" (e.g. <code>I/II</code>); empty if not listed."
 
-msgid "IUCN 評估類別"
-msgstr "IUCN Category"
 
-msgid "IUCN 紅皮書名錄的評估類別，值為 <code>EX</code>、<code>EW</code>、<code>CR</code>、<code>EN</code>、<code>VU</code>、<code>NT</code>、<code>LC</code>、<code>DD</code>，少數為舊版類別（例：<code>LR/cd</code>）；未評估為空值。"
-msgstr "Category on the IUCN Red List of Threatened Species: <code>EX</code>, <code>EW</code>, <code>CR</code>, <code>EN</code>, <code>VU</code>, <code>NT</code>, <code>LC</code> or <code>DD</code>; a few use older categories (e.g. <code>LR/cd</code>); empty if not assessed."
 
 msgid "臺灣紅皮書評估類別"
 msgstr "Taiwan Red List Category"
 
-msgid "臺灣紅皮書名錄的評估類別，值為 <code>EX</code>、<code>EW</code>、<code>RE</code>、<code>NCR</code>、<code>NEN</code>、<code>NVU</code>、<code>NNT</code>、<code>NLC</code>、<code>DD</code>、<code>NA</code>、<code>NE</code>；未評估為空值。"
-msgstr "Category on the Taiwan Red List: <code>EX</code>, <code>EW</code>, <code>RE</code>, <code>NCR</code>, <code>NEN</code>, <code>NVU</code>, <code>NNT</code>, <code>NLC</code>, <code>DD</code>, <code>NA</code> or <code>NE</code>; empty if not assessed."
 
 msgid "化石種"
 msgstr "Fossil"
@@ -5666,8 +5643,6 @@ msgstr "."
 msgid "適用：進階搜尋與全站搜尋的「資料下載」、單次使用敏感資料申請通過後的下載。"
 msgstr "Applies to: \"Download Records\" in Advanced Search and Full Search, and downloads of approved one-time sensitive data applications."
 
-msgid "標示 ※ 的欄位，一般下載為模糊化後的值；有權限的下載為原始值。有權限的下載是指：夥伴單位帳號（不含合作單位）、系統管理員的下載，以及單次使用敏感資料申請審核通過後的下載。"
-msgstr "Fields marked ※ are generalized in standard downloads and contain original values in authorized downloads. Authorized downloads are downloads by partner accounts (excluding collaborators) and system administrators, and downloads of approved one-time sensitive data applications."
 
 msgid "資料集"
 msgstr "Dataset"
@@ -5713,3 +5688,79 @@ msgstr "Class III (Other Conservation-Deserving)"
 
 msgid "文化資產保存法珍貴稀有植物"
 msgstr "Rare and Valuable Plants (Cultural Heritage Preservation Act)"
+
+# ---- 11/26 欄位說明頁：模糊化說明、紅皮書評估類別 ----
+msgid "來源提供的原始經度。如該筆紀錄經模糊化處理，本欄位為空值。"
+msgstr "Original longitude provided by the source. Empty if the record has been generalized."
+
+msgid "來源提供的原始緯度。如該筆紀錄經模糊化處理，本欄位為空值。"
+msgstr "Original latitude provided by the source. Empty if the record has been generalized."
+
+msgid "說明公開座標經 TBIA 依敏感層級統一模糊化的方式（例：公開座標由 TBIA 統一模糊化，取至小數點後 1 位），未模糊化以空值表示。"
+msgstr "How the public coordinates were generalized by TBIA according to the sensitivity category (e.g. \"公開座標由 TBIA 統一模糊化，取至小數點後 1 位\", i.e. rounded to 1 decimal place); empty if not generalized."
+
+msgid "校正後十進位制經度坐標，大地基準採用 EPSG:4326 (WGS84)。如該筆紀錄經模糊化處理，為模糊化後的值。"
+msgstr "Standardized decimal longitude (EPSG:4326, WGS84). Generalized value if the record has been generalized."
+
+msgid "校正後十進位制緯度坐標，大地基準採用 EPSG:4326 (WGS84)。如該筆紀錄經模糊化處理，為模糊化後的值。"
+msgstr "Standardized decimal latitude (EPSG:4326, WGS84). Generalized value if the record has been generalized."
+
+msgid "十進位坐標所在的直轄市或省轄縣市。如該筆紀錄經模糊化處理，依模糊化後坐標推算。"
+msgstr "County or city of the decimal coordinates; derived from the generalized coordinates if the record has been generalized."
+
+msgid "十進位坐標所在的直轄市或省轄縣市代碼。如該筆紀錄經模糊化處理，依模糊化後坐標推算。"
+msgstr "County or city code of the decimal coordinates; derived from the generalized coordinates if the record has been generalized."
+
+msgid "十進位坐標所在的行政區（鄉/鎮/市/區層級）。如該筆紀錄經模糊化處理，依模糊化後坐標推算。"
+msgstr "Township, town, city or district of the decimal coordinates; derived from the generalized coordinates if the record has been generalized."
+
+msgid "標示 ※ 的欄位，一般下載為模糊化後的值，未模糊化資料需透過「單次使用去模糊化敏感資料」進行申請。"
+msgstr "Fields marked ※ contain blurred values in standard downloads. To obtain non-blurred data, please apply for \"One-Time Use of Non-Blurred Sensitive Data\"."
+
+msgid "IUCN 紅皮書評估類別"
+msgstr "IUCN Red List Category"
+
+msgid "IUCN 紅皮書名錄的評估類別，值見下方「IUCN 紅皮書評估類別」；未評估為空值。"
+msgstr "Category on the IUCN Red List of Threatened Species; see \"IUCN Red List Category\" below. Empty if not assessed."
+
+msgid "臺灣紅皮書名錄的評估類別，值見下方「臺灣紅皮書評估類別」；未評估為空值。"
+msgstr "Category on the Taiwan Red List; see \"Taiwan Red List Category\" below. Empty if not assessed."
+
+msgid "紅皮書評估類別"
+msgstr "Red List Categories"
+
+msgid "值"
+msgstr "Value"
+
+msgid "絕滅（EX, Extinct）"
+msgstr "Extinct (EX)"
+
+msgid "野外絕滅（EW, Extinct in the Wild）"
+msgstr "Extinct in the Wild (EW)"
+
+msgid "區域滅絕（RE, Regionally Extinct）"
+msgstr "Regionally Extinct (RE)"
+
+msgid "極危（CR, Critically Endangered）"
+msgstr "Critically Endangered (CR)"
+
+msgid "瀕危（EN, Endangered）"
+msgstr "Endangered (EN)"
+
+msgid "易危（VU, Vulnerable）"
+msgstr "Vulnerable (VU)"
+
+msgid "接近受脅（NT, Near Threatened）"
+msgstr "Near Threatened (NT)"
+
+msgid "暫無危機（LC, Least Concern）"
+msgstr "Least Concern (LC)"
+
+msgid "資料缺乏（DD, Data Deficient）"
+msgstr "Data Deficient (DD)"
+
+msgid "不適用（NA, Not Applicable）"
+msgstr "Not Applicable (NA)"
+
+msgid "未評估（NE, Not Evaluated）"
+msgstr "Not Evaluated (NE)"
