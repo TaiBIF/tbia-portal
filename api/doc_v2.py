@@ -332,17 +332,31 @@ EXTRA_EXAMPLES = [EXAMPLE_INTERSECT, EXAMPLE_UNION, EXAMPLE_DATE_RANGE, EXAMPLE_
                   '/api/v2/dataset', '/api/v2/partner', '/api/v2/occurrence']
 
 
+# 11/26：說明裡的「控制詞彙列表」連到該欄位自己的詞彙表（templates/pages/api_doc.html 各 h4 的 id），
+# 不是整個控制詞彙區塊。翻譯後才替換，中英文字串（msgid）不用改
+VOCAB_ANCHORS = {
+    'basisOfRecord': 'vocab-basisOfRecord', 'taxonRank': 'vocab-taxonRank', 'nativeness': 'vocab-nativeness',
+    'protectedStatus': 'vocab-protectedStatus', 'typeStatus': 'vocab-typeStatus', 'sourceDatabase': 'vocab-sourceDatabase',
+    'taxonGroup': 'vocab-taxonGroup', 'datasetTaxonGroup': 'vocab-taxonGroup', 'taxonGroupByHabitat': 'vocab-taxonGroupByHabitat',
+}
+
+
+def vocab_link(name, text):
+    anchor = VOCAB_ANCHORS.get(name)
+    return str(text).replace('href="#vocab-area"', f'href="#{anchor}"') if anchor else text
+
+
 def _params(rows):
     out = []
     for r in rows:
         shown, href = example(r[3])
-        out.append({'name': r[0], 'type': r[1], 'desc': r[2], 'example': shown, 'href': href,
+        out.append({'name': r[0], 'type': r[1], 'desc': vocab_link(r[0], r[2]), 'example': shown, 'href': href,
                     'required': len(r) > 4 and r[4]})
     return out
 
 
 def _fields(rows):
-    return [{'name': f, 'label': n, 'type': t, 'remark': rm} for f, n, t, rm in rows]
+    return [{'name': f, 'label': n, 'type': t, 'remark': vocab_link(f, rm)} for f, n, t, rm in rows]
 
 
 def doc_context(source_databases):

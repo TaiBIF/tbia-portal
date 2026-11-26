@@ -348,11 +348,11 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                             </div>
                             <p class="marb_20">{% trans '以下參數使用控制詞彙，查詢時請填入下列對應值。' %}</p>
 
-                            {% include 'pages/api_doc_vocab.html' with title=_('紀錄類型 basisOfRecord') items=vocab_basis_of_record %}
+                            {% include 'pages/api_doc_vocab.html' with title=_('紀錄類型 basisOfRecord') items=vocab_basis_of_record anchor='vocab-basisOfRecord' %}
 
                             <div class="green_title">
                                 <div class="line_mark"></div>
-                                <h4>{% trans '鑑定層級 taxonRank' %}</h4>
+                                <h4 id="vocab-taxonRank">{% trans '鑑定層級 taxonRank' %}</h4>
                             </div>
                             <div class="mb_scroll">
                                 <p class="marb_10">{% trans '採用臺灣物種名錄（TaiCOL）的分類位階，依階層分組（點選展開）。' %}</p>
@@ -369,9 +369,9 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 {% endfor %}
                             </div>
 
-                            {% include 'pages/api_doc_vocab.html' with title=_('原生性 nativeness') items=vocab_nativeness %}
-                            {% include 'pages/api_doc_vocab.html' with title=_('保育類等級 protectedStatus') items=vocab_protected %}
-                            {% include 'pages/api_doc_vocab.html' with title=_('典藏模式／引證類型 typeStatus') items=vocab_type_status %}
+                            {% include 'pages/api_doc_vocab.html' with title=_('原生性 nativeness') items=vocab_nativeness anchor='vocab-nativeness' %}
+                            {% include 'pages/api_doc_vocab.html' with title=_('保育類等級 protectedStatus') items=vocab_protected anchor='vocab-protectedStatus' %}
+                            {% include 'pages/api_doc_vocab.html' with title=_('典藏模式／引證類型 typeStatus') items=vocab_type_status anchor='vocab-typeStatus' %}
 
                             <div class="green_title">
                                 <div class="line_mark"></div>
@@ -383,7 +383,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
 
                             <div class="green_title">
                                 <div class="line_mark"></div>
-                                <h4>{% trans '物種類群 taxonGroup / datasetTaxonGroup' %}</h4>
+                                <h4 id="vocab-taxonGroup">{% trans '物種類群 taxonGroup / datasetTaxonGroup' %}</h4>
                             </div>
                             <ul class="vocab-list">
                                 {% for g in vocab_taxon_groups %}<li>{{ g }}</li>{% endfor %}
@@ -396,7 +396,7 @@ v1 說明移到 pages/api_doc_v1.html（/api/doc/v1），8.2 移除 v1 時一起
                                 </ul>
                             </div>
 
-                            {% include 'pages/api_doc_vocab.html' with title=_('物種類群（以棲地區分） taxonGroupByHabitat') items=vocab_habitat %}
+                            {% include 'pages/api_doc_vocab.html' with title=_('物種類群（以棲地區分） taxonGroupByHabitat') items=vocab_habitat anchor='vocab-taxonGroupByHabitat' %}
                         </div>
 
                         <div class="item_one">

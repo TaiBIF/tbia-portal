@@ -1,7 +1,7 @@
-{% load i18n %}{% comment %}5.5 API v2 說明頁：控制詞彙表（控制詞彙, 中文名稱）{% endcomment %}
+{% load i18n %}{% comment %}5.5 API v2 說明頁：控制詞彙表（控制詞彙, 中文名稱）；anchor 為 h4 的 id（11/26，欄位說明連到這裡，見 api/doc_v2.py VOCAB_ANCHORS）{% endcomment %}
 <div class="green_title">
     <div class="line_mark"></div>
-    <h4>{{ title }}</h4>
+    <h4{% if anchor %} id="{{ anchor }}"{% endif %}>{{ title }}</h4>
 </div>
 <div class="mb_scroll">
     <table class="table_style2" cellspacing="0" cellpadding="0" border="0">

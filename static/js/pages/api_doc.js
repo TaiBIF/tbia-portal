@@ -41,6 +41,19 @@ $(document).ready(function () {
         $('.right-directory').remove();
     }
 
+    // 11/26：從其他頁連進來帶錨點（例 /api/doc#vocab-taxonGroup、/data-fields#species-area）時，
+    // 目錄建好後再捲一次，扣掉固定頁首，標題才不會被擋住
+    if (location.hash.length > 1) {
+        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (target) {
+            setTimeout(function () {
+                const w = $(window).width();
+                const offset = w <= 999 ? 65 : (w <= 1599 ? 85 : 105);
+                $('html, body').scrollTop($(target).offset().top - offset);
+            }, 0);
+        }
+    }
+
     $('.mb-cbtn').on('click', function () {
         $(this).toggleClass('active');
         $('.right-directory ul').slideToggle();

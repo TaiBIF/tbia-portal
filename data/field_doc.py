@@ -8,7 +8,7 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from api.doc_v2 import OCCURRENCE_FIELDS, DATASET_FIELDS
+from api.doc_v2 import OCCURRENCE_FIELDS, DATASET_FIELDS, vocab_link
 from data.fields import DOWNLOAD_FIELDS, RESTRICTED_OVERRIDE, SPECIES_DOWNLOAD_COLUMNS, API_DATASET_FIELDS
 
 # 資料集下載的欄位與順序：11/26 起同 API v2（data/views.py download_dataset_results 也用這份）
@@ -71,7 +71,7 @@ def _rows(columns, defs, remarks=None):
     out = []
     for f in columns:
         label, typ, remark = defs[f]
-        out.append({'name': f, 'label': label, 'type': typ, 'remark': _link_api(remarks.get(f, remark)),
+        out.append({'name': f, 'label': label, 'type': typ, 'remark': _link_api(vocab_link(f, remarks.get(f, remark))),
                     'restricted': f in RESTRICTED_OVERRIDE})
     return out
 
