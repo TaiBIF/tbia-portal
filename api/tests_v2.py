@@ -10,7 +10,8 @@ from api.v2_params import (
     dataset_query, format_dataset, format_ymd, parse_cursor_id, map_query, parse_year, like_escape,
     unique_partners, partner_query, partner_page, format_partner,
 )
-from data.fields import API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS, API_DATASET_FIELDS
+from data.fields import (API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS, API_DATASET_FIELDS, API_OCCURRENCE_SOLR_FL,
+                         HABITAT_SOLR_FIELDS)
 from data.search_params import (
     normalize_pairs, TAICOL_RANKS, TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, RANK_ZH,
 )
@@ -22,8 +23,14 @@ def q(params, restricted=False):
 
 class FieldsTest(unittest.TestCase):
     def test_same_fields_as_download(self):
-        self.assertEqual(set(API_OCCURRENCE_FIELDS), set(DOWNLOAD_FIELDS))
-        self.assertEqual(len(API_OCCURRENCE_FIELDS), 77)
+        # 11/26：紀錄下載欄位與順序同 API；加 taxonGroupByHabitat（taxonGroup 後）→ 78 欄
+        self.assertEqual(API_OCCURRENCE_FIELDS, DOWNLOAD_FIELDS)
+        self.assertEqual(len(API_OCCURRENCE_FIELDS), 78)
+        i = API_OCCURRENCE_FIELDS.index('taxonGroup')
+        self.assertEqual(API_OCCURRENCE_FIELDS[i + 1], 'taxonGroupByHabitat')
+        self.assertNotIn('taxonGroupByHabitat', API_OCCURRENCE_SOLR_FL)
+        for f in HABITAT_SOLR_FIELDS:
+            self.assertIn(f, API_OCCURRENCE_SOLR_FL)
 
     def test_partner_name_after_partner_id(self):
         i = API_OCCURRENCE_FIELDS.index('tbiaPartnerID')
@@ -257,6 +264,12 @@ class FormatTest(unittest.TestCase):
         self.assertEqual(r['partnerName'], '國立自然科學博物館')
         self.assertEqual(r['year'], 2024)
         self.assertFalse(any(k.startswith('raw') for k in r))
+        self.assertIsNone(r['taxonGroupByHabitat'])
+        self.assertFalse(any(k.startswith('is_') for k in r))
+
+    def test_habitat(self):
+        doc = {**self.DOC, 'is_marine': True, 'is_terrestrial': True, 'is_freshwater': False, 'is_brackish': [True]}
+        self.assertEqual(format_occurrence(doc, False, {})['taxonGroupByHabitat'], 'terrestrial,brackish,marine')
 
     def test_restricted(self):
         r = format_occurrence(self.DOC, True, {})
@@ -295,12 +308,9 @@ def dq(params, groups=None):
 
 class DatasetFieldsTest(unittest.TestCase):
     def test_fields(self):
-        # 與資料集下載 CSV（data/views.py download_dataset_results）的欄位集合相同
-        download = ["datasetName", "sourceDatabase", "tbiaPartnerID", "partnerName", "tbiaDatasetID", "datasetID",
-                    "gbifDatasetID", "resourceContacts", "occurrenceCount", "datasetDateStart", "datasetDateEnd",
-                    "resourceCitationIdentifier", "datasetPublisher", "datasetLicense", "datasetTaxonGroup",
-                    "created", "modified"]
-        self.assertEqual(set(API_DATASET_FIELDS), set(download))
+        # 11/26：資料集下載 CSV（data/views.py download_dataset_results）的欄位與順序同 API
+        from data.field_doc import DATASET_DOWNLOAD_COLUMNS
+        self.assertEqual(API_DATASET_FIELDS, DATASET_DOWNLOAD_COLUMNS)
         self.assertEqual(len(API_DATASET_FIELDS), 17)
         i = API_DATASET_FIELDS.index('tbiaPartnerID')
         self.assertEqual(API_DATASET_FIELDS[i + 1], 'partnerName')

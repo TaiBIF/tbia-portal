@@ -80,6 +80,13 @@ TAXON_GROUPS = ['鳥類', '爬蟲類', '哺乳類', '甲蟲類', '魚類', '兩�
 # 11/18：freshWater → freshwater（freshwater 是一個字）；網站仍接受測試站 11/17～18 存下的 freshWater，API 只認 freshwater
 HABITAT_PARAM = {'terrestrial': 'is_terrestrial', 'freshwater': 'is_freshwater',
                  'brackish': 'is_brackish', 'marine': 'is_marine'}
+
+
+def taxon_group_by_habitat(get):
+    """11/26：回傳欄位 taxonGroupByHabitat（API v2、紀錄下載共用）。get(Solr 欄位) → 值；
+    is_* 為 true 的棲地以查詢參數的值、逗號分隔（例 terrestrial,freshwater），順序同 HABITAT_PARAM；都沒有回 None"""
+    vals = [p for p, f in HABITAT_PARAM.items() if str(get(f)).strip().lower() in ('true', '1')]
+    return ','.join(vals) or None
 # 網站進階搜尋的鑑定層級（只列常見階層，方便使用）；API 接受 TaiCOL 全部階層（TAICOL_RANKS）
 TAXON_RANKS = ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus', 'Species', 'Infraspecies']
 

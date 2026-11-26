@@ -80,6 +80,20 @@ class SpeciesDownloadTest(unittest.TestCase):
 
 
 class RecordDownloadTest(unittest.TestCase):
+    def test_habitat_fields_match_search_params(self):
+        from data.fields import HABITAT_SOLR_FIELDS
+        from data.search_params import HABITAT_PARAM
+        self.assertEqual(HABITAT_SOLR_FIELDS, list(HABITAT_PARAM.values()))
+
+    def test_habitat_same_as_api(self):
+        cols = ['tbiaID', 'taxonGroup', 'taxonGroupByHabitat']
+        rows = self.write(['tbiaID', 'taxonGroup', 'is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine'],
+                          [['a', '鳥類', 'true', 'true', '', 'false'], ['b', '魚類', 'false', '', '', '']], cols)
+        api = format_occurrence({'is_terrestrial': True, 'is_freshwater': True, 'is_marine': False}, False, {})
+        self.assertEqual(rows[0], ['a', '鳥類', api['taxonGroupByHabitat']])
+        self.assertEqual(rows[0][2], 'terrestrial,freshwater')
+        self.assertEqual(rows[1][2], '')
+
     def write(self, header, rows, out_cols):
         src = io.StringIO()
         w = csv.writer(src)

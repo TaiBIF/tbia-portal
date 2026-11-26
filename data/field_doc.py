@@ -2,21 +2,17 @@
 
 - 物種出現紀錄、資料集的欄位名稱與說明沿用 api/doc_v2.py（下載欄位與 API v2 回傳欄位相同，3.3 / 5.2 / 5.3），
   只有提到「公開 API／限制型 API」的欄位另寫下載用的說明（DOWNLOAD_REMARKS）
-- 欄位順序依實際下載檔案：DOWNLOAD_FIELDS、DATASET_DOWNLOAD_COLUMNS、SPECIES_DOWNLOAD_COLUMNS
+- 欄位順序依實際下載檔案：DOWNLOAD_FIELDS、DATASET_DOWNLOAD_COLUMNS（11/26 起兩者都同 API v2）、SPECIES_DOWNLOAD_COLUMNS
 - 物種名錄欄位 API 沒有，說明寫在 SPECIES_FIELDS
 """
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from api.doc_v2 import OCCURRENCE_FIELDS, DATASET_FIELDS
-from data.fields import DOWNLOAD_FIELDS, RESTRICTED_OVERRIDE, SPECIES_DOWNLOAD_COLUMNS
+from data.fields import DOWNLOAD_FIELDS, RESTRICTED_OVERRIDE, SPECIES_DOWNLOAD_COLUMNS, API_DATASET_FIELDS
 
-# 資料集下載的欄位順序（data/views.py download_dataset_results 的 dataset_download_cols）
-DATASET_DOWNLOAD_COLUMNS = [
-    'datasetName', 'sourceDatabase', 'tbiaPartnerID', 'partnerName', 'tbiaDatasetID', 'datasetID', 'gbifDatasetID',
-    'resourceContacts', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'resourceCitationIdentifier',
-    'datasetPublisher', 'datasetLicense', 'datasetTaxonGroup', 'created', 'modified',
-]
+# 資料集下載的欄位與順序：11/26 起同 API v2（data/views.py download_dataset_results 也用這份）
+DATASET_DOWNLOAD_COLUMNS = API_DATASET_FIELDS
 
 # API 說明寫「公開 API／限制型 API」的欄位，下載改寫成「一般下載／有權限的下載」
 DOWNLOAD_REMARKS = {

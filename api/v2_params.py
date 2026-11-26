@@ -16,7 +16,7 @@ from shapely.errors import ShapelyError
 from data.search_params import (
     parse_range, parse_circle, TAXON_GROUPS, HABITAT_PARAM, NATIVENESS, PROTECTED_STATUS,
     TYPE_STATUS, MEDIA_TYPES, BASIS_OF_RECORD, RANK_EN_TO_SOLR, RANK_SOLR_TO_EN, INFRASPECIES_RANKS,
-    SOURCE_DATABASE_RENAME, to_source_database, taxon_rank_v2,
+    SOURCE_DATABASE_RENAME, to_source_database, taxon_rank_v2, taxon_group_by_habitat,
 )
 from data.fields import API_OCCURRENCE_FIELDS, RESTRICTED_OVERRIDE, API_DATASET_FIELDS
 
@@ -255,6 +255,10 @@ def _empty(v):
     return v is None or v == '' or v == []
 
 
+def _first(v):
+    return (v[0] if v else None) if isinstance(v, list) else v
+
+
 def format_occurrence(doc, restricted, partner_names):
     """Solr doc → v2 occurrence 一筆。全部欄位都輸出、沒有值為 null，順序同 API_OCCURRENCE_FIELDS。
     限制型：raw 欄位有值就取代對應的公開欄位（RESTRICTED_OVERRIDE，與下載相同），raw 欄位本身不輸出。
@@ -275,6 +279,7 @@ def format_occurrence(doc, restricted, partner_names):
     for f in ('created', 'modified'):
         out[f] = format_solr_date(out[f])
     out['taxonRank'] = taxon_rank_v2(out['taxonRank'])
+    out['taxonGroupByHabitat'] = taxon_group_by_habitat(lambda f: _first(doc.get(f)))   # 11/26
     pid = out['tbiaPartnerID']
     out['partnerName'] = partner_names.get(str(pid)) or None if pid else None
     return out

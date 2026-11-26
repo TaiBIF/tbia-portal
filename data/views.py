@@ -1269,7 +1269,7 @@ def download_dataset_results(request):
 
         # 欄位名稱同 v2（3.3）：PG dataset 仍是舊名稱，用 SQL 別名輸出（[P2-2-REMOVE] 之後改欄位名即可）；
         # created / modified 同紀錄下載格式 YYYYMMDD HHMMSS；tbiaPartnerID、partnerName 由 group 對 Partner 帶入
-        from data.field_doc import DATASET_DOWNLOAD_COLUMNS  # 7.1：欄位說明頁共用同一份順序
+        from data.field_doc import DATASET_DOWNLOAD_COLUMNS  # 7.1：欄位說明頁共用同一份順序（11/26 起同 API）
         dataset_download_cols = DATASET_DOWNLOAD_COLUMNS
 
         query = '''SELECT "name","rights_holder","group","tbiaDatasetID","sourceDatasetID","gbifDatasetID","resourceContacts",
@@ -1293,6 +1293,10 @@ def download_dataset_results(request):
         df['sourceDatabase'] = df['sourceDatabase'].map(lambda x: to_source_database(x) if isinstance(x, str) else x)  # [P2-2-REMOVE]
         df['tbiaPartnerID'] = df['group'].map(get_partner_id_by_group)
         df['partnerName'] = df['tbiaPartnerID'].map(lambda x: get_partner_name(x, 'zh'))
+        # 11/26：日期同 API（YYYY-MM-DD → YYYYMMDD）
+        from api.v2_params import format_ymd
+        for c in ('datasetDateStart', 'datasetDateEnd'):
+            df[c] = df[c].map(format_ymd)
         df = df[dataset_download_cols]
 
         response = HttpResponse(content_type='text/csv')

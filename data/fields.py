@@ -229,24 +229,7 @@ def param_label(param, map_dict):
 # Solr 的 uniqueKey 是 id，用 fl 別名 tbiaID:id 輸出 tbiaID；
 # 內部欄位（standardDate、sourceCreated / sourceModified、coordinatePrecision、match_higher_taxon、
 # alternative_name_c / synonyms / misapplied）v2 不對外，下載也不輸出。
-DOWNLOAD_FIELDS = [
-    'tbiaID', 'created', 'modified', 'verbatimEventDate', 'year', 'month', 'day', 'eventTime',
-    'decimalLatitude', 'decimalLongitude', 'verbatimLatitude', 'verbatimLongitude',
-    'county', 'municipality', 'countyCode', 'countryCode', 'geodeticDatum',
-    'coordinateUncertaintyInMeters', 'dataGeneralizations', 'organismQuantity',
-    'datasetID', 'resourceCitationIdentifier', 'sourceDatabase', 'tbiaPartnerID', 'partnerName',
-    'preparations', 'typeStatus', 'verbatimIdentification', 'verbatimScientificName',
-    'verbatimVernacularName', 'scientificNameID', 'scientificNameAuthorship', 'vernacularName',
-    'taxonGroup', 'kingdomChinese', 'phylumChinese', 'classChinese', 'orderChinese',
-    'familyChinese', 'genusChinese', 'nameAccordingTo', 'taxonRank',
-    'eventID', 'samplingProtocol', 'partner', 'identifiedBy',
-    'institutionCode', 'institutionID', 'collectionCode', 'collectionID', 'individualCount',
-    'occurrenceID', 'catalogNumber', 'selfProduced', 'license', 'basisOfRecord', 'recordNumber',
-    'recordedBy', 'datasetName', 'tbiaDatasetID', 'resourceContacts', 'associatedMedia',
-    'mediaLicense', 'organismQuantityType', 'references', 'locality', 'verbatimCoordinateSystem',
-    'verbatimSRS', 'sensitiveCategory', 'taxonID', 'scientificName',
-    'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
-]
+# 11/26：下載欄位順序改為與 API v2 相同（Kim），實際定義見下方 API_OCCURRENCE_FIELDS
 
 # 限制型取值（同 API，3.3 決定）：有權限的下載（單位帳號、管理員、敏感資料審核通過），
 # raw 欄位有值就取代對應的公開欄位，raw 欄位本身不輸出（檔案裡沒有任何 raw* 欄位）。
@@ -264,17 +247,9 @@ RESTRICTED_OVERRIDE = {
 # 有權限的下載要多向 Solr 取 raw 欄位（寫檔時併入公開欄位後丟掉）
 SENSITIVE_FIELDS = list(RESTRICTED_OVERRIDE.values())
 
-DOWNLOAD_FIELDS_WITH_SENSITIVE = DOWNLOAD_FIELDS + SENSITIVE_FIELDS
-
-# 下載 CSV 的 Solr fl（tbiaID 用別名取 id）；沒有權限的查詢（例：敏感審核不通過的單位）不取 raw 欄位
-# partnerName 不是 Solr 欄位，不送給 Solr
-NON_SOLR_DOWNLOAD_FIELDS = ('partnerName',)
-DOWNLOAD_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in DOWNLOAD_FIELDS if f not in NON_SOLR_DOWNLOAD_FIELDS]
-DOWNLOAD_SOLR_FL_WITH_SENSITIVE = DOWNLOAD_SOLR_FL + SENSITIVE_FIELDS
-
 # ---- API v2 ----
-# 5.2：occurrence 回傳欄位，順序同 user.html「回傳欄位」表，partnerName 接在 tbiaPartnerID 後（API 規格調整 11/16）。
-# 欄位集合與 DOWNLOAD_FIELDS 相同（只有順序不同），api/tests_v2.py 有檢查。每筆都輸出全部欄位，沒有值為 null。
+# 5.2：occurrence 回傳欄位，順序同 user.html「回傳欄位」表，partnerName 接在 tbiaPartnerID 後（API 規格調整 11/16）；
+# 11/26 加 taxonGroupByHabitat（taxonGroup 後）。紀錄下載與此相同（DOWNLOAD_FIELDS）。每筆都輸出全部欄位，沒有值為 null。
 API_OCCURRENCE_FIELDS = [
     'tbiaID', 'occurrenceID', 'catalogNumber', 'eventID', 'created', 'modified', 'selfProduced', 'license',
     'basisOfRecord', 'recordNumber', 'recordedBy', 'samplingProtocol', 'partner', 'identifiedBy',
@@ -287,16 +262,26 @@ API_OCCURRENCE_FIELDS = [
     'countryCode', 'county', 'countyCode', 'municipality', 'verbatimEventDate', 'year', 'month', 'day',
     'eventTime', 'verbatimIdentification', 'verbatimScientificName', 'verbatimVernacularName',
     'taxonID', 'scientificName', 'scientificNameAuthorship', 'vernacularName', 'scientificNameID',
-    'nameAccordingTo', 'taxonRank', 'taxonGroup', 'sensitiveCategory',
+    'nameAccordingTo', 'taxonRank', 'taxonGroup', 'taxonGroupByHabitat', 'sensitiveCategory',
     'kingdom', 'kingdomChinese', 'phylum', 'phylumChinese', 'class', 'classChinese',
     'order', 'orderChinese', 'family', 'familyChinese', 'genus', 'genusChinese',
 ]
-API_OCCURRENCE_SOLR_FL = ['tbiaID:id' if f == 'tbiaID' else f for f in API_OCCURRENCE_FIELDS
-                          if f not in NON_SOLR_DOWNLOAD_FIELDS]
+# partnerName（由 tbiaPartnerID 帶入）、taxonGroupByHabitat（由 is_* 組成，11/26）不是 Solr 欄位，不送給 Solr
+NON_SOLR_DOWNLOAD_FIELDS = ('partnerName', 'taxonGroupByHabitat')
+# 組 taxonGroupByHabitat 要多取的 Solr 欄位（同 data/search_params.py HABITAT_PARAM 的值，tests_download 有檢查）
+HABITAT_SOLR_FIELDS = ['is_terrestrial', 'is_freshwater', 'is_brackish', 'is_marine']
+API_OCCURRENCE_SOLR_FL = (['tbiaID:id' if f == 'tbiaID' else f for f in API_OCCURRENCE_FIELDS
+                           if f not in NON_SOLR_DOWNLOAD_FIELDS] + HABITAT_SOLR_FIELDS)
 API_OCCURRENCE_SOLR_FL_WITH_SENSITIVE = API_OCCURRENCE_SOLR_FL + SENSITIVE_FIELDS
 
+# 紀錄下載：欄位、順序、Solr fl 都與 API v2 相同（11/26）；有權限的下載多取 raw 欄位（寫檔時併入公開欄位後丟掉）
+DOWNLOAD_FIELDS = API_OCCURRENCE_FIELDS
+DOWNLOAD_FIELDS_WITH_SENSITIVE = DOWNLOAD_FIELDS + SENSITIVE_FIELDS
+DOWNLOAD_SOLR_FL = API_OCCURRENCE_SOLR_FL
+DOWNLOAD_SOLR_FL_WITH_SENSITIVE = API_OCCURRENCE_SOLR_FL_WITH_SENSITIVE
+
 # 5.3：dataset 回傳欄位，順序同 user.html「資料集 回傳欄位」表，partnerName 接在 tbiaPartnerID 後（API 規格調整 11/16）。
-# 與資料集下載 CSV 的欄位集合相同（下載的順序是 3.3 定的，sourceDatabase 在 tbiaPartnerID 前），api/tests_v2.py 有檢查
+# 資料集下載 CSV 的欄位與順序相同（11/26 改為同 API；data/field_doc.py DATASET_DOWNLOAD_COLUMNS 指向這裡）
 API_DATASET_FIELDS = [
     'datasetName', 'tbiaPartnerID', 'partnerName', 'sourceDatabase', 'tbiaDatasetID', 'datasetID', 'gbifDatasetID',
     'resourceContacts', 'occurrenceCount', 'datasetDateStart', 'datasetDateEnd', 'resourceCitationIdentifier',

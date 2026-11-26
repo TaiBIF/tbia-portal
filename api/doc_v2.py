@@ -229,6 +229,8 @@ OCCURRENCE_FIELDS = [
     ('nameAccordingTo', _('校定學名來源依據'), 'string', _('校定物種學名的參考來源，如臺灣物種名錄的版本。')),
     ('taxonRank', _('鑑定層級'), 'string', _('採用的臺灣物種名錄（TaiCOL）物種編號所對應的分類位階，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>。')),
     ('taxonGroup', _('生物類群'), 'string', _('採用的臺灣物種名錄（TaiCOL）物種編號所對應的物種類群，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>。')),
+    # 11/26：新增回傳欄位（API 與紀錄下載）
+    ('taxonGroupByHabitat', _('物種類群（以棲地區分）'), 'string', _('採用的臺灣物種名錄（TaiCOL）物種編號所對應的棲地類群，多個以逗號分隔（例：<code>terrestrial,freshwater</code>），值與查詢參數 taxonGroupByHabitat 相同，請見<a class="col_blue" href="#vocab-area">控制詞彙列表</a>。')),
     ('sensitiveCategory', _('敏感層級'), 'string', _('依據生物多樣性敏感資料開放作業原則標準所列之敏感層級類別。')),
     ('kingdom', _('界'), 'string', _('「界」之科學名稱。')),
     ('kingdomChinese', _('界中文名'), 'string', _('「界」之中文名稱。')),

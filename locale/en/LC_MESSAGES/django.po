@@ -5764,3 +5764,7 @@ msgstr "Not Applicable (NA)"
 
 msgid "未評估（NE, Not Evaluated）"
 msgstr "Not Evaluated (NE)"
+
+# ---- 11/26 回傳欄位 taxonGroupByHabitat ----
+msgid "採用的臺灣物種名錄（TaiCOL）物種編號所對應的棲地類群，多個以逗號分隔（例：<code>terrestrial,freshwater</code>），值與查詢參數 taxonGroupByHabitat 相同，請見<a class=\"col_blue\" href=\"#vocab-area\">控制詞彙列表</a>。"
+msgstr "Habitat-based taxon groups of the TaiCOL taxon ID applied to the record, separated by commas (e.g. <code>terrestrial,freshwater</code>); same values as the taxonGroupByHabitat query parameter. See <a class=\"col_blue\" href=\"#vocab-area\">Controlled Vocabularies</a>."

@@ -44,12 +44,13 @@ from data.search_params import (
     old_taxon_group_map_c, taxon_group_map_c, split_group_map, SOURCE_DATABASE_RENAME, to_source_database,
     normalize_pairs, canonical_pairs, parse_range, parse_circle, HABITAT_PARAM, TYPE_STATUS,
     TAXON_RANK_GROUPS, INFRASPECIES_RANKS, RANK_SOLR_VALUE, VALID_TAXON_RANKS, taxon_rank_v2,
+    taxon_group_by_habitat,
 )
 from data.fields import (
     TAXON_FACETS, TAXON_KEYWORD_FIELDS, NAME_SEARCH_FIELDS, SOURCE_NAME_FIELDS,
     LATIN_TXT_FIELDS, BIGRAM_FIELDS, NGRAM_FIELDS, map_occurrence, map_collection,
     DOWNLOAD_FIELDS, DOWNLOAD_FIELDS_WITH_SENSITIVE, SENSITIVE_FIELDS, UNSORTABLE_KEYS,
-    DOWNLOAD_SOLR_FL, DOWNLOAD_SOLR_FL_WITH_SENSITIVE, RESTRICTED_OVERRIDE,
+    DOWNLOAD_SOLR_FL, DOWNLOAD_SOLR_FL_WITH_SENSITIVE, RESTRICTED_OVERRIDE, HABITAT_SOLR_FIELDS,
     SPECIES_DOWNLOAD_COLUMNS, SPECIES_DOWNLOAD_BOOL_COLUMNS,
     to_record_field, to_taxa_field, to_v2_field, param_field, param_label,
 )
@@ -464,7 +465,8 @@ def format_species_download(taxa_docs):
 
 def write_download_rows(chunks, writer, out_cols, public_writer=None):
     """把 Solr 的 CSV 內容依 out_cols 重排後寫出：Solr 沒有的欄位補空值、多取的欄位丟掉，
-    created / modified、taxonRank 轉成 API 格式（7.1：值以 API 為準）。表頭由呼叫端寫（每個查詢的表頭不一定相同）。
+    created / modified、taxonRank 轉成 API 格式（7.1：值以 API 為準），taxonGroupByHabitat 由 is_* 組成（11/26，同 API）。
+    表頭由呼叫端寫（每個查詢的表頭不一定相同）。
     限制型取值（同 API）：Solr 結果若含 raw 欄位且有值，就取代 writer 那份的對應公開欄位（RESTRICTED_OVERRIDE）。
     public_writer 給了就同時寫一份只有公開值的版本（永久保存用），兩份來自同一次查詢。"""
     reader = csv.reader(iter_text_lines(chunks))
@@ -481,6 +483,8 @@ def write_download_rows(chunks, writer, out_cols, public_writer=None):
     name_idx = out_cols.index('partnerName') if 'partnerName' in out_cols else None
     id_idx = out_cols.index('tbiaPartnerID') if 'tbiaPartnerID' in out_cols else None
     partner_names = get_partner_name_map('zh') if name_idx is not None and id_idx is not None else {}
+    habitat_idx = out_cols.index('taxonGroupByHabitat') if 'taxonGroupByHabitat' in out_cols else None
+    habitat_pos = {f: pos[f] for f in HABITAT_SOLR_FIELDS if f in pos}
     for row in reader:
         if not row:
             continue
@@ -491,6 +495,9 @@ def write_download_rows(chunks, writer, out_cols, public_writer=None):
             new[rank_idx] = taxon_rank_v2(new[rank_idx])
         if partner_names and new[id_idx]:
             new[name_idx] = partner_names.get(new[id_idx], '')
+        if habitat_idx is not None:
+            new[habitat_idx] = taxon_group_by_habitat(
+                lambda f: row[habitat_pos[f]] if f in habitat_pos and habitat_pos[f] < len(row) else '') or ''
         if public_writer:
             public_writer.writerow(new)
         for k, ri in overrides:
