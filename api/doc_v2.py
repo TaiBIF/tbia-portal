@@ -28,8 +28,8 @@ def example(url):
     return url, url + ('&' if '?' in url else '?') + 'from_example=1'
 
 
-# 更新紀錄的 v2 上線日期：8.1 上線時確認（11/24：上線日期未定，暫填 2026-12-10）
-V2_RELEASE_DATE = '2026-12-10'
+# 更新紀錄的 v2 上線日期（11/27 Kim：12/7 上線）；延期時改這裡，check_step8 W8 會比對切換當天日期
+V2_RELEASE_DATE = '2026-12-07'
 
 # [V1-API-REMOVE] v1 提供期限與 v1 資料最後更新時間（11/24 Kim 確認），v1 / v2 說明頁頁首提醒用
 V1_END_DATE = '2027-06-30'
